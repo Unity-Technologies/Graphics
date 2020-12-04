@@ -8,61 +8,54 @@ namespace UnityEngine.Rendering.HighDefinition
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     public class ProbeReferenceVolumeAuthoringEditor : Editor
     {
-        private SerializedProperty CellSize;
-        private SerializedProperty SizeMode;
-        private SerializedProperty BrickSize;
-        private SerializedProperty MaxSubdivision;
-        private SerializedProperty DrawProbes;
-        private SerializedProperty DrawBricks;
-        private SerializedProperty DrawCells;
-        private SerializedProperty ProbeShading;
-        private SerializedProperty CullingDistance;
-        private SerializedProperty Exposure;
-        private SerializedProperty NormalBias;
-        private SerializedProperty Dilate;
-        private SerializedProperty MaxDilationSamples;
-        private SerializedProperty MaxDilationSampleDistance;
-        private SerializedProperty DilationValidityThreshold;
-        private SerializedProperty GreedyDilation;
-        private SerializedProperty VolumeAsset;
+        private SerializedProperty m_DrawProbes;
+        private SerializedProperty m_DrawBricks;
+        private SerializedProperty m_DrawCells;
+        private SerializedProperty m_ProbeShading;
+        private SerializedProperty m_CullingDistance;
+        private SerializedProperty m_Exposure;
+        private SerializedProperty m_Dilate;
+        private SerializedProperty m_MaxDilationSamples;
+        private SerializedProperty m_MaxDilationSampleDistance;
+        private SerializedProperty m_DilationValidityThreshold;
+        private SerializedProperty m_GreedyDilation;
+        private SerializedProperty m_VolumeAsset;
 
-        private SerializedProperty IndexDimensions;
+        private SerializedProperty m_Profile;
 
         internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
+        internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
 
         private string[] SizeModes = { "Length", "Density" };
         private string[] ProbeShadingModes = { "Size", "SH", "Validity" };
 
-        private static bool VolumeGroupEnabled;
         private static bool ShadingGroupEnabled;
         private static bool DebugVisualizationGroupEnabled;
         private static bool DilationGroupEnabled;
 
         private float DilationValidityThresholdInverted;
 
+        ProbeReferenceVolumeAuthoring actualTarget => target as ProbeReferenceVolumeAuthoring;
+
         private void OnEnable()
         {
-            CellSize = serializedObject.FindProperty("CellSize");
-            SizeMode = serializedObject.FindProperty("SizeMode");
-            BrickSize = serializedObject.FindProperty("BrickSize");
-            MaxSubdivision = serializedObject.FindProperty("MaxSubdivision");
-            DrawProbes = serializedObject.FindProperty("DrawProbes");
-            DrawBricks = serializedObject.FindProperty("DrawBricks");
-            DrawCells = serializedObject.FindProperty("DrawCells");
-            ProbeShading = serializedObject.FindProperty("ProbeShading");
-            CullingDistance = serializedObject.FindProperty("CullingDistance");
-            Exposure = serializedObject.FindProperty("Exposure");
-            NormalBias = serializedObject.FindProperty("NormalBias");
-            Dilate = serializedObject.FindProperty("Dilate");
-            MaxDilationSamples = serializedObject.FindProperty("MaxDilationSamples");
-            MaxDilationSampleDistance = serializedObject.FindProperty("MaxDilationSampleDistance");
-            DilationValidityThreshold = serializedObject.FindProperty("DilationValidityThreshold");
-            GreedyDilation = serializedObject.FindProperty("GreedyDilation");
-            VolumeAsset = serializedObject.FindProperty("VolumeAsset");
-            IndexDimensions = serializedObject.FindProperty("IndexDimensions");
+            // TODO: TMP NAMING for profile.
+            m_Profile = serializedObject.FindProperty("m_Profile");
+            m_DrawProbes = serializedObject.FindProperty("DrawProbes");
+            m_DrawBricks = serializedObject.FindProperty("DrawBricks");
+            m_DrawCells = serializedObject.FindProperty("DrawCells");
+            m_ProbeShading = serializedObject.FindProperty("ProbeShading");
+            m_CullingDistance = serializedObject.FindProperty("CullingDistance");
+            m_Exposure = serializedObject.FindProperty("Exposure");
+            m_Dilate = serializedObject.FindProperty("Dilate");
+            m_MaxDilationSamples = serializedObject.FindProperty("MaxDilationSamples");
+            m_MaxDilationSampleDistance = serializedObject.FindProperty("MaxDilationSampleDistance");
+            m_DilationValidityThreshold = serializedObject.FindProperty("DilationValidityThreshold");
+            m_GreedyDilation = serializedObject.FindProperty("GreedyDilation");
+            m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
 
-            DilationValidityThresholdInverted = 1f - DilationValidityThreshold.floatValue;
+            DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
         }
 
         public override void OnInspectorGUI()
@@ -83,61 +76,65 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EditorGUI.BeginChangeCheck();
 
-            VolumeGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(VolumeGroupEnabled, "Volume");
-            if (VolumeGroupEnabled)
-            {
-                CellSize.intValue = EditorGUILayout.IntField("Cell Size", CellSize.intValue);
-                SizeMode.enumValueIndex = EditorGUILayout.Popup("Brick Size Mode", SizeMode.enumValueIndex, SizeModes);
-                BrickSize.floatValue = EditorGUILayout.FloatField("Brick Size", BrickSize.floatValue);
-                MaxSubdivision.intValue = EditorGUILayout.IntField("Max Subdivision Level", MaxSubdivision.intValue);
-                VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            // The layout system breaks alignment when mixing inspector fields with custom layout'd
+            // fields, do the layout manually instead
+            int buttonWidth = 60;
+            float indentOffset = EditorGUI.indentLevel * 15f;
+            var lineRect = EditorGUILayout.GetControlRect();
+            var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
+            var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - buttonWidth, lineRect.height);
+            var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            ShadingGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(ShadingGroupEnabled, "Shading");
-            if (ShadingGroupEnabled)
+            GUIContent guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+            EditorGUI.PrefixLabel(labelRect, guiContent);
+
+            using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                NormalBias.floatValue = EditorGUILayout.FloatField("Normal Bias", NormalBias.floatValue);
+                EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
+
+                m_Profile.objectReferenceValue = (ProbeReferenceVolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(ProbeReferenceVolumeProfile), false);
+
+                EditorGUI.EndProperty();
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+
+            if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), EditorStyles.miniButton))
+            {
+                // By default, try to put assets in a folder next to the currently active
+                // scene file. If the user isn't a scene, put them in root instead.
+                var targetName = actualTarget.name;
+                var scene = actualTarget.gameObject.scene;
+                var asset = ProbeReferenceVolumeAuthoring.CreateReferenceVolumeProfile(scene, targetName);
+                m_Profile.objectReferenceValue = asset;
+            }
+
+            m_VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, m_VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
 
             DebugVisualizationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DebugVisualizationGroupEnabled, "Debug Visualization");
             if (DebugVisualizationGroupEnabled)
             {
-                DrawCells.boolValue = EditorGUILayout.Toggle("Draw Cells", DrawCells.boolValue);
-                DrawBricks.boolValue = EditorGUILayout.Toggle("Draw Bricks", DrawBricks.boolValue);
-                DrawProbes.boolValue = EditorGUILayout.Toggle("Draw Probes", DrawProbes.boolValue);
-                EditorGUI.BeginDisabledGroup(!DrawProbes.boolValue);
-                ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", ProbeShading.enumValueIndex, ProbeShadingModes);
-                EditorGUI.BeginDisabledGroup(ProbeShading.enumValueIndex != 1);
-                Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", Exposure.floatValue);
+                m_DrawCells.boolValue = EditorGUILayout.Toggle("Draw Cells", m_DrawCells.boolValue);
+                m_DrawBricks.boolValue = EditorGUILayout.Toggle("Draw Bricks", m_DrawBricks.boolValue);
+                m_DrawProbes.boolValue = EditorGUILayout.Toggle("Draw Probes", m_DrawProbes.boolValue);
+                EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
+                m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
+                EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
+                m_Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", m_Exposure.floatValue);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.EndDisabledGroup();
-                CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", CullingDistance.floatValue);
+                m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
             DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
             if (DilationGroupEnabled)
             {
-                Dilate.boolValue = EditorGUILayout.Toggle("Dilate", Dilate.boolValue);
-                EditorGUI.BeginDisabledGroup(!Dilate.boolValue);
-                MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", MaxDilationSamples.intValue);
-                MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", MaxDilationSampleDistance.floatValue);
+                m_Dilate.boolValue = EditorGUILayout.Toggle("Dilate", m_Dilate.boolValue);
+                EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
+                m_MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", m_MaxDilationSamples.intValue);
+                m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", m_MaxDilationSampleDistance.floatValue);
                 DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
-                GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", GreedyDilation.boolValue);
+                m_GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", m_GreedyDilation.boolValue);
                 EditorGUI.EndDisabledGroup();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-
-            // TODO: This needs to be moved to advanced settings as soon as the refactor lands. Also tmp naming.
-            bool indexDimension = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Index field dimensions");
-            if (indexDimension)
-            {
-                int newIndexDimX = EditorGUILayout.DelayedIntField("Index Field Dimension X", IndexDimensions.vector3IntValue.x);
-                int newIndexDimY = EditorGUILayout.DelayedIntField("Index Field Dimension Y", IndexDimensions.vector3IntValue.y);
-                int newIndexDimZ = EditorGUILayout.DelayedIntField("Index Field Dimension Z", IndexDimensions.vector3IntValue.z);
-                IndexDimensions.vector3IntValue = new Vector3Int(newIndexDimX, newIndexDimY, newIndexDimZ);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -155,14 +152,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void Constrain()
         {         
-            CellSize.intValue = Mathf.Max(CellSize.intValue, 1);
-            BrickSize.floatValue = Mathf.Max(BrickSize.floatValue, 1);
-            MaxSubdivision.intValue = Mathf.Clamp(MaxSubdivision.intValue, 0, 15);
-            CullingDistance.floatValue = Mathf.Max(CullingDistance.floatValue, 0);
-            NormalBias.floatValue = Mathf.Max(NormalBias.floatValue, 0);
-            MaxDilationSamples.intValue = Mathf.Max(MaxDilationSamples.intValue, 0);
-            MaxDilationSampleDistance.floatValue = Mathf.Max(MaxDilationSampleDistance.floatValue, 0);
-            DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
+            m_CullingDistance.floatValue = Mathf.Max(m_CullingDistance.floatValue, 0);
+            m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
+            m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
+            m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
         }
     }
 }

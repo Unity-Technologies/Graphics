@@ -109,10 +109,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<Volume> culledVolumes)
         {
             Volume cellVolume = new Volume();
-            cellVolume.Corner = new Vector3(cellPos.x * settings.CellSize, cellPos.y * settings.CellSize, cellPos.z * settings.CellSize);
-            cellVolume.X = new Vector3(settings.CellSize, 0, 0);
-            cellVolume.Y = new Vector3(0, settings.CellSize, 0);
-            cellVolume.Z = new Vector3(0, 0, settings.CellSize);
+            cellVolume.Corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
+            cellVolume.X = new Vector3(settings.cellSize, 0, 0);
+            cellVolume.Y = new Vector3(0, settings.cellSize, 0);
+            cellVolume.Z = new Vector3(0, 0, settings.cellSize);
             cellVolume.Transform(cellTrans);
 
             // Extract all influencers inside the cell

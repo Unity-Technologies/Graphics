@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,6 +13,45 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
     public class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
+        internal static ProbeReferenceVolumeProfile CreateReferenceVolumeProfile(Scene scene, string targetName)
+        {
+            string path;
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                path = "Assets/";
+            }
+            else
+            {
+                var scenePath = Path.GetDirectoryName(scene.path);
+                var extPath = scene.name;
+                var profilePath = scenePath + Path.DirectorySeparatorChar + extPath;
+
+                if (!AssetDatabase.IsValidFolder(profilePath))
+                {
+                    var directories = profilePath.Split(Path.DirectorySeparatorChar);
+                    string rootPath = "";
+                    foreach (var directory in directories)
+                    {
+                        var newPath = rootPath + directory;
+                        if (!AssetDatabase.IsValidFolder(newPath))
+                            AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), directory);
+                        rootPath = newPath + Path.DirectorySeparatorChar;
+                    }
+                }
+
+                path = profilePath + Path.DirectorySeparatorChar;
+            }
+
+            path += targetName + " Profile.asset";
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+
+            var profile = ScriptableObject.CreateInstance<ProbeReferenceVolumeProfile>();
+            AssetDatabase.CreateAsset(profile, path);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return profile;
+        }
+
         // debug gizmo data
         class CellInstancedDebugProbes
         {
@@ -26,13 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private Material debugMaterial;
         private List<CellInstancedDebugProbes> cellDebugData = new List<CellInstancedDebugProbes>();
 
-        // settings
-        public enum BrickSizeMode
-        {
-            Length,
-            Density
-        }
-
         public enum ProbeShadingMode
         {
             Size,
@@ -40,10 +74,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Validity
         }
 
-        public int CellSize = 64;
-        public BrickSizeMode SizeMode;
-        public float BrickSize = 4;
-        public int MaxSubdivision = 2;
+        public ProbeReferenceVolumeProfile m_Profile = null;
+
+        internal int brickSize { get { return m_Profile.BrickSize; } }
+        internal int cellSize { get { return m_Profile.CellSize; } }
+        internal int maxSubdivision { get { return m_Profile.MaxSubdivision; } }
+        internal float normalBias { get { return m_Profile.NormalBias; } }
+        internal Vector3Int indexDimensions { get { return m_Profile.IndexDimensions; } }
 
         public bool DrawProbes = false;
         public bool DrawBricks = false;
@@ -52,7 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float CullingDistance = 200;
 
         public float Exposure = 0f;
-        public float NormalBias = 0.2f;
 
         public bool Dilate = false;
         public int MaxDilationSamples = 16;
@@ -62,7 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset VolumeAsset = null;
 
-        public Vector3Int IndexDimensions = new Vector3Int(1024, 64, 1024);
         // Since this is a property that lives on the authoring component and it will trigger
         // a re-init of the probe reference volume, we need to keep track if it ever changes to
         // trigger the right initialization sequence only when needed.
@@ -75,9 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
-            refVol.SetTRS(transform.position, transform.rotation, BrickSize);
-            refVol.SetMaxSubdivision(MaxSubdivision);
-            refVol.SetNormalBias(NormalBias);
+            refVol.SetTRS(transform.position, transform.rotation, m_Profile.BrickSize);
+            refVol.SetMaxSubdivision(m_Profile.MaxSubdivision);
+            refVol.SetNormalBias(m_Profile.NormalBias);
 
             refVol.AddPendingAssetLoading(VolumeAsset);
         }
@@ -85,16 +120,19 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         private void Start()
         {
+            if (m_Profile == null)
+                m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
+
             CheckInit();
         }
 
         private void OnValidate()
         {
-            if (m_PrevIndexDimensions != IndexDimensions)
+            if (m_PrevIndexDimensions != indexDimensions)
             {
                 var refVol = ProbeReferenceVolume.instance;
-                refVol.AddPendingIndexDimensionChange(IndexDimensions);
-                m_PrevIndexDimensions = IndexDimensions;
+                refVol.AddPendingIndexDimensionChange(indexDimensions);
+                m_PrevIndexDimensions = indexDimensions;
             }
             QueueAssetLoading();
         }
@@ -108,9 +146,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 camPos = cam.position;
             Vector3 camVec = cam.forward;
 
-            float halfCellSize = CellSize * 0.5f;
+            float halfCellSize = m_Profile.CellSize * 0.5f;
             
-            Vector3 cellPos = cellPosition * CellSize + halfCellSize * Vector3.one + refVolTranslation;
+            Vector3 cellPos = cellPosition * m_Profile.CellSize + halfCellSize * Vector3.one + refVolTranslation;
             Vector3 camToCell = cellPos - camPos;
 
             float angle = Vector3.Dot(camVec.normalized, camToCell.normalized);
@@ -222,8 +260,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                    var center = positionF * CellSize + CellSize * 0.5f * Vector3.one;
-                    Gizmos.DrawWireCube(center, Vector3.one * CellSize);
+                    var center = positionF * m_Profile.CellSize + m_Profile.CellSize * 0.5f * Vector3.one;
+                    Gizmos.DrawWireCube(center, Vector3.one * m_Profile.CellSize);
                 }
             }
 

@@ -40,9 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
             
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
-            refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.BrickSize);
-            refVol.SetMaxSubdivision(refVolAuthoring.MaxSubdivision);
-            refVol.SetNormalBias(refVolAuthoring.NormalBias);
+            refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+            refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
+            refVol.SetNormalBias(refVolAuthoring.normalBias);
         }
 
         private static void OnAdditionalProbesBakeCompleted()
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: This should probably be revisited.
                 float sqrt2 = 1.41421356237f;
                 float maxDistance = sqrt2 * currentBrickSize + sqrt2 * otherBrickSize;
-                float interval = settings.MaxDilationSampleDistance / settings.BrickSize;
+                float interval = settings.MaxDilationSampleDistance / settings.brickSize;
                 maxDistance = interval * Mathf.Ceil(maxDistance / interval);
 
                 Vector3 currentBrickCenter = currentBrick.position + Vector3.one * currentBrickSize / 2f;
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
 
             var volumeScale = refVolAuthoring.transform.localScale;
-            var CellSize = refVolAuthoring.CellSize;
+            var CellSize = refVolAuthoring.cellSize;
             var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
             var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
             var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
-                ProbePlacement.Subdivide(cell.position, refVol, refVolAuthoring.CellSize, refVolTransform.posWS, refVolTransform.rot,
+                ProbePlacement.Subdivide(cell.position, refVol, refVolAuthoring.cellSize, refVolTransform.posWS, refVolTransform.rot,
                     influenceVolumes, ref probePositionsArr, ref bricks);
 
                 if (probePositionsArr.Length > 0 && bricks.Count > 0)
