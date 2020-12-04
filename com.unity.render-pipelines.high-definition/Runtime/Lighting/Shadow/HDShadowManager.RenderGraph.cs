@@ -35,6 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
+            InvalidateAtlasOutputsIfNeeded();
+
             // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequestCount != 0 &&
                 (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)))
@@ -73,6 +75,18 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedShadowManager.DefragAtlas(HDLightType.Spot);
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.DefragAtlas(HDLightType.Area);
+        }
+
+        void InvalidateAtlasOutputsIfNeeded()
+        {
+            cachedShadowManager.punctualShadowAtlas.InvalidateOutputIfNeeded();
+            m_Atlas.InvalidateOutputIfNeeded();
+            m_CascadeAtlas.InvalidateOutputIfNeeded();
+            if (ShaderConfig.s_AreaLights == 1)
+            {
+                cachedShadowManager.areaShadowAtlas.InvalidateOutputIfNeeded();
+                m_AreaLightShadowAtlas.InvalidateOutputIfNeeded();
+            }
         }
 
         class BindShadowGlobalResourcesPassData
@@ -191,6 +205,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return default;
+        }
+
+        public void InvalidateOutputIfNeeded()
+        {
+            if (!m_UseSharedTexture)
+            {
+                m_Output = TextureHandle.nullHandle;
+            }
         }
 
         public TextureHandle GetOutputTexture(RenderGraph renderGraph)
