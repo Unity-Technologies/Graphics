@@ -112,16 +112,16 @@ editor-pinning-merge-revisions-2020.2-abv:
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch 10.x.x/release --track 2020.2
 editor-pinning-merge-all:
-    name: Merge all [no ABV] [no CI]
+    name: Merge all [no CI][2020.2 no ABV]
     variables:
         CI: true
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2
-editor-pinning-merge-all-abv:
-    name: Merge all [ABV] [CI]
+editor-pinning-merge-all-ci:
+    name: Merge all [CI][2020.2 no ABV]
     triggers:
         expression: push.branch eq "10.x.x/ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
     variables:
         CI: true
     dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2-abv
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2
