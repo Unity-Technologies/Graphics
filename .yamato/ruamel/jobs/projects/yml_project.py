@@ -19,17 +19,20 @@ def create_project_ymls(metafile):
         job = Project_AllJob(metafile["project"]["name"], editor, expression, metafile["all"]["dependencies"])
         yml[job.job_id] = job.yml
 
+        job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])
+        yml[job.job_id] = job.yml
+
     yml_file = project_filepath_all(metafile["project"]["name"])
     yml_files[yml_file] = yml
 
-        # project_all yml file
-    nightly_yml = {}
-    for editor in metafile['editors']:
-        job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])
-        nightly_yml[job.job_id] = job.nightly_yml
+    #     # project_all yml file
+    # nightly_yml = {}
+    # for editor in metafile['editors']:
+    #     job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])
+    #     nightly_yml[job.job_id] = job.nightly_yml
 
-    yml_file = project_filepath_nightly(metafile["project"]["name"])
-    yml_files[yml_file] = nightly_yml
+    # yml_file = project_filepath_nightly(metafile["project"]["name"])
+    # yml_files[yml_file] = nightly_yml
 
     # project platform_api specific yml files
     project = metafile["project"]

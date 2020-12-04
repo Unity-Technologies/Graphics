@@ -27,15 +27,15 @@ all_project_ci_nightly_trunk:
     dependencies:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
-      -  path: .yamato/nightly-universal.yml#Nightly_Universal_trunk
+      -  path: .yamato/all-universal.yml#Nightly_Universal_trunk
          rerun: on-new-revision
-      -  path: .yamato/nightly-shadergraph.yml#Nightly_ShaderGraph_trunk
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on-new-revision
-      -  path: .yamato/nightly-hdrp.yml#Nightly_HDRP_trunk
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/nightly-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
+      -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/nightly-vfx_urp.yml#Nightly_VFX_URP_trunk
+      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_trunk
          rerun: on-new-revision
     triggers:
         recurring:

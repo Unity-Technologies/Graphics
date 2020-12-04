@@ -16,6 +16,11 @@ PR_URPUpdate_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
+Nightly_URPUpdate_trunk:
+    name: Nightly URPUpdate - trunk
+    dependencies:
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
+         rerun: on-new-revision
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:
@@ -24,6 +29,13 @@ PR_URPUpdate_CUSTOM-REVISION:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+Nightly_URPUpdate_CUSTOM-REVISION:
+    name: Nightly URPUpdate - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

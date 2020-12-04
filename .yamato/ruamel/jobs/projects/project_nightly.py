@@ -7,7 +7,7 @@ class Project_NightlyJob():
     def __init__(self, project, editor, dependencies_in_nightly):
         self.project = project
         self.job_id = project_job_id_nightly(project, editor["name"])
-        self.nightly_yml = self.get_job_definition(project, editor, dependencies_in_nightly).get_yml()
+        self.yml = self.get_job_definition(project, editor, dependencies_in_nightly).get_yml()
 
     
     def get_job_definition(self, project, editor, dependencies_in_nightly):

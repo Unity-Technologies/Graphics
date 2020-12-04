@@ -31,6 +31,11 @@ PR_URP_Performance_BoatAttack_trunk:
     variables:
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
+Nightly_URP_Performance_BoatAttack_trunk:
+    name: Nightly URP_Performance_BoatAttack - trunk
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
+         rerun: on-new-revision
 PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
@@ -56,3 +61,10 @@ PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
+Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
+    name: Nightly URP_Performance_BoatAttack - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set

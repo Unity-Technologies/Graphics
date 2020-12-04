@@ -22,6 +22,11 @@ PR_ShaderGraph_trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
+Nightly_ShaderGraph_trunk:
+    name: Nightly ShaderGraph - trunk
+    dependencies:
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
+         rerun: on-new-revision
 PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
@@ -37,5 +42,12 @@ PR_ShaderGraph_CUSTOM-REVISION:
          rerun: always
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+Nightly_ShaderGraph_CUSTOM-REVISION:
+    name: Nightly ShaderGraph - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

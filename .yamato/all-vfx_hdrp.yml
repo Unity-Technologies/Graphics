@@ -16,6 +16,11 @@ PR_VFX_HDRP_trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
+Nightly_VFX_HDRP_trunk:
+    name: Nightly VFX_HDRP - trunk
+    dependencies:
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
+         rerun: on-new-revision
 PR_VFX_HDRP_CUSTOM-REVISION:
     name: VFX_HDRP PR Job - CUSTOM-REVISION
     dependencies:
@@ -25,5 +30,12 @@ PR_VFX_HDRP_CUSTOM-REVISION:
          rerun: always
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+Nightly_VFX_HDRP_CUSTOM-REVISION:
+    name: Nightly VFX_HDRP - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
+         rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
