@@ -63,7 +63,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                int cameraSamples = descriptor.msaaSamples;
+                // XRTODO: Should check source descriptor.bindMS here once we finished RTHandle refactor.
+                int cameraSamples = (!SystemInfo.supportsMultisampleAutoResolve && SystemInfo.supportsMultisampledTextures != 0) ? descriptor.msaaSamples : 1;
 
                 CameraData cameraData = renderingData.cameraData;
 
