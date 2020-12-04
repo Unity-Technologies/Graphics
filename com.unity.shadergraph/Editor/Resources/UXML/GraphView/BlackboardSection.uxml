@@ -4,4 +4,5 @@
         <ui:Label name="sectionTitleLabel" pickingMode="Ignore"/>
     </ui:VisualElement>
     <ui:VisualElement name="rowsContainer" pickingMode="Ignore" />
+        <ui:VisualElement name="dragIndicator" pickingMode="Ignore" />
 </UXML>
