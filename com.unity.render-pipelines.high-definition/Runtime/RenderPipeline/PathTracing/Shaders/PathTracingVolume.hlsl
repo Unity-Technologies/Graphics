@@ -52,32 +52,10 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     tMax = tFog;
 #endif
 
-    // FIXME: not quite sure what the sigmaS, sigmaT values are supposed to be...
-    const bool hasSurface = t < FLT_MAX;
-    const float sigmaS = hasSurface ? sqrt(Luminance(_HeightFogBaseScattering.xyz)) : 1.0;
+    // FIXME: not quite sure what the sigmaT value is supposed to be...
     const float sigmaT = _HeightFogBaseExtinction;
-    const float transmittanceMax = max(exp(-tMax * sigmaT), 0.01);
-    const float transmittanceThreshold = hasSurface ? 1.0 - min(0.5, transmittanceMax) : 1.0;
-
-    const float pdfNoVolA = 1.0 - sigmaS;
-    const float pdfNoVolB = sigmaS * (1.0 - transmittanceThreshold);
-    const float pdfNoVol = pdfNoVolA + pdfNoVolB;
-    pdfVol *= 1.0 - pdfNoVol;
-
-    if (sample >= sigmaS)
-    {
-        // Re-scale the sample
-        sample -= sigmaS;
-        sample /= 1.0 - sigmaS;
-
-        // Set the pdf
-        pdf *= pdfNoVol;
-
-        return false;
-    }
-
-    // Re-scale the sample
-    sample /= sigmaS;
+    const float transmittanceTMax = max(exp(-tMax * sigmaT), 0.01);
+    const float transmittanceThreshold = t < FLT_MAX ? 1.0 - min(0.5, transmittanceTMax) : 1.0;
 
     if (sample >= transmittanceThreshold)
     {
@@ -85,8 +63,8 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
         sample -= transmittanceThreshold;
         sample /= 1.0 - transmittanceThreshold;
 
-        // Set the pdf
-        pdf *= pdfNoVol;
+        // Adjust the pdf
+        pdf *= 1.0 - transmittanceThreshold;
 
         return false;
     }
@@ -94,23 +72,26 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     // Re-scale the sample
     sample /= transmittanceThreshold;
 
+    // Adjust the pdf
+    pdf *= pdfVol * transmittanceThreshold;
+
     if (sampleLocalLights)
     {
         // Linear sampling
         float deltaT = tMax - tMin;
         t = tMin + sample * deltaT;
 
-        // Set the pdf
-        pdf *= pdfVol / deltaT;
+        // Adjust the pdf
+        pdf /= deltaT;
     }
     else
     {
         // Exponential sampling
-        float transmittance = transmittanceMax + sample * (1.0 - transmittanceMax);
+        float transmittance = transmittanceTMax + sample * (1.0 - transmittanceTMax);
         t = -log(transmittance) / sigmaT;
 
-        // Set the pdf
-        pdf *= pdfVol * sigmaT * transmittance;
+        // Adjust the pdf
+        pdf *= sigmaT * transmittance;
     }
 
     return true;
