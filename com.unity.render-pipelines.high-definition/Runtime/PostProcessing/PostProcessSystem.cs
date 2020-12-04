@@ -53,15 +53,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_BokehIndirectCmd;
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
-        RTHandle[] dofSafePathMips = new RTHandle[4];
 
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
 
         // Bloom data
         const int k_MaxBloomMipCount = 16;
-        readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_MaxBloomMipCount + 1];
-        readonly RTHandle[] m_BloomMipsUp = new RTHandle[k_MaxBloomMipCount + 1];
         readonly Vector4[] m_BloomMipsInfo = new Vector4[k_MaxBloomMipCount + 1];   // xy: size, zw: scale
         int m_BloomMipCount = k_MaxBloomMipCount;
 
@@ -71,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Color grading data
         readonly int m_LutSize;
         readonly GraphicsFormat m_LutFormat;
-        RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
         // Prefetched components (updated on every frame)
@@ -117,19 +113,12 @@ namespace UnityEngine.Rendering.HighDefinition
         HDPhysicalCamera m_PhysicalCamera;
         static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
 
-        // Misc (re-usable)
-        RTHandle m_TempTexture1024; // RGHalf
-        RTHandle m_TempTexture32;   // RGHalf
-
         // HDRP has the following behavior regarding alpha:
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
         // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
         // If the user explicitly requests a color buffer without alpha for post-processing (for performance reasons) but the rendering passes have alpha, then the alpha will be copied.
         readonly bool m_EnableAlpha;
         readonly bool m_KeepAlpha;
-        RTHandle m_AlphaTexture; // RHalf
-
-        readonly TargetPool m_Pool;
 
         readonly bool m_UseSafePath;
         bool m_PostProcessEnabled;
@@ -185,9 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
-            // Initialize our target pool to ease RT management
-            m_Pool = new TargetPool();
-
             // Use a custom RNG, we don't want to mess with the Unity one that the users might be
             // relying on (breaks determinism in their code)
             m_Random = new System.Random();
@@ -212,16 +198,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Empty EV100 Exposure");
 
             m_DebugExposureData = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                enableRandomWrite: true, name: "Debug Exposure Info"
-            );
+                enableRandomWrite: true, name: "Debug Exposure Info");
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
         }
 
         public void Cleanup()
         {
-            CleanupNonRenderGraphResources();
-
             RTHandles.Release(m_EmptyExposureTexture);
             m_EmptyExposureTexture = null;
 
@@ -246,74 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposureData = null;
         }
 
-        public void InitializeNonRenderGraphResources(HDRenderPipelineAsset hdAsset)
-        {
-            m_NonRenderGraphResourcesAvailable = true;
-
-            m_InternalLogLut = RTHandles.Alloc(
-                name: "Color Grading Log Lut",
-                dimension: TextureDimension.Tex3D,
-                width: m_LutSize,
-                height: m_LutSize,
-                slices: m_LutSize,
-                depthBufferBits: DepthBits.None,
-                colorFormat: m_LutFormat,
-                filterMode: FilterMode.Bilinear,
-                wrapMode: TextureWrapMode.Clamp,
-                anisoLevel: 0,
-                useMipMap: false,
-                enableRandomWrite: true
-            );
-
-            // Misc targets
-            m_TempTexture1024 = RTHandles.Alloc(
-                1024, 1024, colorFormat: GraphicsFormat.R16G16_SFloat,
-                enableRandomWrite: true, name: "Average Luminance Temp 1024"
-            );
-
-            m_TempTexture32 = RTHandles.Alloc(
-                32, 32, colorFormat: GraphicsFormat.R16G16_SFloat,
-                enableRandomWrite: true, name: "Average Luminance Temp 32"
-            );
-
-            if (m_KeepAlpha)
-            {
-                m_AlphaTexture = RTHandles.Alloc(
-                    Vector2.one, slices: TextureXR.slices, dimension: TextureXR.dimension,
-                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "Alpha Channel Copy"
-                );
-            }
-        }
-
-        public void CleanupNonRenderGraphResources()
-        {
-            m_NonRenderGraphResourcesAvailable = false;
-
-            m_Pool.Cleanup();
-
-            RTHandles.Release(m_TempTexture1024);
-            RTHandles.Release(m_TempTexture32);
-            RTHandles.Release(m_AlphaTexture);
-            RTHandles.Release(m_InternalLogLut);
-            CoreUtils.SafeRelease(m_BokehNearKernel);
-            CoreUtils.SafeRelease(m_BokehFarKernel);
-            CoreUtils.SafeRelease(m_BokehIndirectCmd);
-            CoreUtils.SafeRelease(m_NearBokehTileList);
-            CoreUtils.SafeRelease(m_FarBokehTileList);
-            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
-
-            m_TempTexture1024           = null;
-            m_TempTexture32             = null;
-            m_AlphaTexture              = null;
-            m_InternalLogLut            = null;
-            m_BokehNearKernel           = null;
-            m_BokehFarKernel            = null;
-            m_BokehIndirectCmd          = null;
-            m_NearBokehTileList         = null;
-            m_FarBokehTileList          = null;
-            m_ContrastAdaptiveSharpen   = null;
-        }
-
         // In some cases, the internal buffer of render textures might be invalid.
         // Usually when using these textures with API such as SetRenderTarget, they are recreated internally.
         // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
@@ -322,17 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_EmptyExposureTexture.rt.IsCreated())
                 SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
-            if (!m_NonRenderGraphResourcesAvailable)
-                return;
-
             HDUtils.CheckRTCreated(m_DebugExposureData.rt);
-            HDUtils.CheckRTCreated(m_InternalLogLut.rt);
-            HDUtils.CheckRTCreated(m_TempTexture1024.rt);
-            HDUtils.CheckRTCreated(m_TempTexture32.rt);
-            if (m_KeepAlpha)
-            {
-                HDUtils.CheckRTCreated(m_AlphaTexture.rt);
-            }
         }
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
@@ -424,439 +329,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
-        }
-
-        void PoolSourceGuard(ref RTHandle src, RTHandle dst, RTHandle colorBuffer)
-        {
-            // Special case to handle the source buffer, we only want to send it back to our
-            // target pool if it's not the input color buffer
-            if (src != colorBuffer) m_Pool.Recycle(src);
-            src = dst;
-        }
-
-        struct ClearWithGuardBandsParameters
-        {
-            public Material clearMaterial;
-            public int cameraWidth;
-            public int cameraHeight;
-        }
-
-        ClearWithGuardBandsParameters PrepareClearWithGuardBandsParameters(HDCamera camera)
-        {
-            ClearWithGuardBandsParameters parameters = new ClearWithGuardBandsParameters();
-            parameters.clearMaterial = m_ClearBlackMaterial;
-            parameters.cameraWidth = camera.actualWidth;
-            parameters.cameraHeight = camera.actualHeight;
-
-            return parameters;
-        }
-
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RenderTargetIdentifier finalRT, RTHandle depthBuffer, RTHandle depthMipChain, RTHandle motionVecTexture, bool flipY)
-        {
-            var dynResHandler = DynamicResolutionHandler.instance;
-
-            m_Pool.SetHWDynamicResolutionState(camera);
-
-            void PoolSource(ref RTHandle src, RTHandle dst)
-            {
-                PoolSourceGuard(ref src, dst, colorBuffer);
-            }
-
-            bool isSceneView = camera.camera.cameraType == CameraType.SceneView;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PostProcessing)))
-            {
-                // Save the alpha and apply it back into the final pass if rendering in fp16 and post-processing in r11g11b10
-                if (m_KeepAlpha)
-                {
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
-                    {
-                        DoCopyAlpha(PrepareCopyAlphaParameters(camera), colorBuffer, m_AlphaTexture, cmd);
-                    }
-                }
-                var source = colorBuffer;
-
-                if (m_PostProcessEnabled)
-                {
-                    // Optional NaN killer before post-processing kicks in
-                    bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
-
-#if UNITY_EDITOR
-                    if (isSceneView)
-                        stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
-#endif
-
-                    if (stopNaNs)
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.StopNaNs)))
-                        {
-                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            var stopNanParams = PrepareStopNaNParameters(camera);
-                            DoStopNaNs(stopNanParams, cmd, source, destination);
-                            PoolSource(ref source, destination);
-                        }
-                    }
-                }
-
-                // Dynamic exposure - will be applied in the next frame
-                // Not considered as a post-process so it's not affected by its enabled state
-                if (!IsExposureFixed(camera) && m_ExposureControlFS)
-                {
-                    var exposureParameters = PrepareExposureParameters(camera);
-
-                    GrabExposureRequiredTextures(camera, out var prevExposure, out var nextExposure);
-
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
-                    {
-                        if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
-                        {
-                            DoHistogramBasedExposure(exposureParameters, cmd, source, prevExposure, nextExposure, m_DebugExposureData);
-                        }
-                        else
-                        {
-                            DoDynamicExposure(exposureParameters, cmd, source, prevExposure, nextExposure, m_TempTexture1024, m_TempTexture32);
-                        }
-
-                        // On reset history we need to apply dynamic exposure immediately to avoid
-                        // white or black screen flashes when the current exposure isn't anywhere
-                        // near 0
-                        if (camera.resetPostProcessingHistory)
-                        {
-                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            ApplyExposure(PrepareApplyExposureParameters(camera), cmd, source, destination, GetPreviousExposureTexture(camera));
-                            PoolSource(ref source, destination);
-                        }
-                    }
-                }
-
-                if (m_PostProcessEnabled)
-                {
-                    // Temporal anti-aliasing goes first
-                    bool taaEnabled = false;
-
-                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
-                        {
-                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
-                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                        }
-                    }
-
-                    if (m_AntialiasingFS)
-                    {
-                        taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
-
-                        if (taaEnabled)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
-                            {
-                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                                var taaParams = PrepareTAAParameters(camera);
-                                GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
-                                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
-                                DoTemporalAntialiasing(taaParams, cmd, source, destination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen, nextMVLen);
-                                PoolSource(ref source, destination);
-                            }
-                        }
-                        else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SMAA)))
-                            {
-                                var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                                RTHandle smaaEdgeTex, smaaBlendTex;
-                                AllocateSMAARenderTargets(camera, out smaaEdgeTex, out smaaBlendTex);
-                                DoSMAA(PrepareSMAAParameters(camera), cmd, source, smaaEdgeTex, smaaBlendTex, destination, depthBuffer);
-                                RecycleSMAARenderTargets(smaaEdgeTex, smaaBlendTex);
-                                PoolSource(ref source, destination);
-                            }
-                        }
-                    }
-
-                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
-                        {
-                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
-                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                        }
-                    }
-
-                    bool postDoFTAAEnabled = false;
-
-                    // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
-                    bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                        m_PathTracing.enable.value &&
-                        camera.camera.cameraType != CameraType.Preview &&
-                        m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
-
-                    // Depth of Field is done right after TAA as it's easier to just re-project the CoC
-                    // map rather than having to deal with all the implications of doing it before TAA
-                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
-                        {
-                            // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                            if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
-                            {
-                                camera.resetPostProcessingHistory = true;
-                            }
-
-                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            var dofParameters = PrepareDoFParameters(camera);
-
-                            if (!m_DepthOfField.physicallyBased)
-                            {
-                                RTHandle pingNearRGB = null, pongNearRGB = null, nearCoC = null, nearAlpha = null,
-                                         dilatedNearCoC = null, pingFarRGB = null, pongFarRGB = null, farCoC = null;
-                                float scale = 1f / (float)dofParameters.resolution;
-                                var screenScale = new Vector2(scale, scale);
-
-                                if (dofParameters.nearLayerActive)
-                                {
-                                    pingNearRGB = m_Pool.Get(screenScale, m_ColorFormat);
-                                    pongNearRGB = m_Pool.Get(screenScale, m_ColorFormat);
-                                    nearCoC = m_Pool.Get(screenScale, k_CoCFormat);
-                                    nearAlpha = m_Pool.Get(screenScale, k_CoCFormat);
-                                    dilatedNearCoC = m_Pool.Get(screenScale, k_CoCFormat);
-                                }
-
-                                if (dofParameters.farLayerActive)
-                                {
-                                    pingFarRGB = m_Pool.Get(screenScale, m_ColorFormat, true);
-                                    pongFarRGB = m_Pool.Get(screenScale, m_ColorFormat);
-                                    farCoC = m_Pool.Get(screenScale, k_CoCFormat, true);
-                                }
-
-                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat);
-
-                                if (m_UseSafePath)
-                                {
-                                    PrepareDoFMipsTarget(scale, camera);
-                                }
-
-                                int passCount = Mathf.CeilToInt((dofParameters.nearMaxBlur + 2f) / 4f);
-                                RTHandle dilationPingPongRT = null;
-                                if (passCount > 1)
-                                {
-                                    dilationPingPongRT = m_Pool.Get(screenScale, k_CoCFormat);
-                                }
-
-                                RTHandle prevCoC = null;
-                                RTHandle nextCoC = null;
-                                if (taaEnabled)
-                                    GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: false);
-
-                                ValidateComputeBuffer(ref m_BokehNearKernel, dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint));
-                                ValidateComputeBuffer(ref m_BokehFarKernel, dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint));
-                                ValidateComputeBuffer(ref m_BokehIndirectCmd, 3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments);
-
-                                // Tile coordinates are stored as 16bit (good enough for resolutions up to 64K)
-                                ValidateComputeBuffer(ref m_NearBokehTileList, dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append);
-                                ValidateComputeBuffer(ref m_FarBokehTileList, dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append);
-                                m_NearBokehTileList.SetCounterValue(0u);
-                                m_FarBokehTileList.SetCounterValue(0u);
-
-                                DoDepthOfField(dofParameters, cmd, source, destination, depthBuffer, pingNearRGB, pongNearRGB, nearCoC, nearAlpha,
-                                    dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, dofSafePathMips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture,
-                                    m_BokehNearKernel, m_BokehFarKernel, m_BokehIndirectCmd, m_NearBokehTileList, m_FarBokehTileList,  taaEnabled);
-
-                                m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
-
-                                if (dofParameters.farLayerActive)
-                                {
-                                    m_Pool.Recycle(pingFarRGB);
-                                    m_Pool.Recycle(pongFarRGB);
-                                    m_Pool.Recycle(farCoC);
-                                }
-
-                                if (dofParameters.nearLayerActive)
-                                {
-                                    m_Pool.Recycle(pingNearRGB);
-                                    m_Pool.Recycle(pongNearRGB);
-                                    m_Pool.Recycle(nearCoC);
-                                    m_Pool.Recycle(nearAlpha);
-                                    m_Pool.Recycle(dilatedNearCoC);
-                                }
-
-                                if (m_UseSafePath)
-                                {
-                                    for (int i = 0; i < 4; ++i)
-                                    {
-                                        m_Pool.Recycle(dofSafePathMips[i]);
-                                    }
-                                }
-
-                                if (passCount > 1)
-                                {
-                                    m_Pool.Recycle(dilationPingPongRT);
-                                }
-
-                                m_Pool.Recycle(fullresCoC);
-                            }
-                            else
-                            {
-                                RTHandle prevCoC = null;
-                                RTHandle nextCoC = null;
-                                if (taaEnabled)
-                                    GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
-
-                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
-                                var colorPyramid = m_Pool.Get(Vector2.one, m_ColorFormat, true);
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, taaEnabled);
-
-                                m_Pool.Recycle(fullresCoC);
-                                m_Pool.Recycle(colorPyramid);
-                            }
-                            PoolSource(ref source, destination);
-
-                            // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-                            if (taaEnabled && m_DepthOfField.physicallyBased)
-                            {
-                                var taaDestination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                                bool postDof = true;
-                                var taaParams = PrepareTAAParameters(camera, postDof);
-
-                                GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDof);
-                                DoTemporalAntialiasing(taaParams, cmd, source, taaDestination, motionVecTexture, depthBuffer, depthMipChain, prevHistory, nextHistory, prevMVLen: null, nextMVLen: null);
-                                PoolSource(ref source, taaDestination);
-                                postDoFTAAEnabled = true;
-                            }
-
-                            m_IsDoFHisotoryValid = (m_DepthOfField.physicallyBased && taaEnabled);
-                        }
-                    }
-
-                    if (!postDoFTAAEnabled)
-                    {
-                        ReleasePostDoFTAAHistoryTextures(camera);
-                    }
-
-                    // Motion blur after depth of field for aesthetic reasons (better to see motion
-                    // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !camera.resetPostProcessingHistory && m_MotionBlurFS)
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlur)))
-                        {
-                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            var mbParams = PrepareMotionBlurParameters(camera);
-                            RTHandle preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin;
-                            AllocateMotionBlurRenderTargets(mbParams, camera,
-                                out preppedMotionVec, out minMaxTileVel,
-                                out maxTileNeigbourhood, out tileToScatterMax,
-                                out tileToScatterMin);
-                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, depthMipChain, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
-                            RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
-
-                            PoolSource(ref source, destination);
-                        }
-                    }
-
-                    // Panini projection is done as a fullscreen pass after all depth-based effects are
-                    // done and before bloom kicks in
-                    // This is one effect that would benefit from an overscan mode or supersampling in
-                    // HDRP to reduce the amount of resolution lost at the center of the screen
-                    if (m_PaniniProjection.IsActive() && !isSceneView && m_PaniniProjectionFS)
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PaniniProjection)))
-                        {
-                            var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                            DoPaniniProjection(PreparePaniniProjectionParameters(camera), cmd, source, destination);
-                            PoolSource(ref source, destination);
-                        }
-                    }
-
-                    // Combined post-processing stack - always runs if postfx is enabled
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UberPost)))
-                    {
-                        UberPostParameters uberPostParams = PrepareUberPostParameters(camera, isSceneView);
-
-                        // Generate the bloom texture
-                        bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
-
-                        if (bloomActive)
-                        {
-                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
-                            {
-                                ComputeBloomMipSizesAndScales(camera);
-                                AllocateBloomMipTextures();
-                                DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp);
-                                RecycleUnusedBloomMips();
-                            }
-                        }
-                        else
-                        {
-                            cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                        }
-
-                        // Build the color grading lut
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
-                        {
-                            var parameters = PrepareColorGradingParameters();
-                            DoColorGrading(parameters, m_InternalLogLut, cmd);
-                        }
-
-                        // Run
-                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-
-                        DoUberPostProcess(uberPostParams, source, destination, m_InternalLogLut, bloomActive ? m_BloomMipsUp[0] : TextureXR.GetBlackTexture(), cmd);
-
-                        m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.ColorLog);
-
-                        // Cleanup
-                        if (bloomActive) m_Pool.Recycle(m_BloomMipsUp[0]);
-                        m_BloomMipsUp[0] = null;
-
-                        PoolSource(ref source, destination);
-                    }
-
-                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                    {
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterPP)))
-                        {
-                            foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
-                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                        }
-                    }
-                }
-
-                if (dynResHandler.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
-                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing &&
-                    m_AntialiasingFS)
-                {
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FXAA)))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                        DoFXAA(PrepareFXAAParameters(camera), cmd, source, destination);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Contrast Adaptive Sharpen Upscaling
-                if (dynResHandler.DynamicResolutionEnabled() &&
-                    dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
-                {
-                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                        ValidateComputeBuffer(ref m_ContrastAdaptiveSharpen, 2, sizeof(uint) * 4);
-
-                        DoContrastAdaptiveSharpening(PrepareContrastAdaptiveSharpeningParameters(camera), cmd, source, destination, m_ContrastAdaptiveSharpen);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Final pass
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FinalPost)))
-                {
-                    var finalPassParameters = PrepareFinalPass(camera, blueNoise, flipY);
-                    RTHandle alphaTexture = m_KeepAlpha ? m_AlphaTexture : TextureXR.GetWhiteTexture();
-                    DoFinalPass(finalPassParameters, source, afterPostProcessTexture, finalRT, alphaTexture, cmd);
-                    PoolSource(ref source, null);
-                }
-            }
-
-            camera.resetPostProcessingHistory = false;
         }
 
         struct UberPostParameters
@@ -2026,17 +1498,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void PrepareDoFMipsTarget(float dofScale, HDCamera camera)
-        {
-            var mipScale = dofScale;
-            for (int i = 0; i < 4; i++)
-            {
-                mipScale *= 0.5f;
-                var size = new Vector2Int(Mathf.RoundToInt(camera.actualWidth * mipScale), Mathf.RoundToInt(camera.actualHeight * mipScale));
-                dofSafePathMips[i] = m_Pool.Get(new Vector2(mipScale, mipScale), m_ColorFormat);
-            }
-        }
-
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -2781,40 +2242,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void AllocateMotionBlurRenderTargets(in MotionBlurParameters motionBlurParams, HDCamera camera,
-            out RTHandle preppedMotionVec, out RTHandle minMaxTileVel,
-            out RTHandle maxTileNeigbourhood, out RTHandle tileToScatterMax,
-            out RTHandle tileToScatterMin)
-        {
-            Vector2 tileTexScale = new Vector2((float)motionBlurParams.tileTargetSize.x / camera.actualWidth, (float)motionBlurParams.tileTargetSize.y / camera.actualHeight);
-
-
-            preppedMotionVec = m_Pool.Get(Vector2.one, GraphicsFormat.B10G11R11_UFloatPack32);
-            minMaxTileVel = m_Pool.Get(tileTexScale, GraphicsFormat.B10G11R11_UFloatPack32);
-            maxTileNeigbourhood = m_Pool.Get(tileTexScale, GraphicsFormat.B10G11R11_UFloatPack32);
-            tileToScatterMax = null;
-            tileToScatterMin = null;
-            if (motionBlurParams.motionblurSupportScattering)
-            {
-                tileToScatterMax = m_Pool.Get(tileTexScale, GraphicsFormat.R32_UInt);
-                tileToScatterMin = m_Pool.Get(tileTexScale, GraphicsFormat.R16_SFloat);
-            }
-        }
-
-        void RecycleMotionBlurRenderTargets(RTHandle preppedMotionVec, RTHandle minMaxTileVel,
-            RTHandle maxTileNeigbourhood, RTHandle tileToScatterMax,
-            RTHandle tileToScatterMin)
-        {
-            m_Pool.Recycle(minMaxTileVel);
-            m_Pool.Recycle(maxTileNeigbourhood);
-            m_Pool.Recycle(preppedMotionVec);
-            if (m_MotionBlurSupportsScattering)
-            {
-                m_Pool.Recycle(tileToScatterMax);
-                m_Pool.Recycle(tileToScatterMin);
-            }
-        }
-
         static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle depthTexture, RTHandle motionVectorTexture,
             RTHandle preppedMotionVec, RTHandle minMaxTileVel,
             RTHandle maxTileNeigbourhood, RTHandle tileToScatterMax,
@@ -3225,32 +2652,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.bloomDirtTileOffset = dirtTileOffset;
             parameters.bloomThreshold = GetBloomThresholdParams();
             parameters.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
-        }
-
-        void AllocateBloomMipTextures()
-        {
-            // Prepare targets
-            // We could have a single texture with mips but because we can't bind individual mips as
-            // SRVs right now we have to ping-pong between buffers and make the code more
-            // complicated than it should be
-            for (int i = 0; i < m_BloomMipCount; i++)
-            {
-                var scale = new Vector2(m_BloomMipsInfo[i].z, m_BloomMipsInfo[i].w);
-                var pixelSize = new Vector2Int((int)m_BloomMipsInfo[i].x, (int)m_BloomMipsInfo[i].y);
-
-                m_BloomMipsDown[i] = m_Pool.Get(scale, m_ColorFormat);
-                m_BloomMipsUp[i] = m_Pool.Get(scale, m_ColorFormat);
-            }
-        }
-
-        void RecycleUnusedBloomMips()
-        {
-            // Cleanup
-            for (int i = 0; i < m_BloomMipCount; i++)
-            {
-                m_Pool.Recycle(m_BloomMipsDown[i]);
-                if (i > 0) m_Pool.Recycle(m_BloomMipsUp[i]);
-            }
         }
 
         static void DoBloom(in BloomParameters bloomParameters, CommandBuffer cmd, RTHandle source, RTHandle[] bloomMipsDown, RTHandle[] bloomMipsUp)
@@ -3803,18 +3204,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void AllocateSMAARenderTargets(HDCamera camera, out RTHandle smaaEdgeTex, out RTHandle smaaBlendTex)
-        {
-            smaaEdgeTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
-            smaaBlendTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
-        }
-
-        void RecycleSMAARenderTargets(RTHandle smaaEdgeTex, RTHandle smaaBlendTex)
-        {
-            m_Pool.Recycle(smaaEdgeTex);
-            m_Pool.Recycle(smaaBlendTex);
-        }
-
         static void DoSMAA(in SMAAParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle smaaEdgeTex, RTHandle smaaBlendTex, RTHandle destination, RTHandle depthBuffer)
         {
             parameters.smaaMaterial.SetVector(HDShaderIDs._SMAARTMetrics, parameters.smaaRTMetrics);
@@ -4078,184 +3467,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             HDUtils.DrawFullScreen(cmd, backBufferRect, finalPassMaterial, destination);
-        }
-
-        #endregion
-
-        #region User Post Processes
-
-        internal void DoUserAfterOpaqueAndSky(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
-        {
-            if (!camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                return;
-
-            RTHandle source = colorBuffer;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
-            {
-                bool needsBlitToColorBuffer = false;
-                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
-                    needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-
-                if (needsBlitToColorBuffer)
-                {
-                    HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
-                }
-            }
-
-            PoolSourceGuard(ref source, null, colorBuffer);
-        }
-
-        bool RenderCustomPostProcess(CommandBuffer cmd, HDCamera camera, ref RTHandle source, RTHandle colorBuffer, Type customPostProcessComponentType)
-        {
-            if (customPostProcessComponentType == null)
-                return false;
-
-            var stack = camera.volumeStack;
-
-            if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
-            {
-                customPP.SetupIfNeeded();
-
-                if (customPP is IPostProcessComponent pp && pp.IsActive())
-                {
-                    if (camera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
-                    {
-                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                        CoreUtils.SetRenderTarget(cmd, destination);
-                        {
-                            cmd.BeginSample(customPP.name);
-                            customPP.Render(cmd, camera, source, destination);
-                            cmd.EndSample(customPP.name);
-                        }
-                        PoolSourceGuard(ref source, destination, colorBuffer);
-
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        #endregion
-
-        #region Render Target Management Utilities
-
-        // Quick utility class to manage temporary render targets for post-processing and keep the
-        // code readable.
-        class TargetPool
-        {
-            readonly Dictionary<int, Stack<RTHandle>> m_Targets;
-            int m_Tracker;
-            bool m_HasHWDynamicResolution;
-
-            public TargetPool()
-            {
-                m_Targets = new Dictionary<int, Stack<RTHandle>>();
-                m_Tracker = 0;
-                m_HasHWDynamicResolution = false;
-            }
-
-            public void Cleanup()
-            {
-                foreach (var kvp in m_Targets)
-                {
-                    var stack = kvp.Value;
-
-                    if (stack == null)
-                        continue;
-
-                    while (stack.Count > 0)
-                        RTHandles.Release(stack.Pop());
-                }
-
-                m_Targets.Clear();
-            }
-
-            public void SetHWDynamicResolutionState(HDCamera camera)
-            {
-                bool needsHW = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
-                if (m_Targets.Count > 0 && needsHW != m_HasHWDynamicResolution)
-                {
-                    // If any target has no dynamic resolution enabled, but we require it or vice versa, we need to cleanup the pool.
-                    bool missDynamicScale = false;
-                    foreach (var kvp in m_Targets)
-                    {
-                        var stack = kvp.Value;
-
-                        if (stack == null)
-                            continue;
-
-                        // We found a RT with incorrect dynamic scale setting
-                        if (stack.Count > 0 && (stack.Peek().rt.useDynamicScale != needsHW))
-                        {
-                            missDynamicScale = true;
-                            break;
-                        }
-                    }
-
-                    if (missDynamicScale)
-                    {
-                        Cleanup();
-                    }
-                    m_HasHWDynamicResolution = needsHW;
-                }
-            }
-
-            public RTHandle Get(in Vector2 scaleFactor, GraphicsFormat format, bool mipmap = false)
-            {
-                var hashCode = ComputeHashCode(scaleFactor.x, scaleFactor.y, (int)format, mipmap);
-
-                if (m_Targets.TryGetValue(hashCode, out var stack) && stack.Count > 0)
-                {
-                    var tex = stack.Pop();
-                    HDUtils.CheckRTCreated(tex.rt);
-                    return tex;
-                }
-
-                var rt = RTHandles.Alloc(
-                    scaleFactor, TextureXR.slices, DepthBits.None, colorFormat: format, dimension: TextureXR.dimension,
-                    useMipMap: mipmap, enableRandomWrite: true, useDynamicScale: true, name: "Post-processing Target Pool " + m_Tracker
-                );
-
-                m_Tracker++;
-                return rt;
-            }
-
-            public void Recycle(RTHandle rt)
-            {
-                Assert.IsNotNull(rt);
-                var hashCode = ComputeHashCode(rt.scaleFactor.x, rt.scaleFactor.y, (int)rt.rt.graphicsFormat, rt.rt.useMipMap);
-
-                if (!m_Targets.TryGetValue(hashCode, out var stack))
-                {
-                    stack = new Stack<RTHandle>();
-                    m_Targets.Add(hashCode, stack);
-                }
-
-                stack.Push(rt);
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            int ComputeHashCode(float scaleX, float scaleY, int format, bool mipmap)
-            {
-                int hashCode = 17;
-
-                unchecked
-                {
-                    unsafe
-                    {
-                        hashCode = hashCode * 23 + *((int*)&scaleX);
-                        hashCode = hashCode * 23 + *((int*)&scaleY);
-                    }
-
-                    hashCode = hashCode * 23 + format;
-                    hashCode = hashCode * 23 + (mipmap ? 1 : 0);
-                }
-
-                return hashCode;
-            }
         }
 
         #endregion
