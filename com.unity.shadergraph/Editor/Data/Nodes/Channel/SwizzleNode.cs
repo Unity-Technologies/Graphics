@@ -38,7 +38,6 @@ namespace UnityEditor.ShaderGraph
                 UpdateNodeAfterDeserialization();
                 owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
-
             }
 
         }
@@ -48,7 +47,6 @@ namespace UnityEditor.ShaderGraph
         //3.If the input is not valid, wont genetate shader code and give errors
         public bool ValidateMaskInput(int InputValueSize)
         {
-
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
             char[] AllChars  = {'x', 'y' ,'z','w'};
@@ -70,7 +68,6 @@ namespace UnityEditor.ShaderGraph
                 MaskInputIsValid = false;
             }
             return MaskInputIsValid;
-
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -124,11 +121,7 @@ namespace UnityEditor.ShaderGraph
 
                 }
                 sb.AppendLine("{0} {1} = float4 ({2});", outputSlotType, outputName, outputValue);
-
-
             }
-
         }
-
     }
 }

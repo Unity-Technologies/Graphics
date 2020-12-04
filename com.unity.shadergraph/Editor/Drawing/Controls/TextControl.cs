@@ -11,8 +11,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     class TextControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
-
-
         public TextControlAttribute(string label = null)
         {
             m_Label = label;
@@ -73,7 +71,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             container.Add(field);
             Add(container);
        }
-
 
         string GetValue()
         {
