@@ -29,13 +29,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class ProbeGIBaking
     {
-        // This is only needed because the GI system seems to require that the caller
-        // holds on to material during bake. Otherwise, it is GC'ed.
-        public Material bakeMaterial;
-
         static public void Clear()
         {
-            var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            ProbeReferenceVolumeAuthoring refVolAuthoring = null;
+
+            foreach(var rV in refVolAuthList)
+            {
+                refVolAuthoring = rV;
+                refVolAuthoring.VolumeAsset = null;
+            }
+
             if (refVolAuthoring == null)
                 return;
             
