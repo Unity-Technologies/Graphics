@@ -1,12 +1,9 @@
 # Contributions
 
 ## If you are interested in contributing, here are some ground rules:
-
-* Everything must have test coverage. PR's with insufficient test coverage will be rejected.
-* A formatting job will run automatically on your PR, even while in draft. This gives you a chance to fix the formatting befre marking your PR as "Ready for Review"
-* Pull requests must be made against `master`.
-
-Once you have a change ready following these ground rules, simply make a pull request in GitHub.
+* Talk to us before doing the work -- we love contributions, but we might already be working on the same thing, or we might have different opinions on how it should be implemented.
+* Everything must have test coverage. PRs with insufficient test coverage will be rejected.
+* A formatting job will run automatically on your PR, even while in draft. This gives you a chance to fix the formatting befre marking your PR as "Ready for Review".
 
 ## All contributions are subject to the Unity Contribution Agreement
 
@@ -15,12 +12,20 @@ By making a pull request, you are confirming agreement to the terms and conditio
 ## Rules for PR's
 
 * If a PR shall not be merged (yet), the author should create a draft PR instead. As soon as the PR is considered ready to land, it should be turned into a usual PR by the author.
+* Things to check while your PR is in draft:
+    * Is your PR pointing at the correct branch?
+    * Have you missed anything? Consider getting a review while the PR is still in draft.
+    * Do you need to add any extra tests?
+
+* Yamato pipelines will start once your PR is marked as "Ready For Review". The pipelines that start depend on what changed in your PR.
+    * These jobs will start again on each push. Please keep your PR in draft if you have additional pushes to make to avoid starting too many jobs.
+    * Please add `[cancel old ci]` to your commit message if you want the previous jobs to stop (ie if your new change overrides them)
 
 * Please try to keep your branch as close to master as possible, and merge in master before running tests.
 
 * If there were significant changes to the code after a reviewer approved, a re-review must be requested. For smaller changes (like fixing typos) this is not required.
 
-* The PR author is expected to merge the PR. If the author wants the last approving reviewer to merge it instead, this should be explicitly communicated. There is no guideline on how that communication should happen (on GitHub, Slack or even verbally - whatever makes the most sense in the given situation and scope) but it must always be clear to all reviewers if they are expected to merge.
+* (Coming soon) The PR author is expected to merge the PR. If the author wants the last approving reviewer to merge it instead, this should be explicitly communicated. There is no guideline on how that communication should happen (on GitHub, Slack or even verbally - whatever makes the most sense in the given situation and scope) but it must always be clear to all reviewers if they are expected to merge.
 
 * A reviewer should not feel nitpicky about requesting (small) changes in a PR, this guideline explicitly encourages this -- also this kind of feedback adds to the quality of our product and it should not be taken personal. Here is a suggestion for a "fast path" though: the reviewer should suggest a solution (like a different phrasing, name or hinting a typo). If the author resolves those exactly as the reviewer suggested, he or she can assume the approval of the reviewer without awaiting another explicit re-review/approval.   
 
