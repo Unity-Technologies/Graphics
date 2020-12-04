@@ -115,6 +115,10 @@ def project_filepath_all(project_name):
     # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
     return f'{parent_dir}/all-{project_name}.yml'.lower()
 
+def project_filepath_nightly(project_name):
+    # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
+    return f'{parent_dir}/nightly-{project_name}.yml'.lower()
+
 def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_name, scripting_backend, color_space):
     return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_name}'.replace('__','_')
 
@@ -122,7 +126,11 @@ def project_job_id_build(project_name, platform_name, api_name, test_platform_na
     return f'Build_{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_name}'.replace('__','_')
 
 def project_job_id_all(project_name, editor_name):
-    return f'All_{project_name}_{ editor_name}'
+    return f'PR_{project_name}_{ editor_name}'
+
+def project_job_id_nightly(project_name, editor_name):
+    return f'Nightly_{project_name}_{ editor_name}'
+
 
 
 # abv specific
