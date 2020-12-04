@@ -40,11 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
         ComputeBuffer m_EnvLightDataGPUArray = null;
 
-        RTHandle m_DebugLightClusterTexture = null;
-
         // Light cluster debug material
         Material m_DebugMaterial = null;
-        MaterialPropertyBlock m_DebugMaterialProperties = new MaterialPropertyBlock();
 
         // String values
         const string m_LightClusterKernelName = "RaytracingLightCluster";
@@ -80,10 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibleLight visibleLight = new VisibleLight();
         Light lightComponent;
 
-        public HDRaytracingLightCluster()
-        {
-        }
-
         public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
@@ -108,53 +101,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleaseResources()
         {
-            if (m_LightVolumeGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_LightVolumeGPUArray);
-                m_LightVolumeGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_LightVolumeGPUArray);
+            m_LightVolumeGPUArray = null;
 
-            if (m_LightCluster != null)
-            {
-                CoreUtils.SafeRelease(m_LightCluster);
-                m_LightCluster = null;
-            }
+            CoreUtils.SafeRelease(m_LightCluster);
+            m_LightCluster = null;
 
-            if (m_LightCullResult != null)
-            {
-                CoreUtils.SafeRelease(m_LightCullResult);
-                m_LightCullResult = null;
-            }
+            CoreUtils.SafeRelease(m_LightCullResult);
+            m_LightCullResult = null;
 
-            if (m_LightDataGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_LightDataGPUArray);
-                m_LightDataGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_LightDataGPUArray);
+            m_LightDataGPUArray = null;
 
-            if (m_EnvLightDataGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
-                m_EnvLightDataGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
+            m_EnvLightDataGPUArray = null;
 
-            if (m_DebugMaterial != null)
-            {
-                CoreUtils.Destroy(m_DebugMaterial);
-                m_DebugMaterial = null;
-            }
-        }
-
-        public void InitializeNonRenderGraphResources()
-        {
-            // Texture used to output debug information
-            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
-        }
-
-        public void CleanupNonRenderGraphResources()
-        {
-            m_DebugLightClusterTexture.Release();
-            m_DebugLightClusterTexture = null;
+            CoreUtils.Destroy(m_DebugMaterial);
+            m_DebugMaterial = null;
         }
 
         void ResizeClusterBuffer(int bufferSize)
@@ -636,7 +599,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 clusterCellSize;
             public Material debugMaterial;
             public ComputeBuffer lightCluster;
-            public MaterialPropertyBlock debugMaterialProperties;
             public ComputeShader lightClusterDebugCS;
         }
 
@@ -650,7 +612,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
             parameters.lightClusterDebugKernel = parameters.lightClusterDebugCS.FindKernel("DebugLightCluster");
             parameters.debugMaterial = m_DebugMaterial;
-            parameters.debugMaterialProperties = m_DebugMaterialProperties;
             return parameters;
         }
 
@@ -661,16 +622,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle debugLightClusterTexture;
         }
 
-        LightClusterDebugResources PrepareLightClusterDebugResources(RTHandle outputDebugLightBuffer)
-        {
-            LightClusterDebugResources resources = new LightClusterDebugResources();
-            resources.debugLightClusterTexture = outputDebugLightBuffer;
-            resources.depthTexture = m_RenderPipeline.sharedRTManager.GetDepthTexture();
-            resources.depthStencilBuffer = m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer();
-            return resources;
-        }
-
-        static public void ExecuteLightClusterDebug(CommandBuffer cmd, LightClusterDebugParameters parameters, LightClusterDebugResources resources)
+        static public void ExecuteLightClusterDebug(CommandBuffer cmd, LightClusterDebugParameters parameters, LightClusterDebugResources resources, MaterialPropertyBlock debugMaterialProperties)
         {
             // Bind the output texture
             CoreUtils.SetRenderTarget(cmd, resources.debugLightClusterTexture, resources.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
@@ -691,23 +643,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, numTilesX, numTilesY, 1);
 
             // Bind the parameters
-            parameters.debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
-            parameters.debugMaterialProperties.SetVector(_ClusterCellSize, parameters.clusterCellSize);
-            parameters.debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
+            debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
+            debugMaterialProperties.SetVector(_ClusterCellSize, parameters.clusterCellSize);
+            debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
 
             // Draw the faces
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, parameters.debugMaterialProperties);
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, parameters.debugMaterialProperties);
-        }
-
-        public void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            LightClusterDebugParameters parameters = PrepareLightClusterDebugParameters(hdCamera);
-            LightClusterDebugResources resources = PrepareLightClusterDebugResources(m_DebugLightClusterTexture);
-            ExecuteLightClusterDebug(cmd, parameters, resources);
-
-            // Bind the result
-            m_RenderPipeline.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, debugMaterialProperties);
+            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, debugMaterialProperties);
         }
 
         class LightClusterDebugPassData
@@ -739,7 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.depthStencilBuffer = data.depthStencilBuffer;
                         resources.depthTexture = data.depthPyramid;
                         resources.debugLightClusterTexture = data.outputBuffer;
-                        ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources);
+                        ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
                     });
 
                 debugTexture = passData.outputBuffer;

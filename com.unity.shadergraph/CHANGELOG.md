@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
+- Fixed Custom Function Node to display the name of the custom function. [1293575]
 
 ## [10.2.0] - 2020-10-19
 

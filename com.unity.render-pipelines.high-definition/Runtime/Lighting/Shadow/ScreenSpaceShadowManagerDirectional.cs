@@ -81,29 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputShadowBuffer;
         }
 
-        RTShadowDirectionalTraceResources PrepareSSSDirectionalTraceResources(RTHandle velocityBuffer, RTHandle directionBuffer, RTHandle distanceBuffer, RTHandle outputShadowBuffer)
-        {
-            RTShadowDirectionalTraceResources rtsdtResources = new RTShadowDirectionalTraceResources();
-
-            // Input Buffers
-            rtsdtResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            rtsdtResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-
-            // Intermediate buffers
-            rtsdtResources.directionBuffer = directionBuffer;
-
-            // Debug textures
-            RayCountManager rayCountManager = GetRayCountManager();
-            rtsdtResources.rayCountTexture = rayCountManager.GetRayCountTexture();
-
-            // Output buffers
-            rtsdtResources.velocityBuffer = velocityBuffer;
-            rtsdtResources.distanceBuffer = distanceBuffer;
-            rtsdtResources.outputShadowBuffer = outputShadowBuffer;
-
-            return rtsdtResources;
-        }
-
         static void ExecuteSSSDirectionalTrace(CommandBuffer cmd, RTShadowDirectionalTraceParameters rtsdtParams, RTShadowDirectionalTraceResources rtsdtResources)
         {
             // Inject the ray-tracing sampling data
@@ -197,67 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
-        void DenoiseDirectionalScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, RTHandle velocityBuffer, RTHandle distanceBuffer, RTHandle inoutBuffer)
-        {
-            RTHandle intermediateBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-            RTHandle intermediateDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
-            // Is the history still valid?
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
-            float historyValidity = EvaluateHistoryValidityDirectionalShadow(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData);
-
-            // Grab the history buffers for shadows
-            RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
-            RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
-            RTHandle shadowHistoryDistanceArray = RequestShadowHistoryDistanceBuffer(hdCamera);
-
-            // Grab the slot of the directional light (given that it may be a color shadow, we need to use the mask to get the actual slot index)
-            GetShadowChannelMask(dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
-            GetShadowChannelMask(dirShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
-
-            // Apply the temporal denoiser
-            HDTemporalFilter temporalFilter = GetTemporalFilter();
-            temporalFilter.DenoiseBuffer(cmd, hdCamera, inoutBuffer, shadowHistoryArray,
-                shadowHistoryValidityArray,
-                velocityBuffer,
-                intermediateBuffer,
-                dirShadowIndex / 4, m_ShadowChannelMask0,
-                distanceBuffer, shadowHistoryDistanceArray, intermediateDistanceBuffer, m_ShadowChannelMask1,
-                true, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
-
-            // Apply the spatial denoiser
-            HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
-            shadowDenoiser.DenoiseBufferDirectional(cmd, hdCamera, intermediateBuffer, intermediateDistanceBuffer, inoutBuffer, m_CurrentSunLightAdditionalLightData.filterSizeTraced,  m_CurrentSunLightAdditionalLightData.angularDiameter * 0.5f, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow);
-
-            // Now that we have overriden this history, mark is as used by this light
-            hdCamera.PropagateShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional);
-        }
-
-        void RenderRayTracedDirectionalScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            // Request the intermediate buffers we shall be using
-            RTHandle outputShadowBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-            RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
-            RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R1);
-            RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-
-            // Ray trace for shadow evaluation
-            RTShadowDirectionalTraceParameters rtsdtParams = PrepareRTShadowDirectionalTraceParameters(hdCamera, m_CurrentSunLightAdditionalLightData);
-            RTShadowDirectionalTraceResources rtsdtResources = PrepareSSSDirectionalTraceResources(velocityBuffer, directionBuffer, distanceBuffer, outputShadowBuffer);
-            ExecuteSSSDirectionalTrace(cmd, rtsdtParams, rtsdtResources);
-
-            // If required, denoise the shadow
-            if (m_CurrentSunLightAdditionalLightData.filterTracedShadow && rtsdtParams.softShadow)
-            {
-                DenoiseDirectionalScreenSpaceShadow(cmd, hdCamera, velocityBuffer, distanceBuffer, outputShadowBuffer);
-            }
-
-            // Write the result texture to the screen space shadow buffer
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
-            WriteScreenSpaceShadowParameters wsssParams = PrepareWriteScreenSpaceShadowParameters(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale);
-            WriteScreenSpaceShadowResources wsssResources = PrepareWriteScreenSpaceShadowResources(outputShadowBuffer);
-            ExecuteWriteScreenSpaceShadow(cmd, wsssParams, wsssResources);
-        }
-
         struct SSShadowDirectionalParameters
         {
             public int depthSlice;
@@ -277,29 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(cmd, textureArray, depthSlice: sssdParams.depthSlice);
             mpb.SetTexture(HDShaderIDs._NormalBufferTexture, normalBuffer);
             HDUtils.DrawFullScreen(cmd, s_ScreenSpaceShadowsMat, textureArray, mpb);
-        }
-
-        void RenderDirectionalLightScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            // Should we be executing anything really?
-            bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow();
-
-            // Render directional screen space shadow if required
-            if (screenSpaceShadowRequired)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow)))
-                {
-                    bool rayTracedDirectionalRequired = m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow();
-                    // If the shadow is flagged as ray traced, we need to evaluate it completely
-                    if (rayTracedDirectionalRequired)
-                        RenderRayTracedDirectionalScreenSpaceShadow(cmd, hdCamera);
-                    else
-                    {
-                        SSShadowDirectionalParameters sssdParams = PrepareSSShadowDirectionalParameters();
-                        ExecuteSSShadowDirectional(cmd, sssdParams, directionalShadowPB, m_SharedRTManager.GetNormalBuffer(), m_ScreenSpaceShadowTextureArray);
-                    }
-                }
-            }
         }
     }
 }

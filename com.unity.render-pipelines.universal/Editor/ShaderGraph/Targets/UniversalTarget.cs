@@ -382,6 +382,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.ShadowCaster,
             pragmas = CorePragmas.Instanced,
+            keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
         };
     }
@@ -713,16 +714,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
-            referenceName = "_MAIN_LIGHT_SHADOWS",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
+                new KeywordEntry() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
+            }
         };
 
-        public static readonly KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
+        public static readonly KeywordDescriptor CastingPunctualLightShadow = new KeywordDescriptor()
         {
-            displayName = "Main Light Shadows Cascade",
-            referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
+            displayName = "Casting Punctual Light Shadow",
+            referenceName = "_CASTING_PUNCTUAL_LIGHT_SHADOW",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -845,6 +853,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "UseFragmentFog",
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
+        };
+    }
+    #endregion
+
+    #region Keywords
+    static class CoreKeywords
+    {
+        public static readonly KeywordCollection ShadowCaster = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.CastingPunctualLightShadow },
         };
     }
     #endregion
