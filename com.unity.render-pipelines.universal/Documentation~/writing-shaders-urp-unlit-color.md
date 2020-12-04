@@ -58,7 +58,7 @@ Shader "Example/URPUnlitShaderColor"
     // has the default value (1, 1, 1, 1).
     Properties
     { 
-        [MainColor]_BaseColor("Base Color", Color) = (1, 1, 1, 1)
+        [MainColor] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
     }
     
     SubShader
