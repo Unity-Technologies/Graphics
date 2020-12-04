@@ -53,12 +53,14 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
 #endif
 
     // FIXME: not quite sure what the sigmaS, sigmaT values are supposed to be...
-    const float sigmaS = (t == FLT_MAX) ? 1.0 : sqrt(Luminance(_HeightFogBaseScattering.xyz));
+    const bool hasSurface = t < FLT_MAX;
+    const float sigmaS = hasSurface ? sqrt(Luminance(_HeightFogBaseScattering.xyz)) : 1.0;
     const float sigmaT = _HeightFogBaseExtinction;
-    const float transmittanceMax = exp(-tMax * sigmaT);
+    const float transmittanceMax = max(exp(-tMax * sigmaT), 0.01);
+    const float transmittanceThreshold = hasSurface ? 1.0 - min(0.5, transmittanceMax) : 1.0;
 
     const float pdfNoVolA = 1.0 - sigmaS;
-    const float pdfNoVolB = sigmaS * transmittanceMax;
+    const float pdfNoVolB = sigmaS * (1.0 - transmittanceThreshold);
     const float pdfNoVol = pdfNoVolA + pdfNoVolB;
     pdfVol *= 1.0 - pdfNoVol;
 
@@ -77,12 +79,11 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     // Re-scale the sample
     sample /= sigmaS;
 
-    // Evaluate the length to a potential volume scattering event
-    if (-log(1.0 - sample) / sigmaT >= tMax)
+    if (sample >= transmittanceThreshold)
     {
         // Re-scale the sample
-        sample -= 1.0 - transmittanceMax;
-        sample /= transmittanceMax;
+        sample -= transmittanceThreshold;
+        sample /= 1.0 - transmittanceThreshold;
 
         // Set the pdf
         pdf *= pdfNoVol;
@@ -90,11 +91,11 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
         return false;
     }
 
+    // Re-scale the sample
+    sample /= transmittanceThreshold;
+
     if (sampleLocalLights)
     {
-        // Re-scale the sample
-        sample /= 1.0 - transmittanceMax;
-
         // Linear sampling
         float deltaT = tMax - tMin;
         t = tMin + sample * deltaT;
@@ -104,12 +105,8 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     }
     else
     {
-        // Let's (avoid very low transmittance, for robustness sake (minor bias)
-        if (transmittanceMax < 0.01)
-            sample = sample * 0.99 / (1.0 - transmittanceMax);
-
-        // Log sampling
-        float transmittance = 1.0 - sample;
+        // Exponential sampling
+        float transmittance = transmittanceMax + sample * (1.0 - transmittanceMax);
         t = -log(transmittance) / sigmaT;
 
         // Set the pdf
