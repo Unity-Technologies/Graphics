@@ -23,41 +23,30 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] public List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
 #if UNITY_EDITOR
-        internal static string GetFileName(int id = -1)
+        internal static string GetFileName(Scene scene)
         {
             string assetName = "ProbeVolumeData";
+            
+            String scenePath = scene.path;
+            String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
+            String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-            String assetFileName;
-            String assetPath;
+            String assetPath = System.IO.Path.Combine(sceneDir, sceneName);
 
-            if (id == -1)
-            {
-                assetPath = "Assets";
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
-            }
-            else
-            {
-                String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
-                String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
-                String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+            if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+                UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-                assetPath = System.IO.Path.Combine(sceneDir, sceneName);
-
-                if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
-                    UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
-
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + id + ".asset");
-            }
+            String assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
 
             assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
 
             return assetFileName;
         }
 
-        public static ProbeVolumeAsset CreateAsset(int id = -1)
+        public static ProbeVolumeAsset CreateAsset(Scene scene)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
-            string assetFileName = GetFileName(id);
+            string assetFileName = GetFileName(scene);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
             UnityEditor.AssetDatabase.SaveAssets();

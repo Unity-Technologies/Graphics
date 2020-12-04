@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var numCells = ProbeReferenceVolume.instance.Cells.Count;
 
-            var probeVolumeAsset = ProbeVolumeAsset.CreateAsset(0);
+            var probeVolumeAsset = ProbeVolumeAsset.CreateAsset(SceneManagement.SceneManager.GetActiveScene());
 
             for (int c = 0; c < numCells; ++c)
             {
