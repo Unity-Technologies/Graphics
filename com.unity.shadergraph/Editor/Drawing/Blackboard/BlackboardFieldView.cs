@@ -106,6 +106,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_Input = input;
             this.BlackBoardUpdateTrigger = updateBlackboardView;
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+
+            var nameTextField = this.Q("textField") as TextField;
+            var textinput = nameTextField.Q(TextField.textInputUssName);
+            // When a display name is changed through the BlackboardPill, this callback handle it
+            textinput.RegisterCallback<FocusOutEvent>(e =>
+            {
+                this.RegisterPropertyChangeUndo("Change Display Name");
+                ChangeDisplayNameField(nameTextField.text);
+                this.MarkNodesAsDirty(true, ModificationScope.Topological);
+            });
         }
 
         ~BlackboardFieldView()

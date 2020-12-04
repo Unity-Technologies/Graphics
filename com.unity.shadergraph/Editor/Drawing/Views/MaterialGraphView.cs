@@ -1012,7 +1012,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     // todo: replace this with a delegate
                     SGBlackboard blackboard = this.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
-                    blackboard.OnFieldDragEnd(new DragExitedEvent());
+                    blackboard.HideScrollBoundaryRegions();
                 }
             }
             else

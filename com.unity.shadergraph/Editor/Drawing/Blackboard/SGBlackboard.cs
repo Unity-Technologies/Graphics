@@ -39,8 +39,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 }
             };
 
-            this.RegisterCallback<MouseUpEvent>(OnBlackboardMouseUp);
-            this.RegisterCallback<DragExitedEvent>(OnBlackboardDragEnd);
+            // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
+            this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
+            this.RegisterCallback<DragExitedEvent>(evt => HideScrollBoundaryRegions());
 
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
@@ -61,19 +62,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             focusable = true;
         }
 
-        void HideScrollBoundaryRegions()
+        public void ShowScrollBoundaryRegions()
         {
-            m_BottomResizer.style.visibility = Visibility.Visible;
-            m_IsFieldBeingDragged = false;
-            m_ScrollBoundaryTop.RemoveFromHierarchy();
-            m_ScrollBoundaryBottom.RemoveFromHierarchy();
-        }
-
-        int scrollViewIndex { get; set; }
-
-        void ShowScrollBoundaryRegions()
-        {
-            if (!m_IsFieldBeingDragged)
+            if (!m_IsFieldBeingDragged && scrollableHeight > 0)
             {
                 // Interferes with scrolling functionality of properties with the bottom scroll boundary
                 m_BottomResizer.style.visibility = Visibility.Hidden;
@@ -87,6 +78,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
+        public void HideScrollBoundaryRegions()
+        {
+            m_BottomResizer.style.visibility = Visibility.Visible;
+            m_IsFieldBeingDragged = false;
+            m_ScrollBoundaryTop.RemoveFromHierarchy();
+            m_ScrollBoundaryBottom.RemoveFromHierarchy();
+        }
+
+        int scrollViewIndex { get; set; }
+
         void ScrollRegionTopEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
@@ -99,37 +100,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 m_scrollToTop = false;
         }
 
-        void OnBlackboardMouseUp(MouseUpEvent mouseUpEvent)
-        {
-            if(m_IsFieldBeingDragged)
-                HideScrollBoundaryRegions();
-        }
-
-        void OnBlackboardDragEnd(DragExitedEvent dragEndEvent)
-        {
-            if(m_IsFieldBeingDragged)
-                HideScrollBoundaryRegions();
-        }
-
         void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
-            {
                 m_scrollToBottom = true;
-            }
         }
 
         void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
         {
             if (m_IsFieldBeingDragged)
-            {
                 m_scrollToBottom = false;
-            }
-        }
-
-        public void OnFieldDragStart(DragEnterEvent dragStartEvent)
-        {
-            ShowScrollBoundaryRegions();
         }
 
         void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
@@ -138,11 +118,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y - k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
             else if (m_scrollToBottom)
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
-        }
-
-        public void OnFieldDragEnd(DragExitedEvent dragEndEvent)
-        {
-            HideScrollBoundaryRegions();
         }
 
         public virtual void AddToSelection(ISelectable selectable)
