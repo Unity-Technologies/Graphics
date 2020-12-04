@@ -68,12 +68,25 @@ namespace UnityEngine.Rendering.Universal.Internal
         Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = null;       // per-shadow-slice info passed to the lighting shader
 
         List<ShadowResolutionRequest> m_ShadowResolutionRequests = new List<ShadowResolutionRequest>();  // intermediate array used to compute the final resolution of each shadow slice rendered in the frame
+        float[] m_VisibleLightIndexToCameraSquareDistance = null;                                        // stores for each shadowed additional light its (squared) distance to camera ; used to sub-sort shadow requests according to how close their casting light is
         ShadowResolutionRequest[] m_SortedShadowResolutionRequests = null;
         int[] m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = null;                 // for each visible light, store the index of its first shadow slice in m_SortedShadowResolutionRequests (for quicker access)
-        List<RectInt> m_UnusedAtlasSquareAreas = new List<RectInt>();                                   // this list tracks space available in the atlas
+        List<RectInt> m_UnusedAtlasSquareAreas = new List<RectInt>();                                    // this list tracks space available in the atlas
 
         bool m_SupportsBoxFilterForShadows;
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
+
+        int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+        {
+            get
+            {
+                if (UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
+                    // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+                    return UniversalRenderPipeline.maxVisibleAdditionalLights;
+                else
+                    return 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+            }
+        }
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
@@ -107,17 +120,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
             m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = new int[maxVisibleLights];
             m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleLights];
+            m_VisibleLightIndexToCameraSquareDistance = new float[maxVisibleLights];
 
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
 
-                int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                if (UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
-                {
-                    // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                    MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                }
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
                 m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
                 m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
@@ -257,7 +265,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Adapted from InsertionSort() in com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDDynamicShadowAtlas.cs
         // Sort array in decreasing requestedResolution order,
         // sub-sorting in "HardShadow > SoftShadow" and then "Spot > Point", i.e place last requests that will be removed in priority to make room for the others, because their resolution is too small to produce good-looking shadows ; or because they take relatively more space in the atlas )
-        // then grouping in increasing visibleLightIndex (and sub-sorting each group in ShadowSliceIndex order)
+        // sub-sub-sorting in light distance to camera
+        // then grouping in increasing visibleIndex (and sub-sorting each group in ShadowSliceIndex order)
         internal void InsertionSort(ShadowResolutionRequest[] array, int startIndex, int lastIndex)
         {
             int i = startIndex + 1;
@@ -271,8 +280,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 while ((j >= 0) && ((curr.requestedResolution  > array[j].requestedResolution)
                                     || (curr.requestedResolution == array[j].requestedResolution && !curr.softShadow && array[j].softShadow)
                                     || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow && !curr.pointLightShadow && array[j].pointLightShadow)
-                                    || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow &&  curr.pointLightShadow == array[j].pointLightShadow && curr.visibleLightIndex  < array[j].visibleLightIndex)
-                                    || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow &&  curr.pointLightShadow == array[j].pointLightShadow && curr.visibleLightIndex == array[j].visibleLightIndex && curr.perLightShadowSliceIndex < array[j].perLightShadowSliceIndex)))
+                                    || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow &&  curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex]  < m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex])
+                                    || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow &&  curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex] && curr.visibleLightIndex  < array[j].visibleLightIndex)
+                                    || (curr.requestedResolution == array[j].requestedResolution &&  curr.softShadow == array[j].softShadow &&  curr.pointLightShadow == array[j].pointLightShadow && m_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == m_VisibleLightIndexToCameraSquareDistance[array[j].visibleLightIndex] && curr.visibleLightIndex == array[j].visibleLightIndex && curr.perLightShadowSliceIndex < array[j].perLightShadowSliceIndex)))
                 {
                     array[j + 1] = array[j];
                     j--;
@@ -500,6 +510,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            if (m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
+            {
+                // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
+                // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
+                // Universal RP sets this "ScriptableCullingParameters.maximumVisibleLights" value during ScriptableRenderer.SetupCullingParameters.
+                // When using Deferred rendering, it is possible to specify a very high number of visible lights.
+                m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
+                m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
+                m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
+                m_VisibleLightIndexToCameraSquareDistance = new float[visibleLights.Length];
+                m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = new int[visibleLights.Length];
+            }
+
+            // reset m_VisibleLightIndexClosenessToCamera
+            for (int visibleLightIndex = 0; visibleLightIndex < m_VisibleLightIndexToCameraSquareDistance.Length; ++visibleLightIndex)
+                m_VisibleLightIndexToCameraSquareDistance[visibleLightIndex] = float.MaxValue;
+
             for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; ++visibleLightIndex)
             {
                 if (visibleLightIndex == renderingData.lightData.mainLightIndex)
@@ -509,23 +536,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
                 {
                     int shadowSlicesCountForThisLight = GetPunctualLightShadowSlicesCount(visibleLights[visibleLightIndex].lightType);
-
-                    if (!m_UseStructuredBuffer)
-                    {
-                        // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
-                        // We have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
-                        if (totalShadowResolutionRequestsCount + shadowSlicesCountForThisLight > m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length)
-                        {
-                            if (!m_IssuedMessageAboutShadowSlicesTooMany)
-                            {
-                                Debug.Log($"There are too many shadowed additional punctual lights active at the same time, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
-                                m_IssuedMessageAboutShadowSlicesTooMany = true;  // Only output this once per shadow requests configuration
-                            }
-
-                            break;
-                        }
-                    }
-
                     totalShadowResolutionRequestsCount += shadowSlicesCountForThisLight;
 
                     for (int perLightShadowSliceIndex = 0; perLightShadowSliceIndex < shadowSlicesCountForThisLight; ++perLightShadowSliceIndex)
@@ -533,6 +543,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         m_ShadowResolutionRequests.Add(new ShadowResolutionRequest(visibleLightIndex, perLightShadowSliceIndex, renderingData.shadowData.resolution[visibleLightIndex],
                             (visibleLights[visibleLightIndex].light.shadows == LightShadows.Soft), (visibleLights[visibleLightIndex].lightType == LightType.Point)));
                     }
+                    // mark this light as casting shadows
+                    m_VisibleLightIndexToCameraSquareDistance[visibleLightIndex] = (renderingData.cameraData.camera.transform.position - visibleLights[visibleLightIndex].light.transform.position).sqrMagnitude;
                 }
             }
 
@@ -546,7 +558,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             InsertionSort(m_SortedShadowResolutionRequests, 0, totalShadowResolutionRequestsCount);
 
             // To avoid visual artifacts when there is not enough place in the atlas, we remove shadow slices that would be allocated a too small resolution.
-            int totalShadowSlicesCount = totalShadowResolutionRequestsCount;  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
+            // When not using structured buffers, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
+            // In that case we have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
+            int totalShadowSlicesCount = m_UseStructuredBuffer ? totalShadowResolutionRequestsCount : Math.Min(totalShadowResolutionRequestsCount, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);  // Number of shadow slices that we will actually be able to fit in the shadow atlas without causing visual artifacts.
 
             // Find biggest end index in m_SortedShadowResolutionRequests array, under which all shadow requests can be allocated a big enough shadow atlas slot, to not cause rendering artifacts
             bool allShadowsAfterStartIndexHaveEnoughResolution = false;
@@ -589,17 +603,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount)))   // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
-            if (m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
-            {
-                // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
-                // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
-                // Universal RP sets this "ScriptableCullingParameters.maximumVisibleLights" value during ScriptableRenderer.SetupCullingParameters.
-                // When using Deferred rendering, it is possible to specify a very high number of visible lights.
-                m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
-                m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
-                m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
-            }
-
             // initialize _AdditionalShadowParams
             Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
             // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
@@ -627,6 +630,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 LightType lightType = shadowLight.lightType;
                 int perLightShadowSlicesCount = GetPunctualLightShadowSlicesCount(lightType);
+
+                if ((m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount && IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
+                {
+                    if (!m_IssuedMessageAboutShadowSlicesTooMany)
+                    {
+                        // This case can especially happen in Deferred, where there can be a high number of visibleLights
+                        Debug.Log($"There are too many shadowed additional punctual lights active at the same time, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
+                        m_IssuedMessageAboutShadowSlicesTooMany = true; // Only output this once
+                    }
+                    break;
+                }
 
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
