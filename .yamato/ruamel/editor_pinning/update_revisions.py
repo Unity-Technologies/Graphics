@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import yaml
+import datetime
 
 from util.subprocess_helpers import run_cmd, git_cmd
 
@@ -16,6 +17,7 @@ from util.subprocess_helpers import run_cmd, git_cmd
 SUPPORTED_VERSION_TYPES = ('latest_internal', 'latest_public', 'staging')
 PROJECT_VERSION_NAME = 'project_revision'
 PLATFORMS = ('windows', 'macos', 'linux', 'android', 'ios')
+UPDATED_AT = str(datetime.datetime.utcnow())
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
@@ -125,6 +127,7 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                     
                     revision = result.strip().splitlines()[-1]
                     versions[key][platform] = {}
+                    versions[key][platform]['updated_at'] = UPDATED_AT
                     versions[key][platform]['revision'] = revision
                    
                     # Parse for the version in stderr (only exists for some cases):
