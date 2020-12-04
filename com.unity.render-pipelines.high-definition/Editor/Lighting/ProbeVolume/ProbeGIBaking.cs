@@ -29,6 +29,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class ProbeGIBaking
     {
+        static bool init = false;
+
+        public static void Init()
+        {
+            if (!init)
+            {
+                init = true;
+                Lightmapping.lightingDataCleared += OnLightingDataCleared;
+                Lightmapping.bakeStarted += OnBakeStarted;
+            }
+        }
+
         static public void Clear()
         {
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
@@ -48,6 +60,11 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
             refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             refVol.SetNormalBias(refVolAuthoring.normalBias);
+        }
+
+        private static void OnBakeStarted()
+        {
+            RunPlacement();
         }
 
         private static void OnAdditionalProbesBakeCompleted()
@@ -138,7 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
             refVolAuthoring.QueueAssetLoading();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
-            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
         }
 
         private static void OnLightingDataCleared()
@@ -294,7 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Clear();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
-            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
 
             var volumeScale = refVolAuthoring.transform.localScale;
             var CellSize = refVolAuthoring.cellSize;

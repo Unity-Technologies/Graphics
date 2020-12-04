@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
+			ProbeGIBaking.Init();
         }
 
         public override void OnInspectorGUI()
@@ -144,11 +145,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 EditorGUI.EndDisabledGroup();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-
-            if (GUILayout.Button("Run Probe Placement"))
-            {
-                ProbeGIBaking.RunPlacement();
-            }
 
             if (EditorGUI.EndChangeCheck())
             {
