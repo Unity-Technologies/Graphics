@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-        	if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline == null)
                 return;
 
         #if UNITY_2020_2_OR_NEWER
@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
+
 #endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
@@ -103,7 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return maxViews;
         }
 
+#if UNITY_2021_1_OR_NEWER
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#else
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#endif
         {
             bool xrActive = RefreshXrSdk();
 
@@ -142,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Disable vsync on the main display when rendering to a XR device
                     QualitySettings.vSyncCount = 0;
 
-                    if(display != null)
+                    if (display != null)
                     {
                         display.zNear = camera.nearClipPlane;
                         display.zFar = camera.farClipPlane;
@@ -274,6 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add((camera, xrPass));
         }
 
@@ -401,6 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
+
 #endif
     }
 }

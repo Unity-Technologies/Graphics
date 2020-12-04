@@ -75,17 +75,17 @@ These settings let you configure how shadows look and behave, and find a good ba
 
 The **Shadows** section has the following properties.
 
-| Property         || Description |
-| ---------------- |-| ----------- |
-| __Max Distance__ || The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance.<br/>__Note:__ This property is in metric units regardless of the value in the __Working Unit__ property. |
-| __Working Unit__ || The unit in which Unity measures the shadow cascade distances. |
-| __Cascade Count__ || The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. |
-| | Split&nbsp;1 | The distance where cascade 1 ends and cascade 2 starts. |
-| | Split&nbsp;2 | The distance where cascade 2 ends and cascade 3 starts. |
-| | Split&nbsp;3 | The distance where cascade 3 ends and cascade 4 starts. |
-| **Depth Bias** || Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
-| **Normal Bias** || Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
-| __Soft Shadows__ || Select this check box to enable extra processing of the shadow maps to give them a smoother look.<br/>When enabled, Unity uses the following shadow map filtering method:<br/>Desktop platforms: 5x5 tent filter, mobile platforms: 4 tap filter.<br/>**Performance impact**: high.<br/>When this option is disabled, Unity samples the shadow map once with the default hardware filtering. |
+| Property         | Description |
+| ---------------- | ----------- |
+| __Max Distance__ | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance.<br/>__Note:__ This property is in metric units regardless of the value in the __Working Unit__ property. |
+| __Working Unit__ | The unit in which Unity measures the shadow cascade distances. |
+| __Cascade Count__ | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. |
+| &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;1 | The distance where cascade 1 ends and cascade 2 starts. |
+| &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;2 | The distance where cascade 2 ends and cascade 3 starts. |
+| &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;3 | The distance where cascade 3 ends and cascade 4 starts. |
+| **Depth Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
+| **Normal Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
+| __Soft Shadows__ | Select this check box to enable extra processing of the shadow maps to give them a smoother look.<br/>When enabled, Unity uses the following shadow map filtering method:<br/>Desktop platforms: 5x5 tent filter, mobile platforms: 4 tap filter.<br/>**Performance impact**: high.<br/>When this option is disabled, Unity samples the shadow map once with the default hardware filtering. |
 
 
 
@@ -95,6 +95,8 @@ This section allows you to fine-tune global post-processing settings.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
+| __Post Processing__ | This check box turns post-processing on (check box selected) or off (check box cleared) for the current URP asset.<br/>If you clear this check box, Unity excludes post-processing shaders and textures from the build, unless one of the following conditions is true:<ul><li>Other assets in the build refer to the assets related to post-processing.</li><li>A different URP asset has the Post Processing property enabled.</li></ul> |
+| __Post Process Data__ | The asset containing references to shaders and Textures that the Renderer uses for post-processing.<br/>**Note:** Changes to this property are necessary only for advanced customization use cases. |
 | __Grading Mode__ | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<br />&#8226; __High Dynamic Range__: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.<br />&#8226; __Low Dynamic Range__: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping. |
 | __LUT Size__     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 
@@ -116,8 +118,8 @@ This section allows you to fine-tune less commonly changed settings, which impac
 
 ### Adaptive Performance
 
-This section appears if Adaptive Performance package is installed. It allows to change settings how Adaptive performance and render pipeline interact.
+This section is available if the Adaptive Performance package is installed in the project. The __Use Adaptive Performance__ property lets you enable the Adaptive Performance functionality.
 
 | __Property__            | __Description__                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| __Use adaptive performance__  | Allows Adaptive Performance to adjust rendering quality during runtime. |
+| __Use Adaptive Performance__  | Select this check box to enable the Adaptive Performance functionality, which adjusts the rendering quality at runtime. |

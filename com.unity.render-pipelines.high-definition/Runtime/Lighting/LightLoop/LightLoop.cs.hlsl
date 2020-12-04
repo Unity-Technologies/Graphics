@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTLOOP_CS_HLSL
@@ -74,7 +74,7 @@ struct SFiniteLightBound
     float3 boxAxisY;
     float3 boxAxisZ;
     float3 center;
-    float2 scaleXY;
+    float scaleXY;
     float radius;
 };
 
@@ -136,7 +136,7 @@ float3 GetCenter(SFiniteLightBound value)
 {
     return value.center;
 }
-float2 GetScaleXY(SFiniteLightBound value)
+float GetScaleXY(SFiniteLightBound value)
 {
     return value.scaleXY;
 }

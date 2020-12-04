@@ -92,9 +92,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var collapsePreviewButton = new VisualElement { name = "collapse" };
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
-                        {
-                            SetPreviewExpandedStateOnSelection(false);
-                        }));
+                    {
+                        SetPreviewExpandedStateOnSelection(false);
+                    }));
                     m_PreviewImage.Add(collapsePreviewButton);
                 }
                 m_PreviewContainer.Add(m_PreviewImage);
@@ -115,9 +115,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var expandPreviewButton = new VisualElement { name = "expand" };
                     expandPreviewButton.Add(new VisualElement { name = "icon" });
                     expandPreviewButton.AddManipulator(new Clickable(() =>
-                        {
-                            SetPreviewExpandedStateOnSelection(true);
-                        }));
+                    {
+                        SetPreviewExpandedStateOnSelection(true);
+                    }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
                 contents.Add(m_PreviewFiller);
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_TitleContainer = this.Q("title");
 
-            if(node is BlockNode blockData)
+            if (node is BlockNode blockData)
             {
                 AddToClassList("blockData");
                 m_TitleContainer.RemoveFromHierarchy();
@@ -151,6 +151,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
@@ -217,11 +219,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     port.RemoveFromClassList(portDisabledString);
                 }
-
             }
         }
-
-
 
         public void ClearMessage()
         {
@@ -245,7 +244,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_TitleContainer.style.borderBottomColor = noColor;
         }
-
 
         public Color GetColor()
         {
@@ -319,7 +317,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CopyToClipboard(DropdownMenuAction action)
         {
-            GUIUtility.systemCopyBuffer = ConvertToShader((GenerationMode) action.userData);
+            GUIUtility.systemCopyBuffer = ConvertToShader((GenerationMode)action.userData);
         }
 
         public string SanitizeName(string name)
@@ -440,7 +438,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.sgVersion < node.latestVersion)
+                {
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
         }
 
         void UpdateShaderPortsForSlots(bool inputSlots, List<MaterialSlot> allSlots, ShaderPort[] slotShaderPorts)
@@ -568,6 +582,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var slot in slots)
                 AddShaderPortForSlot(slot);
+            // Make sure the visuals are properly updated to reflect port list
+            RefreshPorts();
         }
 
         void OnEdgeDisconnected(Port obj)
@@ -651,7 +667,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Keyword nodes should be highlighted when Blackboard entry is hovered
             // TODO: Move to new NodeView type when keyword node has unique style
-            if(node is KeywordNode keywordNode)
+            if (node is KeywordNode keywordNode)
             {
                 var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
@@ -704,6 +720,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }

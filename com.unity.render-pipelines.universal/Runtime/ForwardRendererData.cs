@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
+
 #endif
 
         [Serializable, ReloadGroup]
@@ -40,17 +41,11 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
-
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
-            public Shader tileDepthInfoPS;
-
-            [Reload("Shaders/Utils/TileDeferred.shader")]
-            public Shader tileDeferredPS;
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
@@ -62,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
+        [Obsolete("This is obsolete, PostProcessData was moved into UniversalRenderPipelineAsset.", false)]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -82,16 +77,10 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
+                ReloadAllNullProperties();
             }
-#endif
             return new ForwardRenderer(this);
         }
 
@@ -194,12 +183,22 @@ namespace UnityEngine.Rendering.Universal
             if (shaders == null)
                 return;
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
+
+#pragma warning disable 618 // Obsolete warning
+            // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
+            if (postProcessData == PostProcessData.GetDefaultPostProcessData())
+                postProcessData = null;
+#pragma warning restore 618 // Obsolete warning
 #endif
         }
     }

@@ -10,21 +10,32 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    // This block is shared for Lit and Layered surface inputs + tesselation variants
-    class LitSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents lit surface input properties.
+    /// This block is shared for Lit and Layered surface inputs + tesselation variants.
+    /// </summary>
+    public class LitSurfaceInputsUIBlock : MaterialUIBlock
     {
+        /// <summary>Options for lit surface input features.</summary>
         public enum Features
         {
+            /// <summary>Minimal Lit Surface Inputs fields.</summary>
             None            = 0,
+            /// <summary>Displays Coat Mask fields.</summary>
             CoatMask        = 1 << 0,
+            /// <summary>Displays the height Map fields.</summary>
             HeightMap       = 1 << 1,
+            /// <summary>Displays the layer Options fields.</summary>
             LayerOptions    = 1 << 2,
+            /// <summary>Displays the foldout header as a SubHeader.</summary>
             SubHeader       = 1 << 3,
+            /// <summary>Displays the default surface inputs.</summary>
             Standard        = 1 << 4,
+            /// <summary>Displays everything with a header.</summary>
             All             = ~0 ^ SubHeader // By default we don't want a sub-header
         }
 
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
@@ -33,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specifies the base color (RGB) and opacity (A) of the Material.");
 
             public static GUIContent metallicText = new GUIContent("Metallic", "Controls the scale factor for the Material's metallic effect.");
+            public static GUIContent metallicRemappingText = new GUIContent("Metallic Remapping", "Controls a remap for the metallic channel in the Mask Map.");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the scale factor for the Material's smoothness.");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
             public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
@@ -113,6 +125,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kBaseColorMap = "_BaseColorMap";
         MaterialProperty[] metallic = new MaterialProperty[kMaxLayerCount];
         const string kMetallic = "_Metallic";
+        MaterialProperty[] metallicRemapMin = new MaterialProperty[kMaxLayerCount];
+        const string kMetallicRemapMin = "_MetallicRemapMin";
+        MaterialProperty[] metallicRemapMax = new MaterialProperty[kMaxLayerCount];
+        const string kMetallicRemapMax = "_MetallicRemapMax";
         MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
         const string kSmoothness = "_Smoothness";
         MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
@@ -241,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
         int         m_LayerIndex;
@@ -250,7 +266,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool        isLayeredLit => m_LayerCount > 1;
 
-        public LitSurfaceInputsUIBlock(Expandable expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
+        /// <summary>
+        /// Constructs a LitSurfaceInputsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index to store the foldout state.</param>
+        /// <param name="layerCount">Number of layers in the shader.</param>
+        /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
+        /// <param name="features">Features of the block.</param>
+        /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
+        public LitSurfaceInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
@@ -259,6 +283,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DotColor = dotColor;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             UVBase = FindPropertyLayered(kUVBase, m_LayerCount, true);
@@ -269,6 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition
             baseColor = FindPropertyLayered(kBaseColor, m_LayerCount);
             baseColorMap = FindPropertyLayered(kBaseColorMap, m_LayerCount);
             metallic = FindPropertyLayered(kMetallic, m_LayerCount);
+            metallicRemapMin = FindPropertyLayered(kMetallicRemapMin, m_LayerCount);
+            metallicRemapMax = FindPropertyLayered(kMetallicRemapMax, m_LayerCount);
             smoothness = FindPropertyLayered(kSmoothness, m_LayerCount);
             smoothnessRemapMin = FindPropertyLayered(kSmoothnessRemapMin, m_LayerCount);
             smoothnessRemapMax = FindPropertyLayered(kSmoothnessRemapMax, m_LayerCount);
@@ -346,6 +375,9 @@ namespace UnityEditor.Rendering.HighDefinition
             heightTransition = FindProperty(kHeightTransition);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             bool subHeader = (m_Features & Features.SubHeader) != 0;
@@ -369,19 +401,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
-            if (materials.All(m => m.GetMaterialId() == MaterialId.LitStandard ||
+            bool hasMetallic = materials.All(m =>
+                m.GetMaterialId() == MaterialId.LitStandard ||
                 m.GetMaterialId() == MaterialId.LitAniso ||
-                m.GetMaterialId() == MaterialId.LitIridescence))
-            {
-                materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
-            }
+                m.GetMaterialId() == MaterialId.LitIridescence);
 
             if (maskMap[m_LayerIndex].textureValue == null)
             {
+                if (hasMetallic)
+                    materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
                 materialEditor.ShaderProperty(smoothness[m_LayerIndex], Styles.smoothnessText);
             }
             else
             {
+                if (hasMetallic)
+                {
+                    float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
+                    float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref metallicMin, ref metallicMax, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        metallicRemapMin[m_LayerIndex].floatValue = metallicMin;
+                        metallicRemapMax[m_LayerIndex].floatValue = metallicMax;
+                    }
+                }
+
                 float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
                 float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
                 EditorGUI.BeginChangeCheck();
@@ -479,9 +524,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Fetch the surface option block which contains the function to update the displacement datas
                     if (m_LayerCount == 1)
-                        surfaceOption = parent.FetchUIBlock< SurfaceOptionUIBlock >();
+                        surfaceOption = parent.FetchUIBlock<SurfaceOptionUIBlock>();
                     else
-                        surfaceOption = parent.parent.FetchUIBlock< SurfaceOptionUIBlock >();
+                        surfaceOption = parent.parent.FetchUIBlock<SurfaceOptionUIBlock>();
 
                     surfaceOption.UpdateDisplacement(m_LayerIndex);
                 }

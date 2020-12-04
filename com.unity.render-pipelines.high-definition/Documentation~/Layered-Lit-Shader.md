@@ -25,7 +25,7 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 | **Alpha Clipping**        | Enable the checkbox to make this Material act like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html). Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Alpha Clipping documentation](Alpha-Clipping.md). |
 | **Material Type**         | Allows you to give your Material a type, which allows you to customize it with different settings depending on the **Material Type** you select. For Layered Lit Materials, you can only use the **Subsurface Scattering**, **Standard**, or **Translucent** **Material Type**. For more information about the feature and for the list of properties each **Material Type** exposes, see the [Material Type documentation](Material-Type.md). |
 | **Receive Decals**        | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR**           | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. |
+| **Receive SSR (Transparent)** | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type.|
 | **Geometric Specular AA** | Enable the checkbox to tell HDRP to perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry in order to remove specular artifacts. For more information about the feature and for the  list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.md). |
 | **Displacement Mode**     | Use this drop-down to select the method that HDRP uses to alter the height of the Material’s surface. For more information about the feature and for the list of properties each **Displacement Mode** exposes, see the [Displacement Mode documentation](Displacement-Mode.md). |
 
@@ -51,16 +51,21 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 | **Height Transition**                        | Use the slider to set the transition blend size between the Materials in each layer. |
 | **Lock Layers 123 Tiling With Object Scale** | Enable the checkbox to multiply the Material's tiling rate by the scale of the GameObject. This keeps the appearance of the heightmap consistent when you scale the GameObject. |
 
-### Material To Copy
+### Layer List
 
 This section contains a list of the Materials that this Layered Material uses as layers. To assign a Material to a layer, either drag and drop a Material into the property field for that layer, or:
 
 1. Click the radio button on the right of the layer to open the **Select Material** window.
 2. Find the Material you want from the list of Materials in the window and double-click it.
 
-To synchronize the properties between a referenced Material and the Layered Material, press the **Synchronize** button. This copies all of the properties from the referenced Material into the relevant Layered Material layer.
+If you modify the referenced Material in any way, you can synchronize the properties by pressing the **Reset button**. This copies all of the properties from the referenced Material into the relevant Layered Material layer.
 
 ![](Images/LayeredLit1.png)
+
+If you assign a Material made from a Shader Graph as a **Layer Material**, make sure the Reference of the properties matches the name of the corresponding properties in the LayeredLit Material.
+For an example of what this means, see **_BaseColorMap** in the screenshot below:
+
+![](Images/LayeredLit2.png)
 
 ### Layers
 
@@ -86,7 +91,9 @@ Unity exposes up to four Material layers for you to use in your Layered Material
 | **Property**                    | **Description**                                              |
 | ------------------------------- | ------------------------------------------------------------ |
 | **Base Map**                    | Assign a Texture that controls both the color and opacity of your Material. To assign a Texture to this field, click the radio button and select your Texture in the Select Texture window. Use the color picker to select the color of the Material. If you do not assign a Texture, this is the absolute color of the Material. If you do assign a Texture, the final color of the Material is a combination of the Texture you assign and the color you select. The alpha value of the color controls the transparency level for the Material if you select **Transparent** from the **Surface Type** drop-down. |
+| **Metallic**                    | Use this slider to adjust how "metal-like" the surface of your Material is (between 0 and 1). When a surface is more metallic, it reflects the environment more and its albedo color becomes less visible. At full metallic level, the surface color is entirely driven by reflections from the environment. When a surface is less metallic, its albedo color is clearer and any surface reflections are visible on top of the surface color, rather than obscuring it.<br />This property only appears when you unassign the Texture in the **Mask Map**. |
 | **Smoothness**                  | Use the slider to adjust the smoothness of your Material. Every light ray that hits a smooth surface bounces off at predictable and consistent angles. For a perfectly smooth surface that reflects light like a mirror, set this to a value of 1. Less smooth surfaces reflect light over a wider range of angles (because the light hits the bumps in the microsurface), so the reflections have less detail and spread across the surface in a more diffused pattern.<br />This property only appears when you unassign the Texture in the **Mask Map**. |
+| **Metallic Remapping**          | Use this min-max slider to remap the metallic values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
 | **Smoothness Remapping**        | Use this min-max slider to remap the smoothness values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
 | **Ambient Occlusion Remapping** | Use this min-max slider to remap the ambient occlusion values from the **Mask Map** to the range you specify. Rather than [clamping](https://docs.unity3d.com/ScriptReference/Mathf.Clamp.html) values to the new range, Unity condenses the original range down to the new range uniformly.<br />This property only appears when you assign a **Mask Map**. |
 | **Mask Map**                    | Assign a [channel-packed Texture](Glossary.md#ChannelPacking) with the following Material maps in its RGBA channels.<br />&#8226; **Red**: Stores the metallic map. <br />&#8226; **Green**: Stores the ambient occlusion map.<br />&#8226; **Blue**: Stores the detail mask map.<br />&#8226; **Alpha**: Stores the smoothness map.<br />For more information on channel-packed Textures and the mask map, see [mask map](Mask-Map-and-Detail-Map.md#MaskMap). |

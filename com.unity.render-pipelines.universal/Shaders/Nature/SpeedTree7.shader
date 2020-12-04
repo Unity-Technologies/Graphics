@@ -36,8 +36,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
@@ -66,8 +65,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
@@ -92,6 +89,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
@@ -107,6 +106,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
@@ -124,8 +129,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT

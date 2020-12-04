@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import yaml
+import datetime
 
 from util.subprocess_helpers import run_cmd, git_cmd
 
@@ -16,6 +17,7 @@ from util.subprocess_helpers import run_cmd, git_cmd
 SUPPORTED_VERSION_TYPES = ('latest_internal', 'latest_public', 'staging')
 PROJECT_VERSION_NAME = 'project_revision'
 PLATFORMS = ('windows', 'macos', 'linux', 'android', 'ios')
+UPDATED_AT = str(datetime.datetime.utcnow())
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
@@ -44,13 +46,33 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
         raise ValueError(f'Could not parse track: {track} version: {version}.')
     components = ' '.join('-c ' + c for c in unity_downloader_components[platform])
     
-    if platform.lower() == 'android':
+    if platform.lower() in ['android']:
         platform = 'windows'
     elif platform.lower() == 'ios':
         platform = 'macos'
     
     return (f'unity-downloader-cli -o {platform} {components} -s {target_str} '
             '--wait --skip-download').split()
+
+def create_version_files(config, root):
+    
+
+    editor_version_files =[]
+    editor_versions_filename = config['editor_versions_file']
+    for track in config['editor_tracks']:
+
+        editor_versions_filename_track = editor_versions_filename.replace('TRACK',str(track))
+        editor_versions_file = load_latest_versions_metafile(editor_versions_filename_track)
+        versions = get_versions_from_unity_downloader([track], config['trunk_track'], config['unity_downloader_components'], editor_versions_file)
+        print(f'INFO: Saving {editor_versions_filename_track}.')
+        write_versions_file(os.path.join(root, editor_versions_filename_track),
+                                config['versions_file_header'], 
+                                versions)
+        if versions_file_is_unchanged(editor_versions_filename_track, root):
+                print(f'INFO: No changes in {editor_versions_filename_track}, or file is not tracked by git diff')
+        else:
+            editor_version_files.append(editor_versions_filename_track)
+    return editor_version_files
 
 
 def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_components, editor_versions_file):
@@ -86,13 +108,13 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
     versions = editor_versions_file.get("editor_versions", {})
 
     # drop all the keys that don't correspond to specified tracks (useful when different tracks are used between branches)
-    false_keys = [key for key in versions if key.split('_')[0] not in tracks] 
+    false_keys = [key for key in versions if not key.startswith(tuple([str(t).replace('.','_') for t in tracks]))] 
     for key in false_keys: del versions[key] 
 
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
 
-            key = f'{track}_{version_type}'
+            key = f'{str(track).replace(".","_")}_{version_type}'
 
             if not versions.get(key):
                 versions[key] = {}
@@ -105,19 +127,25 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                                                 unity_downloader_components), stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout, cwd='.')
                     
                     revision = result.strip().splitlines()[-1]
-                    versions[key][platform] = {}
-                    versions[key][platform]['revision'] = revision
+                    if not versions.get(key).get(platform):
+                        versions[key][platform] = {}
+                    
+                    if versions[key][platform]['revision'] != revision:
+                        versions[key][platform]['updated_at'] = UPDATED_AT
+                        versions[key][platform]['revision'] = revision
                    
-                    # Parse for the version in stderr (only exists for some cases):
-                    versions[key][platform]['version'] = ''
-                    for line in result.strip().splitlines():
-                        match = VERSION_PARSER_RE.match(line)
-                        version = ''
-                        if match:
-                            version = match.group(1)
-                            versions[key][platform]['version'] = version
-                            break
-                    print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
+                        # Parse for the version in stderr (only exists for some cases):
+                        versions[key][platform]['version'] = ''
+                        for line in result.strip().splitlines():
+                            match = VERSION_PARSER_RE.match(line)
+                            version = ''
+                            if match:
+                                version = match.group(1)
+                                versions[key][platform]['version'] = version
+                                break
+                        print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
+                    else:
+                        print(f'INFO: Latest revision for {key} [{platform}] matches existing one: {revision}')
                 except subprocess.TimeoutExpired as err:
                     print(f'WARNING: {key} [{platform}]: Timout {timeout}s exceeded')
 
@@ -140,11 +168,12 @@ def get_current_branch():
     return git_cmd("rev-parse --abbrev-ref HEAD").strip()
 
 
-def checkout_and_push(editor_versions_file, yml_files_path, target_branch, root, force_push,
+def checkout_and_push(editor_versions_files, yml_files_path, target_branch, root, force_push,
                       commit_message_details):
     original_branch = get_current_branch()
     git_cmd(f'checkout -B {target_branch}', cwd=root)
-    git_cmd(f'add {editor_versions_file}', cwd=root)
+    for editor_versions_file in editor_versions_files:
+        git_cmd(f'add {editor_versions_file}', cwd=root)
     git_cmd(f'add {yml_files_path}', cwd=root)
 
     # Expectations generated if yamato-parser is used:
@@ -153,7 +182,7 @@ def checkout_and_push(editor_versions_file, yml_files_path, target_branch, root,
         git_cmd(f'add {expectations_dir}', cwd=root)
 
     cmd = ['commit', '-m',
-           f'[Automation] Updated pinned editor versions used for CI\n\n{commit_message_details}']
+           f'[CI] Updated pinned editor versions \n\n{commit_message_details}']
     git_cmd(cmd, cwd=root)
 
     cmd = ['push', '--set-upstream', 'origin', target_branch]
@@ -185,8 +214,11 @@ def write_versions_file(file_path, header, versions):
         yaml.dump(editor_version, output_file, indent=2)
 
 def load_latest_versions_metafile(filename):
-    with open(filename) as yaml_file:
-        return yaml.safe_load(yaml_file)
+    try:
+        with open(filename) as yaml_file:
+            return yaml.safe_load(yaml_file)
+    except FileNotFoundError:
+        return {}
     
 
 def load_config(filename):
@@ -254,22 +286,11 @@ def main(argv):
     # assert os.path.isfile(projectversion_filename), f'Cannot find {projectversion_filename}'
 
     try:
-        editor_versions_filename = config['editor_versions_file']
-        editor_versions_file = load_latest_versions_metafile(editor_versions_filename)
-        versions = get_versions_from_unity_downloader(config['editor_tracks'], config['trunk_track'], config['unity_downloader_components'], editor_versions_file)
-        print(f'INFO: Saving {editor_versions_filename}.')
-        write_versions_file(os.path.join(ROOT, editor_versions_filename),
-                            config['versions_file_header'], 
-                            versions)
-        if versions_file_is_unchanged(editor_versions_filename, ROOT):
-            print(f'INFO: No changes in the versions file, exiting')
-        else:
-            subprocess.call(['python', config['ruamel_build_file']])
-            if args.yamato_parser:
-                print(f'INFO: Running {args.yamato_parser} to generate unfolded Yamato YAML...')
-                run_cmd(args.yamato_parser, cwd=ROOT)
-            if not args.local:
-                checkout_and_push(editor_versions_filename, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
+        
+        editor_version_files = create_version_files(config, ROOT)
+        #subprocess.call(['python', config['ruamel_build_file']])
+        if not args.local and len(editor_version_files) > 0:
+            checkout_and_push(editor_version_files, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')
         print(f'INFO: Done updating editor versions.')
         return 0

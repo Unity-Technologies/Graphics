@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         readonly RenderTargetHandle k_ColorGradingLutHandle;
 
         Material m_BlitMaterial;
+        Material m_SamplingMaterial;
 
         Renderer2DData m_Renderer2DData;
 
@@ -34,12 +35,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
-            m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
+            UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+#pragma warning disable 618 // Obsolete warning
+            PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
+#pragma warning restore 618 // Obsolete warning
+            if (postProcessData != null)
+            {
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, postProcessData);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, postProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, postProcessData, m_BlitMaterial);
+                k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
+                k_ColorGradingLutHandle.Init("_InternalGradingLut");
+            }
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -47,8 +59,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
-            k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
-            k_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
 
@@ -64,11 +74,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             // always dispose unmanaged resources
-            m_PostProcessPass.Cleanup();
-            m_FinalPostProcessPass.Cleanup();
-            m_ColorGradingLutPass.Cleanup();
-            
-            CoreUtils.Destroy(m_BlitMaterial);
+            m_PostProcessPass?.Cleanup();
+            m_FinalPostProcessPass?.Cleanup();
+            m_ColorGradingLutPass?.Cleanup();
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -93,8 +101,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isHdrEnabled
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
+                    || cameraData.requireSrgbConversion
                     || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
+                    || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
@@ -178,12 +188,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_ColorGradingLutPass != null)
             {
                 m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
+            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
+            m_Render2DLightingPass.Setup(hasValidDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
@@ -193,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            if (cameraData.postProcessEnabled)
+            if (stackHasPostProcess && m_PostProcessPass != null)
             {
                 RenderTargetHandle postProcessDestHandle =
                     lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
@@ -211,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (requireFinalPostProcessPass)
+            if (requireFinalPostProcessPass && m_FinalPostProcessPass != null)
             {
                 m_FinalPostProcessPass.SetupFinalPass(colorTargetHandle);
                 EnqueuePass(m_FinalPostProcessPass);

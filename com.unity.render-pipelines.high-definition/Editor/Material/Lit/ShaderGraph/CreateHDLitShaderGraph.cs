@@ -5,14 +5,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Lit Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Lit Shader Graph", false, 208)]
         public static void CreateHDLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
             target.TrySetActiveSubTarget(typeof(HDLitSubTarget));
 
-            var blockDescriptors = new [] 
-            { 
+            var blockDescriptors = new[]
+            {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }
     }
 }

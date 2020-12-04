@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(104, Extension, -902)]
+    [ScriptedImporter(109, Extension, -902)]
 #else
-    [ScriptedImporter(36, Extension, -902)]
+    [ScriptedImporter(41, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -201,16 +201,16 @@ Shader ""Hidden/GraphErrorShader2""
             }
 #endif
 
-            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
+            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
-            foreach(var target in graph.activeTargets)
+            foreach (var target in graph.activeTargets)
             {
-                if(target is IHasMetadata iHasMetadata)
+                if (target is IHasMetadata iHasMetadata)
                 {
                     var metadata = iHasMetadata.GetMetadataObject();
-                    if(metadata == null)
+                    if (metadata == null)
                         continue;
 
                     metadata.hideFlags = HideFlags.HideInHierarchy;
@@ -264,7 +264,6 @@ Shader ""Hidden/GraphErrorShader2""
                     ctx.DependsOnArtifact(asset.Key);
                 }
             }
-
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
@@ -294,6 +293,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
         }
+
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
@@ -327,420 +327,437 @@ Shader ""Hidden/GraphErrorShader2""
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
             var target = graph.activeTargets.FirstOrDefault(x => x is VFXTarget) as VFXTarget;
-            if(target == null)
+            if (target == null)
                 return null;
 
-            var nl = Environment.NewLine;
-            var indent = new string(' ', 4);
-            var asset = ScriptableObject.CreateInstance<ShaderGraphVfxAsset>();
-            var result = asset.compilationResult = new GraphCompilationResult();
-            var mode = GenerationMode.ForReals;
+            // we need to override graph.isSubgraph, so save old state to restore it
+            // (this is not great, but whole VFX pipeline is rather hacky at the moment)
+            // use try/finally to ensure it always gets restored
+            bool oldIsSubGraph = graph.isSubGraph;
+            try
+            {
+                // override to generate as a subgraph, as that is what VFX is using it as
+                graph.isSubGraph = true;
 
-            asset.lit = target.lit;
-            asset.alphaClipping = target.alphaTest;
+                var nl = Environment.NewLine;
+                var indent = new string(' ', 4);
+                var asset = ScriptableObject.CreateInstance<ShaderGraphVfxAsset>();
+                var result = asset.compilationResult = new GraphCompilationResult();
+                var mode = GenerationMode.ForReals;
 
-            var assetGuid = graph.assetGuid;
-            var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
-            var hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));
+                asset.lit = target.lit;
+                asset.alphaClipping = target.alphaTest;
 
-            var ports = new List<MaterialSlot>();
-            var nodes = new List<AbstractMaterialNode>();
+                var assetGuid = graph.assetGuid;
+                var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                var hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));
+
+                var ports = new List<MaterialSlot>();
+                var nodes = new List<AbstractMaterialNode>();
 
             foreach(var vertexBlock in graph.vertexContext.blocks)
-            {
-                vertexBlock.value.GetInputSlots(ports);
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, vertexBlock);
-            }
+                {
+                    vertexBlock.value.GetInputSlots(ports);
+                    NodeUtils.DepthFirstCollectNodesFromNode(nodes, vertexBlock);
+                }
 
             foreach(var fragmentBlock in graph.fragmentContext.blocks)
-            {
-                fragmentBlock.value.GetInputSlots(ports);
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
-            }
-
-            //Remove inactive blocks from generation
-            {
-                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
-                target.GetActiveBlocks(ref tmpCtx);
-                ports.RemoveAll(materialSlot =>
                 {
-                    return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
-                });
-            }
-
-            var bodySb = new ShaderStringBuilder(1);
-            var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
-
-            foreach (var properties in graph.properties)
-            {
-                properties.ValidateConcretePrecision(graph.concretePrecision);
-            }
-
-            foreach (var node in nodes)
-            {
-                if (node is IGeneratesBodyCode bodyGenerator)
-                {
-                    bodySb.currentNode = node;
-                    bodyGenerator.GenerateNodeCode(bodySb, mode);
-                    bodySb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                    fragmentBlock.value.GetInputSlots(ports);
+                    NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
                 }
 
-                if (node is IGeneratesFunction generatesFunction)
+                //Remove inactive blocks from generation
                 {
-                    registry.builder.currentNode = node;
-                    generatesFunction.GenerateNodeFunction(registry, mode);
-                }
-            }
-            bodySb.currentNode = null;
-
-            var portNodeSets = new HashSet<AbstractMaterialNode>[ports.Count];
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                var port = ports[portIndex];
-                var nodeSet = new HashSet<AbstractMaterialNode>();
-                NodeUtils.CollectNodeSet(nodeSet, port);
-                portNodeSets[portIndex] = nodeSet;
-            }
-
-            var portPropertySets = new HashSet<string>[ports.Count];
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                portPropertySets[portIndex] = new HashSet<string>();
-            }
-
-            foreach (var node in nodes)
-            {
-                if (!(node is PropertyNode propertyNode))
-                {
-                    continue;
+                    var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+                    target.GetActiveBlocks(ref tmpCtx);
+                    ports.RemoveAll(materialSlot =>
+                    {
+                        return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
+                    });
                 }
 
+                var bodySb = new ShaderStringBuilder(1);
+                var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
+
+                foreach (var properties in graph.properties)
+                {
+                    properties.ValidateConcretePrecision(graph.concretePrecision);
+                }
+
+                foreach (var node in nodes)
+                {
+                    if (node is IGeneratesBodyCode bodyGenerator)
+                    {
+                        bodySb.currentNode = node;
+                        bodyGenerator.GenerateNodeCode(bodySb, mode);
+                        bodySb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                    }
+
+                    if (node is IGeneratesFunction generatesFunction)
+                    {
+                        registry.builder.currentNode = node;
+                        generatesFunction.GenerateNodeFunction(registry, mode);
+                    }
+                }
+                bodySb.currentNode = null;
+
+                var portNodeSets = new HashSet<AbstractMaterialNode>[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
-                    var portNodeSet = portNodeSets[portIndex];
-                    if (portNodeSet.Contains(node))
-                    {
-                        portPropertySets[portIndex].Add(propertyNode.property.objectId);
-                    }
-                }
-            }
-
-            var shaderProperties = new PropertyCollector();
-            foreach (var node in nodes)
-            {
-                node.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
-            }
-
-            asset.SetTextureInfos(shaderProperties.GetConfiguredTexutres());
-
-            var codeSnippets = new List<string>();
-            var portCodeIndices = new List<int>[ports.Count];
-            var sharedCodeIndices = new List<int>();
-            for (var i = 0; i < portCodeIndices.Length; i++)
-            {
-                portCodeIndices[i] = new List<int>();
-            }
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\"{nl}");
-
-            for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
-            {
-                var name = registry.names[registryIndex];
-                var source = registry.sources[name];
-                var precision = source.nodes.First().concretePrecision;
-
-                var hasPrecisionMismatch = false;
-                var nodeNames = new HashSet<string>();
-                foreach (var node in source.nodes)
-                {
-                    nodeNames.Add(node.name);
-                    if (node.concretePrecision != precision)
-                    {
-                        hasPrecisionMismatch = true;
-                        break;
-                    }
+                    var port = ports[portIndex];
+                    var nodeSet = new HashSet<AbstractMaterialNode>();
+                    NodeUtils.CollectNodeSet(nodeSet, port);
+                    portNodeSets[portIndex] = nodeSet;
                 }
 
-                if (hasPrecisionMismatch)
-                {
-                    var message = new StringBuilder($"Precision mismatch for function {name}:");
-                    foreach (var node in source.nodes)
-                    {
-                        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
-                    }
-                    throw new InvalidOperationException(message.ToString());
-                }
-
-                var code = source.code.Replace(PrecisionUtil.Token, precision.ToShaderString());
-                code = $"// Node: {string.Join(", ", nodeNames)}{nl}{code}";
-                var codeIndex = codeSnippets.Count;
-                codeSnippets.Add(code + nl);
+                var portPropertySets = new HashSet<string>[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
-                    var portNodeSet = portNodeSets[portIndex];
-                    foreach (var node in source.nodes)
+                    portPropertySets[portIndex] = new HashSet<string>();
+                }
+
+                foreach (var node in nodes)
+                {
+                    if (!(node is PropertyNode propertyNode))
                     {
+                        continue;
+                    }
+
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                    {
+                        var portNodeSet = portNodeSets[portIndex];
                         if (portNodeSet.Contains(node))
                         {
-                            portCodeIndices[portIndex].Add(codeIndex);
-                            break;
+                            portPropertySets[portIndex].Add(propertyNode.property.objectId);
                         }
                     }
                 }
-            }
 
-            foreach (var property in graph.properties)
-            {
-                if (property.isExposable && property.generatePropertyBlock)
+                var shaderProperties = new PropertyCollector();
+                foreach (var node in nodes)
                 {
-                    continue;
+                    node.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
                 }
 
+                asset.SetTextureInfos(shaderProperties.GetConfiguredTexutres());
+
+                var codeSnippets = new List<string>();
+                var portCodeIndices = new List<int>[ports.Count];
+                var sharedCodeIndices = new List<int>();
+                for (var i = 0; i < portCodeIndices.Length; i++)
+                {
+                    portCodeIndices[i] = new List<int>();
+                }
+
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\"{nl}");
+
+                for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
+                {
+                    var name = registry.names[registryIndex];
+                    var source = registry.sources[name];
+                    var precision = source.nodes.First().concretePrecision;
+
+                    var hasPrecisionMismatch = false;
+                    var nodeNames = new HashSet<string>();
+                    foreach (var node in source.nodes)
+                    {
+                        nodeNames.Add(node.name);
+                        if (node.concretePrecision != precision)
+                        {
+                            hasPrecisionMismatch = true;
+                            break;
+                        }
+                    }
+
+                    if (hasPrecisionMismatch)
+                    {
+                        var message = new StringBuilder($"Precision mismatch for function {name}:");
+                        foreach (var node in source.nodes)
+                        {
+                            message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
+                        }
+                        throw new InvalidOperationException(message.ToString());
+                    }
+
+                    var code = source.code.Replace(PrecisionUtil.Token, precision.ToShaderString());
+                    code = $"// Node: {string.Join(", ", nodeNames)}{nl}{code}";
+                    var codeIndex = codeSnippets.Count;
+                    codeSnippets.Add(code + nl);
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                    {
+                        var portNodeSet = portNodeSets[portIndex];
+                        foreach (var node in source.nodes)
+                        {
+                            if (portNodeSet.Contains(node))
+                            {
+                                portCodeIndices[portIndex].Add(codeIndex);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                foreach (var property in graph.properties)
+                {
+                    if (property.isExposable && property.generatePropertyBlock)
+                    {
+                        continue;
+                    }
+
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                    {
+                        var portPropertySet = portPropertySets[portIndex];
+                        if (portPropertySet.Contains(property.objectId))
+                        {
+                            portCodeIndices[portIndex].Add(codeSnippets.Count);
+                        }
+                    }
+
+                    ShaderStringBuilder builder = new ShaderStringBuilder();
+                    property.ForeachHLSLProperty(h => h.AppendTo(builder));
+
+                    codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
+                }
+
+
+                var inputStructName = $"SG_Input_{assetGuid}";
+                var outputStructName = $"SG_Output_{assetGuid}";
+                var evaluationFunctionName = $"SG_Evaluate_{assetGuid}";
+
+                #region Input Struct
+
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"struct {inputStructName}{nl}{{{nl}");
+
+                #region Requirements
+
+                var portRequirements = new ShaderGraphRequirements[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
-                    var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.objectId))
+                    var requirementsNodes = portNodeSets[portIndex].ToList();
+                    requirementsNodes.Add(ports[portIndex].owner);
+                    portRequirements[portIndex] = ShaderGraphRequirements.FromNodes(requirementsNodes, ports[portIndex].stageCapability);
+                }
+
+                var portIndices = new List<int>();
+                portIndices.Capacity = ports.Count;
+
+                void AddRequirementsSnippet(Func<ShaderGraphRequirements, bool> predicate, string snippet)
+                {
+                    portIndices.Clear();
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                     {
-                        portCodeIndices[portIndex].Add(codeSnippets.Count);
+                        if (predicate(portRequirements[portIndex]))
+                        {
+                            portIndices.Add(portIndex);
+                        }
+                    }
+
+                    if (portIndices.Count > 0)
+                    {
+                        foreach (var portIndex in portIndices)
+                        {
+                            portCodeIndices[portIndex].Add(codeSnippets.Count);
+                        }
+
+                        codeSnippets.Add($"{indent}{snippet};{nl}");
                     }
                 }
 
-                codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
-            }
-
-
-
-            var inputStructName = $"SG_Input_{assetGuid}";
-            var outputStructName = $"SG_Output_{assetGuid}";
-            var evaluationFunctionName = $"SG_Evaluate_{assetGuid}";
-
-            #region Input Struct
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"struct {inputStructName}{nl}{{{nl}");
-
-            #region Requirements
-
-            var portRequirements = new ShaderGraphRequirements[ports.Count];
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                var requirementsNodes = portNodeSets[portIndex].ToList();
-                requirementsNodes.Add(ports[portIndex].owner);
-                portRequirements[portIndex] = ShaderGraphRequirements.FromNodes(requirementsNodes, ports[portIndex].stageCapability);
-            }
-
-            var portIndices = new List<int>();
-            portIndices.Capacity = ports.Count;
-
-            void AddRequirementsSnippet(Func<ShaderGraphRequirements, bool> predicate, string snippet)
-            {
-                portIndices.Clear();
-                for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                void AddCoordinateSpaceSnippets(InterpolatorType interpolatorType, Func<ShaderGraphRequirements, NeededCoordinateSpace> selector)
                 {
-                    if (predicate(portRequirements[portIndex]))
+                    foreach (var space in EnumInfo<CoordinateSpace>.values)
                     {
-                        portIndices.Add(portIndex);
+                        var neededSpace = space.ToNeededCoordinateSpace();
+                        AddRequirementsSnippet(r => (selector(r) & neededSpace) > 0, $"float3 {space.ToVariableName(interpolatorType)}");
                     }
                 }
 
-                if (portIndices.Count > 0)
+                // TODO: Rework requirements system to make this better
+                AddCoordinateSpaceSnippets(InterpolatorType.Normal, r => r.requiresNormal);
+                AddCoordinateSpaceSnippets(InterpolatorType.Tangent, r => r.requiresTangent);
+                AddCoordinateSpaceSnippets(InterpolatorType.BiTangent, r => r.requiresBitangent);
+                AddCoordinateSpaceSnippets(InterpolatorType.ViewDirection, r => r.requiresViewDir);
+                AddCoordinateSpaceSnippets(InterpolatorType.Position, r => r.requiresPosition);
+
+                AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
+                AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
+                AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
+
+                foreach (var uvChannel in EnumInfo<UVChannel>.values)
                 {
-                    foreach (var portIndex in portIndices)
-                    {
-                        portCodeIndices[portIndex].Add(codeSnippets.Count);
-                    }
-
-                    codeSnippets.Add($"{indent}{snippet};{nl}");
+                    AddRequirementsSnippet(r => r.requiresMeshUVs.Contains(uvChannel), $"half4 {uvChannel.GetUVName()}");
                 }
-            }
 
-            void AddCoordinateSpaceSnippets(InterpolatorType interpolatorType, Func<ShaderGraphRequirements, NeededCoordinateSpace> selector)
-            {
-                foreach (var space in EnumInfo<CoordinateSpace>.values)
-                {
-                    var neededSpace = space.ToNeededCoordinateSpace();
-                    AddRequirementsSnippet(r => (selector(r) & neededSpace) > 0, $"float3 {space.ToVariableName(interpolatorType)}");
-                }
-            }
+                AddRequirementsSnippet(r => r.requiresTime, $"float3 {ShaderGeneratorNames.TimeParameters}");
 
-            // TODO: Rework requirements system to make this better
-            AddCoordinateSpaceSnippets(InterpolatorType.Normal, r => r.requiresNormal);
-            AddCoordinateSpaceSnippets(InterpolatorType.Tangent, r => r.requiresTangent);
-            AddCoordinateSpaceSnippets(InterpolatorType.BiTangent, r => r.requiresBitangent);
-            AddCoordinateSpaceSnippets(InterpolatorType.ViewDirection, r => r.requiresViewDir);
-            AddCoordinateSpaceSnippets(InterpolatorType.Position, r => r.requiresPosition);
+                #endregion
 
-            AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
-            AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
-            AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"}};{nl}{nl}");
 
-            foreach (var uvChannel in EnumInfo<UVChannel>.values)
-            {
-                AddRequirementsSnippet(r => r.requiresMeshUVs.Contains(uvChannel), $"half4 {uvChannel.GetUVName()}");
-            }
+                #endregion
 
-            AddRequirementsSnippet(r => r.requiresTime, $"float3 {ShaderGeneratorNames.TimeParameters}");
-
-            #endregion
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"}};{nl}{nl}");
-
-            #endregion
-
-            // VFX Code heavily relies on the slotId from the original MasterNodes
-            // Since we keep these around for upgrades anyway, for now it is simpler to use them
-            // Therefore we remap the output blocks back to the original Ids here
-            var originialPortIds = new int[ports.Count];
+                // VFX Code heavily relies on the slotId from the original MasterNodes
+                // Since we keep these around for upgrades anyway, for now it is simpler to use them
+                // Therefore we remap the output blocks back to the original Ids here
+                var originialPortIds = new int[ports.Count];
             for(int i = 0; i < originialPortIds.Length; i++)
-            {
+                {
                 if(!VFXTarget.s_BlockMap.TryGetValue((ports[i].owner as BlockNode).descriptor, out var originalId))
-                    continue;
+                        continue;
 
-                // In Master Nodes we had a different BaseColor/Color slot id between Unlit/Lit
-                // In the stack we use BaseColor for both cases. Catch this here.
+                    // In Master Nodes we had a different BaseColor/Color slot id between Unlit/Lit
+                    // In the stack we use BaseColor for both cases. Catch this here.
                 if(asset.lit && originalId == ShaderGraphVfxAsset.ColorSlotId)
-                {
-                    originalId = ShaderGraphVfxAsset.BaseColorSlotId;
+                    {
+                        originalId = ShaderGraphVfxAsset.BaseColorSlotId;
+                    }
+
+                    originialPortIds[i] = originalId;
                 }
 
-                originialPortIds[i] = originalId;
-            }
+                #region Output Struct
 
-            #region Output Struct
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"struct {outputStructName}{nl}{{");
-
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                var port = ports[portIndex];
-                portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{originialPortIds[portIndex]};");
-            }
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"{nl}}};{nl}{nl}");
-
-            #endregion
-
-            #region Graph Function
-
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
-
-            var inputProperties = new List<AbstractShaderProperty>();
-            var portPropertyIndices = new List<int>[ports.Count];
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                portPropertyIndices[portIndex] = new List<int>();
-            }
-
-            foreach (var property in graph.properties)
-            {
-                if (!property.isExposable || !property.generatePropertyBlock)
-            {
-                    continue;
-                }
-
-                var propertyIndex = inputProperties.Count;
-                var codeIndex = codeSnippets.Count;
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"struct {outputStructName}{nl}{{");
 
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
-                    var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.objectId))
-                {
-                        portCodeIndices[portIndex].Add(codeIndex);
-                        portPropertyIndices[portIndex].Add(propertyIndex);
-                    }
+                    var port = ports[portIndex];
+                    portCodeIndices[portIndex].Add(codeSnippets.Count);
+                    codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{originialPortIds[portIndex]};");
                 }
 
-                inputProperties.Add(property);
-                codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
-                }
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"{nl}}};{nl}{nl}");
 
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"){nl}{{");
+                #endregion
 
-            #region Node Code
+                #region Graph Function
 
-            for (var mappingIndex = 0; mappingIndex < bodySb.mappings.Count; mappingIndex++)
-            {
-                var mapping = bodySb.mappings[mappingIndex];
-                var code = bodySb.ToString(mapping.startIndex, mapping.count);
-                if (string.IsNullOrWhiteSpace(code))
-                {
-                    continue;
-            }
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"{outputStructName} {evaluationFunctionName}({nl}{indent}{inputStructName} IN");
 
-                code = $"{nl}{indent}// Node: {mapping.node.name}{nl}{code}";
-                var codeIndex = codeSnippets.Count;
-                codeSnippets.Add(code);
+                var inputProperties = new List<AbstractShaderProperty>();
+                var portPropertyIndices = new List<int>[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
-                    var portNodeSet = portNodeSets[portIndex];
-                    if (portNodeSet.Contains(mapping.node))
+                    portPropertyIndices[portIndex] = new List<int>();
+                }
+
+                foreach (var property in graph.properties)
+                {
+                    if (!property.isExposable || !property.generatePropertyBlock)
+                    {
+                        continue;
+                    }
+
+                    var propertyIndex = inputProperties.Count;
+                    var codeIndex = codeSnippets.Count;
+
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                    {
+                        var portPropertySet = portPropertySets[portIndex];
+                        if (portPropertySet.Contains(property.objectId))
+                {
+                            portCodeIndices[portIndex].Add(codeIndex);
+                            portPropertyIndices[portIndex].Add(propertyIndex);
+                        }
+                    }
+
+                    inputProperties.Add(property);
+                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
+                }
+
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"){nl}{{");
+
+                #region Node Code
+
+                for (var mappingIndex = 0; mappingIndex < bodySb.mappings.Count; mappingIndex++)
+                {
+                    var mapping = bodySb.mappings[mappingIndex];
+                    var code = bodySb.ToString(mapping.startIndex, mapping.count);
+                    if (string.IsNullOrWhiteSpace(code))
+                    {
+                        continue;
+            }
+
+                    code = $"{nl}{indent}// Node: {mapping.node.name}{nl}{code}";
+                    var codeIndex = codeSnippets.Count;
+                    codeSnippets.Add(code);
+                    for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                    {
+                        var portNodeSet = portNodeSets[portIndex];
+                        if (portNodeSet.Contains(mapping.node))
             {
-                        portCodeIndices[portIndex].Add(codeIndex);
+                            portCodeIndices[portIndex].Add(codeIndex);
+                        }
                     }
                 }
-            }
 
-            #endregion
+                #endregion
 
-            #region Output Mapping
+                #region Output Mapping
 
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"{nl}{indent}// VFXMasterNode{nl}{indent}{outputStructName} OUT;{nl}");
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"{nl}{indent}// VFXMasterNode{nl}{indent}{outputStructName} OUT;{nl}");
 
-            // Output mapping
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-            {
-                var port = ports[portIndex];
-                portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
-            }
+                // Output mapping
+                for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                {
+                    var port = ports[portIndex];
+                    portCodeIndices[portIndex].Add(codeSnippets.Count);
+                    codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
+                }
 
-            #endregion
+                #endregion
 
-            // Function end
-            sharedCodeIndices.Add(codeSnippets.Count);
-            codeSnippets.Add($"{indent}return OUT;{nl}}}{nl}");
+                // Function end
+                sharedCodeIndices.Add(codeSnippets.Count);
+                codeSnippets.Add($"{indent}return OUT;{nl}}}{nl}");
 
-            #endregion
+                #endregion
 
-            result.codeSnippets = codeSnippets.ToArray();
-            result.sharedCodeIndices = sharedCodeIndices.ToArray();
-            result.outputCodeIndices = new IntArray[ports.Count];
-            for (var i = 0; i < ports.Count; i++)
-            {
-                result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
-            }
+                result.codeSnippets = codeSnippets.ToArray();
+                result.sharedCodeIndices = sharedCodeIndices.ToArray();
+                result.outputCodeIndices = new IntArray[ports.Count];
+                for (var i = 0; i < ports.Count; i++)
+                {
+                    result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
+                }
 
-            var outputMetadatas = new OutputMetadata[ports.Count];
-            for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
-            {
-                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
-            }
+                var outputMetadatas = new OutputMetadata[ports.Count];
+                for (int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
+                {
+                    outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
+                }
 
-            asset.SetOutputs(outputMetadatas);
+                asset.SetOutputs(outputMetadatas);
 
-            asset.evaluationFunctionName = evaluationFunctionName;
-            asset.inputStructName = inputStructName;
-            asset.outputStructName = outputStructName;
-            asset.portRequirements = portRequirements;
-            asset.concretePrecision = graph.concretePrecision;
-            asset.SetProperties(inputProperties);
-            asset.outputPropertyIndices = new IntArray[ports.Count];
-            for (var portIndex = 0; portIndex < ports.Count; portIndex++)
+                asset.evaluationFunctionName = evaluationFunctionName;
+                asset.inputStructName = inputStructName;
+                asset.outputStructName = outputStructName;
+                asset.portRequirements = portRequirements;
+                asset.concretePrecision = graph.concretePrecision;
+                asset.SetProperties(inputProperties);
+                asset.outputPropertyIndices = new IntArray[ports.Count];
+                for (var portIndex = 0; portIndex < ports.Count; portIndex++)
         {
-                asset.outputPropertyIndices[portIndex] = portPropertyIndices[portIndex].ToArray();
-            }
+                    asset.outputPropertyIndices[portIndex] = portPropertyIndices[portIndex].ToArray();
+                }
 
-            return asset;
+                return asset;
+            }
+            finally
+            {
+                graph.isSubGraph = oldIsSubGraph;
+            }
         }
+
 #endif
     }
 }

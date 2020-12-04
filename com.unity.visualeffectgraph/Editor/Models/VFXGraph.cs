@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
     {
         void OnPreprocessAsset()
         {
-            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
             if (isVFX)
             {
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
                 resource.GetOrCreateGraph().SanitizeForImport();
             }
         }
-        
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -93,36 +93,37 @@ namespace UnityEditor.VFX
     }
     class VFXCacheManager : EditorWindow
     {
-        private static List<VisualEffectAsset> GetAllVisualEffectAssets()
+        private static List<VisualEffectObject> GetAllVisualEffectObjects()
         {
-            var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-            foreach (var guid in vfxAssetsGuid)
+            var vfxObjects = new List<VisualEffectObject>();
+            var vfxObjectsGuid = AssetDatabase.FindAssets("t:VisualEffectObject");
+            foreach (var guid in vfxObjectsGuid)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
-                if (vfxAsset != null)
+                var vfxObj = AssetDatabase.LoadAssetAtPath<VisualEffectObject>(assetPath);
+                if (vfxObj != null)
                 {
-                    vfxAssets.Add(vfxAsset);
+                    vfxObjects.Add(vfxObj);
                 }
             }
-            return vfxAssets;
+            return vfxObjects;
         }
 
         [MenuItem("Edit/Visual Effects//Rebuild And Save All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
-            var vfxAssets = GetAllVisualEffectAssets();
+            var vfxObjects = GetAllVisualEffectObjects();
 
-            foreach (var vfxAsset in vfxAssets)
+            foreach (var vfxObj in vfxObjects)
             {
                 if (VFXViewPreference.advancedLogs)
-                    Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                    Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxObj, AssetDatabase.GetAssetPath(vfxObj)));
 
-                var resource = vfxAsset.GetResource();
+                var resource = vfxObj.GetResource();
                 if (resource != null)
                 {
-                    resource.GetOrCreateGraph().SanitizeGraph();
+                    VFXGraph graph = resource.GetOrCreateGraph();
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
                     EditorUtility.SetDirty(resource);
                 }
             }
@@ -229,7 +230,11 @@ namespace UnityEditor.VFX
         // 2: Change some SetAttribute to spaceable slot
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
-        public static readonly int CurrentVersion = 4;
+        // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
+        // 6: Remove automatic strip orientation from quad strip context
+        public static readonly int CurrentVersion = 6;
+
+        public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
 
         public override void OnEnable()
@@ -294,11 +299,7 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            // This is a guard where dependencies that couldnt be deserialized (because script is missing for instance) are removed from the list
-            // because else StoreObjectsToByteArray is crashing
-            // TODO Fix that
-            var safeDependencies = dependencies.Where(o => o != null);
-            var result = VFXMemorySerializer.StoreObjectsToByteArray(safeDependencies.ToArray(), CompressionLevel.Fastest);
+            var result = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
@@ -412,6 +413,14 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
 
+#if !CASE_1289829_HAS_BEEN_FIXED
+            if (visualEffectResource != null && (visualEffectResource.updateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
+            {
+                visualEffectResource.updateMode = visualEffectResource.updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
+                Debug.Log("Sanitize : Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
+            }
+#endif
+
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
@@ -469,11 +478,14 @@ namespace UnityEditor.VFX
                 UpdateSubAssets();
                 if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
+
+                m_DependentDirty = true;
             }
 
             if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
+                m_DependentDirty = true;
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -633,6 +645,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        private void SetFlattenedParentToSubblocks()
+        {
+            foreach (var child in children.OfType<VFXContext>())
+                foreach (var block in child.children.OfType<VFXSubgraphBlock>())
+                    block.SetSubblocksFlattenedParent();
+        }
+
         void RecurseSubgraphPatchInputExpression(IEnumerable<VFXModel> children)
         {
             foreach (var child in children)
@@ -695,6 +714,7 @@ namespace UnityEditor.VFX
         {
             Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(children);
+            SetFlattenedParentToSubblocks();
             RecurseSubgraphPatchInputExpression(children);
             Profiler.EndSample();
         }
@@ -727,18 +747,19 @@ namespace UnityEditor.VFX
 
                 foreach (var instanceID in dependentAsset)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                     {
                         return;
                     }
                 }
             }
 
-            foreach(var child in children)
+            foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
             SanitizeGraph();
         }
+
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -752,7 +773,7 @@ namespace UnityEditor.VFX
 
                     foreach (var instanceID in dependentAsset)
                     {
-                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
                             return;
                         }
@@ -767,6 +788,8 @@ namespace UnityEditor.VFX
             m_ExpressionGraphDirty = false;
             m_ExpressionValuesDirty = false;
         }
+
+        public static VFXCompileErrorReporter compileReporter = null;
 
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
@@ -799,15 +822,12 @@ namespace UnityEditor.VFX
             }
             if (!preventDependencyRecompilation && m_DependentDirty)
             {
-                if (m_DependentDirty)
+                var obj = GetResource().visualEffectObject;
+                foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                 {
-                    var obj = GetResource().visualEffectObject;
-                    foreach (var graph in GetAllGraphs<VisualEffectAsset>())
-                    {
-                        graph.SubgraphDirty(obj);
-                    }
-                    m_DependentDirty = false;
+                    graph.SubgraphDirty(obj);
                 }
+                m_DependentDirty = false;
             }
         }
 
@@ -875,7 +895,10 @@ namespace UnityEditor.VFX
             GetImportDependentAssets(dependentAsset);
 
             foreach (var dep in dependentAsset)
-                visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            {
+                if (dep != 0)
+                    visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            }
 
             return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
         }
