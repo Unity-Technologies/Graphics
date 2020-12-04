@@ -208,9 +208,9 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
     for (uint lightListIndex = groupThreadIndex; lightListIndex < coarseTileHeader.listCount; lightListIndex += PLATFORM_LANE_COUNT)
     {
         #if CS_CULL_FIRST_LIGHTS
-        uint lightIndex = lightListIndex;
+            uint lightIndex = lightListIndex;
         #else
-        uint lightIndex = _TileData[coarseTileHeader.listOffset + lightListIndex];
+            uint lightIndex = _TileData[coarseTileHeader.listOffset + lightListIndex];
         #endif
         PreLight light = _Lights[lightIndex];
 
@@ -233,12 +233,12 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
                 continue;
 
             #if CS_CULL_FINAL_LIGHTS
-            float3 minPosVS = light.posVS + float3(0, 0, light.radius);
-            float2 minScreenPos = ProjectToZNear(minPosVS, _FrustumPlanes_ZNear, false);
-            float3 minRayDir = float3(ClampToDisk(tileCentre, _TileRadiusInv, minScreenPos), -_FrustumPlanes_ZNear);
+                float3 minPosVS = light.posVS + float3(0, 0, light.radius);
+                float2 minScreenPos = ProjectToZNear(minPosVS, _FrustumPlanes_ZNear, false);
+                float3 minRayDir = float3(ClampToDisk(tileCentre, _TileRadiusInv, minScreenPos), -_FrustumPlanes_ZNear);
 
-            float _t1; // discarded
-            IntersectionLineSphere(light.posVS, light.radius, 0.0.xxx, minRayDir, t0, _t1);
+                float _t1; // discarded
+                IntersectionLineSphere(light.posVS, light.radius, 0.0.xxx, minRayDir, t0, _t1);
             #endif
 
         #endif
@@ -261,39 +261,39 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
     }
 
     #if CS_CULL_FINAL_LIGHTS
-    // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
-    listMinDepth = clamp(listMinDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
-    listMaxDepth = clamp(listMaxDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+        // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
+        listMinDepth = clamp(listMinDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+        listMaxDepth = clamp(listMaxDepth * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
 
-    // All threads share their results.
-    InterlockedMin(g_ListMinDepth, asuint(listMinDepth));
-    InterlockedMax(g_ListMaxDepth, asuint(listMaxDepth));
+        // All threads share their results.
+        InterlockedMin(g_ListMinDepth, asuint(listMinDepth));
+        InterlockedMax(g_ListMaxDepth, asuint(listMaxDepth));
 
-    GroupMemoryBarrierWithGroupSync();
+        GroupMemoryBarrierWithGroupSync();
 
-    // Calculate bitmask for 2.5D culling.
-    listMinDepth = asfloat(g_ListMinDepth);
-    listMaxDepth = asfloat(g_ListMaxDepth);
-    // Deal with case there is no lights in the tile: listMinDepth will be zFar and listMaxDepth will be zNear.
-    // Just pretend the light intersects after zFar plane. Since there is no geometry past the zFar plane, tileDepthInfo shader will generate geoBitMask=0 for that tile.
-    listMaxDepth = listMinDepth >= listMaxDepth ? listMinDepth + 1.0 : listMaxDepth;
-    float depthRangeInv = 1.0 / (listMaxDepth - listMinDepth);
+        // Calculate bitmask for 2.5D culling.
+        listMinDepth = asfloat(g_ListMinDepth);
+        listMaxDepth = asfloat(g_ListMaxDepth);
+        // Deal with case there is no lights in the tile: listMinDepth will be zFar and listMaxDepth will be zNear.
+        // Just pretend the light intersects after zFar plane. Since there is no geometry past the zFar plane, tileDepthInfo shader will generate geoBitMask=0 for that tile.
+        listMaxDepth = listMinDepth >= listMaxDepth ? listMinDepth + 1.0 : listMaxDepth;
+        float depthRangeInv = 1.0 / (listMaxDepth - listMinDepth);
 
-    for (int i = 0; i < threadLightCount && i < kMaxLightPerThread; ++i)
-    {
-        float lightMinDepth = clamp(lightDepthRanges[i].x * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
-        float lightMaxDepth = clamp(lightDepthRanges[i].y * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
-        int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0 * depthRangeInv);
-        int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0 * depthRangeInv);
-        int bitCount = min(lastBit - firstBit + 1, 32 - firstBit);
-        uint bitMask = (uint)((0xFFFFFFFF >> (32 - bitCount)) << firstBit);
+        for (int i = 0; i < threadLightCount && i < kMaxLightPerThread; ++i)
+        {
+            float lightMinDepth = clamp(lightDepthRanges[i].x * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+            float lightMaxDepth = clamp(lightDepthRanges[i].y * _FrustumPlanes_ZNear, _FrustumPlanes_ZNear, _FrustumPlanes_ZFar);
+            int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0 * depthRangeInv);
+            int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0 * depthRangeInv);
+            int bitCount = min(lastBit - firstBit + 1, 32 - firstBit);
+            uint bitMask = (uint)((0xFFFFFFFF >> (32 - bitCount)) << firstBit);
 
-        InterlockedOr(g_ListBitMask, bitMask);
+            InterlockedOr(g_ListBitMask, bitMask);
 
-        uint prevCount;
-        InterlockedAdd(g_ListCount, 1, prevCount);
-        _OutTileData[listOffset + prevCount] = StoreLightBitmask(lightIndices[i], firstBit, bitCount);
-    }
+            uint prevCount;
+            InterlockedAdd(g_ListCount, 1, prevCount);
+            _OutTileData[listOffset + prevCount] = StoreLightBitmask(lightIndices[i], firstBit, bitCount);
+        }
     #endif
 
     GroupMemoryBarrierWithGroupSync();
@@ -305,18 +305,18 @@ void CSCullLights (uint3 groupId: SV_GroupId, uint groupThreadIndex : SV_GroupIn
         tileHeader.listCount = g_ListCount;
 
         #if CS_CULL_FINAL_LIGHTS
-        // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
-        // we can optimize the shader execution (TileDepthInfo.shader) by refactoring the calculation.
-        //   int bitIndex = 32.0h * (geoDepth - listMinDepth) / (listMaxDepth - listMinDepth);
-        // Equivalent to:
-        //   a =                 32.0 / (listMaxDepth - listMinDepth)
-        //   b = -listMinDepth * 32.0 / (listMaxDepth - listMinDepth)
-        //   int bitIndex = geoDepth * a + b;
-        float a = 32.0 * depthRangeInv;
-        float b = -listMinDepth * a;
+            // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
+            // we can optimize the shader execution (TileDepthInfo.shader) by refactoring the calculation.
+            //   int bitIndex = 32.0h * (geoDepth - listMinDepth) / (listMaxDepth - listMinDepth);
+            // Equivalent to:
+            //   a =                 32.0 / (listMaxDepth - listMinDepth)
+            //   b = -listMinDepth * 32.0 / (listMaxDepth - listMinDepth)
+            //   int bitIndex = geoDepth * a + b;
+            float a = 32.0 * depthRangeInv;
+            float b = -listMinDepth * a;
 
-        tileHeader.listDepthRange = f32tof16(a) | (f32tof16(b) << 16);
-        tileHeader.listBitMask = g_ListBitMask;
+            tileHeader.listDepthRange = f32tof16(a) | (f32tof16(b) << 16);
+            tileHeader.listBitMask = g_ListBitMask;
         #endif
 
         StoreTileHeader(_OutTileHeaders, tileIndex, tileHeader, CS_CULL_FINAL_LIGHTS);

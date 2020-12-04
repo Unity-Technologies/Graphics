@@ -3,14 +3,14 @@
 
 #define PREFERRED_CBUFFER_SIZE (64 * 1024)
 #define SIZEOF_VEC4_TILEDATA 1 // uint4
-#define SIZEOF_VEC4_PUNCTUALLIGHTDATA 4 // 4 * float4
+#define SIZEOF_VEC4_PUNCTUALLIGHTDATA 5 // 5 * float4
 #define MAX_DEPTHRANGE_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 #define MAX_TILES_PER_CBUFFER_PATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
 #define MAX_PUNCTUALLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_PUNCTUALLIGHTDATA))
 #define MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 
-// If we choose to perform light culling into tiles using compute shaders, then tile related information are in structured buffers.
-#if defined(_GPU_TILING)
+// If we choose to perform light culling into tiles using compute shaders, then tile related information is stored in structured buffers.
+#if defined(_DEFERRED_GPU_TILING)
 #define FORCE_STRUCTBUFFER_FOR_TILING 1
 #else
 #define FORCE_STRUCTBUFFER_FOR_TILING 0

@@ -47,8 +47,17 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/TileDepthInfo.shader")]
+            public Shader tileDepthInfoPS;
+
+            [Reload("Shaders/Utils/TileDeferred.shader")]
+            public Shader tileDeferredPS;
+
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
+
+            [Reload("Shaders/Utils/TileLightCulling.compute")]
+            public ComputeShader tileLightCullingCS;
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
@@ -73,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
+        [SerializeField] TileShading m_TiledDeferredShading = TileShading.Disabled;
 
         protected override ScriptableRenderer Create()
         {
@@ -160,8 +169,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /*
-        public bool tiledDeferredShading
+        public TileShading tiledDeferredShading
         {
             get => m_TiledDeferredShading;
             set
@@ -170,7 +178,6 @@ namespace UnityEngine.Rendering.Universal
                 m_TiledDeferredShading = value;
             }
         }
-        */
 
         protected override void OnEnable()
         {

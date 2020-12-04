@@ -1,4 +1,4 @@
-﻿#define URP_HAS_BURST
+//#define URP_HAS_BURST
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
@@ -208,11 +208,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         struct CullLightsJob : IJob
         {
             public DeferredTiler tiler;
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights;
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<ushort> coarseTiles;
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<uint> coarseTileHeaders;
             public int coarseHeaderOffset;
             public int istart;
@@ -244,17 +244,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        /*
 #if URP_HAS_BURST
-        //[Unity.Burst.BurstCompile(CompileSynchronously = true)] 
+        [Unity.Burst.BurstCompile(CompileSynchronously = true)]
 #endif
         struct DrawTilesJob : IJob
         {
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<DrawCall> drawCalls;
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<int> drawCallCount;
-            [ReadOnly] [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<VisibleLight> visibleLights;
             public DeferredTiler tiler;
             public int istart;
@@ -271,8 +270,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
         }
-        */
 
+        // Draw call parameters when using CPU tiling.
         struct DrawCall
         {
             public int tileListId;
@@ -373,7 +372,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return GraphicsFormat.None;
         }
 
-        public int TileXCount { get { return (m_RenderWidth + DeferredConfig.kTilePixelWidth - 1) / DeferredConfig.kTilePixelWidth; } }
         // This may return different values depending on what lights are rendered for a given frame.
         internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
         //
@@ -394,8 +392,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             get { return m_TiledDeferredShading; }
             set { m_TiledDeferredShading = value; }
         }
-        // true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
-        internal bool TiledDeferredShading { get; set; }
         // We browse all visible lights and found the mixed lighting setup every frame.
         internal MixedLightingSetup MixedLightingSetup { get; set; }
         //
@@ -405,7 +401,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         //
         internal int RenderHeight { get; set; }
 
-        public int TileYCount { get { return (m_RenderHeight + DeferredConfig.kTilePixelHeight - 1) / DeferredConfig.kTilePixelHeight; } }
+        public int TileXCount { get { return (this.RenderWidth + DeferredConfig.kTilePixelWidth - 1) / DeferredConfig.kTilePixelWidth; } }
+
+        public int TileYCount { get { return (this.RenderHeight + DeferredConfig.kTilePixelHeight - 1) / DeferredConfig.kTilePixelHeight; } }
 
         internal TileShading m_TiledDeferredShading = TileShading.Disabled;
         internal readonly bool useJobSystem = true;
@@ -535,12 +533,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
             }
 
-            // Compute some platform limits (for deferred tiling).
-            m_MaxDepthRangePerBatch = (DeferredConfig.UseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
-            m_MaxTilesPerBatch = (DeferredConfig.UseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
-            m_MaxPunctualLightPerBatch = (DeferredConfig.UseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData));
-            m_MaxRelLightIndicesPerBatch = (DeferredConfig.UseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
-
             m_Tilers = new DeferredTiler[DeferredConfig.kCPUTilerDepth];
             m_TileDataCapacities = new int[DeferredConfig.kCPUTilerDepth];
             m_GPUTilers = new DeferredGPUTiler[DeferredConfig.kGPUTilerDepth];
@@ -570,8 +562,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 );
             }
 
-            this.AccurateGbufferNormals = true;
-            this.TiledDeferredShading = true;
+            this.AccurateGbufferNormals = false;
+            this.TiledDeferredShading = TileShading.Disabled;
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
         }
@@ -902,11 +894,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
             using (new ProfilingScope(cmd, m_ProfilingTileDepthInfo))
             {
-                RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
-                RenderTargetIdentifier depthInfoSurface = ((tileMipLevel == intermediateMipLevel) ? m_TileDepthInfoTexture : m_DepthInfoTexture).Identifier();
+                RenderTargetIdentifier depthSurface = this.DepthAttachmentIdentifier;
+                RenderTargetIdentifier depthInfoSurface = (tileMipLevel == intermediateMipLevel) ? this.TileDepthInfoTextureIdentifier : this.DepthInfoTextureIdentifier;
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
-                cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
+                cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight));
                 cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
                 cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
                 cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
@@ -921,7 +913,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
                 cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
 
-                string shaderVariant = null; 
+                string shaderVariant = null;
                 if (tilePixelWidth == tilePixelHeight)
                 {
                     if (intermediateMipLevel == 1)
@@ -988,13 +980,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     ref DeferredGPUTiler tiler = ref m_GPUTilers[0];
 
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings._GPU_TILING);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_GPU_TILING);
 
                     cmd.SetGlobalBuffer(ShaderConstants._TileHeaders, tiler.TileHeaders);
                     cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, 0);
                     cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
 
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings._GPU_TILING);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_GPU_TILING);
                 }
 
                 if (shaderVariant != null)
@@ -1057,6 +1049,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
+        // Perform light culling into screen-space tiles using compute shaders.
         public void ExecuteComputePass0(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (!m_HasTileVisLights)
@@ -1106,6 +1099,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
+        // Calculates indirect argument buffer for rendering tiles.
         public void ExecuteComputePass1(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (!m_HasTileVisLights)
@@ -1126,7 +1120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GPUIndirectArgs.SetData(_GPUIndirectArgs);
             _GPUIndirectArgs.Dispose();
 
-            m_GPUTilers[0].FillIndirectArgs(cmd, m_GPUIndirectArgs, m_GPUTileList, m_TileDepthInfoTexture.Identifier());
+            m_GPUTilers[0].FillIndirectArgs(cmd, m_GPUIndirectArgs, m_GPUTileList, this.TileDepthInfoTextureIdentifier);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1478,6 +1472,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 NativeArray<int> drawCallCount = new NativeArray<int>(1, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
                 /*
+                // TODO: Cannot upload GPU data to compute buffers within jobs, so cannot jobify this part :(
                 if (this.useJobSystem)
                 {
                     const int kJobCount = 16;
@@ -1686,7 +1681,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
 
             // It doesn't seem UniversalRP use this.
-            Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
+            Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
             cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
             int tileWidth = DeferredConfig.kTilePixelWidth;
@@ -1694,7 +1689,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
             cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-            cmd.SetGlobalTexture(ShaderConstants._TileDepthInfoTexture, m_TileDepthInfoTexture.Identifier());
+            cmd.SetGlobalTexture(this.TileDepthInfoTexture.id, this.TileDepthInfoTextureIdentifier);
 
             for (int i = 0; i < drawCallCount; ++i)
             {
@@ -1757,7 +1752,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 _punctualLightBuffer.SetData(punctualLightBuffer);
                 punctualLightBuffer.Dispose();
 
-                // It doesn't seem UniversalRP use this.
+                // It doesn't seem UniversalRP sets this global.
                 Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
@@ -1778,10 +1773,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalBuffer(ShaderConstants._RelLightList, m_GPUTilers[0].TileData);
                 cmd.SetGlobalInt(ShaderConstants._InstanceOffset, 0);
 
-                cmd.EnableShaderKeyword(ShaderKeywordStrings._GPU_TILING);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._DEFERRED_GPU_TILING);
                 cmd.DrawProceduralIndirect(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualLit], topology, m_GPUIndirectArgs, 0);
                 cmd.DrawProceduralIndirect(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualSimpleLit], topology, m_GPUIndirectArgs, 0);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings._GPU_TILING);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_GPU_TILING);
             }
         }
 

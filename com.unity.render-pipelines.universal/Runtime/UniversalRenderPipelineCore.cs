@@ -356,10 +356,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
-<<<<<<< HEAD
-        public static readonly string _GPU_TILING = "_GPU_TILING";
-=======
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+        public static readonly string _DEFERRED_GPU_TILING = "_DEFERRED_GPU_TILING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
         public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
@@ -367,7 +365,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
->>>>>>> master
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
