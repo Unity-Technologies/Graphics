@@ -197,8 +197,38 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kForceForwardEmissive))
             {
+                // Emissive check below is only for the lit shader
+                // It is possible that it works with SG if the SG properties have the same name.
+                bool emissiveIsDisabled = false;
+                if (material.HasProperty(kUseEmissiveIntensity))
+                {
+                    var useIntensity = material.GetInt(kUseEmissiveIntensity);
+                    if (useIntensity == 0)
+                    {
+                        if (material.HasProperty(kEmissiveColor))
+                        {
+                            var emissionColor = material.GetColor(kEmissiveColor);
+                            if (emissionColor.r == 0.0 && emissionColor.g == 0.0 && emissionColor.b == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (material.HasProperty(kEmissiveIntensity))
+                        {
+                            var intensityValue = material.GetFloat(kEmissiveIntensity);
+                            if (intensityValue == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                }
+
                 bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive && !emissiveIsDisabled);
             }
         }
     }
