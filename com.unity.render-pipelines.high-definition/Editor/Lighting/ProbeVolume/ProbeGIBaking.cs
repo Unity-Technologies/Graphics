@@ -323,8 +323,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Renderer[] renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
                 ProbeVolume[] probeVolumes = UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
 
+                Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, refVolAuthoring, cellTrans, out influenceVolumes);
+                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, refVolAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
 
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;

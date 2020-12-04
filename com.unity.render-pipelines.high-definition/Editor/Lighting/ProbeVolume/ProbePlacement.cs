@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -22,7 +23,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return v;
         }
 
-        static protected int RenderersToVolumes(ref Renderer[] renderers, ref Volume cellVolume, ref List<Volume> volumes)
+        static void TrackSceneRefs(Scene origin, ref Dictionary<Scene, int> sceneRefs)
+        {
+            if (!sceneRefs.ContainsKey(origin))
+                sceneRefs[origin] = 0;
+            else
+                sceneRefs[origin] += 1;
+        }
+        
+        static protected int RenderersToVolumes(ref Renderer[] renderers, ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             int num = 0;
             
@@ -39,6 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref v))
                 { 
                     volumes.Add(v);
+
+                    TrackSceneRefs(r.gameObject.scene, ref sceneRefs);
+
                     num++;
                 }
             }
@@ -46,25 +58,25 @@ namespace UnityEngine.Rendering.HighDefinition
             return num;
         }
 
-        static protected int NavPathsToVolumes(ref Volume cellVolume, ref List<Volume> volumes)
+        static protected int NavPathsToVolumes(ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int ImportanceVolumesToVolumes(ref Volume cellVolume, ref List<Volume> volumes)
+        static protected int ImportanceVolumesToVolumes(ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int LightsToVolumes(ref Volume cellVolume, ref List<Volume> volumes)
+        static protected int LightsToVolumes(ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int ProbeVolumesToVolumes(ref ProbeVolume[] probeVolumes, ref Volume cellVolume, ref List<Volume> volumes)
+        static protected int ProbeVolumesToVolumes(ref ProbeVolume[] probeVolumes, ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             int num = 0;
 
@@ -78,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
                 { 
                     volumes.Add(indicatorVolume);
+                    TrackSceneRefs(pv.gameObject.scene, ref sceneRefs);
                     num++;
                 }
             }
@@ -106,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static public void CreateInfluenceVolumes(Vector3Int cellPos,
             Renderer[] renderers, ProbeVolume[] probeVolumes,
-            ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<Volume> culledVolumes)
+            ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
         {
             Volume cellVolume = new Volume();
             cellVolume.Corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
@@ -115,16 +128,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cellVolume.Z = new Vector3(0, 0, settings.cellSize);
             cellVolume.Transform(cellTrans);
 
+            // Keep track of volumes and which scene they originated from
+            sceneRefs = new Dictionary<Scene, int>();
+
             // Extract all influencers inside the cell
             List<Volume> influenceVolumes = new List<Volume>();
-            RenderersToVolumes(ref renderers, ref cellVolume, ref influenceVolumes);
-            NavPathsToVolumes(ref cellVolume, ref influenceVolumes);
-            ImportanceVolumesToVolumes(ref cellVolume, ref influenceVolumes);
-            LightsToVolumes(ref cellVolume, ref influenceVolumes);
+            RenderersToVolumes(ref renderers, ref cellVolume, ref influenceVolumes, ref sceneRefs);
+            NavPathsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
+            ImportanceVolumesToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
+            LightsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
 
             // Extract all ProbeVolumes inside the cell
             List<Volume> indicatorVolumes = new List<Volume>();
-            ProbeVolumesToVolumes(ref probeVolumes, ref cellVolume, ref indicatorVolumes);
+            ProbeVolumesToVolumes(ref probeVolumes, ref cellVolume, ref indicatorVolumes, ref sceneRefs);
 
             // Cull all influencers against ProbeVolumes
             culledVolumes = new List<Volume>();
