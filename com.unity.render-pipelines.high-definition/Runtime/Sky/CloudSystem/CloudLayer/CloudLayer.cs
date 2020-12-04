@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.\nRotating the light around the z-axis also rotates the shadow cookie.")]
+            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.")]
             public BoolParameter castShadows = new BoolParameter(false);
 
 

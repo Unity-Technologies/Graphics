@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 _Params2 = builtinParams.sunLight.transform.up;
                 Vector4 _Params3 = cloudLayer.shadowTint.value;
                 _Params.w = 1.0f / cloudShadowsResolution;
-                _Params3.w = cloudLayer.shadowMultiplier.value;
+                _Params3.w = cloudLayer.shadowMultiplier.value * 8.0f;
 
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params, _Params);
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, _Params1);
