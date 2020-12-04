@@ -16,6 +16,8 @@ By making a pull request, you are confirming agreement to the terms and conditio
 
 * If a PR shall not be merged (yet), the author should create a draft PR instead. As soon as the PR is considered ready to land, it should be turned into a usual PR by the author.
 
+* Please try to keep your branch as close to master as possible, and merge in master before running tests.
+
 * If there were significant changes to the code after a reviewer approved, a re-review must be requested. For smaller changes (like fixing typos) this is not required.
 
 * The PR author is expected to merge the PR. If the author wants the last approving reviewer to merge it instead, this should be explicitly communicated. There is no guideline on how that communication should happen (on GitHub, Slack or even verbally - whatever makes the most sense in the given situation and scope) but it must always be clear to all reviewers if they are expected to merge.
