@@ -246,13 +246,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Override Vertex Color", new Toggle() { value = overrideColorInterpolator }, (evt) =>
+            context.AddProperty("Override Vertex Color", new Toggle() { value = overrideVertexColor }, (evt) =>
             {
-                if (Equals(overrideColorInterpolator, evt.newValue))
+                if (Equals(overrideVertexColor, evt.newValue))
                     return;
 
                 registerUndo("Change Override Vertex Color");
-                overrideColorInterpolator = evt.newValue;
+                overrideVertexColor = evt.newValue;
                 onChange();
             });
 
