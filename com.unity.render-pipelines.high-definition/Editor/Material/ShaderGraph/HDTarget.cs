@@ -1324,7 +1324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
         {
-            displayName = "Add Force Forward Emissive",
+            displayName = "Force Forward Emissive",
             referenceName = "_FORCE_FORWARD_EMISSIVE",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
