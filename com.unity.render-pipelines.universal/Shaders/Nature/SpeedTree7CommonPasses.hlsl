@@ -222,7 +222,7 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     UNITY_SETUP_INSTANCE_ID(input);
 
     #if !defined(SHADER_QUALITY_LOW)
-        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+        #if defined(LOD_FADE_CROSSFADE) // enable dithering LOD transition if user select CrossFade transition in LOD group
             LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
         #endif
     #endif
@@ -235,8 +235,20 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         clip(diffuse.a - _Cutoff);
     #endif
 
-    float3 normalWS = NormalizeNormalPerPixel(input.normalWS.xyz);
-    return half4(normalWS, 0.0);
+    #if defined(EFFECT_BUMP)
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half4 detailColor = tex2D(_DetailTex, input.detail.xy);
+            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            normalTS = lerp(normalTS, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+        #endif
+
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+    #else
+        half3 normalWS = input.normalWS.xyz;
+    #endif
+
+    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
 }
 
 #endif

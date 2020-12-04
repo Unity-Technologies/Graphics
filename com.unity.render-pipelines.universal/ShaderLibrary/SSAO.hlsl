@@ -389,7 +389,7 @@ half4 HorizontalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    float2 delta = float2(_SourceSize.z, 0.0);
     return Blur(uv, delta);
 }
 
@@ -398,7 +398,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    float2 delta = float2(0.0, _SourceSize.w);
     return Blur(uv, delta);
 }
 
@@ -407,8 +407,8 @@ half4 FinalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
-    return 1.0 - BlurSmall(uv, delta );
+    float2 delta = _SourceSize.zw;
+    return 1.0 - BlurSmall(uv, delta);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED
