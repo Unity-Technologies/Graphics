@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Universal Render Pipeline/StencilDeferred"
+Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
     Properties {
         _StencilRef ("StencilRef", Int) = 0
@@ -190,7 +190,7 @@
                 unityLight = GetMainLight();
                 // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
                 unityLight.distanceAttenuation = 1.0;
-                
+
                 if (!materialReceiveShadowsOff)
                 {
                     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
