@@ -203,6 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
             FixIncorrectEmissiveColorSpace,
             ExposeRefraction,
             MetallicRemapping,
+            ForceForwardEmissiveForDeferred,
         };
 
         #region Migrations
@@ -641,6 +642,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 material.SetFloat(kMetallicRemapMax, metallicScale);
             }
+        }
+
+        static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
+        {
+            HDShaderUtils.ResetMaterialKeywords(material);
         }
 
         #region Serialization_API
