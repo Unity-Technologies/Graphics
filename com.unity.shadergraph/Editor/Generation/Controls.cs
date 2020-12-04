@@ -59,10 +59,10 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-
     public class VertexColorControl : IControl
     {
         public Color value { get; private set; }
+
         public VertexColorControl(Color value)
         {
             this.value = value;
@@ -73,7 +73,6 @@ namespace UnityEditor.ShaderGraph
             return new ShaderGraphRequirements() { requiresVertexColor = true };
         }
     }
-
 
     public class ColorControl : IControl
     {
