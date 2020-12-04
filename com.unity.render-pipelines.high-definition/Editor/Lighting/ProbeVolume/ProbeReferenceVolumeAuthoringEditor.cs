@@ -63,15 +63,22 @@ namespace UnityEngine.Rendering.HighDefinition
             serializedObject.Update();
 
             var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            bool foundInconsistency = false;
             if (probeReferenceVolumes.Length > 1)
             {
-                var s = "List of game objects with a Probe Reference Volume component:\n \n";
-                foreach (var o in probeReferenceVolumes)
+                foreach (var o1 in probeReferenceVolumes)
                 {
-                    s += " - " + o.name + "\n";
+                    foreach (var o2 in probeReferenceVolumes)
+                    {
+                        if (!o1.m_Profile.IsEquivalent(o2.m_Profile) && !foundInconsistency)
+                        {
+                            EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
+                                + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                            foundInconsistency = true;
+                        }
+                        if (foundInconsistency) break;
+                    }
                 }
-                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are in the scene. " +
-                    "This is not supported and could lead to faulty results; please remove one.\n\n" + s, MessageType.Error, wide: true);
             }
 
             EditorGUI.BeginChangeCheck();

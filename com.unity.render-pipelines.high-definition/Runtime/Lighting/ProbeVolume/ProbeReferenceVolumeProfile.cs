@@ -32,23 +32,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3Int IndexDimensions = new Vector3Int(1024, 64, 1024);
 
         /// <summary>
-        /// A custom hashing function that Unity uses to compare the state of parameters.
+        /// Determines if the Probe Reference Volume Profile is equivalent to another one.
         /// </summary>
-        /// <returns>A computed hash code for the current instance.</returns>
-        public override int GetHashCode()
+        /// <returns>Whether the Probe Reference Volume Profile is equivalent to another one.</returns>
+        public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
-            unchecked
-            {
-                int hash = 17;
-
-                hash = hash * 23 + CellSize.GetHashCode();
-                hash = hash * 23 + BrickSize.GetHashCode();
-                hash = hash * 23 + MaxSubdivision.GetHashCode();
-                hash = hash * 23 + NormalBias.GetHashCode();
-                hash = hash * 23 + IndexDimensions.GetHashCode();
-
-                return hash;
-            }
+            return BrickSize == otherProfile.BrickSize &&
+                   CellSize == otherProfile.CellSize &&
+                   MaxSubdivision == otherProfile.MaxSubdivision &&
+                   NormalBias == otherProfile.NormalBias;
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using UnityEditor;
 
 using Brick = UnityEngine.Rendering.HighDefinition.ProbeBrickIndex.Brick;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
