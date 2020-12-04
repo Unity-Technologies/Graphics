@@ -36,12 +36,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     return PackVaryingsToPS(output);
 }
 
-
-#endif // TESSELLATION_ON
-
-
-#ifdef TESSELLATION_ON
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
+
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
