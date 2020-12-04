@@ -38,7 +38,7 @@ Shader "Custom/RenderFeature/KawaseBlur"
             Varyings vert(Attributes v)
             {
                 Varyings o;
-                o.vertex = TransformObjectToHClip(v.vertex);
+                o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
@@ -49,6 +49,7 @@ Shader "Custom/RenderFeature/KawaseBlur"
                 float i = _offset;
 
                 half4 col;
+                col.w = 1.0f;
                 col.rgb = tex2D(_MainTex, input.uv).rgb;
                 col.rgb += tex2D(_MainTex, input.uv + float2(i, i) * res).rgb;
                 col.rgb += tex2D(_MainTex, input.uv + float2(i, -i) * res).rgb;
