@@ -128,13 +128,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
-            if (m_PrevIndexDimensions != indexDimensions)
+            if (m_Profile != null)
             {
-                var refVol = ProbeReferenceVolume.instance;
-                refVol.AddPendingIndexDimensionChange(indexDimensions);
-                m_PrevIndexDimensions = indexDimensions;
+                if (m_PrevIndexDimensions != indexDimensions)
+                {
+                    var refVol = ProbeReferenceVolume.instance;
+                    refVol.AddPendingIndexDimensionChange(indexDimensions);
+                    m_PrevIndexDimensions = indexDimensions;
+                }
+                QueueAssetLoading();
             }
-            QueueAssetLoading();
         }
 
         private bool ShouldCull(Vector3 cellPosition)
