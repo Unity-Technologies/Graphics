@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);         
+            addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
         }
 
         /// <summary>

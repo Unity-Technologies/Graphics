@@ -223,7 +223,7 @@ Shader "HDRP/Lit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0    
+        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
@@ -933,7 +933,7 @@ Shader "HDRP/Lit"
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
-            #endif 
+            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #ifdef DEBUG_DISPLAY

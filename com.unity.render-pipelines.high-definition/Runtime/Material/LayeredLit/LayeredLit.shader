@@ -941,7 +941,7 @@ Shader "HDRP/LayeredLit"
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
-            #endif 
+            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #ifdef DEBUG_DISPLAY

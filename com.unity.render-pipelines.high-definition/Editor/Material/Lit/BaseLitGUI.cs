@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // SSR
         protected MaterialProperty receivesSSR = null;
 
-        protected virtual void UpdateDisplacement() { }
+        protected virtual void UpdateDisplacement() {}
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupBaseLitKeywords(Material material)

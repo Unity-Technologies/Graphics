@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadMaterialProperties()
         {
             base.LoadMaterialProperties();
-            forceForwardEmissive = FindProperty(kForceForwardEmissive);            
+            forceForwardEmissive = FindProperty(kForceForwardEmissive);
         }
 
         protected override void DrawAdvancedOptionsGUI()

@@ -476,7 +476,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
         {
             return new PassDescriptor
-            { 
+            {
                 // Definition
                 displayName = "ForwardEmissiveForDeferred",
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
@@ -513,7 +513,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #endregion
 
         #region Back then front pass
-        
+
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor
