@@ -130,12 +130,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (showAdditionalProperties)
                 {
-                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                    PropertyField(m_Resolution);
-                    PropertyField(m_HighQualityFiltering);
-                    PropertyField(m_PhysicallyBased);
-                    if (m_PhysicallyBased.value.boolValue == true)
-                        EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                    using (new AdditionalPropertiesScope(this))
+                    {
+                        EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                        PropertyField(m_Resolution);
+                        PropertyField(m_HighQualityFiltering);
+                        PropertyField(m_PhysicallyBased);
+                        if (m_PhysicallyBased.value.boolValue == true)
+                            EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                    }
                 }
             }
         }

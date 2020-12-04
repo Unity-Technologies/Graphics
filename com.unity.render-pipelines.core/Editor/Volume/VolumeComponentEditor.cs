@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -100,21 +101,59 @@ namespace UnityEditor.Rendering
         EditorPrefBool m_ShowAdditionalProperties;
 
         /// <summary>
-        /// Override this property if your editor makes use of the "More Options" feature.
+        /// Override this property if your editor makes use of the "Additional Properties" feature.
         /// </summary>
         public virtual bool hasAdditionalProperties => false;
 
         /// <summary>
-        /// Checks if the editor currently has the "More Options" feature toggled on.
+        /// Checks if the editor currently has the "Additional Properties" feature toggled on.
         /// </summary>
+
+        // TODO MAKE OBSOLETE
         public bool showAdditionalProperties
         {
             get => m_ShowAdditionalProperties.value;
             internal set
             {
+                if (value && !m_ShowAdditionalProperties.value)
+                {
+                    m_AdditionalPropertiesAnimation.value = 1.0f;
+                    m_AdditionalPropertiesAnimation.target = 0.0f;
+                }
+
                 m_ShowAdditionalProperties.value = value;
             }
         }
+
+        internal void BeginAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties)
+            {
+                var originalColor = EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor;
+                var highlightColor = EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor;
+
+                m_InAdditionalPropertiesScope = true;
+                var oldCol = GUI.color;
+                GUI.color = Color.Lerp(originalColor, highlightColor, m_AdditionalPropertiesAnimation.value);
+                EditorGUILayout.BeginVertical(m_AdditionalPropertiesHighlightStyle);
+                GUI.color = oldCol;
+            }
+        }
+
+        internal void EndAdditionalPropertiesScope()
+        {
+            EditorGUILayout.EndVertical();
+            m_InAdditionalPropertiesScope = false;
+        }
+
+        AnimFloat m_AdditionalPropertiesAnimation;
+        GUIStyle m_AdditionalPropertiesHighlightStyle;
+        bool m_InAdditionalPropertiesScope;
+
+        Color m_LightThemeBackgroundColor = new Color(0.7843138f, 0.7843138f, 0.7843138f, 1.0f);
+        Color m_LightThemeBackgroundHighlightColor = new Color32(174, 174, 174, 255);
+        Color m_DarkThemeBackgroundColor = new Color(0.2196079f, 0.2196079f, 0.2196079f, 1.0f);
+        Color m_DarkThemeBackgroundHighlightColor = new Color32(77, 77, 77, 255);
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -174,6 +213,10 @@ namespace UnityEditor.Rendering
 
             string key = $"UI_Show_Additional_Properties_{target.GetType()}";
             m_ShowAdditionalProperties = new EditorPrefBool(key);
+            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint);
+            m_AdditionalPropertiesAnimation.speed = 0.3f;
+            m_AdditionalPropertiesHighlightStyle = new GUIStyle();
+            m_AdditionalPropertiesHighlightStyle.normal.background = Texture2D.whiteTexture;
 
             OnEnable();
         }
@@ -330,6 +373,9 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
+            if (!showAdditionalProperties && m_InAdditionalPropertiesScope)
+                return;
+
             // Handle unity built-in decorators (Space, Header, Tooltip etc)
             foreach (var attr in property.attributes)
             {
@@ -406,12 +452,13 @@ namespace UnityEditor.Rendering
                 {
                     if (drawer != null && !invalidProp)
                     {
-                        if (drawer.OnGUI(property, title))
-                            return;
+                        drawer.OnGUI(property, title);
                     }
-
-                    // Default unity field
-                    EditorGUILayout.PropertyField(property.value, title);
+                    else
+                    {
+                        // Default unity field
+                        EditorGUILayout.PropertyField(property.value, title);
+                    }
                 }
             }
         }
@@ -425,6 +472,41 @@ namespace UnityEditor.Rendering
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
             overrideRect.yMin += 4f;
             property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, EditorGUIUtility.TrTextContent("", "Override this setting for this volume."), CoreEditorStyles.smallTickbox);
+        }
+
+        public struct AdditionalPropertiesScope : IDisposable
+        {
+            bool                    m_Disposed;
+            VolumeComponentEditor   m_Editor;
+
+            public AdditionalPropertiesScope(VolumeComponentEditor editor)
+                : this()
+            {
+                m_Editor = editor;
+                m_Editor.BeginAdditionalPropertiesScope();
+            }
+
+            /// <summary>
+            ///  Dispose pattern implementation
+            /// </summary>
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+
+            // Protected implementation of Dispose pattern.
+            void Dispose(bool disposing)
+            {
+                if (m_Disposed)
+                    return;
+
+                if (m_Editor != null)
+                    m_Editor.EndAdditionalPropertiesScope();
+                else
+                    Debug.LogError("AdditionalPropertiesScope was created with providing a proper VolumeComponentEditor instance.");
+
+                m_Disposed = true;
+            }
         }
     }
 }

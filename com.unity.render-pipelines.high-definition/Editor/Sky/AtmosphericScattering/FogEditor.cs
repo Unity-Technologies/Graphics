@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_Tint);
 
-                    if (showAdditionalProperties)
+                    using (new AdditionalPropertiesScope(this))
                     {
                         PropertyField(m_MipFogNear);
                         PropertyField(m_MipFogFar);
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthExtent, s_DepthExtentLabel);
                     PropertyField(m_DenoisingMode);
 
-                    if (showAdditionalProperties)
+                    using (new AdditionalPropertiesScope(this))
                     {
                         PropertyField(m_SliceDistributionUniformity);
 
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         PropertyField(m_DirectionalLightsOnly);
                         PropertyField(m_Anisotropy, s_AnisotropyLabel);
-                        if (m_Anisotropy.value.floatValue != 0.0f)
+                        if (m_Anisotropy.value.floatValue != 0.0f && showAdditionalProperties)
                         {
                             EditorGUILayout.Space();
                             EditorGUILayout.HelpBox(

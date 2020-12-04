@@ -55,9 +55,10 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            if (showAdditionalProperties)
+            using (new AdditionalPropertiesScope(this))
             {
-                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                if (showAdditionalProperties)
+                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 
                 using (new QualityScope(this))
                 {
