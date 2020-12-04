@@ -1,4 +1,5 @@
 from .constants import *
+import itertools
 
 def get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags"):
     '''Returns a list with each element corresponding to list-of-utr-flags per each utr run within testplatform.
@@ -21,7 +22,7 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
     '''
 
     flags = []
-    for utr_flag in utr_flags:
+    for utr_flag in utr_flags + utr_repeat_flags:
         for platform_apis,flag in utr_flag.items():
 
             # if the flag is relevant for this platform + api

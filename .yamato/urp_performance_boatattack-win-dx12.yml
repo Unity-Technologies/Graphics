@@ -20,7 +20,9 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_202
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -72,7 +74,21 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --timeout=1200
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --timeout=1200
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -125,7 +141,21 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_2020
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=.
     artifacts:
         logs:
             paths:
@@ -175,7 +205,21 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_2020.
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=.
     artifacts:
         logs:
             paths:
@@ -195,7 +239,9 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_CUS
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -250,7 +296,21 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --timeout=1200
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --timeout=1200
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -307,7 +367,21 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_CUST
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=.
     artifacts:
         logs:
             paths:
@@ -361,7 +435,21 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTO
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=.
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=.
     artifacts:
         logs:
             paths:
