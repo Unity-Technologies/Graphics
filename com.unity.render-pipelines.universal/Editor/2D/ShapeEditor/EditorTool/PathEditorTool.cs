@@ -16,8 +16,8 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
     internal static class PathEditorToolContents
     {
-        internal static readonly GUIContent shapeToolIcon = IconContent("ShapeTool", "Start editing the Shape in the Scene View.");
-        internal static readonly GUIContent shapeToolPro = IconContent("ShapeToolPro", "Start editing the Shape in the Scene View.");
+        internal static readonly GUIContent shapeToolIcon = IconContent("ShapeTool", "Unlocks the shape to allow editing in the Scene View.");
+        internal static readonly GUIContent shapeToolPro = IconContent("ShapeToolPro", "Unlocks the shape to allow editing in the Scene View.");
 
         internal static GUIContent IconContent(string name, string tooltip = null)
         {
