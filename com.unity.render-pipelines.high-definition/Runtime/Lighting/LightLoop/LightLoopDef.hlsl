@@ -215,6 +215,11 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
                 if (tileEntityIndex < zBinEntityIndexRange.x)
                 {
                     i++; // Skip this entity; continue the (linear) search
+                    // Fine point: entities are currently sorted by Centroid.z.
+                    // So it could be that bin #0 starts with entity #1 (which is large)
+                    // while bin #1 contains both entity #0 (which is small) and entity #1.
+                    // So, for volumetrics, we cannot create a skipping scheme where we cache (and
+                    // start from) min_valid(i) per slice, as that may make us skip valid lights.
                 }
                 else if (tileEntityIndex <= zBinEntityIndexRange.y)
                 {
