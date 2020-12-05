@@ -16,7 +16,7 @@ TextCotrolView > #container > Label {
     max-width: 94px;
     width: 30px;
     flex-grow: 1;
-    
+
 }
 
 .unity-base-field {

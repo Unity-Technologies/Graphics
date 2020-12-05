@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             container.Add(field);
             Add(container);
-       }
+        }
 
         string GetValue()
         {
