@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
