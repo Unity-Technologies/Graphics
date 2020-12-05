@@ -196,6 +196,10 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
 
         // Recall that entities are sorted by the z-coordinate.
         // So we can take the smallest index from the first bin and the largest index from the last bin.
+        // TODO: while it appears to work, for a large range, this code can actually fail. :-(
+        // Imagine that we are given the first and the last zBins, and that none of the lights overlap them.
+        // All the lights are in between. So the code below would give us an empty range, which is wrong.
+        // Should we loop over the entire zBinRange? Seems impractical... Maybe change the way we sort?
         const uint2 tileEntityIndexRange = uint2(tileRangeData  & UINT16_MAX, tileRangeData  >> 16);
         const uint2 zBinEntityIndexRange = uint2(zBinRangeData0 & UINT16_MAX, zBinRangeData1 >> 16);
 
