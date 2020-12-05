@@ -128,6 +128,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // by default, if this returns null, the system will allow creation of any previous version
+        public virtual IEnumerable<int> allowedNodeVersions => null;
+
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
         {
