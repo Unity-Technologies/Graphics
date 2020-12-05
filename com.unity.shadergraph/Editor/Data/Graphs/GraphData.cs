@@ -1542,7 +1542,7 @@ namespace UnityEditor.ShaderGraph
             // Current tactic is to remove all nodes and edges and then re-add them, such that depending systems
             // will re-initialize with new references.
 
-            using (var removedGroupsPooledObject = ListPool<GroupData>.Get(out var removedGroupDatas))
+            using (ListPool<GroupData>.Get(out var removedGroupDatas))
             {
                 removedGroupDatas.AddRange(m_GroupDatas.SelectValue());
                 foreach (var groupData in removedGroupDatas)
@@ -1551,7 +1551,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            using (var removedNotesPooledObject = ListPool<StickyNoteData>.Get(out var removedNoteDatas))
+            using (ListPool<StickyNoteData>.Get(out var removedNoteDatas))
             {
                 removedNoteDatas.AddRange(m_StickyNoteDatas.SelectValue());
                 foreach (var groupData in removedNoteDatas)
