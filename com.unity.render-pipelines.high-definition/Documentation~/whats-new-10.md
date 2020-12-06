@@ -41,9 +41,9 @@ This version of HDRP includes scalability settings for fog and subsurface scatte
 
 ![](Images/HDRPFeatures-SSGI.png)
 
-This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+This version of HDRP introduces screen-space global illumination (SSGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
 
-Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md). This feature is still in preview.
+For more information, see [Screen Space Global Illumination](Override-Screen-Space-GI.md).
 
 ### Custom Pass AOV Export
 
@@ -123,7 +123,7 @@ The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to all
 
 For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
 
-### Graphics Compositor (in Preview)
+### Graphics Compositor
 
 ![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
@@ -306,6 +306,7 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 ### Render Graph
 
 HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
+More information see [RenderGraph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@10.2/manual/render-graph-system.html).
 
 ### Metallic Remapping
 
@@ -313,4 +314,4 @@ HDRP now uses range remapping for the metallic value when using a mask map on Li
 
 ## Issues resolved
 
-For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/changelog/CHANGELOG.html).
+For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/changelog/CHANGELOG.html).
