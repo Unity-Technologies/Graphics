@@ -53,7 +53,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     #endif
 
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-         return float4(PackIndexToRGB16f(asuint(unity_LODFade.z)), 1.0);
+        return float4(unity_LODFade.z, 0, 0, 1.0);
     //@TODO
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
@@ -63,7 +63,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
         return float4(inputs.positionWS, 1.0);
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return float4(PackIndexToRGB16f(unity_EntityId.x), 1.0F);
+        return float4(asfloat((int)unity_EntityId.x), 0, 0, 1.0F);
 #else
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
