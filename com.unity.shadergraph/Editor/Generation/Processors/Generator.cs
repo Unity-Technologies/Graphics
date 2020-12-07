@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
+using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -86,7 +87,7 @@ namespace UnityEditor.ShaderGraph
 
         void BuildShader()
         {
-            var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
             if (m_OutputNode == null)
             {
                 foreach (var block in m_Blocks)
@@ -273,8 +274,8 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Mask blocks per pass
-                vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
+                pixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
 
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
