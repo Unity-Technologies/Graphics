@@ -9,7 +9,7 @@
 
 By making a pull request, you are confirming agreement to the terms and conditions of the [Unity Contribution Agreement](https://unity3d.com/legal/licenses/Unity_Contribution_Agreement), including that your Contributions are your original creation and that you have complete right and authority to make your Contributions.
 
-## Rules for PR's
+## Rules for PRs
 
 * If a PR shall not be merged (yet), the author should create a draft PR instead. As soon as the PR is considered ready to land, it should be turned into a usual PR by the author.
 * Things to check while your PR is in draft:
