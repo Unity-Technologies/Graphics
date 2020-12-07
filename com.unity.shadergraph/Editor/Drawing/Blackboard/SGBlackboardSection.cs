@@ -292,5 +292,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         {
             SetDragIndicatorVisible(false);
         }
+
+        public void OnDragActionCanceled()
+        {
+            SetDragIndicatorVisible(false);
+        }
     }
 }

@@ -49,6 +49,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 moveItemRequested = MoveItemRequested
             };
 
+            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
+            blackboard.RegisterCallback<MouseUpEvent>(evt =>
+            {
+                m_PropertySection.OnDragActionCanceled();
+                m_KeywordSection.OnDragActionCanceled();
+            });
+
+            blackboard.RegisterCallback<DragExitedEvent>(evt =>
+            {
+                m_PropertySection.OnDragActionCanceled();
+                m_KeywordSection.OnDragActionCanceled();
+            });
+
+
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
@@ -464,6 +478,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         public BlackboardRow GetBlackboardRow(ShaderInput input)
         {
             return m_InputRows[input];
+        }
+
+        // Clear any rows that are currently highlighted due to mouse hovering over PropertyNodeViews in the graph
+        public void ClearHighlightedRows()
+        {
+            foreach (var row in m_InputRows)
+            {
+                row.Value.RemoveFromClassList("hovered");
+            }
         }
 
         void OnMouseHover(EventBase evt, ShaderInput input)

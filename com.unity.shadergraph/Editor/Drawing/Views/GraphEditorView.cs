@@ -1276,11 +1276,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateSerializedWindowLayout();
         }
 
-        void SerializeBlackboardLayout(GeometryChangedEvent evt)
-        {
-            UpdateSerializedWindowLayout();
-        }
-
         void UpdateSerializedWindowLayout()
         {
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);

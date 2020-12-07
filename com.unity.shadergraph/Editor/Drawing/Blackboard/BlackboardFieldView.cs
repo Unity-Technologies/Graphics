@@ -114,7 +114,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 this.RegisterPropertyChangeUndo("Change Display Name");
                 ChangeDisplayNameField(nameTextField.text);
-                this.MarkNodesAsDirty(true, ModificationScope.Topological);
+                // This gets triggered on property creation so need to check for inspector update trigger being valid (which it might not be at the time)
+                if(this.m_inspectorUpdateTrigger != null)
+                    this.MarkNodesAsDirty(true, ModificationScope.Topological);
+                else
+                    DirtyNodes(ModificationScope.Topological);
+
             });
         }
 

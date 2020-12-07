@@ -50,6 +50,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
+
+        public Action blackboardFieldDropDelegate
+        {
+            get => m_BlackboardFieldDropDelegate;
+            set => m_BlackboardFieldDropDelegate = value;
+        }
+
+        Action m_BlackboardFieldDropDelegate;
+
         Action m_InspectorUpdateDelegate;
         Action m_PreviewManagerUpdateDelegate;
 
@@ -1010,9 +1019,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         CreateNode(field, localPos);
                     }
 
-                    // todo: replace this with a delegate
-                    SGBlackboard blackboard = this.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
-                    blackboard.HideScrollBoundaryRegions();
+                    // Call this delegate so blackboard can respond to blackboard field being dropped
+                    blackboardFieldDropDelegate?.Invoke();
                 }
             }
             else

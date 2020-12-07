@@ -89,7 +89,7 @@
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryBottom
 {
     align-content: flex-end;
-    min-height: 20;
+    min-height: 15;
     opacity: 0.1;
     -unity-background-image-tint-color: aqua;
     background-color: lightgrey;

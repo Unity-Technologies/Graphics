@@ -57,6 +57,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
             HideScrollBoundaryRegions();
 
+            // Sets delegate association so scroll boundary regions are hidden when a blackboard property is dropped into graph
+            if (associatedGraphView is MaterialGraphView materialGraphView)
+                materialGraphView.blackboardFieldDropDelegate = HideScrollBoundaryRegions;
+
             isWindowScrollable = true;
             isWindowResizable = true;
             focusable = true;

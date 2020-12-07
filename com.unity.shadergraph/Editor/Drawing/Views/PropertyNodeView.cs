@@ -323,19 +323,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void OnMouseHover(EventBase evt)
+        BlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
-                return;
+                return null;
 
             var blackboardProvider = graphView.blackboardProvider;
             if (blackboardProvider == null)
-                return;
+                return null;
 
             var propNode = (PropertyNode)node;
+            return blackboardProvider.GetBlackboardRow(propNode.property);
+        }
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.property);
+        void OnMouseHover(EventBase evt)
+        {
+            var propRow = GetAssociatedBlackboardRow();
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())
@@ -351,6 +355,11 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
+            var propRow = GetAssociatedBlackboardRow();
+            if (propRow != null)
+            {
+                propRow.RemoveFromClassList("hovered");
+            }
         }
     }
 }
