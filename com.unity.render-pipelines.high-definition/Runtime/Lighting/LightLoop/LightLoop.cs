@@ -2546,6 +2546,7 @@ namespace UnityEngine.Rendering.HighDefinition
             const float n = 0.1f;
 
             f = Mathf.Max(f, 0.11f); // Avoid degenerate configurations
+            w = Mathf.Min(w, f);     // Make sure we are not trying to convert distance beyond the far plane.
 
             float x = Mathf.Max(1, w * (1 / n));
             float z = Log2f(x) / Log2f(f * (1 / n));
@@ -2597,6 +2598,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(layout.totalBitCount <= 8 * sizeof(ulong));
             Debug.Assert(0 <= (int)category && (int)category < (int)BoundedEntityCategory.Count);
+            Debug.Assert(fixedPointLogDepth < (1 << layout.fixedPointLogDepthBitCount));
 
             ulong key = ((ulong)category           << layout.categoryOffset)
                 | ((ulong)fixedPointLogDepth << layout.fixedPointLogDepthOffset)
