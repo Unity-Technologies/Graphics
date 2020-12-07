@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //ColorGradingLutPass m_ColorGradingLutPass;
-        DepthOnlyPass m_DepthPrepass;
-        DepthNormalOnlyPass m_DepthNormalPrepass;
+        //DepthOnlyPass m_DepthPrepass;
+        //DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
-        CopyDepthPass m_CopyDepthPass;
+        //CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
         TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
@@ -100,8 +100,6 @@ namespace UnityEngine.Rendering.Universal
 
         private bool createColorTexture = true;
         private bool createDepthTexture = true;
-        private bool requiresDepthPrepass = true;
-        private bool requiresNormalsTexture = true;
         private bool requiresOpaqueTexture = true;
 
         /// <inheritdoc/>
@@ -111,10 +109,9 @@ namespace UnityEngine.Rendering.Universal
             ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
             data.ReloadAllNullProperties();
 
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
-#endif
+            #if ENABLE_VR && ENABLE_XR_MODULE
+                UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
+            #endif
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -144,8 +141,8 @@ namespace UnityEngine.Rendering.Universal
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
             m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 2, m_CopyDepthMaterial);
 #endif
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            //m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            //m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -181,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
+            //m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -405,7 +402,7 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-            if (requiresDepthPrepass)
+            /*if (requiresDepthPrepass)
             {
                 if (requiresNormalsTexture)
                 {
@@ -417,7 +414,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                     renderer.EnqueuePass(m_DepthPrepass);
                 }
-            }
+            }*/
 
             /*if (generateColorGradingLUT)
             {
@@ -443,7 +440,7 @@ namespace UnityEngine.Rendering.Universal
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
-            bool requiresDepthCopyPass = !requiresDepthPrepass
+            /*bool requiresDepthCopyPass = !requiresDepthPrepass
                 && renderingData.cameraData.requiresDepthTexture
                 && createDepthTexture
                 && this.actualRenderingMode != RenderingMode.Deferred;
@@ -458,6 +455,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
+            */
 
             //if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
             if (requiresOpaqueTexture)
