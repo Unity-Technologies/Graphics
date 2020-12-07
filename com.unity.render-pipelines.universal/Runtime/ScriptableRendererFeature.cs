@@ -34,6 +34,14 @@ namespace UnityEngine.Rendering.Universal
 
         }
 
+        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+        }
+
         void OnEnable()
         {
             Create();

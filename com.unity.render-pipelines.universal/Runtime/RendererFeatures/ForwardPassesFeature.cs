@@ -567,6 +567,47 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_ForwardLights.Setup(context, ref renderingData);
+
+            // Perform per-tile light culling on CPU
+            if (this.actualRenderingMode == RenderingMode.Deferred)
+                m_DeferredLights.SetupLights(context, ref renderingData);
+        }
+
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
+            // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+            //     asset.maxAdditionalLightsCount == 0)
+            // {
+            //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            // }
+
+            // We disable shadow casters if both shadow casting modes are turned off
+            // or the shadow distance has been turned down to zero
+            bool isShadowCastingDisabled = !UniversalRenderPipeline.asset.supportsMainLightShadows && !UniversalRenderPipeline.asset.supportsAdditionalLightShadows;
+            bool isShadowDistanceZero = Mathf.Approximately(cameraData.maxShadowDistance, 0.0f);
+            if (isShadowCastingDisabled || isShadowDistanceZero)
+            {
+                cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+            }
+
+            if (this.actualRenderingMode == RenderingMode.Deferred)
+                cullingParameters.maximumVisibleLights = 0xFFFF;
+            else
+            {
+                // We set the number of maximum visible lights allowed and we add one for the mainlight...
+                //
+                // Note: However ScriptableRenderContext.Cull() does not differentiate between light types.
+                //       If there is no active main light in the scene, ScriptableRenderContext.Cull() might return  ( cullingParameters.maximumVisibleLights )  visible additional lights.
+                //       i.e ScriptableRenderContext.Cull() might return  ( UniversalRenderPipeline.maxVisibleAdditionalLights + 1 )  visible additional lights !
+                cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
+            }
+            cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+        }
+
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
