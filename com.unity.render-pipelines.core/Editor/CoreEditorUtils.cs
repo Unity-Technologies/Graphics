@@ -447,8 +447,8 @@ namespace UnityEditor.Rendering
             activeField.serializedObject.ApplyModifiedProperties();
 
             // Context menu
-            var menuIcon = CoreEditorStyles.paneOptionsIcon;
-            var menuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, menuIcon.width, menuIcon.height);
+            var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
+            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, contextMenuIcon.width, contextMenuIcon.height);
 
             if (contextAction == null && hasMoreOptions != null)
             {
@@ -457,12 +457,15 @@ namespace UnityEditor.Rendering
             }
 
             if (contextAction != null)
-                GUI.DrawTexture(menuRect, menuIcon);
+            {
+                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                    contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+            }
 
             // Documentation button
             if (!String.IsNullOrEmpty(documentationURL))
             {
-                var documentationRect = menuRect;
+                var documentationRect = contextMenuRect;
                 documentationRect.x -= 16 + 5;
                 documentationRect.y -= 1;
 
@@ -479,15 +482,12 @@ namespace UnityEditor.Rendering
 
             if (e.type == EventType.MouseDown)
             {
-                if (contextAction != null && menuRect.Contains(e.mousePosition))
+                if (backgroundRect.Contains(e.mousePosition))
                 {
-                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
-                    e.Use();
-                }
-                else if (backgroundRect.Contains(e.mousePosition))
-                {
+                    // Left click: Expand/Collapse
                     if (e.button == 0)
                         group.isExpanded = !group.isExpanded;
+                    // Right click: Context menu
                     else if (contextAction != null)
                         contextAction(e.mousePosition);
 

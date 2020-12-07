@@ -18,6 +18,11 @@ namespace UnityEditor.Rendering
         /// <summary> PaneOption icon </summary>
         public static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
 
+        /// <summary>Context Menu button icon</summary>
+        public static readonly GUIContent contextMenuIcon;
+        /// <summary>Context Menu button style</summary>
+        public static readonly GUIStyle contextMenuStyle;
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
@@ -46,6 +51,10 @@ namespace UnityEditor.Rendering
 
             paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
             paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
+
+            var contextTooltip = ""; // To be defined (see with UX)
+            contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
+            contextMenuStyle = new GUIStyle("IconButton");
         }
     }
 }
