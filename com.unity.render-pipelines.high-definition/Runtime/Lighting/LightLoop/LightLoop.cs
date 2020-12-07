@@ -2735,7 +2735,7 @@ namespace UnityEngine.Rendering.HighDefinition
             processedData.lightCategory = BoundedEntityCategory.Count;
             processedData.gpuLightType  = GPULightType.Count;
 
-            EvaluateGPULightType(processedData.additionalLightData.type, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
+            EvaluateGPULightType(processedData.lightType, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
                 ref processedData.lightCategory, ref processedData.gpuLightType);
 
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
