@@ -663,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    internal enum URPProfileId
+    public enum URPProfileId
     {
         // CPU
         UniversalRenderTotal,

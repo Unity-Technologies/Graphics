@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {}
 
-        internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        public DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
             : this(profileId.GetType().Name, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
             m_ProfilingSampler = ProfilingSampler.Get(profileId);

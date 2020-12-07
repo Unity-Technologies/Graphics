@@ -50,13 +50,13 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DeferredPass m_DeferredPass;
         DrawObjectsPass m_RenderOpaqueForwardOnlyPass;
-        DrawObjectsPass m_RenderOpaqueForwardPass;
-        DrawSkyboxPass m_DrawSkyboxPass;
+        //DrawObjectsPass m_RenderOpaqueForwardPass;
+        //DrawSkyboxPass m_DrawSkyboxPass;
         //CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
         TransparentSettingsPass m_TransparentSettingsPass;
-        DrawObjectsPass m_RenderTransparentForwardPass;
-        InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
+        //DrawObjectsPass m_RenderTransparentForwardPass;
+        //InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         //PostProcessPass m_PostProcessPass;
         //PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
@@ -176,19 +176,19 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
-            m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            //m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             //m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
-            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            //m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+/*#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
 #endif
             {
                 m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            }
-            m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
+            }*/
+            //m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 /*#pragma warning disable 618 // Obsolete warning
             PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
 #pragma warning restore 618 // Obsolete warning
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            // Special path for depth only offscreen cameras. Only write opaques + transparents.
+            /*// Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
@@ -266,14 +266,14 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnqueuePass(m_RenderOpaqueForwardPass);
 
                 // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
-                renderer.EnqueuePass(m_DrawSkyboxPass);
+                //renderer.EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
 #endif
                 renderer.EnqueuePass(m_RenderTransparentForwardPass);
                 return;
-            }
+            }*/
 
             if (m_DeferredLights != null)
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
 
             //bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             //bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
+            //bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 /*
             // Depth prepass is generated in the following cases:
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
@@ -430,13 +430,13 @@ namespace UnityEngine.Rendering.Universal
             /*if (this.actualRenderingMode == RenderingMode.Deferred)
                 renderer.EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
             else*/
-                renderer.EnqueuePass(m_RenderOpaqueForwardPass);
+                //renderer.EnqueuePass(m_RenderOpaqueForwardPass);
 
-            Skybox cameraSkybox;
+            /*Skybox cameraSkybox;
             cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
             if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
-                renderer.EnqueuePass(m_DrawSkyboxPass);
+                renderer.EnqueuePass(m_DrawSkyboxPass);*/
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 renderer.EnqueuePass(m_CopyColorPass);
             }
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+/*#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
             {
@@ -477,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.EnqueuePass(m_RenderTransparentForwardPass);
             }
-            renderer.EnqueuePass(m_OnRenderObjectCallbackPass);
+            renderer.EnqueuePass(m_OnRenderObjectCallbackPass);*/
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             /*bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
