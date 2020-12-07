@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed probe volumes debug views.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- VFX : Debug material view incorrect depth test. (case 1293291)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
