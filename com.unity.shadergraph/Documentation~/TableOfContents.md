@@ -86,6 +86,7 @@
             * [Vertex Color](Vertex-Color-Node)
             * [View Direction](View-Direction-Node)
         * Gradient
+            * [Vertex ID](Vertex-ID-Node)
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
             * [Sample Gradient](Sample-Gradient-Node)

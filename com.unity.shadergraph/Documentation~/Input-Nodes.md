@@ -34,6 +34,10 @@
 |[**Vertex Color**](Vertex-Color-Node.md)|[**View Direction**](View-Direction-Node.md)|
 |![Image](images/VertexColorNodeThumb.png)|![Image](images/ViewDirectionNodeThumb.png)|
 |Provides access to the mesh vertex or fragment's Vertex Color value.|Provides access to the mesh vertex or fragment's View Direction vector.|
+|[**Vertex ID**](Vertex-ID-Node.md)|
+|![Image](images/VertexIDNodeThumb.png)|
+|Provides access to the mesh vertex or fragment's Vertex ID value.|
+
 
 ## Gradient
 
