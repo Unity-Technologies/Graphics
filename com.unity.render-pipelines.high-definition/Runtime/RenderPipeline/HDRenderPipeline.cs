@@ -2510,7 +2510,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var result = new RendererListDesc(passName, cull, camera)
             {
-                rendererConfiguration = rendererConfiguration,
+                rendererConfiguration = rendererConfiguration | PerObjectData.MotionVectors,
                 renderQueueRange = renderQueueRange != null ? renderQueueRange.Value : HDRenderQueue.k_RenderQueue_AllOpaque,
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 stateBlock = stateBlock,
