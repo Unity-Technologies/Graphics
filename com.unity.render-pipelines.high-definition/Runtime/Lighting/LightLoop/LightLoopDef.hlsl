@@ -298,6 +298,8 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out u
 bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
@@ -312,6 +314,8 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
 bool TryLoadPunctualLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
@@ -326,6 +330,8 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint2 zBinRange, out Ligh
 bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
@@ -340,6 +346,8 @@ bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data
 bool TryLoadAreaLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
@@ -354,6 +362,8 @@ bool TryLoadAreaLightData(inout uint i, uint tile, uint2 zBinRange, out LightDat
 bool TryLoadReflectionProbeData(inout uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(EnvLightData, data);
 
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
     {
@@ -367,6 +377,8 @@ bool TryLoadReflectionProbeData(inout uint i, uint tile, uint zBin, out EnvLight
 bool TryLoadReflectionProbeData(inout uint i, uint tile, uint2 zBinRange, out EnvLightData data, out uint entityIndex)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(EnvLightData, data);
 
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
     {
@@ -380,6 +392,8 @@ bool TryLoadReflectionProbeData(inout uint i, uint tile, uint2 zBinRange, out En
 bool TryLoadDecalData(inout uint i, uint tile, uint zBin, out DecalData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(DecalData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
@@ -394,6 +408,8 @@ bool TryLoadDecalData(inout uint i, uint tile, uint zBin, out DecalData data)
 bool TryLoadDecalData(inout uint i, uint tile, uint2 zBinRange, out DecalData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(DecalData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
@@ -408,6 +424,8 @@ bool TryLoadDecalData(inout uint i, uint tile, uint2 zBinRange, out DecalData da
 bool TryLoadDensityVolumeData(inout uint i, uint tile, uint zBin, out DensityVolumeData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the compiler warning.
+    ZERO_INITIALIZE(DensityVolumeData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
@@ -422,6 +440,8 @@ bool TryLoadDensityVolumeData(inout uint i, uint tile, uint zBin, out DensityVol
 bool TryLoadDensityVolumeData(inout uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
 {
     bool success = false;
+    // Need to zero-init to quiet the compiler warning.
+    ZERO_INITIALIZE(DensityVolumeData, data);
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
