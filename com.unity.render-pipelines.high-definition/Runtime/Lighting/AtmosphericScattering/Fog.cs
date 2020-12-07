@@ -237,7 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Color Mode.
     /// </summary>
-    [GenerateHLSL]
     public enum FogColorMode
     {
         /// <summary>Fog is a constant color.</summary>
