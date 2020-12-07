@@ -24,6 +24,8 @@ PR_ShaderGraph_trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
+    variables:
+        TEST_FILTER: .*
 Nightly_ShaderGraph_trunk:
     name: Nightly ShaderGraph - trunk
     dependencies:
@@ -60,6 +62,7 @@ PR_ShaderGraph_CUSTOM-REVISION:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:

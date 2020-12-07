@@ -10,13 +10,9 @@
 PR_HDRP_trunk:
     name: HDRP PR Job - trunk
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -34,12 +30,16 @@ PR_HDRP_trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
+    variables:
+        TEST_FILTER: .*
 Nightly_HDRP_trunk:
     name: Nightly HDRP - trunk
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on-new-revision
@@ -56,13 +56,9 @@ Nightly_HDRP_trunk:
 PR_HDRP_CUSTOM-REVISION:
     name: HDRP PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -82,12 +78,15 @@ PR_HDRP_CUSTOM-REVISION:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_HDRP_CUSTOM-REVISION:
     name: Nightly HDRP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always

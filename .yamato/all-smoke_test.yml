@@ -16,6 +16,8 @@ PR_Smoke_Test_trunk:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 Nightly_Smoke_Test_trunk:
     name: Nightly Smoke_Test - trunk
     dependencies:
@@ -32,6 +34,7 @@ PR_Smoke_Test_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_Smoke_Test_CUSTOM-REVISION:
     name: Nightly Smoke_Test - CUSTOM-REVISION
     dependencies:

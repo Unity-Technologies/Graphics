@@ -16,6 +16,8 @@ PR_URPUpdate_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 Nightly_URPUpdate_trunk:
     name: Nightly URPUpdate - trunk
     dependencies:
@@ -32,6 +34,7 @@ PR_URPUpdate_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_URPUpdate_CUSTOM-REVISION:
     name: Nightly URPUpdate - CUSTOM-REVISION
     dependencies:

@@ -26,10 +26,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
-            public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
-            public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
-            public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
+            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post Process Data (Deprecated)", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
 
             public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
@@ -56,6 +54,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
         SerializedProperty m_MaxShadowRenderTextureCount;
+        SerializedProperty m_PostProcessData;
 
         SerializedProperty m_UseCameraSortingLayersTexture;
         SerializedProperty m_CameraSortingLayersTextureBound;
@@ -95,6 +94,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
             m_MaxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
+            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
 
             m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
             m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
@@ -205,6 +205,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
+            // PostProcessData was moved into Universal Render Pipeline asset.
+            // We keep this for backward compatibility if user still has PostProcessData in Renderer.
+            if (m_PostProcessData.objectReferenceValue != null)
+            {
+                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+                EditorGUILayout.HelpBox("The Post Processing Data property is moved to the Render Pipeline asset.", MessageType.Warning);
+            }
+
             EditorGUILayout.Space();
         }
 
@@ -237,30 +245,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.PropertyField(props.name, Styles.name);
                 EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
                 EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
-
-                if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
-                {
-                    EditorGUILayout.BeginHorizontal();
-
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.LabelField(Styles.customBlendFactors, GUILayout.MaxWidth(200.0f));
-                    EditorGUI.indentLevel--;
-
-                    int oldIndentLevel = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-
-                    EditorGUIUtility.labelWidth = 80.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorMultiplicative, Styles.blendFactorMultiplicative, GUILayout.MinWidth(110.0f));
-
-                    GUILayout.Space(10.0f);
-
-                    EditorGUIUtility.labelWidth = 50.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorAdditive, Styles.blendFactorAdditive, GUILayout.MinWidth(90.0f));
-
-                    EditorGUIUtility.labelWidth = 0.0f;
-                    EditorGUI.indentLevel = oldIndentLevel;
-                    EditorGUILayout.EndHorizontal();
-                }
 
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

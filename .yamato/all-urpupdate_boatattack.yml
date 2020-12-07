@@ -14,6 +14,8 @@ PR_URPUpdate_BoatAttack_trunk:
          rerun: on-new-revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 Nightly_URPUpdate_BoatAttack_trunk:
     name: Nightly URPUpdate_BoatAttack - trunk
     dependencies:
@@ -28,6 +30,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: Nightly URPUpdate_BoatAttack - CUSTOM-REVISION
     dependencies:

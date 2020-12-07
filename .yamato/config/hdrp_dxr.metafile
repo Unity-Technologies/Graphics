@@ -48,3 +48,4 @@ nightly:
       test_platforms:
         - playmode_XR
         - Standalone
+        

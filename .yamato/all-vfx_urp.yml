@@ -14,6 +14,8 @@ PR_VFX_URP_trunk:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]
+    variables:
+        TEST_FILTER: .*
 Nightly_VFX_URP_trunk:
     name: Nightly VFX_URP - trunk
     dependencies:
@@ -36,6 +38,7 @@ PR_VFX_URP_CUSTOM-REVISION:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_VFX_URP_CUSTOM-REVISION:
     name: Nightly VFX_URP - CUSTOM-REVISION
     dependencies:

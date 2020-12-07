@@ -14,6 +14,8 @@ PR_ShaderGraph_Stereo_trunk:
          rerun: on-new-revision
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 Nightly_ShaderGraph_Stereo_trunk:
     name: Nightly ShaderGraph_Stereo - trunk
     dependencies:
@@ -28,6 +30,7 @@ PR_ShaderGraph_Stereo_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
 Nightly_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: Nightly ShaderGraph_Stereo - CUSTOM-REVISION
     dependencies:

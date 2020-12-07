@@ -8,10 +8,6 @@ test_platforms:
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
-  - type: playmode
-    name: playmode_NonRenderGraph
-    utr_flags:
-      - [all]: --extra-editor-arg="-non-rendergraph-tests"
   - type: editmode
   - type: Standalone
     utr_flags:
@@ -73,10 +69,8 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
     - platform: Win
       api: DX12
       build_config: mono
@@ -123,6 +117,7 @@ nightly:
       color_space: Linear
       test_platforms:
         - Standalone
+        - editmode
     - platform: Win
       api: DX12
       build_config: mono

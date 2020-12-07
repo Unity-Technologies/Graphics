@@ -40,7 +40,7 @@ all_project_ci_nightly_trunk:
     triggers:
         recurring:
           -  branch: master
-             frequency: 0 * * ?
+             frequency: 1 * * ?
 all_project_ci_weekly_trunk:
     name: _Weekly ABV against trunk
     dependencies: []
