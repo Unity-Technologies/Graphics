@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         ColorGradingLutPass m_ColorGradingLutPass;
-        DepthOnlyPass m_DepthPrepass;
-        DepthNormalOnlyPass m_DepthNormalPrepass;
+        //DepthOnlyPass m_DepthPrepass;
+        //DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -144,8 +144,8 @@ namespace UnityEngine.Rendering.Universal
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
             m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 2, m_CopyDepthMaterial);
 #endif
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            //m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            //m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-            if (requiresDepthPrepass)
+            /*if (requiresDepthPrepass)
             {
                 if (requiresNormalsTexture)
                 {
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                     renderer.EnqueuePass(m_DepthPrepass);
                 }
-            }
+            }*/
 
             if (generateColorGradingLUT)
             {
