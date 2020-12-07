@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    class XRPass
+    public class XRPass
     {
         internal List<XRView> views = new List<XRView>(2);
 

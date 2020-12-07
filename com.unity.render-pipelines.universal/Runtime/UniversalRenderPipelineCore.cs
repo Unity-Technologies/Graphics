@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
 
         public SortingCriteria defaultOpaqueSortFlags;
 
-        internal XRPass xr;
+        public XRPass xr;
 
         [Obsolete("Please use xr.enabled instead.")]
         public bool isStereoEnabled;

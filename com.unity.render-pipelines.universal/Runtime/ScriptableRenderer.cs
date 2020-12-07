@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns a list of render passes schedules to be executed by this renderer.
         /// <seealso cref="ScriptableRenderPass"/>
         /// </summary>
-        protected List<ScriptableRenderPass> activeRenderPassQueue
+        public List<ScriptableRenderPass> activeRenderPassQueue
         {
             get => m_ActiveRenderPassQueue;
         }

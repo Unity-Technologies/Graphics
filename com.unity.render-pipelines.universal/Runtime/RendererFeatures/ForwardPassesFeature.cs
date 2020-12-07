@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal
             get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; }
         }
 
-        ColorGradingLutPass m_ColorGradingLutPass;
+        //ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -57,8 +57,8 @@ namespace UnityEngine.Rendering.Universal
         TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
-        PostProcessPass m_PostProcessPass;
-        PostProcessPass m_FinalPostProcessPass;
+        //PostProcessPass m_PostProcessPass;
+        //PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
-#pragma warning disable 618 // Obsolete warning
+/*#pragma warning disable 618 // Obsolete warning
             PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
 #pragma warning restore 618 // Obsolete warning
             if (postProcessData != null)
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, postProcessData, m_BlitMaterial);
                 m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
                 m_ColorGradingLut.Init("_InternalGradingLut");
-            }
+            }*/
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
@@ -302,12 +302,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Should apply post-processing after rendering this camera?
 */
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPass != null;
+            //bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPass != null;
+            bool applyPostProcessing = cameraData.postProcessEnabled;
 
-            // There's at least a camera in the camera stack that applies post-processing
+            /*// There's at least a camera in the camera stack that applies post-processing
             bool anyPostProcessing = renderingData.postProcessingEnabled && m_FinalPostProcessPass != null;
             // TODO: We could cache and generate the LUT before rendering the stack
-            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_ColorGradingLutPass != null;
+            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_ColorGradingLutPass != null;*/
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             //bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
@@ -396,8 +397,7 @@ namespace UnityEngine.Rendering.Universal
                 renderer.ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
             }
 
-            //bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
-            bool hasPassesAfterPostProcessing = false;
+            bool hasPassesAfterPostProcessing = renderer.activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 renderer.EnqueuePass(m_MainLightShadowCasterPass);
@@ -419,11 +419,11 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (generateColorGradingLUT)
+            /*if (generateColorGradingLUT)
             {
                 m_ColorGradingLutPass.Setup(m_ColorGradingLut);
                 renderer.EnqueuePass(m_ColorGradingLutPass);
-            }
+            }*/
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
@@ -482,18 +482,18 @@ namespace UnityEngine.Rendering.Universal
             renderer.EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
-            bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
+            /*bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
-                renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+                renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;*/
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
-            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
+            //bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
 
             if (lastCameraInTheStack)
             {
                 // Post-processing will resolve to final target. No need for final blit pass.
-                if (applyPostProcessing)
+                /*if (applyPostProcessing)
                 {
                     var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget : m_AfterPostProcessColor;
 
@@ -501,18 +501,18 @@ namespace UnityEngine.Rendering.Universal
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
                     m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     renderer.EnqueuePass(m_PostProcessPass);
-                }
+                }*/
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
                 var sourceForFinalPass = (applyPostProcessing) ? m_AfterPostProcessColor : m_ActiveCameraColorAttachment;
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
-                if (applyFinalPostProcessing)
+                /*if (applyFinalPostProcessing)
                 {
                     m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
                     renderer.EnqueuePass(m_FinalPostProcessPass);
-                }
+                }*/
 
                 if (renderingData.cameraData.captureActions != null)
                 {
@@ -520,13 +520,15 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_CapturePass);
                 }
 
+                bool hasPassesAfterPostProcessingPlusOne = renderer.activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering + 1) != null;
+
                 // if post-processing then we already resolved to camera target while doing post.
                 // Also only do final blit if camera is not rendering to RT.
                 bool cameraTargetResolved =
                     // final PP always blit to camera target
-                    applyFinalPostProcessing ||
+                    //applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                    (applyPostProcessing && !hasPassesAfterPostProcessing) ||
+                    (applyPostProcessing && !hasPassesAfterPostProcessing && hasPassesAfterPostProcessingPlusOne) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
                     m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
 
@@ -550,11 +552,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
             }
             // stay in RT so we resume rendering on stack after post-processing
-            else if (applyPostProcessing)
+            /*else if (applyPostProcessing)
             {
                 m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false, false);
                 renderer.EnqueuePass(m_PostProcessPass);
-            }
+            }*/
 
 #if UNITY_EDITOR
             if (isSceneViewCamera)
