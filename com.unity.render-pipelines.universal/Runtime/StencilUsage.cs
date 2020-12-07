@@ -1,7 +1,7 @@
 namespace UnityEngine.Rendering.Universal.Internal
 {
     // Stencil usage for deferred renderer.
-    enum StencilUsage
+    public enum StencilUsage
     {
         // Bits [0,3] are reserved for users
         UserMask          = 0b_0000_1111,

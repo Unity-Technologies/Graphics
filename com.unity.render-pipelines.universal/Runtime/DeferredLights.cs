@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     }
 
     // Manages tiled-based deferred lights.
-    internal class DeferredLights
+    public class DeferredLights
     {
         internal static class ShaderConstants
         {
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         };
 
         // Used to initialize all RenderTargetHandles.
-        internal enum GBufferHandles
+        public enum GBufferHandles
         {
             DepthAsColor = 0,
             Albedo = 1,
@@ -329,13 +329,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
         private  bool m_AccurateGbufferNormals;
-        internal bool AccurateGbufferNormals
+        public bool AccurateGbufferNormals
         {
             get { return m_AccurateGbufferNormals; }
             set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
         }
         // true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
-        internal bool TiledDeferredShading { get; set; }
+        public bool TiledDeferredShading { get; set; }
         // We browse all visible lights and found the mixed lighting setup every frame.
         internal MixedLightingSetup MixedLightingSetup { get; set; }
         //
@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
 
-        internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
+        public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return ref m_Tilers[i];
         }
 
-        internal void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Profiler.BeginSample(k_SetupLights);
 
@@ -824,7 +824,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_stencilVisLightOffsets.Dispose();
         }
 
-        internal static StencilState OverwriteStencil(StencilState s, int stencilWriteMask)
+        public static StencilState OverwriteStencil(StencilState s, int stencilWriteMask)
         {
             if (!s.enabled)
             {
@@ -890,12 +890,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             return block;
         }
 
-        internal bool HasTileLights()
+        public bool HasTileLights()
         {
             return m_HasTileVisLights;
         }
 
-        internal bool HasTileDepthRangeExtraPass()
+        public bool HasTileDepthRangeExtraPass()
         {
             ref DeferredTiler tiler = ref m_Tilers[0];
             int tilePixelWidth = tiler.TilePixelWidth;

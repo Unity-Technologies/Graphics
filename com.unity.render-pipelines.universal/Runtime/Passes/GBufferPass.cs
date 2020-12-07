@@ -6,7 +6,7 @@ using Unity.Collections;
 namespace UnityEngine.Rendering.Universal.Internal
 {
     // Render all tiled-based deferred lights.
-    internal class GBufferPass : ScriptableRenderPass
+    public class GBufferPass : ScriptableRenderPass
     {
         static ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
         static ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
