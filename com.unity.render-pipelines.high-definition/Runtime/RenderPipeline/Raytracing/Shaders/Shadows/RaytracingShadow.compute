@@ -95,7 +95,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightData[_RaytracingTargetAreaLight];
+    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Compute the current sample index
     uint globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;

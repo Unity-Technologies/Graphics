@@ -95,7 +95,7 @@ void RayGenContactShadows()
     // Let's first process the directional shadow
     if (_DirectionalShadowIndex >= 0)
     {
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
         if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 1.0)
         {

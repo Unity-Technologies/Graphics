@@ -67,7 +67,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     }
 
     // First let's compute the position of the pixel from which the ray has been shot
-    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     float3 positionWS = sourcePosInput.positionWS;
 
     // Then compute the pos input of the intersection vertice

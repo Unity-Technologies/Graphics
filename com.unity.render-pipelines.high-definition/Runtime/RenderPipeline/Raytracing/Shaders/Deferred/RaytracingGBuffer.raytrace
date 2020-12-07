@@ -97,7 +97,7 @@ void RayGenGBuffer()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
@@ -192,7 +192,7 @@ void RayGenGBufferBinned()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     float distanceToCamera = length(posInput.positionWS);
     // Decode the world space normal
     NormalData normalData;

@@ -87,7 +87,7 @@ void RayGenAreaShadows()
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -320,7 +320,7 @@ void RayGenAreaShadowSingle()
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -394,7 +394,7 @@ void RayGenDirectionalShadowSingle()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -460,7 +460,7 @@ void RayGenDirectionalColorShadowSingle()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -552,7 +552,7 @@ void RayGenShadowSegmentSingle()
     }
 
     // Compute the world space position of the source pixel
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -638,7 +638,7 @@ void RayGenSemiTransparentShadowSegmentSingle()
     }
 
     // Compute the world space position of the source pixel
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;

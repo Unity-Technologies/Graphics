@@ -76,7 +76,7 @@ void RayGenIntegration()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     float distanceToCamera = length(posInput.positionWS);
     // Compute the incident vector on the surfaces
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -201,7 +201,7 @@ void RayGenIntegrationTransparent()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     float distanceToCamera = length(posInput.positionWS);
 
     float3 positionWS = posInput.positionWS;

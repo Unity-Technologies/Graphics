@@ -48,7 +48,7 @@ void RayGenAmbientOcclusion()
 		return;
 
 	// Convert this to a world space position
-	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+	PositionInputs posInput = GetPositionInput(currentPixelCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
 	// Decode the world space normal
     NormalData normalData;	

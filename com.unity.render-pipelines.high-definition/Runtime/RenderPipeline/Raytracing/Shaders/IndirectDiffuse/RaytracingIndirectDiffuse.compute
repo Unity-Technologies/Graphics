@@ -60,7 +60,7 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     // Compute the view in world space
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
@@ -103,7 +103,7 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     // Compute the view in world space
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
