@@ -35,11 +35,16 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
         - playmode
-        - playmode_XR
         - playmode_NonRenderGraph
 nightly:
   dependencies:
     - project: HDRP_DXR
       all: true
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_XR
+        - Standalone

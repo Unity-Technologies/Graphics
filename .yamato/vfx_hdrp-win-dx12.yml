@@ -7,8 +7,8 @@
 
 ---
 
-VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
-    name: VFX_HDRP on Win_Vulkan_Standalone_mono_Linear on version trunk
+VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk:
+    name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -25,10 +25,10 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
+Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk:
+    name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -45,7 +45,7 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -54,8 +54,8 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
         players:
             paths:
               -  "players/**"
-VFX_HDRP_Win_Vulkan_playmode_mono_Linear_trunk:
-    name: VFX_HDRP on Win_Vulkan_playmode_mono_Linear on version trunk
+VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk:
+    name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -73,14 +73,14 @@ VFX_HDRP_Win_Vulkan_playmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk:
-    name: VFX_HDRP on Win_Vulkan_playmode_XR_mono_Linear on version trunk
+VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_trunk:
+    name: VFX_HDRP on Win_DX12_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -98,14 +98,14 @@ VFX_HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_Win_Vulkan_editmode_mono_Linear_trunk:
-    name: VFX_HDRP on Win_Vulkan_editmode_mono_Linear on version trunk
+VFX_HDRP_Win_DX12_editmode_mono_Linear_trunk:
+    name: VFX_HDRP on Win_DX12_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -122,14 +122,14 @@ VFX_HDRP_Win_Vulkan_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
+VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -149,10 +149,10 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx12.yml#Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build VFX_HDRP on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -170,7 +170,7 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -182,8 +182,8 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-VFX_HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
+VFX_HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -202,7 +202,7 @@ VFX_HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -211,8 +211,8 @@ VFX_HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-VFX_HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_Vulkan_playmode_XR_mono_Linear on version CUSTOM-REVISION
+VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -231,7 +231,7 @@ VFX_HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -240,8 +240,8 @@ VFX_HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-VFX_HDRP_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
+VFX_HDRP_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -259,7 +259,7 @@ VFX_HDRP_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:

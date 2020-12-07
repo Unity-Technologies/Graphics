@@ -61,9 +61,14 @@ all:
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
-       # - Standalone
 nightly:
   dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_XR
+        - Standalone
     - project: HDRP_Hybrid
       all: true

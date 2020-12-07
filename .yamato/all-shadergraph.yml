@@ -18,6 +18,8 @@ PR_ShaderGraph_trunk:
          rerun: on-new-revision
       -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk
+         rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
     triggers:
@@ -26,6 +28,18 @@ Nightly_ShaderGraph_trunk:
     name: Nightly ShaderGraph - trunk
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-android-opengles3.yml#ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
 PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
@@ -38,6 +52,8 @@ PR_ShaderGraph_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: always
     triggers:
@@ -48,6 +64,18 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-android-opengles3.yml#ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

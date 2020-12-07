@@ -45,17 +45,21 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 #  - name: Android
 #    apis: 
 #      - name: Vulkan
 #      - name: OpenGLES3
-#    build_configs:
-#      - name: mono
-#    color_spaces:
-#      - Linear
-#  - name: iPhone
-#    apis: 
-#      - name: Metal
 #    build_configs:
 #      - name: mono
 #    color_spaces:
@@ -68,8 +72,32 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        #- playmode
 nightly:
   dependencies:
     - project: VFX_URP
       all: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
+        - playmode
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone

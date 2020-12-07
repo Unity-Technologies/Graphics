@@ -3,7 +3,6 @@ project:
   folder: ShaderGraphUniversalStereo
 test_platforms:
   - type: Standalone
-# - type: playmode
   - type: editmode
 platforms:
   - name: Win
@@ -23,7 +22,6 @@ all:
       test_platforms:
         - Standalone
         - editmode
-        # - playmode
 nightly:
   dependencies:
     - project: ShaderGraph_Stereo

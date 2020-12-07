@@ -40,6 +40,33 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+  - name: Android
+    apis:
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
@@ -48,8 +75,6 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        #- editmode
-        #- playmode
     - platform: OSX
       api: OpenGLCore
       build_config: mono
@@ -69,9 +94,42 @@ all:
       test_platforms:
         # - Standalone
         - playmode
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
     - project: ShaderGraph_Stereo
       all: true
 nightly:
   dependencies:
     - project: ShaderGraph
       all: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    

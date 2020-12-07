@@ -17,12 +17,32 @@ platforms:
   - name: Win
     apis:
       - name: DX11
-      # - name: DX12
+      - name: DX12
       - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
   - name: OSX 
     apis:
       - name: Metal
@@ -49,10 +69,52 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        #- editmode
-        #- playmode
         - playmode_XR
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
 nightly:
   dependencies:
     - project: VFX_HDRP
       all: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode
