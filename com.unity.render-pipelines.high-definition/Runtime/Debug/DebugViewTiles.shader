@@ -44,6 +44,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
+            // TEMP: in order that this file compile
+            uint GetTileSize() { return 8; }
+        
             uint _ViewTilesFlags;
             uint _NumTiles;
             float _ClusterDebugDistance;
@@ -100,7 +103,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 uint quadVertex = input.vertexID - quadIndex * 6;
                 quadVertex = (0x312210 >> (quadVertex<<2)) & 3; //remap [0,5]->[0,3]
 
-                uint2 tileSize = 8; // TEMP: to removed GetTileSize();
+                uint2 tileSize = GetTileSize();
 
                 uint variant = 0;
                 while (quadIndex >= GetDispatchIndirectCount(variant) && variant < NUM_FEATURE_VARIANTS) // 4 group 8x8 per tile.
