@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
 
+        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+
         void OnEnable()
         {
             Create();
