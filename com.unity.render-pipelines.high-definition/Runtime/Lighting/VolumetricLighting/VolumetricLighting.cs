@@ -880,6 +880,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.viewCount = hdCamera.viewCount;
             parameters.tiledLighting = HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            // TEMP: Big tile with density volume seems to cause issue on metal, disable it for now
+            var device = SystemInfo.graphicsDeviceType;
+            if (device == GraphicsDeviceType.Metal)
+            {
+                parameters.tiledLighting = false;
+            }
             bool optimal = currParams.voxelSize == 8;
 
             parameters.voxelizationCS = m_VolumeVoxelizationCS;
