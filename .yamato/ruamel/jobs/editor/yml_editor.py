@@ -5,6 +5,7 @@ from .editor_priming_min_editor import Editor_PrimingMinEditorJob
 from .editor_pinning_merge_revisions import Editor_PinningMergeRevisionsJob
 from .editor_pinning_target_to_ci import Editor_PinningTargetToCIJob
 from .editor_pinning_update import Editor_PinningUpdateJob
+from .editor_pinning_store_green import Editor_PinningStoreGreenRevisionsJob
 from ..shared.namer import editor_priming_filepath, editor_pinning_filepath
 
 def create_editor_yml(metafile):
@@ -54,11 +55,15 @@ def create_editor_yml(metafile):
             yml[job.job_id] = job.yml  
 
         # no ci/abv
-        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], abv=False)
+        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], ci=False)
         yml[job.job_id] = job.yml
 
         # ci + abv
-        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], abv=True)
+        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], ci=True)
+        yml[job.job_id] = job.yml
+
+
+        job = Editor_PinningStoreGreenRevisionsJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"])
         yml[job.job_id] = job.yml
 
         yml_files[editor_pinning_filepath()] = yml
