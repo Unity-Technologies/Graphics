@@ -33,6 +33,7 @@ All_Universal_trunk:
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: on-new-revision
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 All_Universal_CUSTOM-REVISION:
     name: All Universal CI - CUSTOM-REVISION
@@ -61,4 +62,5 @@ All_Universal_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
