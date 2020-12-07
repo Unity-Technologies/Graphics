@@ -582,6 +582,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (shadowLight.lightType == LightType.Directional)
                 return false;
 
+#if ENABLE_POINT_LIGHT_SHADOWS
+#else
+            // Temporarily disable Point Light Shadows until feature is OK from Product perspective
+            if (shadowLight.lightType == LightType.Point)
+                return false;
+#endif
+
             Light light = shadowLight.light;
             return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
         }
