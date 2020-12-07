@@ -42,8 +42,8 @@ namespace UnityEngine.Rendering.Universal
         //ColorGradingLutPass m_ColorGradingLutPass;
         //DepthOnlyPass m_DepthPrepass;
         //DepthNormalOnlyPass m_DepthNormalPrepass;
-        MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        //MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        //AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
         CopyDepthPass m_GBufferCopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
@@ -134,8 +134,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            //m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            //m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
@@ -310,8 +310,8 @@ namespace UnityEngine.Rendering.Universal
             //bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
 
-            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
-            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            //bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            //bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 /*
             // Depth prepass is generated in the following cases:
@@ -396,11 +396,11 @@ namespace UnityEngine.Rendering.Universal
 
             bool hasPassesAfterPostProcessing = renderer.activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-            if (mainLightShadows)
-                renderer.EnqueuePass(m_MainLightShadowCasterPass);
+            //if (mainLightShadows)
+            //    renderer.EnqueuePass(m_MainLightShadowCasterPass);
 
-            if (additionalLightShadows)
-                renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            //if (additionalLightShadows)
+            //    renderer.EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
             /*if (requiresDepthPrepass)
             {
