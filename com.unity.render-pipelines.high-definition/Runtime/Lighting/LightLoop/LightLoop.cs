@@ -781,9 +781,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void ReleaseResolutionDependentBuffers()
             {
-                CoreUtils.SafeRelease(convexBoundsBuffer);
-                convexBoundsBuffer = null;
-
                 // Binned lighting
                 CoreUtils.SafeRelease(xyBoundsBuffer);
                 xyBoundsBuffer = null;
