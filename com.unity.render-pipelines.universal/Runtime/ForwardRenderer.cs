@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, postProcessData);
                 m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, postProcessData, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, postProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, postProcessData, m_BlitMaterial);
                 m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
                 m_ColorGradingLut.Init("_InternalGradingLut");
             }
