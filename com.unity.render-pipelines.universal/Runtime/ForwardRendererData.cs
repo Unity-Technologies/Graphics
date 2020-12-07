@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.Universal
             ReloadAllNullProperties();
         }
 
-        private void ReloadAllNullProperties()
+        public void ReloadAllNullProperties()
         {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
