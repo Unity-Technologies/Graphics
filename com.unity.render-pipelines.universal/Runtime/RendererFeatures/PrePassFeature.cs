@@ -1,19 +1,12 @@
 using System;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
     public class PrePassFeature : ScriptableRendererFeature
     {
-        enum PrePassMode
-        {
-            Depth,
-            DepthNormals
-        }
-        [SerializeField] PrePassMode mode = PrePassMode.Depth;
+        [SerializeField] RenderPassEvent Event = RenderPassEvent.BeforeRenderingPrePasses;
+        [SerializeField] PrePassMode Mode = PrePassMode.Depth;
 
         // Private
         private DepthOnlyPass m_DepthPrepass;
@@ -21,6 +14,12 @@ namespace UnityEngine.Rendering.Universal
         private RenderTargetHandle m_DepthTexture;
         private RenderTargetHandle m_NormalsTexture;
 
+        // Enums
+        enum PrePassMode
+        {
+            Depth,
+            DepthNormals
+        }
 
         /// <inheritdoc/>
         public override void Create()
@@ -29,8 +28,8 @@ namespace UnityEngine.Rendering.Universal
             ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
             data.ReloadAllNullProperties();
 
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_DepthPrepass = new DepthOnlyPass(Event, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_DepthNormalPrepass = new DepthNormalOnlyPass(Event, RenderQueueRange.opaque, data.opaqueLayerMask);
 
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
@@ -41,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            switch (mode)
+            switch (Mode)
             {
                 case PrePassMode.Depth:
                     m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
