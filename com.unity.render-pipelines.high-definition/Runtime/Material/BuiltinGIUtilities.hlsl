@@ -152,6 +152,7 @@ void SampleBakedGI(
     return;
 #endif
 
+/*
 #else // PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS || PROBEVOLUMESEVALUATIONMODES_DISABLED
 #if SAMPLE_PROBEVOLUME
     if (_EnableProbeVolumes)
@@ -191,6 +192,7 @@ void SampleBakedGI(
 #if SAMPLE_PROBEVOLUME_BUILTIN
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
+*/
 #endif
 
 #undef SAMPLE_LIGHTMAP
@@ -257,6 +259,60 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
 #endif
 
     return rawOcclusionMask;
+}
+
+// Function signature exposed in a shader graph node, to keep
+float3 SampleProbeVolume(float3 positionRWS, float3 normalWS)
+{
+    float3 bakeDiffuseLighting = 0.0f;
+
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+
+    // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
+    // Reconstruct.
+    PositionInputs posInputs;
+    ZERO_INITIALIZE(PositionInputs, posInputs);
+    float3 positionWS = positionRWS + _WorldSpaceCameraPos;
+    posInputs.positionWS = positionWS;
+
+    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionWS, 1.0));
+    positionCS.xyz /= positionCS.w;
+    float2 positionNDC = positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
+    uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
+
+    posInputs.tileCoord = tileCoord; // Needed for probe volume cluster Indexing.
+    posInputs.linearDepth = LinearEyeDepth(positionWS, UNITY_MATRIX_V); // Needed for probe volume cluster Indexing.
+    posInputs.positionNDC = float2(0, 0); // Not needed for probe volume cluster indexing.
+    posInputs.deviceDepth = 0.0f; // Not needed for probe volume cluster indexing.
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    uint renderingLayers = GetMeshRenderingLightLayer();
+
+    float probeVolumeHierarchyWeight = 1.0f;
+
+    const float3 backNormalWSUnused = 0.0f;
+    float3 backBakeDiffuseLightingUnused = 0.0f;
+
+    ProbeVolumeEvaluateSphericalHarmonics(
+        posInputs,
+        normalWS,
+        backNormalWSUnused,
+        renderingLayers,
+        probeVolumeHierarchyWeight,
+        bakeDiffuseLighting,
+        backBakeDiffuseLightingUnused
+    );
+
+    // bakeDiffuseLighting = float3(1, 0.5, 0);
+
+#endif
+#endif // #ifdef SHADERPASS
+#endif
+
+    return bakeDiffuseLighting;
 }
 
 #endif

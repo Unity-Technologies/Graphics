@@ -27,6 +27,11 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
 }
 
+float3 shadergraph_HDProbeVolume(float3 positionWS, float3 normalWS)
+{
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+    return SampleProbeVolume(positionRWS, normalWS);
+}
 
 // If we already defined the Macro, now we need to redefine them given that HDRP functions are now defined.
 #ifdef SHADERGRAPH_SAMPLE_SCENE_DEPTH
@@ -44,6 +49,11 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 #undef SHADERGRAPH_BAKED_GI
 #endif
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+
+#ifdef SHADERGRAPH_PROBE_VOLUME
+#undef SHADERGRAPH_PROBE_VOLUME
+#endif
+#define SHADERGRAPH_PROBE_VOLUME(positionWS, normalWS) shadergraph_HDProbeVolume(positionWS, normalWS)
 
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED

@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>The probe volume evaluation mode.</summary>
         /// <seealso cref = "ProbeVolumesEvaluationModes " />
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass,
         /// <summary>Probe volume supports additive blending.</summary>
         ProbeVolumesAdditiveBlending = 1,
         /// <summary>The probe volume filtering mode.</summary>

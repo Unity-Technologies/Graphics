@@ -57,6 +57,10 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #endif
 
+#ifndef SHADERGRAPH_PROBE_VOLUME
+    #define SHADERGRAPH_PROBE_VOLUME(positionWS, normalWS) shadergraph_ProbeVolume(positionWS, normalWS)
+#endif
+
 #ifndef SHADERGRAPH_REFLECTION_PROBE
     #define SHADERGRAPH_REFLECTION_PROBE(viewDir, normalOS, lod) shadergraph_ReflectionProbe(viewDir, normalOS, lod)
 #endif
@@ -92,6 +96,11 @@ float3 shadergraph_SampleSceneColor(float2 uv)
 }
 
 float3 shadergraph_BakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
+{
+    return 0;
+}
+
+float3 shadergraph_ProbeVolume(float3 positionWS, float3 normalWS)
 {
     return 0;
 }
