@@ -15,5 +15,21 @@ namespace UnityEditor.VFX
         {
             return new VFXValue<Matrix4x4>(Matrix4x4.identity, mode);
         }
+
+        protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
+        {
+            return new VFXExpressionVector4sToMatrix(expr);
+        }
+
+        protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
+        {
+            return new VFXExpression[]
+            {
+                new VFXExpressionMatrixToVector4s(expr, VFXValue.Constant<int>(0)),
+                new VFXExpressionMatrixToVector4s(expr, VFXValue.Constant<int>(1)),
+                new VFXExpressionMatrixToVector4s(expr, VFXValue.Constant<int>(2)),
+                new VFXExpressionMatrixToVector4s(expr, VFXValue.Constant<int>(3))
+            };
+        }
     }
 }

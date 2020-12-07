@@ -44,7 +44,19 @@ namespace UnityEditor.VFX
                             m_FieldInfoCache = type.GetField(name);
                         }
 
-                        slotValue = m_FieldInfoCache.GetValue(parentValue);
+                        //TODOPAUL : Add a wrapper
+                        if (m_FieldInfoCache == null && GetParent().property.type == typeof(Matrix4x4))
+                        {
+                            var matrix = (Matrix4x4)parentValue;
+                            if (name == "c0") slotValue = matrix.GetColumn(0);
+                            else if (name == "c1") slotValue = matrix.GetColumn(1);
+                            else if (name == "c2") slotValue = matrix.GetColumn(2);
+                            else if (name == "c3") slotValue = matrix.GetColumn(3);
+                        }
+                        else
+                        {
+                            slotValue = m_FieldInfoCache.GetValue(parentValue);
+                        }
                     }
 
                     if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
@@ -76,7 +88,19 @@ namespace UnityEditor.VFX
                             m_FieldInfoCache = type.GetField(name);
                         }
 
-                        m_FieldInfoCache.SetValue(parentValue, value);
+                        //TODOPAUL : Add a wrapper
+                        if (m_FieldInfoCache == null && GetParent().property.type == typeof(Matrix4x4))
+                        {
+                            var matrix = (Matrix4x4)parentValue;
+                            if (name == "c0") matrix.SetColumn(0, (Vector4)value);
+                            else if (name == "c1") matrix.SetColumn(1, (Vector4)value);
+                            else if (name == "c2") matrix.SetColumn(2, (Vector4)value);
+                            else if (name == "c3") matrix.SetColumn(3, (Vector4)value);
+                        }
+                        else
+                        {
+                            m_FieldInfoCache.SetValue(parentValue, value);
+                        }
 
                         GetParent().value = parentValue;
                     }

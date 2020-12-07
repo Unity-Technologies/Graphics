@@ -65,11 +65,26 @@ namespace UnityEditor.VFX
             return type == other.type && name == other.name;
         }
 
+        //TODOPAUL : Add a wrapper
+        struct MatrixRepresentation
+        {
+            public Vector4 c0;
+            public Vector4 c1;
+            public Vector4 c2;
+            public Vector4 c3;
+        }
+
         public IEnumerable<VFXProperty> SubProperties()
         {
             if (IsExpandable())
             {
                 FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                return infos.Select(info => new VFXProperty(info));
+            }
+            else if (type == typeof(Matrix4x4))
+            {
+                //Handle special columns representation for Matrix4x4
+                FieldInfo[] infos = typeof(MatrixRepresentation).GetFields(BindingFlags.Public | BindingFlags.Instance);
                 return infos.Select(info => new VFXProperty(info));
             }
             else
