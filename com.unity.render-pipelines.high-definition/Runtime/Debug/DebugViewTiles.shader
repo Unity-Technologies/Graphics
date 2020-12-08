@@ -236,8 +236,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 const float maxValue   = 1;
                 const float opacity    = 0.75;
 
-                float hue   = lerp(hueBlue, hueRed, entityCount * rcp(_SelectedEntityCategoryBudget));
-                float value = lerp(minValue, maxValue, zBin * rcp(Z_BIN_COUNT - 1));
+                float hue   = lerp(hueBlue, hueRed, saturate(entityCount * rcp(_SelectedEntityCategoryBudget)));
+                float value = lerp(minValue, maxValue, saturate(zBin * rcp(Z_BIN_COUNT - 1)));
 
                 // TODO: have to apply a gamma ramp here, else I can't see a thing. Did we mess up?
                 result.rgb = pow(HsvToRgb(float3(hue, saturation, value)), 2.2);
