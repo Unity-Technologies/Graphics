@@ -118,7 +118,7 @@
 // TODO: reimplement this using 'ballot' to save VGPRs and VALUs.
 bool LaneSwizzle(bool x, uint andMask, uint orMask, uint xorMask)
 {
-    return (bool)LaneSwizzle((uint)x, uint andMask, uint orMask, uint xorMask)
+    return (bool)(LaneSwizzle((uint)x, andMask, orMask, xorMask));
 }
 #endif
 
