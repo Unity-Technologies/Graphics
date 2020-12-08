@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+- Fixed SpeedTree LOD fade functionality [case 1198135]
 
 ## [10.2.0] - 2020-10-19
 
@@ -106,7 +107,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
 - Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
 - Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
-- Fixed SpeedTree LOD fade functionality [case 1198135]
 - Fixed ParticlesUnlit shader to use fog color instead of always black. [case 1264585]
 - Fixed issue that caused some properties in the camera to not be bolded and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
 - Fixed issue where blur would sometimes flicker [case 1224915](https://issuetracker.unity3d.com/issues/urp-bloom-effect-flickers-when-using-integrated-post-processing-feature-set)
