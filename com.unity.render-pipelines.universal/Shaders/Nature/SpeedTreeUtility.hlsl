@@ -14,7 +14,7 @@ uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
         // Now, project and transform it into [-1, 1].
         float2 pv = PackNormalOctQuadEncode(V);
         // Rescale it to account for the resolution of the screen.
-        pv *= _ScreenParams.xy;        
+        pv *= _ScreenParams.xy;
         // The camera only sees a small portion of the sphere, limited by hFoV and vFoV.
         // Therefore, we must rescale again (before quantization), roughly, by 1/tan(FoV/2).
         pv *= UNITY_MATRIX_P._m00_m11;
