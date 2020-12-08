@@ -3,22 +3,20 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class CopyDepthFeature : ScriptableRendererFeature
+    public class CopyColorFeature : ScriptableRendererFeature
     {
-        public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
+        public RenderPassEvent Event = RenderPassEvent.AfterRenderingSkybox;
 
         // Private
-        Material m_CopyDepthMaterial = null;
-        RenderTargetHandle m_ActiveCameraDepthAttachment;
-        RenderTargetHandle m_CameraDepthAttachment;
-        RenderTargetHandle m_DepthTexture;
-        CopyDepthPass m_CopyDepthPass;
-#if UNITY_EDITOR
-        SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
-#endif
+        Material m_BlitMaterial = null;
+        Material m_SamplingMaterial = null;
+        CopyColorPass m_CopyColorPass;
 
-        // Constants
-        private const int k_DepthStencilBufferBits = 32;
+        RenderTargetHandle m_ActiveCameraColorAttachment;
+        RenderTargetHandle m_CameraColorAttachment;
+        RenderTargetHandle m_OpaqueColor;
+        RenderTargetHandle m_CameraDepthAttachment;
+
 
         /// <inheritdoc/>
         public override void Create()
@@ -26,19 +24,23 @@ namespace UnityEngine.Rendering.Universal
             ForwardRendererData data = CreateInstance<ForwardRendererData>();
             data.ReloadAllNullProperties();
 
-            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
-            m_DepthTexture.Init("_CameraDepthTexture");
-            m_CameraDepthAttachment.Init("_CameraDepthAttachment");
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
 
-#if UNITY_EDITOR
-            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
-#endif
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
+            m_OpaqueColor.Init("_CameraOpaqueTexture");
+            m_CameraDepthAttachment.Init("_CameraDepthAttachment");
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
 
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_SamplingMaterial);
         }
 
         /// <inheritdoc/>
@@ -49,8 +51,6 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
 
             bool createDepthTexture = cameraData.requiresDepthTexture;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
@@ -69,51 +69,49 @@ namespace UnityEngine.Rendering.Universal
             }
             #endif
 
-            m_CopyDepthPass.renderPassEvent = Event;
+            m_CopyColorPass.renderPassEvent = Event;
 
+            // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
-                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
+
+                m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
+                //m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
+
+                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
-                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
                 if (intermediateRenderTexture)
-                {
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
-                }
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);//, createColorTexture, createDepthTexture);
             }
             else
             {
-                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                //m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            //var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
-            //renderer.ConfigureCameraTarget(renderer.cameraColorTarget, activeDepthRenderTargetId);
+            // Assign camera targets (color and depth)
+            {
+                var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+                var activeDepthRenderTargetId = m_CameraDepthAttachment.Identifier();
 
-            m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
-            renderer.EnqueuePass(m_CopyDepthPass);
-
-            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
-            // if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
-            // {
-            //     Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
-            // }
-
-            #if UNITY_EDITOR
-                if (isSceneViewCamera)
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
                 {
-                    // Scene view camera should always resolve target (not stacked)
-                    Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
-                    m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
-                    renderer.EnqueuePass(m_SceneViewDepthCopyPass);
+                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+                    //activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
                 }
-            #endif
-        }
+#endif
 
-        protected override void Dispose(bool disposing)
-        {
-            CoreUtils.Destroy(m_CopyDepthMaterial);
+                renderer.ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
+            }
+
+            // TODO: Downsampling method should be store in the renderer instead of in the asset.
+            // We need to migrate this data to renderer. For now, we query the method in the active asset.
+            Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+            m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+            renderer.EnqueuePass(m_CopyColorPass);
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
@@ -121,16 +119,11 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             //using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
             {
-                var depthDescriptor = descriptor;
-                depthDescriptor.useMipMap = false;
-                depthDescriptor.autoGenerateMips = false;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
-                depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-#endif
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
+                var colorDescriptor = descriptor;
+                colorDescriptor.useMipMap = false;
+                colorDescriptor.autoGenerateMips = false;
+                colorDescriptor.depthBufferBits = 0;
+                cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
 
             context.ExecuteCommandBuffer(cmd);

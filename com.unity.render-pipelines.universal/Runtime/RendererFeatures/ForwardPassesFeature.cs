@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
         //DrawObjectsPass m_RenderOpaqueForwardPass;
         //DrawSkyboxPass m_DrawSkyboxPass;
         //CopyDepthPass m_CopyDepthPass;
-        CopyColorPass m_CopyColorPass;
+        //CopyColorPass m_CopyColorPass;
         //TransparentSettingsPass m_TransparentSettingsPass;
         //DrawObjectsPass m_RenderTransparentForwardPass;
         //InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
 
             //m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             //m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
+            //m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 /*#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
 #endif
@@ -458,14 +458,15 @@ namespace UnityEngine.Rendering.Universal
             */
 
             //if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
-            if (requiresOpaqueTexture)
+            /*if (requiresOpaqueTexture)
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 renderer.EnqueuePass(m_CopyColorPass);
-            }
+            }*/
+
 /*#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
