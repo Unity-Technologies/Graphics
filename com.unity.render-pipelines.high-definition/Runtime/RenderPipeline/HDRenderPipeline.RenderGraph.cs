@@ -236,12 +236,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Render gizmos that should be affected by post processes
                 RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PreImageEffects);
-            }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
-            PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
+                m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
+                PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
 #endif
+            }
 
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
             var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
