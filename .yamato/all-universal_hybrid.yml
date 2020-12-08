@@ -15,6 +15,7 @@ All_Universal_Hybrid_trunk:
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on-new-revision
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 All_Universal_Hybrid_CUSTOM-REVISION:
     name: All Universal_Hybrid CI - CUSTOM-REVISION
@@ -25,4 +26,5 @@ All_Universal_Hybrid_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
