@@ -9,24 +9,24 @@ editor_version_names:
 editor_versions:
   2020_2_latest_internal:
     android:
-      revision: 07b9fcc9e8c2
-      updated_at: '2020-12-04 17:48:44.742371'
+      revision: 3721df5a8b28
+      updated_at: '2020-12-08 23:31:05.240879'
       version: 2020.2.0f1
     ios:
-      revision: 07b9fcc9e8c2
-      updated_at: '2020-12-04 17:48:44.742371'
+      revision: 3721df5a8b28
+      updated_at: '2020-12-08 23:31:05.240879'
       version: 2020.2.0f1
     linux:
-      revision: 07b9fcc9e8c2
-      updated_at: '2020-12-04 17:48:44.742371'
+      revision: 3721df5a8b28
+      updated_at: '2020-12-08 23:31:05.240879'
       version: 2020.2.0f1
     macos:
-      revision: 07b9fcc9e8c2
-      updated_at: '2020-12-04 17:48:44.742371'
+      revision: 3721df5a8b28
+      updated_at: '2020-12-08 23:31:05.240879'
       version: 2020.2.0f1
     windows:
-      revision: 07b9fcc9e8c2
-      updated_at: '2020-12-04 17:48:44.742371'
+      revision: 3721df5a8b28
+      updated_at: '2020-12-08 23:31:05.240879'
       version: 2020.2.0f1
   2020_2_latest_public:
     android:
@@ -51,22 +51,22 @@ editor_versions:
       version: 2020.2.0b14
   2020_2_staging:
     android:
-      revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
-      updated_at: '2020-12-07 23:30:48.265947'
+      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
+      updated_at: '2020-12-08 23:31:05.240879'
       version: ''
     ios:
-      revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
-      updated_at: '2020-12-07 23:30:48.265947'
+      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
+      updated_at: '2020-12-08 23:31:05.240879'
       version: ''
     linux:
       revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
       updated_at: '2020-12-07 23:30:48.265947'
       version: ''
     macos:
-      revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
-      updated_at: '2020-12-07 23:30:48.265947'
+      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
+      updated_at: '2020-12-08 23:31:05.240879'
       version: ''
     windows:
-      revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
-      updated_at: '2020-12-07 23:30:48.265947'
+      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
+      updated_at: '2020-12-08 23:31:05.240879'
       version: ''
