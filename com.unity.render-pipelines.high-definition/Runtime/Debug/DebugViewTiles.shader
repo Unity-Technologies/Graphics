@@ -216,10 +216,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #if defined(SHOW_LIGHT_CATEGORIES)
                 uint entityCount = 0;
 
-                uint i = 0;
-
                 if (_SelectedEntityCategory < BOUNDEDENTITYCATEGORY_COUNT)
                 {
+                    uint i = 0;
                     uint unused;
                     while (TryFindEntityIndex(i, tile, zBin, (uint)_SelectedEntityCategory, unused))
                     {
@@ -228,7 +227,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                 }
 
-                // Must not be too hard on the eyes...
+                // These must not be too hard on the eyes...
                 const float hueRed     = 0;
                 const float hueBlue    = 240.0 / 360.0;
                 const float saturation = 0.5;
