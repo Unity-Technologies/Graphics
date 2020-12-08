@@ -122,6 +122,7 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
@@ -270,6 +271,7 @@ HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
