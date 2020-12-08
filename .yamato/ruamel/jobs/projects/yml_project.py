@@ -4,7 +4,6 @@ from ..shared.namer import project_filepath_specific
 from .project_pr import Project_PRJob
 from .project_nightly import Project_NightlyJob
 from ..shared.namer import project_filepath_all
-from ..shared.namer import project_filepath_nightly
 
 def create_project_ymls(metafile):
 
