@@ -188,7 +188,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

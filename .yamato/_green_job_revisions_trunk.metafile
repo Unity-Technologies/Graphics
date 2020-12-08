@@ -1,0 +1,82 @@
+all_universal_ci_-_trunk:
+  updated_at: '2020-11-27 14:30:01.021490'
+  last_green_revisions:
+    android:
+      revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
+      version: ''
+    ios:
+      revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
+      version: ''
+    linux:
+      revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
+      version: ''
+    macos:
+      revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
+      version: ''
+    windows:
+      revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
+      version: ''
+all_shadergraph_ci_-_trunk:
+  updated_at: '2020-12-08 08:00:30.058128'
+  last_green_revisions:
+    android:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    ios:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    linux:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    macos:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    windows:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+all_vfx_hdrp_ci_-_trunk:
+  updated_at: '2020-12-01 15:52:29.318382'
+  last_green_revisions:
+    android:
+      revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      version: ''
+    ios:
+      revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      version: ''
+    linux:
+      revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      version: ''
+    macos:
+      revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      version: ''
+    windows:
+      revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      version: ''
+all_vfx_urp_ci_-_trunk:
+  updated_at: '2020-12-08 08:00:30.058128'
+  last_green_revisions:
+    android:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    ios:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    linux:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    macos:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
+    windows:
+      revision: c69a17d70606f82370802536dfed6ddeeb05be03
+      updated_at: '2020-12-05 23:29:07.753943'
+      version: ''
