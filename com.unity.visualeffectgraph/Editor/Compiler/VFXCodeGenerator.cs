@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
+using UnityEditor.ShaderGraph;
+using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Serialization;
+
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -366,6 +370,12 @@ namespace UnityEditor.VFX
         {
             if (!context.SetupCompilation())
                 return null;
+
+            if (context is VFXShaderGraphParticleOutput)
+            {
+                return BuildFromShaderGraph(context as VFXShaderGraphParticleOutput);
+            }
+
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
 
             var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
@@ -552,6 +562,42 @@ namespace UnityEditor.VFX
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             context.EndCompilation();
+            return stringBuilder;
+        }
+
+        private static StringBuilder BuildFromShaderGraph(VFXShaderGraphParticleOutput shaderGraphOutputContext)
+        {
+            var stringBuilder = new StringBuilder();
+
+            // Fetch the graph.
+            var path = AssetDatabase.GetAssetPath(shaderGraphOutputContext.shaderGraph);
+
+            List<PropertyCollector.TextureInfo> configuredTextures;
+            AssetCollection assetCollection = new AssetCollection();
+            MinimalGraphData.GatherMinimalDependenciesFromFile(path, assetCollection);
+
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            var graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            // // Create the new target for the current output context.
+            // var vfxTarget = new VFXTarget();
+            //
+            // // Push it
+            // graph.SetTargetActive(vfxTarget);
+
+            // Use ShaderGraph to generate the VFX shader with the VFX target.
+            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph);
+
+            // Append the shader + remove the Shader name (VFX stamps one in later on).
+            stringBuilder.Append(text);
+            stringBuilder.Remove(0, "Shader \"Shader Graphs/VFXSG\"".Length);
+
             return stringBuilder;
         }
 
