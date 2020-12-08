@@ -2,7 +2,7 @@ from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST
 from ...shared.utr_utils import get_repeated_utr_calls
 
 
-def _cmd_base(project_folder, platform, utr_calls, editor):
+def _cmd_base(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, utr_calls, editor):
     base = [ 
         f'sudo -H pip install --upgrade pip',
         f'sudo -H pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
@@ -15,17 +15,17 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
     return base
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_editmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     return _cmd_base(project_folder, platform, utr_calls, editor)
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_playmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     return _cmd_base(project_folder, platform, utr_calls, editor)
 
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
 
     base = [
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
@@ -37,6 +37,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     return base
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone_build(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
     return _cmd_base(project_folder, platform, utr_calls, editor)

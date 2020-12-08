@@ -25,8 +25,9 @@ class Project_StandaloneJob():
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job, build_config, color_space):
 
         project_folder = project.get("folder_standalone", project["folder"])
+        project_url = project.get("folder_standalone", project["url"])
         cmd = get_cmd(platform["name"], api, 'standalone', "") 
-        job = _job(project, test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
+        job = _job(project, test_platform["name"], editor, platform, api, cmd(project_folder, project_url, project["branch"], project["revision"], project["dependencies"], platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
 
         if build_job is not None:
 

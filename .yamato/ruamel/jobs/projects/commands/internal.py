@@ -2,7 +2,7 @@ from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TES
 from ...shared.utr_utils import  get_repeated_utr_calls
 
 
-def _cmd_base(project_folder, platform, utr_calls, editor):
+def _cmd_base(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, utr_calls, editor):
     base = [
         f'git clone {GITHUB_CDS_URL}/sophia/URP-Update-testing.git TestProjects/URP-Update-testing',
         f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder}/utr.bat',
@@ -17,16 +17,16 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
         base.append(f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project_folder} && utr {" ".join(utr_args)}')
     return base
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_editmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     return _cmd_base(project_folder, platform, utr_calls, editor)
 
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_playmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     return _cmd_base(project_folder, platform, utr_calls, editor)
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
     for utr_args in utr_calls:
@@ -35,6 +35,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     return base
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone_build(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
     return _cmd_base(project_folder, platform, utr_calls, editor)

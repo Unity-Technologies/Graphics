@@ -3,7 +3,7 @@ from ruamel.yaml.scalarstring import PreservedScalarString as pss
 from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
 from ...shared.utr_utils import get_repeated_utr_calls
 
-def _cmd_base(project_folder, platform, utr_calls, editor):
+def _cmd_base(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, utr_calls, editor):
     base = [ 
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
@@ -24,7 +24,7 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
     return base
 
 
-def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_editmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     base = _cmd_base(project_folder, platform, utr_calls, editor)
     
@@ -33,7 +33,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
     return base
 
-def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_playmode(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     base = _cmd_base(project_folder, platform, utr_calls, editor)
     
@@ -42,7 +42,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     
     return base
 
-def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     base = _cmd_base(project_folder, platform, utr_calls, editor)
     
@@ -52,44 +52,23 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     return base
 
 
-def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
+def cmd_standalone_build(project_folder, project_url, project_branch, project_revision, project_dependencies, platform, api, test_platform, editor, build_config, color_space):
     raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')
 
-def extra_perf_cmd(project_folder):   
+def extra_perf_cmd(project_folder, project_url, project_branch, project_revision):   
     perf_list = [
-        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/{project_folder}',
-        f'cd TestProjects/{project_folder} && git checkout $BOAT_ATTACK_REVISION'
+        f'git clone {project_url} -b {project_branch} TestProjects/{project_folder}',
+        f'cd TestProjects/{project_folder} && git checkout {project_revision}'
         ]
     return perf_list
 
-def install_unity_config(project_folder):
+def install_unity_config(project_folder, project_dependencies):
     cmds = [
         f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
         f'brew install unity-config',
-
-
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .',
-
-
-		#f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .',
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .',
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
-              
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"  --project-path .',        
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\" --project-path .',	
-		
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',		
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.metadata-manager  --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.render-pipelines.core  --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable unity.graphictests.performance.universal  --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project set project-update false --project-path .'
     ]
+
+    for dependency in project_dependencies:
+        cmds.append(dependency)
+
     return cmds
