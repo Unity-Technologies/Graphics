@@ -21,21 +21,35 @@ namespace UnityEditor.VFX
 
         public void OnBeforeSerialize()
         {
+            RefreshShaderGraphObject();
             if (shaderGraph != null)
                 shadergraphGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph));
             else
                 shadergraphGUID = null;
         }
 
-        public void OnAfterDeserialize()
+        void RefreshShaderGraphObject()
         {
+            if (shaderGraph == null)
+            {
+                if (!object.ReferenceEquals(shaderGraph, null)) //Invalid reference object, force reimport.
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
+                    var newShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
+                    if (newShaderGraph != null)
+                    {
+                        shaderGraph = newShaderGraph;
+                    }
+                }
+                else if(!string.IsNullOrEmpty(shadergraphGUID)) //shaderGraph really null, load from save guid.
+                {
+                    shaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(AssetDatabase.GUIDToAssetPath(shadergraphGUID));
+                }
+            }
         }
 
-        public override void OnEnable()
+        public void OnAfterDeserialize()
         {
-            base.OnEnable();
-            if (!string.IsNullOrEmpty(shadergraphGUID))
-                shaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(AssetDatabase.GUIDToAssetPath(shadergraphGUID));
         }
 
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) {}
@@ -119,6 +133,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                RefreshShaderGraphObject();
                 if (shaderGraph == null)
                 {
                     if (base.exposeAlphaThreshold)
@@ -141,6 +156,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                RefreshShaderGraphObject();
                 bool noShaderGraphAlphaThreshold = shaderGraph == null && useAlphaClipping;
                 bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.alphaClipping;
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
@@ -153,7 +169,7 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
 
-
+                RefreshShaderGraphObject();
                 if (shaderGraph != null)
                 {
                     var shaderGraphProperties = new List<VFXPropertyWithValue>();
@@ -238,6 +254,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
+            RefreshShaderGraphObject();
             if (shaderGraph != null)
             {
                 foreach (var sgProperty in shaderGraph.properties)
@@ -253,6 +270,8 @@ namespace UnityEditor.VFX
             {
                 foreach (var def in base.additionalDefines)
                     yield return def;
+
+                RefreshShaderGraphObject();
 
                 if (shaderGraph != null)
                 {
@@ -315,7 +334,7 @@ namespace UnityEditor.VFX
                 case VFXDeviceTarget.CPU:
                     break;
                 case VFXDeviceTarget.GPU:
-
+                    RefreshShaderGraphObject();
                     if (shaderGraph != null)
                     {
                         foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
@@ -364,6 +383,7 @@ namespace UnityEditor.VFX
         {
             get
             {
+                RefreshShaderGraphObject();
                 if (shaderGraph != null)
                     foreach (var param in shaderGraph.properties)
                         if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
@@ -378,6 +398,9 @@ namespace UnityEditor.VFX
         public override bool SetupCompilation()
         {
             if (!base.SetupCompilation()) return false;
+
+            RefreshShaderGraphObject();
+
             if (shaderGraph != null)
             {
                 if (!isLitShader && shaderGraph.lit)
@@ -409,6 +432,8 @@ namespace UnityEditor.VFX
             {
                 foreach (var rep in base.additionalReplacements)
                     yield return rep;
+
+                RefreshShaderGraphObject();
 
                 if (shaderGraph != null)
                 {
