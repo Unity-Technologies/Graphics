@@ -1992,7 +1992,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Handle case of pyramid with this select (currently unused)
                 var altDist   = Mathf.Sqrt(fAltDy * fAltDy + (true ? 1.0f : 2.0f) * fAltDx * fAltDx);
                 bound.radius  = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
-                bound.scaleXY = squeeze ? 0.01f : 1.0f;
+                bound.scaleXY = squeeze ? 1e-4f : 1.0f;
 
                 lightVolumeData.lightAxisX = vx;
                 lightVolumeData.lightAxisY = vy;
