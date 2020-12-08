@@ -124,49 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputShadowTexture;
         }
 
-        RTSAreaRayTraceResources PrepareRTSAreaRayTraceResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle rayLengthBuffer,
-            RTHandle intermediateBufferRGBA0, RTHandle intermediateBufferRGBA1, RTHandle intermediateBufferRG0,
-            RTHandle shadowHistoryArray, RTHandle analyticHistoryArray)
-        {
-            RTSAreaRayTraceResources rtsartResources = new RTSAreaRayTraceResources();
-
-            // Input Buffers
-            rtsartResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            rtsartResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            rtsartResources.motionVectorsBuffer = m_SharedRTManager.GetMotionVectorsBuffer();
-            if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-            {
-                rtsartResources.gbuffer0 = m_GbufferManager.GetBuffer(0);
-                rtsartResources.gbuffer1 = m_GbufferManager.GetBuffer(1);
-                rtsartResources.gbuffer2 = m_GbufferManager.GetBuffer(2);
-                rtsartResources.gbuffer3 = m_GbufferManager.GetBuffer(3);
-            }
-            else
-            {
-                rtsartResources.gbuffer0 = TextureXR.GetBlackTexture();
-                rtsartResources.gbuffer1 = TextureXR.GetBlackTexture();
-                rtsartResources.gbuffer2 = TextureXR.GetBlackTexture();
-                rtsartResources.gbuffer3 = TextureXR.GetBlackTexture();
-            }
-            rtsartResources.shadowHistoryArray = shadowHistoryArray;
-            rtsartResources.analyticHistoryArray = analyticHistoryArray;
-
-            // Intermediate buffers
-            rtsartResources.directionBuffer = directionBuffer;
-            rtsartResources.rayLengthBuffer = rayLengthBuffer;
-            rtsartResources.intermediateBufferRGBA1 = intermediateBufferRGBA1;
-            rtsartResources.intermediateBufferRG0 = intermediateBufferRG0;
-
-            // Debug textures
-            RayCountManager rayCountManager = GetRayCountManager();
-            rtsartResources.rayCountTexture = rayCountManager.GetRayCountTexture();
-
-            // Output texture
-            rtsartResources.outputShadowTexture = intermediateBufferRGBA0;
-
-            return rtsartResources;
-        }
-
         static void ExecuteSSSAreaRayTrace(CommandBuffer cmd, RTSAreaRayTraceParameters parameters, RTSAreaRayTraceResources sssartResources)
         {
             // Inject the ray-tracing sampling data
@@ -344,41 +301,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
-        {
-            RTHandle intermediateBufferRG0 = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
-            RTHandle intermediateBufferRGBA0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-            RTHandle intermediateBufferRGBA1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-            RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
-            RTHandle rayLengthBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-
-            // Grab the history buffers for shadows
-            RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
-            RTHandle analyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
-
-            RTSAreaRayTraceParameters sssartParams = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
-            RTSAreaRayTraceResources sssartResources = PrepareRTSAreaRayTraceResources(hdCamera, directionBuffer, rayLengthBuffer,
-                intermediateBufferRGBA0, intermediateBufferRGBA1, intermediateBufferRG0,
-                shadowHistoryArray, analyticHistoryArray);
-            ExecuteSSSAreaRayTrace(cmd, sssartParams, sssartResources);
-
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
-            // Write the result texture to the screen space shadow buffer
-            WriteScreenSpaceShadowParameters wsssParams = PrepareWriteScreenSpaceShadowParameters(hdCamera, areaShadowSlot, ScreenSpaceShadowType.Area);
-            WriteScreenSpaceShadowResources wsssResources = PrepareWriteScreenSpaceShadowResources(intermediateBufferRGBA0);
-            ExecuteWriteScreenSpaceShadow(cmd, wsssParams, wsssResources);
-
-            // IF we had to filter, then we have to execute this
-            if (additionalLightData.filterTracedShadow)
-            {
-                // Do not forget to update the identification of shadow history usage
-                hdCamera.PropagateShadowHistory(additionalLightData, areaShadowSlot, GPULightType.Rectangle);
-            }
-        }
-
         class RTShadowAreaPassData
         {
             public RTSAreaRayTraceParameters parameters;
@@ -438,8 +360,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.gbuffer3 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
                 }
 
-                passData.shadowHistoryArray = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(shadowHistoryArray)));
-                passData.analyticHistoryArray = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(analyticHistoryArray)));
+                passData.shadowHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(shadowHistoryArray));
+                passData.analyticHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(analyticHistoryArray));
 
                 // Intermediate buffers
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
@@ -448,10 +370,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.intermediateBufferRG0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Buffer RG0" });
 
                 // Debug textures
-                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
 
                 // Output buffers
-                passData.outputShadowTexture = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Shadow Buffer" })));
+                passData.outputShadowTexture = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Shadow Buffer" }));
                 builder.SetRenderFunc(
                     (RTShadowAreaPassData data, RenderGraphContext context) =>
                     {
