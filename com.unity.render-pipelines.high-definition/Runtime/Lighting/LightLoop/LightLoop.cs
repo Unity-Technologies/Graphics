@@ -1968,8 +1968,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.center = worldToView.MultiplyPoint(positionWS + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
                 // scale axis to match box or base of pyramid
-                bound.boxAxisX = (fS * range) * vx;
-                bound.boxAxisY = (fS * range) * vy;
+                if (gpuLightType == GPULightType.ProjectorPyramid)
+                {
+                    bound.boxAxisX = (0.5f * range) * lightDimensions.x * vx;
+                    bound.boxAxisY = (0.5f * range) * lightDimensions.y * vy;
+                }
+                else
+                {
+                    bound.boxAxisX = (fS * range) * vx;
+                    bound.boxAxisY = (fS * range) * vy;
+                }
+
                 bound.boxAxisZ = (0.5f * range) * vz;
 
                 // generate bounding sphere radius
