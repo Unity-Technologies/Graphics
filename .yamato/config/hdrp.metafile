@@ -97,12 +97,7 @@ all:
       test_platforms:
         - playmode
     - project: HDRP_DXR
-      platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
+      all: true
     - project: HDRP_Hybrid
       all: true
     - project: VFX_HDRP
