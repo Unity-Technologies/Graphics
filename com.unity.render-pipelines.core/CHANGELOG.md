@@ -72,6 +72,7 @@ The version number for this package has increased due to a version update of a r
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
 - Fixed issue with volume manager trying to access a null volume.
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

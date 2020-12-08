@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Collections;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -69,9 +67,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowType = type;
         }
 
-        public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public override void InitAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
-            base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            base.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
             m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);

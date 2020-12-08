@@ -100,34 +100,25 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Cause a black screen on first frame
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: Cause a black screen on first frame
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: cf78ea2211e5e6c45b8a85261bb291dd, type: 3}
-    ColorSpace: 1
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: instability on Yamato
+    Reason: black screen  on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -136,7 +127,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -250,28 +241,10 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 134ab13db8156a14891996196de4cf63, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: unstable on yamato XR
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 708bd21bc204d2342bc1702a5a6de1d3, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: mising object on Yamato (but not locally)
+    Reason: unstable on  XR yamato
