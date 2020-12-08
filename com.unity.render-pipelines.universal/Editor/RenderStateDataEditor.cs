@@ -41,6 +41,9 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_StencilFail;
         private SerializedProperty m_StencilZFail;
         private List<SerializedObject> m_properties = new List<SerializedObject>();
+
+        private bool m_CachedOverrideStencil;
+
         void Init(SerializedProperty property)
         {
             //Stencil
@@ -50,6 +53,8 @@ namespace UnityEditor.Rendering.Universal
             m_StencilPass = property.FindPropertyRelative("passOperation");
             m_StencilFail = property.FindPropertyRelative("failOperation");
             m_StencilZFail = property.FindPropertyRelative("zFailOperation");
+
+            m_CachedOverrideStencil = m_OverrideStencil.boolValue;
 
             m_properties.Add(property.serializedObject);
         }
@@ -62,6 +67,7 @@ namespace UnityEditor.Rendering.Universal
             rect.height = EditorGUIUtility.singleLineHeight;
 
             EditorGUI.PropertyField(rect, m_OverrideStencil, Styles.overrideStencil);
+            m_CachedOverrideStencil = m_OverrideStencil.boolValue;
             if (m_OverrideStencil.boolValue)
             {
                 EditorGUI.indentLevel++;
@@ -90,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (m_OverrideStencil != null && m_OverrideStencil.boolValue)
+            if (m_CachedOverrideStencil)
                 return EditorUtils.Styles.defaultLineSpace * 6;
             return EditorUtils.Styles.defaultLineSpace * 1;
         }
