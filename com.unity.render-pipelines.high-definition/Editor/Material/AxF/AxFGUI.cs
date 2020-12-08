@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SVBRDF,
         CAR_PAINT,
-        BTF,
+        //unsupported for now: BTF,
     }
 
     internal enum AxFMappingMode
@@ -36,16 +36,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base,
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base,
                 features: SurfaceOptionUIBlock.Features.Surface | SurfaceOptionUIBlock.Features.BlendMode | SurfaceOptionUIBlock.Features.DoubleSided |
-                    SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
-                    SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
-                ),
-            new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
+                SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
+                SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
+            ),
+            new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input),
+            new AxfSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Other),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupAxFKeywordsAndPass(material);
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -57,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (changed.changed)
                 {
                     foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPass(material);
+                        SetupAxFKeywordsAndPass(material);
                 }
             }
         }
@@ -77,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Vector4 mask = Vector4.zero;
             if (mappingMode <= AxFMappingMode.UV3)
             {
-                float X,Y,Z,W;
+                float X, Y, Z, W;
                 X = (mappingMode == AxFMappingMode.UV0) ? 1.0f : 0.0f;
                 Y = (mappingMode == AxFMappingMode.UV1) ? 1.0f : 0.0f;
                 Z = (mappingMode == AxFMappingMode.UV2) ? 1.0f : 0.0f;
@@ -86,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mappingMode < AxFMappingMode.Triplanar)
             {
-                float X,Y,Z,W;
+                float X, Y, Z, W;
                 X = (mappingMode == AxFMappingMode.PlanarYZ) ? 1.0f : 0.0f;
                 Y = (mappingMode == AxFMappingMode.PlanarZX) ? 1.0f : 0.0f;
                 Z = (mappingMode == AxFMappingMode.PlanarXY) ? 1.0f : 0.0f;
@@ -95,9 +96,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return mask;
         }
-        
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupAxFKeywordsAndPass(Material material)
         {
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();
@@ -106,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
-            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+            //unsupported for now: CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
 
 
             // Mapping Modes:
@@ -126,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_PLANAR_LOCAL", planarIsLocal);
             }
 
-            // Note: for ShaderPass defines for vertmesh/varyingmesh setup, we still use the same 
+            // Note: for ShaderPass defines for vertmesh/varyingmesh setup, we still use the same
             // defines _REQUIRE_UV2 and _REQUIRE_UV3, and thus if eg _REQUIRE_UV3 is defined, _REQUIRE_UV2 will
             // be assumed to be needed. But here in the AxFData sampling code, we use these to indicate precisely
             // the single set used (if not using planar/triplanar) only and thus add _REQUIRE_UV1.
@@ -155,7 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
-
         }
     }
 } // namespace UnityEditor

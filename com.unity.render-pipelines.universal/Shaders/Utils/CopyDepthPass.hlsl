@@ -15,8 +15,12 @@
 
 struct Attributes
 {
-    float4 positionHCS  : POSITION;
-    float2 uv           : TEXCOORD0;
+#if _USE_DRAW_PROCEDURAL
+    uint vertexID     : SV_VertexID;
+#else
+    float4 positionHCS : POSITION;
+    float2 uv         : TEXCOORD0;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -32,7 +36,6 @@ Varyings vert(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
     // Note: CopyDepth pass is setup with a mesh already in CS
     // Therefore, we can just output vertex position
@@ -48,7 +51,14 @@ Varyings vert(Attributes input)
     //  - All good.
     // If URP is NOT rendering to RT neither rendering with OpenGL:
     //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
+#if _USE_DRAW_PROCEDURAL
+    output.positionCS = GetQuadVertexPosition(input.vertexID);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.uv = GetQuadTexCoord(input.vertexID);
+#else
     output.positionCS = float4(input.positionHCS.xyz, 1.0);
+    output.uv = input.uv;
+#endif
     output.positionCS.y *= _ScaleBiasRt.x;
     return output;
 }

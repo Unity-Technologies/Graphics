@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, false));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, false));
         }
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Common "surface" passes
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
+                    HDShaderPasses.GenerateScenePicking(),
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
@@ -89,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     // We always generate the TransparentDepthPrepass as it can be use with SSR transparent
                     passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true));
-                }                
+                }
                 else
                 {
                     // We only generate the pass if requested
@@ -130,11 +131,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
-                };
+                }
+                ;
 
                 if (supportPathtracing)
                     passes.Add(HDShaderPasses.GeneratePathTracing(supportLighting));
-                
+
                 return passes;
             }
         }
@@ -159,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsLightingOrMaterial())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
-            
+
             if (!pass.IsDXR())
                 pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
 
@@ -175,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            
+
             if (supportDistortion)
                 AddDistortionFields(ref context);
 
@@ -191,22 +193,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // We always generate the keyword ALPHATEST_ON. All the variant of AlphaClip (shadow, pre/postpass) are only available if alpha test is on.
             context.AddField(Fields.AlphaTest, systemData.alphaTest
-                                                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
-                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
-                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
-                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
+                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
-            bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
+            bool isShadowPass               = (context.pass.lightMode == "ShadowCaster") || (context.pass.lightMode == "VisibilityDXR");
             bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
 
             // Shadow use the specific alpha test only if user have ask to override it
             context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
-                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
             // Pre/post pass always use the specific alpha test provided for those pass
             context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && builtinData.transparentDepthPrepass && isTransparentDepthPrepass &&
-                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));           
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
 
             // Features & Misc
             context.AddField(Fields.LodCrossFade,           builtinData.supportLodCrossFade);
@@ -282,6 +284,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_EmissionColor",
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
             // ShaderGraph only property used to send the RenderQueueType to the material
@@ -289,7 +293,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_RenderQueueType",
                 hidden = true,
-                value = (int)systemData.renderingPass,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                value = (int)systemData.renderQueueType,
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
@@ -297,6 +303,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.addPrecomputedVelocity,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kAddPrecomputedVelocity,
             });
 
@@ -304,6 +312,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.depthOffset,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kDepthOffsetEnable
             });
 
@@ -311,6 +321,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.transparentWritesMotionVec,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kTransparentWritingMotionVec
             });
 
@@ -350,9 +362,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest, false);
+            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);
 
-            LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
+            LightingShaderGraphGUI.SetupLightingKeywordsAndPass(material);
         }
 
         internal override void MigrateTo(ShaderGraphVersion version)

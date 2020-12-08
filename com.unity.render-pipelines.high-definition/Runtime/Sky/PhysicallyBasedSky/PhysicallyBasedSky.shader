@@ -137,7 +137,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                 color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
                                 // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
                             }
-                            
+
                             color *= light.surfaceTint;
                         }
                         else // Flare region.
@@ -146,7 +146,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             float w = saturate(1 - r * rcp(light.flareSize));
 
                             color *= light.flareTint;
-                            scale *= pow(w, light.flareFalloff);
+                            scale *= SafePositivePow(w, light.flareFalloff);
                         }
 
                         radiance += color * scale;

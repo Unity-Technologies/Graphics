@@ -9,7 +9,6 @@ namespace  UnityEngine.Rendering.HighDefinition
     {
         public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
         {
-
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -33,10 +32,6 @@ namespace  UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public RTHandle FeedbackBuffer { get; private set; }
-        public RTHandle FeedbackBufferMsaa { get; private set; }
-        public static int AdditionalForwardRT = 1;
-
         const int kResolveScaleFactor = 16;
 
         VirtualTexturing.Resolver   m_Resolver = new VirtualTexturing.Resolver();
@@ -57,17 +52,6 @@ namespace  UnityEngine.Rendering.HighDefinition
             m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
         }
 
-        public void CreateBuffers(RenderPipelineSettings settings)
-        {
-            FeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "VTFeedbackForward");
-            if (settings.supportMSAA)
-            {
-                // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
-                FeedbackBufferMsaa = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
-                    enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
-            }
-        }
-
         public void Cleanup()
         {
             m_Resolver.Dispose();
@@ -79,23 +63,17 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void BeginRender(HDCamera hdCamera)
         {
-            int width = hdCamera.actualWidth;
-            int height = hdCamera.actualHeight;
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            GetResolveDimensions(ref width, ref height);
-            if (msaa)
-                m_ResolverMsaa.UpdateSize(width, height);
-            else
-                m_Resolver.UpdateSize(width, height);
-        }
-
-        public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)
-        {
-            var parameters = PrepareResolveVTParameters(hdCamera);
-            var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
-
-            ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
+            {
+                int width = hdCamera.actualWidth;
+                int height = hdCamera.actualHeight;
+                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                GetResolveDimensions(ref width, ref height);
+                if (msaa)
+                    m_ResolverMsaa.UpdateSize(width, height);
+                else
+                    m_Resolver.UpdateSize(width, height);
+            }
         }
 
         class ResolveVTData
@@ -107,21 +85,24 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
         {
-            using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-                // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
-                builder.AllowPassCulling(false);
-
-                passData.parameters = PrepareResolveVTParameters(hdCamera);
-                passData.input = builder.ReadTexture(input);
-                passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
-
-                builder.SetRenderFunc(
-                (ResolveVTData data, RenderGraphContext ctx) =>
+                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
                 {
-                    ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
-                    VirtualTexturing.System.Update();
-                });
+                    // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
+                    builder.AllowPassCulling(false);
+
+                    passData.parameters = PrepareResolveVTParameters(hdCamera);
+                    passData.input = builder.ReadTexture(input);
+                    passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
+
+                    builder.SetRenderFunc(
+                        (ResolveVTData data, RenderGraphContext ctx) =>
+                        {
+                            ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
+                            VirtualTexturing.System.Update();
+                        });
+                }
             }
         }
 
@@ -163,7 +144,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             var resolveCounter = 0;
             var startOffsetX = (resolveCounter % kResolveScaleFactor);
             var startOffsetY = (resolveCounter / kResolveScaleFactor) % kResolveScaleFactor;
-            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/-1));
+            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/ -1));
             cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params1, new Vector4(parameters.width, parameters.height, parameters.lowresWidth, parameters.lowresHeight));
             var TGSize = 8; //Match shader
             cmd.DispatchCompute(parameters.downsampleCS, parameters.downsampleKernel, ((int)parameters.lowresWidth + (TGSize - 1)) / TGSize, ((int)parameters.lowresHeight + (TGSize - 1)) / TGSize, 1);
@@ -175,14 +156,6 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             w = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.x * w), 1);
             h = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.y * h), 1);
-        }
-
-        public void DestroyBuffers()
-        {
-            RTHandles.Release(FeedbackBuffer);
-            RTHandles.Release(FeedbackBufferMsaa);
-            FeedbackBuffer = null;
-            FeedbackBufferMsaa = null;
         }
     }
 }

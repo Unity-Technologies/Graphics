@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -60,7 +60,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _HeightFogBaseExtinction;
     float _HeightFogBaseHeight;
     float _GlobalFogAnisotropy;
-    float _Pad3;
+    int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
     float _Pad4;
     float _Pad5;

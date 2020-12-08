@@ -13,38 +13,44 @@ public class CopyImageToReferenceFolders
     private static void CopyImages()
     {
         string referenceImagesPath = Path.Combine("Assets", "ReferenceImages", "Linear");
+        string[] leafFolders = EnumerateLeafFolders(referenceImagesPath).ToArray<string>();
+        int numOfLeafFolders = leafFolders.Length;
+        
+        Object[] selectedObjects = Selection.objects;
+        int numOfCopies = numOfLeafFolders * selectedObjects.Length;
 
-        Texture2D selected = Selection.activeObject as Texture2D;
-        if (selected != null)
+        for (int i = 0; i < selectedObjects.Length; i++)
         {
-            string pathToOriginalImage = AssetDatabase.GetAssetPath(selected);
-            string extension = Path.GetExtension(pathToOriginalImage);
-            string imageName = selected.name + extension;
-
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Copied \"" + imageName + "\" to...");
-            string[] leafFolders = EnumerateLeafFolders(referenceImagesPath).ToArray<string>();
-            float numOfLeafFolders = leafFolders.Length;
-
-            for (int i = 0; i < numOfLeafFolders; i++)
+            Texture2D selected = selectedObjects[i] as Texture2D;
+            if (selected != null)
             {
-                string leafFolder = leafFolders[i];
-                if (EditorUtility.DisplayCancelableProgressBar(
-                        "Copy " + imageName + " to ReferenceImages",
-                        string.Format("({0} of {1}) {2}", i, numOfLeafFolders, leafFolder),
-                        i / numOfLeafFolders)
-                    )
+                string pathToOriginalImage = AssetDatabase.GetAssetPath(selected);
+                string extension = Path.GetExtension(pathToOriginalImage);
+                string imageName = selected.name + extension;
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("Copied \"" + imageName + "\" to...");
+
+                for (int j = 0; j < numOfLeafFolders; j++)
                 {
-                    break;
+                    string leafFolder = leafFolders[j];
+                    if (EditorUtility.DisplayCancelableProgressBar(
+                        "Copy " + imageName + " to ReferenceImages",
+                        string.Format("({0} of {1}) {2}", j, numOfCopies, leafFolder),
+                        j / numOfLeafFolders)
+                    )
+                    {
+                        break;
+                    }
+
+                    AssetDatabase.CopyAsset(pathToOriginalImage, Path.Combine(leafFolder, imageName));
+                    sb.AppendLine("-> " + leafFolder);
                 }
 
-                AssetDatabase.CopyAsset(pathToOriginalImage, Path.Combine(leafFolder, imageName));
-                sb.AppendLine("-> " + leafFolder);
+                EditorUtility.ClearProgressBar();
+
+                Debug.Log(sb);
             }
-            
-            EditorUtility.ClearProgressBar();
-            
-            Debug.Log(sb);
         }
     }
 

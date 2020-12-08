@@ -49,7 +49,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
-    
+
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
@@ -61,7 +61,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     uint   _BackplateShadowFilter;
 
     float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
-    
+
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -184,6 +184,35 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float3 GetSkyColor(float3 dir)
     {
+#if SKY_MOTION
+        if (dir.y >= 0 || !_UpperHemisphere)
+        {
+            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
+
+#ifdef USE_FLOWMAP
+            float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
+            float3 bitangent = cross(tangent, dir);
+
+            float3 windDir = RotationUp(dir, _ScrollDirection);
+            float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
+
+            float3 dd = flow.x * tangent + flow.y * bitangent;
+#else
+            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection);
+            windDir.x *= -1.0;
+            float3 dd = windDir*sin(dir.y*PI*0.5);
+#endif
+
+            // Sample twice
+            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.x*dd, 0).rgb;
+            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.y*dd, 0).rgb;
+
+            // Blend color samples
+            return lerp(color1, color2, abs(2.0 * alpha.x));
+        }
+        else
+#endif
+
         return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
     }
 

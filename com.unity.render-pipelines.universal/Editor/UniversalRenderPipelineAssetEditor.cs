@@ -56,8 +56,11 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
+            public static GUIContent postProcessLabel = EditorGUIUtility.TrTextContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
+            public static GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Post Processing", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
+            public static GUIContent useFastSRGBLinearConversion = EditorGUIUtility.TrTextContent("Fast sRGB/Linear conversions", "Use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
@@ -137,8 +140,10 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShaderVariantLogLevel;
 
         LightRenderingMode selectedLightRenderingMode;
+        SerializedProperty m_PostProcessData;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
+        SerializedProperty m_UseFastSRGBLinearConversion;
 
         SerializedProperty m_UseAdaptivePerformance;
         EditorPrefBoolFlags<EditorUtils.Unit> m_State;
@@ -172,7 +177,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
             m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
-            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
+            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, true, true, true, true);
 
             DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
 
@@ -211,8 +216,11 @@ namespace UnityEditor.Rendering.Universal
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
 
+            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
+
+            m_UseFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
 
             m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 
@@ -364,7 +372,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 1)
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                
+
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
@@ -384,6 +392,49 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
+#pragma warning disable 618 // Obsolete warning
+                bool renderersUsePostProcessData = false;
+                for (int i = 0; i < m_RendererDataProp.arraySize; i++)
+                {
+                    var rendererData = m_RendererDataProp.GetArrayElementAtIndex(i).objectReferenceValue as ScriptableRendererData;
+
+                    var forwardRendererData = rendererData as ForwardRendererData;
+                    if (forwardRendererData != null && forwardRendererData.postProcessData != null)
+                    {
+                        renderersUsePostProcessData = true;
+                        break;
+                    }
+
+                    var renderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+                    if (renderer2DData != null && renderer2DData.postProcessData != null)
+                    {
+                        renderersUsePostProcessData = true;
+                        break;
+                    }
+                }
+#pragma warning restore 618 // Obsolete warning
+
+                GUI.enabled = !renderersUsePostProcessData;
+                EditorGUI.BeginChangeCheck();
+                var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+                }
+                if (postProcessIncluded)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessLabel);
+                    EditorGUI.indentLevel--;
+                }
+                GUI.enabled = true;
+
+                if (renderersUsePostProcessData)
+                {
+                    EditorGUILayout.HelpBox("The URP asset contains Renderers that use custom Post Processing data, this check box has no effect.", MessageType.Warning);
+                }
+
+                GUI.enabled = postProcessIncluded || renderersUsePostProcessData;
                 EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
                 if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                     EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
@@ -394,6 +445,9 @@ namespace UnityEditor.Rendering.Universal
                 m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
                 if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                GUI.enabled = true;
+
+                EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -445,13 +499,13 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                     EditorUtility.SetDirty(target);
 
-                Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
+                Rect defaultButton = new Rect(rect.width - 75, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
-                if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+                if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
                     m_DefaultRendererProp.intValue = index;
                     EditorUtility.SetDirty(target);
@@ -488,27 +542,79 @@ namespace UnityEditor.Rendering.Universal
             list.drawHeaderCallback = (Rect rect) =>
             {
                 EditorGUI.LabelField(rect, Styles.rendererHeaderText);
-                list.index = list.count - 1;
             };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
             list.onRemoveCallback = li =>
             {
-                if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
+                bool shouldUpdateIndex = false;
+                // Checking so that the user is not deleting  the default renderer
+                if (li.index != m_DefaultRendererProp.intValue)
                 {
-                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
-                        li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
-                    li.serializedProperty.arraySize--;
-                    li.index = li.count - 1;
+                    // Need to add the undo to the removal of our assets here, for it to work properly.
+                    Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
+
+                    if (prop.GetArrayElementAtIndex(li.index).objectReferenceValue == null)
+                    {
+                        shouldUpdateIndex = true;
+                    }
+                    prop.DeleteArrayElementAtIndex(li.index);
                 }
                 else
                 {
                     EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
                 }
+
+                if (shouldUpdateIndex)
+                {
+                    UpdateDefaultRendererValue(li.index);
+                }
+
                 EditorUtility.SetDirty(target);
             };
+
+            list.onReorderCallbackWithDetails += (reorderableList, index, newIndex) =>
+            {
+                // Need to update the default renderer index
+                UpdateDefaultRendererValue(index, newIndex);
+            };
+        }
+
+        void UpdateDefaultRendererValue(int index)
+        {
+            // If the index that is being removed is lower than the default renderer value,
+            // the default prop value needs to be one lower.
+            if (index < m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+        }
+
+        void UpdateDefaultRendererValue(int prevIndex, int newIndex)
+        {
+            // If we are moving the index that is the same as the default renderer we need to update that
+            if (prevIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue = newIndex;
+            }
+            // If newIndex is the same as default
+            // then we need to know if newIndex is above or below the default index
+            else if (newIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
+            }
+            // If the old index is lower than default renderer and
+            // the new index is higher then we need to move the default renderer index one lower
+            else if (prevIndex < m_DefaultRendererProp.intValue && newIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+            else if (newIndex < m_DefaultRendererProp.intValue && prevIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue++;
+            }
         }
 
         bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)

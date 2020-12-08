@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.LookDev
                     continue;
                 foreach (UnityEngine.Renderer renderer in go.GetComponentsInChildren<UnityEngine.Renderer>())
                 {
-                    if((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
                         renderer.enabled = visible;
                 }
                 foreach (Light light in go.GetComponentsInChildren<Light>())
@@ -350,7 +350,7 @@ namespace UnityEditor.Rendering.LookDev
             Environment environment = m_Contexts.GetViewContent(index).environment;
             provider.UpdateSky(stage.camera,
                 environment == null ? default : environment.sky,
-                stage.runtimeInterface);
+                    stage.runtimeInterface);
         }
 
         private bool disposedValue = false; // To detect redundant calls
