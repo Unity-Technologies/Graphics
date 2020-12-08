@@ -370,6 +370,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which clusters will be visualized.</summary>
         public float clusterDebugDistance = 1.0f;
 
+        /// <summary>Binned lighting debug mode.</summary>
+        public bool                  debugBinnedLighting          = false;
+        public BoundedEntityCategory selectedEntityCategory       = BoundedEntityCategory.PunctualLight;
+        public int                   selectedEntityCategoryBudget = TiledLightingConstants.s_FineTileEntryLimit;
+
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {

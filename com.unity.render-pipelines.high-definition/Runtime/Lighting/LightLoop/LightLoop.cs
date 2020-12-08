@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    internal enum BoundedEntityCategory // Defines the sorting order (takes priority over sorting by depth)
+    public enum BoundedEntityCategory // Defines the sorting order (takes priority over sorting by depth)
     {
         PunctualLight,
         AreaLight,
@@ -967,9 +967,13 @@ namespace UnityEngine.Rendering.HighDefinition
         HDShadowManager m_ShadowManager;
         HDShadowInitParameters m_ShadowInitParameters;
 
-        // Used to shadow shadow maps with use selection enabled in the debug menu
+        // Used to debug shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
+
+        // Used to debug binned lighting.
+        public int m_DebugSelectedEntityCategory;
+        public int m_DebugSelectedEntityCategoryBudget;
 
         // Data needed for the PrepareGPULightdata
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
@@ -4362,6 +4366,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material                     debugBlitMaterial;
             public LightCookieManager           cookieManager;
             public PlanarReflectionProbeCache   planarProbeCache;
+
+            public int selectedEntityCategory;
+            public int selectedEntityCategoryBudget;
         }
 
         LightLoopDebugOverlayParameters PrepareLightLoopDebugOverlayParameters()
@@ -4382,15 +4389,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderLightLoopDebugOverlay(in DebugParameters  debugParameters,
             CommandBuffer       cmd,
-            ComputeBuffer       tileBuffer,
-            ComputeBuffer       lightListBuffer,
-            ComputeBuffer       perVoxelLightListBuffer,
+            ComputeBuffer       fineTileBuffer,
+            ComputeBuffer       zBinBuffer,
+            ComputeBuffer       tileListBuffer,
             ComputeBuffer       dispatchIndirectBuffer,
             RTHandle            depthTexture)
         {
             var hdCamera = debugParameters.hdCamera;
             var parameters = debugParameters.lightingOverlayParameters;
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
+
+            /*
             if (lightingDebug.tileClusterDebug != TileClusterDebug.None)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
@@ -4400,7 +4409,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTilesX = (w + 15) / 16;
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
-
                     // Debug tiles
                     if (lightingDebug.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
                     {
@@ -4448,6 +4456,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
                 }
+            }
+            */
+
+            if (lightingDebug.debugBinnedLighting)
+            {
+                parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+                parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategory",       (int)lightingDebug.selectedEntityCategory);
+                parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategoryBudget",      lightingDebug.selectedEntityCategoryBudget);
+
+                CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
             }
 
             if (lightingDebug.displayCookieAtlas)

@@ -192,11 +192,15 @@ namespace UnityEngine.Rendering.HighDefinition
         class DebugLightLoopOverlayPassData
             : DebugOverlayPassData
         {
-            public TextureHandle depthPyramidTexture;
+            public ComputeBufferHandle fineTileBuffer;
+            public ComputeBufferHandle zBinBuffer;
             public ComputeBufferHandle tileList;
+            public ComputeBufferHandle dispatchIndirect;
+
+            public TextureHandle       depthPyramidTexture;
+
             public ComputeBufferHandle lightList;
             public ComputeBufferHandle perVoxelLightList;
-            public ComputeBufferHandle dispatchIndirect;
         }
 
         void RenderLightLoopDebugOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, TextureHandle depthPyramidTexture)
@@ -204,7 +208,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.tileClusterDebug == TileClusterDebug.None
                 && !lightingDebug.displayCookieAtlas
-                && !lightingDebug.displayPlanarReflectionProbeAtlas)
+                && !lightingDebug.displayPlanarReflectionProbeAtlas
+                && !lightingDebug.debugBinnedLighting)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderLightLoopDebugOverlay", out var passData))
@@ -216,16 +221,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightingDebug.tileClusterDebug != TileClusterDebug.None)
                 {
                     passData.depthPyramidTexture = builder.ReadTexture(depthPyramidTexture);
-                    passData.tileList = builder.ReadComputeBuffer(lightLists.tileListBuffer);
-                    passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                     passData.perVoxelLightList = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
                     passData.dispatchIndirect = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
+                }
+
+                if (lightingDebug.debugBinnedLighting)
+                {
+                    passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+                    passData.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
                 }
 
                 builder.SetRenderFunc(
                     (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.tileList, data.lightList, data.perVoxelLightList, data.dispatchIndirect, data.depthPyramidTexture);
+                        RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.fineTileBuffer, data.zBinBuffer, data.tileList, data.dispatchIndirect, data.depthPyramidTexture);
                     });
             }
         }

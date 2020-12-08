@@ -17,10 +17,11 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
             #pragma multi_compile _ IS_DRAWPROCEDURALINDIRECT
             #pragma multi_compile _ DISABLE_TILE_MODE
+
+            #define FINE_BINNING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -46,11 +47,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             // TEMP: in order that this file compile
             uint GetTileSize() { return 8; }
-        
+
             uint _ViewTilesFlags;
             uint _NumTiles;
             float _ClusterDebugDistance;
             int _ClusterDebugMode;
+
+            // Binned lighting ("SHOW_LIGHT_CATEGORIES")
+            int _SelectedEntityCategory;
+            int _SelectedEntityCategoryBudget;
 
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
@@ -203,10 +208,42 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-                int2 tileCoord = (float2)pixelCoord / GetTileSize();
-                int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
-                int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
+                uint tile = ComputeTileIndex(posInput.positionSS);
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
+                float4 result = float4(0.0, 0.0, 0.0, 0.0);
+
+            #if defined(SHOW_LIGHT_CATEGORIES)
+                uint entityCount = 0;
+
+                uint i = 0;
+
+                if (_SelectedEntityCategory < BOUNDEDENTITYCATEGORY_COUNT)
+                {
+                    uint unused;
+                    while (TryFindEntityIndex(i, tile, zBin, (uint)_SelectedEntityCategory, unused))
+                    {
+                        entityCount++;
+                        i++;
+                    }
+                }
+
+                // Must not be too hard on the eyes...
+                const float hueRed     = 0;
+                const float hueBlue    = 240.0 / 360.0;
+                const float saturation = 0.5;
+                const float minValue   = 0.1;
+                const float maxValue   = 1;
+                const float opacity    = 0.75;
+
+                float hue   = lerp(hueBlue, hueRed, entityCount * rcp(_SelectedEntityCategoryBudget));
+                float value = lerp(minValue, maxValue, zBin * rcp(Z_BIN_COUNT - 1));
+
+                // TODO: have to apply a gamma ramp here, else I can't see a thing. Did we mess up?
+                result.rgb = pow(HsvToRgb(float3(hue, saturation, value)), 2.2);
+                result.a   = opacity;
+            #endif
+/*
                 int n = 0;
 #if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
@@ -226,7 +263,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 n = input.variant;
 #endif
 
-                float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
 #ifdef DISABLE_TILE_MODE
                 // Tile debug mode is not supported in MSAA (only cluster)
@@ -301,7 +337,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 }
 #endif
 #endif
-
+*/
                 return result;
             }
 
