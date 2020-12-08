@@ -4,11 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-10-21
+## [11.0.0] - 2020-12-02
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
+- Added support for nested volume components to volume system.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -17,7 +18,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 
-## [10.3.0] - 2020-11-16
+## [10.3.0] - 2020-12-01
+
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+
+### Changed
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+- Replaced last package version checker in Wizard to a link on Package Manager
+
+## [10.2.1] - 2020-11-30
 
 ### Added
 - Added a warning when trying to bake with static lighting being in an invalid state.
@@ -76,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
+- Added the TerrainCompatible SubShader Tag. Use this Tag in your custom shader to tell Unity that the shader is compatible with the Terrain system.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
 
 ### Fixed
