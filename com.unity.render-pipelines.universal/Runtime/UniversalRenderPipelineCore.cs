@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif
-        internal bool requireSrgbConversion
+        public bool requireSrgbConversion
         {
             get
             {

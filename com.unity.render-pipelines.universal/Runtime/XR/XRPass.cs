@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
     {
         internal List<XRView> views = new List<XRView>(2);
 
-        internal bool enabled      { get => views.Count > 0; }
+        public bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
         internal bool copyDepth    { get; private set; }
 
