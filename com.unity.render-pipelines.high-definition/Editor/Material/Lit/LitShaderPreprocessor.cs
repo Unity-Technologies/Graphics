@@ -89,10 +89,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
-                        // When we are in deferred, we only support tile lighting
-                        if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
-                            return true;
-
                         bool isForwardPass = snippet.passName == "Forward";
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;

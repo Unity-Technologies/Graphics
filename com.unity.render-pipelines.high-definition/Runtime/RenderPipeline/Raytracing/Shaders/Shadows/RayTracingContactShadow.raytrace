@@ -4,8 +4,7 @@
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
 
-// Required for contact shadows
-#define USE_FPTL_LIGHTLIST
+#define FINE_BINNING // Required as we go over light list to determine contact shadow
 
 // We are using DX12 here
 #define SHADER_TARGET 50
