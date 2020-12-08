@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix for a compilation error in the Depth of Field shader on Linux.
+- Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
 
 ## [3.0.0] - 2020-10-13
 
