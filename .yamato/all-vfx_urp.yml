@@ -15,6 +15,7 @@ All_VFX_URP_trunk:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 All_VFX_URP_CUSTOM-REVISION:
     name: All VFX_URP CI - CUSTOM-REVISION
@@ -25,4 +26,5 @@ All_VFX_URP_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*

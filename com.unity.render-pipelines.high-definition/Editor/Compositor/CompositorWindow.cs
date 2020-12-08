@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         {
             // Get existing open window or if none, make a new one:
             s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
-            s_Window.titleContent = new GUIContent("Graphics Compositor (Preview)");
+            s_Window.titleContent = new GUIContent("Graphics Compositor");
             s_Window.Show();
         }
 

@@ -4990,7 +4990,7 @@ MonoBehaviour:
     TargetWidth: 640
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.0001
-    AverageCorrectnessThreshold: 0.0004
+    AverageCorrectnessThreshold: 0.0011
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 4
