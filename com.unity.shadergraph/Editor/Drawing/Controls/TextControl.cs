@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
             {
-                m_Node.owner.owner.RegisterCompleteObjectUndo("MatrixSwizzle Change");
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
                 string value = GetValue();
                 value = evt.newValue;
                 m_PropertyInfo.SetValue(m_Node, value, null);
