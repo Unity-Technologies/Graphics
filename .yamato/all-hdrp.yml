@@ -31,6 +31,7 @@ PR_HDRP_trunk:
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_trunk:
     name: Nightly HDRP - trunk
@@ -78,6 +79,7 @@ PR_HDRP_CUSTOM-REVISION:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_CUSTOM-REVISION:
     name: Nightly HDRP - CUSTOM-REVISION

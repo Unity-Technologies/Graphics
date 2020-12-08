@@ -49,6 +49,7 @@ PR_Universal_trunk:
     triggers:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_trunk:
     name: Nightly Universal - trunk
@@ -110,6 +111,7 @@ PR_Universal_CUSTOM-REVISION:
         expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_CUSTOM-REVISION:
     name: Nightly Universal - CUSTOM-REVISION

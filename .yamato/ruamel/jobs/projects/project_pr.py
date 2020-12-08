@@ -38,6 +38,7 @@ class Project_PRJob():
         if expression_trigger != "":
             job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
+        job.add_var_custom('UTR_VERSION', dss("current"))
         job.add_var_custom('TEST_FILTER', '.*')
         if project == "URP_Performance_BoatAttack":
             job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
