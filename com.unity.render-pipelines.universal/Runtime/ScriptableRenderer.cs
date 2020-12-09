@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns a list of renderer features added to this renderer.
         /// <seealso cref="ScriptableRendererFeature"/>
         /// </summary>
-        protected List<ScriptableRendererFeature> rendererFeatures
+        public List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
         }
