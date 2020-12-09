@@ -135,7 +135,7 @@ float3 VFXGetPositionRWS(float3 posWS); //Forward declaration because this funct
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
     float3 posRWS = VFXGetPositionRWS(posWS);
-    PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posRWS, uint2(0,0));
+    PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posRWS);
 
     float3 V = GetWorldSpaceNormalizeViewDir(posRWS);
 
