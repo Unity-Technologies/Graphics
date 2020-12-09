@@ -93,6 +93,12 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        private bool HideRendererFeatureNameCheck(Type type)
+        {
+            var hideFeatureName = type.GetCustomAttribute(typeof(HideRendererFeatureName));
+            return hideFeatureName != null;
+        }
+
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
         {
             Object rendererFeatureObjRef = renderFeatureProperty.objectReferenceValue;
@@ -106,6 +112,10 @@ namespace UnityEditor.Rendering.Universal
                 SerializedObject serializedRendererFeaturesEditor = rendererFeatureEditor.serializedObject;
                 serializedRendererFeaturesEditor.Update();
 
+                bool displayName = !HideRendererFeatureNameCheck(rendererFeatureObjRef.GetType());
+                if (!displayName)
+                    title = rendererFeatureObjRef.GetType().Name;
+
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
@@ -115,19 +125,22 @@ namespace UnityEditor.Rendering.Universal
                 // ObjectEditor
                 if (displayContent)
                 {
-                    EditorGUI.BeginChangeCheck();
-                    SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
-                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
-                    if (EditorGUI.EndChangeCheck())
+                    if (displayName)
                     {
-                        hasChangedProperties = true;
+                        EditorGUI.BeginChangeCheck();
+                        SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
+                        nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            hasChangedProperties = true;
 
-                        // We need to update sub-asset name
-                        rendererFeatureObjRef.name = nameProperty.stringValue;
-                        AssetDatabase.SaveAssets();
+                            // We need to update sub-asset name
+                            rendererFeatureObjRef.name = nameProperty.stringValue;
+                            AssetDatabase.SaveAssets();
 
-                        // Triggers update for sub-asset name change
-                        ProjectWindowUtil.ShowCreatedAsset(target);
+                            // Triggers update for sub-asset name change
+                            ProjectWindowUtil.ShowCreatedAsset(target);
+                        }
                     }
 
                     EditorGUI.BeginChangeCheck();

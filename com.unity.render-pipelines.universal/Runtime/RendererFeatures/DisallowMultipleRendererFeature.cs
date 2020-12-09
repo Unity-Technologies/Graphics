@@ -9,4 +9,9 @@ namespace UnityEngine.Rendering.Universal
     internal class DisallowMultipleRendererFeature : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class HideRendererFeatureName : Attribute
+    {
+    }
 }

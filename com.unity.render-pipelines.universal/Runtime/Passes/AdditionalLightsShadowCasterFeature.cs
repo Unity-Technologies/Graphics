@@ -1,7 +1,8 @@
-﻿using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    [HideRendererFeatureName]
     class AdditionalLightsShadowCasterFeature : ScriptableRendererFeature
     {
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;

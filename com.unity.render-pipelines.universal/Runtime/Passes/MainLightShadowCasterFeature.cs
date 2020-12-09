@@ -1,7 +1,8 @@
-﻿using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    [HideRendererFeatureName]
     /// <summary>
     /// Targets _MainLightShadowmapTexture
     /// </summary>
