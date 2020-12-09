@@ -607,11 +607,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
                     {
+                        string[] platforms = Enum.GetNames(typeof(ShaderCompilerPlatform));
+                        int platformIndex = Array.IndexOf(Enum.GetValues(typeof(ShaderCompilerPlatform)), message.platform);
+
                         // Will be catched by the try in HDRenderPipelineAsset.CreatePipeline()
                         throw new Exception(String.Format(
                             "Compute Shader compilation error on platform {0} in file {1}:{2}: {3}{4}\n" +
                             "HDRP will not run until the error is fixed.\n",
-                            message.platform, message.file, message.line, message.message, message.messageDetails
+                            platforms[platformIndex], message.file, message.line, message.message, message.messageDetails
                         ));
                     }
                 }

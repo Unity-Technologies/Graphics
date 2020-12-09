@@ -47,7 +47,7 @@ float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
 
 #define THREADS_PER_GROUP (64)
 
-#if (REMAINDER(Z_BIN_COUNT, THREADS_PER_GROUP) != 0)
+#if IS_MULTIPLE(Z_BIN_COUNT, THREADS_PER_GROUP)
     #error "Z_BIN_COUNT must be an integer multiple of THREADS_PER_GROUP."
 #endif
 
