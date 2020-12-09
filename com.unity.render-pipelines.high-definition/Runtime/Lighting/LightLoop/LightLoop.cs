@@ -819,10 +819,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            m_ShadowManager = HDShadowManager.instance;
+            m_ShadowManager = new HDShadowManager();
             m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters,
+                m_RenderGraph,
                 defaultResources.shaders.shadowClearPS
             );
         }
@@ -831,7 +832,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowManager != null)
             {
-                m_ShadowManager.Dispose();
+                m_ShadowManager.Cleanup(m_RenderGraph);
                 m_ShadowManager = null;
             }
         }
@@ -1858,8 +1859,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
-            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
+            envLightData.distanceBasedRoughness = 0.0f;
 
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
@@ -1941,6 +1943,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                     //capturedForwardWS.z *= -1; // Transform to RHS standard
                     m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
+
+                    if (probe.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                        envLightData.rangeCompressionFactorCompensation = 1.0f / probe.ProbeExposureValue();
+                    else
+                        envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
                     break;
                 }
                 case HDAdditionalReflectionData _:
@@ -1956,6 +1963,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         out _, out var cameraPositionSettings, 0
                     );
                     capturePosition = cameraPositionSettings.position;
+                    envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
+
+                    // Propagate the distance based information to the env light data (only if we are not an infinite projection)
+                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
 
                     break;
                 }
@@ -1969,7 +1980,6 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.reflectionProbeIntensityMultiplier.value;
-            envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
             {
@@ -4203,6 +4213,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                return;
+
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
             {

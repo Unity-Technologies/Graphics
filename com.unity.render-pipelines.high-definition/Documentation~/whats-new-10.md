@@ -4,7 +4,7 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Features
 
-The following is a list of features Unity added to version 10.0 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 10 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
 
 ### IES Profiles and light cookies
 
@@ -215,7 +215,7 @@ Planar reflection probe filtering is a process that combines the result of plana
 
 ![](Images/DistanceBaseRoughness-Feature.png)
 
-Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object.
+Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object. This option is disabled by default and need to be enabled on the Reflection Probe.
 
 ### Screen space reflection
 
