@@ -80,6 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle directionBuffer;
             public TextureHandle rayLengthBuffer;
 
+            public ComputeBufferHandle lightData;
+
             // Debug textures
             public TextureHandle rayCountTexture;
 
@@ -90,13 +92,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderPunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
+            , in LightData lightData, HDAdditionalLightData additionalLightData, int screenspaceShadowIndex,
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             TextureHandle pointShadowBuffer;
             TextureHandle velocityBuffer;
             TextureHandle distanceBuffer;
-            SSSPunctualRayTraceParameters rtsptParams = PrepareSSSPunctualRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
+            SSSPunctualRayTraceParameters rtsptParams = PrepareSSSPunctualRayTraceParameters(hdCamera, additionalLightData, lightData, screenspaceShadowIndex);
             using (var builder = renderGraph.AddRenderPass<RTSPunctualTracePassData>("Punctual RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
             {
                 passData.parameters = rtsptParams;
@@ -106,6 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
                 passData.rayLengthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Ray Length Buffer" });
+
+                passData.lightData = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_ScreenSpaceShadowsLightData));
 
                 // Debug buffers
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
@@ -130,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.velocityBuffer = data.velocityBuffer;
                         resources.distanceBuffer = data.distanceBuffer;
                         resources.outputShadowBuffer = data.outputShadowBuffer;
+                        resources.lightData = data.lightData;
                         ExecuteSSSPunctualRayTrace(context.cmd, data.parameters, resources);
                     });
                 pointShadowBuffer = passData.outputShadowBuffer;
