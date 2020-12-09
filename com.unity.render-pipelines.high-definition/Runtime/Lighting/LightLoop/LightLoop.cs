@@ -1229,6 +1229,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(defaultResources);
+
+            int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
+            m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+            m_CurrentScreenSpaceShadowLightData = new LightData[numMaxShadows];
+            m_ScreenSpaceShadowsLightData = new ComputeBuffer(numMaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
         }
 
         void CleanupLightLoop()
