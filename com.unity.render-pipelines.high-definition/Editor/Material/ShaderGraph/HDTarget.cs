@@ -858,7 +858,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
-            // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST
         };
     }
     #endregion

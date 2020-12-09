@@ -122,7 +122,7 @@ bool LaneSwizzle(bool x, uint andMask, uint orMask, uint xorMask)
 }
 #endif
 
-#if (REMAINDER(TILE_ENTRY_LIMIT, 2) != 0)
+#if IS_MULTIPLE(TILE_ENTRY_LIMIT, 2)
     #error "TILE_ENTRY_LIMIT must be an integer multiple of 2."
 #endif
 
@@ -768,7 +768,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
 #if (PASS == FILL_FINE_TILES)
 
-#if (REMAINDER(COARSE_TILE_SIZE, FINE_TILE_SIZE) != 0)
+#if IS_MULTIPLE(COARSE_TILE_SIZE, FINE_TILE_SIZE)
     #error "COARSE_TILE_SIZE must be an integer multiple of FINE_TILE_SIZE."
 #endif
 

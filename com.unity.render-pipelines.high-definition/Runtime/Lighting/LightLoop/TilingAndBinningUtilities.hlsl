@@ -2,7 +2,8 @@
 #define UNITY_TILINGANDBINNINGUTILITIES_INCLUDED
 
 // The HLSL preprocessor does not support the '%' operator.
-#define REMAINDER(A, N)       ((A) - (N) * ((A) / (N)))
+// Order is importer -1 + (N) otherwise N - 1 give invalid expression in the preprocessor
+#define IS_MULTIPLE(A, N)     ((A) & (-1 + (N)) != 0)
 #define CLEAR_SIGN_BIT(X)     (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D)    (((N) + (D) - 1) / (D)) // No division by 0 checks
 

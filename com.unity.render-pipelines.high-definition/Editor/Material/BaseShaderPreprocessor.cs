@@ -36,8 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_Transparent;
         protected ShaderKeyword m_AlphaTestOn;
         protected ShaderKeyword m_DebugDisplay;
-        protected ShaderKeyword m_TileLighting;
-        protected ShaderKeyword m_ClusterLighting;
         protected ShaderKeyword m_LodFadeCrossFade;
         protected ShaderKeyword m_DecalsOFF;
         protected ShaderKeyword m_Decals3RT;
@@ -69,8 +67,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
             m_AlphaTestOn = new ShaderKeyword("_ALPHATEST_ON");
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");
-            m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
-            m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
             m_LodFadeCrossFade = new ShaderKeyword("LOD_FADE_CROSSFADE");
             m_DecalsOFF = new ShaderKeyword("DECALS_OFF");
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");

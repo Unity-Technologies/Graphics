@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EntityBoundsBuffer;
         }
 
-        public void CopyEntityDataToComputeBuffers()
+        public void CopyEntityDataToComputeBuffers(int activeViewCount)
         {
             int totalCount = 0;
 
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 totalCount += count;
 
                 // For each category, concatenate lists of all views.
-                for (int i = 0, n = m_Views.Length; i < n; i++)
+                for (int i = 0, n = activeViewCount; i < n; i++)
                 {
                     switch (category)
                     {
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            for (int i = 0, n = m_Views.Length; i < n; i++)
+            for (int i = 0, n = activeViewCount; i < n; i++)
             {
                 Debug.Assert(m_Views[i].entityBounds.Count == totalCount);
                 m_EntityBoundsBuffer.SetData(m_Views[i].entityBounds, 0, i * totalCount, totalCount);
@@ -932,7 +932,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         IndirectLightingController m_indirectLightingController = null;
 
-        // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
+        // Following is an array of material for all combination of keyword: OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
@@ -3325,7 +3325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 /* ---------------------------- Step 4 ---------------------------- */
-                PushLightDataGlobalParams(cmd);
+                PushLightDataGlobalParams(cmd, xrViewCount);
                 PushShadowGlobalParams(cmd);
             }
 
@@ -3972,10 +3972,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
-        void PushLightDataGlobalParams(CommandBuffer cmd)
+        void PushLightDataGlobalParams(CommandBuffer cmd, int activeViewCount)
         {
             m_DirectionalLightDataBuffer.SetData(m_DirectionalLightData);
-            m_BoundedEntityCollection.CopyEntityDataToComputeBuffers();
+            m_BoundedEntityCollection.CopyEntityDataToComputeBuffers(activeViewCount);
 
             // Hand it over so it can be used to construct light lists. BEC still owns (and manages) the buffer.
             m_TileAndClusterData.convexBoundsBuffer = m_BoundedEntityCollection.GetEntityBoundsBuffer();
