@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
-            
+
             BeginCameraRendering(renderContext, camera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -208,14 +208,14 @@ namespace UnityEngine.Rendering.Universal
 
             foreach (var renderRequest in renderRequests)
             {
-                
+
                 if (!renderRequest.isValid)
                     continue;
                 RenderWithMode(renderContext, camera, renderRequest);
+                EndCameraRendering(renderContext, camera);
+                EndFrameRendering(renderContext, cameras);
             }
-            
-            EndCameraRendering(renderContext, camera);
-            EndFrameRendering(renderContext, cameras);
+
             camera.targetTexture = cameraTarget;
         }
 
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
 
             public Camera.RenderRequest request { get; set; }
         }
-        
+
         class RenderRequestRenderer : ScriptableRenderer
         {
             DrawObjectsPass m_RenderOpaqueForwardPass;
@@ -259,25 +259,25 @@ namespace UnityEngine.Rendering.Universal
             LayerMask m_OpaqueLayerMask = -1;
             LayerMask m_TransparentLayerMask = -1;
             StencilState m_DefaultStencilState = StencilState.defaultValue;
-            
+
             public RenderRequestRenderer(RenderRequestRendererData data) : base(data)
             {
                 var shaderTags = new[] {new ShaderTagId("DataExtraction")};
                 m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
                 m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
-            
+
                 List<Tuple<string, int>> values = new List<Tuple<string, int>>
                 {
                     new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                     new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
                 };
-                
+
                 m_RenderOpaqueForwardPass.SetAdditionalValues(values);
                 m_RenderTransparentForwardPass.SetAdditionalValues(values);
             }
-            
-            
+
+
             /// <inheritdoc />
             public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
             {
@@ -290,10 +290,10 @@ namespace UnityEngine.Rendering.Universal
                 base.FinishRendering(cmd);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Mode", 0);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Space", 0);
-                
+
             }
         }
-        
+
 #if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
         {
