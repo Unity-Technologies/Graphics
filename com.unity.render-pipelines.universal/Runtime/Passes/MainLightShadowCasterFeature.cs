@@ -2,6 +2,9 @@
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Targets _MainLightShadowmapTexture
+    /// </summary>
     class MainLightShadowCasterFeature : ScriptableRendererFeature
     {
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -14,8 +17,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if(m_MainLightShadowCasterPass.Setup(ref renderingData))
+            if (m_MainLightShadowCasterPass.Setup(ref renderingData))
+            {
                 renderer.EnqueuePass(m_MainLightShadowCasterPass);
+            }
         }
     }
 }
