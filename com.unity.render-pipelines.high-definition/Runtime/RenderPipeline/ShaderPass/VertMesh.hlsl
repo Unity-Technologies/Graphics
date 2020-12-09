@@ -174,7 +174,8 @@ VaryingsMeshType VertMesh(AttributesMesh input)
         // We would like to retain positionCS.w = linearDepth for all projection types.
         float linearDepth = LinearEyeDepth(positionRWS, GetWorldToViewMatrix());
         // We utilize the fact that positionCS.xyz will have perspective division applied to it.
-        output.positionCS *= linearDepth;
+        output.positionCS.xyz *= linearDepth;
+        output.positionCS.w    = linearDepth;
     }
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
@@ -223,7 +224,8 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
         // We would like to retain positionCS.w = linearDepth for all projection types.
         float linearDepth = LinearEyeDepth(input.positionRWS, GetWorldToViewMatrix());
         // We utilize the fact that positionCS.xyz will have perspective division applied to it.
-        output.positionCS *= linearDepth;
+        output.positionCS.xyz *= linearDepth;
+        output.positionCS.w    = linearDepth;
     }
 
 #if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG)
