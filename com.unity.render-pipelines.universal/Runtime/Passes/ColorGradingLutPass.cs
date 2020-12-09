@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var splitToning = stack.GetComponent<SplitToning>();
                 var tonemapping = stack.GetComponent<Tonemapping>();
                 var whiteBalance = stack.GetComponent<WhiteBalance>();
+                var colorLookup = stack.GetComponent<ColorLookup>();
 
                 ref var postProcessingData = ref renderingData.postProcessingData;
                 bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -151,6 +152,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.SetTexture(ShaderConstants._CurveLumVsSat, curves.lumVsSat.value.GetTexture());
                 material.SetTexture(ShaderConstants._CurveSatVsSat, curves.satVsSat.value.GetTexture());
 
+                material.SetTexture(ShaderConstants._UserLut, colorLookup.texture.value);
+                material.SetVector(ShaderConstants._UserLut_Params, !colorLookup.IsActive()
+                ? Vector4.zero
+                : new Vector4(1f / colorLookup.texture.value.width,
+                    1f / colorLookup.texture.value.height,
+                    colorLookup.texture.value.height - 1f,
+                    colorLookup.contribution.value)
+                );
+
                 // Tonemapping (baked into the lut for HDR)
                 if (hdr)
                 {
@@ -192,6 +202,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static class ShaderConstants
         {
             public static readonly int _Lut_Params        = Shader.PropertyToID("_Lut_Params");
+            public static readonly int _UserLut_Params    = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _ColorBalance      = Shader.PropertyToID("_ColorBalance");
             public static readonly int _ColorFilter       = Shader.PropertyToID("_ColorFilter");
             public static readonly int _ChannelMixerRed   = Shader.PropertyToID("_ChannelMixerRed");
@@ -215,6 +226,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _CurveHueVsSat     = Shader.PropertyToID("_CurveHueVsSat");
             public static readonly int _CurveLumVsSat     = Shader.PropertyToID("_CurveLumVsSat");
             public static readonly int _CurveSatVsSat     = Shader.PropertyToID("_CurveSatVsSat");
+            public static readonly int _UserLut           = Shader.PropertyToID("_UserLut");
         }
     }
 }

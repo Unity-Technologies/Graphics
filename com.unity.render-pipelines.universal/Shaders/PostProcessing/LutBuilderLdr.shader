@@ -9,6 +9,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
         float4 _Lut_Params;         // x: lut_height, y: 0.5 / lut_width, z: 0.5 / lut_height, w: lut_height / lut_height - 1
+        float4 _UserLut_Params;
         float4 _ColorBalance;       // xyz: LMS coeffs, w: unused
         half4 _ColorFilter;         // xyz: color, w: unused
         half4 _ChannelMixerRed;     // xyz: rgb coeffs, w: unused
@@ -24,6 +25,8 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
         float4 _ShaHiLimits;        // xy: shadows min/max, zw: highlight min/max
         half4 _SplitShadows;        // xyz: color, w: balance
         half4 _SplitHighlights;     // xyz: color, w: unused
+
+        TEXTURE2D(_UserLut);
 
         TEXTURE2D(_CurveMaster);
         TEXTURE2D(_CurveRed);
@@ -45,6 +48,14 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
         {
             float3 colorLinear = GetLutStripValue(input.uv, _Lut_Params);
 
+            UNITY_BRANCH
+            if (_UserLut_Params.w > 0.0)
+            {
+                colorLinear.rgb = LinearToSRGB(colorLinear.rgb); // In LDR do the lookup in sRGB for the user LUT
+                float3 outLut = ApplyLut2D(TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), colorLinear, _UserLut_Params.xyz);
+                colorLinear = lerp(colorLinear, outLut, _UserLut_Params.w);
+                colorLinear.rgb = SRGBToLinear(colorLinear.rgb);
+            }
             // White balance in LMS space
             float3 colorLMS = LinearToLMS(colorLinear);
             colorLMS *= _ColorBalance.xyz;
