@@ -27,19 +27,12 @@ namespace UnityEditor.Rendering.Universal
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
             public readonly GUIContent SunSourceWarning = EditorGUIUtility.TrTextContent("This light is set as the current Sun Source, which requires a directional light. Go to the Lighting Window's Environment settings to edit the Sun Source.");
 
-#if ENABLE_POINT_LIGHT_SHADOWS
-#else
-            // Temporarily disable Point Light Shadows until feature OK from Product perspective
-            public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
-#endif
-
             public static readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TrTextContent("Realtime Shadows", "Settings for realtime direct shadows.");
             public static readonly GUIContent ShadowStrength = EditorGUIUtility.TrTextContent("Strength", "Controls how dark the shadows cast by the light will be.");
             public static readonly GUIContent ShadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
             public static readonly GUIContent ShadowNormalBias = EditorGUIUtility.TrTextContent("Normal", "Controls the distance shadow caster vertices are offset along their normals when rendering shadow maps. Currently ignored for Point Lights.");
 
             public static GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.");
-
             public static int[] optionDefaultValues = { 0, 1 };
 
             public static GUIContent[] displayedDefaultOptions =
@@ -62,13 +55,7 @@ namespace UnityEditor.Rendering.Universal
         public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
 
         //  Area light shadows not supported
-#if ENABLE_POINT_LIGHT_SHADOWS
         public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && !settings.isCompletelyBaked); } }
-#else
-        // Temporarily disable Point Light Shadows until feature OK from Product perspective
-        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && lightProperty.type != LightType.Point && !settings.isCompletelyBaked); } }
-#endif
-
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
@@ -78,20 +65,6 @@ namespace UnityEditor.Rendering.Universal
         public bool showLightBounceIntensity { get { return true; } }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
-
-#if ENABLE_POINT_LIGHT_SHADOWS
-#else
-        // Temporarily disable Point Light Shadows until feature OK from Product perspective
-        public bool realtimeShadowsWarningValue
-        {
-            get
-            {
-                return typeIsSame && lightProperty.type == LightType.Point &&
-                    shadowTypeIsSame && isShadowEnabled &&
-                    lightmappingTypeIsSame && !settings.isCompletelyBaked;
-            }
-        }
-#endif
 
         UniversalAdditionalLightData m_AdditionalLightData;
         SerializedObject m_AdditionalLightDataSO;
@@ -141,11 +114,11 @@ namespace UnityEditor.Rendering.Universal
             // we want the fade group to stay hidden.
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimDirOptions.faded))
                 if (group.visible)
-#if UNITY_2020_1_OR_NEWER
+                #if UNITY_2020_1_OR_NEWER
                     settings.DrawRange();
-#else
+                #else
                     settings.DrawRange(m_AnimAreaOptions.target);
-#endif
+                #endif
 
             // Spot angle
             using (var group = new EditorGUILayout.FadeGroupScope(m_AnimSpotOptions.faded))
@@ -338,13 +311,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
-
-#if ENABLE_POINT_LIGHT_SHADOWS
-#else
-            // Temporarily disable Point Light Shadows until feature is OK from Product perspective
-            if (realtimeShadowsWarningValue)
-                EditorGUILayout.HelpBox(s_Styles.ShadowsNotSupportedWarning.text, MessageType.Warning);
-#endif
 
             EditorGUILayout.Space();
         }
