@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.0.2] - XXXX-XX-XX
 
+### Fixed
+- Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
+
 ### Changed
 - ResetProjection isn't being called anymore if Temporal Anti-aliasing isn't enabled, allowing the use of custom projection matrices.
 
@@ -13,7 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix for a compilation error in the Depth of Field shader on Linux.
-- Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
 
 ## [3.0.0] - 2020-10-13
 
