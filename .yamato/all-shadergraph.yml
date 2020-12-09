@@ -32,6 +32,8 @@ Nightly_ShaderGraph_trunk:
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_trunk
+         rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
@@ -67,6 +69,8 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always

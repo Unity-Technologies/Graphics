@@ -106,6 +106,12 @@ nightly:
   dependencies:
     - project: HDRP
       all: true
+    - project: HDRP_DXR
+      nightly: true
+    - project: HDRP_Hybrid
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
     - platform: Win
       api: DX11
       build_config: mono

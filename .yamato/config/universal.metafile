@@ -169,6 +169,14 @@ nightly:
   dependencies:
     - project: Universal
       all: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: Universal_Hybrid
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
     - platform: Win
       api: DX11
       build_config: mono

@@ -106,6 +106,8 @@ nightly:
   dependencies:
     - project: ShaderGraph
       all: true
+    - project: ShaderGraph_Stereo
+      nightly: true
     - platform: Win
       api: DX11
       build_config: mono
