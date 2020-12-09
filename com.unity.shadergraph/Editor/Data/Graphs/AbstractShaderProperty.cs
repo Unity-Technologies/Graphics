@@ -178,6 +178,7 @@ namespace UnityEditor.ShaderGraph.Internal
         Global,                     // declared in the global scope, mainly for use with state coming from Shader.SetGlobal*()
         UnityPerMaterial,           // declared in the UnityPerMaterial cbuffer, populated by Material or MaterialPropertyBlock
         HybridPerInstance,          // declared using HybridRenderer path (v1 or v2) to get DOTS GPU instancing
+        VFX                         // declared in the VFX Parameters cbuffer, populated by a VFX Graph context
     }
 
     internal struct HLSLProperty

@@ -232,8 +232,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (!TrySetActiveSubTarget(vfxSubTargetType))
                 return false;
 
-            var vfxSubTarget = m_ActiveSubTarget.value as IVFXCompatibleTarget;
-            vfxSubTarget?.TryConfigureVFX(context);
+            if (!(m_ActiveSubTarget.value is IVFXCompatibleTarget vfxSubTarget) ||
+                !vfxSubTarget.TryConfigureVFX(context))
+                return false;
 
             return true;
         }

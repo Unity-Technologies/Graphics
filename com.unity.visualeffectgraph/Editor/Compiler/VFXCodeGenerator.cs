@@ -376,10 +376,12 @@ namespace UnityEditor.VFX
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext);
 
+                // If the ShaderGraph generation path was successful, use the result, otherwise fall back to the VFX generation path.
                 if (result != null)
+                {
+                    context.EndCompilation();
                     return result;
-
-                Debug.LogError("Attempt to build from shader graph failed. Falling back to normal generation.");
+                }
             }
 
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);

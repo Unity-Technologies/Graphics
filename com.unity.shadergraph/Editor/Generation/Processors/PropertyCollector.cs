@@ -150,6 +150,29 @@ namespace UnityEditor.ShaderGraph
                     h.AppendTo(builder);
         }
 
+        public void GetVFXPropertiesDeclaration(ShaderStringBuilder builder)
+        {
+            // Build a list of VFX properties.
+            var vfxHLSLProps = new List<HLSLProperty>();
+            properties.ForEach(p => p.ForeachHLSLProperty(h =>
+            {
+                if (h.declaration == HLSLDeclaration.VFX)
+                    vfxHLSLProps.Add(h);
+            }));
+
+            if (vfxHLSLProps.Any())
+            {
+                builder.AppendLine("CBUFFER_START(VFXParameters)");
+
+                foreach (var prop in vfxHLSLProps)
+                {
+                    prop.AppendTo(builder);
+                }
+
+                builder.AppendLine("CBUFFER_END");
+            }
+        }
+
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
         {
             // Hybrid V1 needs to declare a special macro to that is injected into

@@ -1,6 +1,9 @@
+using System;
+using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
-
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -8,6 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     sealed class VFXLitSubTarget : HDLitSubTarget, IVFXCompatibleTarget
     {
         private VFXAbstractParticleHDRPLitOutput m_Context;
+
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("a4015296799c4bfd99499b48602f9e32");  // VFXLitSubTarget.cs
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPassVFX.template";
 
@@ -18,15 +24,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new SubShaderDescriptor
             {
-                generatesPreview = true,
+                generatesPreview = false,
                 passes = GetPasses()
             };
 
             PassCollection GetPasses()
             {
+                // TODO: Use the VFX context to configure the passes
+
                 var passes = new PassCollection
                 {
-                    // TODO: Generate motion vectors, shadow pass if the context asks for it.
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateLitDepthOnly(),
                     HDShaderPasses.GenerateGBuffer(),
@@ -45,6 +52,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return passes;
             }
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+
+            // Add the VFX properties
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "Test",
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.VFX
+            });
         }
 
         public bool TryConfigureVFX(VFXContext context)

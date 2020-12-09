@@ -654,6 +654,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             // --------------------------------------------------
+            // VFX Graph Properties
+
+            using (var vfxPropertyBuilder = new ShaderStringBuilder())
+            {
+                propertyCollector.GetVFXPropertiesDeclaration(vfxPropertyBuilder);
+                if (vfxPropertyBuilder.length == 0)
+                    vfxPropertyBuilder.AppendLine("// VFXGraphProperties: <None>");
+                spliceCommands.Add("VFXGraphProperties", vfxPropertyBuilder.ToCodeBlock());
+            }
+
+            // --------------------------------------------------
             // Dots Instanced Graph Properties
 
             bool hasDotsProperties = false;

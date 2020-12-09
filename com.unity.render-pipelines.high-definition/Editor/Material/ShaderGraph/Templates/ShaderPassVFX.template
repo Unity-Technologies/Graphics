@@ -125,6 +125,9 @@
     // -- Graph Properties
     $splice(GraphProperties)
 
+    // -- VFX Graph Properties
+    $splice(VFXGraphProperties)
+
     // -- Property used by ScenePickingPass
     #ifdef SCENEPICKINGPASS
     float4 _SelectionID;
