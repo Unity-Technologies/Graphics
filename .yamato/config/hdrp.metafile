@@ -69,6 +69,7 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
+        - Standalone
         - playmode
         - playmode_XR
     - platform: Win
@@ -117,7 +118,6 @@ nightly:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
         - editmode
     - platform: Win
       api: DX12
