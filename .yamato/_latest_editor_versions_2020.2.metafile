@@ -51,22 +51,22 @@ editor_versions:
       version: 2020.2.0b14
   2020_2_staging:
     android:
-      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
-      updated_at: '2020-12-08 23:31:05.240879'
+      revision: 9ae53133d661a1d4c27048f553db272426e4377e
+      updated_at: '2020-12-09 23:30:01.232348'
       version: ''
     ios:
-      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
-      updated_at: '2020-12-08 23:31:05.240879'
+      revision: 9ae53133d661a1d4c27048f553db272426e4377e
+      updated_at: '2020-12-09 23:30:01.232348'
       version: ''
     linux:
-      revision: e5ca291809e4d96e7aa184b200fc5cc86f8a0a09
-      updated_at: '2020-12-07 23:30:48.265947'
+      revision: 9ae53133d661a1d4c27048f553db272426e4377e
+      updated_at: '2020-12-09 23:30:01.232348'
       version: ''
     macos:
-      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
-      updated_at: '2020-12-08 23:31:05.240879'
+      revision: 9ae53133d661a1d4c27048f553db272426e4377e
+      updated_at: '2020-12-09 23:30:01.232348'
       version: ''
     windows:
-      revision: 651eb643dd1722e98a85c047e23ca6d6bef9aad4
-      updated_at: '2020-12-08 23:31:05.240879'
+      revision: 9ae53133d661a1d4c27048f553db272426e4377e
+      updated_at: '2020-12-09 23:30:01.232348'
       version: ''
