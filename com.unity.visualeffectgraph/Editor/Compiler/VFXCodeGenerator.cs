@@ -9,6 +9,7 @@ using UnityEngine.VFX;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.Rendering.HighDefinition;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -371,9 +372,14 @@ namespace UnityEditor.VFX
             if (!context.SetupCompilation())
                 return null;
 
-            if (context is VFXShaderGraphParticleOutput)
+            if (context is VFXShaderGraphParticleOutput shaderGraphContext)
             {
-                return BuildFromShaderGraph(context as VFXShaderGraphParticleOutput);
+                var result = TryBuildFromShaderGraph(shaderGraphContext);
+
+                if (result != null)
+                    return result;
+
+                Debug.LogError("Attempt to build from shader graph failed. Falling back to normal generation.");
             }
 
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
@@ -565,12 +571,12 @@ namespace UnityEditor.VFX
             return stringBuilder;
         }
 
-        private static StringBuilder BuildFromShaderGraph(VFXShaderGraphParticleOutput shaderGraphOutputContext)
+        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context)
         {
             var stringBuilder = new StringBuilder();
 
-            // Fetch the graph.
-            var path = AssetDatabase.GetAssetPath(shaderGraphOutputContext.shaderGraph);
+            // Reconstruct the ShaderGraph.
+            var path = AssetDatabase.GetAssetPath(context.shaderGraph);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             AssetCollection assetCollection = new AssetCollection();
@@ -585,18 +591,21 @@ namespace UnityEditor.VFX
             graph.OnEnable();
             graph.ValidateGraph();
 
-            // // Create the new target for the current output context.
-            // var vfxTarget = new VFXTarget();
-            //
-            // // Push it
-            // graph.SetTargetActive(vfxTarget);
+            // Prepare the target for VFX generation.
+            var target = graph.activeTargets.FirstOrDefault();
+
+            if (target is IVFXCompatibleTarget vfxTarget &&
+                !vfxTarget.TryConfigureVFX(context))
+            {
+                return null;
+            }
 
             // Use ShaderGraph to generate the VFX shader with the VFX target.
             var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph);
 
-            // Append the shader + remove the Shader name (VFX stamps one in later on).
+            // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);
-            stringBuilder.Remove(0, "Shader \"Shader Graphs/VFXSG\"".Length);
+            stringBuilder.Remove(0, text.IndexOf("{", StringComparison.Ordinal));
 
             return stringBuilder;
         }
