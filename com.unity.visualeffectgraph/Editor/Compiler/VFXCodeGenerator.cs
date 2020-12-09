@@ -374,7 +374,7 @@ namespace UnityEditor.VFX
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext)
             {
-                var result = TryBuildFromShaderGraph(shaderGraphContext);
+                var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
 
                 // If the ShaderGraph generation path was successful, use the result, otherwise fall back to the VFX generation path.
                 if (result != null)
@@ -573,7 +573,7 @@ namespace UnityEditor.VFX
             return stringBuilder;
         }
 
-        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context)
+        private static StringBuilder TryBuildFromShaderGraph(VFXShaderGraphParticleOutput context, VFXContextCompiledData contextData)
         {
             var stringBuilder = new StringBuilder();
 
@@ -597,7 +597,7 @@ namespace UnityEditor.VFX
             var target = graph.activeTargets.FirstOrDefault();
 
             if (target is IVFXCompatibleTarget vfxTarget &&
-                !vfxTarget.TryConfigureVFX(context))
+                !vfxTarget.TryConfigureVFX(context, contextData))
             {
                 return null;
             }

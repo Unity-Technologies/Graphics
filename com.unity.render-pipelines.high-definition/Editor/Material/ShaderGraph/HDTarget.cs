@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return null;
         }
 
-        public bool TryConfigureVFX(VFXContext context)
+        public bool TryConfigureVFX(VFXContext context, VFXContextCompiledData contextData)
         {
             var subTargetType = m_ActiveSubTarget.value.GetType();
 
@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return false;
 
             if (!(m_ActiveSubTarget.value is IVFXCompatibleTarget vfxSubTarget) ||
-                !vfxSubTarget.TryConfigureVFX(context))
+                !vfxSubTarget.TryConfigureVFX(context, contextData))
                 return false;
 
             return true;

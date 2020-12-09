@@ -169,6 +169,8 @@ namespace UnityEditor.ShaderGraph
                     prop.AppendTo(builder);
                 }
 
+                builder.AppendLine("// TODO: Padding");
+
                 builder.AppendLine("CBUFFER_END");
             }
         }
