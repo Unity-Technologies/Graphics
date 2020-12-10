@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
-            return new SubShaderDescriptor
+            var baseSubShaderDescriptor = new SubShaderDescriptor
             {
                 generatesPreview = false,
                 passes = GetPasses()
@@ -57,6 +57,59 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return passes;
             }
+
+            // Use the current VFX context to configure the subshader.
+            return PostProcessSubShaderVFX(baseSubShaderDescriptor, m_Context);
+        }
+
+        static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context)
+        {
+            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
+                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
+
+            var attributesStruct = GenerateVFXAttributesStruct(context);
+
+            var passes = subShaderDescriptor.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+
+                // Warning: Touching the structs field may require to manually append the default structs here.
+                passDescriptor.structs = new StructCollection
+                {
+                    CoreStructCollections.Default,
+                    attributesStruct
+                };
+
+                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+            }
+
+            subShaderDescriptor.passes = finalPasses;
+
+            return subShaderDescriptor;
+        }
+
+        static StructDescriptor GenerateVFXAttributesStruct(VFXContext context)
+        {
+            var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
+                (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
+                (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+
+            var attributes = allCurrentAttributes.Select(a => a.attrib);
+
+            var attributeFieldDescriptors = new List<FieldDescriptor>();
+            foreach (var attribute in attributes)
+            {
+                var afd = VFXAttributeToFieldDescriptor(attribute);
+                attributeFieldDescriptors.Add(afd);
+            }
+
+            return new StructDescriptor
+            {
+                name = "Attributes",
+                fields = attributeFieldDescriptors.ToArray()
+            };
         }
 
         // See: VFXShaderWriter.TypeToUniformCode
@@ -71,6 +124,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(Matrix4x4), typeof(Matrix4ShaderProperty) },
             { typeof(bool),      typeof(BooleanShaderProperty) },
         };
+
+        static readonly Dictionary<Type, ShaderValueType> kVFXShaderValueTypeyMap = new Dictionary<Type, ShaderValueType>
+        {
+            { typeof(float),     ShaderValueType.Float   },
+            { typeof(Vector2),   ShaderValueType.Float2  },
+            { typeof(Vector3),   ShaderValueType.Float3  },
+            { typeof(Vector4),   ShaderValueType.Float4  },
+            { typeof(int),       ShaderValueType.Integer },
+            { typeof(uint),      ShaderValueType.Uint    },
+            { typeof(Matrix4x4), ShaderValueType.Matrix4 },
+            { typeof(bool),      ShaderValueType.Boolean },
+        };
+
+        static FieldDescriptor VFXAttributeToFieldDescriptor(VFXAttribute attribute)
+        {
+            var type = VFXExpression.TypeToType(attribute.type);
+
+            if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+                return null;
+
+            return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);
+        }
 
         static AbstractShaderProperty VFXExpressionToShaderProperty(VFXExpression expression, string name)
         {
