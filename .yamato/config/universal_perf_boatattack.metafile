@@ -233,3 +233,11 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
