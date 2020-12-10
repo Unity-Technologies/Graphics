@@ -948,18 +948,6 @@ namespace UnityEngine.Rendering.HighDefinition
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
         Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
-        // Screen space shadow data
-        struct ScreenSpaceShadowData
-        {
-            public HDAdditionalLightData additionalLightData;
-            public int lightDataIndex;
-            public bool valid;
-        }
-
-        int m_ScreenSpaceShadowIndex = 0;
-        int m_ScreenSpaceShadowChannelSlot = 0;
-        ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
-
         // Contact shadow index reseted at the beginning of each frame, used to generate the contact shadow mask
         int m_ContactShadowIndex;
 
@@ -1242,9 +1230,10 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(defaultResources);
 
-            // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+            m_CurrentScreenSpaceShadowLightData = new LightData[numMaxShadows];
+            m_ScreenSpaceShadowsLightData = new ComputeBuffer(numMaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
         }
 
         void CleanupLightLoop()
@@ -1848,42 +1837,6 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
-            // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
-                && EnoughScreenSpaceShadowSlots(lightData.lightType, screenSpaceChannelSlot)
-                && additionalLightData.WillRenderScreenSpaceShadow()
-                && isRasterization)
-            {
-                if (lightData.lightType == GPULightType.Rectangle)
-                {
-                    // Rectangle area lights require 2 consecutive slots.
-                    // Meaning if (screenSpaceChannelSlot % 4 ==3), we'll need to skip a slot
-                    // so that the area shadow gets the first two slots of the next following texture
-                    if (screenSpaceChannelSlot % 4 == 3)
-                    {
-                        screenSpaceChannelSlot++;
-                    }
-                }
-
-                // Bind the next available slot to the light
-                lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
-
-                // Keep track of the screen space shadow data
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = -1; /* WILL NOT WORK IN XR */
-                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
-                m_ScreenSpaceShadowsUnion.Add(additionalLightData);
-
-                // increment the number of screen space shadows
-                screenSpaceShadowIndex++;
-
-                // Based on the light type, increment the slot usage
-                if (lightData.lightType == GPULightType.Rectangle)
-                    screenSpaceChannelSlot += 2;
-                else
-                    screenSpaceChannelSlot++;
-            }
-
             lightData.shadowIndex = shadowIndex;
 
             if (isRasterization)
@@ -1910,6 +1863,51 @@ namespace UnityEngine.Rendering.HighDefinition
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
                 lightData.nonLightMappedOnly = 0;
+            }
+
+            // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
+            // Keep that at the end because we copy the LightData in the SSShadow array so we need it to be complete.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && EnoughScreenSpaceShadowSlots(lightData.lightType, screenSpaceChannelSlot)
+                && additionalLightData.WillRenderScreenSpaceShadow()
+                && isRasterization)
+            {
+                if (lightData.lightType == GPULightType.Rectangle)
+                {
+                    // Rectangle area lights require 2 consecutive slots.
+                    // Meaning if (screenSpaceChannelSlot % 4 ==3), we'll need to skip a slot
+                    // so that the area shadow gets the first two slots of the next following texture
+                    if (screenSpaceChannelSlot % 4 == 3)
+                    {
+                        screenSpaceChannelSlot++;
+                    }
+                }
+
+                // Bind the next available slot to the light
+                lightData.screenSpaceShadowIndex = screenSpaceChannelSlot;
+
+                // Keep track of the screen space shadow data
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
+                m_CurrentScreenSpaceShadowLightData[screenSpaceShadowIndex] = lightData;
+                m_ScreenSpaceShadowsUnion.Add(additionalLightData);
+
+                // Screen space shadows require camera relative positions.
+                // So we have to convert this here just for shadows because the position is still required in absolute world space after this function call in the main light data arrays.
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    m_CurrentScreenSpaceShadowLightData[screenSpaceShadowIndex].positionRWS -= hdCamera.mainViewConstants.worldSpaceCameraPos;
+                }
+
+                // increment the number of screen space shadows
+                screenSpaceShadowIndex++;
+
+                // Based on the light type, increment the slot usage
+                if (lightData.lightType == GPULightType.Rectangle)
+                    screenSpaceChannelSlot += 2;
+                else
+                    screenSpaceChannelSlot++;
             }
 
             return lightData;
@@ -3164,7 +3162,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots; ++i)
                 {
                     m_CurrentScreenSpaceShadowData[i].additionalLightData = null;
-                    m_CurrentScreenSpaceShadowData[i].lightDataIndex = -1;
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
 
@@ -4110,10 +4107,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters3, parameters.params3);
             //cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
 
-            // Send light list to the compute
-            //cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
-            //cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs.g_vLightListGlobal, lightList);
-
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, parameters.depthTextureParameterName, depthTexture);
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
 
@@ -4126,11 +4119,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
-                //cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
-
-                // Send light list to the compute
-                //cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
-                //cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, lightList);
 
                 cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._DepthTexture, depthTexture);
                 cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);

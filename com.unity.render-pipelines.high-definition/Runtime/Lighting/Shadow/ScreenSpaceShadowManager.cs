@@ -54,6 +54,18 @@ namespace UnityEngine.Rendering.HighDefinition
         // Screen space shadow material
         static Material s_ScreenSpaceShadowsMat;
 
+        struct ScreenSpaceShadowData
+        {
+            public HDAdditionalLightData additionalLightData;
+            public bool valid;
+        }
+
+        int m_ScreenSpaceShadowIndex = 0;
+        int m_ScreenSpaceShadowChannelSlot = 0;
+        ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
+        LightData[] m_CurrentScreenSpaceShadowLightData;
+        ComputeBuffer m_ScreenSpaceShadowsLightData;
+
         // This buffer holds the unfiltered, accumulated, shadow values, it is accessed with the same index as the one used at runtime (aka screen space shadow slot)
         static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
@@ -219,6 +231,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Debug kernel
                 m_WriteShadowTextureDebugKernel = m_ScreenSpaceShadowsFilterCS.FindKernel("WriteShadowTextureDebug");
             }
+
+            int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, 1);
+            m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
+            m_CurrentScreenSpaceShadowLightData = new LightData[numMaxShadows];
+            m_ScreenSpaceShadowsLightData = new ComputeBuffer(numMaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
 
             // Directional shadow material
             s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);

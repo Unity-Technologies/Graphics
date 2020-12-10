@@ -40,7 +40,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 // Light Data
-uint     _RaytracingTargetAreaLight;
+int _ScreenSpaceShadowIndex;
+StructuredBuffer<LightData> _ScreenSpaceShadowLightData;
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
@@ -99,7 +100,7 @@ void RayGenAreaShadows()
     float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
@@ -148,7 +149,7 @@ void RayGenAreaShadows()
     float U = Luminance(lighting.diffuse + lighting.specular);
 
     // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
-    lightData = _LightDatas[_RaytracingTargetAreaLight];
+    lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
     if(!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
@@ -316,7 +317,7 @@ void RayGenAreaShadowSingle()
     }
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
