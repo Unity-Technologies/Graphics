@@ -117,9 +117,10 @@ namespace UnityEditor.Rendering.Universal
                     title = rendererFeatureObjRef.GetType().Name;
 
                 // Foldout header
+                bool displayContent = false;
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
+                displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
@@ -237,12 +238,179 @@ namespace UnityEditor.Rendering.Universal
             UpdateEditorList();
             serializedObject.ApplyModifiedProperties();
 
+            Sort();
+
             // Force save / refresh
             if (EditorUtility.IsPersistent(target))
             {
                 ForceSave();
             }
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private class SortNode
+        {
+            public List<SortNode> dependencies;
+            public SortItem value;
+            public Type type;
+
+            public bool IsAllDependenciesPresent(List<SortNode> list)
+            {
+                foreach (var dependency in dependencies)
+                {
+                    var foundNode = list.Find(n => n == dependency);
+                    if (foundNode == null)
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        private struct SortItem
+        {
+            public Object rendererFeature;
+            public long guid;
+        }
+
+        private SortNode FindNode(List<SortNode> nodes, List<SortNode> list)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.IsAllDependenciesPresent(list))
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        private void Sort()
+        {
+            List<SortNode> nodes = new List<SortNode>();
+
+            for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+            {
+                var element = m_RendererFeatures.GetArrayElementAtIndex(i);
+                var rendererFeatureObj = element.objectReferenceValue;
+                if (rendererFeatureObj == null)
+                    continue;
+
+                var element2 = m_RendererFeaturesMap.GetArrayElementAtIndex(i);
+                var guid = element2.longValue;
+                var rendererFeatureType = rendererFeatureObj.GetType();
+
+                nodes.Add(new SortNode()
+                {
+                    value = new SortItem()
+                    {
+                        rendererFeature = rendererFeatureObj,
+                        guid = guid,
+                    },
+                    type = rendererFeatureType,
+                    dependencies = new List<SortNode>(),
+                });
+            }
+
+            foreach (var node in nodes)
+            {
+                var executeBeforeRendererFeature = node.type.GetCustomAttributes<ExecuteBeforeRendererFeature>();
+                foreach (var attribute in executeBeforeRendererFeature)
+                {
+                    var foundNode = nodes.Find(n => n.type == attribute.rendererFeatureType);
+                    if (foundNode == null)
+                        continue;
+
+                    foundNode.dependencies.Add(node);
+                }
+
+                var executeAfterRendererFeature = node.type.GetCustomAttributes<ExecuteAfterRendererFeature>();
+                foreach (var attribute in executeAfterRendererFeature)
+                {
+                    var foundNode = nodes.Find(n => n.type == attribute.rendererFeatureType);
+                    if (foundNode == null)
+                        continue;
+
+                    node.dependencies.Add(foundNode);
+                }
+            }
+
+            List<SortNode> list = new List<SortNode>();
+
+            while (nodes.Count != 0)
+            {
+                var node = FindNode(nodes, list);
+                if (node == null)
+                {
+                    Debug.LogError("Bad execution order");
+                    break;
+                }
+
+                nodes.Remove(node);
+                list.Add(node);
+            }
+
+            if (IsDirty(list))
+            {
+                for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+                {
+                    var element = m_RendererFeatures.GetArrayElementAtIndex(i);
+                    element.objectReferenceValue = list[i].value.rendererFeature;
+
+                    var elemtns2 = m_RendererFeaturesMap.GetArrayElementAtIndex(i);
+                    elemtns2.longValue = list[i].value.guid;
+                }
+                UpdateEditorList();
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        private bool IsDirty(List<SortNode> list)
+        {
+            for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+            {
+                var element = m_RendererFeatures.GetArrayElementAtIndex(i);
+                var rendererFeatureObjRef = element.objectReferenceValue;
+                if (rendererFeatureObjRef == null)
+                    continue;
+                if (rendererFeatureObjRef != list[i].value.rendererFeature)
+                    return true;
+            }
+            return false;
+        }
+
+        private void Add(Object item, long item2, List<SortItem> list)
+        {
+            Type type = item.GetType();
+            int current = -1;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var element = list[i];
+                var rendererFeatureObjRef = element.rendererFeature;
+                if (rendererFeatureObjRef == null)
+                    continue;
+
+                var rendererFeatureType = rendererFeatureObjRef.GetType();
+
+                var executeBeforeRendererFeature = rendererFeatureType.GetCustomAttribute<ExecuteBeforeRendererFeature>();
+                if (executeBeforeRendererFeature != null && executeBeforeRendererFeature.rendererFeatureType == type)
+                    current = i - 1;
+
+                var executeAfterRendererFeature = rendererFeatureType.GetCustomAttribute<ExecuteAfterRendererFeature>();
+                if (executeAfterRendererFeature != null && executeAfterRendererFeature.rendererFeatureType == type)
+                    current = i + 1;
+            }
+
+            var sortItem = new SortItem() { rendererFeature = item, guid = item2 };
+
+            if (current == -1)
+            {
+                list.Add(sortItem);
+            }
+            else
+            {
+                list.Insert(current, sortItem);
+            }
         }
 
         private void RemoveComponent(int id)
@@ -279,6 +447,8 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeaturesMap.MoveArrayElement(id, id + offset);
             UpdateEditorList();
             serializedObject.ApplyModifiedProperties();
+
+            Sort();
 
             // Force save / refresh
             ForceSave();

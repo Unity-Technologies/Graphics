@@ -412,7 +412,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // This should be removed when early camera color target assignment is removed.
-        internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
+        public void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
         {
             m_CameraColorTarget = colorTarget;
         }
@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.Universal
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
-        public void EnqueuePass(ScriptableRenderPass pass)
+        public virtual void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
         }

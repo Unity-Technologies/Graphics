@@ -14,4 +14,18 @@ namespace UnityEngine.Rendering.Universal
     public class HideRendererFeatureName : Attribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ExecuteAfterRendererFeature : Attribute
+    {
+        public Type rendererFeatureType { get; private set; }
+        public ExecuteAfterRendererFeature(Type type) { type = rendererFeatureType; }
+    }
+
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ExecuteBeforeRendererFeature : Attribute
+    {
+        public Type rendererFeatureType { get; private set; }
+        public ExecuteBeforeRendererFeature(Type type) { rendererFeatureType = type; }
+    }
 }
