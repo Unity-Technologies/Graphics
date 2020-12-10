@@ -406,7 +406,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
-
         #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
                 return;
