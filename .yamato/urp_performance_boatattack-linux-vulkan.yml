@@ -17,6 +17,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
@@ -42,6 +43,7 @@ Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -94,6 +96,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -142,6 +145,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_t
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -191,6 +195,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/BoatAttack/utr
@@ -219,6 +224,7 @@ Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -275,6 +281,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -327,6 +334,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_C
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
