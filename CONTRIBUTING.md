@@ -3,7 +3,7 @@
 ## If you are interested in contributing, here are some ground rules:
 * Talk to us before doing the work -- we love contributions, but we might already be working on the same thing, or we might have different opinions on how it should be implemented.
 * Everything must have test coverage. PRs with insufficient test coverage will be rejected.
-* A formatting job will run automatically on your PR, even while in draft. This gives you a chance to fix the formatting befre marking your PR as "Ready for Review".
+* A formatting job will run automatically on your PR, even while in draft. This gives you a chance to fix the formatting before marking your PR as "Ready for Review".
 
 ## All contributions are subject to the Unity Contribution Agreement
 
