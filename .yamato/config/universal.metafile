@@ -23,6 +23,8 @@ test_platforms:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
       - [Android_OpenGles3, Android_Vulkan]: --timeout=5400
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=4000
+expression_trigger: 
+  expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -92,7 +94,7 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -100,9 +102,44 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        - editmode
-        - playmode
         - playmode_XR
+        - editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
     - platform: OSX
       api: Metal
       build_config: mono
@@ -135,6 +172,48 @@ all:
       test_platforms:
         - Standalone
     - project: Universal_Stereo
-      all: true
+      pr: true
     - project: Universal_Hybrid
-      all: true
+      pr: true
+    - project: VFX_URP
+      pr: true
+    - project: ShaderGraph
+      pr: true
+nightly:
+  dependencies:
+    - project: Universal
+      pr: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: Universal_Hybrid
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        - playmode_XR
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        - playmode_XR
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode

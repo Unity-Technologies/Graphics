@@ -917,7 +917,9 @@ namespace UnityEngine.Rendering.Universal
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
+#pragma warning disable 0618
             shadowData.requiresScreenSpaceShadowResolve = false;
+#pragma warning restore 0618
 
             shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
@@ -950,6 +952,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
         {
+            postProcessingData.resources = settings.postProcessData;
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;
