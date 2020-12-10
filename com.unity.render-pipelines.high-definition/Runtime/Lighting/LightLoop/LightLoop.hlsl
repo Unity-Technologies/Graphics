@@ -14,6 +14,15 @@
 #endif
 
 
+// ------------------ TODO: debuggy stuff for now --------------------
+#define TEST_FLATBITARRAY 0
+
+#if TEST_FLATBITARRAY
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ZBinningFBA/LightLoopDef.hlsl"
+#endif
+
+// ------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
@@ -234,6 +243,27 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
+        #if TEST_FLATBITARRAY
+
+        uint2 zbinRange = UnpackZBinData(zBin);
+        uint2 wordRange = GetWordRangeForCategory(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, zbinRange);
+        for (uint word = wordRange.x; word <= wordRange.y; ++word)
+        {
+            uint wordMask = LoadWordMask(tile, word);
+            while (wordMask != 0)
+            {
+                uint entityIndex = GetNextEntityIndex(word, wordMask);
+                LightData lightData;
+                // TODO: MISSING LOAD
+                // Load converting entity index to the index in the relevant LightData buffer.
+                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+                {
+                    DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                    AccumulateDirectLighting(lighting, aggregateLighting);
+                }
+            }
+        }
+        #else
         i = 0;
 
         LightData lightData;
@@ -247,7 +277,11 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 
             i++;
         }
+
+        #endif
+
     }
+
 
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...

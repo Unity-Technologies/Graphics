@@ -262,6 +262,13 @@ uint BitFieldInsert(uint mask, uint src, uint dst)
 }
 #endif // INTRINSIC_BITFIELD_INSERT
 
+#ifndef INTRINSIC_BITFIELD_MASK
+uint GetBitFieldMask(uint maskWidth, uint maskOffset)
+{
+    return (((1u << (maskWidth & 0x1f)) - 1u) << (maskOffset & 0x1f));
+}
+#endif
+
 bool IsBitSet(uint data, uint offset)
 {
     return BitFieldExtract(data, offset, 1u) != 0;
