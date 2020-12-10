@@ -64,7 +64,7 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -75,7 +75,7 @@ all:
 nightly:
   dependencies:
     - project: VFX_URP
-      all: true
+      pr: true
     - platform: Win
       api: DX11
       build_config: mono

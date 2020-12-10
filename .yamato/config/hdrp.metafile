@@ -62,7 +62,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -72,6 +72,7 @@ all:
         - Standalone
         - playmode
         - playmode_XR
+        - editmode
     - platform: Win
       api: DX12
       build_config: mono
@@ -96,29 +97,24 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
+        - Standalone
         - playmode
     - project: HDRP_DXR
-      all: true
+      pr: true
     - project: HDRP_Hybrid
-      all: true
+      pr: true
     - project: VFX_HDRP
-      all: true
+      pr: true
 nightly:
   dependencies:
     - project: HDRP
-      all: true
+      pr: true
     - project: HDRP_DXR
       nightly: true
     - project: HDRP_Hybrid
       nightly: true
     - project: VFX_HDRP
       nightly: true
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
     - platform: Win
       api: DX12
       build_config: mono
@@ -139,4 +135,3 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
-        - Standalone

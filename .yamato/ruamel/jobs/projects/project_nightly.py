@@ -17,7 +17,7 @@ class Project_NightlyJob():
         for dep in dependencies_in_nightly:
             project_dep = dep.get('project', project)
             
-            if dep.get("all"):
+            if dep.get("pr"):
                 dependencies.append({
                     'path': f'{project_filepath_all(project_dep)}#{project_job_id_pr(project_dep, editor["name"])}',
                     'rerun': editor["rerun_strategy"]})

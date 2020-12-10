@@ -15,7 +15,7 @@ platforms:
       - Linear
 expression_trigger: 
   expression: ""     
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -28,4 +28,4 @@ all:
 nightly:
   dependencies:
     - project: Smoke_Test
-      all: true        
+      pr: true        

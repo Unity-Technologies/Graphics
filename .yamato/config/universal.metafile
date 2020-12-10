@@ -80,7 +80,7 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -158,17 +158,17 @@ all:
       test_platforms:
         - Standalone
     - project: Universal_Stereo
-      all: true
+      pr: true
     - project: Universal_Hybrid
-      all: true
+      pr: true
     - project: VFX_URP
-      all: true
+      pr: true
     - project: ShaderGraph
-      all: true
+      pr: true
 nightly:
   dependencies:
     - project: Universal
-      all: true
+      pr: true
     - project: Universal_Stereo
       nightly: true
     - project: Universal_Hybrid

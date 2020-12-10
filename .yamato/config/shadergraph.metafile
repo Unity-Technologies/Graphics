@@ -67,7 +67,7 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -101,11 +101,11 @@ all:
       test_platforms:
         - Standalone
     - project: ShaderGraph_Stereo
-      all: true
+      pr: true
 nightly:
   dependencies:
     - project: ShaderGraph
-      all: true
+      pr: true
     - project: ShaderGraph_Stereo
       nightly: true
     - platform: Win

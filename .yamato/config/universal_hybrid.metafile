@@ -59,7 +59,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -76,4 +76,4 @@ all:
 nightly:
   dependencies:
     - project: Universal_Hybrid
-      all: true
+      pr: true

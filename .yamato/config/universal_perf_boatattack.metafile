@@ -181,7 +181,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -231,4 +231,4 @@ all:
 nightly:
   dependencies:
     - project: URP_Performance_BoatAttack
-      all: true
+      pr: true

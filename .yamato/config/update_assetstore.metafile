@@ -23,7 +23,7 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -35,4 +35,4 @@ all:
 nightly:
   dependencies:
     - project: URPUpdate_Top_Asset_Store
-      all: true
+      pr: true

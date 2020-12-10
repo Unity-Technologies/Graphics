@@ -15,7 +15,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: ''
@@ -27,4 +27,4 @@ all:
 nightly:
   dependencies:
     - project: Universal_Stereo
-      all: true
+      pr: true

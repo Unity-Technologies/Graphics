@@ -13,7 +13,7 @@ platforms:
       - Linear
 expression_trigger: 
   expression: ""
-all:
+pr:
   dependencies:
     - platform: Win
       api: ''
@@ -25,4 +25,4 @@ all:
 nightly:
   dependencies:
     - project: ShaderGraph_Stereo
-      all: true
+      pr: true
