@@ -254,7 +254,11 @@ real YCoCgCheckBoardEdgeFilter(real centerLum, real2 a0, real2 a1, real2 a2, rea
 }
 
 // Converts linear RGB to LMS
+#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
 real3 LinearToLMS(real3 x)
+#else
+real3 LinearToLMS(real3 x)
+#endif
 {
     const real3x3 LIN_2_LMS_MAT = {
         3.90405e-1, 5.49941e-1, 8.92632e-3,
@@ -265,7 +269,11 @@ real3 LinearToLMS(real3 x)
     return mul(LIN_2_LMS_MAT, x);
 }
 
+#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+float3 LMSToLinear(float3 x)
+#else
 real3 LMSToLinear(real3 x)
+#endif
 {
     const real3x3 LMS_2_LIN_MAT = {
         2.85847e+0, -1.62879e+0, -2.48910e-2,
@@ -418,7 +426,11 @@ real LogCToLinear_Precise(real x)
     return o;
 }
 
+#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+float3 LogCToLinear(float3 x)
+#else
 real3 LogCToLinear(real3 x)
+#endif
 {
 #if USE_PRECISE_LOGC
     return real3(
