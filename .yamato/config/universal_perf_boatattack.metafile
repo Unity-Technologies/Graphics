@@ -24,28 +24,28 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
     utr_repeat:
-      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersLow
         utr_flags_build:
         - [all]: --testfilter=Low
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
-      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersLow
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersMedium
         utr_flags_build:
         - [all]: --testfilter=Medium
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersMedium
-      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersMedium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersHigh
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersHigh
         utr_flags_build:
-        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersHigh
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --testfilter=High
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersHigh
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -181,6 +181,13 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 pr:
   dependencies:
     - platform: Win
@@ -227,6 +234,14 @@ pr:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
         - performance_build_editmode
 nightly:
   dependencies:
