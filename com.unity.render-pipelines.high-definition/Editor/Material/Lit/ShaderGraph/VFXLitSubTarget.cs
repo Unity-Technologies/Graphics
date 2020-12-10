@@ -64,13 +64,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context)
         {
-            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
-                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-
             var attributesStruct = GenerateVFXAttributesStruct(context);
 
             var passes = subShaderDescriptor.passes.ToArray();
-            PassCollection finalPasses = new PassCollection();
+            PassCollection vfxPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
@@ -80,12 +77,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     CoreStructCollections.Default,
                     attributesStruct
+                    // TODO: Source Attributes
                 };
 
-                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+                passDescriptor.pragmas = new PragmaCollection
+                {
+                    passDescriptor.pragmas,
+                    Pragma.DebugSymbolsD3D
+                };
+
+                vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 
-            subShaderDescriptor.passes = finalPasses;
+            subShaderDescriptor.passes = vfxPasses;
 
             return subShaderDescriptor;
         }
@@ -113,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // See: VFXShaderWriter.TypeToUniformCode
+        // TODO: Collapse these two maps into one
         static readonly Dictionary<Type, Type> kVFXShaderPropertyMap = new Dictionary<Type, Type>
         {
             { typeof(float),     typeof(Vector1ShaderProperty) },
