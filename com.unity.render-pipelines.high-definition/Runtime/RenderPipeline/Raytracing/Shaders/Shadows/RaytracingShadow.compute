@@ -51,8 +51,8 @@
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
 
-// The target area light to raytrace
-uint _RaytracingTargetAreaLight;
+int _ScreenSpaceShadowIndex;
+StructuredBuffer<LightData> _ScreenSpaceShadowLightData;
 
 // Flag value that defines if a given pixel is deferred or not
 TEXTURE2D_X_UINT2(_StencilTexture);
@@ -95,7 +95,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // Compute the current sample index
     uint globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;
@@ -170,7 +170,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
 
 
         // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
-        lightData = _LightData[_RaytracingTargetAreaLight];
+        lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
         // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
         if (U < ANALYTIC_RADIANCE_THRESHOLD || !EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
@@ -304,7 +304,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Convert this to a world space position
     const float3 positionWS = posInput.positionWS;
@@ -312,7 +312,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Fetch the data of the area light
-    LightData lightData = _LightData[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // Compute the current sample index
     uint globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
@@ -485,7 +485,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
@@ -534,14 +534,14 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Fetch the data of the area light
-    LightData lightData = _LightData[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // If the point is inside the sphere, it will be visible
     float3 dir = (lightData.positionRWS - posInput.positionWS);
@@ -604,14 +604,14 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Fetch the data of the area light
-    LightData lightData = _LightData[_RaytracingTargetAreaLight];
+    LightData lightData = _ScreenSpaceShadowLightData[_ScreenSpaceShadowIndex];
 
     // If the point is inside the sphere, it will be visible
     float3 dir = (lightData.positionRWS - posInput.positionWS);

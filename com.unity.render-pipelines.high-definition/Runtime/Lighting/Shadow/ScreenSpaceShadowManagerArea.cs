@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluation parameters
             public int numSamples;
-            public int lightIndex;
             public Matrix4x4 worldToLocalMatrix;
             public float historyValidity;
             public bool filterTracedShadow;
@@ -41,9 +40,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public RayTracingShader screenSpaceShadowsRT;
             public Texture2D scramblingTex;
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
+
+            public int screenspaceShadowIndex;
+            public LightData lightData;
         }
 
-        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex)
+        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, in LightData lightData, int screenspaceShadowIndex)
         {
             RTSAreaRayTraceParameters rtsartParams = new RTSAreaRayTraceParameters();
 
@@ -54,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluation parameters
             rtsartParams.numSamples = additionalLightData.numRayTracingSamples;
-            rtsartParams.lightIndex = lightIndex;
             // We need to build the world to area light matrix
             rtsartParams.worldToLocalMatrix.SetColumn(0, lightData.right);
             rtsartParams.worldToLocalMatrix.SetColumn(1, lightData.up);
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtsartParams.worldToLocalMatrix = m_WorldToLocalArea.inverse;
             rtsartParams.historyValidity = EvaluateHistoryValidity(hdCamera);
             rtsartParams.filterTracedShadow = additionalLightData.filterTracedShadow;
-            rtsartParams.areaShadowSlot = -1; // m_lightList.lights[lightIndex].screenSpaceShadowIndex; // TODO FIX ME
+            rtsartParams.areaShadowSlot = lightData.screenSpaceShadowIndex;
             rtsartParams.filterSize = additionalLightData.filterSizeTraced;
 
             // Kernels
@@ -95,6 +96,9 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             rtsartParams.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
 
+            rtsartParams.screenspaceShadowIndex = screenspaceShadowIndex;
+            rtsartParams.lightData = lightData;
+
             return rtsartParams;
         }
 
@@ -110,6 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle gbuffer3;
             public RTHandle shadowHistoryArray;
             public RTHandle analyticHistoryArray;
+
+            public ComputeBuffer lightData;
 
             // Intermediate buffers
             public RTHandle directionBuffer;
@@ -139,7 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the light data
             cmd.SetComputeMatrixParam(parameters.screenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, parameters.worldToLocalMatrix);
-            cmd.SetComputeIntParam(parameters.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, parameters.lightIndex);
+            cmd.SetComputeIntParam(parameters.screenSpaceShadowsCS, HDShaderIDs._ScreenSpaceShadowIndex, parameters.screenspaceShadowIndex);
+            cmd.SetComputeBufferParam(parameters.screenSpaceShadowsCS, parameters.areaRaytracingShadowPrepassKernel, HDShaderIDs._ScreenSpaceShadowLightData, sssartResources.lightData);
 
             parameters.shaderVariablesRayTracingCB._RaytracingNumSamples = parameters.numSamples;
             ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
@@ -177,7 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowSample, sssartResources.intermediateBufferRGBA1);
             cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracingDirectionBuffer, sssartResources.directionBuffer);
             cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RayTracingLengthBuffer, sssartResources.rayLengthBuffer);
-            cmd.SetRayTracingIntParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetAreaLight, parameters.lightIndex);
+            cmd.SetRayTracingIntParam(parameters.screenSpaceShadowsRT, HDShaderIDs._ScreenSpaceShadowIndex, parameters.screenspaceShadowIndex);
+            cmd.SetRayTracingBufferParam(parameters.screenSpaceShadowsRT, HDShaderIDs._ScreenSpaceShadowLightData, sssartResources.lightData);
 
             // Output data
             cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowIntegration, sssartResources.outputShadowTexture);
@@ -194,8 +202,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the light data
-                cmd.SetComputeIntParam(parameters.screenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, parameters.lightIndex);
                 cmd.SetComputeMatrixParam(parameters.screenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, parameters.worldToLocalMatrix);
+                cmd.SetComputeIntParam(parameters.screenSpaceShadowsCS, HDShaderIDs._ScreenSpaceShadowIndex, parameters.screenspaceShadowIndex);
+                cmd.SetComputeBufferParam(parameters.screenSpaceShadowsCS, parameters.areaRaytracingShadowNewSampleKernel, HDShaderIDs._ScreenSpaceShadowLightData, sssartResources.lightData);
 
                 // Input Buffers
                 cmd.SetComputeTextureParam(parameters.screenSpaceShadowsCS, parameters.areaRaytracingShadowNewSampleKernel, HDShaderIDs._DepthTexture, sssartResources.depthStencilBuffer);
@@ -220,7 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracingDirectionBuffer, sssartResources.directionBuffer);
                 cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RayTracingLengthBuffer, sssartResources.rayLengthBuffer);
                 cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._AnalyticProbBuffer, sssartResources.intermediateBufferRG0);
-                cmd.SetRayTracingIntParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracingTargetAreaLight, parameters.lightIndex);
 
                 // Output buffers
                 cmd.SetRayTracingTextureParam(parameters.screenSpaceShadowsRT, HDShaderIDs._RaytracedAreaShadowIntegration, sssartResources.outputShadowTexture);
@@ -315,6 +323,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle shadowHistoryArray;
             public TextureHandle analyticHistoryArray;
 
+            public ComputeBufferHandle lightData;
+
             // Intermediate buffers
             public TextureHandle directionBuffer;
             public TextureHandle rayLengthBuffer;
@@ -329,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
+            , in LightData lightData, HDAdditionalLightData additionalLightData, int screenspaceShadowIndex,
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             // Grab the history buffers for shadows
@@ -339,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle areaShadow;
             using (var builder = renderGraph.AddRenderPass<RTShadowAreaPassData>("Screen Space Shadows Debug", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAreaLightShadow)))
             {
-                passData.parameters = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
+                passData.parameters = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, screenspaceShadowIndex);
                 // Input Buffers
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
@@ -362,6 +372,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.shadowHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(shadowHistoryArray));
                 passData.analyticHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(analyticHistoryArray));
+
+                passData.lightData = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_ScreenSpaceShadowsLightData));
 
                 // Intermediate buffers
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
@@ -389,6 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.shadowHistoryArray = data.shadowHistoryArray;
                         resources.analyticHistoryArray = data.analyticHistoryArray;
 
+                        resources.lightData = data.lightData;
+
                         // Intermediate buffers
                         resources.directionBuffer = data.directionBuffer;
                         resources.rayLengthBuffer = data.rayLengthBuffer;
@@ -405,7 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadow = passData.outputShadowTexture;
             }
 
-            int areaShadowSlot = -1; // m_lightList.lights[lightIndex].screenSpaceShadowIndex; // TOOD FIX ME
+            int areaShadowSlot = lightData.screenSpaceShadowIndex;
             WriteScreenSpaceShadow(renderGraph, hdCamera, areaShadow, screenSpaceShadowArray, areaShadowSlot, ScreenSpaceShadowType.Area);
 
             if (additionalLightData.filterTracedShadow)
