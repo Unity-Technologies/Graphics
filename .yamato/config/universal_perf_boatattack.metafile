@@ -97,6 +97,8 @@ test_platforms:
       - apply: [Win_DX11, Win_DX12, Win_Vulkan]
         utr_flags:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -186,7 +188,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -241,3 +243,7 @@ all:
         - performance_playmode_runtime
         - performance_playmode_editor
         - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_BoatAttack
+      pr: true

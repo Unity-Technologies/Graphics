@@ -14,11 +14,12 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(16, Extension, -905)]
+    [ScriptedImporter(17, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -236,6 +237,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // provide top level subgraph function
             registry.ProvideFunction(asset.functionName, sb =>
             {
                 GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
@@ -246,14 +248,14 @@ namespace UnityEditor.ShaderGraph
                 foreach (var prop in graph.properties)
                 {
                     prop.ValidateConcretePrecision(asset.graphPrecision);
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    arguments.Add(prop.GetPropertyAsArgumentString());
                 }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
                 // Now generate outputs
-                foreach (var output in outputSlots)
+                foreach (MaterialSlot output in outputSlots)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
                 // Vt Feedback arguments
@@ -321,10 +323,10 @@ namespace UnityEditor.ShaderGraph
         {
             var dependencyMap = new Dictionary<GUID, GUID[]>();
             AssetCollection tempAssetCollection = new AssetCollection();
-            using (var tempList = ListPool<GUID>.GetDisposable())
+            using (ListPool<GUID>.Get(out var tempList))
             {
                 GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
-                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList.value);
+                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);
             }
 
             descendentGuids = new HashSet<GUID>();
