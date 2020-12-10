@@ -419,7 +419,7 @@ MonoBehaviour:
     UseBackBuffer: 0
     ImageResolution: 0
   WaitFrames: 5
-  XRCompatible: 1
+  XRCompatible: 0
 --- !u!20 &1368807769
 Camera:
   m_ObjectHideFlags: 0

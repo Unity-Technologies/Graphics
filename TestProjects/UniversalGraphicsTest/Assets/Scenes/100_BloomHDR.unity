@@ -209,6 +209,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.001
     UseHDR: 1
   WaitFrames: 0
+  XRCompatible: 0
 --- !u!114 &736828748
 MonoBehaviour:
   m_ObjectHideFlags: 0
