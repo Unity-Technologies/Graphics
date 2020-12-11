@@ -1,0 +1,1 @@
+This project contains a Unity Test for URP (Editor Test only). The essential chaanges are in the files in directory named 'Essential' and are also present under 'Tests' under 'Assets'. Previous attempts were due to my unfamiliarity with GIT.
