@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
+        private SerializedProperty m_QueueMode;
 
         #endregion
 
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
             m_Radius = settings.FindPropertyRelative("Radius");
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
+            m_QueueMode = serializedObject.FindProperty("m_QueueMode");
             m_IsInitialized = true;
         }
 
@@ -51,6 +53,7 @@ namespace UnityEditor.Rendering.Universal
                 Init();
             }
 
+            EditorGUILayout.PropertyField(m_QueueMode);
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
             EditorGUILayout.PropertyField(m_Source, Styles.Source);
 

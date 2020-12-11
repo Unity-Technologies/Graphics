@@ -30,11 +30,15 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [DisallowMultipleRendererFeature]
+    public interface ISupplyDepthFeature { }
+
+    [ExecuteAfterRendererFeature(typeof(ISupplyDepthFeature), true)]
+    [DisallowMultipleRendererFeature()]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
+        [SerializeField] private RendererFeatureQueueMode m_QueueMode = RendererFeatureQueueMode.UsePass;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
         // Private Fields
@@ -50,6 +54,8 @@ namespace UnityEngine.Rendering.Universal
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
         private const string k_SourceGBufferKeyword = "_SOURCE_GBUFFER";
+
+        public override RendererFeatureQueueMode queueMode => m_QueueMode;
 
         /// <inheritdoc/>
         public override void Create()

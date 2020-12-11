@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
             var editorObj = new SerializedObject(this);
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
+            Sort();
         }
 
         private void OnDisable()
@@ -75,13 +76,47 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                //Draw List
-                CoreEditorUtils.DrawSplitter();
-                for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+                int firstOrderedFeature = TryFindFirstOrderedFeature();
+
+                if (firstOrderedFeature != -1)
                 {
-                    SerializedProperty renderFeaturesProperty = m_RendererFeatures.GetArrayElementAtIndex(i);
-                    DrawRendererFeature(i, ref renderFeaturesProperty);
                     CoreEditorUtils.DrawSplitter();
+
+                    if (firstOrderedFeature != 0)
+                    {
+                        EditorGUILayout.LabelField("Default", EditorStyles.miniLabel);
+
+                        //Draw List
+                        CoreEditorUtils.DrawSplitter();
+                        for (int i = 0; i < firstOrderedFeature; i++)
+                        {
+                            SerializedProperty renderFeaturesProperty = m_RendererFeatures.GetArrayElementAtIndex(i);
+                            DrawRendererFeature(i, ref renderFeaturesProperty);
+                            CoreEditorUtils.DrawSplitter();
+                        }
+                    }
+
+                    EditorGUILayout.LabelField("Ordered", EditorStyles.miniLabel);
+
+                    //Draw List
+                    CoreEditorUtils.DrawSplitter();
+                    for (int i = firstOrderedFeature; i < m_RendererFeatures.arraySize; i++)
+                    {
+                        SerializedProperty renderFeaturesProperty = m_RendererFeatures.GetArrayElementAtIndex(i);
+                        DrawRendererFeature(i, ref renderFeaturesProperty);
+                        CoreEditorUtils.DrawSplitter();
+                    }
+                }
+                else
+                {
+                    //Draw List
+                    CoreEditorUtils.DrawSplitter();
+                    for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+                    {
+                        SerializedProperty renderFeaturesProperty = m_RendererFeatures.GetArrayElementAtIndex(i);
+                        DrawRendererFeature(i, ref renderFeaturesProperty);
+                        CoreEditorUtils.DrawSplitter();
+                    }
                 }
             }
             EditorGUILayout.Space();
@@ -93,10 +128,24 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        private int TryFindFirstOrderedFeature()
+        {
+            for (int i = 0; i < m_RendererFeatures.arraySize; i++)
+            {
+                SerializedProperty renderFeaturesProperty = m_RendererFeatures.GetArrayElementAtIndex(i);
+                var rendererFeature = renderFeaturesProperty.objectReferenceValue as ScriptableRendererFeature;
+                if (rendererFeature.queueMode != RendererFeatureQueueMode.UsePass)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         private bool HideRendererFeatureNameCheck(Type type)
         {
-            var hideFeatureName = type.GetCustomAttribute(typeof(HideRendererFeatureName));
-            return hideFeatureName != null;
+            var hideFeatureName = type.GetCustomAttribute<DisallowMultipleRendererFeature>();
+            return hideFeatureName != null && !hideFeatureName.displayName;
         }
 
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
@@ -116,12 +165,17 @@ namespace UnityEditor.Rendering.Universal
                 if (!displayName)
                     title = rendererFeatureObjRef.GetType().Name;
 
+                SerializedProperty invalidDependencyProperty = serializedRendererFeaturesEditor.FindProperty("m_ValidDependencies");
+                GUI.enabled = invalidDependencyProperty.boolValue;
+
                 // Foldout header
                 bool displayContent = false;
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
                 displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index));
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
+
+                GUI.enabled = true;
 
                 // ObjectEditor
                 if (displayContent)
@@ -253,6 +307,7 @@ namespace UnityEditor.Rendering.Universal
             public List<SortNode> dependencies;
             public SortItem value;
             public Type type;
+            public bool usingOrdering;
 
             public bool IsAllDependenciesPresent(List<SortNode> list)
             {
@@ -299,6 +354,9 @@ namespace UnityEditor.Rendering.Universal
                 var guid = element2.longValue;
                 var rendererFeatureType = rendererFeatureObj.GetType();
 
+                var d = rendererFeatureObj as ScriptableRendererFeature;
+                var usingOrdering = d.queueMode != RendererFeatureQueueMode.UsePass;
+
                 nodes.Add(new SortNode()
                 {
                     value = new SortItem()
@@ -308,29 +366,61 @@ namespace UnityEditor.Rendering.Universal
                     },
                     type = rendererFeatureType,
                     dependencies = new List<SortNode>(),
+                    usingOrdering = usingOrdering,
                 });
             }
 
-            foreach (var node in nodes)
+            for (int i = 0; i < m_RendererFeatures.arraySize; i++)
             {
-                var executeBeforeRendererFeature = node.type.GetCustomAttributes<ExecuteBeforeRendererFeature>();
-                foreach (var attribute in executeBeforeRendererFeature)
-                {
-                    var foundNode = nodes.Find(n => n.type == attribute.rendererFeatureType);
-                    if (foundNode == null)
-                        continue;
+                var node = nodes[i];
+                var validDependencies = true;
 
-                    foundNode.dependencies.Add(node);
+                if (node.usingOrdering)
+                {
+                    var executeBeforeRendererFeature = node.type.GetCustomAttributes<ExecuteBeforeRendererFeature>();
+                    foreach (var attribute in executeBeforeRendererFeature)
+                    {
+                        var foundNode = nodes.Find(n => attribute.rendererFeatureType.IsAssignableFrom(n.type));
+                        if (foundNode == null || !foundNode.usingOrdering)
+                        {
+                            if (attribute.isRequired)
+                                validDependencies = false;
+                            continue;
+                        }
+
+                        foundNode.dependencies.Add(node);
+                    }
+
+                    var executeAfterRendererFeature = node.type.GetCustomAttributes<ExecuteAfterRendererFeature>();
+                    foreach (var attribute in executeAfterRendererFeature)
+                    {
+                        var foundNode = nodes.Find(n => attribute.rendererFeatureType.IsAssignableFrom(n.type));
+                        if (foundNode == null || !foundNode.usingOrdering)
+                        {
+                            if (attribute.isRequired)
+                                validDependencies = false;
+                            continue;
+                        }
+
+                        node.dependencies.Add(foundNode);
+                    }
+
+                    if (node.usingOrdering)
+                    {
+                        foreach (var node2 in nodes)
+                        {
+                            if (!node2.usingOrdering)
+                                node.dependencies.Add(node2);
+                        }
+                    }
                 }
 
-                var executeAfterRendererFeature = node.type.GetCustomAttributes<ExecuteAfterRendererFeature>();
-                foreach (var attribute in executeAfterRendererFeature)
+                var editor = m_Editors[i];
+                var property = editor.serializedObject.FindProperty("m_ValidDependencies");
+                if (validDependencies != property.boolValue)
                 {
-                    var foundNode = nodes.Find(n => n.type == attribute.rendererFeatureType);
-                    if (foundNode == null)
-                        continue;
-
-                    node.dependencies.Add(foundNode);
+                    property.boolValue = validDependencies;
+                    editor.serializedObject.ApplyModifiedProperties();
                 }
             }
 
@@ -378,41 +468,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        private void Add(Object item, long item2, List<SortItem> list)
-        {
-            Type type = item.GetType();
-            int current = -1;
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                var element = list[i];
-                var rendererFeatureObjRef = element.rendererFeature;
-                if (rendererFeatureObjRef == null)
-                    continue;
-
-                var rendererFeatureType = rendererFeatureObjRef.GetType();
-
-                var executeBeforeRendererFeature = rendererFeatureType.GetCustomAttribute<ExecuteBeforeRendererFeature>();
-                if (executeBeforeRendererFeature != null && executeBeforeRendererFeature.rendererFeatureType == type)
-                    current = i - 1;
-
-                var executeAfterRendererFeature = rendererFeatureType.GetCustomAttribute<ExecuteAfterRendererFeature>();
-                if (executeAfterRendererFeature != null && executeAfterRendererFeature.rendererFeatureType == type)
-                    current = i + 1;
-            }
-
-            var sortItem = new SortItem() { rendererFeature = item, guid = item2 };
-
-            if (current == -1)
-            {
-                list.Add(sortItem);
-            }
-            else
-            {
-                list.Insert(current, sortItem);
-            }
-        }
-
         private void RemoveComponent(int id)
         {
             SerializedProperty property = m_RendererFeatures.GetArrayElementAtIndex(id);
@@ -434,6 +489,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 Undo.DestroyObjectImmediate(component);
             }
+
+            Sort();
 
             // Force save / refresh
             ForceSave();

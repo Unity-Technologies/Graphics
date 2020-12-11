@@ -3,6 +3,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum RendererFeatureQueueMode
+    {
+        UsePass,
+        HybridPassAndFeature,
+        UseFeature,
+    }
     /// <summary>
     /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
     /// </summary>
@@ -11,11 +17,16 @@ namespace UnityEngine.Rendering.Universal
     [ExcludeFromPreset]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject, IDisposable
     {
+        [SerializeField, HideInInspector] private bool m_ValidDependencies = true;
         [SerializeField, HideInInspector] private bool m_Active = true;
         /// <summary>
         /// Returns the state of the ScriptableRenderFeature (true: the feature is active, false: the feature is inactive). Use the method ScriptableRenderFeature.SetActive to change the value of this variable.
         /// </summary>
-        public bool isActive => m_Active;
+        public bool isActive => m_Active && m_ValidDependencies;
+
+        public virtual RendererFeatureQueueMode queueMode => RendererFeatureQueueMode.UsePass;
+
+        public virtual RenderPassEvent renderPassEvent => 0;
 
         /// <summary>
         /// Initializes this feature's resources. This is called every time serialization happens.
@@ -28,11 +39,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderPasses">List of render passes to add to.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
-
-        public virtual void Setup(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-
-        }
 
         public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {

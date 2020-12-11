@@ -582,6 +582,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="pass">Render pass to be enqueued.</param>
         public virtual void EnqueuePass(ScriptableRenderPass pass)
         {
+            if (m_QueueMode == RendererFeatureQueueMode.UseFeature)
+                pass.renderPassEvent = m_LastRenderPassEvent++;
+            else
+                m_LastRenderPassEvent = pass.renderPassEvent;
             m_ActiveRenderPassQueue.Add(pass);
         }
 
@@ -629,6 +633,9 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
+        RenderPassEvent m_LastRenderPassEvent;
+        RendererFeatureQueueMode m_QueueMode;
+
         /// <summary>
         /// Calls <c>AddRenderPasses</c> for each feature added to this renderer.
         /// <seealso cref="ScriptableRendererFeature.AddRenderPasses(ScriptableRenderer, ref RenderingData)"/>
@@ -638,6 +645,8 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, Profiling.addRenderPasses);
 
+            m_LastRenderPassEvent = 0;
+
             // Add render passes from custom renderer features
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
@@ -645,6 +654,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     continue;
                 }
+                m_QueueMode = rendererFeatures[i].queueMode;
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
