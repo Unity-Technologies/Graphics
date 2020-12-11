@@ -441,6 +441,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         float z1    = t1 * cosRay; // Distance to linear depth
         uint  zBin1 = ComputeZBinIndex(max(z1, nearPlaneDepth)); // Entities are culled by the near plane, so avoid lookups behind it
+        // To be perfectly frank, it is still possible to have some artifacts associated with this,
+        // since certain entities may not be assigned to certain tiles due to clipping/culling at the near plane,
+        // but that is much harder to address. I suppose we could disable near plane culling entirely.
 
         float dt = t1 - t0; // Is geometry-aware
 
