@@ -745,7 +745,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, x_max, y_min, y_max}
                     wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
                     zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
-                    tileEntityMasks = new ComputeBuffer(TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
                     
 
                     /* Actually resolution-dependent buffers below. */
@@ -773,6 +772,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+
+                    int tileMaskTileBufferElementCount = numTiles * TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount;
+                    tileEntityMasks = new ComputeBuffer(tileMaskTileBufferElementCount, sizeof(uint));
 
                     /* We may want to allocate the 3 buffers below conditionally. */
                     tileFeatureFlagsBuffer = new ComputeBuffer(numTiles * viewCount, sizeof(uint));

@@ -207,14 +207,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 {
+                    // TODO: cleanup -> all this code is duplicated for buffer size allocate  from  AllocateResolutionDependentBuffers
                     int viewCount             = m_MaxViewCount;
                     int maxBoundedEntityCount = tileAndClusterData.maxBoundedEntityCount;
 
                     passData.xyBoundsBuffer    = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" }); // {x_min, x_max, y_min, y_max}
                     passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
                     passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
-                    passData.output.tileEntityMasks = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "tileEntityMasks" }));  // max word of all entity                 
-
+ 
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
                     // The tile buffer is composed of two parts:
@@ -239,6 +239,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+
+                    int tileMaskTileBufferElementCount = numTiles * TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount;
+                    passData.output.tileEntityMasks = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(tileMaskTileBufferElementCount, sizeof(uint)) { name = "tileEntityMasks" }));  // max word of all entity                 
+
 
                     /* We may want to allocate the 3 buffers below conditionally. */
                     passData.output.tileFeatureFlagsBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(numTiles * viewCount, sizeof(uint)) { name = "TileFeatureFlagsBuffer" }));
