@@ -133,6 +133,17 @@ bool IntervalsOverlap(uint2 i1, uint2 i2)
     return l <= u;            // Is the intersection non-empty?
 }
 
+// The intervals must be defined s.t.
+// the 'x' component holds the lower bound and
+// the 'y' component holds the upper bound.
+bool IntervalsOverlap(int2 i1, int2 i2)
+{
+    int l = max(i1.x, i2.x); // Lower bound of the intersection interval
+    int u = min(i1.y, i2.y); // Upper bound of the intersection interval
+
+    return l <= u;           // Is the intersection non-empty?
+}
+
 uint ComputeEntityBoundsBufferIndex(uint globalEntityIndex, uint eye)
 {
     return IndexFromCoordinate(uint2(globalEntityIndex, eye), _BoundedEntityCount);

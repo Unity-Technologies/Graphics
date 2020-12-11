@@ -44,8 +44,9 @@ bool IsBinEmpty(uint tile, uint zBin, uint category, uint eye)
         const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, eye);
         const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
 
-        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
-        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
+        // To see why there's -1, see the discussion in 'zbin.compute'.
+        const int2 zBinEntityIndexRange = int2(zBinRangeData & UINT16_MAX, (zBinRangeData >> 16) == UINT16_MAX ? -1 : (zBinRangeData >> 16));
+        const int2 tileEntityIndexRange = int2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
 
         // TODO: the interval test is conservative, so it could be that no actual indices
         // stored within the tile overlap the z-bin range. Should we use TryFindEntityIndex?

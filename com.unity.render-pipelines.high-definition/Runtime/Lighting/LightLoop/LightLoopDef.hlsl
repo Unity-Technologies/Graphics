@@ -196,12 +196,9 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
 
         // Recall that entities are sorted by the z-coordinate.
         // So we can take the smallest index from the first bin and the largest index from the last bin.
-        // TODO: while it appears to work, for a large range, this code can actually fail. :-(
-        // Imagine that we are given the first and the last zBins, and that none of the lights overlap them.
-        // All the lights are in between. So the code below would give us an empty range, which is wrong.
-        // Should we loop over the entire zBinRange? Seems impractical... Maybe change the way we sort?
-        const uint2 tileEntityIndexRange = uint2(tileRangeData  & UINT16_MAX, tileRangeData  >> 16);
-        const uint2 zBinEntityIndexRange = uint2(zBinRangeData0 & UINT16_MAX, zBinRangeData1 >> 16);
+        // To see why there's -1, see the discussion in 'zbin.compute'.
+        const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
+        const int2 tileEntityIndexRange = int2(tileRangeData  & UINT16_MAX, tileRangeData >> 16);
 
         if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
         {
@@ -211,8 +208,8 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
             while (i < n)
             {
                 // Walk the list of entity indices of the tile.
-                uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
-                uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
+                int tileEntityPair  = (int)TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
+                int tileEntityIndex = (int)BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
 
                 // Entity indices are stored in the ascending order.
                 // We can distinguish 3 cases:
