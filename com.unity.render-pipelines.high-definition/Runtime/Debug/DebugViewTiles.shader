@@ -249,6 +249,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #endif
 #else // TEST_FLATBITARRAY
 
+                #define DEBUG_TILE_SIZE 16
+                int2 mouseTileCoord = _MousePixelCoord.xy / DEBUG_TILE_SIZE;
+                int2 tileCoord = (float2)pixelCoord.xy / DEBUG_TILE_SIZE;
+                int2 offsetInTile = pixelCoord - tileCoord * DEBUG_TILE_SIZE;
+
+
                 // Get word range for the current tile
                 uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, _SelectedEntityCategory, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
                 const uint minWordRange = tileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
@@ -264,28 +270,26 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // Tile overlap counter
                 if (lightNumInTile > 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (8 - 1), lightNumInTile);
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (DEBUG_TILE_SIZE - 1), lightNumInTile);
                 }
 
-                /*
-#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
                 // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
                 {
-                    bool border = any(offsetInTile == 0 || offsetInTile == (int)GetTileSize() - 1);
+                    bool border = any(offsetInTile == 0 || offsetInTile == DEBUG_TILE_SIZE - 1);
                     float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
-
+/*
                 // Print light lists for selected tile at the bottom of the screen
                 int maxLights = 32;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                if (tileCoord.y < BOUNDEDENTITYCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
                     PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
-                    uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
+                    uint category = (BOUNDEDENTITYCATEGORY_COUNT - 1) - tileCoord.y;
                     uint start;
                     uint count;
 
@@ -296,11 +300,11 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int lightListIndex = tileCoord.x - 2;
 
                     int n = -1;
-                    if(tileCoord.x == 0)
+                    if (tileCoord.x == 0)
                     {
                         n = (int)count;
                     }
-                    else if(lightListIndex >= 0 && lightListIndex < (int)count)
+                    else if (lightListIndex >= 0 && lightListIndex < (int)count)
                     {
                         n = FetchIndex(start, lightListIndex);
                     }
@@ -315,7 +319,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
-*/
+                */
 #endif // TEST_FLATBITARRAY
                 return result;
             }
