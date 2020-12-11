@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        static private VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
+        internal static VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
         {
             var r = new VFXShaderWriter();
 

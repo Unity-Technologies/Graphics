@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Warning: Touching the structs field may require to manually append the default structs here.
                 passDescriptor.structs = new StructCollection
                 {
-                    HDStructs.AttributesMesh, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
+                    AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     HDStructs.VaryingsMeshToPS,
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
@@ -87,7 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.pragmas = new PragmaCollection
                 {
                     passDescriptor.pragmas,
-                    Pragma.DebugSymbolsD3D
+                    Pragma.DebugSymbolsD3D,
+                    Pragma.MultiCompileInstancing
                 };
 
                 passDescriptor.defines = new DefineCollection
@@ -108,6 +109,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
+        public static StructDescriptor AttributesMeshVFX = new StructDescriptor()
+        {
+            name = "AttributesMesh",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                HDStructFields.AttributesMesh.positionOS,
+                HDStructFields.AttributesMesh.normalOS,
+                HDStructFields.AttributesMesh.tangentOS,
+                HDStructFields.AttributesMesh.uv0,
+                HDStructFields.AttributesMesh.uv1,
+                HDStructFields.AttributesMesh.uv2,
+                HDStructFields.AttributesMesh.uv3,
+                HDStructFields.AttributesMesh.color,
+
+                // AttributesMesh without the Preprocessor.
+                new FieldDescriptor(HDStructFields.AttributesMesh.name, "instanceID", "", ShaderValueType.Uint, "INSTANCEID_SEMANTIC"),
+
+                HDStructFields.AttributesMesh.weights,
+                HDStructFields.AttributesMesh.indices,
+                HDStructFields.AttributesMesh.vertexID,
+            }
+        };
+
         enum VFXAttributeType
         {
             Current,
@@ -123,9 +148,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static AdditionalCommandDescriptor GenerateVFXAttributeLoad(VFXContext context)
         {
             var token = "VFXLoadAttributeTest";
-            var content = "// Test";
+            var content = VFXCodeGenerator.GenerateLoadAttribute(".", context);
 
-            return new AdditionalCommandDescriptor(token, content);
+            return new AdditionalCommandDescriptor(token, content.ToString());
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)

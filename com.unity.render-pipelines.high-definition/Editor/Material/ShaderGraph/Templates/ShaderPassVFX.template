@@ -31,6 +31,11 @@
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
 
+
+    #define VFX_LOCAL_SPACE 1
+    #include "Packages/Graphics/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
+    #include "Packages/Graphics/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+
     // -------------------------------------------------
     #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
     #if HAS_STRIPS
@@ -61,6 +66,8 @@
     	float nbMax;
     	float systemSeed;
     CBUFFER_END
+
+    #define HAVE_VFX_MODIFICATION
 
     // --------------------------------------------------
     // Defines
@@ -194,7 +201,34 @@
     $splice(GraphPixel)
 
     // VFX Splice Test
-    $splice(VFXLoadAttributeTest)
+    #define VaryingsMeshType VaryingsMeshToPS
+    VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
+    {
+        Attributes attributes = (Attributes)0;
+
+        uint index = input.instanceID;
+
+        $splice(VFXLoadAttributeTest)
+
+        float3 inputVertexPosition = input.positionOS;
+
+        float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+        float4x4 elementToVFX = GetElementToVFXMatrix(
+            attributes.axisX,
+            attributes.axisY,
+            attributes.axisZ,
+            float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+            float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+            size3,
+            attributes.position);
+
+        float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
+        float4 csPos = TransformPositionVFXToClip(vPos);
+
+        output.positionCS = csPos;
+
+        return output;
+    }
 
     // --------------------------------------------------
     // Build Graph Inputs

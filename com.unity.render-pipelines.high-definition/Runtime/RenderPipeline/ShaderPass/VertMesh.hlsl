@@ -193,6 +193,10 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.color = input.color;
 #endif
 
+#if defined(HAVE_VFX_MODIFICATION)
+    ApplyVFXModification(input, output);
+#endif
+
     return output;
 }
 
