@@ -250,6 +250,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
 #else // TEST_FLATBITARRAY
 
                 #define DEBUG_TILE_SIZE 16 // 8x8 is not visible in the debug menu, so we need to use 16x16 to display something, which is incorrect
+                #define WORD_SIZE 32
+
                 int2 mouseTileCoord = _MousePixelCoord.xy / DEBUG_TILE_SIZE;
                 int2 tileCoord = (float2)pixelCoord.xy / DEBUG_TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * DEBUG_TILE_SIZE;
@@ -293,30 +295,46 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     uint tile = ComputeTileIndex(mousePosInput.positionSS);
                     // Get word range for the current tile
-                    uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
-                    const uint minWordRange = tileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
-                    const uint maxWordRange = minWordRange + MAX_WORD_PER_ENTITY;
+                    uint mouseTileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
+                    const uint mouseMinWordRange = mouseTileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
+                    const uint mouseMaxWordRange = mouseMinWordRange + MAX_WORD_PER_ENTITY;
 
-                    // 1) Count all the lights for this world range
                     int lightNumInTile = 0;
-                    for (int wordIndex = minWordRange; wordIndex < maxWordRange; ++wordIndex)
+                    for (int wordIndex = mouseMinWordRange; wordIndex < mouseMaxWordRange; ++wordIndex)
                     {
                         lightNumInTile += countbits(_TileEntityMasks[wordIndex]);
                     }
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
-                    int lightListIndex = tileCoord.x - 2;
+                    int SlotIndex = tileCoord.x - 2;
 
                     int n = -1;
                     if (tileCoord.x == 0)
                     {
                         n = (int)lightNumInTile;
                     }
-                 //   else if (lightListIndex >= 0 && lightListIndex < (int)count)
-                 //   {
-                 //       n = FetchIndex(start, lightListIndex);
-                 //   }
+                    else if (SlotIndex >= 0 && SlotIndex < lightNumInTile)
+                    {
+                        n = -1;
+
+                        int lightCounter = 0;
+                        for (int wordIndex = mouseMinWordRange; wordIndex < mouseMaxWordRange; ++wordIndex)
+                        {                            
+                            uint mask = _TileEntityMasks[wordIndex];
+                            while (mask != 0)
+                            {
+                                uint currBitIndex = firstbitlow(mask);
+                                mask = mask ^ (1 << currBitIndex); // Mark the bit in the mask as processed.
+                                n = (WORD_SIZE * (wordIndex - mouseMinWordRange)) + currBitIndex;
+
+                                if (SlotIndex == lightCounter)
+                                    break;
+                                else
+                                    lightCounter++;
+                            }
+                        }
+                    }
 
                     if (n >= 0)
                     {

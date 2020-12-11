@@ -3648,6 +3648,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static Material m_CullingRasterizerMaterial = null;
         static MaterialPropertyBlock m_PropertyBlock = null;
 
+        public static readonly int _CategoryID = Shader.PropertyToID("_Category");
+        public static readonly int _LightIndexID = Shader.PropertyToID("_LightIndex");
+        public static readonly int _OffsetShaderID = Shader.PropertyToID("_Offset");
+        public static readonly int _RangeShaderID = Shader.PropertyToID("_Range");
+
         static void CullingRasterizer(TextureHandle depthStencilBuffer, BoundedEntityCollection collection, BuildGPULightListParameters parameters, BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (m_CullingRasterizerMaterial == null)
@@ -3677,13 +3682,60 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int lightIndex = 0; lightIndex < lightCount; ++lightIndex)
                 {
                     LightData ld = collection.m_Views[0].punctualLightData[lightIndex];
-                    if (ld.lightType != GPULightType.Point)
-                        continue;
+
                     // Caution: need to be in relative camera matrix
-                    m_PropertyBlock.SetFloat("LightIndex", lightIndex);
-                    // TODO: bind current camera projection matrix (with relative...)
-                    Matrix4x4 mat4x4 = Matrix4x4.Translate(ld.positionRWS) * Matrix4x4.Scale(new Vector3(ld.range, ld.range, ld.range));
-                    cmd.DrawMesh(sphereMesh, mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+
+                    Matrix4x4 mat4x4 = Matrix4x4.Translate(ld.positionRWS);
+                    m_PropertyBlock.SetInteger(_LightIndexID, lightIndex);
+
+                    switch (ld.lightType)
+                    {
+                        case GPULightType.Point:
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.PunctualLight);
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(ld.range, ld.range, ld.range));
+                            cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+                            /*
+                        case GPULightType.Spot:                            
+                            float bottomRadius = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * ld.range;
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.PunctualLight);
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(bottomRadius, bottomRadius, ld.range));
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                            cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+
+                        case GPULightType.ProjectorBox:
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.PunctualLight);
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, ld.range));
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, ld.range / 2.0f));
+                            cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+
+                        case GPULightType.ProjectorPyramid:
+                            float bottomWidth = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * ld.range;
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.PunctualLight);
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2, ld.range));
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                            cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+
+                        case GPULightType.Rectangle:
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.AreaLight);
+                            m_PropertyBlock.SetColor(_ColorShaderID, new Color(0.0f, 1.0f, 1.0f, 1.0f));
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(ld.range, ld.range, ld.range));
+                            cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+
+                        case GPULightType.Tube:
+                            m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.AreaLight);
+                            m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                            m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(ld.range, ld.range, ld.range));
+                            cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                            break;
+                            */
+                    }
                 }
 
                 cmd.ClearRandomWriteTargets();
@@ -4588,7 +4640,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
+        static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock m_PropertyBlock)
         {
             if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
                 return;
@@ -4625,28 +4677,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
                             {
-                                parameters.shadowManager.DisplayShadowMap(atlasTextures, shadowIndex, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                parameters.shadowManager.DisplayShadowMap(atlasTextures, shadowIndex, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                                 debugParameters.debugOverlay.Next();
                             }
                             break;
                         case ShadowMapDebugMode.VisualizePunctualLightAtlas:
-                            parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                             debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
-                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                             debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
-                            parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                             debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeAreaLightAtlas:
-                            parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                             debugParameters.debugOverlay.Next();
                             break;
                         case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
-                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, m_PropertyBlock);
                             debugParameters.debugOverlay.Next();
                             break;
                         default:

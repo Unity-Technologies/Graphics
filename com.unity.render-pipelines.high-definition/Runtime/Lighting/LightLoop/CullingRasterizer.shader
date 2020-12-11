@@ -2,7 +2,6 @@ Shader "Hidden/HDRP/CullingRasterizer"
 {
     Properties
     {
-       _LightIndex("LightIndex", Float) = 0.0
     }
 
     SubShader
@@ -48,13 +47,16 @@ Shader "Hidden/HDRP/CullingRasterizer"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
 #if defined(PLATFORM_NEEDS_UNORM_UAV_SPECIFIER) && defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
-        // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
-        RWStructuredBuffer<uint> _TileEntityMasks : register(u1);
+            // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
+            RWStructuredBuffer<uint> _TileEntityMasks : register(u1);
 #else
-        RWStructuredBuffer<uint> _TileEntityMasks;
+            RWStructuredBuffer<uint> _TileEntityMasks;
 #endif
 
-            float _LightIndex;
+            int _Category;
+            int _LightIndex;
+            float3 _Range;
+            float3 _Offset;
 
             struct Attributes
             {
@@ -81,7 +83,7 @@ Shader "Hidden/HDRP/CullingRasterizer"
 
                 
                 // Our light are already in camera relative space, so don't apply it again
-                float3 positionRWS = mul(GetRawUnityObjectToWorld(), float4(att.positionOS, 1.0)).xyz;
+                float3 positionRWS = mul(GetRawUnityObjectToWorld(), float4(att.positionOS * _Range + _Offset, 1.0)).xyz;
 
                 //float3 positionRWS = TransformObjectToWorld(att.positionOS);
                 // Compute the clip space position
@@ -100,7 +102,7 @@ Shader "Hidden/HDRP/CullingRasterizer"
                 const uint lightBit = 1 << (lightIndex % 32); // find correct light bit
                 const uint word = lightIndex / 32;
 
-                uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
+                uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, _Category, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
                 const uint wordIndex = (tileBufferHeaderIndex * MAX_WORD_PER_ENTITY) + word; // find correct word
 
                 InterlockedOr(_TileEntityMasks[wordIndex], lightBit);
