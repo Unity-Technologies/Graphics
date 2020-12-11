@@ -21,7 +21,7 @@ PR_VFX_HDRP_trunk:
       -  path: .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -56,7 +56,7 @@ PR_VFX_HDRP_CUSTOM-REVISION:
       -  path: .yamato/vfx_hdrp-linux-vulkan.yml#VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

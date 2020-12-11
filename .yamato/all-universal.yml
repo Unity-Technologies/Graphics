@@ -47,7 +47,7 @@ PR_Universal_trunk:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -116,7 +116,7 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
