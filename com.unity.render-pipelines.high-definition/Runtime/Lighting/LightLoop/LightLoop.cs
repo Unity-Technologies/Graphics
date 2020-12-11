@@ -3624,10 +3624,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ///////////////////////////// TEMP CODE!
                 // Clear buffer
-                kernel = 3; // Clear Entity Mask
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
-                groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_maxWordsPerTile * coarseBufferSize * fineTilesPerCoarseTile, 64);
-                cmd.DispatchCompute(shader, kernel, groupCount, 1, 1);
+            //    kernel = 3; // Clear Entity Mask
+             //   cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
+              //  groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_maxWordsPerTile * coarseBufferSize * fineTilesPerCoarseTile, 64);
+               // cmd.DispatchCompute(shader, kernel, groupCount, 1, 1);
                 /////////////////////////////
 
                 kernel = 2; // FillFineTiles
@@ -3637,7 +3637,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
 
                 // TEMP CODE!
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
+             //   cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup);
 
@@ -3660,7 +3660,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CullingRasterizer)))
             {
-               // ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
+                // Clear buffer
+                ClearLightList(parameters, cmd, resources.tileEntityMasks);
 
                 // Render two times: one front face, one backface (and swap Z depth test?) no stencil
                 // re-redner only those that are inside camera?
@@ -4549,6 +4550,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                 parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategory",       (int)lightingDebug.selectedEntityCategory);
                 parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategoryBudget",      lightingDebug.selectedEntityCategoryBudget);
+                parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
+                parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
 
                 CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
             }

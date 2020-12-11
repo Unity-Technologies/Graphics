@@ -41,12 +41,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
+#define TEST_FLATBITARRAY 1
+
+#if TEST_FLATBITARRAY
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ZBinningFBA/FlatBitArrayUtils.hlsl"
+#endif
+
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
-
-            // TEMP: in order that this file compile
-            uint GetTileSize() { return 8; }
 
             uint _ViewTilesFlags;
             uint _NumTiles;
@@ -209,9 +212,11 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 uint tile = ComputeTileIndex(posInput.positionSS);
-                uint zBin = ComputeZBinIndex(posInput.linearDepth);
-
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
+
+#if !TEST_FLATBITARRAY
+                
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);                
 
             #if defined(SHOW_LIGHT_CATEGORIES)
                 uint entityCount = 0;
@@ -242,51 +247,27 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 result.rgb = pow(HsvToRgb(float3(hue, saturation, value)), 2.2);
                 result.a   = opacity;
             #endif
-/*
-                int n = 0;
-#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
-                for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
+#else // TEST_FLATBITARRAY
+
+                // Get word range for the current tile
+                uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, _SelectedEntityCategory, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
+                const uint minWordRange = tileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
+                const uint maxWordRange = minWordRange + MAX_WORD_PER_ENTITY;
+
+                // 1) Count all the lights for this world range
+                int lightNumInTile = 0;
+                for (int wordIndex = minWordRange; wordIndex < maxWordRange; ++wordIndex)
                 {
-                    uint mask = 1u << category;
-                    if (mask & _ViewTilesFlags)
-                    {
-                        uint start;
-                        uint count;
-                        GetCountAndStart(posInput, category, start, count);
-                        n += count;
-                    }
+                    lightNumInTile += countbits(_TileEntityMasks[wordIndex]);
                 }
-                if (n == 0)
-                    n = -1;
-#else
-                n = input.variant;
-#endif
 
-
-#ifdef DISABLE_TILE_MODE
-                // Tile debug mode is not supported in MSAA (only cluster)
-                int maxLights = 32;
-                const int textSize = 23;
-                const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
-                if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
-                {
-                    float4 result2 = float4(.1,.1,.1,.9);
-
-                    uint2 unormCoord = input.positionCS.xy;
-                    float3 textColor = float3(0.5f, 0.5f, 0.5f);
-                    uint2 textLocation = uint2(0, 0);
-                    for (int i = 0; i < textSize; i++)
-                        DrawCharacter(text[i], textColor, unormCoord, textLocation, result2.rgb, 1, text[i] >= 97 ? 7 : 10);
-
-                    result = AlphaBlend(result, result2);
-                }
-#else
                 // Tile overlap counter
-                if (n >= 0)
+                if (lightNumInTile > 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
+                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (8 - 1), lightNumInTile);
                 }
 
+                /*
 #if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
                 // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
@@ -334,9 +315,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
-#endif
-#endif
 */
+#endif // TEST_FLATBITARRAY
                 return result;
             }
 

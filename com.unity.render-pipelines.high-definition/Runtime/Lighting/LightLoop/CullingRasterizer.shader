@@ -36,6 +36,8 @@ Shader "Hidden/HDRP/CullingRasterizer"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #define FINE_BINNING // This tile raster is for fine binning
+
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
