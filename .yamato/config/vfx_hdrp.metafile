@@ -76,12 +76,6 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
 nightly:
   dependencies:
     - project: VFX_HDRP
@@ -95,12 +89,6 @@ nightly:
         - playmode
     - platform: Win
       api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-    - platform: Win
-      api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
