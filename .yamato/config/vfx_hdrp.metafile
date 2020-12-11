@@ -82,12 +82,6 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
 nightly:
   dependencies:
     - project: VFX_HDRP
@@ -110,11 +104,4 @@ nightly:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
         - playmode

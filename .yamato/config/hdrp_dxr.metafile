@@ -31,7 +31,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - playmode
 nightly:
   dependencies:
     - project: HDRP_DXR
@@ -42,5 +42,4 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_XR
-        - playmode
-        
+        # - Standalone
