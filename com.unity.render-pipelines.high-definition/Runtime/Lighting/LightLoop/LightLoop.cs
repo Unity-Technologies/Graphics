@@ -3660,7 +3660,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CullingRasterizer)))
             {
-                ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
+               // ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
+
+                // Render two times: one front face, one backface (and swap Z depth test?) no stencil
+                // re-redner only those that are inside camera?
 
                 // depthBuffer : bind to use stencil
                 CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
