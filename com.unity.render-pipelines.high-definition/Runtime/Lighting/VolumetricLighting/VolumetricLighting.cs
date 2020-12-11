@@ -109,17 +109,18 @@ namespace UnityEngine.Rendering.HighDefinition
             this.viewportSize = viewportSize;
             this.voxelSize    = voxelSize;
 
+            float aspectRatio     = (float)viewportSize.x / (float)viewportSize.y;
+            float unitPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV);
+            float unitPlaneWidth  = unitPlaneHeight * aspectRatio;
+            Vector3 unitCorner    = new Vector3(0.5f * unitPlaneWidth, 0.5f * unitPlaneHeight, 1.0f);
+            float unitCornerDist  = unitCorner.magnitude;
+
             // The V-Buffer is sphere-capped, while the camera frustum is not.
-            // We always start from the near plane of the camera.
-
-            float aspectRatio    = viewportSize.x / (float)viewportSize.y;
-            float farPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV) * camFar;
-            float farPlaneWidth  = farPlaneHeight * aspectRatio;
-            float farPlaneMaxDim = Mathf.Max(farPlaneWidth, farPlaneHeight);
-            float farPlaneDist   = Mathf.Sqrt(camFar * camFar + 0.25f * farPlaneMaxDim * farPlaneMaxDim);
-
-            float nearDist = camNear;
-            float farDist = Math.Min(nearDist + depthExtent, farPlaneDist);
+            // The V-Buffer must be *entirely* inside the camera frustum.
+            // Otherwise, since lights are culled against the camera frustum,
+            // some voxels may see no lights (which visually looks like an artifact).
+            float nearDist = unitCornerDist * camNear;
+            float farDist  = Math.Min(nearDist + depthExtent, camFar);
 
             float c = 2 - 2 * sliceDistributionUniformity; // remap [0, 1] -> [2, 0]
             c = Mathf.Max(c, 0.001f);                // Avoid NaNs
