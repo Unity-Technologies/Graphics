@@ -1,4 +1,4 @@
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #define FILL_COARSE_TILES  0
@@ -86,6 +86,11 @@
     // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + FINE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
     // For example (1080p): 240 * 135 * 5 * 1 * (2 + 16) * 2 = 5.56 MiB.
     RWStructuredBuffer<uint> _FineTileBuffer; // Index range + index list
+
+
+
+    // TMP << This is not how we want to do culling eventually, so it is only tmp code.
+    RWStructuredBuffer<uint> _TileEntityMasks;
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -772,6 +777,33 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     #error "COARSE_TILE_SIZE must be an integer multiple of FINE_TILE_SIZE."
 #endif
 
+
+
+//////////////////// TMP utilities for flat bit array, all of this is to be moved away. /////////////////
+
+uint EntityIndexToBitMask(uint entityIndex, out uint wordIndex)
+{
+    wordIndex = (entityIndex >> 5); // divide by 32
+    uint localMask = (entityIndex & (32 - 1));
+    return localMask;
+}
+
+
+void WriteToEntityMask(uint tileIndex, uint entityIndex, uint viewIndex)
+{
+    // Get the tile word address.
+    uint tileStartIndex = viewIndex * _PerViewOffsetInFlatEntityArray +
+        tileIndex * _WordCountPerTile;
+    // Get the word number and offset within said word
+    uint wordIndex;
+    uint localEntityMask = EntityIndexToBitMask(entityIndex, wordIndex);
+
+    InterlockedOr(_TileEntityMasks[tileStartIndex + wordIndex], localEntityMask);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // TILES_PER_GROUP corresponds to fine tiles.
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
 void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
@@ -849,6 +881,10 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
 
                 // 2x 16-bit indices per uint.
                 indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
+
+                // IMPORTANT TODO: We need the tile index without the view factored in, it might not be the case here, need to check, but it'll work for 1 view now.
+                if (cat == 0) // We are only testing point lights.
+                    WriteToEntityMask(clampedFineTileIndex, entityIndex, eye);
 
                 if ((j & 1) != 0) // Is the pair complete & ready to be stored?
                 {
