@@ -10,7 +10,7 @@
 PR_HDRP_Hybrid_trunk:
     name: HDRP_Hybrid PR Job - trunk
     dependencies:
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -20,14 +20,12 @@ Nightly_HDRP_Hybrid_trunk:
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_trunk
          rerun: on-new-revision
 PR_HDRP_Hybrid_CUSTOM-REVISION:
     name: HDRP_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
@@ -37,8 +35,6 @@ Nightly_HDRP_Hybrid_CUSTOM-REVISION:
     name: Nightly HDRP_Hybrid - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
          rerun: always

@@ -24,7 +24,7 @@ test_platforms:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=5400
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=4000
 expression_trigger: 
-  expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -190,6 +190,8 @@ nightly:
     - project: VFX_URP
       nightly: true
     - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
       nightly: true
     - platform: Win
       api: DX11
