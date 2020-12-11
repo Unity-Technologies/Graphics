@@ -18,7 +18,7 @@
 #define TEST_FLATBITARRAY 0
 
 #if TEST_FLATBITARRAY
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ZBinningFBA/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ZBinningFBA/FlatBitArrayUtils.hlsl"
 #endif
 
 // ------------------------------------------------------

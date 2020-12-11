@@ -53,8 +53,8 @@ uint2 GetWordRangeForCategory(uint category, uint tile)
     const uint tileOffset = unity_StereoEyeIndex * _PerViewOffsetInFlatEntityArray +  // Offset per view. 
                             tile * _WordCountPerTile;                                 // Offset per tile
 
-    const uint offsetInMasks = 0;
-    const uint maxEntityCount = 0;
+    uint offsetInMasks = 0;
+    uint maxEntityCount = 0;
     if (category == BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT)
     {
         offsetInMasks = tileOffset + 0;             // TODO: The 0 here is because we only look at punctual lights for now for the test.
@@ -88,8 +88,8 @@ uint2 GetWordRangeForCategory(uint category, uint tile, uint2 zBinRange)
 
     uint2 wordRange;
     // Important! This works because indices are sorted.
-    wordRange.x = max(categoryWordRange.x, zBinMax.x / WORD_SIZE);
-    wordRange.y = min(categoryWordRange.y, zBinMax.y / WORD_SIZE);
+    wordRange.x = max(categoryWordRange.x, zBinMin / WORD_SIZE);
+    wordRange.y = min(categoryWordRange.y, zBinMax / WORD_SIZE);
 
     return wordRange;
 }
