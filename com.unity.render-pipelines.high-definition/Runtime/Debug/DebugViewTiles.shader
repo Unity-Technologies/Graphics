@@ -249,7 +249,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #endif
 #else // TEST_FLATBITARRAY
 
-                #define DEBUG_TILE_SIZE 16
+                #define DEBUG_TILE_SIZE 16 // 8x8 is not visible in the debug menu, so we need to use 16x16 to display something, which is incorrect
                 int2 mouseTileCoord = _MousePixelCoord.xy / DEBUG_TILE_SIZE;
                 int2 tileCoord = (float2)pixelCoord.xy / DEBUG_TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * DEBUG_TILE_SIZE;
@@ -280,20 +280,29 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
-/*
+
                 // Print light lists for selected tile at the bottom of the screen
                 int maxLights = 32;
                 if (tileCoord.y < BOUNDEDENTITYCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
                     float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                     uint category = (BOUNDEDENTITYCATEGORY_COUNT - 1) - tileCoord.y;
-                    uint start;
-                    uint count;
 
-                    GetCountAndStart(mousePosInput, category, start, count);
+                    uint tile = ComputeTileIndex(mousePosInput.positionSS);
+                    // Get word range for the current tile
+                    uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
+                    const uint minWordRange = tileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
+                    const uint maxWordRange = minWordRange + MAX_WORD_PER_ENTITY;
+
+                    // 1) Count all the lights for this world range
+                    int lightNumInTile = 0;
+                    for (int wordIndex = minWordRange; wordIndex < maxWordRange; ++wordIndex)
+                    {
+                        lightNumInTile += countbits(_TileEntityMasks[wordIndex]);
+                    }
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
@@ -302,12 +311,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int n = -1;
                     if (tileCoord.x == 0)
                     {
-                        n = (int)count;
+                        n = (int)lightNumInTile;
                     }
-                    else if (lightListIndex >= 0 && lightListIndex < (int)count)
-                    {
-                        n = FetchIndex(start, lightListIndex);
-                    }
+                 //   else if (lightListIndex >= 0 && lightListIndex < (int)count)
+                 //   {
+                 //       n = FetchIndex(start, lightListIndex);
+                 //   }
 
                     if (n >= 0)
                     {
@@ -319,7 +328,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
-                */
+
 #endif // TEST_FLATBITARRAY
                 return result;
             }
