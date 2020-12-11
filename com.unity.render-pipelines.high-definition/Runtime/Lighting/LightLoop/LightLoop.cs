@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using System.Runtime.InteropServices;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -325,7 +326,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         // We sort entities by depth, which makes the order of items in these lists view-dependent.
-        struct ViewDependentData
+        // TEMP!
+        public struct ViewDependentData
         {
             // 1x list per category.
             public List<LightData>         punctualLightData;
@@ -342,7 +344,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ulong[] entitySortKeys;
         }
 
-        ViewDependentData[] m_Views; // 1x view unless it is an XR application
+        // TEMP!
+        public ViewDependentData[] m_Views; // 1x view unless it is an XR application
 
         // 1x list per category (we concatenate lists of all views).
         ComputeBuffer[] m_EntityDataBufferPerCategory = new ComputeBuffer[(int)BoundedEntityCategory.Count];
@@ -410,6 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_FineTileSize         = 8;
         public static int s_zBinCount            = 8192;
         public static int s_MaxReflectionProbesPerPixel = 4;
+
+        public static int s_maxWordPerEntity = 512 / 32;
     }
 
     [GenerateHLSL]
@@ -619,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
+
                 lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
 
                 env2DCaptureVP = new List<Matrix4x4>();
@@ -708,6 +714,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseTileBuffer       { get; private set; }
             public ComputeBuffer fineTileBuffer         { get; private set; }
             public ComputeBuffer zBinBuffer             { get; private set; }
+            public ComputeBuffer tileEntityMasks        { get; private set; }
+            
             public ComputeBuffer tileFeatureFlagsBuffer { get; private set; } // Deferred
             public ComputeBuffer tileListBuffer         { get; private set; } // Deferred
             public ComputeBuffer dispatchIndirectBuffer { get; private set; } // Deferred
@@ -737,6 +745,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, x_max, y_min, y_max}
                     wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
                     zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
+                    tileEntityMasks = new ComputeBuffer(TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
+                    
 
                     /* Actually resolution-dependent buffers below. */
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
@@ -792,6 +802,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 fineTileBuffer = null;
                 CoreUtils.SafeRelease(zBinBuffer);
                 zBinBuffer = null;
+                CoreUtils.SafeRelease(tileEntityMasks);
+                tileEntityMasks = null;                
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
                 dispatchIndirectBuffer = null;
             }
@@ -849,6 +861,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
         ComputeShader zBinShader { get { return defaultResources.shaders.zBinCS; } }
         ComputeShader tileShader { get { return defaultResources.shaders.tileCS; } }
+        Shader cullingRasterizerShader { get { return defaultResources.shaders.CullingRasterizerPS; } }        
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
         ComputeShader buildPerBigTileLightListShader { get { return defaultResources.shaders.buildPerBigTileLightListCS; } }
         ComputeShader buildPerVoxelLightListShader { get { return defaultResources.shaders.buildPerVoxelLightListCS; } }
@@ -3405,6 +3418,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader screenSpaceAABBShader;
             public ComputeShader zBinShader;
             public ComputeShader tileShader;
+            public Shader        cullingRasterizerShader;
             public Vector2Int    coarseTileBufferDimensions;
             public Vector2Int    fineTileBufferDimensions;
 
@@ -3457,6 +3471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseTileBuffer;
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
+            public ComputeBuffer tileEntityMasks;        
             public ComputeBuffer tileFeatureFlagsBuffer; // Deferred
             public ComputeBuffer tileListBuffer;         // Deferred
             public ComputeBuffer dispatchIndirectBuffer; // Deferred
@@ -3612,6 +3627,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
         }
+
+        static Material m_CullingRasterizerMaterial = null;
+        static MaterialPropertyBlock m_PropertyBlock = null;
+
+        static void CullingRasterizer(TextureHandle depthStencilBuffer, BoundedEntityCollection collection, BuildGPULightListParameters parameters, BuildGPULightListResources resources, CommandBuffer cmd)
+        {
+            if (m_CullingRasterizerMaterial == null)
+                m_CullingRasterizerMaterial = CoreUtils.CreateEngineMaterial(parameters.cullingRasterizerShader);
+
+            if (m_PropertyBlock == null)
+                m_PropertyBlock = new MaterialPropertyBlock();
+
+            Mesh sphereMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CullingRasterizer)))
+            {
+                // ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
+
+                // depthBuffer : bind to use stencil
+                CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
+                // TODO: Caution with the story of start index on PS4... need to shift
+                cmd.SetRandomWriteTarget(0, resources.tileEntityMasks); // Should be index 0 as we don't have color buffer?
+
+                // TODO: tag classification as well for light classification.
+
+                int lightCount = collection.m_Views[0].punctualLightData.Count;
+                for (int lightIndex = 0; lightIndex < lightCount; ++lightIndex)
+                {
+                    LightData ld = collection.m_Views[0].punctualLightData[lightIndex];
+                    // Caution: need to be in relative camera matrix
+                    m_PropertyBlock.SetFloat("LightIndex", lightIndex);
+                    // TODO: bind current camera projection matrix (with relative...)
+                    Matrix4x4 mat4x4 = Matrix4x4.Translate(ld.positionRWS);
+                    cmd.DrawMesh(sphereMesh, mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
+                }                
+            }
+        }        
 
         static void PerformClassification(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
@@ -3824,6 +3876,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.screenSpaceAABBShader      = buildScreenAABBShader;
             parameters.zBinShader                 = zBinShader;
             parameters.tileShader                 = tileShader;
+            parameters.cullingRasterizerShader    = cullingRasterizerShader;
             parameters.coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             parameters.fineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
 
@@ -4185,6 +4238,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
+            public ComputeBuffer tileEntityMasks;            
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;
             public ComputeBuffer dispatchIndirectBuffer;
@@ -4196,6 +4250,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -4298,6 +4353,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
@@ -4321,6 +4377,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
 
             // First, render split lighting.
             if (parameters.outputSplitLighting)
@@ -4388,6 +4445,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CommandBuffer       cmd,
             ComputeBuffer       fineTileBuffer,
             ComputeBuffer       zBinBuffer,
+            ComputeBuffer       tileEntityMasks,
             ComputeBuffer       tileListBuffer,
             ComputeBuffer       dispatchIndirectBuffer,
             RTHandle            depthTexture)

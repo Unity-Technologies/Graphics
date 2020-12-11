@@ -148,6 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DstCoarseTileBuffer = Shader.PropertyToID(nameof(_DstCoarseTileBuffer));
         public static readonly int _FineTileBuffer      = Shader.PropertyToID(nameof(_FineTileBuffer));
         public static readonly int _zBinBuffer          = Shader.PropertyToID(nameof(_zBinBuffer));
+        public static readonly int _TileEntityMasks     = Shader.PropertyToID(nameof(_TileEntityMasks));
 
         public static readonly int g_TileFeatureFlags = Shader.PropertyToID("g_TileFeatureFlags");
 

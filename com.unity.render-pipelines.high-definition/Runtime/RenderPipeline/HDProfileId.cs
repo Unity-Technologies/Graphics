@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilter,
         DiffuseFilter,
 
+        CullingRasterizer,
         PrepareLightsForGPU,
 
         // Profile sampler for shadow

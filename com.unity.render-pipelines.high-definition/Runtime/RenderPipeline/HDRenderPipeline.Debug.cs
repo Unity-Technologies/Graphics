@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
+            public ComputeBufferHandle tileEntityMasks;
             public ComputeBufferHandle tileList;
             public ComputeBufferHandle dispatchIndirect;
 
@@ -229,12 +230,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
                     passData.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
+                    passData.tileEntityMasks = builder.ReadComputeBuffer(lightLists.tileEntityMasks);
                 }
 
                 builder.SetRenderFunc(
                     (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.fineTileBuffer, data.zBinBuffer, data.tileList, data.dispatchIndirect, data.depthPyramidTexture);
+                        RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.fineTileBuffer, data.zBinBuffer, data.tileEntityMasks, data.tileList, data.dispatchIndirect, data.depthPyramidTexture);
                     });
             }
         }

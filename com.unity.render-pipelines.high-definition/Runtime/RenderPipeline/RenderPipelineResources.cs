@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader zBinCS;
             [Reload("Runtime/Lighting/LightLoop/tile.compute")]
             public ComputeShader tileCS;
+            [Reload("Runtime/Lighting/LightLoop/CullingRasterizer.shader")]
+            public Shader CullingRasterizerPS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild.compute")]
             public ComputeShader buildPerTileLightListCS;               // FPTL
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-bigtile.compute")]
@@ -423,8 +425,10 @@ namespace UnityEngine.Rendering.HighDefinition
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
+            public Mesh emissiveSphereMesh;
         }
 
         public ShaderResources shaders;

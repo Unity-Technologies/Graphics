@@ -447,6 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        depthBuffer;
             public ComputeBufferHandle  fineTileBuffer;
             public ComputeBufferHandle  zBinBuffer;
+            public ComputeBufferHandle  tileEntityMasks;            
             public FrameSettings        frameSettings;
         }
 
@@ -481,6 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /* TODO: we shouldn't be reading these buffers if tiled lighting is disabled... */
             data.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
             data.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
+            data.tileEntityMasks = builder.ReadComputeBuffer(lightLists.tileEntityMasks);
 
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
@@ -552,7 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindDBufferGlobalData(data.dbuffer, context);
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
-                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, true, context.renderContext, context.cmd);
+                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, data.tileEntityMasks, true, context.renderContext, context.cmd);
                     });
             }
         }
@@ -655,7 +657,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
                         context.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
-                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, false, context.renderContext, context.cmd);
+                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, data.tileEntityMasks, false, context.renderContext, context.cmd);
                     });
             }
         }

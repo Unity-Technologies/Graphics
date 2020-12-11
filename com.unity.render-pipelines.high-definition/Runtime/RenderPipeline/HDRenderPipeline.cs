@@ -3113,6 +3113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle                    depthBuffer,
             ComputeBuffer               fineTileBuffer,
             ComputeBuffer               zBinBuffer,
+            ComputeBuffer               tileEntityMasks,
             bool                        opaque,
             ScriptableRenderContext     renderContext,
             CommandBuffer               cmd)
@@ -3120,6 +3121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: we have so many SetGlobal calls like this that it makes more sense to just do it once...
             cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, fineTileBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     zBinBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._TileEntityMasks, tileEntityMasks);
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
             if (opaque)

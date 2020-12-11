@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseTileBuffer;
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
+            public ComputeBufferHandle tileEntityMasks;
             public ComputeBufferHandle tileFeatureFlagsBuffer; // Deferred
             public ComputeBufferHandle tileListBuffer;         // Deferred
             public ComputeBufferHandle dispatchIndirectBuffer; // Deferred
@@ -117,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             buildLightListResources.coarseTileBuffer       = data.output.coarseTileBuffer;
             buildLightListResources.fineTileBuffer         = data.output.fineTileBuffer;
             buildLightListResources.zBinBuffer             = data.output.zBinBuffer;
+            buildLightListResources.tileEntityMasks        = data.output.tileEntityMasks;            
             buildLightListResources.tileFeatureFlagsBuffer = data.output.tileFeatureFlagsBuffer;
             buildLightListResources.tileListBuffer         = data.output.tileListBuffer;
             buildLightListResources.dispatchIndirectBuffer = data.output.dispatchIndirectBuffer;
@@ -211,6 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.xyBoundsBuffer    = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" }); // {x_min, x_max, y_min, y_max}
                     passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
                     passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
+                    passData.output.tileEntityMasks = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "tileEntityMasks" }));  // max word of all entity                 
 
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
@@ -263,6 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // This should improve GPU utilization.
                             PerformZBinning(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                             FillScreenTiles(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+
+                            CullingRasterizer(data.depthBuffer, m_BoundedEntityCollection, data.buildGPULightListParameters, buildLightListResources, context.cmd);
                         }
 
                         // This is not a part of light list generation
