@@ -64,7 +64,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context)
         {
-            var attributesStruct = GenerateVFXAttributesStruct(context);
+            var attributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Current);
+            var sourceAttributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Source);
 
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection vfxPasses = new PassCollection();
@@ -75,15 +76,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Warning: Touching the structs field may require to manually append the default structs here.
                 passDescriptor.structs = new StructCollection
                 {
-                    CoreStructCollections.Default,
-                    attributesStruct
-                    // TODO: Source Attributes
+                    HDStructs.AttributesMesh, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
+                    HDStructs.VaryingsMeshToPS,
+                    Structs.SurfaceDescriptionInputs,
+                    Structs.VertexDescriptionInputs,
+                    attributesStruct,
+                    sourceAttributesStruct
                 };
 
                 passDescriptor.pragmas = new PragmaCollection
                 {
                     passDescriptor.pragmas,
                     Pragma.DebugSymbolsD3D
+                };
+
+                passDescriptor.defines = new DefineCollection
+                {
+                    passDescriptor.defines,
+                    // { InstancingOverride, 1 }
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -94,13 +104,48 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        static StructDescriptor GenerateVFXAttributesStruct(VFXContext context)
+        public static KeywordDescriptor InstancingOverride = new KeywordDescriptor()
         {
-            var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
-                (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
-                (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+            displayName = "Instancing Override",
+            referenceName = "UNITY_ANY_INSTANCING_ENABLED",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
 
-            var attributes = allCurrentAttributes.Select(a => a.attrib);
+        enum VFXAttributeType
+        {
+            Current,
+            Source
+        }
+
+        private static string[] kVFXAttributeStructNames =
+        {
+            "Attributes",
+            "SourceAttributes"
+        };
+
+        static StructDescriptor GenerateVFXAttributesMeshStruct()
+        {
+            return new StructDescriptor();
+        }
+
+        static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
+        {
+            IEnumerable<VFXAttributeInfo> attributeInfos;
+
+            if (attributeType == VFXAttributeType.Current)
+            {
+                attributeInfos = context.GetData().GetAttributes().Where(a =>
+                    (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
+                    (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+            }
+            else
+            {
+                attributeInfos = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
+            }
+
+            var attributes = attributeInfos.Select(a => a.attrib);
 
             var attributeFieldDescriptors = new List<FieldDescriptor>();
             foreach (var attribute in attributes)
@@ -111,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return new StructDescriptor
             {
-                name = "Attributes",
+                name = kVFXAttributeStructNames[(int)attributeType],
                 fields = attributeFieldDescriptors.ToArray()
             };
         }
