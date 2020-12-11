@@ -1,16 +1,20 @@
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #define FILL_COARSE_TILES  0
 #define PRUNE_COARSE_TILES 1
 #define FILL_FINE_TILES    2
-
+ 
 // Generates large screen tiles in a fast, conservative manner.
 #pragma kernel FillCoarseTiles     PASS = FILL_COARSE_TILES     COARSE_BINNING
 // Removes certain entities from the coarse buffer at a large cost.
 #pragma kernel PruneCoarseTiles    PASS = PRUNE_COARSE_TILES    COARSE_BINNING
 // Generates small screen tiles in an accurate manner.
 #pragma kernel FillFineTiles       PASS = FILL_FINE_TILES       COARSE_BINNING
+
+
+// TMP  remove once we do the culling we want.
+#pragma kernel ClearEntityMask     PASS = CLEAR_MASKS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
@@ -86,8 +90,6 @@
     // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + FINE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
     // For example (1080p): 240 * 135 * 5 * 1 * (2 + 16) * 2 = 5.56 MiB.
     RWStructuredBuffer<uint> _FineTileBuffer; // Index range + index list
-
-
 
     // TMP << This is not how we want to do culling eventually, so it is only tmp code.
     RWStructuredBuffer<uint> _TileEntityMasks;
@@ -917,3 +919,18 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
 #endif // (PASS == FILL_FINE_TILES)
 
 #endif // (PASS != FILL_COARSE_TILES)
+
+
+// TMP DELETE
+#if PASS == CLEAR_MASKS
+
+    // TMP << This is not how we want to do culling eventually, so it is only tmp code.
+RWStructuredBuffer<uint> _TileEntityMasks;
+
+[numthreads(64, 1, 1)]
+void ClearEntityMask(uint3 id : SV_DispatchThreadID)
+{
+    _TileEntityMasks[id.x] = 0;
+}
+
+#endif

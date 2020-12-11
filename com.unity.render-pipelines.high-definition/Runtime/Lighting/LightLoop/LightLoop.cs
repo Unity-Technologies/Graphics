@@ -3621,13 +3621,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
+
+                ///////////////////////////// TEMP CODE!
+                // Clear buffer
+                kernel = 3; // Clear Entity Mask
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
+                groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_maxWordsPerTile * coarseBufferSize * fineTilesPerCoarseTile, 64);
+                cmd.DispatchCompute(shader, kernel, groupCount, 1, 1);
+                /////////////////////////////
+
                 kernel = 2; // FillFineTiles
 
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
 
-                // This is tmp
+                // TEMP CODE!
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup);
