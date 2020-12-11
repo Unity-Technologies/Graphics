@@ -26,17 +26,6 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
-    float vBufferNearDist = VBufferDistanceDecodingParams.z + VBufferDistanceDecodingParams.x;
-
-    if (linearDistance < vBufferNearDist)
-    {
-        // Francesco has implemented a feature where we stop filling the V-buffer
-        // when we encounter opaque geometry along the ray.
-        // If the geometry is before the V-buffer's first slice, this means the
-        // convents of the V-buffer are invalid. We must not sample the V-buffer in this case.
-        return 0;
-    }
-
     // These are the viewport coordinates.
     float2 uv = positionNDC;
     float  w  = EncodeLogarithmicDepthGeneralized(linearDistance, VBufferDistanceEncodingParams);

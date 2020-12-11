@@ -418,11 +418,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     uint slice = 0;
     for (; slice < _VBufferSliceCount; slice++)
     {
-        if (t0 * 0.99 > ray.maxDist)
-        {
-            break;
-        }
-
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
@@ -442,8 +437,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
     #endif
 
+        const float nearPlaneDepth = _VBufferDistanceDecodingParams.w;
+
         float z1    = t1 * cosRay; // Distance to linear depth
-        uint  zBin1 = ComputeZBinIndex(z1);
+        uint  zBin1 = ComputeZBinIndex(max(z1, nearPlaneDepth)); // Entities are culled by the near plane, so avoid lookups behind it
 
         float dt = t1 - t0; // Is geometry-aware
 
@@ -603,7 +600,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         opticalDepth += 0.5 * blendValue.a;
 
         t0    = tNext;
-        zBin0 = zBin1; // TODO: maybe not a good idea with the "stop ray at geometry" feature active
+        zBin0 = zBin1;
+
+        if (t0 * 0.99 > ray.maxDist)
+        {
+            // We light the first slice (at least) so that we can safely sample the buffer later.
+            break;
+        }
     }
 
     for (; slice < _VBufferSliceCount; slice++)

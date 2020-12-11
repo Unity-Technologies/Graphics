@@ -109,17 +109,9 @@ namespace UnityEngine.Rendering.HighDefinition
             this.viewportSize = viewportSize;
             this.voxelSize    = voxelSize;
 
-            float aspectRatio     = (float)viewportSize.x / (float)viewportSize.y;
-            float unitPlaneHeight = 2.0f * Mathf.Tan(0.5f * camVFoV);
-            float unitPlaneWidth  = unitPlaneHeight * aspectRatio;
-            Vector3 unitCorner    = new Vector3(0.5f * unitPlaneWidth, 0.5f * unitPlaneHeight, 1.0f);
-            float unitCornerDist  = unitCorner.magnitude;
-
-            // The V-Buffer is sphere-capped, while the camera frustum is not.
-            // The V-Buffer must be *entirely* inside the camera frustum.
-            // Otherwise, since lights are culled against the camera frustum,
-            // some voxels may see no lights (which visually looks like an artifact).
-            float nearDist = unitCornerDist * camNear;
+            // Entities are culled by the near plane, but we have clamped the lookups in the shaders.
+            float nearDist = camNear;
+            // Must not extend beyond the far plane, as entities are also culled by the far plane.
             float farDist  = Math.Min(nearDist + depthExtent, camFar);
 
             float c = 2 - 2 * sliceDistributionUniformity; // remap [0, 1] -> [2, 0]
@@ -179,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             depthParams.x = 1.0f / c;
             depthParams.y = Mathf.Log(c * (f - n) + 1, 2);
             depthParams.z = n - 1.0f / c; // Same
-            depthParams.w = 0.0f;
+            depthParams.w = n;
 
             return depthParams;
         }

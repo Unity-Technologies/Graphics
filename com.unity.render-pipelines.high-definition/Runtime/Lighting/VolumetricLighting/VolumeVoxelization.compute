@@ -118,8 +118,10 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
         float dt = t1 - t0;
         float t  = t0 + 0.5 * dt;
 
+        const float nearPlaneDepth = _VBufferDistanceDecodingParams.w;
+
         float z1    = t1 * cosRay; // Distance to linear depth
-        uint  zBin1 = ComputeZBinIndex(z1);
+        uint  zBin1 = ComputeZBinIndex(max(z1, nearPlaneDepth)); // Entities are culled by the near plane, so avoid lookups behind it
 
         float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
 
