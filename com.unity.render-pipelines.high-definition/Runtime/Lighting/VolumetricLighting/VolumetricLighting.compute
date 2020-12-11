@@ -418,6 +418,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     uint slice = 0;
     for (; slice < _VBufferSliceCount; slice++)
     {
+        if (t0 * 0.99 > ray.maxDist)
+        {
+            break;
+        }
+
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
@@ -599,11 +604,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         t0    = tNext;
         zBin0 = zBin1; // TODO: maybe not a good idea with the "stop ray at geometry" feature active
-
-        if (t0 * 0.99 > ray.maxDist)
-        {
-            break;
-        }
     }
 
     for (; slice < _VBufferSliceCount; slice++)
@@ -697,14 +697,14 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     {
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
-        ray.geomDist = linearDepth * rcp(dot(ray.jitterDirWS, F));
+        ray.geomDist = linearDepth * rcp(cosRay);
 
         float2 UV = posInput.positionNDC * _RTHandleScale.xy;
 
         // This should really be using a max sampler here. This is a bit overdilating given that it is already dilated.
         // Better to be safer though.
-        float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, UV) * rcp(dot(ray.jitterDirWS, F));
-        ray.maxDist = max(Max3(d.x, d.y, d.z), d.w);
+        float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, UV);
+        ray.maxDist = max(Max3(d.x, d.y, d.z), d.w) * rcp(cosRay);
     }
 #endif
 
