@@ -59,13 +59,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Use the current VFX context to configure the subshader.
-            return PostProcessSubShaderVFX(baseSubShaderDescriptor, m_Context);
+            return PostProcessSubShaderVFX(baseSubShaderDescriptor, m_Context, m_ContextData);
         }
 
-        static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context)
+        static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData contextData)
         {
             var attributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Current);
             var sourceAttributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Source);
+
+            // Call VFX Generator to process blocks etc.
+            GenerateVFXProcessBlocks(context, contextData, out var blockFunctionDescriptor, out var blockCallFunctionDescriptor);
 
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection vfxPasses = new PassCollection();
@@ -91,14 +94,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pragma.MultiCompileInstancing
                 };
 
-                passDescriptor.defines = new DefineCollection
-                {
-                    passDescriptor.defines,
-                };
+                // passDescriptor.defines = new DefineCollection
+                // {
+                //     passDescriptor.defines,
+                // };
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
-                    GenerateVFXAttributeLoad(context)
+                    GenerateVFLoadAttribute(context),
+                    blockFunctionDescriptor,
+                    blockCallFunctionDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -145,12 +150,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             "SourceAttributes"
         };
 
-        static AdditionalCommandDescriptor GenerateVFXAttributeLoad(VFXContext context)
-        {
-            var token = "VFXLoadAttributeTest";
-            var content = VFXCodeGenerator.GenerateLoadAttribute(".", context);
+        static AdditionalCommandDescriptor GenerateVFLoadAttribute(VFXContext context) => new AdditionalCommandDescriptor(
+            "VFXLoadAttribute",
+            VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString()
+        );
 
-            return new AdditionalCommandDescriptor(token, content.ToString());
+        static void GenerateVFXProcessBlocks(VFXContext context,
+            VFXContextCompiledData contextData,
+            out AdditionalCommandDescriptor blockFunctionDescriptor,
+            out AdditionalCommandDescriptor blockCallFunctionDescriptor)
+        {
+            VFXCodeGenerator.BuildContextBlocks(context, contextData, out var blockFunction, out var blockCallFunction);
+
+            blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
+            blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)

@@ -200,6 +200,9 @@
     // Graph Pixel
     $splice(GraphPixel)
 
+    // VFX Graph Block Functions
+    $splice(VFXGeneratedBlockFunction)
+
     // VFX Splice Test
     #define VaryingsMeshType VaryingsMeshToPS
     VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
@@ -208,11 +211,14 @@
 
         uint index = input.instanceID;
 
-        $splice(VFXLoadAttributeTest)
+        $splice(VFXLoadAttribute)
+
+        $splice(VFXProcessBlocks)
+
+        float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
         float3 inputVertexPosition = input.positionOS;
 
-        float3 size3 = float3(attributes.size,attributes.size,attributes.size);
         float4x4 elementToVFX = GetElementToVFXMatrix(
             attributes.axisX,
             attributes.axisY,

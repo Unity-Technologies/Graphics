@@ -367,12 +367,36 @@ namespace UnityEditor.VFX
             }
         }
 
+        internal static void BuildContextBlocks(VFXContext context, VFXContextCompiledData contextData,
+            out string blockFunctionContent,
+            out string blockCallFunctionContent)
+        {
+            var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
+
+            //< Block processor
+            var blockFunction = new VFXShaderWriter();
+            var blockCallFunction = new VFXShaderWriter();
+            var blockDeclared = new HashSet<string>();
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            int cpt = 0;
+            foreach (var current in context.activeFlattenedChildrenWithImplicit)
+            {
+                BuildBlock(contextData, linkedEventOut, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
+            }
+
+            blockFunctionContent = blockFunction.builder.ToString();
+            blockCallFunctionContent = blockCallFunction.builder.ToString();
+        }
+
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             if (!context.SetupCompilation())
                 return null;
 
-            if (context is VFXShaderGraphParticleOutput shaderGraphContext)
+            if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
+                VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
 
