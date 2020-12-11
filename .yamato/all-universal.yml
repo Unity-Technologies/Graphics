@@ -64,6 +64,8 @@ Nightly_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_trunk
+         rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_trunk
@@ -133,6 +135,8 @@ Nightly_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always

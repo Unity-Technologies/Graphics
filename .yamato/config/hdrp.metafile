@@ -115,6 +115,8 @@ nightly:
       nightly: true
     - project: VFX_HDRP
       nightly: true
+    - project: Smoke_Test
+      nightly: true
     - platform: Win
       api: DX12
       build_config: mono

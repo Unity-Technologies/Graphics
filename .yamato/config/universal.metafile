@@ -177,6 +177,8 @@ nightly:
       nightly: true
     - project: ShaderGraph
       nightly: true
+    - project: Smoke_Test
+      nightly: true
     - platform: Win
       api: DX11
       build_config: mono

@@ -50,6 +50,8 @@ Nightly_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_trunk
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
@@ -103,6 +105,8 @@ Nightly_HDRP_CUSTOM-REVISION:
       -  path: .yamato/all-hdrp_hybrid.yml#Nightly_HDRP_Hybrid_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
