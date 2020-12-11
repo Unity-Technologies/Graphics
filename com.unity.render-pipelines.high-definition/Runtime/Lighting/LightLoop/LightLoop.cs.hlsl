@@ -4,6 +4,7 @@
 
 #ifndef LIGHTLOOP_CS_HLSL
 #define LIGHTLOOP_CS_HLSL
+
 //
 // UnityEngine.Rendering.HighDefinition.LightVolumeType:  static fields
 //
@@ -76,6 +77,7 @@
 #define FINE_TILE_SIZE (8)
 #define Z_BIN_COUNT (8192)
 #define MAX_REFLECTION_PROBES_PER_PIXEL (4)
+#define MAX_WORD_PER_ENTITY (16)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields

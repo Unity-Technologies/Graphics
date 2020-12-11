@@ -3641,16 +3641,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PropertyBlock == null)
                 m_PropertyBlock = new MaterialPropertyBlock();
 
-            Mesh sphereMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveCylinderMesh;
+            Mesh sphereMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.emissiveSphereMesh;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CullingRasterizer)))
             {
-                // ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
+                ClearTileEntityMasks(resources.tileEntityMasks, buildLightListResources, context.cmd);
 
                 // depthBuffer : bind to use stencil
                 CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
                 // TODO: Caution with the story of start index on PS4... need to shift
-                cmd.SetRandomWriteTarget(0, resources.tileEntityMasks); // Should be index 0 as we don't have color buffer?
+                cmd.SetRandomWriteTarget(1, resources.tileEntityMasks); // Should be index 0 as we don't have color buffer?
 
                 // TODO: tag classification as well for light classification.
 
@@ -3658,12 +3658,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int lightIndex = 0; lightIndex < lightCount; ++lightIndex)
                 {
                     LightData ld = collection.m_Views[0].punctualLightData[lightIndex];
+                    if (ld.lightType != GPULightType.Point)
+                        continue;
                     // Caution: need to be in relative camera matrix
                     m_PropertyBlock.SetFloat("LightIndex", lightIndex);
                     // TODO: bind current camera projection matrix (with relative...)
-                    Matrix4x4 mat4x4 = Matrix4x4.Translate(ld.positionRWS);
+                    Matrix4x4 mat4x4 = Matrix4x4.Translate(ld.positionRWS) * Matrix4x4.Scale(new Vector3(ld.range, ld.range, ld.range));
                     cmd.DrawMesh(sphereMesh, mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);
-                }                
+                }
+
+                cmd.ClearRandomWriteTargets();
             }
         }        
 
