@@ -415,6 +415,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_MaxReflectionProbesPerPixel = 4;
 
         public static int s_maxWordPerEntity = 512 / 32;
+
+        // Flat bit array constants
+        public static int s_maxWordsPerTile = TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count;
     }
 
     [GenerateHLSL]
@@ -773,7 +776,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
 
-                    int tileMaskTileBufferElementCount = numTiles * TiledLightingConstants.s_maxWordPerEntity * (int)BoundedEntityCategory.Count * viewCount;
+                    int tileMaskTileBufferElementCount = numTiles * TiledLightingConstants.s_maxWordsPerTile * viewCount;
                     tileEntityMasks = new ComputeBuffer(tileMaskTileBufferElementCount, sizeof(uint));
 
                     /* We may want to allocate the 3 buffers below conditionally. */
@@ -3618,11 +3621,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
+
+                ///////////////////////////// TEMP CODE!
+                // Clear buffer
+                kernel = 3; // Clear Entity Mask
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
+                groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_maxWordsPerTile * coarseBufferSize * fineTilesPerCoarseTile, 64);
+                cmd.DispatchCompute(shader, kernel, groupCount, 1, 1);
+                /////////////////////////////
+
                 kernel = 2; // FillFineTiles
 
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
+
+                // TEMP CODE!
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._TileEntityMasks, resources.tileEntityMasks);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup);
 
@@ -4014,6 +4029,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
             }
+
+            cb._WordCountPerTile = (uint)TiledLightingConstants.s_maxWordsPerTile;
+            var fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
+            int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+            cb._PerViewOffsetInFlatEntityArray = (uint)(numTiles * TiledLightingConstants.s_maxWordsPerTile);
 
             // Binned lighting
             cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);

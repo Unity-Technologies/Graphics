@@ -78,6 +78,7 @@
 #define Z_BIN_COUNT (8192)
 #define MAX_REFLECTION_PROBES_PER_PIXEL (4)
 #define MAX_WORD_PER_ENTITY (16)
+#define MAX_WORDS_PER_TILE (80)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields

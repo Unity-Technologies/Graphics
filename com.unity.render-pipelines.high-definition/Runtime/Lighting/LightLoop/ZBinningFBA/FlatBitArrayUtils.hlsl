@@ -32,7 +32,7 @@ uint2 UnpackZBinData(uint zbin, uint category)
 //  uint2 wordRange = GetWordRangeForCategory(CATEGORY, zBinData);
 //  for (uint word = wordRange.x; word <= wordRange.y; ++word)
 //  {
-//      uint wordMask = LoadWordMask(tileIndex, word);
+//      uint wordMask = LoadWordMask(word);
 //      while (wordMask != 0)
 //      {
 //          uint entityIndex = GetNextEntityIndex(word, wordMask);
@@ -44,19 +44,21 @@ uint2 UnpackZBinData(uint zbin, uint category)
 
 #define USE_Z_BINNING 1
 
-uint2 GetWordRangeForCategory(uint category)
+uint2 GetWordRangeForCategory(uint category, uint tile)
 {
     // TMP: For now just a single list for punctual
     // eventually this will need to either have an offset inside the list per-category.
     // The offset will likely be just the max count.
 
+    const uint tileOffset = unity_StereoEyeIndex * _PerViewOffsetInFlatEntityArray +  // Offset per view. 
+                            tile * _WordCountPerTile;                                 // Offset per tile
+
     const uint offsetInMasks = 0;
     const uint maxEntityCount = 0;
     if (category == BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT)
     {
-        offsetInMasks = 0;
-        // TODO: Some clamping needed here if _PunctualLightCount is more than what we allow through the system.
-        maxEntityCount = _PunctualLightCount;
+        offsetInMasks = tileOffset + 0;             // TODO: The 0 here is because we only look at punctual lights for now for the test.
+        maxEntityCount = _PunctualLightCount;       // TODO need to clamp to max entity. 
     }
 
     return uint2(offsetInMasks / WORD_SIZE, min(maxEntityCount / WORD_SIZE, MAX_WORDS));
@@ -71,9 +73,9 @@ uint GetNextEntityIndex(uint category, uint wordIndex, inout uint mask)
 
 #if USE_Z_BINNING
 
-uint2 GetWordRangeForCategory(uint category, uint2 zBinRange)
+uint2 GetWordRangeForCategory(uint category, uint tile, uint2 zBinRange)
 {
-    uint2 categoryWordRange = GetWordRangeForCategory(category);
+    uint2 categoryWordRange = GetWordRangeForCategory(category, tile);
 
     uint zBinMin = zBinRange.x;
     uint zBinMax = zBinRange.y;
@@ -92,34 +94,29 @@ uint2 GetWordRangeForCategory(uint category, uint2 zBinRange)
     return wordRange;
 }
 
-uint LoadWordMask(uint category, uint tileIndex, uint wordIndex, uint2 zBinRange)
+uint LoadWordMask(uint category, uint wordIndex, uint2 zBinRange)
 {
     // Note: zbin range must contain light index and not light index / WORD_SIZE
     uint zBinMin = zBinRange.x;
     uint zBinMax = zBinRange.y;
 
     // Create a local zbin mask with range of light index
-    // for example if we have 2 to 7, we want to generate the mask 01111110 00000000 00000000 00000000
+    // for example if we have 2 to 7, we want to generate the mask 00000000 00000000 00000000 11111100
     // For 1 to 35 range
-    // a) 01111111 11111111 11111111 11111111
-    // b) 11100000 00000000 00000000 00000000
+    // a) 11111111 11111111 11111111 11111110
+    // b) 00000000 00000000 00000000 00001111
     // For 35 to 48
     // a) 00000000 00000000 00000000 00000000
-    // b) 00111111 11111111 00000000 00000000
-
-
+    // b) 00000000 00000000 11111111 11111000
 
     uint maskWidth = ClampToWordSize((int)zBinMax - (int)(zBinMin + 1));
     // Min index within this word.
     uint wordMin = wordIndex * 32;
     uint localMin = clamp((int)zBinMin - (int)wordMin, 0, 31);
 
-    // Question Francesco, I am not sure to understand the (maskWidth == 32) ? 0xffffffff as in my example of 1 to 35, it don't make sense...
     uint localZBinMask = (maskWidth == 32) ? 0xffffffff : GetBitFieldMask(maskWidth, localMin);
 
-    // TODO: of course this is not the right function as we need to use the size of the _TileEntityMasks but it is for the example
-    const uint tileBufferIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex);
-    uint outMask = _TileEntityMasks[tileBufferIndex + wordIndex];
+    uint outMask = _TileEntityMasks[wordIndex];
     // Combine the zbin mask and the tile mask
     outMask = outMask & localZBinMask;
 
@@ -133,9 +130,9 @@ uint LoadWordMask(uint category, uint tileIndex, uint wordIndex, uint2 zBinRange
 
 #else
 
-uint LoadWordMask(uint category, uint tileIndex, uint wordIndex)
+uint LoadWordMask(uint category, uint wordIndex)
 {
-    uint outMask = _TileEntityMasks[tileIndex + wordIndex];
+    uint outMask = _TileEntityMasks[wordIndex];
 #if PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // Scalarize the bit mask
     outMask = WaveReadLaneFirst(WaveActiveBitOr(outMask));

@@ -246,10 +246,10 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         #if TEST_FLATBITARRAY
 
         uint2 zBinRange = UnpackZBinData(zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
-        uint2 wordRange = GetWordRangeForCategory(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, zBinRange);
+        uint2 wordRange = GetWordRangeForCategory(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, tile, zBinRange);
         for (uint wordIndex = wordRange.x; word <= wordIndex.y; ++word)
         {
-            uint wordMask = LoadWordMask(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, tile, wordIndex, zBinRange);
+            uint wordMask = LoadWordMask(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, wordIndex, zBinRange);
             while (wordMask != 0)
             {
                 uint entityIndex = GetNextEntityIndex(BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, wordIndex, wordMask);
