@@ -193,6 +193,9 @@
     // Graph Pixel
     $splice(GraphPixel)
 
+    // VFX Splice Test
+    $splice(VFXLoadAttributeTest)
+
     // --------------------------------------------------
     // Build Graph Inputs
 

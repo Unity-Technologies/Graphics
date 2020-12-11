@@ -93,7 +93,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.defines = new DefineCollection
                 {
                     passDescriptor.defines,
-                    // { InstancingOverride, 1 }
+                };
+
+                passDescriptor.additionalCommands = new AdditionalCommandCollection
+                {
+                    GenerateVFXAttributeLoad(context)
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -103,15 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return subShaderDescriptor;
         }
-
-        public static KeywordDescriptor InstancingOverride = new KeywordDescriptor()
-        {
-            displayName = "Instancing Override",
-            referenceName = "UNITY_ANY_INSTANCING_ENABLED",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
 
         enum VFXAttributeType
         {
@@ -125,9 +120,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             "SourceAttributes"
         };
 
-        static StructDescriptor GenerateVFXAttributesMeshStruct()
+        static AdditionalCommandDescriptor GenerateVFXAttributeLoad(VFXContext context)
         {
-            return new StructDescriptor();
+            var token = "VFXLoadAttributeTest";
+            var content = "// Test";
+
+            return new AdditionalCommandDescriptor(token, content);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)

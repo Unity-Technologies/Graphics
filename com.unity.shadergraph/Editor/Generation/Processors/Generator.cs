@@ -791,6 +791,17 @@ namespace UnityEditor.ShaderGraph
             }
 
             // --------------------------------------------------
+            // Additional Commands
+
+            if (pass.additionalCommands != null)
+            {
+                foreach (AdditionalCommandCollection.Item additionalCommand in pass.additionalCommands)
+                {
+                    spliceCommands.Add(additionalCommand.field.token, additionalCommand.field.content);
+                }
+            }
+
+            // --------------------------------------------------
             // Finalize
 
             // Pass Template
