@@ -416,7 +416,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
     uint slice = 0;
-    for (; slice < _VBufferSliceCount; slice++)
+    for (; (slice < _VBufferSliceCount) && (t0 <= ray.maxDist); slice++)
     {
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
@@ -601,18 +601,12 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         t0    = tNext;
         zBin0 = zBin1;
-
-        if (t0 * 0.99 > ray.maxDist)
-        {
-            // We light the first slice (at least) so that we can safely sample the buffer later.
-            break;
-        }
     }
 
     for (; slice < _VBufferSliceCount; slice++)
     {
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
-        _VBufferLighting[voxelCoord] = 0;
+        _VBufferLighting[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
 #ifdef ENABLE_REPROJECTION
         _VBufferFeedback[voxelCoord] = 0;
 #endif
