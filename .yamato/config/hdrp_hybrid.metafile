@@ -60,7 +60,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - playmode
 nightly:
   dependencies:
     - platform: Win
@@ -69,6 +69,5 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_XR
-        - playmode
     - project: HDRP_Hybrid
       pr: true

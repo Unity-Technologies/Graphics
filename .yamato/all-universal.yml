@@ -47,7 +47,7 @@ PR_Universal_2020.2:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2020.2
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
 Nightly_Universal_2020.2:
     name: Nightly Universal - 2020.2
     dependencies:
@@ -60,6 +60,8 @@ Nightly_Universal_2020.2:
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_2020.2
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2020.2
+         rerun: on-new-revision
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_2020.2
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
@@ -113,7 +115,7 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always
     triggers:
-        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 Nightly_Universal_CUSTOM-REVISION:
@@ -128,6 +130,8 @@ Nightly_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
