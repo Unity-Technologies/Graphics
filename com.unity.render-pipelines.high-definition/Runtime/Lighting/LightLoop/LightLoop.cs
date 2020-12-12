@@ -3722,7 +3722,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         case GPULightType.Rectangle:
                             m_PropertyBlock.SetInteger(_CategoryID, (int)BoundedEntityCategory.AreaLight);
-                            m_PropertyBlock.SetColor(_ColorShaderID, new Color(0.0f, 1.0f, 1.0f, 1.0f));
                             m_PropertyBlock.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                             m_PropertyBlock.SetVector(_RangeShaderID, new Vector3(ld.range, ld.range, ld.range));
                             cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), mat4x4, m_CullingRasterizerMaterial, 0, 0, m_PropertyBlock);

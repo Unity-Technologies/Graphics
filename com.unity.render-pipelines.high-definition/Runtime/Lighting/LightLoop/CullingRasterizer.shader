@@ -24,7 +24,8 @@ Shader "Hidden/HDRP/CullingRasterizer"
             ZWrite Off
             ZTest LEqual
             Blend Off
-            Cull Back
+        // TODO this is not good, we need pixel perfect here too expensive
+            Cull Off // Don't cull so the raster work when the camera is both inside and outside the bounds without the need to change renderstate
 
             HLSLPROGRAM
             #pragma target 4.5
@@ -92,6 +93,25 @@ Shader "Hidden/HDRP/CullingRasterizer"
                 return output;
             }
 
+            // TODO test woth DXC...
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+            uint WaveCompactValue(uint checkValue)
+            {
+                uint mask; // lane unique compaction mask
+                while (true) // Loop until all active lanes removed
+                {
+                    uint firstValue = WaveReadFirstLane(checkValue);
+                    mask = WaveBallot(firstValue == checkValue); // mask is only updated for remaining active lanes
+                    if (firstValue == checkValue)
+                        break; // exclude all lanes with firstValue from next iteration
+                }
+                // At this point, each lane of mask should contain a bit mask of all other lanes with the same value.
+                uint index = WavePrefixSum(mask); // Note this is performed independently on a different mask for each lane.
+                return index;
+            }
+#endif
+
+
             void Frag(Varyings varying, out float4 color : SV_Target0)
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varying);
@@ -104,8 +124,14 @@ Shader "Hidden/HDRP/CullingRasterizer"
 
                 uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, _Category, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
                 const uint wordIndex = (tileBufferHeaderIndex * MAX_WORD_PER_ENTITY) + word; // find correct word
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+                const uint key = (wordIndex << 9); // FRUSTUM_GRID_MAX_LIGHTS_LOG2 (log2(512 => 9)
 
-                InterlockedOr(_TileEntityMasks[wordIndex], lightBit);
+                [branch]
+                const uint hash = WaveCompactValue(key...);
+                if (hash == 0) // Branch only for first occurrence of unique key within wavefront
+#endif
+                    InterlockedOr(_TileEntityMasks[wordIndex], lightBit);
             }
 
             ENDHLSL
