@@ -227,12 +227,12 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
 #endif
 }
 
-float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
+float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
 {
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;
-    int     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+    shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
     if (shadowSplitIndex >= 0.0)
     {
@@ -273,8 +273,13 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     return shadow;
 }
 
+float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
+{
+    int unusedSplitIndex;
+    return EvalShadow_CascadedDepth_Blend_SplitIndex(shadowContext, tex, samp, positionSS, positionWS, normalWS, index, L, unusedSplitIndex);
+}
 
-float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
+float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
 {
     float   alpha;
     int     cascadeCount;
@@ -310,6 +315,12 @@ float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D t
     }
 
     return shadow;
+}
+
+float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
+{
+    int unusedSplitIndex;
+    return EvalShadow_CascadedDepth_Dither_SplitIndex(shadowContext, tex, samp, positionSS, positionWS, normalWS, index, L, unusedSplitIndex);
 }
 
 // TODO: optimize this using LinearEyeDepth() to avoid having to pass the shadowToWorld matrix
