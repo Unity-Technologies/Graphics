@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
                     Rect re = EditorGUILayout.GetControlRect();
                     re.xMin = 10;
                     previewBackgroundColor = EditorGUI.ColorField(re, "Preview Background Color", previewBackgroundColor);
-                    
+
                     if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
                     {
                         RevertColors();

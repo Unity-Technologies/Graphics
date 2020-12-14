@@ -10,7 +10,7 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
     float3x3 localToWorld = GetLocalFrame(bsdfData.normalWS);
     float    NdotV        = ClampNdotV(dot(bsdfData.normalWS, V));
     float3 acc   = float3(0.0, 0.0, 0.0);
-   
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
@@ -29,7 +29,7 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
             GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
             // Incident Light intensity
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation, 0.5);
 
             // BRDF Data
             float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
@@ -51,7 +51,7 @@ float3 IntegrateSpecularSilkIBLRef(LightLoopContext lightLoopContext,
     float3x3 localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     float    NdotV        = ClampNdotV(dot(bsdfData.normalWS, V));
     float3 acc   = float3(0.0, 0.0, 0.0);
-   
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
@@ -65,13 +65,13 @@ float3 IntegrateSpecularSilkIBLRef(LightLoopContext lightLoopContext,
         float3 L;
         float weightOverPdf;
         ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
-        
+
         if (NdotL > 0.0)
         {
             // Fresnel component is apply here as describe in ImportanceSampleGGX function
             float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
 
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation, 0.5);
 
             acc += FweightOverPdf * val.rgb;
         }

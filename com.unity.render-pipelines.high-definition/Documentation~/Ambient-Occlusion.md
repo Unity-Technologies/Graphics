@@ -10,9 +10,9 @@ To generate an ambient occlusion Texture, you can use external software like:
 
 When authoring ambient occlusion Textures, be aware that a value of 0 specifies an area that is fully occluded and a value of 1 specifies an area that is fully visible.
 
-When you create the Texture, you must apply it to a Material. To do this, you must use the green channel of a [mask map](Mask-Map-and-Detail-Map.html#MaskMap).
+When you create the Texture, you must apply it to a Material. To do this, you must use the green channel of a [mask map](Mask-Map-and-Detail-Map.md#MaskMap).
 
-Note: Ambient occlusion in a Lit Shader using [deferred rendering](Forward-And-Deferred-Rendering.html) affects emission due to a technical constraint. Lit Shaders that use [forward rendering](Forward-And-Deferred-Rendering.html) do not have this constraint and do not affect emission.
+Note: Ambient occlusion in a Lit Shader using [deferred rendering](Forward-And-Deferred-Rendering.md) affects emission due to a technical constraint. Lit Shaders that use [forward rendering](Forward-And-Deferred-Rendering.md) do not have this constraint and do not affect emission.
 
 ## Properties
 

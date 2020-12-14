@@ -138,15 +138,15 @@ bool IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planePositi
     bool res = false;
     t = -1.0;
 
-    float denom = dot(planeNormal, rayDirection); 
+    float denom = dot(planeNormal, rayDirection);
     if (abs(denom) > 1e-5)
-    { 
+    {
         float3 d = planePosition - rayOrigin;
         t = dot(d, planeNormal) / denom;
         res = (t >= 0);
     }
 
-    return res; 
+    return res;
 }
 
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).

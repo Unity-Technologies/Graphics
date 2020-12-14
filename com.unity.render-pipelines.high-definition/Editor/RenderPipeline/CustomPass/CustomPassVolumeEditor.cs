@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawSettingsGUI()
         {
             serializedObject.Update();
-            
+
             EditorGUI.BeginChangeCheck();
             {
                 Rect isGlobalRect = EditorGUILayout.GetControlRect();
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
                 EditorGUI.BeginChangeCheck();
-                
+
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
@@ -231,33 +231,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         passList.serializedObject.Update();
                         // Notify the prefab that something have changed:
                         PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                   });
+                    });
                 }
                 menu.ShowAsContext();
-			};
-
-            m_CustomPassList.onRemoveCallback = (list) => {
-                passList.serializedObject.ApplyModifiedProperties();
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
-                m_Volume.customPasses.RemoveAt(list.index);
-                UpdateMaterialEditors();
-                passList.serializedObject.Update();
-                // Notify the prefab that something have changed:
-                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-            };
-
-            m_CustomPassList.onReorderCallbackWithDetails = (list, oldIndex, newIndex) => {
-                customPassDrawers.Clear();
-                passList.serializedObject.ApplyModifiedProperties();
-                Undo.RegisterCompleteObjectUndo(target, "Reorder custom pass");
-
-                var t = m_Volume.customPasses[oldIndex];
-                m_Volume.customPasses[oldIndex] = m_Volume.customPasses[newIndex];
-                m_Volume.customPasses[newIndex] = t;
-
-                passList.serializedObject.Update();
-                // Notify the prefab that something have changed:
-                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             };
         }
 

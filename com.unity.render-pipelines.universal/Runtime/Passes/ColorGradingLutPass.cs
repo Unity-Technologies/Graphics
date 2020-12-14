@@ -9,9 +9,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ColorGradingLutPass : ScriptableRenderPass
     {
-        const string k_ProfilerTag = "Color Grading LUT";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ProfilerTag);
-
         readonly Material m_LutBuilderLdr;
         readonly Material m_LutBuilderHdr;
         readonly GraphicsFormat m_HdrLutFormat;
@@ -21,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
@@ -63,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ColorGradingLUT)))
             {
                 // Fetch all color grading settings
                 var stack = VolumeManager.instance.stack;
@@ -102,19 +100,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowsMidtonesHighlights.highlightsEnd.value
                 );
 
-                var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
+                var(shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
                     shadowsMidtonesHighlights.shadows.value,
                     shadowsMidtonesHighlights.midtones.value,
                     shadowsMidtonesHighlights.highlights.value
                 );
 
-                var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
+                var(lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
                     liftGammaGain.lift.value,
                     liftGammaGain.gamma.value,
                     liftGammaGain.gain.value
                 );
 
-                var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
+                var(splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
                     splitToning.shadows.value,
                     splitToning.highlights.value,
                     splitToning.balance.value
@@ -169,7 +167,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 // Render the lut
-                Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
+                cmd.Blit(null, m_InternalLut.id, material);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
@@ -182,6 +180,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
+        }
+
+        public void Cleanup()
+        {
+            CoreUtils.Destroy(m_LutBuilderLdr);
+            CoreUtils.Destroy(m_LutBuilderHdr);
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)

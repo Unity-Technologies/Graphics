@@ -44,14 +44,16 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
             m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
             var editorObj = new SerializedObject(this);
-            m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
+            m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
         }
 
         public override void OnInspectorGUI()
         {
-            if(m_RendererFeatures == null)
+            if (m_RendererFeatures == null)
                 OnEnable();
+            else if (m_RendererFeatures.arraySize != m_Editors.Count)
+                UpdateEditorList();
 
             serializedObject.Update();
             DrawRendererFeatureList();
@@ -140,7 +142,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature,renderFeatureProperty, m_FalseBool,pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
@@ -296,7 +298,6 @@ namespace UnityEditor.Rendering.Universal
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
-            AssetDatabase.SaveAssets();
         }
     }
 }

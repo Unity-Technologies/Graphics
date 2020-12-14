@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     bool fileExist = true;
                     // We check the file existence only once to avoid IO operations every frame.
-                    if(s_NeedToCheckProjSettingExistence)
+                    if (s_NeedToCheckProjSettingExistence)
                     {
                         fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
                         s_NeedToCheckProjSettingExistence = false;
@@ -72,9 +72,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (!inTestSuite && fileExist && !Application.isBatchMode)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
-                                                        " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
-                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n"+
-                                                        " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
+                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.
@@ -192,13 +192,17 @@ namespace UnityEditor.Rendering.HighDefinition
         // to bump all materials version...
         static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
         {
-             StencilRefactor,
-             ZWriteForTransparent,
-             RenderQueueUpgrade,
-             ShaderGraphStack,
-             MoreMaterialSurfaceOptionFromShaderGraph,
-             AlphaToMaskUIFix,
-             MigrateDecalRenderQueue
+            StencilRefactor,
+            ZWriteForTransparent,
+            RenderQueueUpgrade,
+            ShaderGraphStack,
+            MoreMaterialSurfaceOptionFromShaderGraph,
+            AlphaToMaskUIFix,
+            MigrateDecalRenderQueue,
+            ExposedDecalInputsFromShaderGraph,
+            FixIncorrectEmissiveColorSpace,
+            ExposeRefraction,
+            MetallicRemapping,
         };
 
         #region Migrations
@@ -306,7 +310,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // properties in this tab should be properties from Unlit or PBR cross pipeline shader
         // that are suppose to be synchronize with the Material during upgrade
-        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize = {
+        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize =
+        {
             "_SurfaceType",
             "_BlendMode",
             "_DstBlend",
@@ -346,11 +351,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
 
                         material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
-                                                    alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
+                            alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
 
                         material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
                     }
-                        
                 }
             }
 
@@ -398,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Take the opportunity to remove _SupportDecals from Unlit as it is not suppose to be here
             if (HDShaderUtils.IsUnlitHDRPShader(material.shader))
-            {               
+            {
                 var serializedMaterial = new SerializedObject(material);
                 if (TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
                 {
@@ -426,6 +430,217 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void ExposedDecalInputsFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (id == HDShaderUtils.ShaderID.Decal)
+            {
+                // In order for the new properties (kAffectsAlbedo...) to be taken into account, we need to make it dirty so that the parameter is created first
+                HDShaderUtils.ResetMaterialKeywords(material);
+
+                var serializedMaterial = new SerializedObject(material);
+
+                // Note: the property must not exist in the .shader for RemoveSerializedFloat to work (otherwise it will be re-added)
+                const string kAlbedoMode = "_AlbedoMode";
+                float albedoMode = 1.0f;
+                if (TryFindProperty(serializedMaterial, kAlbedoMode, SerializedType.Float, out var propertyAlbedoMode, out _, out _))
+                {
+                    albedoMode = propertyAlbedoMode.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kAlbedoMode);
+                }
+
+                // For normal map we don't remove the property _NormalMap but just check if there is a texture assign and then enable _AffectNormal
+                const string kNormalMap = "_NormalMap";
+                float normalMap = 0.0f;
+                if (TryFindProperty(serializedMaterial, kNormalMap, SerializedType.Texture, out var propertyNormalTexture, out _, out _))
+                {
+                    normalMap = propertyNormalTexture.FindPropertyRelative("m_Texture").objectReferenceValue != null ? 1.0f : 0.0f;
+                }
+
+                // For normal map we don't remove the property _NormalMap but just check if there is a texture assign and then enable _AffectNormal
+                const string kMaskMap = "_MaskMap";
+                float maskMap = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskMap, SerializedType.Texture, out var propertyMaskMapTexture, out _, out _))
+                {
+                    maskMap = propertyMaskMapTexture.FindPropertyRelative("m_Texture").objectReferenceValue != null ? 1.0f : 0.0f;
+                }
+
+                const string kMaskmapMetal = "_MaskmapMetal";
+                float maskMapMetal = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapMetal, SerializedType.Float, out var propertyMaskMapMetal, out _, out _))
+                {
+                    maskMapMetal = propertyMaskMapMetal.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapMetal);
+                }
+
+                const string kMaskmapAO = "_MaskmapAO";
+                float maskMapAO = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapAO, SerializedType.Float, out var propertyMaskMapAO, out _, out _))
+                {
+                    maskMapAO = propertyMaskMapAO.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapAO);
+                }
+
+                const string kMaskmapSmoothness = "_MaskmapSmoothness";
+                float maskMapSmoothness = 0.0f;
+                if (TryFindProperty(serializedMaterial, kMaskmapSmoothness, SerializedType.Float, out var propertyMaskMapSmoothness, out _, out _))
+                {
+                    maskMapSmoothness = propertyMaskMapSmoothness.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMaskmapSmoothness);
+                }
+
+                const string kEmissive = "_Emissive";
+                float emissive = 0.0f;
+                if (TryFindProperty(serializedMaterial, kEmissive, SerializedType.Float, out var propertyEmissive, out _, out _))
+                {
+                    emissive = propertyEmissive.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kEmissive);
+                }
+
+                // Not used anymore, just removed
+                const string kMaskBlendMode = "_MaskBlendMode";
+                if (TryFindProperty(serializedMaterial, kMaskBlendMode, SerializedType.Float, out var propertyUnused, out _, out _))
+                {
+                    RemoveSerializedFloat(serializedMaterial, kMaskBlendMode);
+                }
+
+                serializedMaterial.ApplyModifiedProperties();
+
+                // Now apply old value to new properties
+                const string kAffectAlbedo = "_AffectAlbedo";
+                material.SetFloat(kAffectAlbedo, albedoMode);
+
+                const string kAffectNormal = "_AffectNormal";
+                material.SetFloat(kAffectNormal, normalMap);
+
+                const string kAffectSmoothness = "_AffectSmoothness";
+                material.SetFloat(kAffectSmoothness, maskMapSmoothness * maskMap);
+
+                const string kAffectMetal = "_AffectMetal";
+                material.SetFloat(kAffectMetal, maskMapMetal * maskMap);
+
+                const string kAffectAO = "_AffectAO";
+                material.SetFloat(kAffectAO, maskMapAO * maskMap);
+
+                const string kAffectEmission = "_AffectEmission";
+                material.SetFloat(kAffectEmission, emissive);
+
+                // We can't erase obsolete disabled pass from already existing Material, so we need to re-enable all of them
+                const string s_MeshDecalsMStr = "DBufferMesh_M";
+                const string s_MeshDecalsSStr = "DBufferMesh_S";
+                const string s_MeshDecalsMSStr = "DBufferMesh_MS";
+                const string s_MeshDecalsAOStr = "DBufferMesh_AO";
+                const string s_MeshDecalsMAOStr = "DBufferMesh_MAO";
+                const string s_MeshDecalsAOSStr = "DBufferMesh_AOS";
+                const string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
+                const string s_MeshDecals3RTStr = "DBufferMesh_3RT";
+                const string s_MeshDecalsForwardEmissive = "Mesh_Emissive";
+
+                material.SetShaderPassEnabled(s_MeshDecalsMStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsSStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsMSStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsAOStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsMAOStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsAOSStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsMAOSStr, true);
+                material.SetShaderPassEnabled(s_MeshDecals3RTStr, true);
+                material.SetShaderPassEnabled(s_MeshDecalsForwardEmissive, true);
+            }
+
+            if (id == HDShaderUtils.ShaderID.SG_Decal)
+            {
+                // We can't erase obsolete disabled pass from already existing Material, so we need to re-enable all of them
+                const string s_ShaderGraphMeshDecals4RT = "ShaderGraph_DBufferMesh4RT";
+                const string s_ShaderGraphMeshDecals3RT = "ShaderGraph_DBufferMesh3RT";
+                const string s_ShaderGraphMeshDecalForwardEmissive = "ShaderGraph_MeshEmissive";
+
+                material.SetShaderPassEnabled(s_ShaderGraphMeshDecals4RT, true);
+                material.SetShaderPassEnabled(s_ShaderGraphMeshDecals3RT, true);
+                material.SetShaderPassEnabled(s_ShaderGraphMeshDecalForwardEmissive, true);
+            }
+
+            if (id == HDShaderUtils.ShaderID.Decal || id == HDShaderUtils.ShaderID.SG_Decal)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
+        {
+            // kEmissiveColorLDR wasn't correctly converted to linear color space.
+            // so here we adjust the value of kEmissiveColorLDR to compensate. But only if not using a HDR Color
+            const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetInt(kUseEmissiveIntensity) == 1)
+            {
+                const string kEmissiveColorLDR = "_EmissiveColorLDR";
+                const string kEmissiveColor = "_EmissiveColor";
+                const string kEmissiveIntensity = "_EmissiveIntensity";
+
+                if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+                {
+                    // Important:  The color picker for kEmissiveColorLDR is LDR and in sRGB color space but Unity don't perform any color space conversion in the color
+                    // picker BUT only when sending the color data to the shader... So as we are doing our own calculation here in C#, we must do the conversion ourselves.
+                    Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
+                    Color emissiveColorLDRsRGB = new Color(Mathf.LinearToGammaSpace(emissiveColorLDR.r), Mathf.LinearToGammaSpace(emissiveColorLDR.g), Mathf.LinearToGammaSpace(emissiveColorLDR.b));
+                    material.SetColor(kEmissiveColorLDR, emissiveColorLDRsRGB);
+                }
+
+                // Reset the value of kEmissiveColor
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+            }
+        }
+
+        static void ExposeRefraction(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Lit SG now have a shader feature for refraction instead of an hardcoded material
+            if (id == HDShaderUtils.ShaderID.SG_Lit)
+            {
+                // Sync the default refraction model from the shader graph to the shader
+                // We need to do this because the material may already have a refraction model information (from the Lit)
+                // In order to not break the rendering of the material, we patch the refraction model:
+                if (material.HasProperty(kRefractionModel))
+                {
+                    var refractionModel = material.shader.GetPropertyDefaultFloatValue(material.shader.FindPropertyIndex(kRefractionModel));
+                    material.SetFloat(kRefractionModel, refractionModel);
+                }
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void MetallicRemapping(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kMetallicRemapMax = "_MetallicRemapMax";
+
+            // Lit shaders now have metallic remapping for the mask map
+            if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
+                const string kMetallic = "_Metallic";
+                if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))
+                {
+                    var metallic = material.GetFloat(kMetallic);
+                    material.SetFloat(kMetallicRemapMax, metallic);
+                }
+            }
+            else if (id == HDShaderUtils.ShaderID.Decal)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
+                var serializedMaterial = new SerializedObject(material);
+
+                const string kMetallicScale = "_MetallicScale";
+                float metallicScale = 1.0f;
+                if (TryFindProperty(serializedMaterial, kMetallicScale, SerializedType.Float, out var propertyMetallicScale, out _, out _))
+                {
+                    metallicScale = propertyMetallicScale.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMetallicScale);
+                }
+
+                serializedMaterial.ApplyModifiedProperties();
+
+                material.SetFloat(kMetallicRemapMax, metallicScale);
+            }
         }
 
         #region Serialization_API

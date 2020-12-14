@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             volumes.Add(volume);
         }
+
         internal void DeRegisterVolume(ProbeVolume volume)
         {
             if (!volumes.Contains(volume))
@@ -60,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void SubscribeBakingAPI()
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnProbesBakeCompleted;
@@ -72,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UnsubscribeBakingAPI()
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnProbesBakeCompleted;
@@ -153,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.Lightmapping.BakeAsync();
         }
+
 #endif
     }
 }

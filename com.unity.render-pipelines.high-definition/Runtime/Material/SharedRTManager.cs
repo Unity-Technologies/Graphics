@@ -24,6 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
+        // Buffer used for quad overshading and vertex density debug modes
+        // Should be a texture but metal doesn't support texture atomics
+        ComputeBuffer m_FullScreenDebugBuffer = null;
+
         ComputeBuffer m_CoarseStencilBuffer = null;
         RTHandle m_DecalPrePassBuffer = null;
         RTHandle m_DecalPrePassBufferMSAA = null;
@@ -75,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraDepthBufferMipChainInfo.Allocate();
             m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
 
-            if(settings.lowresTransparentSettings.enabled)
+            if (settings.lowresTransparentSettings.enabled)
             {
                 // Create the half res depth buffer used for low resolution transparency
                 m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "LowResDepthBuffer");
@@ -342,6 +346,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_CameraDepthValuesBuffer;
         }
 
+        public ComputeBuffer GetFullScreenDebugBuffer()
+        {
+            return m_FullScreenDebugBuffer;
+        }
+
         public void SetNumMSAASamples(MSAASamples msaaSamples)
         {
             m_MSAASamples = msaaSamples;
@@ -364,13 +373,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AllocateCoarseStencilBuffer(int width, int height, int viewCount)
         {
-            if(width > 8 && height > 8)
+            if (width > 8 && height > 8)
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
+        }
+
+        public void AllocateFullScreenDebugBuffer(int width, int height, int viewCount)
+        {
+            m_FullScreenDebugBuffer = new ComputeBuffer(width * height * viewCount, sizeof(uint));
         }
 
         public void DisposeCoarseStencilBuffer()
         {
             CoreUtils.SafeRelease(m_CoarseStencilBuffer);
+        }
+
+        public void DisposeFullScreenDebugBuffer()
+        {
+            CoreUtils.SafeRelease(m_FullScreenDebugBuffer);
         }
 
         public void Cleanup()
@@ -405,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_NormalMSAART);
                 RTHandles.Release(m_DepthAsColorMSAART);
 
-                 // Do not forget to release the materials
+                // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
                 CoreUtils.Destroy(m_MotionVectorResolve);
@@ -427,10 +446,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 2;
                 case MSAASamples.MSAA8x:
                     return 3;
-            };
+            }
+            ;
             return 0;
         }
-
 
         // Bind the normal buffer that is needed
         public void BindNormalBuffer(CommandBuffer cmd, bool isMSAA = false)

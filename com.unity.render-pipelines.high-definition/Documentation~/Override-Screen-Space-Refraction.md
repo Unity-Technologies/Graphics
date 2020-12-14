@@ -1,10 +1,10 @@
 # Screen Space Refraction
 
-The **Screen Space Refraction** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate  refraction. For information about how screen space refraction works in HDRP, see the [Screen space refraction documentation](Refraction-in-HDRP.html#ScreenSpaceRefraction).
+The **Screen Space Refraction** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate  refraction. For information about how screen space refraction works in HDRP, see the [Screen space refraction documentation](Refraction-in-HDRP.md#ScreenSpaceRefraction).
 
 ## Using Screen Space Refraction
 
-HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Refraction** override to a [Volume](Volumes.html) in your Scene. To add **Screen Space Refraction** to a Volume:
+HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Refraction** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Refraction** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Refraction**. 
@@ -13,6 +13,8 @@ HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable an
 ## Properties
 
 ![](Images/Override-ScreenSpaceRefraction1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |

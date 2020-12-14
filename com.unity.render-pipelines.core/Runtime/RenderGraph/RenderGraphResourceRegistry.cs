@@ -48,10 +48,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return "";
             }
+
+            public virtual bool IsCreated()
+            {
+                return false;
+            }
         }
 
         #region Resources
-        [DebuggerDisplay("Resource ({ResType}:{GetName()})")]
+        [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
         class RenderGraphResource<DescType, ResType>
             : IRenderGraphResource
             where DescType : struct
@@ -62,13 +67,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             protected RenderGraphResource()
             {
-
             }
 
             public override void Reset()
             {
                 base.Reset();
                 resource = null;
+            }
+
+            public override bool IsCreated()
+            {
+                return resource != null;
             }
         }
 
@@ -77,7 +86,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return resource != null ? resource.name : "null resource";
+                else
+                    return desc.name;
             }
         }
 
@@ -86,7 +98,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return "ImportedComputeBuffer"; // No getter for compute buffer name.
+                else
+                    return desc.name;
             }
         }
 
@@ -107,6 +122,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         DynamicArray<IRenderGraphResource>[] m_Resources = new DynamicArray<IRenderGraphResource>[(int)RenderGraphResourceType.Count];
 
         TexturePool                         m_TexturePool = new TexturePool();
+        int                                 m_TextureCreationIndex;
         ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RenderGraphDebugParams              m_RenderGraphDebug;
@@ -142,10 +158,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #region Internal Interface
         private RenderGraphResourceRegistry()
         {
-
         }
 
-        internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
+        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;
@@ -154,25 +169,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Resources[i] = new DynamicArray<IRenderGraphResource>();
         }
 
-        ResType GetResource<DescType, ResType>(DynamicArray<IRenderGraphResource> resourceArray, int index)
-            where DescType : struct
-            where ResType : class
-        {
-            var res = resourceArray[index] as RenderGraphResource<DescType, ResType>;
-
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.resource == null && !res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was never created. Check that it was written at least once before trying to get it.", res.GetName()));
-
-            if (res.resource == null && res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was already released. Check that the last pass where it's read is after this one.", res.GetName()));
-#endif
-            return res.resource;
-        }
-
-        internal void BeginRender(int currentFrameIndex)
+        internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            ResourceHandle.NewFrame(executionCount);
             current = this;
         }
 
@@ -183,9 +183,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckHandleValidity(in ResourceHandle res)
         {
-            var resources = m_Resources[res.iType];
-            if (res.index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.index}");
+            CheckHandleValidity(res.type, res.index);
+        }
+
+        void CheckHandleValidity(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
         }
 
         internal string GetResourceName(in ResourceHandle res)
@@ -194,10 +199,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources[res.iType][res.index].GetName();
         }
 
+        internal string GetResourceName(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].GetName();
+        }
+
         internal bool IsResourceImported(in ResourceHandle res)
         {
             CheckHandleValidity(res);
             return m_Resources[res.iType][res.index].imported;
+        }
+
+        internal bool IsResourceCreated(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.index].IsCreated();
+        }
+
+        internal bool IsRendererListCreated(in RendererListHandle res)
+        {
+            return m_RendererListResources[res].rendererList.isValid;
+        }
+
+        internal bool IsResourceImported(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].imported;
         }
 
         internal int GetResourceTransientIndex(in ResourceHandle res)
@@ -221,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
             else
-                m_CurrentBackbuffer = RTHandles.Alloc(rt);
+                m_CurrentBackbuffer = RTHandles.Alloc(rt, "Backbuffer");
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = m_CurrentBackbuffer;
@@ -328,21 +356,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
                     // The name in the desc is going to be used for debugging purpose and render graph visualization.
-                    string name = "RenderGraphTexture";
+                    string name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
 
                     switch (desc.sizeMode)
                     {
                         case TextureSizeMode.Explicit:
                             resource.resource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                         case TextureSizeMode.Scale:
                             resource.resource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                         case TextureSizeMode.Functor:
                             resource.resource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                     }
                 }
@@ -351,7 +379,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
 #if UNITY_2020_2_OR_NEWER
                 var fastMemDesc = resource.desc.fastMemoryDesc;
-                if(fastMemDesc.inFastMemory)
+                if (fastMemDesc.inFastMemory)
                 {
                     resource.resource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
                 }
@@ -553,6 +581,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_TexturePool.Cleanup();
             m_ComputeBufferPool.Cleanup();
+
+            RTHandles.Release(m_CurrentBackbuffer);
         }
 
         void LogTextureCreation(TextureResource rt)
@@ -594,6 +624,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Logger.LogLine("==== Allocated Resources ====\n");
 
                 m_TexturePool.LogResources(m_Logger);
+                m_Logger.LogLine("");
                 m_ComputeBufferPool.LogResources(m_Logger);
             }
         }

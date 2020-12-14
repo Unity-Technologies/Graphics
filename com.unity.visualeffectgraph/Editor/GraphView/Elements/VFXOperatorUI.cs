@@ -159,21 +159,16 @@ namespace UnityEditor.VFX.UI
             if (hasMiddle)
             {
                 if (m_Middle.parent == null)
-                {
                     inputContainer.parent.Insert(1, m_Middle);
-                }
             }
             else if (m_Middle.parent != null)
-            {
                 m_Middle.RemoveFromHierarchy();
-            }
 
             if (isEditable)
             {
                 if (m_EditButton.parent == null)
-                {
                     titleContainer.Insert(1, m_EditButton);
-                }
+
                 if (m_EditContainer == null)
                 {
                     m_EditContainer = GetControllerEditor();
@@ -184,15 +179,15 @@ namespace UnityEditor.VFX.UI
             else
             {
                 if (m_EditContainer != null && m_EditContainer.parent != null)
-                {
                     m_EditContainer.RemoveFromHierarchy();
-                }
+
                 m_EditContainer = null;
                 if (m_EditButton.parent != null)
-                {
                     m_EditButton.RemoveFromHierarchy();
-                }
             }
+
+            if (!base.expanded && m_EditContainer != null && m_EditContainer.parent != null)
+                m_EditContainer.RemoveFromHierarchy();
         }
 
         void OnPostLayout(GeometryChangedEvent e)

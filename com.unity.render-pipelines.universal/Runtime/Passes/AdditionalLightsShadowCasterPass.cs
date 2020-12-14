@@ -46,11 +46,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowCastingLightIndicesMap = new List<int>();
 
         bool m_SupportsBoxFilterForShadows;
-        const string m_ProfilerTag = "Render Additional Shadows";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+        ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(AdditionalLightsShadowCasterPass));
             renderPassEvent = evt;
 
             AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
@@ -78,6 +78,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool Setup(ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
+
             Clear();
 
             m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
@@ -278,7 +280,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
             // Currently there's an issue which results in mismatched markers.
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.AdditionalLightsShadow)))
             {
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_AdditionalShadowCastingLightIndices.Count;
@@ -311,12 +313,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // to enable the keyword.
                 // TODO: In PC and Consoles we can upload shadow data per light and branch on shader. That will be more likely way faster.
                 bool mainLightHasSoftShadows = shadowData.supportsMainLightShadows &&
-                                               lightData.mainLightIndex != -1 &&
-                                               visibleLights[lightData.mainLightIndex].light.shadows ==
-                                               LightShadows.Soft;
+                    lightData.mainLightIndex != -1 &&
+                    visibleLights[lightData.mainLightIndex].light.shadows ==
+                    LightShadows.Soft;
 
                 bool softShadows = shadowData.supportsSoftShadows &&
-                                   (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+                    (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, anyShadowSliceRenderer);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);

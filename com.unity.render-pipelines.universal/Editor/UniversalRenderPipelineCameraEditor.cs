@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent requireOpaqueTexture = EditorGUIUtility.TrTextContent("Opaque Texture", "On makes this camera create a _CameraOpaqueTexture, which is a copy of the rendered view.\nOff makes the camera not create an opaque texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Use Multi Sample Anti-Aliasing to reduce aliasing.");
-            public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture) null);
+            public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture)null);
             public static GUIContent priority = EditorGUIUtility.TrTextContent("Priority", "A camera with a higher priority is drawn on top of a camera with a lower priority [ -100, 100 ].");
             public static GUIContent clearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, depth from the previous camera will be cleared.");
 
@@ -52,6 +52,15 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
             public static GUIContent dithering = EditorGUIUtility.TrTextContent("Dithering", "Applies 8-bit dithering to the final render to reduce color banding.");
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            public static GUIContent[] xrTargetEyeOptions =
+            {
+                new GUIContent("None"),
+                new GUIContent("Both"),
+            };
+            public static int[] xrTargetEyeValues = { 0, 1 };
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
+#endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
@@ -99,7 +108,7 @@ namespace UnityEditor.Rendering.Universal
 
         List<Camera> validCameras = new List<Camera>();
         // This is the valid list of types, so if we need to add more types we just add it here.
-        List<CameraRenderType> validCameraTypes = new List<CameraRenderType>{CameraRenderType.Overlay};
+        List<CameraRenderType> validCameraTypes = new List<CameraRenderType> {CameraRenderType.Overlay};
         List<Camera> errorCameras = new List<Camera>();
         Texture2D m_ErrorIcon;
 
@@ -114,7 +123,6 @@ namespace UnityEditor.Rendering.Universal
         public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
         public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
 
-        UniversalRenderPipelineAsset m_UniversalRenderPipeline;
         Dictionary<Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
         SerializedObject m_AdditionalCameraDataSO;
 
@@ -127,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataRenderOpaqueProp;
         SerializedProperty m_AdditionalCameraDataRendererProp;
         SerializedProperty m_AdditionalCameraDataCameraTypeProp;
-		SerializedProperty m_AdditionalCameraDataCameras;
+        SerializedProperty m_AdditionalCameraDataCameras;
         SerializedProperty m_AdditionalCameraDataVolumeLayerMask;
         SerializedProperty m_AdditionalCameraDataVolumeTrigger;
         SerializedProperty m_AdditionalCameraDataRenderPostProcessing;
@@ -136,7 +144,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataStopNaN;
         SerializedProperty m_AdditionalCameraDataDithering;
         SerializedProperty m_AdditionalCameraClearDepth;
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+        SerializedProperty m_AdditionalCameraDataAllowXRRendering;
+#endif
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
             if (initialize)
@@ -172,7 +182,6 @@ namespace UnityEditor.Rendering.Universal
         public new void OnEnable()
         {
             base.OnEnable();
-            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -184,7 +193,7 @@ namespace UnityEditor.Rendering.Universal
             foreach (var cameraTarget in targets)
             {
                 var additionData = (cameraTarget as Component).gameObject.GetComponent<UniversalAdditionalCameraData>();
-                if(additionData == null)
+                if (additionData == null)
                     additionData = (cameraTarget as Component).gameObject.AddComponent<UniversalAdditionalCameraData>();
                 m_AdditionalCameraDatas[cameraTarget] = additionData;
                 additionalCameraList.Add(additionData);
@@ -201,6 +210,7 @@ namespace UnityEditor.Rendering.Universal
 
             UpdateCameras();
         }
+
         void UpdateCameras()
         {
             var o = new PropertyFetcher<UniversalAdditionalCameraData>(m_AdditionalCameraDataSO);
@@ -300,11 +310,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                // HIG doesnt allow us to remove data on a re-draw and without a user input.
-                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                m_NameContent.text = "MISSING CAMERA";
-                string warningInfo = "Camera is missing";
-                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
@@ -351,7 +357,7 @@ namespace UnityEditor.Rendering.Universal
                         result.Add(camera);
                 }
             }
-            
+
             return result.ToArray();
         }
 
@@ -375,7 +381,7 @@ namespace UnityEditor.Rendering.Universal
             var names = new GUIContent[validCameras.Count];
             for (int i = 0; i < validCameras.Count; ++i)
             {
-                names[i] = new GUIContent((i+1) + " " + validCameras[i].name);
+                names[i] = new GUIContent((i + 1) + " " + validCameras[i].name);
             }
 
             if (!validCameras.Any())
@@ -388,7 +394,7 @@ namespace UnityEditor.Rendering.Universal
 
         void AddCameraToCameraListMenuSelected(object userData, string[] options, int selected)
         {
-            if(!validCameras.Any())
+            if (!validCameras.Any())
                 return;
 
             var length = m_AdditionalCameraDataCameras.arraySize;
@@ -400,7 +406,7 @@ namespace UnityEditor.Rendering.Universal
 
         void init(List<Object> additionalCameraData)
         {
-            if(additionalCameraData == null)
+            if (additionalCameraData == null)
                 return;
 
             m_AdditionalCameraDataSO = new SerializedObject(additionalCameraData.ToArray());
@@ -417,8 +423,10 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataDithering = m_AdditionalCameraDataSO.FindProperty("m_Dithering");
             m_AdditionalCameraClearDepth = m_AdditionalCameraDataSO.FindProperty("m_ClearDepth");
             m_AdditionalCameraDataCameraTypeProp = m_AdditionalCameraDataSO.FindProperty("m_CameraType");
-
             m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_AdditionalCameraDataAllowXRRendering = m_AdditionalCameraDataSO.FindProperty("m_AllowXRRendering");
+#endif
         }
 
         public new void OnDisable()
@@ -427,8 +435,6 @@ namespace UnityEditor.Rendering.Universal
             m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
-
-            m_UniversalRenderPipeline = null;
         }
 
         BackgroundType GetBackgroundType(CameraClearFlags clearFlags)
@@ -448,11 +454,12 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            if(m_UniversalRenderPipeline == null)
-			{
-				EditorGUILayout.HelpBox("Universal RP asset not assigned, assign one in the Graphics Settings.", MessageType.Error);
+            var rpAsset = UniversalRenderPipeline.asset;
+            if (rpAsset == null)
+            {
+                base.OnInspectorGUI();
                 return;
-			}
+            }
 
             settings.Update();
             m_AdditionalCameraDataSO.Update();
@@ -474,18 +481,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
 
             DrawCommonSettings();
-            DrawRenderingSettings(camType);
+            DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
             // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
-                DrawOutputSettings();
+                DrawOutputSettings(rpAsset);
                 DrawStackSettings();
             }
 
             EditorGUI.indentLevel--;
-	        settings.ApplyModifiedProperties();
+            settings.ApplyModifiedProperties();
             m_AdditionalCameraDataSO.ApplyModifiedProperties();
         }
 
@@ -576,12 +583,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawRenderingSettings(CameraRenderType camType)
+        void DrawRenderingSettings(CameraRenderType camType, UniversalRenderPipelineAsset rpAsset)
         {
             m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
             if (m_RenderingSettingsFoldout.value)
             {
-                DrawRenderer();
+                DrawRenderer(rpAsset);
 
                 if (camType == CameraRenderType.Base)
                 {
@@ -617,12 +624,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
         }
 
-        void DrawOutputSettings()
+        void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
         {
             m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
             if (m_OutputSettingsFoldout.value)
             {
-                DrawTargetTexture();
+                DrawTargetTexture(rpAsset);
 
                 if (camera.targetTexture == null)
                 {
@@ -636,11 +643,11 @@ namespace UnityEditor.Rendering.Universal
                 {
                     settings.DrawNormalizedViewPort();
                 }
-
+#if ENABLE_VR && ENABLE_XR_MODULE
+                DrawXRRendering();
+#endif
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
-
-                DrawVRSettings();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
@@ -658,12 +665,16 @@ namespace UnityEditor.Rendering.Universal
         void DrawClearFlags()
         {
             // Converts between ClearFlags and Background Type.
-            BackgroundType backgroundType = GetBackgroundType((CameraClearFlags) settings.clearFlags.intValue);
+            BackgroundType backgroundType = GetBackgroundType((CameraClearFlags)settings.clearFlags.intValue);
             EditorGUI.showMixedValue = settings.clearFlags.hasMultipleDifferentValues;
 
             EditorGUI.BeginChangeCheck();
-            BackgroundType selectedType = (BackgroundType)EditorGUILayout.IntPopup(Styles.backgroundType, (int)backgroundType,
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.backgroundType, settings.clearFlags);
+
+            BackgroundType selectedType = (BackgroundType)EditorGUI.IntPopup(controlRect, Styles.backgroundType, (int)backgroundType,
                 Styles.cameraBackgroundType, Styles.cameraBackgroundValues);
+            EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -683,7 +694,7 @@ namespace UnityEditor.Rendering.Universal
                         break;
                 }
 
-                settings.clearFlags.intValue = (int) selectedClearFlags;
+                settings.clearFlags.intValue = (int)selectedClearFlags;
             }
         }
 
@@ -710,14 +721,26 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.EndProperty();
         }
 
-        void DrawTargetTexture()
+#if ENABLE_VR && ENABLE_XR_MODULE
+        void DrawXRRendering()
+        {
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.xrTargetEye, m_AdditionalCameraDataAllowXRRendering);
+            int selectedValue = !m_AdditionalCameraDataAllowXRRendering.boolValue ? 0 : 1;
+            m_AdditionalCameraDataAllowXRRendering.boolValue = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
+            EditorGUI.EndProperty();
+        }
+
+#endif
+
+        void DrawTargetTexture(UniversalRenderPipelineAsset rpAsset)
         {
             EditorGUILayout.PropertyField(settings.targetTexture, Styles.targetTextureLabel);
 
-            if (!settings.targetTexture.hasMultipleDifferentValues && m_UniversalRenderPipeline != null)
+            if (!settings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = m_UniversalRenderPipeline.msaaSampleCount;
+                int pipelineSamplesCount = rpAsset.msaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -757,19 +780,22 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void DrawRenderer()
+        void DrawRenderer(UniversalRenderPipelineAsset rpAsset)
         {
             int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
             EditorGUI.BeginChangeCheck();
 
-            EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUILayout.IntPopup(Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
 
-            if (!m_UniversalRenderPipeline.ValidateRendererDataList())
+            EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
+            EditorGUI.EndProperty();
+            if (!rpAsset.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
             }
-            else if (!m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
+            else if (!rpAsset.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
             }
@@ -853,7 +879,7 @@ namespace UnityEditor.Rendering.Universal
 
             EndProperty();
             return hasChanged;
-		}
+        }
 
         void DrawDepthTexture()
         {
@@ -884,20 +910,12 @@ namespace UnityEditor.Rendering.Universal
             var controlRect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(controlRect, style, prop);
             return controlRect;
-		}
+        }
 
         void DrawRenderShadows()
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderShadowsProp, Styles.renderingShadows);
         }
-
-        void DrawVRSettings()
-        {
-            settings.DrawVR();
-            using (var group = new EditorGUILayout.FadeGroupScope(m_ShowTargetEyeAnim.faded))
-                if (group.visible)
-                    settings.DrawTargetEye();
-		}
 
         void EndProperty()
         {
@@ -920,13 +938,28 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove Universal Camera");
-            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+                Undo.SetCurrentGroupName("Remove Universal Camera");
+                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
     }
 }

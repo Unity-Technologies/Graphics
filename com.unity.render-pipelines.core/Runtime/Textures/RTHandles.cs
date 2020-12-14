@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 width,
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFactor,
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFunc,
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -250,6 +250,17 @@ namespace UnityEngine.Rendering
             return s_DefaultInstance.Alloc(tex);
         }
 
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
+        /// </summary>
+        /// <param name="tex">Input render target identifier.</param>
+        /// <param name="name">Name of the render target.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public static RTHandle Alloc(RenderTargetIdentifier tex, string name)
+        {
+            return s_DefaultInstance.Alloc(tex, name);
+        }
+
         private static RTHandle Alloc(RTHandle tex)
         {
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");
@@ -268,14 +279,14 @@ namespace UnityEngine.Rendering
             int height,
             bool scaledRTsupportsMSAA,
             MSAASamples scaledRTMSAASamples
-            )
+        )
         {
             s_DefaultInstance.Initialize(
                 width,
                 height,
                 scaledRTsupportsMSAA,
                 scaledRTMSAASamples
-                );
+            );
         }
 
         /// <summary>
@@ -306,13 +317,13 @@ namespace UnityEngine.Rendering
             int width,
             int height,
             MSAASamples msaaSamples
-            )
+        )
         {
             s_DefaultInstance.SetReferenceSize(
                 width,
                 height,
                 msaaSamples
-                );
+            );
         }
 
         /// <summary>
