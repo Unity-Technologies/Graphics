@@ -347,11 +347,11 @@ namespace UnityEditor
             if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                 emissionColorProp.colorValue = Color.white;
 
-            // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
+                // TODO ENLIGHTEN expose as enum drop down same as built-in
                 var oldFlags = material.globalIlluminationFlags;
-                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+                var newFlags = oldFlags;
 
                 if (brightness <= 0f)
                     newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
