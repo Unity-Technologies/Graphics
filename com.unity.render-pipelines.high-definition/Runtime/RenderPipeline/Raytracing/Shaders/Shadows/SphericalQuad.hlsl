@@ -4,14 +4,14 @@
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
-	float denom = dot(normal, ray_dir);
-	if (abs(denom) > PLANE_INTERSECTION_EPSILON)
-	{ 
-	    float3 d = pos - ray_origin;
-	    t = dot(d, normal) / denom;
-	    return (t >= 0); 
-	} 
-	return false; 
+    float denom = dot(normal, ray_dir);
+    if (abs(denom) > PLANE_INTERSECTION_EPSILON)
+    {
+        float3 d = pos - ray_origin;
+        t = dot(d, normal) / denom;
+        return (t >= 0);
+    }
+    return false;
 }
 
 struct SphQuad
@@ -71,12 +71,12 @@ void SphQuadInit(float3 s, float3 ex, float3 ey, float3 o, out SphQuad squad)
     float g1 = FastACos(-dot(n1, n2));
     float g2 = FastACos(-dot(n2, n3));
     float g3 = FastACos(-dot(n3, n0));
-    
+
     // compute predefined constants
     squad.b0 = n0.z;
     squad.b1 = n2.z;
     squad.b0sq = squad.b0 * squad.b0;
-    squad.k = 2.0f * 	PI - g2 - g3;
+    squad.k = 2.0f *    PI - g2 - g3;
 
     // compute solid angle from internal angles
     squad.S = g0 + g1 - squad.k;

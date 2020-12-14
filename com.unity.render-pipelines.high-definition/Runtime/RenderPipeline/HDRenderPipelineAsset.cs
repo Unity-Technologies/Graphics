@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-
         }
 
         void Reset() => OnValidate();
@@ -93,14 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_LensAttenuation = value;
         }
 
-        [SerializeField] private bool m_UseRenderGraph = true;
-
-        internal bool useRenderGraph
-        {
-            get => m_UseRenderGraph;
-            set => m_UseRenderGraph = value;
-        }
-
 #if UNITY_EDITOR
         [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
 
@@ -146,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            switch(type)
+            switch (type)
             {
                 case FrameSettingsRenderType.Camera:
                     return ref m_RenderingPathDefaultCameraFrameSettings;
@@ -433,6 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
         }
+
 #endif
 
         /// <summary>

@@ -1,7 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-    using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 #endif
 
 using System.Collections.Generic;
@@ -378,6 +378,7 @@ namespace UnityEngine.Rendering
             inputAction = action;
             Trigger(action.bindings.Count, state);
         }
+
 #else
         public void TriggerWithButton(string[] buttons, float state)
         {
@@ -401,6 +402,7 @@ namespace UnityEngine.Rendering
             m_PressedAxis = "";
             Trigger(keys.Length, state);
         }
+
 #endif
 
         void Reset()

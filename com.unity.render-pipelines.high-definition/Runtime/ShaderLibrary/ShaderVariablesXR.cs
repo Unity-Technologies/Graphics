@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float _XRPrevViewProjMatrixNoCameraTrans[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRViewProjMatrixNoCameraTrans[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float _XRPixelCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
 

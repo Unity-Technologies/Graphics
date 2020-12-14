@@ -100,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             visible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
         }
+
 #endif
 
         bool IsVisible(HDCamera hdCamera)
@@ -113,31 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // We never execute volume if the layer is not within the culling layers of the camera
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
                 return false;
-            
+
             return true;
-        }
-
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
-        {
-            bool executed = false;
-
-            if (!IsVisible(hdCamera))
-                return false;
-
-            Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
-            if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
-                Shader.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, targets.cameraColorBuffer);
-
-            foreach (var pass in customPasses)
-            {
-                if (pass != null && pass.WillBeExecuted(hdCamera))
-                {
-                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
-                    executed = true;
-                }
-            }
-
-            return executed;
         }
 
         internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in CustomPass.RenderTargets targets)
@@ -429,6 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
     }
 }

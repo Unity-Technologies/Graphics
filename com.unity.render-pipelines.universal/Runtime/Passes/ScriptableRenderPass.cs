@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -48,7 +49,11 @@ namespace UnityEngine.Rendering.Universal
         /// Executes a <c>ScriptableRenderPass</c> before rendering prepasses, f.ex, depth prepass.
         /// Camera matrices and stereo rendering are already setup at this point.
         /// </summary>
-        BeforeRenderingPrepasses = 150,
+        BeforeRenderingPrePasses = 150,
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass' (UnityUpgradable) -> BeforeRenderingPrePasses")]
+        BeforeRenderingPrepasses = 151,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering prepasses, f.ex, depth prepass.
@@ -148,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -157,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
+            m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -202,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
-            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
@@ -283,7 +288,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void OnCameraCleanup(CommandBuffer cmd)
         {
-
         }
 
         /// <summary>
@@ -367,12 +371,12 @@ namespace UnityEngine.Rendering.Universal
             return settings;
         }
 
-        public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
         }
 
-        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator>(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }

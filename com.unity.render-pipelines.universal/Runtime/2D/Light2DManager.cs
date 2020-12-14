@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             foreach (var sortingLayer in light.affectedSortingLayers)
             {
                 // should this really trigger at runtime?
-                if(ContainsDuplicateGlobalLight(sortingLayer, light.blendStyleIndex))
+                if (ContainsDuplicateGlobalLight(sortingLayer, light.blendStyleIndex))
                     Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + light.blendStyleIndex);
             }
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             color = Color.black;
 
             // This should be rewritten to search only global lights
-            foreach(var light in lights)
+            foreach (var light in lights)
             {
                 if (light.lightType != Light2D.LightType.Global ||
                     light.blendStyleIndex != blendStyleIndex ||
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var globalLightCount = 0;
 
             // This should be rewritten to search only global lights
-            foreach(var light in lights)
+            foreach (var light in lights)
             {
                 if (light.lightType == Light2D.LightType.Global &&
                     light.blendStyleIndex == blendStyleIndex &&
@@ -106,14 +106,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static SortingLayer[] GetCachedSortingLayer()
         {
-            s_SortingLayers ??= SortingLayer.layers;
+            if (s_SortingLayers is null)
+            {
+                s_SortingLayers = SortingLayer.layers;
+            }
 #if UNITY_EDITOR
             // we should fix. Make a non allocating version of this
-            if(!Application.isPlaying)
+            if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
 #endif
             return s_SortingLayers;
         }
-
     }
 }

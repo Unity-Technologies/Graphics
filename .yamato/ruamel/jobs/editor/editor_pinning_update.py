@@ -27,8 +27,8 @@ class Editor_PinningUpdateJob():
                 echo "Should run on '{ target_branch }' but is running on '$GIT_BRANCH'"
                 exit 1
             fi'''),# This should never run on anything other than stable. If you try it then it will fail
-            f'git config --global user.name "noreply@unity3d.com"', # TODO
-            f'git config --global user.email "noreply@unity3d.com"', # TODO
+            f'git config --global user.name "noreply@unity3d.com"',
+            f'git config --global user.email "noreply@unity3d.com"', 
             f'pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch { target_branch_editor_ci } --force-push'
         ]
         
@@ -38,6 +38,6 @@ class Editor_PinningUpdateJob():
         job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_commands(commands)
-        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_target_to_ci()}']) #TODO toggle
-        job.add_trigger_recurrent(target_branch, '0 * * ?') # TODO uncomment
+        job.add_dependencies([f'{editor_pinning_filepath()}#{editor_job_id_target_to_ci()}']) 
+        job.add_trigger_recurrent(target_branch, '23 * * ?')
         return job
