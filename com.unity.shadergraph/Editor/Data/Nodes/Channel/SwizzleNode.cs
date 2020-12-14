@@ -43,17 +43,18 @@ namespace UnityEditor.ShaderGraph
         }
 
         //1.mask(xyzw) 0< length <=4
-        //2.mask cant be character other than "xyzw"
+        //2.mask cant be character other than "xyzwrgba"
         //3.If the input is not valid, wont genetate shader code and give errors
         public bool ValidateMaskInput(int InputValueSize)
         {
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
-            char[] AllChars  = {'x', 'y' , 'z', 'w'};
+            char[] AllChars  = {'x', 'y' , 'z', 'w', 'r','g', 'b', 'a'};
             List<char> CurrentChars = new List<char>();
             for (int i = 0; i < InputValueSize; i++)
             {
                 CurrentChars.Add(AllChars[i]);
+                CurrentChars.Add(AllChars[i+4]);
             }
 
             foreach (char c in MaskChars)
