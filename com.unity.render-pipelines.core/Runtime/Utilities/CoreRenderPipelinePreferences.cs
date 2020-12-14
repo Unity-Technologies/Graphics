@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering
     }
     public static class CoreRenderPipelinePreferences
     {
+        internal static bool k_ShowColorPicker = false;
         static bool m_Loaded = false;
 
         // Added default Colors so that they can be reverted back to these values
@@ -67,10 +68,12 @@ namespace UnityEngine.Rendering
                     EditorGUIUtility.labelWidth = 251;
                     volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
 
-                    Rect re = EditorGUILayout.GetControlRect();
-                    re.xMin = 10;
-                    previewBackgroundColor = EditorGUI.ColorField(re, "Preview Background Color", previewBackgroundColor);
-
+                    if (k_ShowColorPicker)
+                    {
+                        Rect re = EditorGUILayout.GetControlRect();
+                        re.xMin = 10;
+                        previewBackgroundColor = EditorGUI.ColorField(re, "Preview Background Color", previewBackgroundColor);
+                    }
                     if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
                     {
                         RevertColors();
@@ -82,7 +85,10 @@ namespace UnityEngine.Rendering
         static void RevertColors()
         {
             volumeGizmoColor = s_VolumeGizmoColorDefault;
-            previewBackgroundColor = s_PreviewCameraBackgroundColorDefault;
+            if (k_ShowColorPicker)
+            {
+                previewBackgroundColor = s_PreviewCameraBackgroundColorDefault;
+            }
         }
 
         static CoreRenderPipelinePreferences()
