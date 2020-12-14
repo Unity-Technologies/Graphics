@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
             using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+                cmd.SetRenderTarget(colorAttachment, depthAttachment);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -221,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
 
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
                         }
