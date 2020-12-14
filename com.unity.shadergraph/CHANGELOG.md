@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.3.0] - 2020-11-03
 
 ### Added
+- Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
