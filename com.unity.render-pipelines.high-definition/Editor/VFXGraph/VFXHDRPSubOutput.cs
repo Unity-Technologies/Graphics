@@ -14,10 +14,10 @@ namespace UnityEditor.VFX
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
-        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;       
+        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
 
         // Caps
-        public override bool supportsExposure { get { return true; } } 
+        public override bool supportsExposure { get { return true; } }
         public override bool supportsMotionVector
         {
             get
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
             base.OnSettingModified(setting);
             // Reset to default if render queue is invalid
             if (setting.name == "transparentRenderQueue")
-            {               
+            {
                 if (!supportsQueueSelection || (isLit && transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing))
                     transparentRenderQueue = TransparentRenderQueue.Default;
             }
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        
+
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
