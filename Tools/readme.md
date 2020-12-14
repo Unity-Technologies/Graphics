@@ -1,5 +1,7 @@
 # Tools
 
+_Questions: #devs-graphics-automation_
+
 ## Git-hooks
 
 Git hooks are a way to ensure that certain rules are being followed within a repo. They provide a way to run local checks before pushing code to the remote, allowing developers to catch issues sooner and iterate faster.
@@ -72,7 +74,7 @@ Last resort: [Troubleshooting SSH section in Github docs](https://docs.github.co
 
 
 
-**Python not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
+**Python or pre-commit not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
 
 Make sure Python (>=3.5) is in your PATH. Commands that can help:
 - On windows: `where python3`
@@ -81,7 +83,7 @@ Make sure Python (>=3.5) is in your PATH. Commands that can help:
 
 When running the Python installer on Windows, make sure to check "Add Python to Path"!
 
-If python can't find the `pre-commit` package, make sure the Scripts folder outputted in the error is in the PATH too.
+If python can't find the `pre-commit` package, make sure the Scripts folder outputted in the error is in the PATH too (use `where pre-commit` or `which pre-commit` to check which folder it is in).
 
 A clean reinstall of Python solves most issues. Make sure to rerun the `hooks_setup.py` script after you reinstall Python.
 
@@ -90,3 +92,13 @@ A clean reinstall of Python solves most issues. Make sure to rerun the `hooks_se
 **Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases.**
 
 Run `python` instead of `python3`.
+
+
+**bash: /path/to/AppData/Local/Microsoft/WindowsApps/python: Permission denied**
+
+Follow the suggestions of [this StackOverflow answer](https://stackoverflow.com/questions/56974927/permission-denied-trying-to-run-python-on-windows-10/57168165#57168165).
+
+
+**Can't locate Win32/Process.pm in @INC...**
+
+On Windows, Active perl is not supported by the formatting tool. Use Strawberry perl. 
