@@ -16,6 +16,7 @@ HDRP_Win_DX11_playmode_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -42,6 +43,7 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -59,32 +61,6 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
-HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_trunk:
-    name: HDRP on Win_DX11_playmode_NonRenderGraph_mono_Linear on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        TEST_FILTER: .*
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-non-rendergraph-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
 HDRP_Win_DX11_editmode_mono_Linear_trunk:
     name: HDRP on Win_DX11_editmode_mono_Linear on version trunk
     agent:
@@ -93,6 +69,7 @@ HDRP_Win_DX11_editmode_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -119,6 +96,7 @@ HDRP_Win_DX11_Standalone_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
@@ -139,6 +117,7 @@ Build_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
@@ -169,6 +148,7 @@ HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -199,6 +179,7 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -219,36 +200,6 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION:
-    name: HDRP on Win_DX11_playmode_NonRenderGraph_mono_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
-        flavor: b1.xlarge
-        model: rtx2080
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-        TEST_FILTER: .*
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-non-rendergraph-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
 HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -258,6 +209,7 @@ HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
@@ -288,6 +240,7 @@ HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
@@ -311,6 +264,7 @@ Build_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
