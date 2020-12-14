@@ -438,8 +438,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.gbuffer3 = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
                 }
 
-                passData.shadowHistoryArray = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(shadowHistoryArray)));
-                passData.analyticHistoryArray = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(analyticHistoryArray)));
+                passData.shadowHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(shadowHistoryArray));
+                passData.analyticHistoryArray = builder.ReadWriteTexture(renderGraph.ImportTexture(analyticHistoryArray));
 
                 // Intermediate buffers
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
@@ -448,10 +448,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.intermediateBufferRG0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Buffer RG0" });
 
                 // Debug textures
-                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
 
                 // Output buffers
-                passData.outputShadowTexture = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Shadow Buffer" })));
+                passData.outputShadowTexture = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Shadow Buffer" }));
                 builder.SetRenderFunc(
                 (RTShadowAreaPassData data, RenderGraphContext context) =>
                 {

@@ -249,6 +249,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Descriptor to determine how the texture will be in fast memory on platform that supports it.</summary>
         public FastMemoryDesc fastMemoryDesc;
 #endif
+        ///<summary>Determines whether the texture will fallback to a black texture if it is read without ever writing to it.</summary>
+        public bool fallBackToBlackTexture;
 
         // Initial state. Those should not be used in the hash
         ///<summary>Texture needs to be cleared on first use.</summary>
