@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using IResizable = UnityEditor.ShaderGraph.Drawing.Interfaces.IResizable;
+using UnityEditor.ShaderGraph.Drawing.Interfaces;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Change change {get; protected set; }
     }
 
-    class StickyNote : GraphElement, IResizable
+    class StickyNote : GraphElement, ISGResizable
     {
         GraphData m_Graph;
         public new StickyNoteData userData

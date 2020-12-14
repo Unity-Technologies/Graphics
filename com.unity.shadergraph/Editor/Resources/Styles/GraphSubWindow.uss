@@ -66,6 +66,7 @@
 
 .GraphSubWindow > .mainContainer > #content > ScrollView {
     flex: 1 0 0;
+    padding-bottom: 12;
 }
 
 .GraphSubWindow > .mainContainer > #content > #contentContainer {
