@@ -28,17 +28,18 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             PropertyDrawerUtils.AddDefaultNodeProperties(propertySheet, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
-            var inputListView = new ReorderableSlotListView(node, SlotType.Input);
+            var inputListView = new ReorderableSlotListView(node, SlotType.Input, true);
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
             inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(inputListView);
 
-            var outputListView = new ReorderableSlotListView(node, SlotType.Output);
+            var outputListView = new ReorderableSlotListView(node, SlotType.Output, true);
             outputListView.OnAddCallback += list => inspectorUpdateDelegate();
             outputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(outputListView);
+
             propertySheet.Add(new HlslFunctionView(node));
             propertyVisualElement = null;
             return propertySheet;

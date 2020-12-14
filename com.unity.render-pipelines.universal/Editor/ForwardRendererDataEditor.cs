@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for Universal RP.");
-            public static readonly GUIContent PostProcessLabel = new GUIContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
+            public static readonly GUIContent PostProcessLabel = new GUIContent("Post Process Data (Deprecated)", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
@@ -57,11 +57,18 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
+
+            // PostProcessData was moved into Universal Render Pipeline asset.
+            // We keep this for backward compatibility if user still has PostProcessData in Renderer.
+            if (m_PostProcessData.objectReferenceValue != null)
+            {
+                EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
+                EditorGUILayout.HelpBox("The Post Processing Data property is moved to the Render Pipeline asset.", MessageType.Warning);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
 
             EditorGUILayout.LabelField(Styles.FilteringLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.Graphing.Util;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
