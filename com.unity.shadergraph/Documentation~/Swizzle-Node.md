@@ -2,9 +2,10 @@
 
 ## Description
 
-Creates a new vector of the same dimension as the input vector. The channels of the output vector are the same as the input vector but re-ordered by the dropdown parameters on the node. This is called swizzling.
+Creates a new vector using the same elements as the input vector (the dimension of the output vector depends on the input mask length). The channels of the output vector are the same as the input vector but re-ordered according to the input mask value on the node. This is called swizzling.
 
-Channel dropdown parameters are dynamic depending on the length of the input vector's dimension. Dropdowns for channels that are not present will be disabled and dropdowns will only contain entries for channels that exist in the vector.
+The dimension of the output vector depends on the length of input mask value. Input mask value that contains channel(s) not exist in the input vector will be flagged as "Invalid Mask".
+
 
 ## Ports
 
@@ -17,15 +18,12 @@ Channel dropdown parameters are dynamic depending on the length of the input vec
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Red out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's red channel |
-| Green out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's green channel |
-| Blue out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's blue channel |
-| Alpha out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's alpha channel |
+| Mask     | Inputfield | X, Y, Z, W (depending on input vector dimension) | The swizzle mask is a combination of one to four characters that can be x, y, z, or w. The size of output value depends on the length of the mask input.|
+
 
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.
 
 ```
-float4 _Swizzle_Out = In.xzyw;
-```
+float4 _Swizzle_Out = float4 (In.y,In.z,In.w,In.x);
