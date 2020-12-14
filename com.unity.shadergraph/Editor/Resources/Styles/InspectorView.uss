@@ -41,6 +41,16 @@
     border-top-right-radius: 6px;
 }
 
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+    bottom: 12;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+    right: 12;
+}
+
 #labelContainer {
     flex: 1 0 0;
     flex-direction: column;

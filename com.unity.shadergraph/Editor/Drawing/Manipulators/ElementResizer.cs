@@ -83,13 +83,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var parentRootPosition = resizedBase.worldBound;
             // Top left of the target visual element for resizing
             var targetRootPosition = resizedTarget.worldBound;
-            var canResizePastParentBounds = ((IResizable) resizedTarget).CanResizePastParentBounds();
+            var canResizePastParentBounds = ((ISGResizable) resizedTarget).CanResizePastParentBounds();
 
             Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
 
             if (!m_DragStarted)
             {
-                var resizable = (IResizable)resizedTarget;
+                var resizable = (ISGResizable)resizedTarget;
                 resizable.OnStartResize();
                 m_DragStarted = true;
             }
@@ -211,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 VisualElement resizedTarget = resizedElement.parent;
                 if (resizedTarget.style.width != m_StartSize.x || resizedTarget.style.height != m_StartSize.y)
                 {
-                    if (resizedTarget is IResizable resizable)
+                    if (resizedTarget is ISGResizable resizable)
                     {
                         resizable.OnResized();
                     }

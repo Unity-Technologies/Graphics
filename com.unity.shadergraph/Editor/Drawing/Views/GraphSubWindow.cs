@@ -102,7 +102,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         public override VisualElement contentContainer => m_ContentContainer;
 
-        readonly bool m_Scrollable = false;
+        private bool m_IsScrollable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowScrollable
+        {
+            get => m_IsScrollable;
+            set
+            {
+                if (m_IsScrollable != value)
+                {
+                    m_ScrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+                    m_IsScrollable = value;
+                    HandleScrollingBehavior(m_IsScrollable);
+                }
+            }
+        }
 
         void HandleScrollingBehavior(bool scrollable)
         {
@@ -159,9 +174,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
             style.overflow = Overflow.Hidden;
             focusable = false;
-
-            m_Scrollable = true;
-            HandleScrollingBehavior(m_Scrollable);
 
             name = elementName;
             title = windowTitle;
