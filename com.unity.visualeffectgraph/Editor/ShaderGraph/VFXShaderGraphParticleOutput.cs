@@ -566,7 +566,7 @@ namespace UnityEditor.VFX
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if (graphCode.properties.Any())
-                            callSG.builder.Append("," + graphCode.properties.Select(t => IsTexture(t.propertyType) ? (t.propertyType == PropertyType.Texture2D ? $"{t.referenceName}, sampler{t.referenceName}, {t.referenceName}_TexelSize" : $"{t.referenceName}, sampler{t.referenceName}") : t.referenceName).Aggregate((s, t) => s + ", " + t));
+                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(false)).Aggregate((s, t) => s + ", " + t));
 
                         callSG.builder.AppendLine(");");
 
