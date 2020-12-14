@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void QueueAssetLoading()
         {
-            if (VolumeAsset == null)
+            if (VolumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         private void Start()
         {
-            if (m_Profile == null)
+            if (ShaderConfig.s_EnableProbeVolumes == 1 && m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 
             CheckInit();
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
-            if (m_Profile != null)
+            if (ShaderConfig.s_EnableProbeVolumes == 1 && m_Profile != null)
             {
                 if (m_PrevIndexDimensions != indexDimensions)
                 {
@@ -250,6 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnDrawGizmos()
         {
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
+                return;
+
             if (DrawCells)
             {
                 // Fetching this from components instead of from the reference volume allows the user to

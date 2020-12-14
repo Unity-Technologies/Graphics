@@ -64,7 +64,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void OnBakeStarted()
         {
-            RunPlacement();
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            {
+                RunPlacement();
+            }
         }
 
         private static void OnAdditionalProbesBakeCompleted()

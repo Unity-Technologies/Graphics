@@ -61,6 +61,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
+            {
+                EditorGUILayout.HelpBox("Warning: Probe Volumes are not enabled.\nIt is an highly experimental feature and disabled by default for this reason.\n Its functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\n" +
+                    "It should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:" +
+                    "\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.",
+                    MessageType.Warning, wide: true);
+
+                return;
+            }
+
             serializedObject.Update();
 
             var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();

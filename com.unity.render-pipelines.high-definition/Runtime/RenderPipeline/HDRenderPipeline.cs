@@ -845,7 +845,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Cleanup();
 
             DecalSystem.instance.Cleanup();
-            ProbeReferenceVolume.instance.Cleanup();
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
+            }
 
             m_MaterialList.ForEach(material => material.Cleanup());
 

@@ -896,7 +896,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, new Vector3Int(1024, 64, 1024));
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            {
+                ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, new Vector3Int(1024, 64, 1024));
+            }
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();
@@ -976,7 +979,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We need to verify and flush any pending asset loading for probe volume.
             if (ShaderConfig.s_EnableProbeVolumes == 1)
+            {
                 ProbeReferenceVolume.instance.PerformPendingOperations();
+            }
         }
 
         static int NumLightIndicesPerClusteredTile()
