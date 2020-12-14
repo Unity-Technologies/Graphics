@@ -16,7 +16,7 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
 expression_trigger: 
-  expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -176,6 +176,8 @@ nightly:
     - project: VFX_URP
       nightly: true
     - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
       nightly: true
     - platform: Win
       api: DX11
