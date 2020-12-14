@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -257,10 +258,10 @@ namespace UnityEditor.ShaderGraph
         internal static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, PassDescriptor pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
         {
             // Traverse Graph Data
-            vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+            vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, outputNode, NodeUtils.IncludeSelf.Include);
 
-            pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+            pixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include);
         }
 
@@ -280,8 +281,8 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < keywordCollector.permutations.Count; i++)
                 {
                     // Get active nodes for this permutation
-                    var localVertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                    var localPixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
+                    var localVertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
+                    var localPixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
 
                     foreach (var vertexNode in vertexNodes)
                     {

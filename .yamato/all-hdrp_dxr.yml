@@ -17,6 +17,7 @@ All_HDRP_DXR_trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
 All_HDRP_DXR_CUSTOM-REVISION:
     name: All HDRP_DXR CI - CUSTOM-REVISION
@@ -29,4 +30,5 @@ All_HDRP_DXR_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
