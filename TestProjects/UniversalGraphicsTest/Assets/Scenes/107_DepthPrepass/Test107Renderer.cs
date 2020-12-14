@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_DefaultStencilState = new StencilState();
 
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", false, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/, m_DefaultStencilState, 0 /*stencilData.stencilReference*/);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
