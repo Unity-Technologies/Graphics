@@ -55,10 +55,14 @@ namespace UnityEngine.Rendering
             m_DebugActionStates = new DebugActionState[(int)DebugAction.DebugActionCount];
 
             var enableDebugMenu = new DebugActionDesc();
+
+            // custom-begin:
+            // Completely remove HDRP debug display from being triggerable.
 #if USE_INPUT_SYSTEM
-            enableDebugMenu.buttonAction = debugActionMap.FindAction(kEnableDebug);
+            // enableDebugMenu.buttonAction = debugActionMap.FindAction(kEnableDebug);
 #else
-            enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
+            // enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
+            // custom-end
             enableDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftControl, KeyCode.Backspace });
 #endif
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
