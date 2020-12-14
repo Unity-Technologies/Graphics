@@ -271,5 +271,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _SpecularOcclusionBlend;
 
         public int      _HybridDeformedVertexStreamIndex;
+
+		public uint _EnableDynamicBranchLighting;
+		public float   _Pad8;
+		public float   _Pad9;
+		public float   _Pad10;
+        // custom-end
     }
 }

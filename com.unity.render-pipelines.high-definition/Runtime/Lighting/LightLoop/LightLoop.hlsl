@@ -192,6 +192,19 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Init LightLoop output structure
     ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
 
+    // custom-begin:
+    if (_EnableDynamicBranchLighting == 0)
+    {
+        // Apply simple fake wrap lighting (with ambient) to improve read on surface curvature, while remaining mostly unlit.
+        // This view is used when level designers are authoring scenes that do not have light rigs setup.
+        float4 defaultColor = GetDiffuseOrDefaultColor(bsdfData, 1.0);
+        lightLoopOutput.diffuseLighting = dot(normalize(float3(1.0f, 1.0f, 1.0f)), bsdfData.normalWS) * 0.25f + 0.75f;
+        lightLoopOutput.diffuseLighting *= defaultColor.rgb;
+        lightLoopOutput.specularLighting = 0.0f;
+        return;
+    }
+    // custom-end
+
     LightLoopContext context;
 
     context.shadowContext    = InitShadowContext();
