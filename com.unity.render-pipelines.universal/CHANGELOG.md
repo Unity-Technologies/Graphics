@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
+- Fixed the default background color for previews to use the original color that Unity always had.
 
 ## [10.2.0] - 2020-10-19
 
@@ -163,7 +164,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new sections to documentation: [Writing custom shaders](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/writing-custom-shaders-urp.html), and [Using the beginCameraRendering event](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/using-begincamerarendering.html).
 - Added support for GPU instanced mesh particles on supported platforms.
 - Added API to check if a Camera or Light is compatible with Universal Render Pipeline.
-- Added functionality to change the background color of previews.
 
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.

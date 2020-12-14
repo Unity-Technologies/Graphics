@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
         static void Load()
         {
             s_VolumeGizmoColor = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
-            s_PreviewCameraBackgroundColor = GetColor(Keys.cameraBackgroundColor, new Color(49.0f / 255.0f, 49.0f / 255.0f, 49.0f / 255.0f, 0.0f));
+            s_PreviewCameraBackgroundColor = GetColor(Keys.cameraBackgroundColor, new Color(82.0f / 255.0f, 82.0f / 255.0f, 82.0f / 255.0f, 0.0f));
 
             m_Loaded = true;
         }
