@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     using Volume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
-    public static class ProbeVolumePositioning
+    internal static class ProbeVolumePositioning
     {
         internal static Vector3[] m_Axes = new Vector3[6];
 

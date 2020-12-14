@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
-    public class ProbeReferenceVolumeAuthoringEditor : Editor
+    internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
         private SerializedProperty m_DrawProbes;
         private SerializedProperty m_DrawBricks;

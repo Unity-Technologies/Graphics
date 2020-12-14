@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     using Volume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
-    public class ProbePlacement
+    internal class ProbePlacement
     {
         static protected Volume ToVolume(Bounds bounds)
         {

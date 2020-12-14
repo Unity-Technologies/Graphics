@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
 { 
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
-    public class ProbeReferenceVolumeAuthoring : MonoBehaviour
+    internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
         internal static ProbeReferenceVolumeProfile CreateReferenceVolumeProfile(Scene scene, string targetName)
         {
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // trigger the right initialization sequence only when needed.
         private Vector3Int m_PrevIndexDimensions;
 
-        public void QueueAssetLoading()
+        internal void QueueAssetLoading()
         {
             if (VolumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
                 return;

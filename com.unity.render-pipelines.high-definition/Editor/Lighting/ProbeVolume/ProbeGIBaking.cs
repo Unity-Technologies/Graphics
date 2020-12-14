@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public class ProbeGIBaking
+    internal class ProbeGIBaking
     {
         static bool init = false;
 
