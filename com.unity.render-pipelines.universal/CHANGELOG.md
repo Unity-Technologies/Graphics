@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
 - Changed shader keywords of main light shadow from toggling to enumerating.
 - Moved `ForwardRendererData.postProcessData` into `UniversalRenderPipelineAsset.postProcessData` and made it optional. Builds do not include post-processing shaders and textures when `UniversalRenderPipelineAsset.postProcessData` is null.
+- Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 
 ### Fixed
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
