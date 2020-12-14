@@ -42,9 +42,10 @@
 				v2f o;
 				UNITY_SETUP_INSTANCE_ID(v);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-				o.vertex = TransformObjectToHClip(v.vertex);
+			    VertexPositionInputs vertexInputs = GetVertexPositionInputs(v.vertex);
+				o.vertex = vertexInputs.positionCS;
 				o.uv = v.uv;
-				o.screenUV = ComputeScreenPos(o.vertex);
+				o.screenUV = vertexInputs.positionNDC;
 				return o;
 			}
 
