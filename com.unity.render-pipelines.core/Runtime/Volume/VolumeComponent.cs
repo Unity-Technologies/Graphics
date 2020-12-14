@@ -79,6 +79,27 @@ namespace UnityEngine.Rendering
 #pragma warning restore 414
 
         /// <summary>
+        /// Extracts all the <see cref="VolumeParameter"/>s defined in this class and nested classes.
+        /// </summary>
+        static void GetParameters(object o, List<VolumeParameter> parameters)
+        {
+            if (o == null)
+                return;
+
+            var fields = o.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .OrderBy(t => t.MetadataToken); // Guaranteed order
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                    parameters.Add((VolumeParameter)field.GetValue(o));
+                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
+                    GetParameters(field.GetValue(o), parameters);
+            }
+        }
+
+        /// <summary>
         /// Unity calls this method when it loads the class.
         /// </summary>
         /// <remarks>
@@ -87,17 +108,13 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
-            parameters = this.GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic  | BindingFlags.Instance)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .OrderBy(t => t.MetadataToken) // Guaranteed order
-                .Select(t => (VolumeParameter)t.GetValue(this))
-                .ToList()
-                .AsReadOnly();
+            var fields = new List<VolumeParameter>();
+            GetParameters(this, fields);
+            parameters = fields.AsReadOnly();
 
             foreach (var parameter in parameters)
             {
-                if(parameter != null)
+                if (parameter != null)
                     parameter.OnEnable();
                 else
                     Debug.LogWarning("Volume Component " + GetType().Name + " contains a null parameter; please make sure all parameters are initialized to a default value. Until this is fixed the null parameters will not be considered by the system.");
@@ -118,6 +135,7 @@ namespace UnityEngine.Rendering
                     parameter.OnDisable();
             }
         }
+
         /// <summary>
         /// Interpolates a <see cref="VolumeComponent"/> with this component by an interpolation
         /// factor and puts the result back into the given <see cref="VolumeComponent"/>.
@@ -192,7 +210,7 @@ namespace UnityEngine.Rendering
                     // This method won't be called a lot but this is sub-optimal, fix me
                     var innerParams = (ReadOnlyCollection<VolumeParameter>)
                         t.GetProperty("parameters", BindingFlags.NonPublic | BindingFlags.Instance)
-                        .GetValue(prop, null);
+                            .GetValue(prop, null);
 
                     if (innerParams != null)
                         SetAllOverridesTo(innerParams, state);
@@ -231,7 +249,7 @@ namespace UnityEngine.Rendering
         {
             for (int i = 0; i < parameters.Count; i++)
             {
-                if(parameters[i] != null)
+                if (parameters[i] != null)
                     parameters[i].Release();
             }
         }

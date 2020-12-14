@@ -37,7 +37,7 @@ Shader "Hidden/Light2D-Point"
             {
                 float4  positionCS      : SV_POSITION;
                 half2   uv              : TEXCOORD0;
-                half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
+                half2   lookupUV        : TEXCOORD2;  // This is used for light relative direction
 
                 NORMALS_LIGHTING_COORDS(TEXCOORD4, TEXCOORD5)
                 SHADOW_COORDS(TEXCOORD6)
@@ -59,13 +59,13 @@ Shader "Hidden/Light2D-Point"
             NORMALS_LIGHTING_VARIABLES
             SHADOW_VARIABLES
 
-            half4	    _LightColor;
+            half4       _LightColor;
             float4x4    _LightInvMatrix;
             float4x4    _LightNoRotInvMatrix;
-            half	    _OuterAngle;			    // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-            half	    _InverseHDREmulationScale;
+            half        _OuterAngle;                // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half        _InnerAngleMult;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half        _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
+            half        _InverseHDREmulationScale;
             half        _IsFullSpotlight;
 
             Varyings vert(Attributes input)

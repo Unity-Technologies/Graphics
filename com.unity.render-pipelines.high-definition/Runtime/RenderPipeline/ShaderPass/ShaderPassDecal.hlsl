@@ -8,9 +8,9 @@
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
 #if UNITY_REVERSED_Z
-	input.vmesh.positionCS.z -= _DecalMeshDepthBias;
+    input.vmesh.positionCS.z -= _DecalMeshDepthBias;
 #else
-	input.vmesh.positionCS.z += _DecalMeshDepthBias;
+    input.vmesh.positionCS.z += _DecalMeshDepthBias;
 #endif
 }
 
@@ -19,7 +19,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-	MeshDecalsPositionZBias(varyingsType);
+    MeshDecalsPositionZBias(varyingsType);
 #endif
     return PackVaryingsType(varyingsType);
 }
@@ -43,9 +43,9 @@ void Frag(  PackedVaryingsToPS packedInput,
     float clipValue = 1.0;
     float angleFadeFactor = 1.0;
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 
-	float depth = LoadCameraDepth(input.positionSS.xy);
+    float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Decal layer mask accepted by the receiving material
@@ -105,7 +105,8 @@ void Frag(  PackedVaryingsToPS packedInput,
 
         if (angleFade.y < 0.0f) // if angle fade is enabled
         {
-            float dotAngle = dot(material.geomNormalWS, normalToWorld[2].xyz);
+            float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
+            float dotAngle = dot(material.geomNormalWS, decalNormal);
             // See equation in DecalSystem.cs - simplified to a madd mul add here
             angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
         }

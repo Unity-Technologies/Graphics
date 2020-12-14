@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ForceBakingEnabled()
         {
         }
+
 #endif
     } 
 } // UnityEngine.Experimental.Rendering.HDPipeline

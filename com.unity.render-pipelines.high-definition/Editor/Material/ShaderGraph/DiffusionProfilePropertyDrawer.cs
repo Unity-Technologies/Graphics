@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (valueChangedCallback != null)
             {
-                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((DiffusionProfileSettings) evt.newValue); });
+                objectField.RegisterValueChangedCallback(evt => { valueChangedCallback((DiffusionProfileSettings)evt.newValue); });
             }
 
             propertyColorField = objectField;
@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (DiffusionProfileSettings) propertyInfo.GetValue(actualObject),
+                (DiffusionProfileSettings)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

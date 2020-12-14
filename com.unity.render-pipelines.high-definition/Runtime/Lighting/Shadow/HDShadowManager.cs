@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -37,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Dynamic = 0,
         // Fully cached shadow maps (nothing is rendered unless requested)
         Cached,
-        // Mixed, static shadow caster are cached and updated as indicated, dynamic are drawn on top. 
+        // Mixed, static shadow caster are cached and updated as indicated, dynamic are drawn on top.
         Mixed
     }
 
@@ -194,9 +195,9 @@ namespace UnityEngine.Rendering.HighDefinition
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
             cachedPunctualLightShadowAtlas      = 2048,
             cachedAreaLightShadowAtlas          = 1024,
-            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionDirectional         = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionArea                = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionPunctual            = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
             supportScreenSpaceShadows           = false,
             maxScreenSpaceShadowSlots           = 4,
@@ -204,7 +205,6 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
-
         };
 
         internal const int k_DefaultShadowAtlasResolution = 4096;
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    partial class HDShadowManager : IDisposable
+    partial class HDShadowManager
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
         public const int            k_MinShadowMapResolution = 16;
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer               m_DirectionalShadowDataBuffer;
 
         // The two shadowmaps atlases we uses, one for directional cascade (without resize) and the second for the rest of the shadows
-        HDDynamicShadowAtlas               m_CascadeAtlas;      
+        HDDynamicShadowAtlas               m_CascadeAtlas;
         HDDynamicShadowAtlas               m_Atlas;
         HDDynamicShadowAtlas               m_AreaLightShadowAtlas;
 
@@ -297,17 +297,20 @@ namespace UnityEngine.Rendering.HighDefinition
         Material                    m_BlitShadowMaterial;
         MaterialPropertyBlock       m_BlitShadowPropertyBlock = new MaterialPropertyBlock();
 
-        private static HDShadowManager s_Instance = new HDShadowManager();
-
-        public static HDShadowManager instance { get { return s_Instance; } }
         public static HDCachedShadowManager cachedShadowManager {  get { return HDCachedShadowManager.instance; } }
 
-
-        private HDShadowManager()
-        {}
-
-        public void InitShadowManager(RenderPipelineResources renderPipelineResources, HDShadowInitParameters initParams, Shader clearShader)
+        public void InitShadowManager(RenderPipelineResources renderPipelineResources, HDShadowInitParameters initParams, RenderGraph renderGraph, Shader clearShader)
         {
+            // Even when shadows are disabled (maxShadowRequests == 0) we need to allocate compute buffers to avoid having
+            // resource not bound errors when dispatching a compute shader.
+            m_ShadowDataBuffer = new ComputeBuffer(Mathf.Max(initParams.maxShadowRequests, 1), System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
+            m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
+            m_MaxShadowRequests = initParams.maxShadowRequests;
+            m_ShadowRequestCount = 0;
+
+            if (initParams.maxShadowRequests == 0)
+                return;
+
             m_ClearShadowMaterial = CoreUtils.CreateEngineMaterial(clearShader);
             m_BlitShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.shadowBlitPS);
 
@@ -323,50 +326,38 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // The cascade atlas will be allocated only if there is a directional light
-            m_Atlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.punctualLightShadowAtlas.shadowAtlasResolution, initParams.punctualLightShadowAtlas.shadowAtlasResolution,
-                                    HDShaderIDs._ShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Shadow Map Atlas");
+            m_Atlas = new HDDynamicShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: false, initParams.punctualLightShadowAtlas.shadowAtlasResolution, initParams.punctualLightShadowAtlas.shadowAtlasResolution,
+                HDShaderIDs._ShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Shadow Map Atlas");
             // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
             HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
-            m_CascadeAtlas = new HDDynamicShadowAtlas(renderPipelineResources, 1, 1, HDShaderIDs._ShadowmapCascadeAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, cascadeBlur, depthBufferBits: initParams.directionalShadowsDepthBits, name: "Cascade Shadow Map Atlas");
+            m_CascadeAtlas = new HDDynamicShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: false, 1, 1, HDShaderIDs._ShadowmapCascadeAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, cascadeBlur, depthBufferBits: initParams.directionalShadowsDepthBits, name: "Cascade Shadow Map Atlas");
 
             if (ShaderConfig.s_AreaLights == 1)
-                m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
-                                                        HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
+                m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: false, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
+                    HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
 
-            m_ShadowDataBuffer = new ComputeBuffer(initParams.maxShadowRequests, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
-            m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
-
-            m_MaxShadowRequests = initParams.maxShadowRequests;
-
-            cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
-                                            HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
+            cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: true, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
+                HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)
-                cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
-                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
+                cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: true, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
+                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
         }
 
-        public void InitializeNonRenderGraphResources()
+        public void Cleanup(RenderGraph renderGraph)
         {
-            m_Atlas.AllocateRenderTexture();
-            m_CascadeAtlas.AllocateRenderTexture();
-            cachedShadowManager.punctualShadowAtlas.AllocateRenderTexture();
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.AllocateRenderTexture();
-                cachedShadowManager.areaShadowAtlas.AllocateRenderTexture();
-            }
-        }
+            m_ShadowDataBuffer.Dispose();
+            m_DirectionalShadowDataBuffer.Dispose();
 
-        public void CleanupNonRenderGraphResources()
-        {
-            m_Atlas.Release();
-            m_CascadeAtlas.Release();
-            cachedShadowManager.punctualShadowAtlas.Release();
+            if (m_MaxShadowRequests == 0)
+                return;
+
+            m_Atlas.Release(renderGraph);
             if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.Release();
-                cachedShadowManager.areaShadowAtlas.Release();
-            }
+                m_AreaLightShadowAtlas.Release(renderGraph);
+            m_CascadeAtlas.Release(renderGraph);
+
+            CoreUtils.Destroy(m_ClearShadowMaterial);
+            cachedShadowManager.Cleanup(renderGraph);
         }
 
         // Keep in sync with both HDShadowSampling.hlsl
@@ -386,12 +377,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     return DirectionalShadowAlgorithm.PCSS;
                 }
-            };
+            }
+            ;
             return DirectionalShadowAlgorithm.PCF5x5;
         }
 
         public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             cb._CascadeShadowCount = (uint)(m_CascadeCount + 1);
             cb._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
             cb._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
@@ -491,11 +486,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (addDynamic)
                     {
                         m_Atlas.AddShadowRequest(shadowRequest);
-                        if(updateType == ShadowMapUpdateType.Mixed)
+                        if (updateType == ShadowMapUpdateType.Mixed)
                             m_Atlas.AddRequestToPendingBlitFromCache(shadowRequest);
                     }
 
-                        break;
+                    break;
                 }
                 case ShadowMapType.CascadedDirectional:
                 {
@@ -517,7 +512,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     break;
                 }
-            };
+            }
+            ;
         }
 
         public void UpdateCascade(int cascadeIndex, Vector4 cullingSphere, float border)
@@ -531,10 +527,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed (float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
+                fixed(float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
                     ((Vector4 *)sphereCascadesBuffer)[cascadeIndex] = cullingSphere;
-                fixed (float * cascadeBorders = m_DirectionalShadowData.cascadeBorders)
-                    cascadeBorders[cascadeIndex] = border;
+                fixed(float * cascadeBorders = m_DirectionalShadowData.cascadeBorders)
+                cascadeBorders[cascadeIndex] = border;
             }
         }
 
@@ -582,7 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe Vector4 GetCascadeSphereAtIndex(int index)
         {
-            fixed (float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
+            fixed(float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
             {
                 return ((Vector4 *)sphereCascadesBuffer)[index];
             }
@@ -595,6 +591,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             cachedShadowManager.UpdateDebugSettings(lightingDebugSettings);
 
             m_Atlas.UpdateDebugSettings(lightingDebugSettings);
@@ -626,6 +625,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCamera camera)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             int shadowIndex = 0;
 
             m_ShadowDatas.Clear();
@@ -636,7 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(m_ShadowRequests[i] != null);
 
                 HDShadowAtlas atlas = m_Atlas;
-                if(m_ShadowRequests[i].isInCachedAtlas)
+                if (m_ShadowRequests[i].isInCachedAtlas)
                 {
                     atlas = cachedShadowManager.punctualShadowAtlas;
                 }
@@ -648,7 +650,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_ShadowRequests[i].shadowMapType == ShadowMapType.AreaLightAtlas)
                 {
                     atlas = m_AreaLightShadowAtlas;
-                    if(m_ShadowRequests[i].isInCachedAtlas)
+                    if (m_ShadowRequests[i].isInCachedAtlas)
                     {
                         atlas = cachedShadowManager.areaShadowAtlas;
                     }
@@ -671,7 +673,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int first = k_DirectionalShadowCascadeCount, second = k_DirectionalShadowCascadeCount;
 
-            fixed (float *sphereBuffer = m_DirectionalShadowData.sphereCascades)
+            fixed(float *sphereBuffer = m_DirectionalShadowData.sphereCascades)
             {
                 Vector4 * sphere = (Vector4 *)sphereBuffer;
                 for (int i = 0; i < k_DirectionalShadowCascadeCount; i++)
@@ -698,86 +700,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
-        {
-            // Avoid to do any commands if there is no shadow to draw
-            if (m_ShadowRequestCount == 0)
-                return ;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedPunctualShadowMaps)))
-            {
-                cachedShadowManager.punctualShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                cachedShadowManager.punctualShadowAtlas.AddBlitRequestsForUpdatedShadows(m_Atlas);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedAreaShadowMaps)))
-            {
-                if (ShaderConfig.s_AreaLights == 1)
-                {
-                    cachedShadowManager.areaShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                    cachedShadowManager.areaShadowAtlas.AddBlitRequestsForUpdatedShadows(m_AreaLightShadowAtlas);
-                }
-            }
-
-            BlitCacheIntoAtlas(cmd);
-
-            // Clear atlas render targets and draw shadows
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderPunctualShadowMaps)))
-            {
-                m_Atlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDirectionalShadowMaps)))
-            {
-                m_CascadeAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderAreaShadowMaps)))
-            {
-                if (ShaderConfig.s_AreaLights == 1)
-                {
-                    m_AreaLightShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                }
-            }
-        }
-
-        public void BlitCacheIntoAtlas(CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitPunctualMixedCachedShadowMaps)))
-            {
-
-                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_Atlas.PrepareShadowBlitParameters(cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
-                                                        m_Atlas.renderTarget,
-                                                        cachedShadowManager.punctualShadowAtlas.renderTarget,
-                                                        cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitAreaMixedCachedShadowMaps)))
-            {
-                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_AreaLightShadowAtlas.PrepareShadowBlitParameters(cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
-                                                        m_AreaLightShadowAtlas.renderTarget,
-                                                        cachedShadowManager.areaShadowAtlas.renderTarget,
-                                                        cmd);
-            }
-        }
-
         public void PushGlobalParameters(CommandBuffer cmd)
         {
             // This code must be in sync with HDShadowContext.hlsl
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
-        }
-
-        public void BindResources(CommandBuffer cmd)
-        {
-            m_Atlas.BindResources(cmd);
-            m_CascadeAtlas.BindResources(cmd);
-            cachedShadowManager.punctualShadowAtlas.BindResources(cmd);
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.BindResources(cmd);
-                cachedShadowManager.areaShadowAtlas.BindResources(cmd);
-            }
         }
 
         public int GetShadowRequestCount()
@@ -787,13 +714,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Clear()
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             // Clear the shadows atlas infos and requests
             m_Atlas.Clear();
             m_CascadeAtlas.Clear();
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas.Clear();
 
-            cachedShadowManager.ClearShadowRequests(); 
+            cachedShadowManager.ClearShadowRequests();
 
             m_ShadowResolutionRequestCounter = 0;
 
@@ -809,20 +739,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle cachedPunctualShadowAtlas;
             public RTHandle cachedAreaShadowAtlas;
-        }
-
-        public ShadowDebugAtlasTextures GetDebugAtlasTextures()
-        {
-            var result = new ShadowDebugAtlasTextures();
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                result.areaShadowAtlas = m_AreaLightShadowAtlas.renderTarget;
-                result.cachedAreaShadowAtlas = cachedShadowManager.areaShadowAtlas.renderTarget;
-            }
-            result.punctualShadowAtlas = m_Atlas.renderTarget;
-            result.cascadeShadowAtlas = m_CascadeAtlas.renderTarget;
-            result.cachedPunctualShadowAtlas = cachedShadowManager.punctualShadowAtlas.renderTarget;
-            return result;
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
@@ -889,20 +805,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
                 }
-            };
-        }
-
-        public void Dispose()
-        {
-            m_ShadowDataBuffer.Dispose();
-            m_DirectionalShadowDataBuffer.Dispose();
-            m_Atlas.Release();
-            if (ShaderConfig.s_AreaLights == 1)
-                m_AreaLightShadowAtlas.Release();
-            m_CascadeAtlas.Release();
-
-            CoreUtils.Destroy(m_ClearShadowMaterial);
-            cachedShadowManager.Dispose();
+            }
+            ;
         }
     }
 }

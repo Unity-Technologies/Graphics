@@ -41,7 +41,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             half  _InverseHDREmulationScale;
 
 #ifdef SPRITE_LIGHT
-            TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
+            TEXTURE2D(_CookieTex);          // This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
             uniform half  _FalloffIntensity;

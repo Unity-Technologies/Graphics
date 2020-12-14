@@ -10,9 +10,12 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class LayersUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents layer options for materials.
+    /// </summary>
+    public class LayersUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public static readonly string[] headers =
             {
@@ -22,21 +25,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 "Layer 3",
             };
 
-            public static readonly Expandable[] layerExpandableBits =
+            public static readonly ExpandableBit[] layerExpandableBits =
             {
-                Expandable.MainLayer,
-                Expandable.Layer1,
-                Expandable.Layer2,
-                Expandable.Layer3,
+                ExpandableBit.MainLayer,
+                ExpandableBit.Layer1,
+                ExpandableBit.Layer2,
+                ExpandableBit.Layer3,
             };
 
             // We need this because LayeringOption values are not contiguous
-            public static readonly Expandable[] layeringOptionsExpandableBits =
+            public static readonly ExpandableBit[] layeringOptionsExpandableBits =
             {
-                Expandable.LayeringOptionMain,
-                Expandable.LayeringOption1,
-                Expandable.LayeringOption2,
-                Expandable.LayeringOption3,
+                ExpandableBit.LayeringOptionMain,
+                ExpandableBit.LayeringOption1,
+                ExpandableBit.LayeringOption2,
+                ExpandableBit.LayeringOption3,
             };
         }
 
@@ -57,17 +60,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 layerUIBlocks[i] = new MaterialUIBlockList(parent)
                 {
                     new LayeringOptionsUIBlock(Styles.layeringOptionsExpandableBits[i], i),
-                    new LitSurfaceInputsUIBlock((Expandable)((uint)Expandable.MainInput + i), kMaxLayerCount, i, features: litInputsFeatures),
-                    new DetailInputsUIBlock((Expandable)((uint)Expandable.MainDetail + i), kMaxLayerCount, i, features: detailInputsFeatures),
+                    new LitSurfaceInputsUIBlock((ExpandableBit)((uint)ExpandableBit.MainInput + i), kMaxLayerCount, i, features: litInputsFeatures),
+                    new DetailInputsUIBlock((ExpandableBit)((uint)ExpandableBit.MainDetail + i), kMaxLayerCount, i, features: detailInputsFeatures),
                 };
             }
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             layerCount = FindProperty(kLayerCount);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             if (layerUIBlocks == null)

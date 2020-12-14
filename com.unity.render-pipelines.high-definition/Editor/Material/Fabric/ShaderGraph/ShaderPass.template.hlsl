@@ -94,7 +94,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
-        
+
     #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {

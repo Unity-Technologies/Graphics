@@ -196,6 +196,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
+        [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
         public bool requiresScreenSpaceShadowResolve;
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;
@@ -207,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
+        public List<int> resolution;
     }
 
     // Precomputed tile data.
@@ -288,12 +290,22 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        /// <summary>
+        /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
+        public bool useFastSRGBLinearConversion;
+        /// <summary>
+        /// Post process data materials and texture.
+        /// </summary>
+        internal PostProcessData resources;
     }
 
     public static class ShaderKeywordStrings
     {
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+        public static readonly string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
+        public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
@@ -308,6 +320,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -367,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
         static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
+        static List<int> m_ShadowResolutionData = new List<int>();
 
         /// <summary>
         /// Checks if a camera is a game camera.
@@ -418,19 +432,21 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
         {
             if (cameras.Count > 1)
                 cameras.Sort(cameraComparison);
         }
+
 #else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+
 #endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
