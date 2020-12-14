@@ -22,10 +22,10 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_2020.1
+      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_2020.1
          rerun: on-new-revision
-Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_2020.1:
-    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_Player on version 2020.1
+Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_2020.1:
+    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_standalone_build_Player on version 2020.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -127,10 +127,10 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_fast-2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_fast-2020.1
+      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_fast-2020.1
          rerun: on-new-revision
-Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_fast-2020.1:
-    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_Player on version fast-2020.1
+Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_fast-2020.1:
+    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_standalone_build_Player on version fast-2020.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -233,10 +233,10 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-vulkan.yml#Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_VFX_HDRP_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build VFX_HDRP on Win_Vulkan_mono_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
