@@ -17,6 +17,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
@@ -47,6 +48,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -101,6 +103,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -153,6 +156,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
@@ -186,6 +190,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
@@ -244,6 +249,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
