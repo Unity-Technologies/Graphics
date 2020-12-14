@@ -1130,6 +1130,40 @@ namespace UnityEngine.Rendering
         {
             bool disabled = false;
 #if UNITY_EDITOR
+            // custom-begin:
+            // Disabling scene lighting in HDRP requires toggling a keyword, which triggers a shader recompile if not cached.
+            // In our streaming scenes, recompiling all visible shaders is extremely slow (minutes).
+            // Rather than triggering this keyword, lets just have a single C# side branch in the lightloop that modifies
+            // if lights are added or not to the light lists.
+            // Rather than going and updating all HDRP call sites of this function (and dealing with many merge conflicts in the future),
+            // I've chosen to simply make this function always return false, and do a lower level check in the specific place in the light loop
+            // where I actually want to read the button.
+            // Hopefully this customization can go away in the future.
+
+            // if (camera.cameraType == CameraType.SceneView)
+            // {
+            //     // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
+            //     for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+            //     {
+            //         var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+            //         if (sv.camera == camera && !sv.sceneLighting)
+            //         {
+            //             disabled = true;
+            //             break;
+            //         }
+            //     }
+            // }
+            // custom-end
+#endif
+            return disabled;
+        }
+
+        // custom-begin:
+        // See comment inside of IsSceneLightingDisabled().
+        public static bool IsSceneLightingDisabledUnhacked(Camera camera)
+        {
+            bool disabled = false;
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
             {
                 // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
@@ -1146,6 +1180,7 @@ namespace UnityEngine.Rendering
 #endif
             return disabled;
         }
+        // custom-end
 
         /// <summary>
         /// Returns true if the "Light Overlap" scene view draw mode is enabled.
