@@ -7,8 +7,8 @@
 
 ---
 
-All_Smoke_Test_trunk:
-    name: All Smoke_Test CI - trunk
+PR_Smoke_Test_trunk:
+    name: Smoke_Test PR Job - trunk
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -19,8 +19,13 @@ All_Smoke_Test_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-All_Smoke_Test_CUSTOM-REVISION:
-    name: All Smoke_Test CI - CUSTOM-REVISION
+Nightly_Smoke_Test_trunk:
+    name: Nightly Smoke_Test - trunk
+    dependencies:
+      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_trunk
+         rerun: on-new-revision
+PR_Smoke_Test_CUSTOM-REVISION:
+    name: Smoke_Test PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -32,3 +37,10 @@ All_Smoke_Test_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+Nightly_Smoke_Test_CUSTOM-REVISION:
+    name: Nightly Smoke_Test - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
