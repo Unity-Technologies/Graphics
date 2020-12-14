@@ -25,7 +25,7 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
-#ifdef LIGHTMAP_ON
+#if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
@@ -541,17 +541,16 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #define LIGHTMAP_NAME unity_Lightmaps
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV, unity_LightmapIndex.x
 #else
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV
 #endif
 
 // Sample baked lightmap. Non-Direction and Directional if available.
-// Realtime GI is not supported.
-half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
+half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 normalWS)
 {
 #ifdef UNITY_LIGHTMAP_FULL_HDR
     bool encodedLightmap = false;
@@ -566,15 +565,27 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
+    float3 diffuseLighting = 0;
+
 #if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
-    return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
-        TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+    diffuseLighting = SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),SampleSingleLightmap
         LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
-#else
-    return half3(0.0, 0.0, 0.0);
+    diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
 #endif
+
+#if defined(DYNAMICLIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+    diffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+        TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+        dynamicLightmapUV, transformCoords, normalWS, false, decodeInstructions);
+#elif defined(DYNAMICLIGHTMAP_ON)
+    diffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+        dynamicLightmapUV, transformCoords, false, decodeInstructions);
+#endif
+
+    return diffuseLighting;
 }
 
 // We either sample GI from baked lightmap or from probes.
