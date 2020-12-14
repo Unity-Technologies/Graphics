@@ -153,6 +153,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     int _HybridDeformedVertexStreamIndex;
+    uint _EnableDynamicBranchLighting;
+    float _Pad8;
+    float _Pad9;
+    float _Pad10;
 CBUFFER_END
 
 

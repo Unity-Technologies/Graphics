@@ -1366,8 +1366,24 @@ namespace UnityEngine.Rendering.HighDefinition
             
             m_ShaderVariablesGlobalCB._HybridDeformedVertexStreamIndex = UnityEngine.Time.frameCount & 1;
 
+            // custom-begin:
+            UpdateShaderVariablesDynamicBranchLighting(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
+            // custom-end
+
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
+
+        // custom-begin:
+        void UpdateShaderVariablesDynamicBranchLighting(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
+        {
+        #if UNITY_EDITOR
+            cb._EnableDynamicBranchLighting = CoreUtils.IsSceneLightingDisabledUnhacked(hdCamera.camera) ? 0u : 1u;
+        #else
+            cb._EnableDynamicBranchLighting = 1u;
+        #endif
+             
+        }
+        // custom-end
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {
