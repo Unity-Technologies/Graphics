@@ -353,11 +353,13 @@ namespace UnityEngine.Rendering.Universal
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
                             cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
+                            cmd.SetSinglePassStereo(SinglePassStereoMode.Multiview);
                         }
                         else
                         {
                             cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
                             cmd.SetInstanceMultiplier((uint)viewCount);
+                            cmd.SetSinglePassStereo(SinglePassStereoMode.Instancing);
                         }
                     }
                     else
@@ -377,11 +379,13 @@ namespace UnityEngine.Rendering.Universal
                     if (SystemInfo.supportsMultiview)
                     {
                         cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     }
                     else
                     {
                         cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
                         cmd.SetInstanceMultiplier(1);
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     }
                 }
             }

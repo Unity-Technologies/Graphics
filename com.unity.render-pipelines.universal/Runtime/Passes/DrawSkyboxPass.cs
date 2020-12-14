@@ -30,22 +30,11 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetProjectionMatrix(1));
                     renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetViewMatrix(1));
 
-                    CommandBuffer cmd = CommandBufferPool.Get();
-
-                    // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
                     // Calling into built-in skybox pass
                     context.DrawSkybox(renderingData.cameraData.camera);
 
-                    // Disable Legacy XR path
-                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
-                    context.ExecuteCommandBuffer(cmd);
                     // We do not need to submit here due to special handling of stereo matricies in core.
                     // context.Submit();
-                    CommandBufferPool.Release(cmd);
 
                     renderingData.cameraData.camera.ResetStereoProjectionMatrices();
                     renderingData.cameraData.camera.ResetStereoViewMatrices();
