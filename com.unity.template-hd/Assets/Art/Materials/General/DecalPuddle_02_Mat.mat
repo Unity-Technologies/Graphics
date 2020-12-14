@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DecalPuddle_Mat
+  m_Name: DecalPuddle_02_Mat
   m_Shader: {fileID: 4800000, guid: 1d64af84bdc970c4fae0c1e06dd95b73, type: 3}
   m_ShaderKeywords: _COLORMAP _MATERIAL_AFFECTS_ALBEDO _MATERIAL_AFFECTS_MASKMAP
     _MATERIAL_AFFECTS_NORMAL
@@ -137,7 +137,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _DecalBlend: 1
+    - _DecalBlend: 0.238
     - _DecalColorMask0: 15
     - _DecalColorMask1: 15
     - _DecalColorMask2: 3
