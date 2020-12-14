@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
                                 if (graph != null)
                                 {
-                                    if (graph.children.OfType<VFXShaderGraphParticleOutput>().Any(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
+                                    if (graph.children.OfType<VFXShaderGraphParticleOutput>().Any(t => modifiedShaderGraphs.Contains(t.GetOrRefreshShaderGraphObject())))
                                         assetsToReimport.Add(graph);
                                 }
                             }
@@ -72,13 +72,9 @@ namespace UnityEditor.VFX
 
                         foreach (var graph in assetsToReimport)
                         {
-                            foreach (var sgOutput in graph.children.OfType<VFXShaderGraphParticleOutput>().Where(t => modifiedShaderGraphs.Contains(t.shaderGraph)))
+                            foreach (var sgOutput in graph.children.OfType<VFXShaderGraphParticleOutput>())
                             {
-                                int instanceID = sgOutput.shaderGraph.GetInstanceID();
-
-                                // This is needed because the imported invalidate the object
-                                sgOutput.shaderGraph = EditorUtility.InstanceIDToObject(instanceID) as ShaderGraphVfxAsset;
-
+                                sgOutput.GetOrRefreshShaderGraphObject();
                                 sgOutput.ResyncSlots(true);
                             }
 
