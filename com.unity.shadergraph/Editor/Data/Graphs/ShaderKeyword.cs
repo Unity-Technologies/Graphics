@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             this.keywordType = keywordType;
 
             // Add sensible default entries for Enum type
-            if(keywordType == KeywordType.Enum)
+            if (keywordType == KeywordType.Enum)
             {
                 m_Entries = new List<KeywordEntry>();
                 m_Entries.Add(new KeywordEntry(1, "A", "A"));
@@ -33,11 +33,11 @@ namespace UnityEditor.ShaderGraph
 
         public static ShaderKeyword CreateBuiltInKeyword(KeywordDescriptor descriptor)
         {
-            if(descriptor.entries != null)
+            if (descriptor.entries != null)
             {
-                for(int i = 0; i < descriptor.entries.Length; i++)
+                for (int i = 0; i < descriptor.entries.Length; i++)
                 {
-                    if(descriptor.entries[i].id == -1)
+                    if (descriptor.entries[i].id == -1)
                         descriptor.entries[i].id = i + 1;
                 }
             }
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal override bool isExposable => !isBuiltIn
-            && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
+        && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
 
         internal override bool isRenamable => !isBuiltIn;
 
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
         {
             // _ON suffix is required for exposing Boolean type to Material
             var suffix = string.Empty;
-            if(keywordType == KeywordType.Boolean)
+            if (keywordType == KeywordType.Boolean)
             {
                 suffix = "_ON";
             }
@@ -130,14 +130,14 @@ namespace UnityEditor.ShaderGraph
 
         public string GetPropertyBlockString()
         {
-            switch(keywordType)
+            switch (keywordType)
             {
                 case KeywordType.Enum:
                     string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
                     return $"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}";
                 case KeywordType.Boolean:
                     // Reference name must be appended with _ON but must be removed when generating block
-                    if(referenceName.EndsWith("_ON"))
+                    if (referenceName.EndsWith("_ON"))
                         return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
                     else
                         return string.Empty;
@@ -149,14 +149,14 @@ namespace UnityEditor.ShaderGraph
         public string GetKeywordDeclarationString()
         {
             // Predefined keywords do not need to be defined
-            if(keywordDefinition == KeywordDefinition.Predefined)
+            if (keywordDefinition == KeywordDefinition.Predefined)
                 return string.Empty;
 
             // Get definition type using scope
             string scopeString = keywordScope == KeywordScope.Local ? "_local" : string.Empty;
             string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
 
-            switch(keywordType)
+            switch (keywordType)
             {
                 case KeywordType.Boolean:
                     return $"#pragma {definitionString} _ {referenceName}";
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph
 
         public string GetKeywordPreviewDeclarationString()
         {
-            switch(keywordType)
+            switch (keywordType)
             {
                 case KeywordType.Boolean:
                     return value == 1 ? $"#define {referenceName}" : string.Empty;

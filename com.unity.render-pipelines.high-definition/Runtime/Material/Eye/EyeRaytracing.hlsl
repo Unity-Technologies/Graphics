@@ -41,7 +41,7 @@ void FitToStandardLit( SurfaceData surfaceData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
-{    
+{
     outStandardlit.baseColor = surfaceData.baseColor;
     outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
     outStandardlit.normalWS = surfaceData.normalWS;

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -151,6 +153,40 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // This member and function allow us to fetch the exposure value that was used to render the realtime HDProbe
+        // without forcing a sync between the c# and the GPU code. For the moment it shall only be used for planar reflections.
+        private Queue<AsyncGPUReadbackRequest> probeExposureAsyncRequest = new Queue<AsyncGPUReadbackRequest>();
+        internal void RequestProbeExposureValue(RTHandle exposureTexture)
+        {
+            AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(exposureTexture.rt, 0, 0, 1, 0, 1, 0, 1);
+            probeExposureAsyncRequest.Enqueue(singleReadBack);
+        }
+
+        // This float allows us to keep the previous exposure value in case all the finished requests were already dequeued.
+        private float previousExposure = 1.0f;
+
+        // This function processes the asynchronous read-back requests for the exposure and updates the last known exposure value.
+        internal float ProbeExposureValue()
+        {
+            while (probeExposureAsyncRequest.Count != 0)
+            {
+                AsyncGPUReadbackRequest request = probeExposureAsyncRequest.Peek();
+                if (!request.done && !probeExposureAsyncRequest.Peek().hasError)
+                    break;
+
+                // If this has an error, just skip it
+                if (!request.hasError)
+                {
+                    // Grab the native array from this readback
+                    NativeArray<float> exposureValue = probeExposureAsyncRequest.Peek().GetData<float>();
+                    previousExposure = exposureValue[0];
+                }
+                probeExposureAsyncRequest.Dequeue();
+            }
+
+            return previousExposure;
+        }
+
         internal bool HasValidRenderedData()
         {
             bool hasValidTexture = texture != null;
@@ -259,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the texture for a specific target mode.
         /// </summary>
@@ -337,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the render data for a specific mode.
         ///
@@ -478,8 +516,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
-                ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-                : influenceToWorld;
+            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+            : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal int lastRenderedFrame { get; private set; } = int.MinValue;
@@ -499,7 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() { }
+        public virtual void PrepareCulling() {}
 
         /// <summary>
         /// Request to render this probe next update.
@@ -541,6 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
 #endif
         }
+
         void OnDisable()
         {
             HDProbeSystem.UnregisterProbe(this);

@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Dictionary<int, QualitySetting> settings = new Dictionary<int, QualitySetting>();
 
-            public static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
+            public static bool IsEqual(QualitySettingsBlob left, QualitySettingsBlob right)
             {
                 if (right == null && left == null)
                 {
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serializedObject.Update();
 
-                if (m_QualitySetting.value.intValue < k_CustomQuality)
+                if (m_QualitySetting.value.intValue < k_CustomQuality && QualityEnabled())
                     LoadSettingsFromQualityPreset(pipeline.currentPlatformRenderPipelineSettings, m_QualitySetting.value.intValue);
 
                 serializedObject.ApplyModifiedProperties();
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // When a quality preset changes, we want to detect and reflect the settings in the UI. PropertyFields mirror the contents of one memory loccation, so
             // the idea is that we copy the presets to that location. This logic is optional, if volume components don't override the helper functions at the end,
             // they will continue to work, but the preset settings will not be reflected in the UI.
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && QualityEnabled())
             {
                 int newQualityLevel = m_QualitySetting.value.intValue;
 
@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
                             if (history != null)
                             {
-                                 SaveCustomQualitySettingsAsObject(history);
+                                SaveCustomQualitySettingsAsObject(history);
                             }
                             else
                             {
@@ -201,7 +201,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                 {
                                     s_CustomSettingsHistory.Add(serializedObject.targetObject, history);
                                 }
-
                             }
                         }
                         LoadSettingsFromQualityPreset(pipeline.currentPlatformRenderPipelineSettings, newQualityLevel);
@@ -232,7 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// This function should be overriden by a volume component to load preset settings from RenderPipelineSettings
         /// </summary>
-        public virtual void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level) { }
+        public virtual void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level) {}
 
         /// <summary>
         /// This function should be overriden by a volume component to return an opaque object (binary blob) with the custom quality settings currently in use.
@@ -242,7 +241,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// This function should be overriden by a volume component to load a custom preset setting from an opaque binary blob (as returned from SaveCustomQualitySettingsAsObject)
         /// </summary>
-        public virtual void LoadSettingsFromObject(QualitySettingsBlob settings) { }
-    }
+        public virtual void LoadSettingsFromObject(QualitySettingsBlob settings) {}
 
+        /// <summary>
+        /// This function should be overriden by a volume component to enable the quality setting functionality only in certain cases.
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool QualityEnabled() => true;
+    }
 }

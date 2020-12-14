@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,12 +12,11 @@ namespace UnityEngine.Rendering.HighDefinition
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
 
-        public HDDynamicShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
-            : base(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name)
+        public HDDynamicShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+            : base(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name)
         {
             m_SortedRequestsCache = new HDShadowResolutionRequest[Mathf.CeilToInt(maxShadowRequests)];
         }
-
 
         internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {
@@ -123,7 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentMaxXCache = Mathf.Max(currentMaxXCache, currentMaxX + r.width);
                     m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
-                } while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
+                }
+                while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
                 currentMaxY = Mathf.Max(currentMaxY, currentY);
                 currentMaxX = currentMaxXCache;
                 if (index >= m_ShadowResolutionRequests.Count)
@@ -140,7 +140,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentMaxYCache = Mathf.Max(currentMaxYCache, currentMaxY + r.height);
                     m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
-                } while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
+                }
+                while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
                 currentMaxX = Mathf.Max(currentMaxX, currentX);
                 currentMaxY = currentMaxYCache;
             }
@@ -187,7 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material              blitMaterial;
             public MaterialPropertyBlock blitMaterialPropertyBlock;
             public Vector2Int            cachedShadowAtlasSize;
-
         }
 
         internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
@@ -229,4 +229,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

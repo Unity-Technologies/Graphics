@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -199,8 +199,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
+            #if UNITY_2021_1_OR_NEWER
             this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
             this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            #else
+            this.m_ScrollView.showVertical = false;
+            this.m_ScrollView.showHorizontal = false;
+            #endif
+
             contentContainer.Clear();
             contentContainer.MarkDirtyRepaint();
         }
@@ -216,7 +222,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             hierarchy.Add(resizeElement);
         }
 
-#region Layout
+        #region Layout
         public void ClampToParentLayout(Rect parentLayout)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
@@ -287,5 +293,5 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         }
     }
-#endregion
+    #endregion
 }
