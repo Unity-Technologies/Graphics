@@ -207,7 +207,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
                 uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
 
-                float depth = GetTileDepth(pixelCoord);
+                float depth = LoadCameraDepth(pixelCoord.xy);
+                // TODO use: float depth = GetTileDepth(pixelCoord);
 
                 PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
@@ -249,6 +250,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #endif
 #else // TEST_FLATBITARRAY
 
+#define USE_ZBIN 0 // DEbug with ZBin masking, otherwise no zbin masking
+
+
                 #define DEBUG_TILE_SIZE 16 // 8x8 is not visible in the debug menu, so we need to use 16x16 to display something, which is incorrect
                 #define WORD_SIZE 32
 
@@ -256,16 +260,25 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 int2 tileCoord = (float2)pixelCoord.xy / DEBUG_TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * DEBUG_TILE_SIZE;
 
-
                 // Get word range for the current tile
                 uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, _SelectedEntityCategory, unity_StereoEyeIndex, FINE_TILE_BUFFER_DIMS);
                 const uint minWordRange = tileBufferHeaderIndex * MAX_WORD_PER_ENTITY;
                 const uint maxWordRange = minWordRange + MAX_WORD_PER_ENTITY;
+#if USE_ZBIN
+                // Get ZBin for current depth
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
+                uint2 zBinRange = UnpackZBinData(zBin, _SelectedEntityCategory);
+#endif
 
                 // 1) Count all the lights for this world range
                 int lightNumInTile = 0;
                 for (int wordIndex = minWordRange; wordIndex < maxWordRange; ++wordIndex)
                 {
+#if USE_ZBIN
+                    uint wordMask = LoadWordMask(_SelectedEntityCategory, wordIndex, zBinRange);
+#else
+                    uint wordMask = _TileEntityMasks[wordIndex];
+#endif
                     lightNumInTile += countbits(_TileEntityMasks[wordIndex]);
                 }
 
@@ -287,9 +300,16 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < BOUNDEDENTITYCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    float depthMouse = GetTileDepth(_MousePixelCoord.xy);
+                    float depthMouse = LoadCameraDepth(pixelCoord.xy);
+                    // TODO: use float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
                     PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+#if USE_ZBIN
+                    // Get ZBin for current depth
+                    uint zBinMouse = ComputeZBinIndex(mousePosInput.linearDepth);
+                    uint2 zBinRangeMouse = UnpackZBinData(zBinMouse, _SelectedEntityCategory);
+#endif
 
                     uint category = (BOUNDEDENTITYCATEGORY_COUNT - 1) - tileCoord.y;
 
@@ -302,6 +322,11 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int lightNumInTile = 0;
                     for (int wordIndex = mouseMinWordRange; wordIndex < mouseMaxWordRange; ++wordIndex)
                     {
+#if USE_ZBIN
+                        uint wordMask = LoadWordMask(_SelectedEntityCategory, wordIndex, zBinRangeMouse);
+#else
+                        uint wordMask = _TileEntityMasks[wordIndex];
+#endif
                         lightNumInTile += countbits(_TileEntityMasks[wordIndex]);
                     }
 
@@ -320,8 +345,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                         int lightCounter = 0;
                         for (int wordIndex = mouseMinWordRange; wordIndex < mouseMaxWordRange; ++wordIndex)
-                        {                            
+                        {
+#if USE_ZBIN
+                            uint mask = LoadWordMask(_SelectedEntityCategory, wordIndex, zBinRangeMouse);
+#else
                             uint mask = _TileEntityMasks[wordIndex];
+#endif
                             while (mask != 0)
                             {
                                 uint currBitIndex = firstbitlow(mask);
