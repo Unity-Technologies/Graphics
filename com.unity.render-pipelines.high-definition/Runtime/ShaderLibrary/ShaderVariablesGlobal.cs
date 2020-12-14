@@ -274,7 +274,11 @@ namespace UnityEngine.Rendering.HighDefinition
 		public float    _SpecularOcclusionBlend;
         // custom-begin:
         public uint _BlueNoiseRGBTextureResolutionMinusOne;
-        // public float    _Pad9;
+        
+		public uint _EnableDynamicBranchLighting;
+		public float   _Pad8;
+		public float   _Pad9;
+		public float   _Pad10;
         // custom-end
     }
 }

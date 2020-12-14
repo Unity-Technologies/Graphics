@@ -1385,6 +1385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // custom-begin:
             UpdateShaderVariablesGlobalBlueNoise(ref m_ShaderVariablesGlobalCB, cmd);
             UpdateShaderVariablesGlobalDissolveOccluders(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
+            UpdateShaderVariablesDynamicBranchLighting(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             // custom-end
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -1423,6 +1424,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public Texture2D GetBlueNoiseTextureForCurrentFrame()
         {
             return m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length];
+        }
+        // custom-end
+
+        // custom-begin:
+        void UpdateShaderVariablesDynamicBranchLighting(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
+        {
+        #if UNITY_EDITOR
+            cb._EnableDynamicBranchLighting = CoreUtils.IsSceneLightingDisabledUnhacked(hdCamera.camera) ? 0u : 1u;
+        #else
+            cb._EnableDynamicBranchLighting = 1u;
+        #endif
+             
         }
         // custom-end
 
