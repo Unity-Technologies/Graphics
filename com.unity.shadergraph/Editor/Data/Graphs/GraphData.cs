@@ -877,7 +877,7 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.objectId))
+            if (!m_NodeDictionary.ContainsKey(node.objectId) && node.isActive)
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
