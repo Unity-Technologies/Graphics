@@ -97,19 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }, 0);
             }
 
-            // Misc Cont.
-            // Advanced Options
-            context.AddLabel("Advanced Options", 0);
-            AddProperty("Anisotropy For Area Lights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 1);
-
-            // Per Punctual/Directional Lights
-            context.AddLabel("Per Punctual/Directional Lights:", 1);
-            if (stackLitData.coat)
-                AddProperty("Base Layer Uses Refracted Angles", () => stackLitData.shadeBaseUsingRefractedAngles, (newValue) => stackLitData.shadeBaseUsingRefractedAngles = newValue, 2);
-            if (stackLitData.coat || stackLitData.iridescence)
-                AddProperty("Recompute Stack & Iridescence", () => stackLitData.recomputeStackPerLight, (newValue) => stackLitData.recomputeStackPerLight = newValue, 2);
-            AddProperty("Honor Per Light Max Smoothness", () => stackLitData.honorPerLightMinRoughness, (newValue) => stackLitData.honorPerLightMinRoughness = newValue, 2);
-
             // Debug
             // Uncomment to show the dev mode UI:
             // if (stackLitData.devMode)
