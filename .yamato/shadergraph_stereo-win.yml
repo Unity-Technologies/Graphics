@@ -22,10 +22,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_Linear_2020.1
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.1
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Player_mono_Linear_2020.1:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version 2020.1
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.1:
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_standalone_build_Player on version 2020.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -100,10 +100,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_fast-2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
          rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_Linear_fast-2020.1
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_fast-2020.1
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Player_mono_Linear_fast-2020.1:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version fast-2020.1
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_fast-2020.1:
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_standalone_build_Player on version fast-2020.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -179,10 +179,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version CUSTOM-REVISION
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

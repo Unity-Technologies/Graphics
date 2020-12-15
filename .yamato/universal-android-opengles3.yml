@@ -29,10 +29,10 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:android
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_2020.1
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.1
          rerun: on-new-revision
-Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_2020.1:
-    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_Player on version 2020.1
+Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2020.1:
+    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_standalone_build_Player on version 2020.1
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -88,10 +88,10 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_fast-2020.1:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:android
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_fast-2020.1
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_fast-2020.1
          rerun: on-new-revision
-Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_fast-2020.1:
-    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_Player on version fast-2020.1
+Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_fast-2020.1:
+    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_standalone_build_Player on version fast-2020.1
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -148,10 +148,10 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build Universal on Android_OpenGLES3_il2cpp_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
