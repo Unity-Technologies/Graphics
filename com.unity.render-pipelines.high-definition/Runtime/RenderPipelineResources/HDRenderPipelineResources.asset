@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba, type: 3}
@@ -98,13 +97,8 @@ MonoBehaviour:
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18, type: 3}
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
-    decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
-    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
-    decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
-      type: 3}
     shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
-    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAOSpatialDenoiseCS: {fileID: 7200000, guid: 2cb33c21587d12b4388d7866ab6c65f6, type: 3}
     GTAOTemporalDenoiseCS: {fileID: 7200000, guid: 31e0ca4c210f97c468037d11a5b832bb, type: 3}
@@ -256,3 +250,4 @@ MonoBehaviour:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
+  m_Version: 4
