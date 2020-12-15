@@ -923,9 +923,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         int i;
                         var inputs = edge.inputSlot.node.GetInputSlots<MaterialSlot>().ToList();
 
-                        for(i = 0; i < inputs.Count; ++i)
+                        for (i = 0; i < inputs.Count; ++i)
                         {
-                            if(inputs[i].slotReference.slotId == edge.inputSlot.slotId)
+                            if (inputs[i].slotReference.slotId == edge.inputSlot.slotId)
                             {
                                 break;
                             }
@@ -1020,28 +1020,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
             List<GraphElement> moved = new List<GraphElement>();
-            foreach(var nodeView in graphView.selection.OfType<IShaderNodeView>())
+            foreach (var nodeView in graphView.selection.OfType<IShaderNodeView>())
             {
                 var node = nodeView.node;
-                if(graphView.graph.removedNodes.Contains(node) || node is SubGraphOutputNode)
+                if (graphView.graph.removedNodes.Contains(node) || node is SubGraphOutputNode)
                 {
                     continue;
                 }
 
                 var edges = graphView.graph.GetEdges(node);
                 int numEdges = edges.Count();
-                if(numEdges == 0)
+                if (numEdges == 0)
                 {
                     graphView.graph.RemoveNode(node);
                 }
-                else if(numEdges == 1 && edges.First().inputSlot.node != node) //its an output edge
+                else if (numEdges == 1 && edges.First().inputSlot.node != node) //its an output edge
                 {
                     var edge = edges.First();
                     int i;
                     var inputs = edge.inputSlot.node.GetInputSlots<MaterialSlot>().ToList();
-                    for(i = 0; i < inputs.Count; ++i)
+                    for (i = 0; i < inputs.Count; ++i)
                     {
-                        if(inputs[i].slotReference.slotId == edge.inputSlot.slotId)
+                        if (inputs[i].slotReference.slotId == edge.inputSlot.slotId)
                         {
                             break;
                         }

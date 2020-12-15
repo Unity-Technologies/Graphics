@@ -47,8 +47,8 @@ namespace UnityEditor.ShaderGraph
         public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
-            IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,
-            bool keepOutputEdges = false, bool removeOrphanEdges = true)
+                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,
+                              bool keepOutputEdges = false, bool removeOrphanEdges = true)
         {
             if (groups != null)
             {
