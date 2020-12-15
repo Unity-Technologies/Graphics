@@ -219,6 +219,7 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support MSAA.
 - For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+- Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 
 ## Unsupported features of path tracing
 
