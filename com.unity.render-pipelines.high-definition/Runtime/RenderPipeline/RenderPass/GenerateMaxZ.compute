@@ -10,7 +10,7 @@
 
 
 // In some cases we might want to avoid stopping integrating volumetric even if > max distance if the gradient is very big.
-// Realistically, with the dilation step this was never seen as necessary. 
+// Realistically, with the dilation step this was never seen as necessary.
 #define GENERATE_GRADIENT 0
 
 #if GENERATE_GRADIENT
@@ -22,7 +22,7 @@
 #endif
 
 #ifdef PLATFORM_LANE_COUNT
-#define WAVE_SIZE   PLATFORM_LANE_COUNT  
+#define WAVE_SIZE   PLATFORM_LANE_COUNT
 #else
 #define WAVE_SIZE   64
 #endif
@@ -30,7 +30,7 @@
 // ---------------------------------
 CBUFFER_START(cb)
 float4 _SrcOffsetAndLimit;
-float  _DilationWidth; 
+float  _DilationWidth;
 CBUFFER_END
 
 #define _SrcLimit _SrcOffsetAndLimit.xy
@@ -68,7 +68,7 @@ float PrepareDepthForOutput(float depth)
 // GetDepthToDownsample should be used to enforce the right depth is used.
 float ParallelReduction(uint gid, uint threadIdx, float depth)
 {
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS 
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     return WaveActiveMax(depth);
 #else
     gs_maxDepth[threadIdx] = depth;

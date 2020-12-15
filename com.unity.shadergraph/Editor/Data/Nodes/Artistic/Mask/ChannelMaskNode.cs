@@ -107,45 +107,45 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+                s.AppendLine(GetFunctionPrototype("In", "Out"));
+                using (s.BlockScope())
                 {
-                    int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-                    s.AppendLine(GetFunctionPrototype("In", "Out"));
-                    using (s.BlockScope())
+                    if (channelMask == 0)
+                        s.AppendLine("Out = 0;");
+                    else if (channelMask == -1)
+                        s.AppendLine("Out = In;");
+                    else
                     {
-                        if (channelMask == 0)
-                            s.AppendLine("Out = 0;");
-                        else if (channelMask == -1)
-                            s.AppendLine("Out = In;");
-                        else
-                        {
-                            bool red = (channelMask & 1) != 0;
-                            bool green = (channelMask & 2) != 0;
-                            bool blue = (channelMask & 4) != 0;
-                            bool alpha = (channelMask & 8) != 0;
+                        bool red = (channelMask & 1) != 0;
+                        bool green = (channelMask & 2) != 0;
+                        bool blue = (channelMask & 4) != 0;
+                        bool alpha = (channelMask & 8) != 0;
 
-                            switch (channelCount)
-                            {
-                                case 1:
-                                    s.AppendLine("Out = In.r;");
-                                    break;
-                                case 2:
-                                    s.AppendLine(string.Format("Out = $precision2({0}, {1});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0"));
-                                    break;
-                                case 3:
-                                    s.AppendLine(string.Format("Out = $precision3({0}, {1}, {2});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
-                                    break;
-                                case 4:
-                                    s.AppendLine(string.Format("Out = $precision4({0}, {1}, {2}, {3});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
+                        switch (channelCount)
+                        {
+                            case 1:
+                                s.AppendLine("Out = In.r;");
+                                break;
+                            case 2:
+                                s.AppendLine(string.Format("Out = $precision2({0}, {1});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0"));
+                                break;
+                            case 3:
+                                s.AppendLine(string.Format("Out = $precision3({0}, {1}, {2});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
+                                break;
+                            case 4:
+                                s.AppendLine(string.Format("Out = $precision4({0}, {1}, {2}, {3});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
                     }
-                });
+                }
+            });
         }
     }
 }

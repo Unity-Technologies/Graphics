@@ -33,7 +33,7 @@ float SampleDepth(float2 UV, bool HalfRes)
         pixelCoord.x *= 0.5f;
         pixelCoord.y = pixelCoord.y * 0.5f + _RenderTargetHeight;
     }
-    
+
     return LoadCameraDepth(pixelCoord);
 }
 
@@ -78,7 +78,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
     float occluded = 0.0f;
 
-    // From this point on, all the marching will be done in UV space + Z 
+    // From this point on, all the marching will be done in UV space + Z
     float2 startUV = rayStartCS.xy * 0.5f + 0.5f;
     startUV.y = 1.0f - startUV.y;
     float3 rayStart = float3(startUV, rayStartCS.z);
@@ -146,7 +146,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 {
     bool    occluded = false;
     float   fade;
-    
+
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position

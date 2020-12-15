@@ -6,11 +6,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
-        ColorGradingLutPass m_ColorGradingLutPass;
         Render2DLightingPass m_Render2DLightingPass;
-        PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
-        PostProcessPass m_FinalPostProcessPass;
         Light2DCullResult m_LightCullResult;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
@@ -21,25 +18,33 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
-        readonly RenderTargetHandle k_AfterPostProcessColorHandle;
-        readonly RenderTargetHandle k_ColorGradingLutHandle;
 
         Material m_BlitMaterial;
+        Material m_SamplingMaterial;
 
         Renderer2DData m_Renderer2DData;
 
         internal bool createColorTexture => m_CreateColorTexture;
         internal bool createDepthTexture => m_CreateDepthTexture;
 
+        PostProcessPasses m_PostProcessPasses;
+        internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
+        internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal RenderTargetHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
+        internal RenderTargetHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
+
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
-            m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+            m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
+#pragma warning disable 618 // Obsolete warning
+            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
+#pragma warning restore 618 // Obsolete warning
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -47,8 +52,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
-            k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
-            k_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
 
@@ -63,12 +66,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
-            // always dispose unmanaged resources
-            m_PostProcessPass.Cleanup();
-            m_FinalPostProcessPass.Cleanup();
-            m_ColorGradingLutPass.Cleanup();
-            
-            CoreUtils.Destroy(m_BlitMaterial);
+            m_PostProcessPasses.Dispose();
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -93,8 +91,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isHdrEnabled
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
+                    || cameraData.requireSrgbConversion
                     || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
+                    || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
@@ -178,14 +178,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
-                m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
-                EnqueuePass(m_ColorGradingLutPass);
+                colorGradingLutPass.Setup(colorGradingLutHandle);
+                EnqueuePass(colorGradingLutPass);
             }
 
+            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
+            m_Render2DLightingPass.Setup(hasValidDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
+
+            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
@@ -193,28 +197,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            if (cameraData.postProcessEnabled)
+            if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 RenderTargetHandle postProcessDestHandle =
-                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
+                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
 
-                m_PostProcessPass.Setup(
+                postProcessPass.Setup(
                     cameraTargetDescriptor,
                     colorTargetHandle,
                     postProcessDestHandle,
                     depthTargetHandle,
-                    k_ColorGradingLutHandle,
+                    colorGradingLutHandle,
                     requireFinalPostProcessPass,
                     postProcessDestHandle == RenderTargetHandle.CameraTarget);
 
-                EnqueuePass(m_PostProcessPass);
+                EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (requireFinalPostProcessPass)
+            if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                m_FinalPostProcessPass.SetupFinalPass(colorTargetHandle);
-                EnqueuePass(m_FinalPostProcessPass);
+                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {

@@ -87,6 +87,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1222_Lit_Aniso_Textures.unity
     guid: f83ad7ecd25ef1f4780fc5f190023046
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1223_Lit_Iridescence.unity
+    guid: b447fc323b2e7604e9404972d093fb77
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
@@ -287,12 +290,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2212_ReflectionProbes_Skies.unity
     guid: c193bc6b9e5a3764a92da565cdf8d74d
-    enabled: 1
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2222_ReflectionProbeDistanceBased.unity
-    guid: edecbcde87e543140b1f4e2ffe510a3c	
+    guid: edecbcde87e543140b1f4e2ffe510a3c
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2220_SmoothPlanarReflection.unity
     guid: d4a7e5df537f6b0468c09ce661d8791d
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2220_PlanarProbeExposure.unity
+    guid: 52c8aecb09fafca439f894462d558a70
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
@@ -335,6 +341,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2316_ShadowTint.unity
     guid: c59b82120d32fbf4d96793fb7e0ec339
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2317_Mixed_Cached_ShadowMap_Point.unity
+    guid: f0256a9b31ae76e45bb04cfbbd6799ec
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2318_Mixed_Cached_ShadowMap_Spot.unity
+    guid: d4a5828c5a9a32444b15a298a759ff53
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2

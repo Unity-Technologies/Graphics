@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-	float4 _GradientBottom;
+    float4 _GradientBottom;
     float4 _GradientMiddle;
     float4 _GradientTop;
     float _GradientDiffusion;
