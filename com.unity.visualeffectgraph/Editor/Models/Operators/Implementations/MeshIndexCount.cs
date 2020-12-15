@@ -22,13 +22,13 @@ namespace UnityEditor.VFX.Operator
 
         public class InputPropertiesMesh
         {
-            [Tooltip("Sets the Mesh to sample from.")]
+            [Tooltip("Specifies the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class InputPropertiesSkinnedMeshRenderer
         {
-            [Tooltip("Sets the Mesh to sample from, has to be an exposed entry.")]
+            [Tooltip("Specifies the Skinned Mesh Renderer component to sample from. The Skinned Mesh Renderer has to be an exposed entry.")]
             public SkinnedMeshRenderer skinnedMesh = null;
         }
 
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Operator
             public uint count;
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Choose between source from mesh or skinned renderer mesh.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the kind of geometry to sample from.")]
         private SampleMesh.SourceType source = SampleMesh.SourceType.Mesh;
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties

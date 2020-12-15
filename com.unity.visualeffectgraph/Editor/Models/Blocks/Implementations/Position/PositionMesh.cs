@@ -30,10 +30,10 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies which primitive part of the mesh to sample from.")]
         private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
 
-        [VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
+        [VFXSetting, SerializeField, Tooltip("Specifies how to sample the surface of a triangle.")]
         private SampleMesh.SurfaceCoordinates surfaceCoordinates = SampleMesh.SurfaceCoordinates.Uniform;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Choose between classic mesh sampling or skinned renderer mesh sampling.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the kind of geometry to sample from.")]
         private SampleMesh.SourceType sourceMesh = SampleMesh.SourceType.Mesh;
 
         public override string name
@@ -49,13 +49,13 @@ namespace UnityEditor.VFX.Block
 
         public class CustomPropertiesMesh
         {
-            [Tooltip("Sets the Mesh to sample from.")]
+            [Tooltip("Specifies the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class CustomPropertiesPropertiesSkinnedMeshRenderer
         {
-            [Tooltip("Sets the Mesh to sample from, has to be an exposed entry.")]
+            [Tooltip("Specifies the Skinned Mesh Renderer component to sample from. The Skinned Mesh Renderer has to be an exposed entry.")]
             public SkinnedMeshRenderer skinnedMesh = null;
         }
 
@@ -67,10 +67,10 @@ namespace UnityEditor.VFX.Block
 
         public class CustomPropertiesEdge
         {
-            [Tooltip("The start index of edge, line will be renderer with the following one.")]
+            [Tooltip("Sets the start index of the edge. The Block uses this index and the next index to render the line.")]
             public uint index = 0u;
 
-            [Range(0, 1), Tooltip("Linear interpolation value between start and end edge position.")]
+            [Range(0, 1), Tooltip("Controls the percentage along the edge, from the start position to the end position, that the sample position is taken.")]
             public float edge;
         }
 
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.Block
             [Tooltip("The triangle index to read from.")]
             public uint triangle = 0u;
 
-            [Tooltip("Low distortion mapping coordinate.")]
+            [Tooltip("The uniform coordinate to sample the triangle at. The Block takes this value and maps it from a square coordinate to triangle space.")]
             public Vector2 square;
         }
 
