@@ -349,15 +349,8 @@ namespace UnityEditor
 
             if (emissive)
             {
-                // TODO ENLIGHTEN expose as enum drop down same as built-in
-                var oldFlags = material.globalIlluminationFlags;
-                var newFlags = oldFlags;
-
-                if (brightness <= 0f)
-                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                if (newFlags != oldFlags)
-                    material.globalIlluminationFlags = newFlags;
+                // Change the GI emission flag and fix it up with emissive as black if necessary.
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
             }
         }
 
