@@ -92,6 +92,8 @@ namespace UnityEditor.ShaderGraph
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
+
+            UpdateReferenceNameResetMenu();
         }
 
         void ChangeExposedField(bool newValue)

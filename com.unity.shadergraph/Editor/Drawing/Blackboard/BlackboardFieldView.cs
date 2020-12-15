@@ -171,6 +171,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }
+
+            UpdateRightClickMenu();
         }
 
         void ChangeExposedField(bool newValue)
