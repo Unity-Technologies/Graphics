@@ -155,6 +155,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader        physicallyBasedSkyPS;
             [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
             public ComputeShader planarReflectionFilteringCS;
+
+            // Clouds
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
+            public ComputeShader volumetricCloudsCS;
+
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -380,6 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
+
+            // Clouds noise
+            [Reload("Runtime/RenderPipelineResources/Texture/CloudNoise/WorleyNoise128RGBA.png")]
+            public Texture3D worleyNoise128RGBA;
+            [Reload("Runtime/RenderPipelineResources/Texture/CloudNoise/WorleyNoise32RGB.png")]
+            public Texture3D worleyNoise32RGB;
 
             // Post-processing
             [Reload(new[]

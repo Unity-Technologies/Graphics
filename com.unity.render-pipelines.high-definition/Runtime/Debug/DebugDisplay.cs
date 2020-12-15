@@ -739,6 +739,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeVoxelization));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricLighting));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricClouds));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsReproject));
+            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardOpaque));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardTransparent));

@@ -88,6 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
 
+        VolumetricClouds,
+        VolumetricCloudsTrace,
+        VolumetricCloudsReproject,
+        VolumetricCloudsUpscaleAndCombine,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
