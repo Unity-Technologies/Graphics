@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using TexelSize or reading sampler states from Textures output from a Subgraph or Custom Function Node [1284036]
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 
+### Fixed
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
+- 
+
 ## [10.2.0] - 2020-10-19
 
 ### Added

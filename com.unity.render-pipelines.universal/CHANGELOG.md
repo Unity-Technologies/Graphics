@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
 - Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
 - Added screen space shadow as renderer feature
+- Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
 - Changed shader keywords of main light shadow from toggling to enumerating.
 - Moved `ForwardRendererData.postProcessData` into `UniversalRenderPipelineAsset.postProcessData` and made it optional. Builds do not include post-processing shaders and textures when `UniversalRenderPipelineAsset.postProcessData` is null.
+- Always use "High" quality normals, which normalizes the normal in pixel shader. "Low" quality normals looked too much like a bug.
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 
 ### Fixed
