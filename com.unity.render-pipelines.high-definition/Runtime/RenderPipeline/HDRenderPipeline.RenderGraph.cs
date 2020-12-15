@@ -236,12 +236,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Render gizmos that should be affected by post processes
                 RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PreImageEffects);
-            }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
-            PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
+                // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
+                // We don't write it when doing debug mode, FullScreenDebug mode or path tracer. Thus why this pass is call here.
+                m_VtBufferManager.Resolve(m_RenderGraph, hdCamera, vtFeedbackBuffer);
+                PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
 #endif
+            }
 
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
             var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
@@ -278,6 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassOutput.resolvedDepthBuffer,
                     prepassOutput.depthPyramidTexture,
                     colorPickerTexture,
+                    rayCountTexture,
                     gpuLightListOutput,
                     shadowResult,
                     cullingResults);
@@ -1505,11 +1508,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var customPassTargets = new CustomPass.RenderTargets
                 {
-                    useRenderGraph = true,
-
-                    // Set to null to make sure we don't use them by mistake.
-                    cameraColorMSAABuffer = null,
-                    cameraColorBuffer = null,
                     // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
                     // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
                     // We'll do it when we switch fully to render graph for custom passes.
