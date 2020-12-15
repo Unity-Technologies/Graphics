@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed wrong coat normal space in shader graph
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
