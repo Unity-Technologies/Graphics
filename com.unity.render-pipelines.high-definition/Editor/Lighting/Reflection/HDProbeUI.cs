@@ -18,6 +18,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Capture = 1 << 0,
         }
-        internal readonly static ExpandedState<AdditionalProperties, HDProbe> k_AdditionalPropertiesState = new ExpandedState<AdditionalProperties, HDProbe>(0, "HDRP");
+        internal readonly static AdditionalPropertiesState<AdditionalProperties, HDProbe> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, HDProbe>(0, "HDRP");
+
+        internal static void RegisterEditor<TProvider, TSerialized>(HDProbeEditor<TProvider, TSerialized> editor)
+            where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+            where TSerialized : SerializedHDProbe
+        {
+            k_AdditionalPropertiesState.RegisterEditor(editor);
+        }
+
+        internal static void UnregisterEditor<TProvider, TSerialized>(HDProbeEditor<TProvider, TSerialized> editor)
+            where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+            where TSerialized : SerializedHDProbe
+        {
+            k_AdditionalPropertiesState.UnregisterEditor(editor);
+        }
     }
 }

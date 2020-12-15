@@ -23,6 +23,21 @@ namespace UnityEditor.Rendering
         /// <summary>Context Menu button style</summary>
         public static readonly GUIStyle contextMenuStyle;
 
+        static readonly Color m_LightThemeBackgroundColor;
+        static readonly Color m_LightThemeBackgroundHighlightColor;
+        static readonly Color m_DarkThemeBackgroundColor;
+        static readonly Color m_DarkThemeBackgroundHighlightColor;
+
+        /// <summary>Style of a additional properties highlighted background.</summary>
+        public static readonly GUIStyle additionalPropertiesHighlightStyle;
+        /// <summary>Speed of additional properties highlight.</summary>
+        public static readonly float additionalPropertiesHightLightSpeed = 0.3f;
+
+        /// <summary>Regular background color.</summary>
+        public static Color backgroundColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor; } }
+        /// <summary>Hightlited background color.</summary>
+        public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
@@ -51,6 +66,14 @@ namespace UnityEditor.Rendering
 
             paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
             paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
+
+            m_LightThemeBackgroundColor = new Color(0.7843138f, 0.7843138f, 0.7843138f, 1.0f);
+            m_LightThemeBackgroundHighlightColor = new Color32(174, 174, 174, 255);
+            m_DarkThemeBackgroundColor = new Color(0.2196079f, 0.2196079f, 0.2196079f, 1.0f);
+            m_DarkThemeBackgroundHighlightColor = new Color32(77, 77, 77, 255);
+
+            additionalPropertiesHighlightStyle = new GUIStyle();
+            additionalPropertiesHighlightStyle.normal.background = Texture2D.whiteTexture;
 
             var contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);

@@ -129,31 +129,19 @@ namespace UnityEditor.Rendering
         {
             if (hasAdditionalProperties)
             {
-                var originalColor = EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor;
-                var highlightColor = EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor;
-
                 m_InAdditionalPropertiesScope = true;
-                var oldCol = GUI.color;
-                GUI.color = Color.Lerp(originalColor, highlightColor, m_AdditionalPropertiesAnimation.value);
-                EditorGUILayout.BeginVertical(m_AdditionalPropertiesHighlightStyle);
-                GUI.color = oldCol;
+                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
             }
         }
 
         internal void EndAdditionalPropertiesScope()
         {
-            EditorGUILayout.EndVertical();
+            CoreEditorUtils.EndAdditionalPropertiesHighlight();
             m_InAdditionalPropertiesScope = false;
         }
 
         AnimFloat m_AdditionalPropertiesAnimation;
-        GUIStyle m_AdditionalPropertiesHighlightStyle;
         bool m_InAdditionalPropertiesScope;
-
-        Color m_LightThemeBackgroundColor = new Color(0.7843138f, 0.7843138f, 0.7843138f, 1.0f);
-        Color m_LightThemeBackgroundHighlightColor = new Color32(174, 174, 174, 255);
-        Color m_DarkThemeBackgroundColor = new Color(0.2196079f, 0.2196079f, 0.2196079f, 1.0f);
-        Color m_DarkThemeBackgroundHighlightColor = new Color32(77, 77, 77, 255);
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -214,9 +202,7 @@ namespace UnityEditor.Rendering
             string key = $"UI_Show_Additional_Properties_{target.GetType()}";
             m_ShowAdditionalProperties = new EditorPrefBool(key);
             m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint);
-            m_AdditionalPropertiesAnimation.speed = 0.3f;
-            m_AdditionalPropertiesHighlightStyle = new GUIStyle();
-            m_AdditionalPropertiesHighlightStyle.normal.background = Texture2D.whiteTexture;
+            m_AdditionalPropertiesAnimation.speed = CoreEditorStyles.additionalPropertiesHightLightSpeed;
 
             OnEnable();
         }

@@ -71,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var target in serializedObject.targetObjects)
                 s_Editors[(Component)target] = this;
+
+            HDProbeUI.RegisterEditor(this);
         }
 
         protected virtual void OnDisable()
@@ -80,6 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (target != null && !target.Equals(null))
                     s_Editors.Remove((Component)target);
             }
+
+            HDProbeUI.UnregisterEditor(this);
         }
 
         protected virtual void Draw(TSerialized serialized, Editor owner)

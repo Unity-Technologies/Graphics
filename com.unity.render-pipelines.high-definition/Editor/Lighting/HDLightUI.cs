@@ -57,13 +57,23 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
 
         readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
-        readonly static ExpandedState<AdditionalProperties, Light> k_AdditionalPropertiesState = new ExpandedState<AdditionalProperties, Light>(0, "HDRP");
+        readonly static AdditionalPropertiesState<AdditionalProperties, Light> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, Light>(0, "HDRP");
 
         readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
 
         public static readonly CED.IDrawer Inspector;
 
         static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
+
+        internal static void RegisterEditor(HDLightEditor editor)
+        {
+            k_AdditionalPropertiesState.RegisterEditor(editor);
+        }
+
+        internal static void UnregisterEditor(HDLightEditor editor)
+        {
+            k_AdditionalPropertiesState.UnregisterEditor(editor);
+        }
 
         static HDLightUI()
         {

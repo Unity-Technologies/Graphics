@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -941,5 +942,18 @@ namespace UnityEditor.Rendering
         }
 
         #endregion
+
+        internal static void BeginAdditionalPropertiesHighlight(AnimFloat animation)
+        {
+            var oldColor = GUI.color;
+            GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
+            EditorGUILayout.BeginVertical(CoreEditorStyles.additionalPropertiesHighlightStyle);
+            GUI.color = oldColor;
+        }
+
+        internal static void EndAdditionalPropertiesHighlight()
+        {
+            EditorGUILayout.EndVertical();
+        }
     }
 }

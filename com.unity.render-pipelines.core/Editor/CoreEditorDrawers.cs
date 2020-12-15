@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -116,6 +117,45 @@ namespace UnityEditor.Rendering
 
                 for (var i = 0; i < actionDrawers.Length; i++)
                     actionDrawers[i](data, owner);
+            }
+        }
+
+        internal static IDrawer ConditionalWithAdditionalProperties(Enabler enabler, AnimFloat animation, params IDrawer[] contentDrawers)
+        {
+            return new ConditionalDrawerWithAdditionalPropertiesInternal(enabler, animation, contentDrawers.Draw);
+        }
+
+        internal static IDrawer ConditionalWithAdditionalProperties(Enabler enabler, AnimFloat animation, params ActionDrawer[] contentDrawers)
+        {
+            return new ConditionalDrawerWithAdditionalPropertiesInternal(enabler, animation, contentDrawers);
+        }
+
+        class ConditionalDrawerWithAdditionalPropertiesInternal : IDrawer
+        {
+            ActionDrawer[] m_ActionDrawers { get; set; }
+            Enabler m_Enabler;
+            AnimFloat m_Anim;
+
+            public ConditionalDrawerWithAdditionalPropertiesInternal(Enabler enabler = null, AnimFloat anim = null, params ActionDrawer[] actionDrawers)
+            {
+                m_ActionDrawers = actionDrawers;
+                m_Enabler = enabler;
+                m_Anim = anim;
+            }
+
+            void IDrawer.Draw(TData data, Editor owner)
+            {
+                if (m_Enabler != null && !m_Enabler(data, owner))
+                    return;
+
+                if (m_Anim != null)
+                    CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_Anim);
+
+                for (var i = 0; i < m_ActionDrawers.Length; i++)
+                    m_ActionDrawers[i](data, owner);
+
+                if (m_Anim != null)
+                    CoreEditorUtils.EndAdditionalPropertiesHighlight();
             }
         }
 
@@ -451,7 +491,7 @@ namespace UnityEditor.Rendering
         }
 
         // This one is private as we do not want to have unhandled advanced switch. Change it if necessary.
-        static IDrawer FoldoutGroup<TEnum, TState>(GUIContent title, TEnum mask, ExpandedState<TEnum, TState> state, FoldoutOption options, Enabler isAdvanced, SwitchEnabler switchAdvanced, params ActionDrawer[] contentDrawers)
+        static IDrawer FoldoutGroup<TEnum, TState>(GUIContent title, TEnum mask, ExpandedState<TEnum, TState> state, FoldoutOption options, Enabler showAdditionalProperties, SwitchEnabler switchAdditionalProperties, params ActionDrawer[] contentDrawers)
             where TEnum : struct, IConvertible
         {
             return Group((data, owner) =>
@@ -462,6 +502,7 @@ namespace UnityEditor.Rendering
                 bool noSpaceAtEnd = (options & FoldoutOption.NoSpaceAtEnd) != 0;
                 bool expended = state[mask];
                 bool newExpended = expended;
+
                 if (isSubFoldout)
                 {
                     newExpended = CoreEditorUtils.DrawSubHeaderFoldout(title, expended, isBoxed);
@@ -470,8 +511,8 @@ namespace UnityEditor.Rendering
                 {
                     CoreEditorUtils.DrawSplitter(isBoxed);
                     newExpended = CoreEditorUtils.DrawHeaderFoldout(title, expended, isBoxed,
-                        isAdvanced == null ? (Func<bool>)null : () => isAdvanced(data, owner),
-                        switchAdvanced == null ? (Action)null : () => switchAdvanced(data, owner));
+                        showAdditionalProperties == null ? (Func<bool>)null : () => showAdditionalProperties(data, owner),
+                        switchAdditionalProperties == null ? (Action)null : () => switchAdditionalProperties(data, owner));
                 }
                 if (newExpended ^ expended)
                     state[mask] = newExpended;
@@ -566,80 +607,96 @@ namespace UnityEditor.Rendering
                 Conditional((serialized, owner) => isAdvanced(serialized, owner) && foldoutState[foldoutMask], advancedContent).Draw);
         }
 
-        /// <summary> Helper to draw a foldout with additional properties. </summary>
-        /// <typeparam name="TEnum"></typeparam>
-        /// <typeparam name="TState"></typeparam>
+        /// <summary>
+        /// Helper to draw a foldout with additional properties.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the foldout mask used.</typeparam>
+        /// <typeparam name="TState">Type of the persistent foldout state.</typeparam>
+        /// <typeparam name="TAPEnum">Type of the additional properties mask used.</typeparam>
+        /// <typeparam name="TAPState">Type of the persistent additional properties state.</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
         /// <param name="foldoutState">The ExpandedState describing the component</param>
-        /// <param name="isShowingAdditionalProperties"></param>
-        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="additionalPropertiesMask">Bit mask (enum) used to define the boolean saving the state in AdditionalPropertiesState</param>
+        /// <param name="additionalPropertiesState">The AdditionalPropertiesState describing the component</param>
         /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
         /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState, TAPEnum, TAPState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState,
-            TAPEnum additionalPropertiesMask, ExpandedState<TAPEnum, TAPState> additionalPropertiesState, IDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            TAPEnum additionalPropertiesMask, AdditionalPropertiesState<TAPEnum, TAPState> additionalPropertiesState, IDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
             where TAPEnum : struct, IConvertible
         {
             return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, additionalPropertiesMask, additionalPropertiesState, normalContent.Draw, additionalContent.Draw, options);
         }
 
-        /// <summary> Helper to draw a foldout with additional properties. </summary>
-        /// <typeparam name="TEnum"></typeparam>
-        /// <typeparam name="TState"></typeparam>
+        /// <summary>
+        /// Helper to draw a foldout with additional properties.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the foldout mask used.</typeparam>
+        /// <typeparam name="TState">Type of the persistent foldout state.</typeparam>
+        /// <typeparam name="TAPEnum">Type of the additional properties mask used.</typeparam>
+        /// <typeparam name="TAPState">Type of the persistent additional properties state.</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
         /// <param name="foldoutState">The ExpandedState describing the component</param>
-        /// <param name="isShowingAdditionalProperties"></param>
-        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="additionalPropertiesMask">Bit mask (enum) used to define the boolean saving the state in AdditionalPropertiesState</param>
+        /// <param name="additionalPropertiesState">The AdditionalPropertiesState describing the component</param>
         /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
         /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState, TAPEnum, TAPState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState,
-            TAPEnum additionalPropertiesMask, ExpandedState<TAPEnum, TAPState> additionalPropertiesState, ActionDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            TAPEnum additionalPropertiesMask, AdditionalPropertiesState<TAPEnum, TAPState> additionalPropertiesState, ActionDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
             where TAPEnum : struct, IConvertible
         {
             return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, additionalPropertiesMask, additionalPropertiesState, normalContent, additionalContent.Draw, options);
         }
 
-        /// <summary> Helper to draw a foldout with additional properties. </summary>>
-        /// <typeparam name="TEnum"></typeparam>
-        /// <typeparam name="TState"></typeparam>
+        /// <summary>
+        /// Helper to draw a foldout with additional properties.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the foldout mask used.</typeparam>
+        /// <typeparam name="TState">Type of the persistent foldout state.</typeparam>
+        /// <typeparam name="TAPEnum">Type of the additional properties mask used.</typeparam>
+        /// <typeparam name="TAPState">Type of the persistent additional properties state.</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
         /// <param name="foldoutState">The ExpandedState describing the component</param>
-        /// <param name="isShowingAdditionalProperties"></param>
-        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="additionalPropertiesMask">Bit mask (enum) used to define the boolean saving the state in AdditionalPropertiesState</param>
+        /// <param name="additionalPropertiesState">The AdditionalPropertiesState describing the component</param>
         /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
         /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState, TAPEnum, TAPState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState,
-            TAPEnum additionalPropertiesMask, ExpandedState<TAPEnum, TAPState> additionalPropertiesState, IDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            TAPEnum additionalPropertiesMask, AdditionalPropertiesState<TAPEnum, TAPState> additionalPropertiesState, IDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
             where TAPEnum : struct, IConvertible
         {
             return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, additionalPropertiesMask, additionalPropertiesState, normalContent.Draw, additionalContent, options);
         }
 
-        /// <summary> Helper to draw a foldout with additional properties. </summary>
-        /// <typeparam name="TEnum">Type of the mask used</typeparam>
-        /// <typeparam name="TState">Type of the persistent state</typeparam>
+        /// <summary>
+        /// Helper to draw a foldout with additional properties.
+        /// </summary>
+        /// <typeparam name="TEnum">Type of the foldout mask used.</typeparam>
+        /// <typeparam name="TState">Type of the persistent foldout state.</typeparam>
+        /// <typeparam name="TAPEnum">Type of the additional properties mask used.</typeparam>
+        /// <typeparam name="TAPState">Type of the persistent additional properties state.</typeparam>
         /// <param name="foldoutTitle">Title wanted for this foldout header</param>
         /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
         /// <param name="foldoutState">The ExpandedState describing the component</param>
-        /// <param name="isShowingAdditionalProperties">Delegate allowing to check if additional properties are shown.</param>
-        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="additionalPropertiesMask">Bit mask (enum) used to define the boolean saving the state in AdditionalPropertiesState</param>
+        /// <param name="additionalPropertiesState">The AdditionalPropertiesState describing the component</param>
         /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
         /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
         public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState, TAPEnum, TAPState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState,
-            TAPEnum additionalPropertiesMask, ExpandedState<TAPEnum, TAPState> additionalPropertiesState, ActionDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            TAPEnum additionalPropertiesMask, AdditionalPropertiesState<TAPEnum, TAPState> additionalPropertiesState, ActionDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
             where TAPEnum : struct, IConvertible
         {
@@ -655,7 +712,7 @@ namespace UnityEditor.Rendering
 
             return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, Enabler, SwitchEnabler,
                 normalContent,
-                Conditional((serialized, owner) => additionalPropertiesState[additionalPropertiesMask] && foldoutState[foldoutMask], additionalContent).Draw
+                ConditionalWithAdditionalProperties((serialized, owner) => additionalPropertiesState[additionalPropertiesMask] && foldoutState[foldoutMask], additionalPropertiesState.GetAnimation(additionalPropertiesMask), additionalContent).Draw
             );
         }
     }
