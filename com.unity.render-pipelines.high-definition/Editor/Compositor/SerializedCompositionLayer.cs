@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         {
             if (outTarget.intValue != (int)CompositorLayer.OutputTarget.CameraStack)
             {
-                return 
+                return
                     EditorGUI.GetPropertyHeight(outputRenderer, null) +
                     EditorGUI.GetPropertyHeight(colorFormat, null) +
                     EditorGUI.GetPropertyHeight(aovBitmask, null) +
@@ -110,15 +110,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public float GetListItemHeight()
         {
-                int pading = 10;
-                if (outTarget.intValue != (int)CompositorLayer.OutputTarget.CameraStack)
-                {
-                    return CompositorStyle.k_ThumbnailSize + pading;
-                }
-                else
-                {
-                    return EditorGUIUtility.singleLineHeight + pading;
-                }
+            int pading = 10;
+            if (outTarget.intValue != (int)CompositorLayer.OutputTarget.CameraStack)
+            {
+                return CompositorStyle.k_ThumbnailSize + pading;
+            }
+            else
+            {
+                return EditorGUIUtility.singleLineHeight + pading;
             }
         }
+    }
 }

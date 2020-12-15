@@ -27,9 +27,9 @@ namespace UnityEditor.ShaderGraph
         public SampleCubemapNode()
         {
             name = "Sample Reflected Cubemap";
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -42,11 +42,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, ViewDirInputId, NormalInputId, SamplerInputId, LODInputId });
         }
 
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
@@ -55,13 +50,13 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(CubemapInputId, generationMode);
-            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
-                    , GetSlotValue(ViewDirInputId, generationMode)
-                    , GetSlotValue(NormalInputId, generationMode)
-                    , GetSlotValue(LODInputId, generationMode));
+            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}.tex, {2}.samplerstate, reflect(-{3}, {4}), {5});"
+                , GetVariableNameForSlot(OutputSlotId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id
+                , GetSlotValue(ViewDirInputId, generationMode)
+                , GetSlotValue(NormalInputId, generationMode)
+                , GetSlotValue(LODInputId, generationMode));
 
             sb.AppendLine(result);
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (valueChangedCallback != null)
             {
-                var enumField = (EnumField) propertyVisualElement;
+                var enumField = (EnumField)propertyVisualElement;
                 enumField.RegisterValueChangedCallback(evt => valueChangedCallback(evt.newValue));
             }
 
@@ -44,10 +44,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(newEnumValue =>
-                    propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
-                (Enum) propertyInfo.GetValue(actualObject),
+                propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
+                (Enum)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
-                (Enum) attribute.defaultValue,
+                (Enum)attribute.defaultValue,
                 out var propertyVisualElement);
         }
     }

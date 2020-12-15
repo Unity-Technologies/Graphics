@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedAdditionalDataObject;
 
         //public SerializedProperty backgroundColor;
-        
+
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
         public SerializedProperty aperture;
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             frameSettings = new SerializedFrameSettings(
                 serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
                 serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
-                );
+            );
 
             probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
             allowDynamicResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDynamicResolution);

@@ -13,6 +13,17 @@ namespace UnityEngine.Rendering.Universal
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
     }
 
+    namespace Internal
+    {
+        public partial class AdditionalLightsShadowCasterPass
+        {
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsBufferId was deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO", false)]
+            public static int m_AdditionalShadowsBufferId;
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsIndicesId was deprecated. Shadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO", false)]
+            public static int m_AdditionalShadowsIndicesId;
+        }
+    }
+
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
     {
@@ -31,13 +42,14 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return shadowCascadeCount switch
+                switch (shadowCascadeCount)
                 {
-                    1 => ShadowCascadesOption.NoCascades,
-                    2 => ShadowCascadesOption.TwoCascades,
-                    4 => ShadowCascadesOption.FourCascades,
-                    _ => throw new InvalidOperationException("Cascade count is not compatible with obsolete API, please use shadowCascadeCount instead.")
-                };
+                    case 1: return ShadowCascadesOption.NoCascades;
+                    case 2: return ShadowCascadesOption.TwoCascades;
+                    case 4: return ShadowCascadesOption.FourCascades;
+                    default: throw new InvalidOperationException("Cascade count is not compatible with obsolete API, please use shadowCascadeCount instead.");
+                }
+                ;
             }
             set
             {
