@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed probe volumes debug views.
 - Fixed ShaderGraph Decal material not showing exposed properties.
+- Fixed wrong coat normal space in shader graph
 - Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 
 ### Changed
