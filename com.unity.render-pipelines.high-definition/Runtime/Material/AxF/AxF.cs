@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Some TODO:
             AxfHonorMinRoughness    = 1 << 8,
             AxfHonorMinRoughnessCoat = 1 << 9,  // the X-Rite viewer never shows a specular highlight on coat for dirac lights
+            AxfDebugTest             = 1 << 23,
             //Experimental:
             //
             // Warning: don't go over 23, or need to use float and bitcast on the UI side, and in the shader,
@@ -44,6 +45,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
+            [SurfaceDataAttributes("Smoothness", precision = FieldPrecision.Real)]
+            public float perceptualSmoothness; // approximated for raytracing stage
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
@@ -123,6 +128,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3  geomNormalWS;
+
+            // Needed for raytracing.
+            // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
+            // to have "V" (from -incidentDir)
+            [SurfaceDataAttributes("View Direction", true)]
+            public Vector3  viewWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -146,6 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  diffuseColor;
             public Vector3  specularColor;
             public Vector3  fresnelF0;
+            public float perceptualRoughness; // approximated for SSAO
             public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
 

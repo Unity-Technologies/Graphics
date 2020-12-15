@@ -198,6 +198,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            // Check light or geometry transforms dirtiness
+            if (m_TransformDirty)
+            {
+                m_TransformDirty = false;
+                ResetPathTracing();
+            }
+
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
@@ -208,10 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check geometry dirtiness
             ulong accelSize = m_CurrentRAS.GetSize();
-            if (accelSize != m_CacheAccelSize || m_TransformDirty)
+            if (accelSize != m_CacheAccelSize)
             {
                 m_CacheAccelSize = accelSize;
-                m_TransformDirty = false;
                 ResetPathTracing();
             }
         }
