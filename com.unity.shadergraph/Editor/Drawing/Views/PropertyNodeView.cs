@@ -54,6 +54,8 @@ namespace UnityEditor.ShaderGraph
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            UpdateReferenceNameResetMenu();
         }
 
         public Node gvNode => this;

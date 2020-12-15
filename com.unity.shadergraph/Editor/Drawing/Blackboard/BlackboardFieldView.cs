@@ -21,10 +21,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
 
-        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
-        // Common
-        IManipulator m_ResetReferenceMenu;
+        IManipulator m_RightClickMenuManipulator;
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
@@ -105,8 +104,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_Graph = graph;
             m_Input = input;
             this.BlackBoardUpdateTrigger = updateBlackboardView;
+            this.name = "blackboardFieldView";
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
+            UpdateRightClickMenu();
             var nameTextField = this.Q("textField") as TextField;
             var textinput = nameTextField.Q(TextField.textInputUssName);
             // When a display name is changed through the BlackboardPill, this callback handle it
@@ -133,28 +134,31 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             return shaderInput;
         }
 
-        void UpdateReferenceNameResetMenu()
+        // Checks if the reference name has been overriden and appends menu action to reset it, if so
+        internal void UpdateRightClickMenu()
         {
             if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
-                this.RemoveManipulator(m_ResetReferenceMenu);
-                m_ResetReferenceMenu = null;
+                this.RemoveManipulator(m_RightClickMenuManipulator);
+                m_RightClickMenuManipulator = null;
             }
-            else
+            else if (m_RightClickMenuManipulator == null)
             {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-                this.AddManipulator(m_ResetReferenceMenu);
+                m_RightClickMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                this.AddManipulator(m_RightClickMenuManipulator);
             }
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Reset Reference", e =>
-            {
-                m_Input.overrideReferenceName = null;
-                m_resetReferenceNameTrigger(shaderInput.referenceName);
-                DirtyNodes(ModificationScope.Graph);
-            }, DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Reset Reference", e => { ResetReferenceAction(); }, DropdownMenuAction.AlwaysEnabled);
+        }
+
+        internal void ResetReferenceAction()
+        {
+            m_Input.overrideReferenceName = null;
+            m_resetReferenceNameTrigger(shaderInput.referenceName);
+            DirtyNodes(ModificationScope.Graph);
         }
 
         #region PropertyDrawers
@@ -202,7 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             if (newValue != m_Input.referenceName)
                 m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
 
-            UpdateReferenceNameResetMenu();
+            UpdateRightClickMenu();
         }
 
         void RegisterPropertyChangeUndo(string actionName)
