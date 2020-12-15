@@ -332,7 +332,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(NOT_USED, NOT_USED, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }

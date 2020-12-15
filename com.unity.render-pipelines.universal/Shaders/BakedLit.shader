@@ -73,7 +73,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
+                float2 staticLightmapUV       : TEXCOORD1;
                 float3 normalOS         : NORMAL;
                 float4 tangentOS        : TANGENT;
 
@@ -83,7 +83,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
                 half4 tangentWS                 : TEXCOORD3;
@@ -116,7 +116,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 real sign = input.tangentOS.w * GetOddNegativeScale();
                 output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
                 OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
@@ -146,7 +146,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                color *= SAMPLE_GI(input.staticLightmapUV, NOT_USED, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
@@ -315,7 +315,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
+                float2 staticLightmapUV       : TEXCOORD1;
                 float3 normalOS         : NORMAL;
                 float4 tangentOS        : TANGENT;
 
@@ -325,7 +325,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
                 half4 tangentWS                 : TEXCOORD3;
@@ -358,7 +358,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 real sign = input.tangentOS.w * GetOddNegativeScale();
                 output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
                 OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
@@ -388,7 +388,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                color *= SAMPLE_GI(input.staticLightmapUV, NOT_USED, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);

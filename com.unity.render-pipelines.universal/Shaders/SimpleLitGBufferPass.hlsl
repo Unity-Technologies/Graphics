@@ -12,30 +12,35 @@ struct Attributes
     float3 normalOS     : NORMAL;
     float4 tangentOS    : TANGENT;
     float2 texcoord     : TEXCOORD0;
-    float2 lightmapUV   : TEXCOORD1;
+    float2 staticLightmapUV   : TEXCOORD1;
+    float2 dynamicLightmapUV  : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
     float2 uv                       : TEXCOORD0;
-    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-    float3 posWS                    : TEXCOORD2;    // xyz: posWS
+    float3 posWS                    : TEXCOORD1;    // xyz: posWS
 
 #ifdef _NORMALMAP
-    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    float4 normal                   : TEXCOORD2;    // xyz: normal, w: viewDir.x
+    float4 tangent                  : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+    float4 bitangent                : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
 #else
-    float3  normal                  : TEXCOORD3;
-    float3 viewDir                  : TEXCOORD4;
+    float3  normal                  : TEXCOORD2;
+    float3 viewDir                  : TEXCOORD3;
 #endif
 
-    half3 vertexLighting            : TEXCOORD6; // xyz: vertex light
+    half3 vertexLighting            : TEXCOORD5; // xyz: vertex light
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
+    float4 shadowCoord              : TEXCOORD6;
+#endif
+
+    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
+#ifdef DYNAMICLIGHTMAP_ON
+    float2  dynamicLightmapUV : TEXCOORD8; // Dynamic lightmap UVs
 #endif
 
     float4 positionCS               : SV_POSITION;
@@ -71,7 +76,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.fogCoord = 0; // we don't apply fog in the guffer pass
     inputData.vertexLighting = input.vertexLighting.xyz;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
@@ -107,7 +112,10 @@ Varyings LitPassVertexSimple(Attributes input)
     output.viewDir = viewDirWS;
 #endif
 
-    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+#ifdef DYNAMICLIGHTMAP_ON
+    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
     OUTPUT_SH(output.normal.xyz, output.vertexSH);
 
     output.vertexLighting = vertexLight;

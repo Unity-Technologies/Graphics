@@ -591,10 +591,12 @@ half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 no
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#if defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#if defined(DYNAMICLIGHTMAP_ON)
+#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, dynamicLmName, normalWSName)
+#elif defined(LIGHTMAP_ON)
+#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)

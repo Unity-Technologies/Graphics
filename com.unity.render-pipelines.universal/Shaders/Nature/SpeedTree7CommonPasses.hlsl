@@ -110,7 +110,8 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    // Billboards cannot use lightmaps.
+    inputData.bakedGI = SAMPLE_GI(NOT_USED, NOT_USED, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }

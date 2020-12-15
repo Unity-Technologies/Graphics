@@ -111,12 +111,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
-#ifdef DYNAMICLIGHTMAP_ON
-    input.bakedGI = SampleLightmap(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, input.normalWS);
-#else
-    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-#endif
-
+    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, input.normalWS);
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
