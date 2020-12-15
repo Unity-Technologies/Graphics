@@ -1,4 +1,4 @@
-# Screen Space Global Illumination (Preview)
+# Screen Space Global Illumination
 
 The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
@@ -70,3 +70,4 @@ The properties visible in the Inspector change depending on whether or not you e
 ### Ray-traced global illumination
 
 Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.
+When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
