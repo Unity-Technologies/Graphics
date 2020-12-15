@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Fixed
 - Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
 
 ## [10.2.0] - 2020-10-19
 
