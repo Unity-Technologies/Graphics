@@ -7,12 +7,32 @@
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
+// y channel is reserved for potential payload information to carry alongside the unintialized flag.
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
 bool IsUninitializedGI(float3 bakedGI)
 {
     const float3 unitializedGI = UNINITIALIZED_GI;
-    return all(bakedGI == unitializedGI);
+    return all(bakedGI.xz == unitializedGI.xz);
+}
+
+
+void SetAsUninitializedGI(out float3 bakedGI)
+{
+    bakedGI = UNINITIALIZED_GI;
+}
+
+float ExtractPayloadFromUninitializedGI(float3 inputBakedGI)
+{
+    if (IsUninitializedGI(inputBakedGI))
+        return inputBakedGI.y;
+
+    return 1;
+}
+
+void EncodePayloadWithUninitGI(float payload, inout float3 bakedGI)
+{
+    bakedGI.y = payload;
 }
 #endif
 
@@ -140,7 +160,7 @@ void SampleBakedGI(
     // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
-    bakeDiffuseLighting = UNINITIALIZED_GI;
+    SetAsUninitializedGI(bakeDiffuseLighting);
     return;
 #endif
 

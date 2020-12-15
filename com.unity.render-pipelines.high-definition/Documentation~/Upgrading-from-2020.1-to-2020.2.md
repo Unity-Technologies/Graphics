@@ -203,6 +203,8 @@ In the Decal shader, the property `_MetallicRemapMin` have been added, and `_Met
 
 From 10.x, a new pass ScenePickingPass have been added to all the shader and master node to allow the editor to correctly handle the picking with tesselated objects and backfaced objects.
 
+From 10.x, if material ambient occlusion needs to be applied to probe volume GI and the material is deferred, the material needs to define `HAS_PAYLOAD_WITH_UNINIT_GI` constant and a function `float GetUninitializedGIPayload(SurfaceData surfaceData)` that returns the AO factor that is desired to be applied. No action is needed for forward only materials or if no material AO needs to be applied to probe volume GI.
+
 ## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.

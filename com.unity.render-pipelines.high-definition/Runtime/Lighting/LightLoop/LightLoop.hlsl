@@ -495,7 +495,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
     bool uninitializedGI = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-    builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
 
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
     // Even so, the bound resources might be invalid in some cases, so we still need to check on _EnableProbeVolumes.
@@ -507,11 +506,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
             BuiltinData apvBuiltinData;
             ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
-            apvBuiltinData.bakeDiffuseLighting      = UNINITIALIZED_GI;
-            apvBuiltinData.backBakeDiffuseLighting  = UNINITIALIZED_GI;
-
-            float3 apvBakeDiffuseLighting = UNINITIALIZED_GI;
-            float3 apvBackBakeDiffuseLighting = UNINITIALIZED_GI;
+            SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
+            SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
             EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                         bsdfData.normalWS,
@@ -534,14 +530,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
             // If we are deferred we should apply baked AO here as it was already apply for lightmap.
-            // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It should not be apply in forward
-            // as in this case the baked AO is correctly apply in PostBSDF()
-            // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
-            apvBakeDiffuseLighting *= bsdfData.specularOcclusion;
+            // When using probe volumes for the pixel (i.e. we have uninitialized GI), we include the surfaceData.ambientOcclusion as
+            // payload information alongside the un-init flag.
+            // It should not be applied in forward as in this case the baked AO is correctly apply in PostBSDF()
+            // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+            float surfaceDataAO = ExtractPayloadFromUninitializedGI(builtinData.bakeDiffuseLighting);
+            apvBuiltinData.bakeDiffuseLighting *= surfaceDataAO;
             #endif
 
             ApplyDebugToBuiltinData(apvBuiltinData);
 
+            builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
             // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
             builtinData.bakeDiffuseLighting += apvBuiltinData.bakeDiffuseLighting;
         }
