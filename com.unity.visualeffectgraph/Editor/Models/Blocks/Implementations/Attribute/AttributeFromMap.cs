@@ -189,14 +189,14 @@ namespace UnityEditor.VFX.Block
                     var attribMapExpr = GetExpressionsFromSlots(this).First(o => o.name == "attributeMap").exp;
                     var height = new VFXExpressionTextureHeight(attribMapExpr);
                     var width =  new VFXExpressionTextureWidth(attribMapExpr);
-                    var countExpr =   height*width;
+                    var countExpr =   height * width;
                     VFXExpression samplePos = VFXValue.Constant(0);
 
                     switch (SampleMode)
                     {
                         case AttributeMapSampleMode.IndexRelative:
                             var relativePosExpr = GetExpressionsFromSlots(this).First(o => o.name == "relativePos").exp;
-                            samplePos = VFXOperatorUtility.Clamp( new VFXExpressionCastFloatToUint(relativePosExpr) * countExpr,
+                            samplePos = VFXOperatorUtility.Clamp(new VFXExpressionCastFloatToUint(relativePosExpr) * countExpr,
                                 VFXOperatorUtility.ZeroExpression[VFXValueType.Uint32],
                                 countExpr - VFXOperatorUtility.OneExpression[VFXValueType.Uint32], false);
                             break;
@@ -221,10 +221,9 @@ namespace UnityEditor.VFX.Block
                     var x = samplePos - (y * width);
                     var outputType = VFXExpression.TypeToType(currentAttribute.type);
                     var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
-                    var outputExpr = Activator.CreateInstance(type, new object[]{attribMapExpr, x, y });
+                    var outputExpr = Activator.CreateInstance(type, new object[] {attribMapExpr, x, y });
 
-                    yield return new VFXNamedExpression((VFXExpression)outputExpr, "value") ;
-
+                    yield return new VFXNamedExpression((VFXExpression)outputExpr, "value");
                 }
             }
         }
