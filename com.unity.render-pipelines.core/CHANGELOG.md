@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed the default background color for previews to use the original color.
 
 ## [10.2.0] - 2020-10-19
 
@@ -34,7 +34,6 @@ The version number for this package has increased due to a version update of a r
 - Add api documentation for TextureCombiner.
 - Add tooltips in LookDev's toolbar.
 - Add XRGraphicsAutomatedTests helper class.
-- Added functionality to change the background color of previews.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
