@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using TexelSize or reading sampler states from Textures output from a Subgraph or Custom Function Node [1284036]
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
+- Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 
 ## [10.2.0] - 2020-10-19
 
