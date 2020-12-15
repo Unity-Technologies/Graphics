@@ -358,6 +358,7 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
             var propRow = GetAssociatedBlackboardRow();
+            // The associated blackboard row can be deleted in which case this property node view is also cleaned up with it, so we want to check for null
             if (propRow != null)
             {
                 propRow.RemoveFromClassList("hovered");

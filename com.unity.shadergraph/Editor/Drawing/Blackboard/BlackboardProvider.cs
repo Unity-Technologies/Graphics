@@ -477,7 +477,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         public BlackboardRow GetBlackboardRow(ShaderInput input)
         {
-            return m_InputRows[input];
+            if (m_InputRows.ContainsKey(input))
+                return m_InputRows[input];
+            else
+                return null;
         }
 
         // Clear any rows that are currently highlighted due to mouse hovering over PropertyNodeViews in the graph
