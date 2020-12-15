@@ -173,47 +173,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResults, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
-        {
-            this.owner = owner;
-            this.currentRTManager = rtManager;
-            this.currentRenderTarget = targets;
-            this.currentHDCamera = hdCamera;
-
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                if (!isSetup)
-                {
-                    Setup(renderContext, cmd);
-                    isSetup = true;
-                    userMaterialPropertyBlock = new MaterialPropertyBlock();
-                }
-
-                SetCustomPassTarget(cmd);
-
-                // Create the custom pass context:
-                bool msaa = IsMSAAEnabled(hdCamera);
-                CustomPassContext ctx = new CustomPassContext(
-                    renderContext, cmd, hdCamera,
-                    cullingResult, cameraCullingResults,
-                    msaa ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer,
-                    rtManager.GetDepthStencilBuffer(msaa),
-                    rtManager.GetNormalBuffer(msaa),
-                    targets.customColorBuffer,
-                    targets.customDepthBuffer,
-                    userMaterialPropertyBlock
-                );
-
-                isExecuting = true;
-                Execute(ctx);
-                isExecuting = false;
-
-                // Set back the camera color buffer if we were using a custom buffer as target
-                if (targetDepthBuffer != TargetBuffer.Camera)
-                    CoreUtils.SetRenderTarget(cmd, targets.cameraColorBuffer);
-            }
-        }
-
         class ExecutePassData
         {
             public CustomPass customPass;
