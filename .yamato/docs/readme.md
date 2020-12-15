@@ -30,7 +30,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
-- Adding a new job to All_{project_name}: add the new job under all.dependencies (this job can also be from a different project) 
+- Adding a new job to {project_name}_PR: add the new job under pr.dependencies (this job can also be from a different project) 
 - Adding a new platform/api for the project: extend the list under platforms as indicated
 - Creating a new project: create a new metafile same way as is done for existing projects. All ymls get created once the script runs
 - Use different agent than what is specified in the shared metafile: override the agent as described in the metafile description under platforms section
@@ -88,25 +88,28 @@ Some jobs benefit from Yamato variables, which can be edited in Yamato UI.
 
 
 ### Repeated UTR runs
-- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual.
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual. The `apply` section corresponds to list of platforms/apis for which this repeated block applies.
   ```
   - type: Standalone
     is_performance: True
-    utr_flags:
-      - [all]: --report-performance-data
-    utr_flags_build:
-      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
-    utr_repeat:
-      - utr_flags:
+    - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
         utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [all]: --testfilter=Low
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
-      - utr_flags:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
-        utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
+  - type: playmode
+     - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
   ```
 
 
@@ -581,9 +584,9 @@ platforms:
   - name: OSX
     ...
 
-# which jobs to run under All_{project_name} job
+# which jobs to run under {project_name}_PR job
 # this is the same structure as in abv nightly extra dependencies
-all: 
+pr: 
   dependencies:
     - platform: OSX # use this to refer to the current project 
       api: Metal
@@ -596,7 +599,7 @@ all:
       test_platforms:
         - playmode
     - project: HDRP_DXR # use this if there is a dependency to another project
-      all: true
+      pr: true
     - ...  
 
 ```

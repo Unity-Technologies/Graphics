@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
@@ -138,29 +139,32 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            // preview is always generating a full shader, even when previewing within a subgraph
+            bool isGeneratingSubgraph = owner.isSubGraph && (generationMode != GenerationMode.Preview);
+
             switch (property.propertyType)
             {
                 case PropertyType.Boolean:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Float:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Vector2:
-                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Vector3:
-                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Vector4:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Color:
                     switch (property.sgVersion)
                     {
                         case 0:
                         case 2:
-                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                             break;
                         case 1:
                         case 3:
@@ -168,11 +172,11 @@ namespace UnityEditor.ShaderGraph
                             //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
                             if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.referenceName}) : {property.referenceName};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.GetHLSLVariableName(isGeneratingSubgraph)}) : {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                             }
                             else
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                             }
                             break;
                         default:
@@ -180,37 +184,47 @@ namespace UnityEditor.ShaderGraph
                     }
                     break;
                 case PropertyType.Matrix2:
-                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Matrix3:
-                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Matrix4:
-                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    break;
+                case PropertyType.Texture2D:
+                    sb.AppendLine($"UnityTexture2D {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    break;
+                case PropertyType.Texture3D:
+                    sb.AppendLine($"UnityTexture3D {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    break;
+                case PropertyType.Texture2DArray:
+                    sb.AppendLine($"UnityTexture2DArray {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
+                    break;
+                case PropertyType.Cubemap:
+                    sb.AppendLine($"UnityTextureCube {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.SamplerState:
-                    sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Gradient:
                     if (generationMode == GenerationMode.Preview)
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph))};");
                     else
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
             }
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
-            if (!(property is Texture2DShaderProperty) &&
-                !(property is Texture2DArrayShaderProperty) &&
-                !(property is Texture3DShaderProperty) &&
-                !(property is CubemapShaderProperty) &&
-                !(property is VirtualTextureShaderProperty))
-                return base.GetVariableNameForSlot(slotId);
-
-            return property.referenceName;
+            // TODO: we should switch VirtualTexture away from the macro-based variables and towards using the same approach as Texture2D
+            switch (property.propertyType)
+            {
+                case PropertyType.VirtualTexture:
+                    return property.GetHLSLVariableName(owner.isSubGraph);
+            }
+            return base.GetVariableNameForSlot(slotId);
         }
 
         protected override void CalculateNodeHasError()
@@ -225,7 +239,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision()
+        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)
