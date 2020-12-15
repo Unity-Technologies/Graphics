@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 - Fixed NullPointerException when baking probes from the lighting window (case 1289680)
 - Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
