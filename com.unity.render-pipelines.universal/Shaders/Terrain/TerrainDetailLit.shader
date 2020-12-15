@@ -34,7 +34,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -46,9 +45,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             struct Attributes
             {
                 float4  PositionOS  : POSITION;
-                float2  UV0         : TEXCOORD0; // Material UVs
-                float2  UV1         : TEXCOORD1; // Baked lightmap UVs
-                float2  UV2         : TEXCOORD2; // Dynamic lightmap UVs
+                float2  UV0         : TEXCOORD0;
+                float2  UV1         : TEXCOORD1;
                 float3  NormalOS    : NORMAL;
                 half4   Color       : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -56,17 +54,14 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             struct Varyings
             {
-                float2  UV01              : TEXCOORD0; // UV0
-                half4   Color             : TEXCOORD1; // Vertex Color
-                half4   LightingFog       : TEXCOORD2; // Vertex Lighting, Fog Factor
+                float2  UV01            : TEXCOORD0; // UV0
+                float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
+                half4   Color           : TEXCOORD2; // Vertex Color
+                half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                float4  ShadowCoords      : TEXCOORD3; // Shadow UVs
+                float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
 #endif
-                float2  StaticLightmapUV  : TEXCOORD4; // Static lightmap UVs
-#ifdef DYNAMICLIGHTMAP_ON
-                float2  DynamicLightmapUV : TEXCOORD5; // Dynamic lightmap UVs
-#endif
-                float4  PositionCS        : SV_POSITION; // Clip Position
+                float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -81,10 +76,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-#ifdef DYNAMICLIGHTMAP_ON
-                output.DynamicLightmapUV = input.UV2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-#endif
-                output.StaticLightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+                output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
@@ -122,12 +114,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#ifdef DYNAMICLIGHTMAP_ON
-                float2 dynamicLightmapUV = input.DynamicLightmapUV;
-#else
-                float2 dynamicLightmapUV = 0;
-#endif
-                half3 bakedGI = SampleLightmap(input.StaticLightmapUV, dynamicLightmapUV, half3(0.0, 1.0, 0.0));
+                half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
 
                 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                     half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
@@ -182,9 +169,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             struct Attributes
             {
                 float4  PositionOS  : POSITION;
-                float2  UV0         : TEXCOORD0; // Material UVs
-                float2  UV1         : TEXCOORD1; // Baked lightmap UVs
-                float2  UV2         : TEXCOORD2; // Dynamic lightmap UVs
+                float2  UV0         : TEXCOORD0;
+                float2  UV1         : TEXCOORD1;
                 float3  NormalOS    : NORMAL;
                 half4   Color       : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -192,13 +178,12 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             struct Varyings
             {
-                float2  UV01              : TEXCOORD0; // UV0
-                float2  DynamicLightmapUV : TEXCOORD1; // Dynamic lightmap UVs
-                float2  StaticLightmapUV  : TEXCOORD2; // Static lightmap UVs
-                half4   Color             : TEXCOORD3; // Vertex Color
-                half4   LightingFog       : TEXCOORD4; // Vertex Lighting, Fog Factor
-                float4  ShadowCoords      : TEXCOORD5; // Shadow UVs
-                float4  PositionCS        : SV_POSITION; // Clip Position
+                float2  UV01            : TEXCOORD0; // UV0
+                float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
+                half4   Color           : TEXCOORD2; // Vertex Color
+                half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
+                float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
+                float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -214,10 +199,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-#ifdef DYNAMICLIGHTMAP_ON
-                output.DynamicLightmapUV = input.UV2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-#endif
-                output.StaticLightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+                output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
@@ -252,7 +234,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                half3 bakedGI = SampleLightmap(input.StaticLightmapUV, input.DynamicLightmapUV, half3(0.0, 1.0, 0.0));
+                half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
 
                 half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
