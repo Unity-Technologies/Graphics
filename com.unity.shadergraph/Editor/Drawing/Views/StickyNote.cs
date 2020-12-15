@@ -237,7 +237,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-
         public enum Resizer
         {
             None =          0,

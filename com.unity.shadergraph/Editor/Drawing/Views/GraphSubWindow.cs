@@ -323,7 +323,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
-
         }
     }
     #endregion
