@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Drawing.Interfaces;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-   class ElementResizer : Manipulator
+    class ElementResizer : Manipulator
     {
         public readonly ResizableElement.Resizer direction;
 
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var parentRootPosition = resizedBase.worldBound;
             // Top left of the target visual element for resizing
             var targetRootPosition = resizedTarget.worldBound;
-            var canResizePastParentBounds = ((ISGResizable) resizedTarget).CanResizePastParentBounds();
+            var canResizePastParentBounds = ((ISGResizable)resizedTarget).CanResizePastParentBounds();
 
             Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
 
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     targetToLeftBoundaryDelta = Mathf.Clamp(targetToLeftBoundaryDelta, 2.5f, targetToLeftBoundaryDelta);
 
                     // Clamps width to max out at left edge of parent window
-                    if(Mathf.Approximately(targetToLeftBoundaryDelta, 2.5f))
+                    if (Mathf.Approximately(targetToLeftBoundaryDelta, 2.5f))
                         newWidth = (m_StartPosition.x + m_StartSize.x);
 
                     newWidth = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
@@ -222,5 +222,4 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
     }
-
 }

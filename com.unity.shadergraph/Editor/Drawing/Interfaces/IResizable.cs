@@ -1,4 +1,4 @@
-﻿using UnityEditor.Experimental.GraphView;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing.Interfaces
 {
