@@ -4,30 +4,23 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal enum HDProfileId
     {
-        PushGlobalParameters,
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
         CoarseStencilGeneration,
-        HTileForSSS,
-        RenderSSAO,
         ResolveStencilBuffer,
         AmbientOcclusion,
         HorizonSSAO,
-        DenoiseSSAO,
         UpSampleSSAO,
         ScreenSpaceShadows,
         ScreenSpaceShadowsDebug,
         BuildLightList,
         GenerateLightAABBs,
-        ContactShadows,
-        BlitToFinalRTDevBuildOnly,
         Distortion,
         AccumulateDistortion,
         ApplyDistortion,
         DepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
-        GBufferDebug,
         DBufferRender,
         DBufferPrepareDrawData,
         DBufferNormal,
@@ -38,13 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         SsrAccumulate,
-        PrepareForTransparentSsr,
 
         // SSGI
         SSGIPass,
         SSGITrace,
         SSGIDenoise,
-        SSGIConvert,
         SSGIUpscale,
 
         ForwardEmissive,
@@ -52,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ForwardOpaqueDebug,
         ForwardTransparent,
         ForwardTransparentDebug,
+
         ForwardPreRefraction,
         ForwardPreRefractionDebug,
         ForwardTransparentDepthPrepass,
@@ -64,38 +56,20 @@ namespace UnityEngine.Rendering.HighDefinition
         PostProcessing,
         AfterPostProcessing,
         RenderFullScreenDebug,
-        RenderDebug,
-        DisplayLightVolume,
         ClearBuffers,
-        ClearDepthStencil,
         ClearStencil,
-        ClearSssLightingBuffer,
-        ClearSSSFilteringTarget,
-        ClearAndCopyStencilTexture,
-        ClearHDRTarget,
-        ClearDecalBuffer,
-        ClearGBuffer,
-        ClearSsrBuffers,
         HDRenderPipelineRenderCamera,
         HDRenderPipelineRenderAOV,
         HDRenderPipelineAllRenderRequest,
         CullResultsCull,
         CustomPassCullResultsCull,
-        UpdateStencilCopyForSSRExclusion,
-        GizmosPrePostprocess,
-        Gizmos,
         DisplayCookieAtlas,
         RenderWireFrame,
-        PushToColorPicker,
-        ResolveMSAAColor,
-        ResolveMSAAMotionVector,
-        ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
         PreIntegradeWardCookTorrance,
         FilterCubemapCharlie,
         FilterCubemapGGX,
-        DisplayPointLightCookieArray,
         DisplayPlanarReflectionProbeAtlas,
         BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
@@ -121,8 +95,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
-        RaytracingReflectionUpscaleGeneration,
-        RaytracingFilterReflection,
+        RaytracingReflectionAdjustWeight,
+        RaytracingReflectionFilter,
+        RaytracingReflectionUpscale,
         // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
@@ -130,7 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
-        RaytracingSphereLightShadow,
         RaytracingAreaLightShadow,
         // RTGI
         RaytracingIndirectDiffuseDirectionGeneration,
@@ -155,17 +129,11 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilter,
         DiffuseFilter,
 
-        // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
 
         // Profile sampler for shadow
         RenderShadowMaps,
         RenderMomentShadowMaps,
-        RenderPunctualShadowMaps,
-        RenderCachedPunctualShadowMaps,
-        RenderDirectionalShadowMaps,
-        RenderAreaShadowMaps,
-        RenderCachedAreaShadowMaps,
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
@@ -173,7 +141,6 @@ namespace UnityEngine.Rendering.HighDefinition
         BlitAreaMixedCachedShadowMaps,
 
         // Profile sampler for tile pass
-        LightLoopPushGlobalParameters,
         TileClusterLightingDebug,
         DisplayShadows,
 
@@ -187,7 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolumeUpdate,
 
         // XR
-        XROcclusionMesh,
         XRMirrorView,
         XRCustomMirrorView,
         XRDepthCopy,
@@ -236,19 +202,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ContrastAdaptiveSharpen,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
-        BuildGPULightListProbeVolumes,
-        PushProbeVolumeLightListGlobalParameters,
 
         AOVExecute,
-        // Enum AOVBuffers
         AOVOutput,
-        AOVColor,
-        AOVDepthStencil,
-        AOVNormals,
-        AOVMotionVectors,
-
 #if ENABLE_VIRTUALTEXTURES
-        VTFeedbackClear,
         VTFeedbackDownsample,
 #endif
     }
