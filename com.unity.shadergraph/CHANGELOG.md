@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the horizontal scrollbar at the bottom of the shader graph inspector window could not be used due to the resizing widget always taking priority over it
 - Fixed an issue where the shader graph inspector window could be resized past the edges of the shader graph view
 - Fixed an issue where resizing the shader graph inspector window sometimes had unexpected results
+- Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 
 ### Fixed
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property

@@ -371,6 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SsrLightingTexture                      = Shader.PropertyToID("_SsrLightingTexture");
         public static readonly int _SsrAccumPrev                            = Shader.PropertyToID("_SsrAccumPrev");
         public static readonly int _SsrLightingTextureRW                    = Shader.PropertyToID("_SsrLightingTextureRW");
+        public static readonly int _DirectionPDFTexture                     = Shader.PropertyToID("_DirectionPDFTexture");
         public static readonly int _SSRAccumTexture                         = Shader.PropertyToID("_SSRAccumTexture");
         public static readonly int _SsrHitPointTexture                      = Shader.PropertyToID("_SsrHitPointTexture");
         public static readonly int _SsrClearCoatMaskTexture                 = Shader.PropertyToID("_SsrClearCoatMaskTexture");
@@ -576,6 +577,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
         public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
+        public static readonly int _HistoryBufferSize               = Shader.PropertyToID("_HistoryBufferSize");
+        public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
+        public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
+        public static readonly int _AffectSmoothSurfaces            = Shader.PropertyToID("_AffectSmoothSurfaces");
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
@@ -663,6 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RayTracingDiffuseLightingOnly   = Shader.PropertyToID("_RayTracingDiffuseLightingOnly");
+        public static readonly int _RaytracingHalfResolution        = Shader.PropertyToID("_RaytracingHalfResolution");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
