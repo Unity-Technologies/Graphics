@@ -29,10 +29,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_DenoiserRadius;
+        SerializedDataParameter m_AffectsSmoothSurfaces;
         SerializedDataParameter m_Mode;
 
         // Performance
-        SerializedDataParameter m_UpscaleRadius;
         SerializedDataParameter m_FullResolution;
 
         // Quality
@@ -63,10 +63,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_Denoise                       = Unpack(o.Find(x => x.denoise));
             m_DenoiserRadius                = Unpack(o.Find(x => x.denoiserRadius));
+            m_AffectsSmoothSurfaces         = Unpack(o.Find(x => x.affectSmoothSurfaces));
             m_Mode                          = Unpack(o.Find(x => x.mode));
 
             // Performance
-            m_UpscaleRadius                 = Unpack(o.Find(x => x.upscaleRadius));
             m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
 
             // Quality
@@ -92,9 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
         static public readonly GUIContent k_ModeText = EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used.");
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections.");
-        static public readonly GUIContent k_UpscaleRadiusText = EditorGUIUtility.TrTextContent("Upscale Radius", "Controls the size of the upscale radius.");
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
         static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
+        static public readonly GUIContent k_AffectsSmoothSurfacesText = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces", "When enabled, the denoiser affects perfectly smooth surfaces.");
 
         void RayTracingQualityModeGUI()
         {
@@ -111,6 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new HDEditorUtils.IndentScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                    PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
             }
         }
@@ -127,12 +128,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue, k_ClampValueText);
-                PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
                 PropertyField(m_Denoise, k_DenoiseText);
                 using (new HDEditorUtils.IndentScope())
                 {
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                    PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
             }
         }
@@ -238,10 +239,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.Save<float>(m_SmoothnessFadeStart);
                 settings.Save<float>(m_RayLength);
                 settings.Save<float>(m_ClampValue);
-                settings.Save<int>(m_UpscaleRadius);
                 settings.Save<bool>(m_FullResolution);
                 settings.Save<bool>(m_Denoise);
                 settings.Save<int>(m_DenoiserRadius);
+                settings.Save<bool>(m_AffectsSmoothSurfaces);
             }
             // SSR
             else
@@ -260,10 +261,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<float>(ref m_SmoothnessFadeStart);
                 settings.TryLoad<float>(ref m_RayLength);
                 settings.TryLoad<float>(ref m_ClampValue);
-                settings.TryLoad<int>(ref m_UpscaleRadius);
                 settings.TryLoad<bool>(ref m_FullResolution);
                 settings.TryLoad<bool>(ref m_Denoise);
                 settings.TryLoad<int>(ref m_DenoiserRadius);
+                settings.TryLoad<bool>(ref m_AffectsSmoothSurfaces);
             }
             // SSR
             else
@@ -280,10 +281,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
                 CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
-                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
                 CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
+                CopySetting(ref m_AffectsSmoothSurfaces, settings.lightingQualitySettings.RTRSmoothDenoising[level]);
             }
             // SSR
             else
