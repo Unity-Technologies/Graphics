@@ -200,7 +200,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static KeywordCollection Unlit = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.StaticLightmap },
+                // TODO ENLIGHTEN: Should this contain lightmaps at all?
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
             };
