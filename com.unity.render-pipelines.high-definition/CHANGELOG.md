@@ -10,21 +10,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
 - Added View Bias for mesh decals.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
 
 
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Removed the superior clamping value for the recursive rendering max ray length. 
+- Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 
 ## [10.3.0] - 2020-12-01
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+
+### Changed
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+- Replaced last package version checker in Wizard to a link on Package Manager
 
 ## [10.2.1] - 2020-11-30
 
