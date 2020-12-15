@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        [VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
+        [VFXSetting, SerializeField, Tooltip("Specifies which primitive part of the mesh to sample from.")]
         private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
 
         [VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
