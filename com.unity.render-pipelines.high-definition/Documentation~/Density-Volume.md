@@ -43,6 +43,6 @@ The **Max Density Volume On Screen** controls how many Density Volumes can appea
 
 ## Creating a Density Mask Texture
 
-1. In image-editing software of your choice, prepare a grayscale flipbook texture and [import it as a 3D texture](https://docs.unity3d.com/2020.2/Documentation/Manual/class-Texture3D.html). For example, a texture of size 1024x32 describes a 3D texture of size 32x32x32 with 32 slices laid out one after another.
+1. In image-editing software of your choice, prepare an RGBA flipbook texture and [import it as a 3D texture](https://docs.unity3d.com/2020.2/Documentation/Manual/class-Texture3D.html). For example, a texture of size 1024x32 describes a 3D texture of size 32x32x32 with 32 slices laid out one after another.
 
 2. Open a Density Volume component and assign the texture you just imported to the __Texture__ field in the __Density Mask Texture__ section.
