@@ -103,6 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxElementCount = 0;
         bool m_HasMipMaps = false;
 
+        const float k_MipmapFactorApprox = 1.33f;
+
         public Texture3DAtlas(GraphicsFormat format, int maxElementSize, int maxElementCount, bool hasMipMaps = true)
         {
             m_format = format;
@@ -526,12 +528,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas.Release();
         }
 
-        public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format)
+        public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format, bool hasMipMaps)
         {
             int formatInBytes = HDUtils.GetFormatSizeInBytes(format);
-            long elementSizeInBytes = elementSize * elementSize * elementSize * formatInBytes;
+            long elementSizeInBytes = (long)(elementSize * elementSize * elementSize * formatInBytes * (hasMipMaps ? k_MipmapFactorApprox : 1.0f));
 
             return elementSizeInBytes * elementCount;
+        }
+
+        public static int GetMaxElementCountForWeightInByte(long weight, int elementSize, int elementCount, GraphicsFormat format, bool hasMipMaps)
+        {
+            long elementSizeInByte = (long)((long)elementSize * elementSize * elementSize * HDUtils.GetFormatSizeInBytes(format) * (hasMipMaps ? k_MipmapFactorApprox : 1.0f));
+            return (int)Mathf.Clamp(weight / elementSizeInByte, 1, elementCount);
         }
     }
 }

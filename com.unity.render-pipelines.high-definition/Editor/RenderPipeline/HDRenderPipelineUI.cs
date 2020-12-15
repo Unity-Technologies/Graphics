@@ -240,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Clamp values
                 lightSettings.maxDensityVolumeSize.intValue = Mathf.Clamp(lightSettings.maxDensityVolumeSize.intValue, (int)DensityVolumeResolution.Resolution32, (int)DensityVolumeResolution.Resolution256);
-                lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 0, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
+                lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
 
                 if (lightSettings.maxDensityVolumeSize.hasMultipleDifferentValues || lightSettings.maxDensityVolumesOnScreen.hasMultipleDifferentValues)
                     EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
@@ -249,10 +249,27 @@ namespace UnityEditor.Rendering.HighDefinition
                     long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
                         lightSettings.maxDensityVolumeSize.intValue,
                         lightSettings.maxDensityVolumesOnScreen.intValue,
-                        DensityVolumeManager.densityVolumeAtlasFormat
+                        DensityVolumeManager.densityVolumeAtlasFormat,
+                        true
                     );
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
+
+                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    {
+                        int count = Texture3DAtlas.GetMaxElementCountForWeightInByte(
+                            HDRenderPipeline.k_MaxCacheSize,
+                            lightSettings.maxDensityVolumeSize.intValue,
+                            lightSettings.maxDensityVolumesOnScreen.intValue,
+                            DensityVolumeManager.densityVolumeAtlasFormat,
+                            true
+                        );
+                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
+                    else
+                    {
+                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                    }
                 }
             }
         }

@@ -26,7 +26,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_VolumeAtlas == null)
                 {
                     var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, (int)settings.maxDensityVolumesOnScreen);
+
+                    // Prevent allocating too big textures:
+                    int elementCount = Texture3DAtlas.GetMaxElementCountForWeightInByte(
+                        HDRenderPipeline.k_MaxCacheSize,
+                        (int)settings.maxDensityVolumeSize,
+                        settings.maxDensityVolumesOnScreen,
+                        densityVolumeAtlasFormat,
+                        true
+                    );
+
+                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxDensityVolumesOnScreen);
+
+                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, elementCount);
 
                     // When HDRP is initialized and this atlas created, some density volume may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
