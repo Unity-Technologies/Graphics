@@ -22,6 +22,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] public List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
+        [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
+
+        public string GetSerializedFullPath()
+        {
+            return m_AssetFullPath;
+        }
+
 #if UNITY_EDITOR
         internal static string GetFileName(Scene scene)
         {
@@ -51,6 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
+
+            asset.m_AssetFullPath = assetFileName;
 
             return asset;
         }

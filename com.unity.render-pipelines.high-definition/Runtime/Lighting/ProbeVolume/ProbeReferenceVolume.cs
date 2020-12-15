@@ -150,7 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
-        private List<ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new List<ProbeVolumeAsset>();
+        private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
+
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
         // Similarly the index dimensions come from the authoring component; if a change happens
@@ -180,7 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
-            m_PendingAssetsToBeLoaded.Add(asset);
+            var key = asset.GetSerializedFullPath();
+            if (m_PendingAssetsToBeLoaded.ContainsKey(key))
+            {     
+                m_PendingAssetsToBeLoaded.Remove(key);
+            }
+            m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
             m_NeedLoadAsset = true;
         }
 
@@ -198,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PendingAssetsToBeLoaded.Count == 0 || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
-            foreach (var asset in m_PendingAssetsToBeLoaded)
+            foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
                 foreach (var cell in asset.cells)
                 {
