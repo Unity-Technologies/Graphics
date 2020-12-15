@@ -14,13 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
             IM // Improved Moment shadow maps
         }
 
-        public RTHandle                             renderTarget { get { return m_Atlas; } }
-        protected List<HDShadowRequest>             m_ShadowRequests = new List<HDShadowRequest>();
+        protected List<HDShadowRequest> m_ShadowRequests = new List<HDShadowRequest>();
 
         public int                  width { get; private set; }
         public int                  height  { get; private set; }
 
-        RTHandle                    m_Atlas;
         Material                    m_ClearMaterial;
         LightingDebugSettings       m_LightingDebugSettings;
         FilterMode                  m_FilterMode;
@@ -36,9 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
-        RTHandle[] m_AtlasMoments = null;
-        RTHandle m_IntermediateSummedAreaTexture;
-        RTHandle m_SummedAreaTexture;
 
         // This must be true for atlas that contain cached data (effectively this
         // drives what to do with mixed cached shadow map -> if true we filter with only static
@@ -74,48 +69,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
         }
 
-        public void AllocateRenderTexture()
-        {
-            if (m_Atlas != null)
-                m_Atlas.Release();
-
-            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
-
-            if (m_BlurAlgorithm == BlurAlgorithm.IM)
-            {
-                m_AtlasMoments = new RTHandle[1];
-                m_AtlasMoments[0] = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: m_MomentName);
-                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: m_IntermediateSummedAreaName);
-                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: m_SummedAreaName);
-            }
-            else if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
-            {
-                string[] momentShadowMapNames = { m_MomentName, m_MomentCopyName };
-                m_AtlasMoments = new RTHandle[2];
-                for (int i = 0; i < 2; ++i)
-                {
-                    m_AtlasMoments[i] = RTHandles.Alloc(width / 2, height / 2, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32_SFloat, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: momentShadowMapNames[i]);
-                }
-            }
-        }
-
-        public void BindResources(CommandBuffer cmd)
-        {
-            cmd.SetGlobalTexture(m_AtlasShaderID, m_Atlas);
-            if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
-            {
-                cmd.SetGlobalTexture(m_AtlasShaderID, m_AtlasMoments[0]);
-            }
-        }
-
         public void UpdateSize(Vector2Int size)
         {
-            if (m_Atlas == null || m_Atlas.referenceSize != size)
-            {
-                width = size.x;
-                height = size.y;
-                AllocateRenderTexture();
-            }
+            width = size.x;
+            height = size.y;
         }
 
         internal void AddShadowRequest(HDShadowRequest shadowRequest)
@@ -126,27 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
         {
             m_LightingDebugSettings = lightingDebugSettings;
-        }
-
-        public void RenderShadows(CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            if (m_ShadowRequests.Count == 0)
-                return;
-
-            ShadowDrawingSettings shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
-            shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
-
-            var parameters = PrepareRenderShadowsParameters(globalCB);
-            RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, m_IsACacheForShadows, cmd);
-
-            if (parameters.blurAlgorithm == BlurAlgorithm.IM)
-            {
-                IMBlurMoment(parameters, m_Atlas, m_AtlasMoments[0], m_IntermediateSummedAreaTexture, m_SummedAreaTexture, cmd);
-            }
-            else if (parameters.blurAlgorithm == BlurAlgorithm.EVSM)
-            {
-                EVSMBlurMoments(parameters, m_Atlas, m_AtlasMoments, m_IsACacheForShadows, cmd);
-            }
         }
 
         struct RenderShadowsParameters
@@ -445,33 +381,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release(RenderGraph renderGraph)
         {
             CleanupRenderGraphOutput(renderGraph);
-
-            if (m_Atlas != null)
-                RTHandles.Release(m_Atlas);
-
-            if (m_AtlasMoments != null && m_AtlasMoments.Length > 0)
-            {
-                for (int i = 0; i < m_AtlasMoments.Length; ++i)
-                {
-                    if (m_AtlasMoments[i] != null)
-                    {
-                        RTHandles.Release(m_AtlasMoments[i]);
-                        m_AtlasMoments[i] = null;
-                    }
-                }
-            }
-
-            if (m_IntermediateSummedAreaTexture != null)
-            {
-                RTHandles.Release(m_IntermediateSummedAreaTexture);
-                m_IntermediateSummedAreaTexture = null;
-            }
-
-            if (m_SummedAreaTexture != null)
-            {
-                RTHandles.Release(m_SummedAreaTexture);
-                m_SummedAreaTexture = null;
-            }
         }
     }
 }
