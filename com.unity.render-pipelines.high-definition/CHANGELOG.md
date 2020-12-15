@@ -11,12 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
 - Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
-
-### Added
 - Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
