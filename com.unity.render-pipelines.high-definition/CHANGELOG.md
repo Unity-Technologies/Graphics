@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -59,7 +60,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
-- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
 - Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches [1292501] (https://issuetracker.unity3d.com/issues/a2-some-translucent-plus-alphaclipping-shadergraphs-are-not-srp-batcher-compatible)
 
 ### Changed
