@@ -172,61 +172,59 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             base.CommonSkySettingsGUI();
 
-            if (showAdditionalProperties)
+            if (BeginAdditionalPropertiesScope())
             {
-                using (new AdditionalPropertiesScope(this))
+                PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
+                EditorGUILayout.Space();
+                if (m_EnableBackplate.value.boolValue)
                 {
-                    PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
-                    EditorGUILayout.Space();
-                    if (m_EnableBackplate.value.boolValue)
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_BackplateType, new GUIContent("Type"));
+                    bool constraintAsCircle = false;
+                    if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
                     {
-                        EditorGUI.indentLevel++;
-                        PropertyField(m_BackplateType, new GUIContent("Type"));
-                        bool constraintAsCircle = false;
-                        if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
-                        {
-                            constraintAsCircle = true;
-                        }
-                        PropertyField(m_GroundLevel);
-                        if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
-                        {
-                            EditorGUI.BeginChangeCheck();
-                            PropertyField(m_Scale);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                if (m_Scale.value.vector2Value.x < 0.0f || m_Scale.value.vector2Value.y < 0.0f)
-                                {
-                                    m_Scale.value.vector2Value = new Vector2(Mathf.Abs(m_Scale.value.vector2Value.x), Mathf.Abs(m_Scale.value.vector2Value.x));
-                                }
-                            }
-                            if (constraintAsCircle)
-                            {
-                                m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x);
-                            }
-                            else if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Ellipse &&
-                                     Mathf.Abs(m_Scale.value.vector2Value.x - m_Scale.value.vector2Value.y) < 1e-4f)
-                            {
-                                m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x + 1e-4f);
-                            }
-                        }
-                        PropertyField(m_ProjectionDistance, new GUIContent("Projection"));
-                        PropertyField(m_PlateRotation, new GUIContent("Rotation"));
-                        PropertyField(m_PlateTexRotation, new GUIContent("Texture Rotation"));
-                        PropertyField(m_PlateTexOffset, new GUIContent("Texture Offset"));
-                        if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
-                            PropertyField(m_BlendAmount);
-                        PropertyField(m_PointLightShadow, new GUIContent("Point/Spot Shadow"));
-                        PropertyField(m_DirLightShadow, new GUIContent("Directional Shadow"));
-                        PropertyField(m_RectLightShadow, new GUIContent("Area Shadow"));
-                        PropertyField(m_ShadowTint);
-                        if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
-                        {
-                            m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
-                        }
-                        EditorGUI.indentLevel--;
+                        constraintAsCircle = true;
                     }
+                    PropertyField(m_GroundLevel);
+                    if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        PropertyField(m_Scale);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (m_Scale.value.vector2Value.x < 0.0f || m_Scale.value.vector2Value.y < 0.0f)
+                            {
+                                m_Scale.value.vector2Value = new Vector2(Mathf.Abs(m_Scale.value.vector2Value.x), Mathf.Abs(m_Scale.value.vector2Value.x));
+                            }
+                        }
+                        if (constraintAsCircle)
+                        {
+                            m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x);
+                        }
+                        else if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Ellipse &&
+                                 Mathf.Abs(m_Scale.value.vector2Value.x - m_Scale.value.vector2Value.y) < 1e-4f)
+                        {
+                            m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x + 1e-4f);
+                        }
+                    }
+                    PropertyField(m_ProjectionDistance, new GUIContent("Projection"));
+                    PropertyField(m_PlateRotation, new GUIContent("Rotation"));
+                    PropertyField(m_PlateTexRotation, new GUIContent("Texture Rotation"));
+                    PropertyField(m_PlateTexOffset, new GUIContent("Texture Offset"));
+                    if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
+                        PropertyField(m_BlendAmount);
+                    PropertyField(m_PointLightShadow, new GUIContent("Point/Spot Shadow"));
+                    PropertyField(m_DirLightShadow, new GUIContent("Directional Shadow"));
+                    PropertyField(m_RectLightShadow, new GUIContent("Area Shadow"));
+                    PropertyField(m_ShadowTint);
+                    if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
+                    {
+                        m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
+                    }
+                    EditorGUI.indentLevel--;
                 }
             }
+            EndAdditionalPropertiesScope();
         }
     }
 }

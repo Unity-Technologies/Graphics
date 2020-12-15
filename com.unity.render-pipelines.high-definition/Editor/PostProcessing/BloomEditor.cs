@@ -55,10 +55,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            using (new AdditionalPropertiesScope(this))
+            if (BeginAdditionalPropertiesScope())
             {
-                if (showAdditionalProperties)
-                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 
                 using (new QualityScope(this))
                 {
@@ -69,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_Anamorphic);
             }
+            EndAdditionalPropertiesScope();
         }
 
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)

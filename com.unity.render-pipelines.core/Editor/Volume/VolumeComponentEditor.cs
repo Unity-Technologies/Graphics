@@ -125,23 +125,36 @@ namespace UnityEditor.Rendering
             }
         }
 
-        internal void BeginAdditionalPropertiesScope()
+        /// <summary>
+        /// Start a scope for additional properties.
+        /// This will handle the highlight of the background when toggled on and off.
+        /// </summary>
+        /// <returns>True if the additional content should be drawn.</returns>
+        protected bool BeginAdditionalPropertiesScope()
         {
-            if (hasAdditionalProperties)
+            if (hasAdditionalProperties && showAdditionalProperties)
             {
-                m_InAdditionalPropertiesScope = true;
                 CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        internal void EndAdditionalPropertiesScope()
+        /// <summary>
+        /// End a scope for additional properties.
+        /// </summary>
+        protected void EndAdditionalPropertiesScope()
         {
-            CoreEditorUtils.EndAdditionalPropertiesHighlight();
-            m_InAdditionalPropertiesScope = false;
+            if (hasAdditionalProperties && showAdditionalProperties)
+            {
+                CoreEditorUtils.EndAdditionalPropertiesHighlight();
+            }
         }
 
         AnimFloat m_AdditionalPropertiesAnimation;
-        bool m_InAdditionalPropertiesScope;
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -359,9 +372,6 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            if (!showAdditionalProperties && m_InAdditionalPropertiesScope)
-                return;
-
             // Handle unity built-in decorators (Space, Header, Tooltip etc)
             foreach (var attr in property.attributes)
             {
@@ -458,41 +468,6 @@ namespace UnityEditor.Rendering
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
             overrideRect.yMin += 4f;
             property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, EditorGUIUtility.TrTextContent("", "Override this setting for this volume."), CoreEditorStyles.smallTickbox);
-        }
-
-        public struct AdditionalPropertiesScope : IDisposable
-        {
-            bool                    m_Disposed;
-            VolumeComponentEditor   m_Editor;
-
-            public AdditionalPropertiesScope(VolumeComponentEditor editor)
-                : this()
-            {
-                m_Editor = editor;
-                m_Editor.BeginAdditionalPropertiesScope();
-            }
-
-            /// <summary>
-            ///  Dispose pattern implementation
-            /// </summary>
-            public void Dispose()
-            {
-                Dispose(true);
-            }
-
-            // Protected implementation of Dispose pattern.
-            void Dispose(bool disposing)
-            {
-                if (m_Disposed)
-                    return;
-
-                if (m_Editor != null)
-                    m_Editor.EndAdditionalPropertiesScope();
-                else
-                    Debug.LogError("AdditionalPropertiesScope was created with providing a proper VolumeComponentEditor instance.");
-
-                m_Disposed = true;
-            }
         }
     }
 }
