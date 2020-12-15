@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed probe volumes debug views.
 - Fixed ShaderGraph Decal material not showing exposed properties.
 - Fixed couple samplers that had the wrong name in raytracing code
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
