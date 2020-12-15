@@ -97,6 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_MotionBlurFS;
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
+        bool m_LensFlareFS;
         bool m_ChromaticAberrationFS;
         bool m_LensDistortionFS;
         bool m_VignetteFS;
@@ -281,6 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
             m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
             m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_LensFlareFS           = frameSettings.IsEnabled(FrameSettingsField.LensFlare);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
             m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
