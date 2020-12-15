@@ -847,7 +847,7 @@ namespace UnityEditor.VFX
                         uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(texture)));
                 }
 
-                //Early check (ease debug of potential invalid compilation
+                //Early check (ease debug of potential invalid compilation)
                 var invalidMapping = uniformMappings.Where(o => o.index == -1);
                 if (invalidMapping.Any())
                 {
