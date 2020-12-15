@@ -14,6 +14,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -31,32 +32,6 @@ RWStructuredBuffer<uint> g_TileFeatureFlags;
 
 /* ------------------------------ Utilities --------------------------------- */
 
-bool IsBinEmpty(uint tile, uint zBin, uint category, uint eye)
-{
-    bool b = true;
-
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, eye);
-    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
-
-    if (!isTileEmpty) // Avoid wasted work
-    {
-        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, eye);
-        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
-
-        // To see why there's -1, see the discussion in 'zbin.compute'.
-        const int2 zBinEntityIndexRange = int2(zBinRangeData & UINT16_MAX, (zBinRangeData >> 16) == UINT16_MAX ? -1 : (zBinRangeData >> 16));
-        const int2 tileEntityIndexRange = int2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
-
-        // TODO: the interval test is conservative, so it could be that no actual indices
-        // stored within the tile overlap the z-bin range. Should we use TryFindEntityIndex?
-        // It's more expensive... Need to profile and test for false positives in practice.
-        b = !IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange);
-    }
-
-    return b;
-}
-
 /* ------------------------------ Implementation ---------------------------- */
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
@@ -69,6 +44,8 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     const uint  t         = threadID.x;
     const uint2 tileCoord = groupID.xy;
     const uint  eye       = groupID.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye); // Sets 'unity_StereoEyeIndex'
 
     const uint  tile              = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
     const uint2 localPixelCoord   = DecodeMorton2D(t & (TILE_SIZE * TILE_SIZE - 1)); // Use AND to inform the compiler
@@ -98,17 +75,22 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
 
-        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, eye))
+        uint unused;
+
+        uint ip = 0;
+        if (TryFindEntityIndex(ip, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unused))
         {
             featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
         }
 
-        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, eye))
+        uint ia = 0;
+        if (TryFindEntityIndex(ia, tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, unused))
         {
             featureFlags |= LIGHTFEATUREFLAGS_AREA;
         }
 
-        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, eye))
+        uint ir = 0;
+        if (TryFindEntityIndex(ir, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, unused))
         {
             featureFlags |= LIGHTFEATUREFLAGS_ENV;
         }

@@ -1426,7 +1426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     setter      = value =>      data.lightingDebugSettings.selectedEntityCategory = (BoundedEntityCategory)value,
                     enumNames   = s_BoundedEntityCategoryDebugNames,
                     enumValues  = s_BoundedEntityCategoryDebugValues,
-                    getIndex    = ()    => (int)data.lightingDebugSettings.selectedEntityCategory, // TODO: can this repetition be avoided?
+                    getIndex    = ()    => (int)data.lightingDebugSettings.selectedEntityCategory, // TODO: can this code duplication be avoided?
                     setIndex    = value => data.lightingDebugSettings.selectedEntityCategory = (BoundedEntityCategory)value
                 });
 
@@ -1436,7 +1436,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     getter      = ()    => data.lightingDebugSettings.selectedEntityCategoryBudget,
                     setter      = value => data.lightingDebugSettings.selectedEntityCategoryBudget = value,
                     min         = ()    => 1,
-                    max         = ()    => TiledLightingConstants.s_FineTileEntryLimit
+                    max         = ()    => 999 // Completely arbitrary limit
                 });
 
                 list.Add(debugContainer);

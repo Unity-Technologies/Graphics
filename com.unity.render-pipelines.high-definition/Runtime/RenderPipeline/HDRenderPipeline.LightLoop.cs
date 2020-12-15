@@ -212,27 +212,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
                     passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
 
+                    int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
-                    // The tile buffer is composed of two parts:
-                    // the header (containing index ranges, 2 * sizeof(uint16)) and
-                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
-                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y
-                        * (int)BoundedEntityCategory.Count * viewCount
-                        * (2 + TiledLightingConstants.s_CoarseTileEntryLimit) / 2;
+                    // The tile buffer is a bit field with 1 bit per entity.
+                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y * viewCount * elementsPerTile;
 
-                    passData.output.coarseTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(coarseTileBufferElementCount, sizeof(uint)) { name = "CoarseTileBuffer" })); // Index range + index list
+                    passData.output.coarseTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(coarseTileBufferElementCount, sizeof(uint)) { name = "CoarseTileBuffer" }));
 
                     Vector2Int fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
 
-                    // The tile buffer is composed of two parts:
-                    // the header (containing index ranges, 2 * sizeof(uint16)) and
-                    // the body (containing index lists, TiledLightingConstants.s_FineTileEntryLimit * sizeof(uint16)).
-                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y
-                        * (int)BoundedEntityCategory.Count * viewCount
-                        * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
+                    // The tile buffer is a bit field with 1 bit per entity.
+                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y * viewCount * elementsPerTile;
 
-                    passData.output.fineTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(fineTileBufferElementCount, sizeof(uint)) { name = "FineTileBuffer" })); // Index range + index list
+                    passData.output.fineTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(fineTileBufferElementCount, sizeof(uint)) { name = "FineTileBuffer" }));
 
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;

@@ -198,11 +198,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _CookieAtlasData;
         public Vector4  _PlanarAtlasData;
 
-        // Tile/Cluster
+        // Binned lighting
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityDwordCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityDwordOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
 
         public Vector4 _ZBinBufferEncodingParams;
 

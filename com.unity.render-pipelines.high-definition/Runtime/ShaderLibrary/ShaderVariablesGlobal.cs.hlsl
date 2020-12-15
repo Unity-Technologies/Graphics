@@ -111,6 +111,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _PlanarAtlasData;
     uint4 _BoundedEntityCountPerCategory[2];
     uint4 _BoundedEntityOffsetPerCategory[2];
+    uint4 _BoundedEntityDwordCountPerCategory[2];
+    uint4 _BoundedEntityDwordOffsetPerCategory[2];
     float4 _ZBinBufferEncodingParams;
     int2 _CoarseTileBufferDimensions;
     int2 _FineTileBufferDimensions;

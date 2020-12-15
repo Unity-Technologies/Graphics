@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Binned lighting debug mode.</summary>
         public bool                  debugBinnedLighting          = false;
         public BoundedEntityCategory selectedEntityCategory       = BoundedEntityCategory.PunctualLight;
-        public int                   selectedEntityCategoryBudget = TiledLightingConstants.s_FineTileEntryLimit;
+        public int                   selectedEntityCategoryBudget = 4;
 
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()

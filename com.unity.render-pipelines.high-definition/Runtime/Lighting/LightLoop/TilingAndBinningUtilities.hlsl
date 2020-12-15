@@ -158,8 +158,10 @@ uint ComputeZBinBufferIndex(uint zBin, uint category, uint eye)
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT]      = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]       = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+static uint s_BoundedEntityDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityDwordCountPerCategory;
+static uint s_BoundedEntityDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityDwordOffsetPerCategory;
 
 uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint category, uint eye)
 {
@@ -183,17 +185,14 @@ uint ComputeZBinIndex(float linearDepth)
 #if defined(COARSE_BINNING)
     #define TILE_BUFFER         _CoarseTileBuffer
     #define TILE_BUFFER_DIMS    COARSE_TILE_BUFFER_DIMS
-    #define TILE_ENTRY_LIMIT    COARSE_TILE_ENTRY_LIMIT
     #define TILE_SIZE           COARSE_TILE_SIZE
 #elif defined(FINE_BINNING)
     #define TILE_BUFFER         _FineTileBuffer
     #define TILE_BUFFER_DIMS    FINE_TILE_BUFFER_DIMS
-    #define TILE_ENTRY_LIMIT    FINE_TILE_ENTRY_LIMIT
     #define TILE_SIZE           FINE_TILE_SIZE
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
     // These must be defined so the compiler does not complain.
     #define TILE_BUFFER_DIMS    uint2(0, 0)
-    #define TILE_ENTRY_LIMIT    0
     #define TILE_SIZE           1
 #endif
 
@@ -202,42 +201,28 @@ uint ComputeZBinIndex(float linearDepth)
 uint ComputeTileIndex(uint2 pixelCoord)
 {
     uint2 tileCoord = pixelCoord / TILE_SIZE;
-    return IndexFromCoordinate(uint4(tileCoord, 0, 0),
-                               uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
+    return IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 }
 
 // Internal. Do not call directly.
-uint ComputeTileBufferHeaderIndex(uint tile, uint category, uint eye, uint2 tileBufferDims)
+uint ComputeTileBufferIndex(uint tile, uint category, uint eye, uint2 tileBufferDims)
 {
-    uint eyeCatOffset = IndexFromCoordinate(uint4(0, 0, category, eye),
-                                            uint3(tileBufferDims, BOUNDEDENTITYCATEGORY_COUNT));
+    // TODO: could be optimized/precomputed.
+    uint dwordOffset   = s_BoundedEntityDwordOffsetPerCategory[category]; // Previous categories
+    uint dwordCount    = s_BoundedEntityDwordCountPerCategory[category];  // Current category
+    uint dwordsPerTile = s_BoundedEntityDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]
+                       + s_BoundedEntityDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]; // All categories
 
-    return eyeCatOffset + tile;
+    uint eyeOffset  = (tileBufferDims.x * tileBufferDims.y) * dwordsPerTile * eye;
+    uint catOffset  = (tileBufferDims.x * tileBufferDims.y) * dwordOffset;
+    uint tileOffset = tile * dwordCount;
+
+    return eyeOffset + catOffset + tileOffset;
 }
 
-// Contains index ranges.
-// tile: output of ComputeTileIndex.
-uint ComputeTileBufferHeaderIndex(uint tile, uint category, uint eye)
+uint ComputeTileBufferIndex(uint tile, uint category, uint eye)
 {
-    return ComputeTileBufferHeaderIndex(tile, category, eye, TILE_BUFFER_DIMS);
-}
-
-// Internal. Do not call directly.
-uint ComputeTileBufferBodyIndex(uint tile, uint category, uint eye, uint2 tileBufferDims, uint tileEntryLimit)
-{
-    // TODO: may want to precompute this.
-    uint headerOffset = tileBufferDims.x * tileBufferDims.y * BOUNDEDENTITYCATEGORY_COUNT * _XRViewCount;
-    uint eyeCatOffset = IndexFromCoordinate(uint4(0, 0, category, eye),
-                                            uint3(tileBufferDims, BOUNDEDENTITYCATEGORY_COUNT));
-    uint stride = tileEntryLimit / 2; // 16-bit index list
-
-    return headerOffset + stride * (eyeCatOffset + tile);
-}
-
-// Contains index lists.
-uint ComputeTileBufferBodyIndex(uint tile, uint category, uint eye)
-{
-    return ComputeTileBufferBodyIndex(tile, category, eye, TILE_BUFFER_DIMS, TILE_ENTRY_LIMIT);
+    return ComputeTileBufferIndex(tile, category, eye, TILE_BUFFER_DIMS);
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL

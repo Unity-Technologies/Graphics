@@ -404,10 +404,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
-        public static int s_CoarseTileEntryLimit = 64; // Per category; before pruning, so the number is lower in practice; the number could be made (almost always) exact at the cost of making the 'FillCoarseTiles' pass more complicated
-        public static int s_FineTileEntryLimit   = 16; // Per category; after pruning, so the number is exact
-        public static int s_CoarseTileSize       = 64;
-        public static int s_FineTileSize         = 8;
+        public static int s_TileEntryLimit       = 256; // Shared by all categories (specifies the total allocation size)
+        public static int s_CoarseTileSize       = 64;  // Pixels
+        public static int s_FineTileSize         = 8;   // Pixels
         public static int s_zBinCount            = 8192;
         public static int s_MaxReflectionProbesPerPixel = 4;
     }
@@ -739,27 +738,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
 
                     /* Actually resolution-dependent buffers below. */
+                    int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
-                    // The tile buffer is composed of two parts:
-                    // the header (containing index ranges, 2 * sizeof(uint16)) and
-                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
-                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y
-                        * (int)BoundedEntityCategory.Count * viewCount
-                        * (2 + TiledLightingConstants.s_CoarseTileEntryLimit) / 2;
+                    // The tile buffer is a bit field with 1 bit per entity.
+                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y * viewCount * elementsPerTile;
 
-                    coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint)); // Index range + index list
+                    coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint));
 
                     Vector2Int fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
 
-                    // The tile buffer is composed of two parts:
-                    // the header (containing index ranges, 2 * sizeof(uint16)) and
-                    // the body (containing index lists, TiledLightingConstants.s_FineTileEntryLimit * sizeof(uint16)).
-                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y
-                        * (int)BoundedEntityCategory.Count * viewCount
-                        * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
+                    // The tile buffer is a bit field with 1 bit per entity.
+                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y * viewCount * elementsPerTile;
 
-                    fineTileBuffer = new ComputeBuffer(fineTileBufferElementCount, sizeof(uint)); // Index range + index list
+                    fineTileBuffer = new ComputeBuffer(fineTileBufferElementCount, sizeof(uint));
 
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
@@ -3943,20 +3936,28 @@ namespace UnityEngine.Rendering.HighDefinition
             const float C = (float)(1 << k_Log2NumClusters);
             var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
 
-            // Tile/Cluster
+            // Binned lighting
             for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
             {
                 cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
+                cb._BoundedEntityDwordCountPerCategory[i] = (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
             }
 
             cb._BoundedEntityOffsetPerCategory[0] = 0;
+            cb._BoundedEntityDwordOffsetPerCategory[0] = 0;
 
             for (int i = 1; i < (int)BoundedEntityCategory.Count; i++)
             {
                 cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
+                cb._BoundedEntityDwordOffsetPerCategory[i] = cb._BoundedEntityDwordOffsetPerCategory[i - 1] + cb._BoundedEntityDwordCountPerCategory[i - 1];
             }
 
-            // Binned lighting
+            int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+            int dwordsRequired  = (int)cb._BoundedEntityDwordOffsetPerCategory[(int)BoundedEntityCategory.Count - 1]
+                                + (int)cb._BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count - 1];
+
+            Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption.");
+
             cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);

@@ -47,45 +47,41 @@
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<uint>             _SrcCoarseTileBuffer; // Index range + index list
+    StructuredBuffer<uint>             _SrcCoarseTileBuffer;
 #endif
 
 #if (PASS == FILL_FINE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<uint>             _CoarseTileBuffer; // Index range + index list
+    StructuredBuffer<uint>             _CoarseTileBuffer;
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
 
 #if (PASS == FILL_COARSE_TILES)
-    // The tile buffer is composed of two parts:
-    // the header (containing index ranges, 2 * sizeof(uint16)) and
-    // the body (containing index lists, COARSE_TILE_ENTRY_LIMIT * sizeof(uint16)).
-    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    // The tile buffer is a bit field with 1 bit per entity.
     // The size of the buffer can be computed as follows:
-    // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + COARSE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
-    // For example (1080p): 30 * 17 * 5 * 1 * (2 + 64) * 2 = 328.71 KiB.
-    RWStructuredBuffer<uint> _CoarseTileBuffer; // Index range + index list
+    // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) * EYE_COUNT *
+    // DIV_ROUND_UP(TILE_ENTRY_LIMIT, 32) * 4 bytes per DWORD.
+    // For example (1080p): 30 * 17 * 1 * (256 / 32) * 4 = 15.94 KiB.
+    // Note that the allocation size is independent of the number of entities per category.
+    RWStructuredBuffer<uint> _CoarseTileBuffer;
 #endif
 
 #if (PASS == PRUNE_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    RWStructuredBuffer<uint> _DstCoarseTileBuffer; // Index range + index list
+    RWStructuredBuffer<uint> _DstCoarseTileBuffer;
 #endif
 
 #if (PASS == FILL_FINE_TILES)
-    // The tile buffer is composed of two parts:
-    // the header (containing index ranges, 2 * sizeof(uint16)) and
-    // the body (containing index lists, FINE_TILE_ENTRY_LIMIT * sizeof(uint16)).
-    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    // The tile buffer is a bit field with 1 bit per entity.
     // The size of the buffer can be computed as follows:
-    // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + FINE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
-    // For example (1080p): 240 * 135 * 5 * 1 * (2 + 16) * 2 = 5.56 MiB.
-    RWStructuredBuffer<uint> _FineTileBuffer; // Index range + index list
+    // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) * EYE_COUNT *
+    // DIV_ROUND_UP(TILE_ENTRY_LIMIT, 32) * 4 bytes per DWORD.
+    // For example (1080p): 240 * 135 * 1 * (256 / 32) * 4 = 0.99 MiB.
+    // Note that the allocation size is independent of the number of entities per category.
+    RWStructuredBuffer<uint> _FineTileBuffer;
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -140,6 +136,12 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint cat = groupID.y;
     const uint eye = groupID.z;
 
+    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
+    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
+    const uint dwordCount  = s_BoundedEntityDwordCountPerCategory[cat];
+
+    if (dwordCount == 0) return;
+
     const uint  globalTileIndex  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
     const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
     const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
@@ -150,77 +152,40 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
-    // Entities are sorted by category.
-    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
-    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
+    const uint entityBufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, eye);
+    const uint tileBufferIndex   = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
 
-    const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-    const uint outputStart = ComputeTileBufferBodyIndex(clampedTileIndex, cat, eye);
+    // Compute 2-D the AABB of the tile.
+    const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                   // (clampedTileCoord + 1) * TILE_SIZE
+    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
+    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
+    const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
+    const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
 
-    uint first = UINT16_MAX, last = 0;
-
-    if (entityCount > 0) // Avoid wasted work
+    // The algorithm is O(n * m) where 'n' is the entity count and 'm' is tile count.
+    // Therefore, it will be slow if 'n' is large.
+    // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+    for (uint d = 0; d < dwordCount; d++)
     {
-        // Compute 2-D the AABB of the tile.
-        const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                   // (clampedTileCoord + 1) * TILE_SIZE
-        const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
-        const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
-        const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
-        const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
+        uint outputDword = 0; // Initially empty
 
-        // Define inputs (i) and outputs (j).
-        uint i = 0, j = 0;
-        uint indexPair = 0;
-
-        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is tile count.
-        // Therefore, it will be slow if 'n' is large.
-        // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
-        // TODO: unroll.
-        while ((i < entityCount) && (j < TILE_ENTRY_LIMIT))
+        for (uint i = d * 32; i < min(d * 32 + 32, entityCount); i++)
         {
-            float2 entityBoundsX = _xyBoundsBuffer[inputStart + i].xy;
-            float2 entityBoundsY = _xyBoundsBuffer[inputStart + i].zw;
+            float2 entityBoundsX = _xyBoundsBuffer[entityBufferIndex + i].xy;
+            float2 entityBoundsY = _xyBoundsBuffer[entityBufferIndex + i].zw;
 
-            [branch] // This hint is required to avoid an internal compiler error.
             if (IntervalsOverlap(entityBoundsX, tileBoundsX) &&
                 IntervalsOverlap(entityBoundsY, tileBoundsY))
             {
-                // We store intra-category indices.
-                first = min(i, first);
-                last  = max(i, last);
+                uint b = i % 32;
 
-                // 2x 16-bit indices per uint.
-                indexPair |= i << (16 * (j & 1)); // First Lo, then Hi bits
-
-                if ((j & 1) != 0) // Is the pair complete & ready to be stored?
-                {
-                    _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
-
-                    indexPair = 0; // In order to use bitwise OR above
-                }
-
-                j++;
+                outputDword |= 1 << b;
             }
-
-            i++;
         }
 
-        if (j < TILE_ENTRY_LIMIT)
-        {
-            i = UINT16_MAX; // Add a terminator
-
-            indexPair |= i << (16 * (j & 1)); // First Lo, then Hi bits
-
-            _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
-        }
+        _CoarseTileBuffer[tileBufferIndex + d] = outputDword;
     }
-
-    uint outputRange = (last << 16) | first;
-
-    // Store the metadata.
-    uint headerIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
-    _CoarseTileBuffer[headerIndex] = outputRange;
 }
 
 #else // (PASS != FILL_COARSE_TILES)
@@ -685,6 +650,10 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
 
+    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[cat];
+
+    if (dwordCount == 0) return;
+
     const uint  globalTileIndex  = IndexFromCoordinate(uint2(tile, g), TILES_PER_GROUP);
     const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
     const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
@@ -695,6 +664,8 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
+    const uint tileBufferIndex = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
+
     const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
     const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;               // (tileCoord + 1) * TILE_SIZE
     const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
@@ -702,66 +673,26 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const float2 tileAaBbMinPtCS  = tileAaBbMinPtNDC * 2 - 1;
     const float2 tileAaBbMaxPtCS  = tileAaBbMaxPtNDC * 2 - 1;
 
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
-
-          uint tileRangeData = _SrcCoarseTileBuffer[tileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty   = tileRangeData == UINT16_MAX;
-
-    if (!isTileEmpty) // Avoid wasted work
+    for (uint d = 0; d < dwordCount; d++)
     {
-        const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(clampedTileIndex, cat, eye);
+        uint inputDword  = _SrcCoarseTileBuffer[tileBufferIndex + d];
+        uint outputDword = 0; // Initially empty
 
-        // Define inputs (i) and outputs (j).
-        uint i = 0, j = 0;
-        uint indexPair = 0;
-
-        uint first = UINT16_MAX, last = 0;
-
-        while (i < TILE_ENTRY_LIMIT)
+        while (inputDword != 0)
         {
-            uint entityPair  = _SrcCoarseTileBuffer[tileBufferBodyIndex + (i / 2)]; // 16-bit indices
-            uint entityIndex = BitFieldExtract(entityPair, 16 * (i & 1), 16);       // First Lo, then Hi bits
+            uint b = firstbitlow(inputDword);
+            uint i = d * 32 + b;
 
-            if (entityIndex == UINT16_MAX)
+            if (!TryCullEntity(i, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t))
             {
-                break; // Reached the terminator
+                outputDword |= 1 << b;
             }
 
-            if (!TryCullEntity(entityIndex, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t))
-            {
-                // The entity was not culled, so transfer it over.
-                first = min(entityIndex, first);
-                last  = max(entityIndex, last);
-
-                // 2x 16-bit indices per uint.
-                indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
-
-                if ((j & 1) != 0) // Is the pair complete & ready to be stored?
-                {
-                    _DstCoarseTileBuffer[tileBufferBodyIndex + (j / 2)] = indexPair;
-
-                    indexPair = 0; // In order to use bitwise OR above
-                }
-
-                j++;
-            }
-
-            i++;
+            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
         }
 
-        if (j < TILE_ENTRY_LIMIT)
-        {
-            uint entityIndex = UINT16_MAX; // Add a terminator
-
-            indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
-
-            _DstCoarseTileBuffer[tileBufferBodyIndex + (j / 2)] = indexPair;
-        }
-
-        tileRangeData = (last << 16) | first;
+        _DstCoarseTileBuffer[tileBufferIndex + d] = outputDword;
     }
-
-    _DstCoarseTileBuffer[tileBufferHeaderIndex] = tileRangeData;
 }
 
 #endif // (PASS == PRUNE_COARSE_TILES)
@@ -781,6 +712,10 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
     const uint g    = groupID.x;
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
+
+    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[cat];
+
+    if (dwordCount == 0) return;
 
     // Caution: tile macros and functions used below correspond to COARSE_BINNING.
     const uint  coarseToFineSizeRatio  = COARSE_TILE_SIZE / FINE_TILE_SIZE;
@@ -814,68 +749,30 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
     const float2 fineTileAaBbMinPtCS  = fineTileAaBbMinPtNDC * 2 - 1;
     const float2 fineTileAaBbMaxPtCS  = fineTileAaBbMaxPtNDC * 2 - 1;
 
-    const uint coarseTileBufferHeaderIndex = ComputeTileBufferHeaderIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS);
-    const uint   fineTileBufferHeaderIndex = ComputeTileBufferHeaderIndex(  clampedFineTileIndex, cat, eye,   FINE_TILE_BUFFER_DIMS);
+    // We must specify the size explicitly.
+    const uint coarseTileBufferIndex = ComputeTileBufferIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS);
+    const uint   fineTileBufferIndex = ComputeTileBufferIndex(  clampedFineTileIndex, cat, eye,   FINE_TILE_BUFFER_DIMS);
 
-          uint tileRangeData = _CoarseTileBuffer[coarseTileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty   = tileRangeData == UINT16_MAX;
-
-    if (!isTileEmpty) // Avoid wasted work
+    for (uint d = 0; d < dwordCount; d++)
     {
-        const uint coarseTileBufferBodyIndex = ComputeTileBufferBodyIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS, COARSE_TILE_ENTRY_LIMIT);
-        const uint   fineTileBufferBodyIndex = ComputeTileBufferBodyIndex(  clampedFineTileIndex, cat, eye,   FINE_TILE_BUFFER_DIMS,   FINE_TILE_ENTRY_LIMIT);
+        uint inputDword  = _CoarseTileBuffer[coarseTileBufferIndex + d];
+        uint outputDword = 0; // Initially empty
 
-        // Define inputs (i) and outputs (j).
-        uint i = 0, j = 0;
-        uint indexPair = 0;
-
-        uint first = UINT16_MAX, last = 0;
-
-        while ((i < COARSE_TILE_ENTRY_LIMIT) && (j < FINE_TILE_ENTRY_LIMIT))
+        while (inputDword != 0)
         {
-            uint entityPair  = _CoarseTileBuffer[coarseTileBufferBodyIndex + (i / 2)]; // 16-bit indices
-            uint entityIndex = BitFieldExtract(entityPair, 16 * (i & 1), 16);          // First Lo, then Hi bits
+            uint b = firstbitlow(inputDword);
+            uint i = d * 32 + b;
 
-            if (entityIndex == UINT16_MAX)
+            if (!TryCullEntity(i, cat, eye, fineTileAaBbMinPtCS, fineTileAaBbMaxPtCS, tile, t))
             {
-                break; // Reached the terminator
+                outputDword |= 1 << b;
             }
 
-            if (!TryCullEntity(entityIndex, cat, eye, fineTileAaBbMinPtCS, fineTileAaBbMaxPtCS, tile, t))
-            {
-                // The entity was not culled, so transfer it over.
-                first = min(entityIndex, first);
-                last  = max(entityIndex, last);
-
-                // 2x 16-bit indices per uint.
-                indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
-
-                if ((j & 1) != 0) // Is the pair complete & ready to be stored?
-                {
-                    _FineTileBuffer[fineTileBufferBodyIndex + (j / 2)] = indexPair;
-
-                    indexPair = 0; // In order to use bitwise OR above
-                }
-
-                j++;
-            }
-
-            i++;
+            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
         }
 
-        if (j < FINE_TILE_ENTRY_LIMIT)
-        {
-            uint entityIndex = UINT16_MAX; // Add a terminator
-
-            indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
-
-            _FineTileBuffer[fineTileBufferBodyIndex + (j / 2)] = indexPair;
-        }
-
-        tileRangeData = (last << 16) | first;
+        _FineTileBuffer[fineTileBufferIndex + d] = outputDword;
     }
-
-    _FineTileBuffer[fineTileBufferHeaderIndex] = tileRangeData;
 }
 
 #endif // (PASS == FILL_FINE_TILES)

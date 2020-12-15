@@ -178,67 +178,72 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
 {
     entityIndex = UINT16_MAX;
 
-    bool b = false;
-    uint n = TILE_ENTRY_LIMIT;
+    bool found = false;
 
-    // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
-    // They will only be computed once per category, not once per function call.
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex);
-    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
+    const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
+    const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
+    const uint zBinRangeData0   = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
+    const uint zBinRangeData1   = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
 
-    if (!isTileEmpty) // Avoid wasted work
+    // Recall that entities are sorted by the z-coordinate.
+    // So we can take the smallest index from the first bin and the largest index from the last bin.
+    // To see why there's -1, see the discussion in 'zbin.compute'.
+    const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
+
+    if (zBinEntityIndexRange.y < zBinEntityIndexRange.x)
     {
-        const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
-        const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
-        const uint zBinRangeData0   = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
-        const uint zBinRangeData1   = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
+        return found; // Empty bin
+    }
 
-        // Recall that entities are sorted by the z-coordinate.
-        // So we can take the smallest index from the first bin and the largest index from the last bin.
-        // To see why there's -1, see the discussion in 'zbin.compute'.
-        const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
-        const int2 tileEntityIndexRange = int2(tileRangeData  & UINT16_MAX, tileRangeData >> 16);
+    const uint tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
 
-        if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
+    // Tiles of this category may require multiple DWORDs for storage.
+    // However, we don't necessarily have to process all of them.
+    const int2 dwordRange = zBinEntityIndexRange / 32;
+
+    uint j = 0; // Dumb, just to test
+
+    for (int d = dwordRange.x; (d <= dwordRange.y) && !found; d++)
+    {
+        uint inputDword = TILE_BUFFER[tileBufferIndex + d];
+
+        while (inputDword != 0)
         {
-            const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, category, unity_StereoEyeIndex);
+            int b = firstbitlow(inputDword);
+            int tileEntityIndex = d * 32 + b;
 
-            // The part (2) below will be actually executed during every function call.
-            while (i < n)
+            // Entity indices are stored in the ascending order.
+            // We can distinguish 3 cases:
+            if (tileEntityIndex < zBinEntityIndexRange.x)
             {
-                // Walk the list of entity indices of the tile.
-                int tileEntityPair  = (int)TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
-                int tileEntityIndex = (int)BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
-
-                // Entity indices are stored in the ascending order.
-                // We can distinguish 3 cases:
-                if (tileEntityIndex < zBinEntityIndexRange.x)
-                {
-                    i++; // Skip this entity; continue the (linear) search
-                    // Fine point: entities are currently sorted by Centroid.z.
-                    // So it could be that bin #0 starts with entity #1 (which is large)
-                    // while bin #1 contains both entity #0 (which is small) and entity #1.
-                    // So, for volumetrics, we cannot create a skipping scheme where we cache (and
-                    // start from) min_valid(i) per slice, as that may make us skip valid lights.
-                }
-                else if (tileEntityIndex <= zBinEntityIndexRange.y)
-                {
-                    entityIndex = tileEntityIndex;
-
-                    b = true; // Found a valid index
-                    break;    // Avoid incrementing 'i' further
-                }
-                else // if (zBinEntityIndexRange.y < tileEntityIndex)
-                {
-                    // (tileEntityIndex == UINT16_MAX) signifies a terminator.
-                    break;    // Avoid incrementing 'i' further
-                }
+                // Skip this entity; continue the (linear) search
+                // Fine point: entities are currently sorted by Centroid.z.
+                // So it could be that bin #0 starts with entity #1 (which is large)
+                // while bin #1 contains both entity #0 (which is small) and entity #1.
+                // So, for volumetrics, we cannot create a skipping scheme where we cache (and
+                // start from) min_valid(i) per slice, as that may make us skip valid lights.
             }
+            else if (tileEntityIndex <= zBinEntityIndexRange.y)
+            {
+                if (i == j)
+                {
+                    found       = true;
+                    entityIndex = (uint)tileEntityIndex;
+                    break;
+                }
+
+                j++;
+            }
+            else // if (zBinEntityIndexRange.y < tileEntityIndex)
+            {
+                break;
+            }
+
+            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
         }
     }
 
-    return b;
+    return found;
 }
 
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
