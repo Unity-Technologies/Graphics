@@ -17,8 +17,8 @@ editor_versions:
       updated_at: '2020-12-14 11:21:31.608519'
       version: ''
     linux:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 3fda0592066d357f87680392f2a2e970a65a73bb
+      updated_at: '2020-12-15 00:06:30.570579'
       version: ''
     macos:
       revision: 3fda0592066d357f87680392f2a2e970a65a73bb
