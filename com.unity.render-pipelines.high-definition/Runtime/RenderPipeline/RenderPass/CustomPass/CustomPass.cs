@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public CustomPass customPass;
             public CullingResults cullingResult;
+            public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
         }
 
@@ -194,20 +195,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
             // Also, we test validity of all handles because depending on where the custom pass is executed, they may not always be.
             if (targets.colorBufferRG.IsValid())
-                output.colorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.colorBufferRG));
+                output.colorBufferRG = builder.ReadWriteTexture(targets.colorBufferRG);
             if (targets.nonMSAAColorBufferRG.IsValid())
-                output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
+                output.nonMSAAColorBufferRG = builder.ReadWriteTexture(targets.nonMSAAColorBufferRG);
             if (targets.depthBufferRG.IsValid())
-                output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
+                output.depthBufferRG = builder.ReadWriteTexture(targets.depthBufferRG);
             if (targets.normalBufferRG.IsValid())
-                output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
+                output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
             if (targets.motionVectorBufferRG.IsValid())
                 output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
 
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
@@ -217,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
+                passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
@@ -252,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
                             ctx.renderContext, ctx.cmd, data.hdCamera,
-                            data.cullingResult,
+                            data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
