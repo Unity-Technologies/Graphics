@@ -169,8 +169,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     backBakeDiffuseLighting = SHEvalLinearL0L1(backNormalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS,
-    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+APVResources FillAPVResources()
 {
     APVResources apvRes;
     apvRes.index = _APVResIndex;
@@ -179,8 +178,27 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     apvRes.L1_G = _APVResL1_G;
     apvRes.L1_B = _APVResL1_B;
 
+    return apvRes;
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS,
+    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+{
+    APVResources apvRes = FillAPVResources();
+
     EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, apvRes,
         bakeDiffuseLighting, backBakeDiffuseLighting);
+}
+
+// Version with no normal bias and no back face sampling (to be used with 
+void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
+{
+    APVResources apvRes = FillAPVResources();
+
+    float3 ignoredBackDiffuse;
+    // We ignore the back baked diffuse, hopefully all related calculations are stripped out.
+    EvaluateAdaptiveProbeVolume(posWS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), apvRes,
+        bakeDiffuseLighting, ignoredBackDiffuse);
 }
 
 #endif // __PROBEVOLUME_HLSL__

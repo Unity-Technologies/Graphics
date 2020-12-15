@@ -33,6 +33,7 @@
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
 #define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
+#define SAMPLE_PROBE_VOLUMES    1 && (SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1)
 
 // Filter out lights that are not meant to be affecting volumetric once per thread rather than per voxel. This has the downside that it limits the max processable lights to MAX_SUPPORTED_LIGHTS
 // which might be lower than the max number of lights that might be in the big tile.
@@ -64,6 +65,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -457,6 +460,20 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
     return lighting;
 }
 
+float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, float dt, float rndVal, float extinction)
+{
+    float tOffset, weight;
+    ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
+
+    float t = t0 + tOffset;
+    posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
+
+    float3 apvDiffuseGI;
+    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), apvDiffuseGI);
+
+    return apvDiffuseGI * weight;
+}
+
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, uint tileIndex, int groupIdx, JitteredRay ray)
@@ -599,6 +616,15 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
             aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
             aggregateLighting.radianceComplete += lighting.radianceComplete;
+        }
+        #endif
+
+        #if SAMPLE_PROBE_VOLUMES
+        {
+            float3 apvDiffuseGI = EvaluateVoxelDiffuseGI(posInput, ray, t0, dt, rndVal, extinction);
+            aggregateLighting.radianceNoPhase += apvDiffuseGI;
+            aggregateLighting.radianceComplete += apvDiffuseGI;
+
         }
         #endif
 
