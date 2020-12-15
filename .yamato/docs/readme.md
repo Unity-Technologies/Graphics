@@ -7,37 +7,60 @@ This script generates Yamato job definition files based on configuration/metafil
    - reduced code duplication and possibility define constants in a single place
 - Cons:
    - the higher consistency among files and the reduced code duplication makes introducing exceptions more difficult
+   - learning curve
 
 # Structure
 - *.yamato/config/* - directory containing configurations (metafiles) for the jobs to be generated, this is where most of the changes to Yamato jobs should be introduced (Input)
 - *.yamato/*  - directory containing all the generated job definition files (.yml) (Output)
 - *.yamato/ruamel/build.py* - main script, which creates the actual yml files
-- *.yamato/ruamel/metafile_parser.py* - helper script to read the metafiles and retrieve according information and/or override keys from ___shared.metafile
 - *.yamato/ruamel/jobs/* - directory containing all Python modules for the jobs to be generated, which are organized into subdirectories by domains
 
 # Running the script
 Script must be run again each time new changes are introduced in the metafiles.
 - Install ruamel by `pip install ruamel.yaml` (or `pip3`)
-- Run script inside *ruamel/* directory by `python build.py` (or `python3`)
+- Run script by `python build.py` (or `python3`)
 
 # Example use cases
-The majority of changes are introduced within metafiles (*.yamato/config/\*.metafile*, for details check metafile descriptions below). After introducing changes, the script must be rerun (to clean up current jobs, and fetch the updated metafiles to recreate the jobs)
+Each time a metafile or a python file is edited, `python build.py` must be run to regenerate the ymls.
 
-### ABV related changes (_abv.metafile)
-- Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
-- Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
-- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
-- Add job to trunk verification: add the dependency under trunk_verification.dependencies
+### Adding new dependencies to a job
+- Go to the corresponding (project) metafile, and add dependencies to the wanted section, usually specified by  `[job_specific_title].dependencies`. See examples in `_abv.metafile` or any project metafiles. There are 3 ways to specify a dependency, examples below:
+```
+# add dependencies for testplatforms of a specific job configuration
+[project: Universal] # optional: if not specified then uses the project this metafile corresponds to
+platform: Win
+api: Vulkan
+build_config: mono
+color_space: Linear
+test_platforms: # refer by testplatform name
+  - playmode
+  - playmode_XR
+  - ...
 
-### Project related changes (project_name.metafile)
-- Adding a new job to {project_name}_PR: add the new job under pr.dependencies (this job can also be from a different project) 
-- Adding a new platform/api for the project: extend the list under platforms as indicated
-- Creating a new project: create a new metafile same way as is done for existing projects. All ymls get created once the script runs
-- Use different agent than what is specified in the shared metafile: override the agent as described in the metafile description under platforms section
+# add dependency for the project PR job
+- project: Universal
+  pr: true
 
-### Package related changes (_packages.metafile)
-- Adding a new package: extend packages list with new package details. The new package jobs get automatically created once the script runs (pack, publish, test, test_dependencies). The package is also automatically included in test_all and publish_all jobs.
+# add dependency for the Nightly project job
+- project: Universal
+  nightly: true
+```
 
+### Adding/removing testplatforms for projects
+- Removing: delete the relevant lines in the metafile(s). If any other job had this deleted job as a dependency, the `build.py` will log it as error.
+- Adding (see below sections for more detailed testplatform setup): 
+  - add the testplatform configuration to project metafile `test_platforms` section same way as existing ones
+  - make sure to add the new dependencies to relevant CI jobs: either PR job (`pr.dependencies`) or Nightly job (`nightly.dependencies`) sections in project metafile. PR job runs on every PR and should include necessary coverage. Nightly job should include all other configurations.
+
+### Adding a new project
+- For projects within the repository, add a new project metafile, and fill it in accordingly. See existing ones for reference. Running `build.py` will pick up the file and create `.ymls` for you.
+
+### Introducing a completely new platform
+- Add the platform with to `_shared.metafile#platforms` similarly to the rest
+- Add any utr flags specific to this platform in `_shared.metafile#test_platforms`
+- Add a new cmd file under `ruamel/jobs/projects/commands/[platformname].py` (use `platformname_api` if apis require different commandsets) and fill it in similarly to other cmd files
+- Import and map this cmd file in `ruamel/jobs/projects/commands/cmd_mapper.py`
+- Add the platform to `_editor.metafile` `platforms` and `unity_downloader_components` sections. Right now, also add it to `ruamel/editor_pinning/update_revisions.py` script (update list of platforms, as well the correct `-o` flag to be used by unity-downloader-cli) --- this is temporary, and it will soon be moved to use the metafile as well.
 
 ### Changes when branching out
 - When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
@@ -45,14 +68,16 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Change `editors` section to contain the correct editors
     - Change `target_editor` to the target editor track for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
     - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
-    - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch)
+    - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch), and create the branch in Git
   - In *__editor.metafile*:
     - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
+    - Change `trunk_track` to the new trunk track
+    - Change `green_revision_jobs` to refer to the relevant jobs (probably track name must be changed)
   - In *_packages.metafile*:
-    - Change `publish_all_track` to correct track (trunk, 2020.1, etc), on which package publish job depends on. This track is also used for setting a separate PR trigger on all package CI job (but it is currently commented out/disabled, as it is already covered by ABV).
+    - Change `publish_all_track` to correct track (trunk, 2020.1, etc), on which package publish job depends on
+  - Rename `_green_job_revisions_[track].metafile` and `_latest_editor_versions_[track].metafile` to use the correct track
+  - Additional measures: run editor pinning update job, and green revisions job manually, to update the two metafiles in previous point
 
-### If trunk track changes:
-  - Change `trunk_track` in `_editor.metafile`
 
 ### Custom test platforms and UTR flags:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. Their corresponding base UTR flags are found in `config/_shared.metafile`
