@@ -239,7 +239,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
-            windowDockingLayout.ApplyPosition(this);
+
+            // If the parent shader graph window is being resized smaller than this window on either axis
+            if (parentLayout.width < this.layout.width || parentLayout.height < this.layout.height)
+            {
+                // Don't adjust the sub window in this case as it causes flickering errors and looks broken
+            }
+            else
+            {
+                windowDockingLayout.ApplyPosition(this);
+            }
+
             SerializeLayout();
         }
 
