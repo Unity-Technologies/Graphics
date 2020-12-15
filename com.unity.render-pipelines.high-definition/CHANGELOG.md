@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added light unit slider for automatic and automatic histrogram exposure limits.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
+- Added View Bias for mesh decals.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -24,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
+
+
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
