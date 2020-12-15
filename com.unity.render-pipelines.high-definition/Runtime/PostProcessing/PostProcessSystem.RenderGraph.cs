@@ -450,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.parameters = dofParameters;
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
-                    passData.nextCoC = builder.WriteTexture(builder.ReadTexture(nextCoCHandle));
+                    passData.nextCoC = builder.ReadWriteTexture(nextCoCHandle);
 
                     float scale = 1f / (float)passData.parameters.resolution;
                     var screenScale = new Vector2(scale, scale);
