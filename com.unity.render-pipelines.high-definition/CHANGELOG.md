@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
+- Added light unit slider for automatic and automatic histrogram exposure limits.
 
 ### Fixed
 - Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
