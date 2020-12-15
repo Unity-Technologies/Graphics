@@ -2081,6 +2081,32 @@ namespace UnityEditor.ShaderGraph
                                         m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
                                     }
                                 }
+
+                                // manually handle a bug where fragment normal slots could get out of sync of the master node's set fragment normal space
+                                if (descriptor == BlockFields.SurfaceDescription.NormalOS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Object)
+                                    {
+                                        norm.space = CoordinateSpace.Object;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalTS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Tangent)
+                                    {
+                                        norm.space = CoordinateSpace.Tangent;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalWS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.World)
+                                    {
+                                        norm.space = CoordinateSpace.World;
+                                    }
+                                }
                             }
 
                             // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates

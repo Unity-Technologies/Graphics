@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed 
 - Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
+- Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
 
 ## [10.2.0] - 2020-10-19
 
