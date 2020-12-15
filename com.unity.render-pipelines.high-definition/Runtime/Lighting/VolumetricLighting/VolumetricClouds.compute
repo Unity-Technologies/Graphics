@@ -311,7 +311,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, bool cheap
         float3 highFreqSamplingCoord = fineNoiseSamplingCoordinates * EROSION_SCALE_FACTOR;
 
         float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_linear_repeat_sampler, highFreqSamplingCoord, CLOUD_DETAIL_MIP_OFFSET).x;
-        highFrequencyNoise *= smoothstep(0.0, 1.0, highFrequencyNoise) * lerp(0.0, _ErosionFactor,properties.height);
+        highFrequencyNoise *= smoothstep(0.0, 1.0, highFrequencyNoise) * lerp(_ErosionFactor * 0.25, _ErosionFactor, properties.height);
         base_cloud -= (highFrequencyNoise);
     }
 
