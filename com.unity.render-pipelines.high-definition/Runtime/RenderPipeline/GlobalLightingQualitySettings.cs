@@ -123,10 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.2f;
 
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 3;
-
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
@@ -138,6 +134,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
+
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.High] = false;
 
             // Fog
             Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Low] = FogControl.Balance;
@@ -231,14 +231,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTRRayLength = new float[s_QualitySettingCount];
         /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
         public float[] RTRClampValue = new float[s_QualitySettingCount];
-        /// <summary>Radius for the up-sample pass.</summary>
-        public int[] RTRUpScaleRadius = new int[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>
         public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
+        /// <summary>Flag that defines smooth denoising status.</summary>
+        public bool[] RTRSmoothDenoising = new bool[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
         /// <summary>Controls which control mode should be used to define the volumetric fog parameters.</summary>
