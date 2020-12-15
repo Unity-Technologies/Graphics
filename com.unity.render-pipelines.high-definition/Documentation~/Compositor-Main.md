@@ -1,4 +1,4 @@
-# Graphics Compositor (Preview)
+# Graphics Compositor
 
 The Graphics Compositor allows for real-time compositing operations between Unity's High Definition Render Pipeline (HDRP) and external media sources, such as videos or images. Depending on the requirements for your application, the Graphics Compositor provides multiple composition techniques. You can use each technique independently or use more than one at the same time to create a combination of different types of composition operations. The techniques that the Graphics Compositor includes are:
 - **Camera Stacking:** Allows you to render multiple [HDRP Cameras](HDRP-Camera.md) to the same render target.
