@@ -233,13 +233,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
             // Also, we test validity of all handles because depending on where the custom pass is executed, they may not always be.
             if (targets.colorBufferRG.IsValid())
-                output.colorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.colorBufferRG));
+                output.colorBufferRG = builder.ReadWriteTexture(targets.colorBufferRG);
             if (targets.nonMSAAColorBufferRG.IsValid())
-                output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
+                output.nonMSAAColorBufferRG = builder.ReadWriteTexture(targets.nonMSAAColorBufferRG);
             if (targets.depthBufferRG.IsValid())
-                output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
+                output.depthBufferRG = builder.ReadWriteTexture(targets.depthBufferRG);
             if (targets.normalBufferRG.IsValid())
-                output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
+                output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
             if (targets.motionVectorBufferRG.IsValid())
                 output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
 

@@ -64,7 +64,7 @@ all_project_ci_nightly_2020.2:
     triggers:
         recurring:
           -  branch: 10.x.x/release
-             frequency: 0 * * ?
+             frequency: 1 * * ?
 trunk_verification_2020.2:
     name: Trunk verification - 2020.2
     dependencies:

@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         public SampleRawCubemapNode()
         {
             name = "Sample Cubemap";
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
 
@@ -36,11 +37,6 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(LODInputId, kLODInputName, kLODInputName, SlotType.Input, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, NormalInputId, SamplerInputId, LODInputId });
-        }
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
         }
 
         // Node generations
