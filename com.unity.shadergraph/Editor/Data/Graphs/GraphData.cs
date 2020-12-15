@@ -2070,23 +2070,23 @@ namespace UnityEditor.ShaderGraph
                                 if (descriptor == BlockFields.SurfaceDescription.NormalOS)
                                 {
                                     NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
-                                    if(norm.space != CoordinateSpace.Object)
+                                    if (norm.space != CoordinateSpace.Object)
                                     {
                                         norm.space = CoordinateSpace.Object;
                                     }
                                 }
-                                else if(descriptor == BlockFields.SurfaceDescription.NormalTS)
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalTS)
                                 {
                                     NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
-                                    if(norm.space != CoordinateSpace.Tangent)
+                                    if (norm.space != CoordinateSpace.Tangent)
                                     {
                                         norm.space = CoordinateSpace.Tangent;
                                     }
                                 }
-                                else if(descriptor == BlockFields.SurfaceDescription.NormalWS)
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalWS)
                                 {
                                     NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
-                                    if(norm.space != CoordinateSpace.World)
+                                    if (norm.space != CoordinateSpace.World)
                                     {
                                         norm.space = CoordinateSpace.World;
                                     }
