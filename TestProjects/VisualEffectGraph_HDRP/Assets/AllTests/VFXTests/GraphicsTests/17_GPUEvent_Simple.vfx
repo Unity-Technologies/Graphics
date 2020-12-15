@@ -5924,6 +5924,7 @@ MonoBehaviour:
   m_Type:
     m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
+  safeNormalize: 0
 --- !u!114 &8926484042661614564
 MonoBehaviour:
   m_ObjectHideFlags: 0

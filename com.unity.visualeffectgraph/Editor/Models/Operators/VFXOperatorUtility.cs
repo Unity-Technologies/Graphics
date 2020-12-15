@@ -271,7 +271,7 @@ namespace UnityEditor.VFX
         static public VFXExpression SafeNormalize(VFXExpression v)
         {
             var sqrDist = Dot(v, v);
-            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, VFXOperatorUtility.EpsilonSqrExpression[VFXValueType.Float], sqrDist);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrDist, VFXOperatorUtility.EpsilonSqrExpression[VFXValueType.Float]);
             return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
         }
 
