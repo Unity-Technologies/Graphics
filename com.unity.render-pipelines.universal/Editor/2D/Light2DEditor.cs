@@ -247,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         var name = string.Format("{0} ({1})", blendStyle.name, blendStyle.maskTextureChannel);
                         blendStyleNames.Add(name);
                     }
-                    
+
                     m_AnyBlendStyleEnabled = true;
                 }
             }
