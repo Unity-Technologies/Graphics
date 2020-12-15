@@ -41,16 +41,11 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
-    // Pick which subpixel we will be launching our effects from
-    float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
-    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
-    uint2 shift = HalfResIndexToCoordinateShift[subPixel];
-
     // Pixel where we will store the result of the raytracing
     uint2 outputCoord = halfResCoord * 2;
 
     // Pixel coordinate in full res of the pixel that we will be using for our computation
-    uint2 sourceCoord = outputCoord + shift;
+    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -83,7 +78,6 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }
 
-
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -111,7 +105,7 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
-    // Generate the new sample (follwing values of the sequence)
+    // Generate the new sample (following values of the sequence)
     float2 sample;
     sample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
     sample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
@@ -201,10 +195,8 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
             float4 sampleColor = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord);
 
             // Compute the position of the actual source pixel
-            uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
-            uint2 shift = HalfResIndexToCoordinateShift[subPixel];
             #ifdef HALF_RESOLUTION
-            uint2 actualSourceCoord = sampleCoord + shift;
+            uint2 actualSourceCoord = ComputeSourceCoordinates(sampleCoord / 2, _RaytracingFrameIndex);
             #else
             uint2 actualSourceCoord = sampleCoord;
             #endif

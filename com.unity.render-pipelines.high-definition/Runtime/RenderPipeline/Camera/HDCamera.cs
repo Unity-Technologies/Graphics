@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GlobalIllumination0,
             GlobalIllumination1,
+            RayTracedReflections,
             Count
         }
 
@@ -796,30 +797,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ReleaseHistoryFrameRT(int id)
         {
             m_HistoryRTSystem.ReleaseBuffer(id);
-        }
-
-        internal void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
-        {
-            if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
-                return;
-
-            // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
-            // Since recorder does not know about this, we need to send a texture of the right size.
-            cmd.GetTemporaryRT(m_RecorderTempRT, actualWidth, actualHeight, 0, FilterMode.Point, input.rt.graphicsFormat);
-
-            var blitMaterial = HDUtils.GetBlitMaterial(input.rt.dimension);
-
-            var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
-            Vector2 viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
-
-            m_RecorderPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, input);
-            m_RecorderPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, viewportScale);
-            m_RecorderPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-            cmd.SetRenderTarget(m_RecorderTempRT);
-            cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 0, MeshTopology.Triangles, 3, 1, m_RecorderPropertyBlock);
-
-            for (m_RecorderCaptureActions.Reset(); m_RecorderCaptureActions.MoveNext();)
-                m_RecorderCaptureActions.Current(m_RecorderTempRT, cmd);
         }
 
         class ExecuteCaptureActionsPassData
