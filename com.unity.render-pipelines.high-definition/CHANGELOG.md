@@ -25,8 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
-
-
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
