@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Profiling;
 using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Rendering.HighDefinition.ProbeBrickIndex.Brick;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         public List<Cell> Cells = new List<Cell>();
+        public Dictionary<Cell, List<Scene>> SceneRefs = new Dictionary<Cell, List<Scene>>();
 
         private bool m_BricksLoaded = false;
 

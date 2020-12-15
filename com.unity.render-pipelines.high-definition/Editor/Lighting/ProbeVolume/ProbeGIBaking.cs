@@ -80,9 +80,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var scene2RefVolAuth = new Dictionary<Scene, ProbeReferenceVolumeAuthoring>();
+            foreach(var refVolAuth in GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>())
+                scene2RefVolAuth[refVolAuth.gameObject.scene] = refVolAuth;
+
             var numCells = ProbeReferenceVolume.instance.Cells.Count;
 
-            var probeVolumeAsset = ProbeVolumeAsset.CreateAsset(SceneManagement.SceneManager.GetActiveScene());
+            var volumesNeedReload = new List<ProbeReferenceVolumeAuthoring>();
 
             for (int c = 0; c < numCells; ++c)
             {
@@ -91,7 +95,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cell.probePositions == null)
                     continue;
 
-                Debug.Log("Bake completed for id " + cell.index);
+                // Find best Scene/ProbeReferenceVolumeAuthoring to attach the data to
+                var affectedScenes = ProbeReferenceVolume.instance.SceneRefs[cell];
+
+                var affectedRefVolAuths = new List<ProbeReferenceVolumeAuthoring>();
+
+                // For each scene this Cell covers, find authoring components and create
+                // (if necessary) new assets for them
+                foreach(var scene in affectedScenes)
+                {
+                    if (!scene2RefVolAuth.ContainsKey(scene))
+                        continue;
+
+                    var refVolAuth = scene2RefVolAuth[scene];
+                    affectedRefVolAuths.Add(refVolAuth);
+
+                    if (refVolAuth.VolumeAsset == null)
+                        refVolAuth.VolumeAsset = ProbeVolumeAsset.CreateAsset(refVolAuth.gameObject.scene);
+                }
+                
+                //Debug.Log("Bake completed for id " + cell.index);
                 int numProbes = cell.probePositions.Length;
                 Debug.Assert(numProbes > 0);
 
@@ -141,23 +164,27 @@ namespace UnityEngine.Rendering.HighDefinition
                     cell.validity[i] = validity[i];
                 }
 
-                // reset index
+                // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, ref refVolAuthoring);
 
-                // add cell to asset
-                probeVolumeAsset.cells.Add(cell);
+                // Add cell to asset
+                foreach(var affectedRefVolAuth in affectedRefVolAuths)
+                {
+                    affectedRefVolAuth.VolumeAsset.cells.Add(cell);
 
-                if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                    UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                    if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
+                        UnityEditor.EditorUtility.SetDirty(affectedRefVolAuth.VolumeAsset);
 
-                refVolAuthoring.VolumeAsset = probeVolumeAsset;
+                    volumesNeedReload.Add(affectedRefVolAuth);
+                }
             }
 
-            refVolAuthoring.QueueAssetLoading();
-
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+
+            foreach(var v in volumesNeedReload)
+                v.QueueAssetLoading();
         }
 
         private static void OnLightingDataCleared()
@@ -350,6 +377,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
                 ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, refVolAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
 
+                // Each cell keeps a number of references it has to each scene it was influenced by
+                // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
+                var sortedRefs = new SortedDictionary<int, Scene>();
+                foreach (var item in sceneRefs)
+                    sortedRefs[-item.Value] = item.Key;
+
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
@@ -363,9 +396,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     cell.bricks = bricks;
                     placementHappened = true;
                     totalBricks += bricks.Count;
-                }
 
-                ProbeReferenceVolume.instance.Cells.Add(cell);
+                    ProbeReferenceVolume.instance.Cells.Add(cell);
+                    ProbeReferenceVolume.instance.SceneRefs[cell] = new List<Scene>(sortedRefs.Values);
+                }
             }
 
             if (placementHappened)
