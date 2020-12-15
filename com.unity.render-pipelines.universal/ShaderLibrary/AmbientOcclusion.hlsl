@@ -36,12 +36,12 @@ AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpa
     #if defined(_DEBUG_SHADER)
     switch(_DebugLightingIndex)
     {
-        case DEBUG_LIGHTING_LIGHT_ONLY:
+        case LIGHTINGDEBUGMODE_LIGHT_ONLY:
             aoFactor.directAmbientOcclusion = 0.5;
             aoFactor.indirectAmbientOcclusion = 0.5;
             break;
 
-        case DEBUG_LIGHTING_LIGHT_DETAIL:
+        case LIGHTINGDEBUGMODE_LIGHT_DETAIL:
             aoFactor.directAmbientOcclusion *= 0.5;
             aoFactor.indirectAmbientOcclusion *= 0.5;
             break;

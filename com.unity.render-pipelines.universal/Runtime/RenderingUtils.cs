@@ -1,99 +1,11 @@
-using System;
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum DebugMaterialIndex
-    {
-        None,
-        Unlit,
-        Diffuse,
-        Specular,
-        Alpha,
-        Smoothness,
-        AmbientOcclusion,
-        Emission,
-        NormalWorldSpace,
-        NormalTangentSpace,
-        LightingComplexity,
-		LOD,
-        Metallic,
-    }
-
-    public enum FullScreenDebugMode
-    {
-        None,
-        Depth,
-        // TODO: Restore this once we have access to the screen-space shadow texture...
-        //MainLightShadowsOnly,
-        AdditionalLightsShadowMap,
-        MainLightShadowMap,
-    }
-
-    public enum SceneOverrides
-    {
-        None,
-        Overdraw,
-        Wireframe,
-        SolidWireframe,
-    }
-
-    public enum LightingDebugMode
-    {
-        None,
-        ShadowCascades,
-        LightOnly,
-        LightDetail,
-        Reflections,
-        ReflectionsWithSmoothness,
-    }
-
-	public enum VertexAttributeDebugMode
-	{
-        None,
-		Texcoord0,
-		Texcoord1,
-		Texcoord2,
-		Texcoord3,
-        Color,
-		Tangent,
-		Normal,
-	}
-
-    [Flags]
-    public enum DebugLightingFeature
-    {
-        None,
-        GlobalIllumination = 0x1,
-        MainLight = 0x2,
-        AdditionalLights = 0x4,
-        VertexLighting = 0x8,
-        Emission = 0x10,
-        AmbientOcclusion = 0x20,
-    }
-
-    public enum DebugValidationMode
-    {
-        None,
-        HighlightNanInfNegative,
-        HighlightOutsideOfRange,
-        ValidateAlbedo,
-    }
-
-    public enum DebugMipInfo
-    {
-        None,
-        Level,
-        Count,
-        //CountReduction,
-        //StreamingMipBudget,
-        //StreamingMip,
-    }
-
     /// <summary>
     /// Contains properties and helper functions that you can use when rendering.
     /// </summary>

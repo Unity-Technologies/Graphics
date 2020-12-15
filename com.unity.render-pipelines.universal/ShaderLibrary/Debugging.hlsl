@@ -2,60 +2,7 @@
 #ifndef UNIVERSAL_DEBUGGING_INCLUDED
 #define UNIVERSAL_DEBUGGING_INCLUDED
 
-// _DebugMaterialIndex
-#define DEBUG_MATERIAL_NONE 0
-#define DEBUG_MATERIAL_UNLIT 1
-#define DEBUG_MATERIAL_DIFFUSE 2
-#define DEBUG_MATERIAL_SPECULAR 3
-#define DEBUG_MATERIAL_ALPHA 4
-#define DEBUG_MATERIAL_SMOOTHNESS 5
-#define DEBUG_MATERIAL_OCCLUSION 6
-#define DEBUG_MATERIAL_EMISSION 7
-#define DEBUG_MATERIAL_NORMAL_WORLD_SPACE 8
-#define DEBUG_MATERIAL_NORMAL_TANGENT_SPACE 9
-#define DEBUG_MATERIAL_LIGHTING_COMPLEXITY 10
-#define DEBUG_MATERIAL_LOD 11
-#define DEBUG_MATERIAL_METALLIC 12
-
-// _DebugLightingIndex
-#define DEBUG_LIGHTING_NONE 0
-#define DEBUG_LIGHTING_SHADOW_CASCADES 1
-#define DEBUG_LIGHTING_LIGHT_ONLY 2
-#define DEBUG_LIGHTING_LIGHT_DETAIL 3
-#define DEBUG_LIGHTING_REFLECTIONS 4
-#define DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS 5
-
-// _DebugAttributesIndex
-#define DEBUG_ATTRIBUTE_TEXCOORD0 1
-#define DEBUG_ATTRIBUTE_TEXCOORD1 2
-#define DEBUG_ATTRIBUTE_TEXCOORD2 3
-#define DEBUG_ATTRIBUTE_TEXCOORD3 4
-#define DEBUG_ATTRIBUTE_COLOR     5
-#define DEBUG_ATTRIBUTE_TANGENT   6
-#define DEBUG_ATTRIBUTE_NORMAL    7
-
-// _DebugLightingFeatureMask
-#define DEBUG_LIGHTING_FEATURE_GI 1 << 0
-#define DEBUG_LIGHTING_FEATURE_MAIN_LIGHT 1 << 1
-#define DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS 1 << 2
-#define DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING 1 << 3
-#define DEBUG_LIGHTING_FEATURE_EMISSION 1 << 4
-#define DEBUG_LIGHTING_FEATURE_AO 1 << 5
-
-// _DebugMipIndex
-#define DEBUG_MIPMAPMODE_NONE 0
-#define DEBUG_MIPMAPMODE_MIP_LEVEL 1
-#define DEBUG_MIPMAPMODE_MIP_COUNT 2
-//#define DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION 3
-//#define DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET 4
-//#define DEBUG_MIPMAPMODE_STREAMING_MIP 5
-
-// _DebugValidationIndex
-#define DEBUG_VALIDATION_NONE 0
-#define DEBUG_VALIDATION_HIGHLIGHT_NAN_INFINITE_NEGATIVE 1
-#define DEBUG_VALIDATION_HIGHLIGHT_OUTSIDE_RANGE 2
-#define DEBUG_VALIDATION_ALBEDO 3
-//#define DEBUG_VALIDATION_METAL 4
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebugViewEnums.cs.hlsl"
 
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
@@ -204,7 +151,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 {
     bool changed = false;
 
-    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
+    if (_DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_ONLY || _DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_DETAIL)
     {
         surfaceData.albedo = half3(1, 1, 1);
         surfaceData.emission = half3(0, 0, 0);
@@ -216,20 +163,20 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         surfaceData.smoothness = 0;
         changed = true;
     }
-    else if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
+    else if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS || _DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS_WITH_SMOOTHNESS)
     {
         surfaceData.albedo = half3(0, 0, 0);
         surfaceData.emission = half3(0, 0, 0);
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
-        if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+        if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS)
         {
             surfaceData.specular = half3(1, 1, 1);
             surfaceData.metallic = 0;
             surfaceData.smoothness = 1;
         }
-        else if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
+        else if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS_WITH_SMOOTHNESS)
         {
             surfaceData.specular = half3(0, 0, 0);
             surfaceData.metallic = 1;
@@ -238,7 +185,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         changed = true;
     }
 
-    if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+    if (_DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_ONLY || _DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS)
     {
         half3 normalTS = half3(0, 0, 1);
 
@@ -322,7 +269,7 @@ half4 GetMipCountDebugColor(InputData inputData, float2 uv)
 
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
-    if (_DebugValidationIndex == DEBUG_VALIDATION_ALBEDO)
+    if (_DebugValidationIndex == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
     {
         half value = LinearRgbToLuminance(surfaceData.albedo);
         if (_AlbedoMinLuminance > value)
@@ -371,21 +318,12 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
 
     switch (_DebugMipIndex)
     {
-        case DEBUG_MIPMAPMODE_MIP_LEVEL:
+        case DEBUGMIPINFO_LEVEL:
             color = GetMipLevelDebugColor(inputData, _BaseMap_TexelSize.zw, debugData.uv);
             return true;
-        case DEBUG_MIPMAPMODE_MIP_COUNT:
+        case DEBUGMIPINFO_COUNT:
             color = GetMipCountDebugColor(inputData, debugData.uv);
             return true;
-        // case DEBUG_MIPMAPMODE_MIP_COUNT_REDUCTION:
-        //     color = GetDebugMipReductionColor(_BaseMap, mipInfo);
-        //     return true;
-        // case DEBUG_MIPMAPMODE_STREAMING_MIP_BUDGET:
-        //    color = GetDebugStreamingMipColor(tex, mipInfo);
-        //    break;
-        // case DEBUG_MIPMAPMODE_STREAMING_MIP:
-        //    color = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
-        //    break;
         default:
             return false;
     }
@@ -398,45 +336,45 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
     // Debug materials...
     switch(_DebugMaterialIndex)
     {
-        case DEBUG_MATERIAL_UNLIT:
+        case DEBUGMATERIALINDEX_UNLIT:
             color.rgb = surfaceData.albedo;
             return true;
 
-        case DEBUG_MATERIAL_DIFFUSE:
+        case DEBUGMATERIALINDEX_DIFFUSE:
             color.rgb = debugData.brdfDiffuse;
             return true;
 
-        case DEBUG_MATERIAL_SPECULAR:
+        case DEBUGMATERIALINDEX_SPECULAR:
             color.rgb = debugData.brdfSpecular;
             return true;
 
-        case DEBUG_MATERIAL_ALPHA:
+        case DEBUGMATERIALINDEX_ALPHA:
             color.rgb = surfaceData.alpha.rrr;
             return true;
 
-        case DEBUG_MATERIAL_SMOOTHNESS:
+        case DEBUGMATERIALINDEX_SMOOTHNESS:
             color.rgb = surfaceData.smoothness.rrr;
             return true;
 
-        case DEBUG_MATERIAL_OCCLUSION:
+        case DEBUGMATERIALINDEX_AMBIENT_OCCLUSION:
             color.rgb = surfaceData.occlusion.rrr;
             return true;
 
-        case DEBUG_MATERIAL_EMISSION:
+        case DEBUGMATERIALINDEX_EMISSION:
             color.rgb = surfaceData.emission;
             return true;
 
-        case DEBUG_MATERIAL_NORMAL_WORLD_SPACE:
+        case DEBUGMATERIALINDEX_NORMAL_WORLD_SPACE:
             color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
             return true;
 
-        case DEBUG_MATERIAL_NORMAL_TANGENT_SPACE:
+        case DEBUGMATERIALINDEX_NORMAL_TANGENT_SPACE:
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
-        case DEBUG_MATERIAL_LOD:
+        case DEBUGMATERIALINDEX_LOD:
             color.rgb = GetLODDebugColor().rgb;
             return true;
-        case DEBUG_MATERIAL_METALLIC:
+        case DEBUGMATERIALINDEX_METALLIC:
             color.rgb = surfaceData.metallic.rrr;
             return true;
 

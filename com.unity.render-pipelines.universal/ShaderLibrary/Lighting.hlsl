@@ -135,7 +135,7 @@ Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor
     Light light = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_AMBIENT_OCCLUSION))
     {
         light.color *= aoFactor.directAmbientOcclusion;
     }
@@ -257,7 +257,7 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
     Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_AMBIENT_OCCLUSION))
     {
         light.color *= aoFactor.directAmbientOcclusion;
     }
@@ -701,7 +701,7 @@ void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData)
 
 void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData, AmbientOcclusionFactor aoFactor)
 {
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_AMBIENT_OCCLUSION))
     {
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     }
@@ -835,29 +835,29 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
     half3 lightingColor = 0;
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_GLOBAL_ILLUMINATION))
     {
         lightingColor += lightingData.giColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_MAIN_LIGHT))
     {
         lightingColor += lightingData.mainLightColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_ADDITIONAL_LIGHTS))
     {
         lightingColor += lightingData.additionalLightsColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_VERTEX_LIGHTING))
     {
         lightingColor += lightingData.vertexLightingColor;
     }
 
     lightingColor *= albedo;
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_EMISSION))
     {
         lightingColor += lightingData.emissionColor;
     }
@@ -979,7 +979,7 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
 {
-    if(_DebugMaterialIndex == DEBUG_MATERIAL_LIGHTING_COMPLEXITY)
+    if(_DebugMaterialIndex == DEBUGMATERIALINDEX_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
@@ -990,11 +990,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
         debugColor = half4(0, 0, 0, 1);
 
-        if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+        if(_DebugLightingIndex == LIGHTINGDEBUGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialIndex == DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialIndex == DEBUGMATERIALINDEX_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -1010,13 +1010,13 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         brdfData = CreateBRDFData(surfaceData);
 
-        return (_DebugMaterialIndex != DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialIndex != DEBUGMATERIALINDEX_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
 {
-    if(_DebugMaterialIndex == DEBUG_MATERIAL_LIGHTING_COMPLEXITY)
+    if(_DebugMaterialIndex == DEBUGMATERIALINDEX_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
@@ -1025,11 +1025,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     {
         debugColor = half4(0, 0, 0, 1);
 
-        if(_DebugLightingIndex == DEBUG_LIGHTING_SHADOW_CASCADES)
+        if(_DebugLightingIndex == LIGHTINGDEBUGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialIndex == DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialIndex == DEBUGMATERIALINDEX_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -1042,7 +1042,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
-        return (_DebugMaterialIndex != DEBUG_MATERIAL_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialIndex != DEBUGMATERIALINDEX_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
     }
 }
 
@@ -1232,7 +1232,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_AMBIENT_OCCLUSION))
     {
         lightingData.giColor *= aoFactor.indirectAmbientOcclusion;
     }

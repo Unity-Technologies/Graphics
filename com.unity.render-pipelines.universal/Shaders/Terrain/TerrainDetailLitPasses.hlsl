@@ -106,7 +106,7 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     #endif
     half4 color = half4(surfaceData.albedo, surfaceData.alpha);
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_GLOBAL_ILLUMINATION))
     {
         lighting += inputData.bakedGI;
     }
@@ -148,13 +148,13 @@ Varyings TerrainLitVertex(Attributes input)
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_MAIN_LIGHT))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_MAIN_LIGHT))
     {
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
     }
 
     #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_ADDITIONAL_LIGHTS))
+    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATURE_ADDITIONAL_LIGHTS))
     {
         int pixelLightCount = GetAdditionalLightsCount();
         for (int i = 0; i < pixelLightCount; ++i)

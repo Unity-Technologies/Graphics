@@ -156,19 +156,19 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             {
                 switch (_DebugAttributesIndex)
                 {
-                    case DEBUG_ATTRIBUTE_TEXCOORD0:
+                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD0:
                         return input.texcoord0;//half4(,0,1);
-                    case DEBUG_ATTRIBUTE_TEXCOORD1:
+                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD1:
                         return input.texcoord1;//half4(input.texcoord1,0,1);
-                    case DEBUG_ATTRIBUTE_TEXCOORD2:
+                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD2:
                         return input.texcoord2;
-                    case DEBUG_ATTRIBUTE_TEXCOORD3:
+                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD3:
                         return input.texcoord3;
-                    case DEBUG_ATTRIBUTE_COLOR:
+                    case VERTEXATTRIBUTEDEBUGMODE_COLOR:
                         return input.color;
-                    case DEBUG_ATTRIBUTE_TANGENT:
+                    case VERTEXATTRIBUTEDEBUGMODE_TANGENT:
                         return input.tangent;
-                    case DEBUG_ATTRIBUTE_NORMAL:
+                    case VERTEXATTRIBUTEDEBUGMODE_NORMAL:
                         return input.normal;
                     default:
                         return half4(0, 0, 0, 1);
