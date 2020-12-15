@@ -98,6 +98,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetTextureResource(handle.handle).graphicsResource;
         }
 
+        internal bool TextureNeedsFallback(in TextureHandle handle)
+        {
+            if (!handle.IsValid())
+                return false;
+
+            return GetTextureResource(handle.handle).NeedsFallBack();
+        }
+
         internal RendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
@@ -163,6 +171,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var resources = m_RenderGraphResources[(int)type].resourceArray;
             if (index >= resources.size)
                 throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+        }
+
+        internal void IncrementWriteCount(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementWriteCount();
         }
 
         internal string GetRenderGraphResourceName(in ResourceHandle res)
@@ -295,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.desc = desc;
             texResource.transientPassIndex = transientPassIndex;
+            texResource.requestFallBack = desc.fallBackToBlackTexture;
             return new TextureHandle(newHandle);
         }
 

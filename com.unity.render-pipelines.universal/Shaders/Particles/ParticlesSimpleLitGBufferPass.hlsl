@@ -118,7 +118,7 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
 #endif
 
 #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    output.projectedPosition = ComputeScreenPos(vertexInput.positionCS);
+    output.projectedPosition = vertexInput.positionNDC;
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
