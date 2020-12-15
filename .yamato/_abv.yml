@@ -23,7 +23,7 @@ all_project_ci_trunk:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.core/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["com.unity.render-pipelines.core/**/*"]
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:

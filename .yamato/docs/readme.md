@@ -48,6 +48,8 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch)
   - In *__editor.metafile*:
     - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
+  - In project metafiles:
+    - Change `expression_trigger` to refer to correct branch
   - In *_packages.metafile*:
     - Change `publish_all_track` to correct track (trunk, 2020.1, etc), on which package publish job depends on. This track is also used for setting a separate PR trigger on all package CI job (but it is currently commented out/disabled, as it is already covered by ABV).
 
