@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong coat normal space in shader graph
 - Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 - Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
