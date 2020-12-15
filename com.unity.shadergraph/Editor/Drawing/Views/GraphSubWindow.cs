@@ -297,10 +297,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
             windowDockingLayout.ClampToParentWindow();
 
-            // TODO: Dragger does some weird stuff when moving a graph sub window thats larger than screen bounds as it clamps it by offsetting the layout,
-            // but because the windows larger than the graph window, the offsetting behavior pushes it out of the screen and basically moves the window out of bounds
-            // Need to either prevent windows from being resized past window bounds, or adjust for the Grabber behavior somehow
-
             SerializeLayout();
         }
 
