@@ -10,12 +10,23 @@ using UnityEngine;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(CustomFunctionNode))]
-    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer
+    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
+        Action m_setNodesAsDirtyCallback;
+        Action m_updateNodeViewsCallback;
+
+        void IGetNodePropertyDrawerPropertyData.GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        {
+            m_setNodesAsDirtyCallback = setNodesAsDirtyCallback;
+            m_updateNodeViewsCallback = updateNodeViewsCallback;
+        }
+
         VisualElement CreateGUI(CustomFunctionNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)
         {
             var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold));
+
+            PropertyDrawerUtils.AddDefaultNodeProperties(propertySheet, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
             var inputListView = new ReorderableSlotListView(node, SlotType.Input, true);
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
@@ -30,7 +41,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(outputListView);
 
             propertySheet.Add(new HlslFunctionView(node));
-            propertyVisualElement = propertySheet;
+            propertyVisualElement = null;
             return propertySheet;
         }
 
