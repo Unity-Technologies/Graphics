@@ -14,11 +14,12 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(17, Extension, -905)]
+    [ScriptedImporter(20, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -190,6 +191,7 @@ namespace UnityEditor.ShaderGraph
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
+            asset.previewMode = graph.previewMode;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
@@ -322,10 +324,10 @@ namespace UnityEditor.ShaderGraph
         {
             var dependencyMap = new Dictionary<GUID, GUID[]>();
             AssetCollection tempAssetCollection = new AssetCollection();
-            using (var tempList = ListPool<GUID>.GetDisposable())
+            using (ListPool<GUID>.Get(out var tempList))
             {
                 GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
-                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList.value);
+                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);
             }
 
             descendentGuids = new HashSet<GUID>();
