@@ -9,19 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
+- Added support for nested volume components to volume system.
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
-- Replaced last package version checker in Wizard to a link on Package Manager
+- Removed the superior clamping value for the recursive rendering max ray length. 
+- Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 
 ## [10.3.0] - 2020-12-01
 
-### Changed
-- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Replaced last package version checker in Wizard to a link on Package Manager
 
 ## [10.2.1] - 2020-11-30
 
@@ -58,7 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
-- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
@@ -83,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
+- Added the TerrainCompatible SubShader Tag. Use this Tag in your custom shader to tell Unity that the shader is compatible with the Terrain system.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
 
 ### Fixed

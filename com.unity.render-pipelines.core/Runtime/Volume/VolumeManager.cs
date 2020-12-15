@@ -98,10 +98,12 @@ namespace UnityEngine.Rendering
             baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
                 .Where(t => !t.IsAbstract);
 
+            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
             foreach (var type in baseComponentTypes)
             {
+                type.GetMethod("Init", flags)?.Invoke(null, null);
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
             }
