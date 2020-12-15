@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
-
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
 
 ## [10.2.0] - 2020-10-19
 
