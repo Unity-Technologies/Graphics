@@ -1,6 +1,8 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
+
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
     VertexPositionInputs input;
@@ -171,14 +173,7 @@ real3 NormalizeNormalPerPixel(real3 normalWS)
     #endif
 }
 
-// TODO: A similar function should be already available in SRP lib on master. Use that instead
-float4 ComputeScreenPos(float4 positionCS)
-{
-    float4 o = positionCS * 0.5f;
-    o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
-    o.zw = positionCS.zw;
-    return o;
-}
+
 
 real ComputeFogFactor(float z)
 {

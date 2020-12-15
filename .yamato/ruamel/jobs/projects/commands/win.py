@@ -1,71 +1,65 @@
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
-from ...shared.utr_utils import extract_flags
+from ...shared.utr_utils import get_repeated_utr_calls
 
-def _cmd_base(project_folder, platform, utr_flags, editor):
-    return [
+def _cmd_base(project_folder, platform, utr_calls, editor):
+    base = [
         f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        pss(f'''
+    ]
+    
+    for utr_args in utr_calls:
+        base.append(pss(f'''
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
          del revdate.tmp
-         cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_flags)}''')
-    ]
+         cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'''))
+    
+    return base
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    base = _cmd_base(project_folder, platform, utr_calls, editor)
 
-    base = _cmd_base(project_folder, platform, utr_args, editor)
-
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
 
     return base
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    base = _cmd_base(project_folder, platform, utr_calls, editor)
 
-    base = _cmd_base(project_folder, platform, utr_args, editor)
-
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
 
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
-    if project_folder.lower() == 'UniversalGraphicsTest'.lower():
+    if 'universalgraphicstest' in project_folder.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     
-    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    for utr_args in utr_calls:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
     
     return base
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)  
-    base = _cmd_base(project_folder, platform, utr_args, editor)
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
+    base = _cmd_base(project_folder, platform, utr_calls, editor)
     
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
 
     return base
 
