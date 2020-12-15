@@ -2259,17 +2259,30 @@ namespace UnityEditor.VFX.UI
 
         public bool SelectionHasCompleteSystems()
         {
-            HashSet<VFXContextUI> selectedContexts = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
-            if (selectedContexts.Count() < 1)
+            HashSet<VFXContextUI> selectedContextUIs = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
+            if (selectedContextUIs.Count() < 1)
                 return false;
 
-            HashSet<VFXData> usedDatas = new HashSet<VFXData>(selectedContexts.Select(t => t.controller.model.GetData()).Where(t => t != null));
+            var relatedContext = selectedContextUIs.Select(t => t.controller.model);
 
+            //Adding manually VFXBasicGPUEvent, it doesn't appears as dependency.
+            var outputContextDataFromGPUEvent = relatedContext.OfType<VFXBasicGPUEvent>().SelectMany(o => o.outputContexts);
+            relatedContext = relatedContext.Concat(outputContextDataFromGPUEvent);
+            var selectedContextDatas = relatedContext.Select(o => o.GetData()).Where(o => o != null);
+
+            var selectedContextDependencies = selectedContextDatas.SelectMany(o => o.allDependenciesIncludingNotCompilable);
+            var allDatas = selectedContextDatas.Concat(selectedContextDependencies);
+
+            var allDatasHash = new HashSet<VFXData>(allDatas);
             foreach (var context in GetAllContexts())
             {
-                if (context.controller.model is VFXBlockSubgraphContext)
+                var model = context.controller.model;
+                if (model is VFXBlockSubgraphContext)
                     return false;
-                if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
+
+                //We should exclude model.contextType == VFXContextType.Event of this condition.
+                //If VFXConvertSubgraph.TransferContextsFlowEdges has been fixed & renabled.
+                if (allDatasHash.Contains(model.GetData()) && !selectedContextUIs.Contains(context))
                     return false;
             }
 
