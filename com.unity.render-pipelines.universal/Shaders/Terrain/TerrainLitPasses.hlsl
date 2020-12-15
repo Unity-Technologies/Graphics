@@ -61,6 +61,9 @@ struct Varyings
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD8;
 #endif
+#if defined(DYNAMICLIGHTMAP_ON)
+    float2 dynamicLightmapUV        : TEXCOORD9;
+#endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -108,7 +111,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
+#ifdef DYNAMICLIGHTMAP_ON
+    input.bakedGI = SampleLightmap(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, input.normalWS);
+#else
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+#endif
+
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
@@ -263,6 +271,10 @@ Varyings SplatmapVert(Attributes v)
 
     o.uvMainAndLM.xy = v.texcoord;
     o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
+#if defined(DYNAMICLIGHTMAP_ON)
+    o.dynamicLightmapUV = v.texcoord * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
+
 #ifndef TERRAIN_SPLAT_BASEPASS
     o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
     o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
