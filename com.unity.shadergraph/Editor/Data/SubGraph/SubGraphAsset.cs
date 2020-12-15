@@ -81,6 +81,8 @@ namespace UnityEditor.ShaderGraph
 
         public ConcretePrecision outputPrecision;
 
+        public PreviewMode previewMode;
+
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if(m_SubGraphData == null)

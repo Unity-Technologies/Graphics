@@ -120,13 +120,30 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return propertySheet;
             }
 
-            var enumPropertyDrawer = new EnumPropertyDrawer();
-            propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision) newValue); },
-                graphData.concretePrecision,
-                "Precision",
-                ConcretePrecision.Single,
-                out var propertyVisualElement));
+            {
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
+                    graphData.concretePrecision,
+                    "Precision",
+                    ConcretePrecision.Single,
+                    out var propertyVisualElement));
+            }
+
+            if (graphData.isSubGraph)
+            {
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        graphData.owner.RegisterCompleteObjectUndo("Change Preview Mode");
+                        graphData.previewMode = (PreviewMode) newValue;
+                    },
+                    graphData.previewMode,
+                    "Preview",
+                    PreviewMode.Inherit,
+                    out var propertyVisualElement));
+            }
 
             propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));
 

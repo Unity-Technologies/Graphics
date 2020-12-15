@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
@@ -238,7 +239,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision()
+        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)

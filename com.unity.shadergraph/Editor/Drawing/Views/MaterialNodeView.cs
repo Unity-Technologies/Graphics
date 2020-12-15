@@ -367,7 +367,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if (propertyDrawer is AbstractMaterialNodePropertyDrawer nodePropertyDrawer)
+            if (propertyDrawer is IGetNodePropertyDrawerPropertyData nodePropertyDrawer)
             {
                 nodePropertyDrawer.GetPropertyData(SetNodesAsDirty, UpdateNodeViews);
             }
