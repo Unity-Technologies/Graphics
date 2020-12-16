@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed an issue with half res ssgi upscale.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -37,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
+- Changed the convergance time of ssgi to 16 frames.
+- Changed the preset values for ssgi.
 
 ## [10.3.0] - 2020-12-01
 
