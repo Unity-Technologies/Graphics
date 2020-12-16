@@ -56,9 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             string assetFileName = GetFileName(scene);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
-
+            
             asset.m_AssetFullPath = assetFileName;
 
             return asset;

@@ -27,15 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    [InitializeOnLoad]
     internal class ProbeGIBaking
     {
         static bool init = false;
-
-        static ProbeGIBaking()
-        {
-            Init();
-        }
 
         public static void Init()
         {
@@ -86,44 +80,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            var scene2RefVolAuth = new Dictionary<Scene, ProbeReferenceVolumeAuthoring>();
-            foreach(var refVolAuth in GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>())
-                scene2RefVolAuth[refVolAuth.gameObject.scene] = refVolAuth;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
             var numCells = ProbeReferenceVolume.instance.Cells.Count;
-
-            var volumesNeedReload = new List<ProbeReferenceVolumeAuthoring>();
-
+            
+            // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
                 var cell = ProbeReferenceVolume.instance.Cells[c];
 
                 if (cell.probePositions == null)
                     continue;
-
-                // Find best Scene/ProbeReferenceVolumeAuthoring to attach the data to
-                var affectedScenes = ProbeReferenceVolume.instance.SceneRefs[cell];
-
-                var affectedRefVolAuths = new List<ProbeReferenceVolumeAuthoring>();
-
-                // For each scene this Cell covers, find authoring components and create
-                // (if necessary) new assets for them
-                foreach(var scene in affectedScenes)
-                {
-                    if (!scene2RefVolAuth.ContainsKey(scene))
-                        continue;
-
-                    var refVolAuth = scene2RefVolAuth[scene];
-                    affectedRefVolAuths.Add(refVolAuth);
-                }
                 
-                //Debug.Log("Bake completed for id " + cell.index);
                 int numProbes = cell.probePositions.Length;
                 Debug.Assert(numProbes > 0);
 
                 var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                
+
                 UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(cell.index, sh, validity);
 
                 cell.sh = new SphericalHarmonicsL1[numProbes];
@@ -172,26 +146,55 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, ref refVolAuthoring);
 
-                // Add cell to asset
-                foreach(var affectedRefVolAuth in affectedRefVolAuths)
+                ProbeReferenceVolume.instance.Cells[c] = cell;
+            }
+
+            // Map from each scene to an existing reference volume
+            var scene2RefVol = new Dictionary<Scene, ProbeReferenceVolumeAuthoring>();
+            foreach (var refVol in GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>())
+                scene2RefVol[refVol.gameObject.scene] = refVol;
+
+            // Map from each reference volume to its asset
+            var refVol2Asset = new Dictionary<ProbeReferenceVolumeAuthoring, ProbeVolumeAsset>();
+            foreach (var refVol in scene2RefVol.Values)
+            {
+                refVol2Asset[refVol] = ProbeVolumeAsset.CreateAsset(refVol.gameObject.scene);
+            }
+
+            // Put cells into the respective assets
+            for (int c = 0; c < numCells; ++c)
+            {
+                var cell = ProbeReferenceVolume.instance.Cells[c];
+
+                foreach (var scene in ProbeReferenceVolume.instance.SceneRefs[cell.index])
                 {
-                    var asset = ProbeVolumeAsset.CreateAsset(affectedRefVolAuth.gameObject.scene);
-
-                    asset.cells.Add(cell);
-
-                    if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                        UnityEditor.EditorUtility.SetDirty(asset);
-
-                    affectedRefVolAuth.VolumeAsset = asset;
-
-                    volumesNeedReload.Add(affectedRefVolAuth);
+                    // This scene has a reference volume authoring component in it?
+                    ProbeReferenceVolumeAuthoring refVol = null;
+                    if (scene2RefVol.TryGetValue(scene, out refVol))
+                    {
+                        var asset = refVol2Asset[refVol];
+                        asset.cells.Add(cell);
+                    }
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            // Connect the assets to their components
+            foreach(var pair in refVol2Asset)
+            {
+                var refVol = pair.Key;
+                var asset = pair.Value;
+                
+                refVol.VolumeAsset = asset;
 
-            foreach(var v in volumesNeedReload)
-                v.QueueAssetLoading();
+                if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
+                    UnityEditor.EditorUtility.SetDirty(refVol.VolumeAsset);
+            }
+
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+
+            foreach(var refVol in refVol2Asset.Keys)
+                refVol.QueueAssetLoading();
         }
 
         private static void OnLightingDataCleared()
@@ -405,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     totalBricks += bricks.Count;
 
                     ProbeReferenceVolume.instance.Cells.Add(cell);
-                    ProbeReferenceVolume.instance.SceneRefs[cell] = new List<Scene>(sortedRefs.Values);
+                    ProbeReferenceVolume.instance.SceneRefs[cell.index] = new List<Scene>(sortedRefs.Values);
                 }
             }
 
