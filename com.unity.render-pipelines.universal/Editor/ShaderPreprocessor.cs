@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
         ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
         ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
+        ShaderKeyword m_DynamicLightmap = new ShaderKeyword(ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
@@ -183,10 +184,10 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnsupportedVariants(ShaderCompilerData compilerData)
         {
-            // Dynamic GI is not supported so we can strip variants that have directional lightmap
-            // enabled but not baked lightmap.
+            // We can strip variants that have directional lightmap enabled but not static nor dynamic lightmap.
             if (compilerData.shaderKeywordSet.IsEnabled(m_DirectionalLightmap) &&
-                !compilerData.shaderKeywordSet.IsEnabled(m_Lightmap))
+                !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
 
             // As GLES2 has low amount of registers, we strip:
