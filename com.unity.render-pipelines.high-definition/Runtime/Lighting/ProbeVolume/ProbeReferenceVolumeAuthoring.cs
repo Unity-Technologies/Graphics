@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     QueueAssetLoading();
                 }
 
-                if (VolumeAsset != m_PrevAsset)
+                if (VolumeAsset != m_PrevAsset && m_PrevAsset != null)
                 {
                     ProbeReferenceVolume.instance.RemovePendingAsset(m_PrevAsset);
                 }
