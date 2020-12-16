@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static string name = "Varyings";
             public static FieldDescriptor staticLightmapUV = new FieldDescriptor(Varyings.name, "staticLightmapUV", "", ShaderValueType.Float2,
                 preprocessor: "defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor dynamicLightmapUV = new FieldDescriptor(Varyings.name, "dynamicLightmapUV", "", ShaderValueType.Float4,
+            public static FieldDescriptor dynamicLightmapUV = new FieldDescriptor(Varyings.name, "dynamicLightmapUV", "", ShaderValueType.Float2,
                 preprocessor: "defined(DYNAMICLIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor sh = new FieldDescriptor(Varyings.name, "sh", "", ShaderValueType.Float3,
                 preprocessor: "!defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
