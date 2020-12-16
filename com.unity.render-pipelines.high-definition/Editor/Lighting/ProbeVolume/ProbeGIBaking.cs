@@ -109,9 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var refVolAuth = scene2RefVolAuth[scene];
                     affectedRefVolAuths.Add(refVolAuth);
-
-                    if (refVolAuth.VolumeAsset == null)
-                        refVolAuth.VolumeAsset = ProbeVolumeAsset.CreateAsset(refVolAuth.gameObject.scene);
                 }
                 
                 //Debug.Log("Bake completed for id " + cell.index);
@@ -172,10 +169,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Add cell to asset
                 foreach(var affectedRefVolAuth in affectedRefVolAuths)
                 {
-                    affectedRefVolAuth.VolumeAsset.cells.Add(cell);
+                    var asset = ProbeVolumeAsset.CreateAsset(affectedRefVolAuth.gameObject.scene);
+
+                    asset.cells.Add(cell);
 
                     if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                        UnityEditor.EditorUtility.SetDirty(affectedRefVolAuth.VolumeAsset);
+                        UnityEditor.EditorUtility.SetDirty(asset);
+
+                    affectedRefVolAuth.VolumeAsset = asset;
 
                     volumesNeedReload.Add(affectedRefVolAuth);
                 }
