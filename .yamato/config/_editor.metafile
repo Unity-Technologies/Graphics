@@ -21,7 +21,7 @@ editor_pin_agent: package_ci_ubuntu_small
 ### Configuration required by update_revisions.py
 trunk_track: '2021.1' # track running on trunk: this must match across all release branches
 editor_tracks: # specifies tracks which go in _latest_editor_versions: this must differ per release branches
-- trunk
+- 2021.1
 
 
 # Paths relative to the root. Use forward slashes as directory separators.
@@ -55,19 +55,19 @@ versions_file_header: |
 
 ### STORING GREEN REVISIONS
 green_revision_jobs:
-  - _Nightly ABV against trunk
-  
-  - Nightly Universal - trunk
-  - Universal PR Job - trunk
-  
-  - Nightly HDRP - trunk
-  - HDRP PR Job - trunk
-  
-  - Nightly ShaderGraph - trunk
-  - ShaderGraph PR Job - trunk
-  
-  - Nightly VFX_HDRP - trunk
-  - VFX_HDRP PR Job - trunk
-  
-  - Nightly VFX_URP - trunk
-  - VFX_URP PR Job - trunk
+  - _Nightly ABV against 2021.1
+
+  - Nightly Universal - 2021.1
+  - Universal PR Job - 2021.1
+
+  - Nightly HDRP - 2021.1
+  - HDRP PR Job - 2021.1
+
+  - Nightly ShaderGraph - 2021.1
+  - ShaderGraph PR Job - 2021.1
+
+  - Nightly VFX_HDRP - 2021.1
+  - VFX_HDRP PR Job - 2021.1
+
+  - Nightly VFX_URP - 2021.1
+  - VFX_URP PR Job - 2021.1
