@@ -1269,10 +1269,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var dynResHandler = DynamicResolutionHandler.instance;
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
 
-#if UNITY_EDITOR
-            UnityEditor.EditorMaterialUtility.disableApplyMaterialPropertyDrawers = true;
-#endif
-
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
