@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
 - Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed the default background color for previews to use the original color.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
