@@ -69,13 +69,12 @@ namespace UnityEngine.Rendering.Universal
     [GenerateHLSL, Flags]
     public enum DebugLightingFeature
     {
-        None,
-        GlobalIllumination = 0x1,
-        MainLight = 0x2,
-        AdditionalLights = 0x4,
-        VertexLighting = 0x8,
-        Emission = 0x10,
-        AmbientOcclusion = 0x20,
+        GlobalIllumination = 1 << 0,
+        MainLight = 1 << 1,
+        AdditionalLights = 1 << 2,
+        VertexLighting = 1 << 3,
+        Emission = 1 << 4,
+        AmbientOcclusion = 1 << 5,
     }
 
     [GenerateHLSL]

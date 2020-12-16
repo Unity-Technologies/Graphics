@@ -62,7 +62,6 @@
 //
 // UnityEngine.Rendering.Universal.DebugLightingFeature:  static fields
 //
-#define DEBUGLIGHTINGFEATURE_NONE (0)
 #define DEBUGLIGHTINGFEATURE_GLOBAL_ILLUMINATION (1)
 #define DEBUGLIGHTINGFEATURE_MAIN_LIGHT (2)
 #define DEBUGLIGHTINGFEATURE_ADDITIONAL_LIGHTS (4)
