@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RenderGraph.Begin(renderGraphParams);
 
+            // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
+
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.Game
                 || camera.cameraType == CameraType.SceneView;
@@ -248,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
             var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovBuffers);
 
             if (aovRequest.isValid)
             {
@@ -264,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovBuffers);
 
             CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
 
@@ -905,7 +908,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovBuffers);
 
             // Render pre-refraction objects
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);
@@ -917,7 +920,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovBuffers);
+            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovBuffers);
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
@@ -1491,6 +1494,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle               colorBuffer,
             in PrepassOutput            prepassOutput,
             CullingResults              cullingResults,
+            CullingResults              cameraCullingResults,
             CustomPassInjectionPoint    injectionPoint,
             AOVRequestData              aovRequest,
             List<RTHandle>              aovCustomPassBuffers)
@@ -1520,7 +1524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     normalBufferRG = prepassOutput.resolvedNormalBuffer,
                     motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer
                 };
-                executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, customPassTargets);
+                executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
             }
 
             // Push the custom pass buffer, in case it was requested in the AOVs

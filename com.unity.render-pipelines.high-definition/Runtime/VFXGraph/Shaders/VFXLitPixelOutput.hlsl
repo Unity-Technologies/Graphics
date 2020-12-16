@@ -44,30 +44,33 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
     //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
     int bufferSize = _DebugViewMaterialArray[0].x;
-    // Loop through the whole buffer
-    // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
-    for (int index = 1; index <= bufferSize; index++)
+    if (bufferSize != 0)
     {
-        int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-        if (indexMaterialProperty != 0)
+        float3 result = float3(1.0, 0.0, 1.0);
+        bool needLinearToSRGB = false;
+
+        // Loop through the whole buffer
+        // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
+        for (int index = 1; index <= bufferSize; index++)
         {
-            float3 result = float3(1.0, 0.0, 1.0);
-            bool needLinearToSRGB = false;
-
-            GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-            //GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-            GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-            GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-            GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-
-            // TEMP!
-            // For now, the final blit in the backbuffer performs an sRGB write
-            // So in the meantime we apply the inverse transform to linear data to compensate.
-            if (!needLinearToSRGB)
-                result = SRGBToLinear(max(0, result));
-
-            outColor = float4(result, 1.0);
+            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
+            if (indexMaterialProperty != 0)
+            {
+                GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
+                //GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
+                GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
+                GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
+                GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
+            }
         }
+
+        // TEMP!
+        // For now, the final blit in the backbuffer performs an sRGB write
+        // So in the meantime we apply the inverse transform to linear data to compensate.
+        if (!needLinearToSRGB)
+            result = SRGBToLinear(max(0, result));
+
+        outColor = float4(result, 1.0);
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
@@ -129,10 +132,9 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, const 
 
 void VFXSetupBuiltinForGBuffer(const VFX_VARYING_PS_INPUTS i, const SurfaceData surface, float3 emissiveColor, float opacity, out BuiltinData builtin)
 {
-    uint2 tileIndex = uint2(0,0);
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
-    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS);
     InitBuiltinData(posInput, opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
     builtin.emissiveColor = emissiveColor;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput, surface, builtin);
