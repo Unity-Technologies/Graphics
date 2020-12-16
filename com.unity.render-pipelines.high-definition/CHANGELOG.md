@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
+- Support for the PlayStation 5 platform has been added.
 
 ### Fixed
 - Fixed probe volumes debug views.
