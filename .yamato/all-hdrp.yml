@@ -89,8 +89,6 @@ PR_HDRP_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: always
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

@@ -7,6 +7,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX
 {
+    [ExcludeFromPreset]
     class VFXSubgraphContext : VFXContext
     {
         [VFXSetting, SerializeField]
