@@ -31,9 +31,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 
-### Fixed
+### Fixed 
+- Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
-- 
+- Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
 
 ## [10.2.0] - 2020-10-19
 
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the presence of an HDRP DiffusionProfile property or node would cause the graph to fail to load when HDRP package was not present [1287904]
 - Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
 - Fixed an issue where dropping HDRP-only properties from the blackboard field into the graph would soft-lock the graph [1288887]
+
 
 ## [10.1.0] - 2020-10-12
 
