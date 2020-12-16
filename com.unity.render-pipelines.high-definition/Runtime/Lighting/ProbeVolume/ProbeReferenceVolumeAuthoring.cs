@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool GreedyDilation = false;
 
         public ProbeVolumeAsset VolumeAsset = null;
+        private ProbeVolumeAsset m_PrevAsset = null;
 
         internal void QueueAssetLoading()
         {
@@ -133,18 +134,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 1 && m_Profile != null)
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
-                bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.IndexDimensions != m_Profile.IndexDimensions);
-                if (hasIndexDimensionChangedOnProfileSwitch)
+                if (m_Profile != null)
                 {
-                    var refVol = ProbeReferenceVolume.instance;
-                    refVol.AddPendingIndexDimensionChange(indexDimensions);
+                    bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.IndexDimensions != m_Profile.IndexDimensions);
+                    if (hasIndexDimensionChangedOnProfileSwitch)
+                    {
+                        var refVol = ProbeReferenceVolume.instance;
+                        refVol.AddPendingIndexDimensionChange(indexDimensions);
+                    }
+
+                    m_PrevProfile = m_Profile;
+                    QueueAssetLoading();
                 }
 
-                m_PrevProfile = m_Profile;
-                QueueAssetLoading();
+                if (VolumeAsset != m_PrevAsset)
+                {
+                    ProbeReferenceVolume.instance.RemovePendingAsset(m_PrevAsset);
+                }
+
+                m_PrevAsset = VolumeAsset;
             }
+
         }
 
         private void OnDestroy()
