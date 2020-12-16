@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GlobalIllumination0,
             GlobalIllumination1,
+            RayTracedReflections,
             Count
         }
 

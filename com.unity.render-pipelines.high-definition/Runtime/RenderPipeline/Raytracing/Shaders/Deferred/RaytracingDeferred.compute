@@ -55,9 +55,11 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    // If this is a background pixel or an invalid ray, leave right away
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).w < 0.0f)
         return;
 
+    // If the distance is negative, this means it is a sky pixel or an unlit material
     if (LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x < 0.0)
     {
         float3 newSampleColor = clamp(LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp)
@@ -68,12 +70,11 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // First let's compute the position of the pixel from which the ray has been shot
     PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = sourcePosInput.positionWS;
 
     // Then compute the pos input of the intersection vertice
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
     float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x;
-    float3 intersectionPositionWS = positionWS + rayDirection * rayDistance;
+    float3 intersectionPositionWS = sourcePosInput.positionWS + rayDirection * rayDistance;
 
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, intersectionPositionWS);
 
@@ -104,7 +105,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     float3 finalColor = (diffuseLighting + specularLighting);
     // Apply fog attenuation
-    ApplyFogAttenuation(positionWS, rayDirection, rayDistance, finalColor, true);
+    ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, rayDistance, finalColor, true);
     // Expose, clamp and inverse exposure
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);

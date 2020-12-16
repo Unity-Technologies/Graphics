@@ -137,6 +137,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
 
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = 256;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = 512;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = 1024;
+
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] int m_ShadowCascadeCount = 1;
@@ -157,7 +161,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
-        [SerializeField] PostProcessData m_PostProcessData = null;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
@@ -198,9 +201,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
-
-            // Set default post process data
-            instance.m_PostProcessData = PostProcessData.GetDefaultPostProcessData();
 
             return instance;
         }
@@ -570,6 +570,44 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Low" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierLow
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Medium" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierMedium
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "High" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierHigh
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
+        }
+
+        internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
+        {
+            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow /* 0 */)
+                return additionalLightsShadowResolutionTierLow;
+
+            if (additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium /* 1 */)
+                return additionalLightsShadowResolutionTierMedium;
+
+            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh /* 2 */)
+                return additionalLightsShadowResolutionTierHigh;
+
+            return additionalLightsShadowResolutionTierMedium;
+        }
+
+        /// <summary>
         /// Controls the maximum distance at which shadows are visible.
         /// </summary>
         public float shadowDistance
@@ -674,15 +712,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
-        }
-
-        /// <summary>
-        /// Contains resources used by post processing pass.
-        /// </summary>
-        public PostProcessData postProcessData
-        {
-            get { return m_PostProcessData; }
-            set { m_PostProcessData = value; }
         }
 
         public ColorGradingMode colorGradingMode
@@ -917,7 +946,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (asset.k_AssetPreviousVersion < 7)
             {
-                asset.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 7;
             }
 
