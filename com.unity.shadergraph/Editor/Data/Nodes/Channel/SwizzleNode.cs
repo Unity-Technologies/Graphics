@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!ValidateMaskInput(InputValueSize))
             {
-                owner.AddValidationError(objectId, "Invalid mask.", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Invalid mask for a Vector"+InputValueSize+" input.", ShaderCompilerMessageSeverity.Error);
                 sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
             }
             else
