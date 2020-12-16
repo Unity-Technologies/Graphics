@@ -35,7 +35,7 @@ class Project_PRJob():
         job = YMLJob()
         job.set_name(f'{project} PR Job - {editor["name"]}')
         job.add_dependencies(dependencies)
-        if expression_trigger != "" and editor["name"].lower() != "custom-revision":
+        if expression_trigger != "" and editor["name"] != "CUSTOM-REVISION":
             job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         job.add_var_custom('UTR_VERSION', dss("current"))
