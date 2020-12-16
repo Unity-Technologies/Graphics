@@ -18,7 +18,7 @@ The dimension of the output vector depends on the length of input mask value. In
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Mask     | Inputfield | x, y, z, w, r, g, b, a (depending on input vector dimension) | The swizzle mask is a combination of one to four characters that can be x, y, z, or w. The size of output value depends on the length of the mask input.|
+| Mask     | Inputfield | x, y, z, w, r, g, b, a (depending on input vector dimension) | The swizzle mask is a combination of one to eight characters that can be x, y, z, w, r, g, b or a. The size of output value depends on the length of the mask input.|
 
 
 ## Generated Code Example
