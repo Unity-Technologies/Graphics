@@ -10,21 +10,52 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
+- Added a toggle to allow to include or exclude smooth surfaces from ray traced reflection denoising.
+- Added light unit slider for automatic and automatic histrogram exposure limits.
+- Added support for raytracing for AxF material
+- Added rasterized area light shadows for AxF material
+- Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
+- Fixed couple samplers that had the wrong name in raytracing code
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
+- Fixed computation of geometric normal in path tracing (case 1293029).
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed the default background color for previews to use the original color.
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
-- Replaced last package version checker in Wizard to a link on Package Manager.
+- Removed the superior clamping value for the recursive rendering max ray length. 
+- Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
+- When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
+- Removed the upscale radius from the RTR.
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
 
 ## [10.3.0] - 2020-12-01
 
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Fixed wrong coat normal space in shader graph
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
+
 ### Changed
 - Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+- Replaced last package version checker in Wizard to a link on Package Manager
 
 ## [10.2.1] - 2020-11-30
 
@@ -61,7 +92,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
-- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches [1292501] (https://issuetracker.unity3d.com/issues/a2-some-translucent-plus-alphaclipping-shadergraphs-are-not-srp-batcher-compatible)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.

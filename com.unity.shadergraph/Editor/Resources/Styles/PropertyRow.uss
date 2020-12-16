@@ -19,7 +19,8 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
-    flex-grow: 5;
+    flex-grow: 2;
+    flex-basis: 0;
     min-width: 92px;
     width: 92px;
     font-size: 12px;
@@ -38,7 +39,8 @@ PropertyRow > #container > #label > Label {
 }
 
 PropertyRow > #container > #content{
-    flex-grow: 1;
+    flex-grow: 10;
+    flex-basis: 0;
     height: auto;
     -unity-font-style: bold;
     width: 100px;

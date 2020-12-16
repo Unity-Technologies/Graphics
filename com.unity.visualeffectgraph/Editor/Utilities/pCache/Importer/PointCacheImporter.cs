@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                     TextureFormat surfaceFormat = TextureFormat.Alpha8;
                     switch (kvp.Value.PropertyType)
                     {
-                        case "byte":
+                        case "uchar":
                             if (kvp.Value.Size == 1) surfaceFormat = TextureFormat.Alpha8;
                             else surfaceFormat = TextureFormat.RGBA32;
                             break;
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                             if (kvp.Value.Size == 1) surfaceFormat = TextureFormat.RHalf;
                             else surfaceFormat = TextureFormat.RGBAHalf;
                             break;
-                        default: throw new NotImplementedException("Types other than byte/float are not supported yet");
+                        default: throw new NotImplementedException("Types other than uchar/float are not supported yet");
                     }
 
                     Texture2D surface = new Texture2D(width, height, surfaceFormat, false);
@@ -155,13 +155,13 @@ namespace UnityEditor.Experimental.VFX.Utility
                         float val = 0.0f;
                         switch (prop.PropertyType)
                         {
-                            case "byte":
+                            case "uchar":
                                 val = Mathf.Clamp01(((byte)pcache.buckets[idx][i]) / 255.0f);
                                 break;
                             case "float":
                                 val = ((float)pcache.buckets[idx][i]);
                                 break;
-                            default: throw new NotImplementedException("Types other than byte/float are not supported yet");
+                            default: throw new NotImplementedException("Types other than uchar/float are not supported yet");
                         }
 
                         SetPropValue(prop.Index, outValues, prop.OutProperty, val);
