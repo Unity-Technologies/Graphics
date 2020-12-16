@@ -1017,20 +1017,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var preview = GetPreviewRenderData(node);
 
-                    // set preview mode based on node
+                    // set preview mode based on node preference
                     preview.previewMode = node.previewMode;
 
-                    // then 2d upgrades to 3d if any child is 3d
-                    if (preview.previewMode == PreviewMode.Preview2D)
+                    // Inherit becomes 2D or 3D based on child state
+                    if (preview.previewMode == PreviewMode.Inherit)
                     {
-                        foreach (var child in children)
-                        {
-                            if (GetPreviewRenderData(child).previewMode == PreviewMode.Preview3D)
-                            {
-                                preview.previewMode = PreviewMode.Preview3D;
-                                break;
-                            }
-                        }
+                        if (children.Any(child => GetPreviewRenderData(child).previewMode == PreviewMode.Preview3D))
+                            preview.previewMode = PreviewMode.Preview3D;
+                        else
+                            preview.previewMode = PreviewMode.Preview2D;
                     }
                 });
 

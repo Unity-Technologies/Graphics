@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.3.0] - 2020-11-03
 
 ### Added
+- Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
+- Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 
 ## [10.2.0] - 2020-10-19
 

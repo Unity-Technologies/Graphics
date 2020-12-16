@@ -96,7 +96,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
               -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_2020.2:
     name: URP_Performance_BoatAttack on Win_DX12_performance_playmode_editor_mono_Linear on version 2020.2
     agent:
@@ -318,7 +318,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
               -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

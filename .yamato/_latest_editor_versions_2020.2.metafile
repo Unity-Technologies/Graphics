@@ -30,29 +30,29 @@ editor_versions:
       version: 2020.2.0f1
   2020_2_latest_public:
     android:
-      revision: dc0b50340a64
-      updated_at: '2020-12-04 17:48:44.742371'
-      version: 2020.2.0b14
+      revision: 3721df5a8b28
+      updated_at: '2020-12-15 00:05:41.487123'
+      version: 2020.2.0f1
     ios:
-      revision: dc0b50340a64
-      updated_at: '2020-12-04 17:48:44.742371'
-      version: 2020.2.0b14
+      revision: 3721df5a8b28
+      updated_at: '2020-12-15 00:05:41.487123'
+      version: 2020.2.0f1
     linux:
-      revision: dc0b50340a64
-      updated_at: '2020-12-04 17:48:44.742371'
-      version: 2020.2.0b14
+      revision: 3721df5a8b28
+      updated_at: '2020-12-15 00:05:41.487123'
+      version: 2020.2.0f1
     macos:
-      revision: dc0b50340a64
-      updated_at: '2020-12-04 17:48:44.742371'
-      version: 2020.2.0b14
+      revision: 3721df5a8b28
+      updated_at: '2020-12-15 00:05:41.487123'
+      version: 2020.2.0f1
     windows:
-      revision: dc0b50340a64
-      updated_at: '2020-12-04 17:48:44.742371'
-      version: 2020.2.0b14
+      revision: 3721df5a8b28
+      updated_at: '2020-12-15 00:05:41.487123'
+      version: 2020.2.0f1
   2020_2_staging:
     android:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     ios:
       revision: eafde9299d4b1e693885feb2c9a69d76884f0552
@@ -63,10 +63,10 @@ editor_versions:
       updated_at: '2020-12-10 23:25:42.878122'
       version: ''
     macos:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     windows:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
