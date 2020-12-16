@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Name = value;
         }
 
+        internal void SetDisplayName(string desiredName, GraphData graphData)
+        {
+            m_Name = desiredName;
+        }
+
         const int k_LatestDefaultRefNameVersion = 1;
 
         [SerializeField]
@@ -79,6 +84,20 @@ namespace UnityEditor.ShaderGraph.Internal
         public virtual string GetOldDefaultReferenceName()
         {
             return $"{concreteShaderValueType.ToString()}_{objectId}";
+        }
+
+        // returns true if this shader input is CURRENTLY using the old default reference name
+        public bool IsUsingOldDefaultRefName()
+        {
+            return string.IsNullOrEmpty(overrideReferenceName) && (m_DefaultRefNameVersion == 0);
+        }
+
+        // upgrades the default reference name to use the new naming scheme
+        public void UpgradeDefaultReferenceName()
+        {
+            m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
+            m_DefaultReferenceName = null;
+            m_RefNameGeneratedByDisplayName = null;
         }
 
         [SerializeField]

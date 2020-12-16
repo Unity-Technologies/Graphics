@@ -10,18 +10,16 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
-        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
-
-        IManipulator m_ResetReferenceMenu;
 
         Action m_ResetReferenceNameAction;
 
@@ -55,7 +53,9 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
-            UpdateReferenceNameResetMenu();
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
         }
 
         public Node gvNode => this;
@@ -118,31 +118,22 @@ namespace UnityEditor.ShaderGraph
 
             if (newValue != property.referenceName)
                 graph.SanitizeGraphInputReferenceName(property, newValue);
-
-            UpdateReferenceNameResetMenu();
         }
 
-        void UpdateReferenceNameResetMenu()
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            if (string.IsNullOrEmpty(property.overrideReferenceName))
+            // Checks if the reference name has been overridden and appends menu action to reset it, if so
+            if (!string.IsNullOrEmpty(property.overrideReferenceName))
             {
-                this.RemoveManipulator(m_ResetReferenceMenu);
-                m_ResetReferenceMenu = null;
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e =>
+                    {
+                        m_ResetReferenceNameAction();
+                        DirtyNodes(ModificationScope.Graph);
+                    },
+                    DropdownMenuAction.AlwaysEnabled);
             }
-            else
-            {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildResetReferenceNameContextualMenu);
-                this.AddManipulator(m_ResetReferenceMenu);
-            }
-        }
-
-        void BuildResetReferenceNameContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction("Reset Reference", e =>
-            {
-                m_ResetReferenceNameAction();
-                DirtyNodes(ModificationScope.Graph);
-            }, DropdownMenuAction.AlwaysEnabled);
         }
 
         void RegisterPropertyChangeUndo(string actionName)

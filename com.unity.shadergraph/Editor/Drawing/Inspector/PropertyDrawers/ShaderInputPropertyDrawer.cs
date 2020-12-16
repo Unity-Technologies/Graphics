@@ -15,6 +15,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -47,8 +48,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         // Reference Name
         TextPropertyDrawer m_ReferenceNameDrawer;
         TextField m_ReferenceNameField;
-
-        IManipulator m_RightClickResetMenuItemManipulator;
 
         ShaderInput shaderInput;
 
@@ -195,8 +194,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                             m_ReferenceNameDrawer.label.AddToClassList("modified");
                         }
 
-                        UpdateRightClickResetMenuItem();
-
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
@@ -207,33 +204,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
                 m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isRenamable);
 
-                UpdateRightClickResetMenuItem();
+                // add the right click context menu to the label
+                IManipulator contextMenuManipulator = new ContextualMenuManipulator((evt) => AddShaderInputOptionsToContextMenu(shaderInput, evt));
+                m_ReferenceNameDrawer.label.AddManipulator(contextMenuManipulator);
             }
         }
 
-        internal void UpdateRightClickResetMenuItem()
+        void AddShaderInputOptionsToContextMenu(ShaderInput shaderInput, ContextualMenuPopulateEvent evt)
         {
-            if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
-            {
-                if (m_RightClickResetMenuItemManipulator != null)
-                    m_ReferenceNameDrawer.label.RemoveManipulator(m_RightClickResetMenuItemManipulator);
-                // m_RightClickResetMenuItemManipulator = null;
-            }
-            else
-            {
-                if (m_RightClickResetMenuItemManipulator == null)
-                    m_RightClickResetMenuItemManipulator = (IManipulator)Activator.CreateInstance(BlackboardFieldView.s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)AddResetToContextMenu);
+            if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e => { ResetReferenceName(); },
+                    DropdownMenuAction.AlwaysEnabled);
 
-                m_ReferenceNameDrawer.label.AddManipulator(m_RightClickResetMenuItemManipulator);
-            }
-        }
-
-        void AddResetToContextMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction(
-                "Reset Reference",
-                e => { ResetReferenceName(); },
-                DropdownMenuAction.AlwaysEnabled);
+            if (shaderInput.IsUsingOldDefaultRefName())
+                evt.menu.AppendAction(
+                    "Upgrade To New Reference Name",
+                    e => { UpgradeDefaultReferenceName(); },
+                    DropdownMenuAction.AlwaysEnabled);
         }
 
         public void ResetReferenceName()
@@ -243,8 +232,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var refName = shaderInput.referenceName;
             this._referenceNameChangedCallback(refName);
             m_ReferenceNameField.value = refName;
-            m_ReferenceNameField.RemoveFromClassList("modified");
-            UpdateRightClickResetMenuItem();
+            this._postChangeValueCallback(true, ModificationScope.Graph);
+        }
+
+        public void UpgradeDefaultReferenceName()
+        {
+            this._preChangeValueCallback("Upgrade Reference Name");
+            shaderInput.UpgradeDefaultReferenceName();
+            var refName = shaderInput.referenceName;
+            this._referenceNameChangedCallback(refName);
+            m_ReferenceNameField.value = refName;
             this._postChangeValueCallback(true, ModificationScope.Graph);
         }
 

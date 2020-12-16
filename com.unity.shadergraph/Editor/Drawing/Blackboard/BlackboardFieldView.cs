@@ -9,6 +9,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,10 +23,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
-
-        public static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
-
-        IManipulator m_RightClickMenuManipulator;
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
@@ -109,7 +106,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.name = "blackboardFieldView";
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
-            UpdateRightClickMenu();
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
         }
 
         ~BlackboardFieldView()
@@ -122,30 +121,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             return shaderInput;
         }
 
-        // Checks if the reference name has been overriden and appends menu action to reset it, if so
-        internal void UpdateRightClickMenu()
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
+            // Checks if the reference name has been overridden and appends menu action to reset it, if so
+            if (!string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
-                this.RemoveManipulator(m_RightClickMenuManipulator);
-                m_RightClickMenuManipulator = null;
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e =>
+                    {
+                        m_ResetReferenceNameAction();
+                        DirtyNodes(ModificationScope.Graph);
+                    },
+                    DropdownMenuAction.AlwaysEnabled);
             }
-            else if (m_RightClickMenuManipulator == null)
-            {
-                m_RightClickMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-                this.AddManipulator(m_RightClickMenuManipulator);
-            }
-        }
-
-        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction("Reset Reference", e => { ResetReferenceAction(); }, DropdownMenuAction.AlwaysEnabled);
-        }
-
-        internal void ResetReferenceAction()
-        {
-            m_ResetReferenceNameAction();
-            DirtyNodes(ModificationScope.Graph);
         }
 
         #region PropertyDrawers
@@ -192,8 +181,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (newValue != m_Input.referenceName)
                 m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
-
-            UpdateRightClickMenu();
         }
 
         void RegisterPropertyChangeUndo(string actionName)
