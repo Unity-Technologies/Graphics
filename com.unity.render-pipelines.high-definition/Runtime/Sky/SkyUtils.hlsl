@@ -17,12 +17,6 @@ float3 GetSkyViewDirWS(float2 positionCS)
     return normalize(viewDirWS.xyz);
 }
 
-float FastAtan2(float y, float x)
-{
-    return FastATan(y / x) + (y >= 0.0 ? PI : -PI) * (x < 0.0);
-    //return FastATan(x != 0.0 ? (y / x) : 0.0) + sign(y) * (PI * (x < 0.0) + HALF_PI * (x == 0.0));
-}
-
 // Returns latlong coords from view direction
 float2 GetLatLongCoords(float3 dir, float upperHemisphereOnly)
 {
