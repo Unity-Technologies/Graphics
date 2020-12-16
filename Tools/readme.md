@@ -12,7 +12,7 @@ For example, compliance with Unity's code convention is mandatory in order to me
 
 Follow these steps to install the git hooks before working on the Graphics repository:
 
-1. Requirement A: Install [Python >= 3.5](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
+1. Requirement A: Install [Python >= 3.6](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
 2. Requirement B: Install [pip3](https://pip.pypa.io/en/stable/installing/).
 3. Requirement C: Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. _Sidenote: it is the same tool used to format C++/trunk code._
 4. Requirement D: Make sure you have access to the cds.github.com repositories. Usually this means following [these steps](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh) to create and upload an ssh key to [cds.github.com](https://github.cds.internal.unity3d.com/settings/keys).
@@ -76,7 +76,7 @@ Last resort: [Troubleshooting SSH section in Github docs](https://docs.github.co
 
 **Python or pre-commit not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
 
-Make sure Python (>=3.5) is in your PATH. Commands that can help:
+Make sure Python (>=3.6) is in your PATH. Commands that can help:
 - On windows: `where python3`
 - On Unix: `which python3`
 - [How to add to the path on Windows10?](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/)
