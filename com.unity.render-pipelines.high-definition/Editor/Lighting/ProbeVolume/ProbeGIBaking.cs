@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private static bool init = false;
         private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
+        private static List<ProbeReferenceVolume.Cell> bakingCells = new List<ProbeReferenceVolume.Cell>();
 
         static ProbeGIBaking()
         {
@@ -91,12 +92,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
-            var numCells = ProbeReferenceVolume.instance.Cells.Count;
-            
+            var numCells = bakingCells.Count;
+
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
-                var cell = ProbeReferenceVolume.instance.Cells[c];
+                var cell = bakingCells[c];
 
                 if (cell.probePositions == null)
                     continue;
@@ -155,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, ref refVolAuthoring);
 
-                ProbeReferenceVolume.instance.Cells[c] = cell;
+                ProbeReferenceVolume.instance.Cells[cell.index] = cell;
             }
 
             // Map from each scene to an existing reference volume
@@ -171,10 +172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Put cells into the respective assets
-            for (int c = 0; c < numCells; ++c)
+            foreach(var cell in ProbeReferenceVolume.instance.Cells.Values)
             {
-                var cell = ProbeReferenceVolume.instance.Cells[c];
-
                 foreach (var scene in cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
@@ -416,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     placementHappened = true;
                     totalBricks += bricks.Count;
 
-                    ProbeReferenceVolume.instance.Cells[cell.index] = cell;
+                    bakingCells.Add(cell);
                     cellIndex2SceneReferences[cell.index] = new List<Scene>(sortedRefs.Values);
                 }
             }

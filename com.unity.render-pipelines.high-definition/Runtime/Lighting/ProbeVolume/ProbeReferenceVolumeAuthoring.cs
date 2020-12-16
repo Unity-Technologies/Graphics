@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CreateInstancedProbes()
         {
-            foreach (var cell in ProbeReferenceVolume.instance.Cells)
+            foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
             {
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 Gizmos.color = Color.green;
  
-                foreach (var cell in ProbeReferenceVolume.instance.Cells)
+                foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
                 {
                     if (ShouldCull(cell.position))
                         continue;
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Gizmos.color = Color.blue;
 
                 // Read refvol transform
-                foreach (var cell in ProbeReferenceVolume.instance.Cells)
+                foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
                 {
                     if (ShouldCull(cell.position))
                         continue;

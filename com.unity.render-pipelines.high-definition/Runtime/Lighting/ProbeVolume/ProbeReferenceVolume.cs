@@ -144,7 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
-        public List<Cell> Cells = new List<Cell>();
+        public Dictionary<int, Cell> Cells = new Dictionary<int, Cell>();
+        public Dictionary<string, List<RegId>> AssetPathToBricks = new Dictionary<string, List<RegId>>();
         
         private bool m_BricksLoaded = false;
 
@@ -196,6 +197,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
+
+            // Remove bricks and empty cells
+            foreach(var cell in asset.cells)
+                Cells.Remove(cell.index);
+
+            // Unload brick data
+            var regIds = AssetPathToBricks[key];
+            foreach (var regId in regIds)
+                ReleaseBricks(regId);
+
+            AssetPathToBricks.Remove(key);
         }
 
         private void PerformPendingIndexDimensionChange()
@@ -213,8 +225,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_Pool.EnsureTextureValidity();
+
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
+                var path = asset.GetSerializedFullPath();
+                AssetPathToBricks[path] = new List<RegId>();
+
                 foreach (var cell in asset.cells)
                 {
                     // Push data to HDRP
@@ -227,7 +243,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     brickList.AddRange(cell.bricks);
                     var regId = AddBricks(brickList, dataLocation);
 
-                    Cells.Add(cell);
+                    Cells[cell.index] = cell;
+                    AssetPathToBricks[path].Add(regId);
                 }
             }
 
@@ -412,7 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TmpBricks[0].Clear();
                 if (m_TmpBricks[1].Count > 0)
                 {
-                    Debug.Log("Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks.");
+                    //Debug.Log("Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks.");
                     SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
 
                     // Cull out of bounds bricks
