@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.1.metafile -%}
 
 ---
 
-HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
-    name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version trunk
+HDRP_DXR_Win_DX12_Standalone_mono_Linear_2021.1:
+    name: HDRP_DXR on Win_DX12_Standalone_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -27,10 +27,10 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2021.1
          rerun: on-new-revision
-Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
-    name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
+Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2021.1:
+    name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -43,7 +43,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -59,8 +59,8 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
-    name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version trunk
+HDRP_DXR_Win_DX12_playmode_mono_Linear_2021.1:
+    name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -73,7 +73,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -86,8 +86,8 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
-HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
-    name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version trunk
+HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_2021.1:
+    name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -100,7 +100,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

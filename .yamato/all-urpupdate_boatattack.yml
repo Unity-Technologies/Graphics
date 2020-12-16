@@ -3,24 +3,24 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.1.metafile -%}
 
 ---
 
-PR_URPUpdate_BoatAttack_trunk:
-    name: URPUpdate_BoatAttack PR Job - trunk
+PR_URPUpdate_BoatAttack_2021.1:
+    name: URPUpdate_BoatAttack PR Job - 2021.1
     dependencies:
-      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk
+      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2021.1
          rerun: on-new-revision
-      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_URPUpdate_BoatAttack_trunk:
-    name: Nightly URPUpdate_BoatAttack - trunk
+Nightly_URPUpdate_BoatAttack_2021.1:
+    name: Nightly URPUpdate_BoatAttack - 2021.1
     dependencies:
-      -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_trunk
+      -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_2021.1
          rerun: on-new-revision
 PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack PR Job - CUSTOM-REVISION

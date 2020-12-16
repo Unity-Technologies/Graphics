@@ -2,12 +2,12 @@
 # To add new Unity Editor tracks, the script needs to be updated.
 
 editor_version_names:
-- trunk_latest_internal
-- trunk_latest_public
-- trunk_staging
+- 2021_1_latest_internal
+- 2021_1_latest_public
+- 2021_1_staging
 
 editor_versions:
-  trunk_latest_internal:
+  2021_1_latest_internal:
     android:
       revision: d4338e57aa6fada8065a8edf39cd128d3d7d803f
       updated_at: '2020-12-16 00:05:36.049181'
@@ -28,7 +28,7 @@ editor_versions:
       revision: d4338e57aa6fada8065a8edf39cd128d3d7d803f
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
-  trunk_latest_public:
+  2021_1_latest_public:
     android:
       revision: d4338e57aa6fada8065a8edf39cd128d3d7d803f
       updated_at: '2020-12-16 00:05:36.049181'
@@ -49,7 +49,7 @@ editor_versions:
       revision: d4338e57aa6fada8065a8edf39cd128d3d7d803f
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
-  trunk_staging:
+  2021_1_staging:
     android:
       revision: d4338e57aa6fada8065a8edf39cd128d3d7d803f
       updated_at: '2020-12-16 00:05:36.049181'

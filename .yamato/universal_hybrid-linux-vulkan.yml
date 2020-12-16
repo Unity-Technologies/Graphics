@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.1.metafile -%}
 
 ---
 
-Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version trunk
+Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2021.1:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -27,10 +27,10 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2021.1
          rerun: on-new-revision
-Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
+Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2021.1:
+    name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2021.1
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -44,7 +44,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.2021_1_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -54,8 +54,8 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version trunk
+Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_2021.1:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -69,7 +69,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.2021_1_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
     artifacts:
         logs:
