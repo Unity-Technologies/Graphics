@@ -1902,8 +1902,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                 ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
-                                UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
+
+                            EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
 
                             {
                                 var target = renderRequest.target;
