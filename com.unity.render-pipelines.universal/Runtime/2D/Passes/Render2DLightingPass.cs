@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private readonly Renderer2DData m_Renderer2DData;
 
-        private bool m_HasValidDepth;
+        private bool m_NeedsDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
         {
@@ -48,9 +48,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_SamplingMaterial = samplingMaterial;
         }
 
-        internal void Setup(bool hasValidDepth)
+        internal void Setup(bool useDepth)
         {
-            m_HasValidDepth = hasValidDepth;
+            m_NeedsDepth = useDepth;
         }
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_HasValidDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachment : BuiltinRenderTextureType.None;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
                     }
 
