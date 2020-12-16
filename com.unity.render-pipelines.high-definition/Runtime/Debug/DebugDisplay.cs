@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -733,7 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
@@ -764,18 +764,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
+
+            // Ray Traced Reflections
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscaleGeneration));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter));
+
+            // Ray Traced Ambient Occlusion
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
+
+            // Ray Traced Shadows
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingLightShadow));
+
+            // Ray Traced Indirect Diffuse
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse));
+
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
@@ -1587,17 +1597,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         };
                     }
 
-                    Type type = data.volumeDebugSettings.selectedComponentType;
-
-                    var fields = type
-                        .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                        .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                        .OrderBy(t => t.Name);
+                    Type selectedType = data.volumeDebugSettings.selectedComponentType;
+                    var stackComponent = data.volumeDebugSettings.selectedCameraVolumeStack.GetComponent(selectedType);
 
                     var volumes = data.volumeDebugSettings.GetVolumes();
                     var table = new DebugUI.Table() { displayName = "Parameter", isReadOnly = true };
 
-                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
+                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
 
                     // First row for volume info
                     float timer = 0.0f, refreshRate = 0.2f;
@@ -1649,35 +1655,58 @@ namespace UnityEngine.Rendering.HighDefinition
                     row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => "" });
                     table.children.Add(row);
 
-                    // One row per parameter
-                    foreach (var f in fields)
+                    // Build rows - recursively handles nested parameters
+                    var rows = new List<DebugUI.Table.Row>();
+                    void AddParameterRows(Type type, string baseName = null)
                     {
-                        var fieldName = f.Name;
-                        var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                        if (attr.Length != 0)
-                            fieldName = attr[0].name;
+                        void AddRow(FieldInfo f, string prefix)
+                        {
+                            var fieldName = prefix + f.Name;
+                            var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                            if (attr.Length != 0)
+                                fieldName = prefix + attr[0].name;
 #if UNITY_EDITOR
-                        // Would be nice to have the equivalent for the runtime debug.
-                        else
-                            fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
+                            // Would be nice to have the equivalent for the runtime debug.
+                            else
+                                fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
 #endif
 
+                            int currentParam = rows.Count;
+                            row = new DebugUI.Table.Row()
+                            {
+                                displayName = fieldName,
+                                children = { makeWidget("Interpolated Value", stackComponent.parameters[currentParam]) }
+                            };
 
-                        row = new DebugUI.Table.Row()
-                        {
-                            displayName = fieldName,
-                            children = { makeWidget("Interpolated Value", data.volumeDebugSettings.GetParameter(f)) }
-                        };
+                            foreach (var volume in volumes)
+                            {
+                                VolumeParameter param = null;
+                                var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
+                                if (profile.TryGet(selectedType, out VolumeComponent component) && component.parameters[currentParam].overrideState)
+                                    param = component.parameters[currentParam];
+                                row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", param));
+                            }
 
-                        foreach (var volume in volumes)
-                        {
-                            var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                            row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", data.volumeDebugSettings.GetParameter(volume, f)));
+                            row.children.Add(makeWidget("Default Value", inst.parameters[currentParam]));
+                            rows.Add(row);
                         }
 
-                        row.children.Add(makeWidget("Default Value", data.volumeDebugSettings.GetParameter(inst, f)));
-                        table.children.Add(row);
+                        var fields = type
+                            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                            .OrderBy(t => t.MetadataToken);
+                        foreach (var field in fields)
+                        {
+                            var fieldType = field.FieldType;
+                            if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
+                                AddRow(field, baseName ?? "");
+                            else if (!fieldType.IsArray && fieldType.IsClass)
+                                AddParameterRows(fieldType, baseName ?? (field.Name + " "));
+                        }
                     }
+
+                    AddParameterRows(selectedType);
+                    foreach (var r in rows.OrderBy(t => t.displayName))
+                        table.children.Add(r);
 
                     data.volumeDebugSettings.RefreshVolumes(volumes);
                     for (int i = 0; i < volumes.Length; i++)
@@ -1793,8 +1822,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
-
-            widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

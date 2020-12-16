@@ -15,6 +15,7 @@ using Edge = UnityEditor.Graphing.Edge;
 
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -280,6 +281,17 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_ConcretePrecision;
             set => m_ConcretePrecision = value;
+        }
+
+        // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
+        // if we change this, we would have to introduce a versioning step if we want to maintain the old behavior
+        [SerializeField]
+        private PreviewMode m_PreviewMode = PreviewMode.Preview3D;
+
+        public PreviewMode previewMode
+        {
+            get => m_PreviewMode;
+            set => m_PreviewMode = value;
         }
 
         [SerializeField]
@@ -876,7 +888,7 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.objectId))
+            if (!m_NodeDictionary.ContainsKey(node.objectId) && node.isActive)
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
@@ -1051,6 +1063,7 @@ namespace UnityEditor.ShaderGraph
             if (m_NodeEdges.TryGetValue(output.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
+            m_AddedEdges.Remove(e);
             m_RemovedEdges.Add(e);
             if (b != null)
             {
@@ -1120,6 +1133,21 @@ namespace UnityEditor.ShaderGraph
         {
             var edges = new List<IEdge>();
             GetEdges(s, edges);
+            return edges;
+        }
+
+        public void GetEdges(AbstractMaterialNode node, List<IEdge> foundEdges)
+        {
+            if (m_NodeEdges.TryGetValue(node.objectId, out var edges))
+            {
+                foundEdges.AddRange(edges);
+            }
+        }
+
+        public IEnumerable<IEdge> GetEdges(AbstractMaterialNode node)
+        {
+            List<IEdge> edges = new List<IEdge>();
+            GetEdges(node, edges);
             return edges;
         }
 
@@ -1507,6 +1535,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
             concretePrecision = other.concretePrecision;
+            m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
             if ((this.vertexContext.position != other.vertexContext.position) ||
@@ -1541,9 +1570,8 @@ namespace UnityEditor.ShaderGraph
             // Current tactic is to remove all nodes and edges and then re-add them, such that depending systems
             // will re-initialize with new references.
 
-            using (var removedGroupsPooledObject = ListPool<GroupData>.GetDisposable())
+            using (ListPool<GroupData>.Get(out var removedGroupDatas))
             {
-                var removedGroupDatas = removedGroupsPooledObject.value;
                 removedGroupDatas.AddRange(m_GroupDatas.SelectValue());
                 foreach (var groupData in removedGroupDatas)
                 {
@@ -1551,9 +1579,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            using (var removedNotesPooledObject = ListPool<StickyNoteData>.GetDisposable())
+            using (ListPool<StickyNoteData>.Get(out var removedNoteDatas))
             {
-                var removedNoteDatas = removedNotesPooledObject.value;
                 removedNoteDatas.AddRange(m_StickyNoteDatas.SelectValue());
                 foreach (var groupData in removedNoteDatas)
                 {
@@ -1561,9 +1588,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            using (var pooledList = ListPool<IEdge>.GetDisposable())
+            using (var pooledList = ListPool<IEdge>.Get(out var removedNodeEdges))
             {
-                var removedNodeEdges = pooledList.value;
                 removedNodeEdges.AddRange(m_Edges);
                 foreach (var edge in removedNodeEdges)
                     RemoveEdgeNoValidate(edge);
@@ -2053,6 +2079,32 @@ namespace UnityEditor.ShaderGraph
                                         var outputSlot = edge.outputSlot;
                                         m_Edges.Remove(edge);
                                         m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
+                                    }
+                                }
+
+                                // manually handle a bug where fragment normal slots could get out of sync of the master node's set fragment normal space
+                                if (descriptor == BlockFields.SurfaceDescription.NormalOS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Object)
+                                    {
+                                        norm.space = CoordinateSpace.Object;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalTS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Tangent)
+                                    {
+                                        norm.space = CoordinateSpace.Tangent;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalWS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.World)
+                                    {
+                                        norm.space = CoordinateSpace.World;
                                     }
                                 }
                             }

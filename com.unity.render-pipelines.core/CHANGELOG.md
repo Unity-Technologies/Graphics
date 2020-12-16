@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed the default background color for previews to use the original color.
+
+### Fixed
+- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 
 ## [10.2.0] - 2020-10-19
 
@@ -72,6 +75,7 @@ The version number for this package has increased due to a version update of a r
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
 - Fixed issue with volume manager trying to access a null volume.
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

@@ -24,16 +24,28 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
     utr_repeat:
-      - utr_flags:
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersLow
         utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [all]: --testfilter=Low
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
-      - utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersLow
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersMedium
         utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [all]: --testfilter=Medium
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersMedium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersHigh
+        utr_flags_build:
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --testfilter=High
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersHigh
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -48,13 +60,21 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
+    utr_repeat:
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
     is_performance: True
     utr_flags:
       - [all]: --testfilter=Build
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
@@ -66,11 +86,27 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
-      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+    utr_repeat:
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:
       - name: DX11
+      - name: DX12
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
     build_configs:
       - name: mono
     color_spaces:
@@ -80,6 +116,7 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -88,6 +125,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
   - name: Android
     apis: 
       - name: Vulkan
@@ -143,10 +181,33 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        #- performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
@@ -174,3 +235,15 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_BoatAttack
+      pr: true
