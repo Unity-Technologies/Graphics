@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.1.metafile -%}
 
 ---
 
-VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_Standalone_mono_Linear on version trunk
+VFX_HDRP_Win_DX11_Standalone_mono_Linear_2021.1:
+    name: VFX_HDRP on Win_DX11_Standalone_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -27,10 +27,10 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_2021.1
          rerun: on-new-revision
-Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
-    name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
+Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_2021.1:
+    name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_build_Player on version 2021.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -42,7 +42,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -58,8 +58,8 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
         players:
             paths:
               -  "players/**"
-VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_playmode_mono_Linear on version trunk
+VFX_HDRP_Win_DX11_playmode_mono_Linear_2021.1:
+    name: VFX_HDRP on Win_DX11_playmode_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -72,7 +72,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -85,8 +85,8 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_playmode_XR_mono_Linear on version trunk
+VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_2021.1:
+    name: VFX_HDRP on Win_DX11_playmode_XR_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -99,7 +99,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -112,8 +112,8 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk:
-    name: VFX_HDRP on Win_DX11_editmode_mono_Linear on version trunk
+VFX_HDRP_Win_DX11_editmode_mono_Linear_2021.1:
+    name: VFX_HDRP on Win_DX11_editmode_mono_Linear on version 2021.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -125,7 +125,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.1.metafile -%}
 
 ---
 
-URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_Linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_2021.1:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_playmode_runtime_mono_Linear on version 2021.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -31,10 +31,10 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_t
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_2021.1
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_2021.1:
+    name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2021.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -71,7 +71,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Li
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -101,8 +101,8 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Li
         players:
             paths:
               -  "players*/**"
-URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_Vulkan_performance_build_editmode_mono_Linear on version trunk
+URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_2021.1:
+    name: URP_Performance_BoatAttack on Win_Vulkan_performance_build_editmode_mono_Linear on version 2021.1
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -140,7 +140,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_tru
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
