@@ -24,6 +24,11 @@ namespace UnityEditor.ShaderGraph
         const string kInputSlotName = "In";
         const string kOutputSlotName = "Out";
 
+        public override bool hasPreview
+        {
+            get { return true; }
+        }
+
         [SerializeField]
         string _maskInput = "xyzw";
 
@@ -37,25 +42,22 @@ namespace UnityEditor.ShaderGraph
                     return;
                 _maskInput = value;
                 UpdateNodeAfterDeserialization();
+                if(owner != null)
                 owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
             }
         }
 
-        //1.mask(xyzw) 0< length <=4
-        //2.mask cant be character other than "xyzwrgba"
-        //3.If the input is not valid, wont genetate shader code and give errors
         public bool ValidateMaskInput(int InputValueSize)
         {
             bool MaskInputIsValid = true;
-            _maskInput = _maskInput.ToLower();
             char[] MaskChars = _maskInput.ToCharArray();
-            char[] AllChars  = {'x', 'y' , 'z', 'w', 'r','g', 'b', 'a'};
+            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a', '0', '1', '2','3'  };
             List<char> CurrentChars = new List<char>();
             for (int i = 0; i < InputValueSize; i++)
             {
                 CurrentChars.Add(AllChars[i]);
-                CurrentChars.Add(AllChars[i+4]);
+                CurrentChars.Add(AllChars[i + 4]);
             }
 
             foreach (char c in MaskChars)
@@ -93,9 +95,20 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        //1.Get vector input value
-        //2.Get validated mask input
-        //3.Swizzle: Remap the vector according to mask
+
+        [SerializeField]
+        TextureChannel m_RedChannel;
+
+        [SerializeField]
+        TextureChannel m_GreenChannel;
+
+        [SerializeField]
+        TextureChannel m_BlueChannel;
+
+        [SerializeField]
+        TextureChannel m_AlphaChannel;
+
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
@@ -106,7 +119,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!ValidateMaskInput(InputValueSize))
             {
-                owner.AddValidationError(objectId, "Invalid mask!", ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, "Invalid mask.", ShaderCompilerMessageSeverity.Error);
                 sb.AppendLine(string.Format("{0} {1} = float4 (0, 0, 0, 0);", outputSlotType, outputName));
             }
             else
@@ -125,6 +138,48 @@ namespace UnityEditor.ShaderGraph
                 }
                 sb.AppendLine("{0} {1} = float4 ({2});", outputSlotType, outputName, outputValue);
             }
+        }
+
+
+        public override int latestVersion => 1;
+
+        public override void OnAfterDeserialize(string json)
+        {
+            //collect texturechannel properties
+            //get the value
+            //pass it to maskInput
+            if (sgVersion < 1)
+            {
+                LegacySwizzleChannelData.LegancySwizzleChannel(json, this);
+                ChangeVersion(1);
+            }
+        }
+    }
+
+    class LegacySwizzleChannelData
+    {
+        //collect texturechannel properties
+        [SerializeField]
+        public TextureChannel m_RedChannel;
+        [SerializeField]
+        public TextureChannel m_GreenChannel;
+        [SerializeField]
+        public TextureChannel m_BlueChannel;
+        [SerializeField]
+        public TextureChannel m_AlphaChannel;
+
+        public static void LegancySwizzleChannel(string json, SwizzleNode node)
+        {
+            Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
+                {
+                    {TextureChannel.Red, "r" },
+                    {TextureChannel.Green, "g" },
+                    {TextureChannel.Blue, "b" },
+                    {TextureChannel.Alpha, "a" },
+                };
+            var legacySwizzleChannelData = new LegacySwizzleChannelData();
+            JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
+            node.maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
         }
     }
 }
