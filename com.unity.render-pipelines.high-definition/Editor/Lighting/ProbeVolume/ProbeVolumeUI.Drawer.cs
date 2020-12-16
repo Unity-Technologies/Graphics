@@ -33,21 +33,19 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.Conditional(
                 IsFeatureEnabled,
                 CED.Group(
-                    Drawer_ToolBar,
-                    Drawer_VolumeContent,
-                    Drawer_BakeToolBar
+                    Drawer_VolumeContent
                     )
                 )
             );
 
         static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
         {
-            return true;
+            return (int)ShaderOptions.EnableProbeVolumes == 1;
         }
 
         static bool IsFeatureDisabled(SerializedProbeVolume serialized, Editor owner)
         {
-            return false;
+            return (int)ShaderOptions.EnableProbeVolumes == 0;
         }
 
         static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)
@@ -62,14 +60,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            //EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Bake Selected"))
-            {
-
-            }
-            GUILayout.EndHorizontal();
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
