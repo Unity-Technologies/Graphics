@@ -27,9 +27,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    [InitializeOnLoad]
     internal class ProbeGIBaking
     {
         static bool init = false;
+
+        static ProbeGIBaking()
+        {
+            Init();
+        }
 
         public static void Init()
         {

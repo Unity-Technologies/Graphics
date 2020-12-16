@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
-			ProbeGIBaking.Init();
         }
 
         public override void OnInspectorGUI()
