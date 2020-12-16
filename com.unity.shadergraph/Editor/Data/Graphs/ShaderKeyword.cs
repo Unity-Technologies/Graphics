@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
 
-        public override string GetDefaultReferenceName()
+        public override string GetOldDefaultReferenceName()
         {
             // _ON suffix is required for exposing Boolean type to Material
             var suffix = string.Empty;

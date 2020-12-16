@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -27,8 +28,16 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Name = value;
         }
 
+        const int k_LatestDefaultRefNameVersion = 1;
+
         [SerializeField]
-        string m_DefaultReferenceName;
+        int m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
+
+        [SerializeField]
+        string m_RefNameGeneratedByDisplayName; // used to tell what was the display name used to generate the default reference name
+
+        [SerializeField]
+        string m_DefaultReferenceName;      // NOTE: this can be NULL for old graphs, or newly created properties
 
         public string referenceName
         {
@@ -36,18 +45,38 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 if (string.IsNullOrEmpty(overrideReferenceName))
                 {
-                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = GetDefaultReferenceName();
-                    return m_DefaultReferenceName;
+                    if (m_DefaultRefNameVersion == 0)
+                    {
+                        if (string.IsNullOrEmpty(m_DefaultReferenceName))
+                            m_DefaultReferenceName = GetOldDefaultReferenceName();
+                        return m_DefaultReferenceName;
+                    }
+                    else // version 1
+                    {
+                        var dispName = displayName;
+                        if (string.IsNullOrEmpty(m_DefaultReferenceName) ||
+                            (m_RefNameGeneratedByDisplayName != dispName))
+                        {
+                            m_DefaultReferenceName = NodeUtils.ConvertToValidHLSLIdentifier(dispName);
+                            m_RefNameGeneratedByDisplayName = dispName;
+                        }
+                        return m_DefaultReferenceName;
+                    }
                 }
                 return overrideReferenceName;
             }
         }
 
+        public override void OnBeforeDeserialize()
+        {
+            m_DefaultRefNameVersion = 0;
+            base.OnBeforeDeserialize();
+        }
+
         // This is required to handle Material data serialized with "_Color_GUID" reference names
         // m_DefaultReferenceName expects to match the material data and previously used PropertyType
-        // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
-        public virtual string GetDefaultReferenceName()
+        // ColorShaderProperty is the only case where PropertyType doesn't match ConcreteSlotValueType
+        public virtual string GetOldDefaultReferenceName()
         {
             return $"{concreteShaderValueType.ToString()}_{objectId}";
         }

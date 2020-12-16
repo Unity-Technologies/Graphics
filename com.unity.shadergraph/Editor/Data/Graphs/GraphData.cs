@@ -1794,7 +1794,7 @@ namespace UnityEditor.ShaderGraph
 
         static T DeserializeLegacy<T>(string typeString, string json, Guid? overrideObjectId = null) where T : JsonObject
         {
-            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var jsonObj = MultiJsonInternal.CreateInstanceForDeserialization(typeString);
             var value = jsonObj as T;
             if (value == null)
             {
@@ -1814,7 +1814,7 @@ namespace UnityEditor.ShaderGraph
 
         static AbstractMaterialNode DeserializeLegacyNode(string typeString, string json, Guid? overrideObjectId = null)
         {
-            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var jsonObj = MultiJsonInternal.CreateInstanceForDeserialization(typeString);
             var value = jsonObj as AbstractMaterialNode;
             if (value == null)
             {

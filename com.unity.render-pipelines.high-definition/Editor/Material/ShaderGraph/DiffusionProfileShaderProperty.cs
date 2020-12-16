@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
-        public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
+        public override string GetOldDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
         internal override string GetPropertyAsArgumentString()
         {
