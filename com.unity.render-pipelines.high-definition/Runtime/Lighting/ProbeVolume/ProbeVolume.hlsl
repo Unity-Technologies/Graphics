@@ -82,91 +82,133 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 
 #define APV_USE_BASE_OFFSET
 
+// We split the evaluation in several steps to make variants with different bands easier.
+float3 EvaluateAPVL0(APVResources apvRes, float3 uvw)
+{
+    return SAMPLE_TEXTURE3D_LOD(apvRes.L0, s_linear_clamp_sampler, uvw, 0).rgb;
+}
+
+void EvaluateAPVL1(APVResources apvRes, float3 L0, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+{
+    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, uvw, 0).rgb;
+    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgb;
+    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgb;
+
+    // decode the L1 coefficients
+    l1_R = DecodeSH(L0.r, l1_R);
+    l1_G = DecodeSH(L0.g, l1_G);
+    l1_B = DecodeSH(L0.b, l1_B);
+
+    diffuseLighting     = SHEvalLinearL1(N, l1_R, l1_G, l1_B);
+    backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
+}
+
+bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+{
+    uvw = 0;
+
+    APVConstants apvConst = LoadAPVConstants(apvRes.index);
+    // transform into APV space
+    float3 posRS = mul(apvConst.WStoRS, float4(posWS + normalWS * apvConst.normalBias, 1.0));
+    posRS -= apvConst.centerRS;
+
+    // check bounds
+#ifdef APV_USE_BASE_OFFSET
+    if (any(abs(posRS.xz) > float2(apvConst.indexDim.xz / 2)))
+#else
+    if (any(abs(posRS) > float3(apvConst.indexDim / 2)))
+#endif
+    {
+        return false;
+    }
+
+    // convert to index
+    int3 index = apvConst.centerIS + floor(posRS);
+    index = index % apvConst.indexDim;
+
+#ifdef APV_USE_BASE_OFFSET
+    // get the y-offset
+    int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
+    if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y))
+    {
+        return false;
+    }
+
+    index.y = posRS.y - yoffset;
+#endif
+
+    // resolve the index
+    int  base_offset = kAPVConstantsSize + apvConst.indexDim.x * apvConst.indexDim.z;
+    int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y) + index.x * apvConst.indexDim.y + index.y;
+    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
+
+    // no valid brick loaded for this index, fallback to ambient probe
+    if (packed_pool_idx == 0xffffffff)
+    {
+        return false;
+    }
+
+    // unpack pool idx
+    // size is encoded in the upper 4 bits
+    uint   subdiv = (packed_pool_idx >> 28) & 15;
+    float  cellSize = pow(3.0, subdiv);
+    uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
+    uint3  pool_idx;
+    pool_idx.z = flattened_pool_idx / (apvConst.poolDim.x * apvConst.poolDim.y);
+    flattened_pool_idx -= pool_idx.z * (apvConst.poolDim.x * apvConst.poolDim.y);
+    pool_idx.y = flattened_pool_idx / apvConst.poolDim.x;
+    pool_idx.x = flattened_pool_idx - (pool_idx.y * apvConst.poolDim.x);
+    uvw = ((float3) pool_idx + 0.5) / (float3) apvConst.poolDim;
+
+    // calculate uv offset and scale
+    float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
+    //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
+    offset *= 3.0 / (float3) apvConst.poolDim;      // convert brick footprint to texels footprint in pool texel space
+    uvw += offset;                                  // add the final offset
+
+    return true;
+}
+
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    APVConstants apvConst = LoadAPVConstants( apvRes.index );
-
-    // transform into APV space
-    float3 posRS  = mul( apvConst.WStoRS, float4( posWS + normalWS * apvConst.normalBias, 1.0 ) );
-           posRS -= apvConst.centerRS;
-
-    // check bounds
-#ifdef APV_USE_BASE_OFFSET
-    if( any( abs( posRS.xz ) > float2(apvConst.indexDim.xz / 2) ) )
-#else
-    if( any( abs( posRS ) > float3(apvConst.indexDim / 2) ) )
-#endif
+    float3 pool_uvw;
+    if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
     {
+        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
+        EvaluateAPVL1(apvRes, L0, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+        
+        bakeDiffuseLighting += L0;
+        backBakeDiffuseLighting += L0;
+    }
+    else
+    {
+        // no valid brick, fallback to ambient probe
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
         backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
-        return;
     }
+}
 
-    // convert to index
-    int3 index = apvConst.centerIS + floor( posRS );
-         index = index % apvConst.indexDim;
-#ifdef APV_USE_BASE_OFFSET
-    // get the y-offset
-    int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
-    if( yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y) )
+float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in APVResources apvRes)
+{
+    float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
+    float3 pool_uvw;
+    if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
     {
-        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
-        return;
+        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
+        bakeDiffuseLighting = L0;
     }
-
-    index.y = posRS.y - yoffset;
-#endif
-    // resolve the index
-    int  base_offset = kAPVConstantsSize + apvConst.indexDim.x * apvConst.indexDim.z;
-    int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y)  + index.x * apvConst.indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
-
-    // no valid brick loaded for this index, fallback to ambient probe
-    if( packed_pool_idx == 0xffffffff )
+    else
     {
+        // no valid brick, fallback to ambient probe
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
-        return;
     }
 
-    // unpack pool idx
-    // size is encoded in the upper 4 bits
-    uint   subdiv              = (packed_pool_idx >> 28) & 15;
-    float  cellSize            = pow( 3.0, subdiv );
-    uint   flattened_pool_idx  = packed_pool_idx & ((1 << 28) - 1);
-    uint3  pool_idx;
-           pool_idx.z          = flattened_pool_idx / (apvConst.poolDim.x * apvConst.poolDim.y);
-           flattened_pool_idx -= pool_idx.z * (apvConst.poolDim.x * apvConst.poolDim.y);
-           pool_idx.y          = flattened_pool_idx / apvConst.poolDim.x;
-           pool_idx.x          = flattened_pool_idx - (pool_idx.y * apvConst.poolDim.x);
-    float3 pool_uvw            = ((float3) pool_idx + 0.5) / (float3) apvConst.poolDim;
-
-    // calculate uv offset and scale
-    float3 offset    = frac( posRS / (float) cellSize );    // [0;1] in brick space
-           //offset    = clamp( offset, 0.25, 0.75 );         // [0.25;0.75] in brick space (is this actually necessary?)
-           offset   *= 3.0 / (float3) apvConst.poolDim;     // convert brick footprint to texels footprint in pool texel space
-           pool_uvw += offset;                              // add the final offset
-
-
-    // sample the pool textures to get the SH coefficients
-    float3 l0   = SAMPLE_TEXTURE3D_LOD(apvRes.L0  , s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, pool_uvw, 0).rgb;
-    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, pool_uvw, 0).rgb;
-
-    // decode the L1 coefficients
-    l1_R = DecodeSH(l0.r, l1_R);
-    l1_G = DecodeSH(l0.g, l1_G);
-    l1_B = DecodeSH(l0.b, l1_B);
-
-    // evaluate the SH coefficients
-    bakeDiffuseLighting = SHEvalLinearL0L1(normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
-    backBakeDiffuseLighting = SHEvalLinearL0L1(backNormalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
+    return bakeDiffuseLighting;
 }
 
 APVResources FillAPVResources()
@@ -190,15 +232,12 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-// Version with no normal bias and no back face sampling (to be used with 
+// Without a normal we only evaluate L0
 void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
-
-    float3 ignoredBackDiffuse;
-    // We ignore the back baked diffuse, hopefully all related calculations are stripped out.
-    EvaluateAdaptiveProbeVolume(posWS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), apvRes,
-        bakeDiffuseLighting, ignoredBackDiffuse);
+    bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), apvRes);
 }
+
 
 #endif // __PROBEVOLUME_HLSL__
