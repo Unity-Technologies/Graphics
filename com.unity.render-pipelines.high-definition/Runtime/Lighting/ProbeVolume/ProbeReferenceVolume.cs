@@ -190,6 +190,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedLoadAsset = true;
         }
 
+        public void RemovePendingAsset(ProbeVolumeAsset asset)
+        {
+            var key = asset.GetSerializedFullPath();
+            if (m_PendingAssetsToBeLoaded.ContainsKey(key))
+            {
+                m_PendingAssetsToBeLoaded.Remove(key);
+            }
+        }
+
         private void PerformPendingIndexDimensionChange()
         {
             if (m_NeedsIndexDimChange)

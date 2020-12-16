@@ -117,6 +117,14 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.AddPendingAssetLoading(VolumeAsset);
         }
 
+        internal void QueueAssetRemoval()
+        {
+            if (VolumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
+                return;
+
+            ProbeReferenceVolume.instance.RemovePendingAsset(VolumeAsset);
+        }
+
 #if UNITY_EDITOR
         private void Start()
         {
@@ -138,6 +146,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 QueueAssetLoading();
             }
+        }
+
+        private void OnDestroy()
+        {
+            QueueAssetRemoval();
         }
 
         private bool ShouldCull(Vector3 cellPosition)
