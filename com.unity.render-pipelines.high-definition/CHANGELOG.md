@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
 - Added a toggle to allow to include or exclude smooth surfaces from ray traced reflection denoising.
 - Added light unit slider for automatic and automatic histrogram exposure limits.
+- Added support for raytracing for AxF material
+- Added rasterized area light shadows for AxF material
+- Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -22,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed the default background color for previews to use the original color.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -39,6 +45,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
 - Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Fixed wrong coat normal space in shader graph
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 
 ### Changed
 - Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
