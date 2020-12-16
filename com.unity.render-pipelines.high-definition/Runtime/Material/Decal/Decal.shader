@@ -9,7 +9,9 @@ Shader "HDRP/Decal"
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
         [HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
         [HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
+        [Enum(Depth Bias, 0, View Bias, 1)] _DecalMeshBiasType("_DecalMeshBiasType", Int) = 0
         [HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
+        [HideInInspector] _DecalMeshViewBias("_DecalMeshViewBias", Float) = 0.0
         [HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,

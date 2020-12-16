@@ -289,7 +289,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
             int h = Mathf.RoundToInt(viewportHeight * screenFraction);
-            int d = sliceCount;
+
+            // Round to nearest multiple of viewCount so that each views have the exact same number of slices (important for XR)
+            int d = hdCamera.viewCount * Mathf.CeilToInt(sliceCount / hdCamera.viewCount);
 
             return new Vector3Int(w, h, d);
         }
@@ -489,12 +491,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
 
             cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
-        }
-
-        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture,  HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
-        {
-            if (Fog.IsVolumetricFogEnabled(camera))
-                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), depthTexture, m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
         }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
@@ -930,18 +926,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.voxelizationCS, parameters.voxelizationKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }
 
-        void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
-        {
-            if (!Fog.IsVolumetricFogEnabled(hdCamera))
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumeVoxelization)))
-            {
-                var parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
-                VolumeVoxelizationPass(parameters, m_DensityBuffer, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList, cmd);
-            }
-        }
-
         // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
         // The returned {x, y} coordinates (and all spheres) are all within the (-0.5, 0.5)^2 range.
         // The pattern has been rotated by 15 degrees to maximize the resolution along X and Y:
@@ -1084,42 +1068,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDUtils.DivRoundUp((int)parameters.resolution.y, 8),
                     parameters.sliceCount);
             }
-        }
-
-        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
-        {
-            if (!Fog.IsVolumetricFogEnabled(hdCamera))
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
-                return;
-            }
-
-            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
-            {
-                RTHandle feedbackRT = null, historyRT = null;
-
-                if (parameters.enableReprojection)
-                {
-                    var currIdx = (frameIndex + 0) & 1;
-                    var prevIdx = (frameIndex + 1) & 1;
-
-                    feedbackRT = hdCamera.volumetricHistoryBuffers[currIdx];
-                    historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
-                }
-
-                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
-
-                if (parameters.enableReprojection)
-                    hdCamera.volumetricHistoryIsValid = true; // For the next frame...
-            }
-
-            // Let's filter out volumetric buffer
-            if (parameters.filterVolume)
-                FilterVolumetricLighting(parameters, m_LightingBuffer, cmd);
-
-            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, m_LightingBuffer);
         }
     } // class VolumetricLightingModule
 } // namespace UnityEngine.Rendering.HighDefinition
