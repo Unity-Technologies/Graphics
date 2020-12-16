@@ -75,6 +75,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public ProbeReferenceVolumeProfile m_Profile = null;
+        private ProbeReferenceVolumeProfile m_PrevProfile = null;
+
 
         internal int brickSize { get { return m_Profile.BrickSize; } }
         internal int cellSize { get { return m_Profile.CellSize; } }
@@ -97,11 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool GreedyDilation = false;
 
         public ProbeVolumeAsset VolumeAsset = null;
-
-        // Since this is a property that lives on the authoring component and it will trigger
-        // a re-init of the probe reference volume, we need to keep track if it ever changes to
-        // trigger the right initialization sequence only when needed.
-        private Vector3Int m_PrevIndexDimensions;
 
         internal void QueueAssetLoading()
         {
@@ -138,12 +135,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (ShaderConfig.s_EnableProbeVolumes == 1 && m_Profile != null)
             {
-                if (m_PrevIndexDimensions != indexDimensions)
+                bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.IndexDimensions != m_Profile.IndexDimensions);
+                if (hasIndexDimensionChangedOnProfileSwitch)
                 {
                     var refVol = ProbeReferenceVolume.instance;
                     refVol.AddPendingIndexDimensionChange(indexDimensions);
-                    m_PrevIndexDimensions = indexDimensions;
                 }
+
+                m_PrevProfile = m_Profile;
                 QueueAssetLoading();
             }
         }

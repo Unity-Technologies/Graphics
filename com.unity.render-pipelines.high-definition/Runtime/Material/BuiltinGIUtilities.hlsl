@@ -24,10 +24,11 @@ void SetAsUninitializedGI(out float3 bakedGI)
 
 float ExtractPayloadFromUninitializedGI(float3 inputBakedGI)
 {
+    float payload = 1.0f;
     if (IsUninitializedGI(inputBakedGI))
-        return inputBakedGI.y;
+        payload = inputBakedGI.y;
 
-    return 1;
+    return payload;
 }
 
 void EncodePayloadWithUninitGI(float payload, inout float3 bakedGI)

@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_NormalBias = serializedObject.FindProperty("NormalBias");
             m_IndexDimensions = serializedObject.FindProperty("IndexDimensions");
         }
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -45,7 +44,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 int newIndexDimX = EditorGUILayout.DelayedIntField("Index Field Dimension X", m_IndexDimensions.vector3IntValue.x);
                 int newIndexDimY = EditorGUILayout.DelayedIntField("Index Field Dimension Y", m_IndexDimensions.vector3IntValue.y);
                 int newIndexDimZ = EditorGUILayout.DelayedIntField("Index Field Dimension Z", m_IndexDimensions.vector3IntValue.z);
-                m_IndexDimensions.vector3IntValue = new Vector3Int(newIndexDimX, newIndexDimY, newIndexDimZ);
+                if (newIndexDimX != m_IndexDimensions.vector3IntValue.x ||
+                    newIndexDimY != m_IndexDimensions.vector3IntValue.y ||
+                    newIndexDimZ != m_IndexDimensions.vector3IntValue.z)
+                {
+                    m_IndexDimensions.vector3IntValue = new Vector3Int(newIndexDimX, newIndexDimY, newIndexDimZ);
+                    var refVol = ProbeReferenceVolume.instance;
+                    refVol.AddPendingIndexDimensionChange(m_IndexDimensions.vector3IntValue);
+                }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
