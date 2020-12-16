@@ -1904,6 +1904,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(false);
                             }
 
+                            //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
                             EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
 
                             {
