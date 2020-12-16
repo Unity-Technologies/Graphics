@@ -96,9 +96,10 @@ namespace UnityEditor.Rendering.Universal
             }
             if (postProcessIncluded)
             {
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
+                EditorGUI.indentLevel--;
             }
-            //m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

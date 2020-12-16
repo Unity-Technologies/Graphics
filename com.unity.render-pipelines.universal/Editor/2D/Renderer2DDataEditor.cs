@@ -265,7 +265,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
             if (postProcessIncluded)
             {
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+                EditorGUI.indentLevel--;
             }
             EditorGUILayout.Space();
         }
