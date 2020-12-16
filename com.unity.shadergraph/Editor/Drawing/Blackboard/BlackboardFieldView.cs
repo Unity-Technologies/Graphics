@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
 
-        static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        public static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
         IManipulator m_RightClickMenuManipulator;
 
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         private Action m_inspectorUpdateTrigger;
         private BlackBoardCallback BlackBoardUpdateTrigger;
-        private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        private Action m_ResetReferenceNameAction;
 
         public string inspectorTitle
         {
@@ -144,8 +144,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal void ResetReferenceAction()
         {
-            m_Input.overrideReferenceName = null;
-            m_resetReferenceNameTrigger(shaderInput.referenceName);
+            m_ResetReferenceNameAction();
             DirtyNodes(ModificationScope.Graph);
         }
 
@@ -167,7 +166,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     MarkNodesAsDirty);
 
                 m_inspectorUpdateTrigger = inspectorUpdateDelegate;
-                m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
 
                 this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }

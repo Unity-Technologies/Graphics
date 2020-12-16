@@ -45,8 +45,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         TextField m_DisplayNameField;
 
         // Reference Name
+        TextPropertyDrawer m_ReferenceNameDrawer;
         TextField m_ReferenceNameField;
-        public ChangeReferenceNameCallback _resetReferenceNameCallback;
+
+        IManipulator m_RightClickResetMenuItemManipulator;
 
         ShaderInput shaderInput;
 
@@ -56,14 +58,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.normal = new GUIStyleState { textColor = Color.grey };
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
-
-            // Initializing this callback early on as it is needed by the BlackboardFieldView
-            // for binding to the menu action that triggers the reset
-            _resetReferenceNameCallback = newValue =>
-            {
-                m_ReferenceNameField.value = newValue;
-                m_ReferenceNameField.RemoveFromClassList("modified");
-            };
         }
 
         GraphData graphData;
@@ -150,10 +144,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(textPropertyDrawer.CreateGUI(
                 null,
                 (string)shaderInput.displayName,
-                "Name",
-                out var propertyVisualElement));
+                "Name"));
 
-            m_DisplayNameField = (TextField)propertyVisualElement;
+            m_DisplayNameField = textPropertyDrawer.textField;
             m_DisplayNameField.RegisterValueChangedCallback(
                 evt =>
                 {
@@ -169,23 +162,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 });
 
             if (!string.IsNullOrEmpty(shaderInput.displayName))
-                propertyVisualElement.AddToClassList("modified");
-            propertyVisualElement.SetEnabled(shaderInput.isRenamable);
-            propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                m_DisplayNameField.AddToClassList("modified");
+            m_DisplayNameField.SetEnabled(shaderInput.isRenamable);
+            m_DisplayNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
         }
 
         void BuildReferenceNameField(PropertySheet propertySheet)
         {
             if (!isSubGraph || shaderInput is ShaderKeyword)
             {
-                var textPropertyDrawer = new TextPropertyDrawer();
-                propertySheet.Add(textPropertyDrawer.CreateGUI(
+                m_ReferenceNameDrawer = new TextPropertyDrawer();
+                propertySheet.Add(m_ReferenceNameDrawer.CreateGUI(
                     null,
                     (string)shaderInput.referenceName,
-                    "Reference",
-                    out var propertyVisualElement));
+                    "Reference"));
 
-                m_ReferenceNameField = (TextField)propertyVisualElement;
+                m_ReferenceNameField = m_ReferenceNameDrawer.textField;
                 m_ReferenceNameField.RegisterValueChangedCallback(
                     evt =>
                     {
@@ -193,18 +185,67 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._referenceNameChangedCallback(evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+                        {
                             m_ReferenceNameField.RemoveFromClassList("modified");
+                            m_ReferenceNameDrawer.label.RemoveFromClassList("modified");
+                        }
                         else
+                        {
                             m_ReferenceNameField.AddToClassList("modified");
+                            m_ReferenceNameDrawer.label.AddToClassList("modified");
+                        }
+
+                        UpdateRightClickResetMenuItem();
 
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
                 if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
-                    propertyVisualElement.AddToClassList("modified");
-                propertyVisualElement.SetEnabled(shaderInput.isRenamable);
-                propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                {
+                    m_ReferenceNameDrawer.textField.AddToClassList("modified");
+                    m_ReferenceNameDrawer.label.AddToClassList("modified");
+                }
+                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isRenamable);
+
+                UpdateRightClickResetMenuItem();
             }
+        }
+
+        internal void UpdateRightClickResetMenuItem()
+        {
+            if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+            {
+                if (m_RightClickResetMenuItemManipulator != null)
+                    m_ReferenceNameDrawer.label.RemoveManipulator(m_RightClickResetMenuItemManipulator);
+                // m_RightClickResetMenuItemManipulator = null;
+            }
+            else
+            {
+                if (m_RightClickResetMenuItemManipulator == null)
+                    m_RightClickResetMenuItemManipulator = (IManipulator)Activator.CreateInstance(BlackboardFieldView.s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)AddResetToContextMenu);
+
+                m_ReferenceNameDrawer.label.AddManipulator(m_RightClickResetMenuItemManipulator);
+            }
+        }
+
+        void AddResetToContextMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction(
+                "Reset Reference",
+                e => { ResetReferenceName(); },
+                DropdownMenuAction.AlwaysEnabled);
+        }
+
+        public void ResetReferenceName()
+        {
+            this._preChangeValueCallback("Reset Reference Name");
+            shaderInput.overrideReferenceName = null;
+            var refName = shaderInput.referenceName;
+            this._referenceNameChangedCallback(refName);
+            m_ReferenceNameField.value = refName;
+            m_ReferenceNameField.RemoveFromClassList("modified");
+            UpdateRightClickResetMenuItem();
+            this._postChangeValueCallback(true, ModificationScope.Graph);
         }
 
         void BuildPropertyFields(PropertySheet propertySheet)

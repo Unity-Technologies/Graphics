@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
         IManipulator m_ResetReferenceMenu;
 
-        ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Action m_ResetReferenceNameAction;
 
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                     this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
-                this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                this.m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
             }
         }
 
@@ -140,8 +140,7 @@ namespace UnityEditor.ShaderGraph
         {
             evt.menu.AppendAction("Reset Reference", e =>
             {
-                property.overrideReferenceName = null;
-                m_resetReferenceNameTrigger(property.referenceName);
+                m_ResetReferenceNameAction();
                 DirtyNodes(ModificationScope.Graph);
             }, DropdownMenuAction.AlwaysEnabled);
         }
