@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
         {
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
-            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a', '0', '1', '2','3'  };
+            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a'};
             List<char> CurrentChars = new List<char>();
             for (int i = 0; i < InputValueSize; i++)
             {
