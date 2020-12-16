@@ -42,14 +42,14 @@ namespace UnityEditor.ShaderGraph.Input
     {
         static HotkeyDataModel s_HotkeyData;
 
-        static string s_HotkeyTemplate = @"public class ShaderGraphHotkeyTemplate
+        /*static string s_HotkeyTemplate = @"public class ShaderGraphHotkeyTemplate
         {
             [ShaderGraphHotkeyAttribute(""Create NODETYPE"", KEYCODE)]
             private static void CreateNODETYPE(ShortcutArguments args)
             {
                 ExecuteShortcut(args, graphData => { graphData.AddNode(new NODETYPE()); });
             }
-        }";
+        }";*/
 
         static string s_OutputPath = "Editor/Input/Hotkeys";
 
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Input
                 // Then we can iterate through the types, find subgraphs and add those
                 // The only real issue is differentiating nodes from each other, like which are real nodes we want and which arent
                 // Cause there are test nodes, the legacy nodes etc, dont want to create hotkeys for those
-                s_HotkeyData.HotkeyMap.Add(nodeType.Name, KeyCode.RightWindows);
+                //s_HotkeyData.HotkeyMap.Add(nodeType.Name, KeyCode.RightWindows);
                 //GenerateHotkeyFromTemplate(s_HotkeyTemplate, nodeType, KeyCode.RightWindows);
             }
         }
