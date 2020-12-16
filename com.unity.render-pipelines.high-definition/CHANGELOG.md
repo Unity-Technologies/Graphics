@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
+- Fixed baked light being included into the ray tracing light cluster (case 1296203).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

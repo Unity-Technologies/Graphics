@@ -265,8 +265,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (currentLight != null)
                 {
                     Light light = currentLight.gameObject.GetComponent<Light>();
-                    if (light == null || !light.enabled) continue;
+                    if (light == null || !light.enabled)
+                        continue;
 
+                    // If the light is flagged as baked and has been effectively been baked, we need to skip it and not add it to the light cluster
+                    if (light.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
+                        continue;
+
+                    // If this light should not be included when ray tracing is active on the camera, skip it
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !currentLight.includeForRayTracing)
                         continue;
 
