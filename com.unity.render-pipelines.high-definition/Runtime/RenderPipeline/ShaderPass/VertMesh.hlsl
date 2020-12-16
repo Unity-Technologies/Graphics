@@ -168,16 +168,6 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #endif
     output.positionCS = TransformWorldToHClip(positionRWS);
 
-    if (!IsPerspectiveProjection())
-    {
-        // When projection is orthographic, positionCS.w = 1.
-        // We would like to retain positionCS.w = linearDepth for all projection types.
-        float linearDepth = LinearEyeDepth(positionRWS, GetWorldToViewMatrix());
-        // We utilize the fact that positionCS.xyz will have perspective division applied to it.
-        output.positionCS.xyz *= linearDepth;
-        output.positionCS.w    = linearDepth;
-    }
-
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;
@@ -217,16 +207,6 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
-
-    if (!IsPerspectiveProjection())
-    {
-        // When projection is orthographic, positionCS.w = 1.
-        // We would like to retain positionCS.w = linearDepth for all projection types.
-        float linearDepth = LinearEyeDepth(input.positionRWS, GetWorldToViewMatrix());
-        // We utilize the fact that positionCS.xyz will have perspective division applied to it.
-        output.positionCS.xyz *= linearDepth;
-        output.positionCS.w    = linearDepth;
-    }
 
 #if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG)
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
