@@ -212,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PendingAssetsToBeLoaded.Count == 0 || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
+            m_Pool.EnsureTextureValidity();
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
                 foreach (var cell in asset.cells)
@@ -499,8 +500,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            // We need to make sure that textures are allocated if they were not already.
-            m_Pool.EnsureTextureValidity();
             // Update the pool and index and ignore any potential frame latency related issues for now
             m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list);
 
