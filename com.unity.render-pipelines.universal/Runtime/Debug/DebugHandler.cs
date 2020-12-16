@@ -14,13 +14,13 @@ namespace UnityEngine.Rendering.Universal
         private readonly int m_DebugMaterialIndexId;
         private readonly int m_DebugLightingIndexId;
         private readonly int m_DebugVertexAttributesIndexId;
-        private readonly int m_DebugLightingFeatureMask;
+        private readonly int m_DebugLightingFeatureMaskId;
         private readonly int m_DebugValidationIndexId;
-        private readonly int m_DebugAlbedoMinLuminance;
-        private readonly int m_DebugAlbedoMaxLuminance;
-        private readonly int m_DebugAlbedoSaturationTolerance;
-        private readonly int m_DebugAlbedoHueTolerance;
-        private readonly int m_DebugAlbedoCompareColor;
+        private readonly int m_DebugAlbedoMinLuminanceId;
+        private readonly int m_DebugAlbedoMaxLuminanceId;
+        private readonly int m_DebugAlbedoSaturationToleranceId;
+        private readonly int m_DebugAlbedoHueToleranceId;
+        private readonly int m_DebugAlbedoCompareColorId;
         private readonly int m_DebugMipIndexId;
 
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsSceneOverrideActive => RenderingSettings.sceneOverrides != SceneOverrides.None;
         public bool IsVertexAttributeOverrideActive => MaterialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None;
         public bool IsLightingDebugActive => LightingSettings.m_LightingDebugMode != LightingDebugMode.None;
-        public bool IsLightingFeatureActive => LightingSettings.m_DebugLightingFeatureMask != DebugLightingFeature.None;
+        public bool IsLightingFeatureActive => (int)LightingSettings.m_DebugLightingFeatureMask != 0;
         public bool IsMaterialOverrideActive => MaterialSettings.DebugMaterialIndexData != DebugMaterialIndex.None;
         public bool AreShadowCascadesActive => LightingSettings.m_LightingDebugMode == LightingDebugMode.ShadowCascades;
         public bool IsMipInfoDebugActive => RenderingSettings.mipInfoDebugMode != DebugMipInfo.None;
@@ -67,13 +67,13 @@ namespace UnityEngine.Rendering.Universal
             m_DebugMaterialIndexId = Shader.PropertyToID("_DebugMaterialIndex");
             m_DebugLightingIndexId = Shader.PropertyToID("_DebugLightingIndex");
             m_DebugVertexAttributesIndexId = Shader.PropertyToID("_DebugAttributesIndex");
-            m_DebugLightingFeatureMask = Shader.PropertyToID("_DebugLightingFeatureMask");
+            m_DebugLightingFeatureMaskId = Shader.PropertyToID("_DebugLightingFeatureMask");
             m_DebugValidationIndexId = Shader.PropertyToID("_DebugValidationIndex");
-            m_DebugAlbedoMinLuminance = Shader.PropertyToID("_AlbedoMinLuminance");
-            m_DebugAlbedoMaxLuminance = Shader.PropertyToID("_AlbedoMaxLuminance");
-            m_DebugAlbedoSaturationTolerance = Shader.PropertyToID("_AlbedoSaturationTolerance");
-            m_DebugAlbedoHueTolerance = Shader.PropertyToID("_AlbedoHueTolerance");
-            m_DebugAlbedoCompareColor = Shader.PropertyToID("_AlbedoCompareColor");
+            m_DebugAlbedoMinLuminanceId = Shader.PropertyToID("_AlbedoMinLuminance");
+            m_DebugAlbedoMaxLuminanceId = Shader.PropertyToID("_AlbedoMaxLuminance");
+            m_DebugAlbedoSaturationToleranceId = Shader.PropertyToID("_AlbedoSaturationTolerance");
+            m_DebugAlbedoHueToleranceId = Shader.PropertyToID("_AlbedoHueTolerance");
+            m_DebugAlbedoCompareColorId = Shader.PropertyToID("_AlbedoCompareColor");
             m_DebugMipIndexId = Shader.PropertyToID("_DebugMipIndex");
         }
 
@@ -115,15 +115,15 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(m_DebugMaterialIndexId, (int)MaterialSettings.DebugMaterialIndexData);
             cmd.SetGlobalFloat(m_DebugLightingIndexId, (int)LightingSettings.m_LightingDebugMode);
 			cmd.SetGlobalFloat(m_DebugVertexAttributesIndexId, (int)MaterialSettings.VertexAttributeDebugIndexData);
-            cmd.SetGlobalInt(m_DebugLightingFeatureMask, (int)LightingSettings.m_DebugLightingFeatureMask);
+            cmd.SetGlobalInt(m_DebugLightingFeatureMaskId, (int)LightingSettings.m_DebugLightingFeatureMask);
             cmd.SetGlobalInt(m_DebugMipIndexId, (int)RenderingSettings.mipInfoDebugMode);
             cmd.SetGlobalInt(m_DebugValidationIndexId, (int)ValidationSettings.validationMode);
 
-            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminance, ValidationSettings.AlbedoMinLuminance);
-            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminance, ValidationSettings.AlbedoMaxLuminance);
-            cmd.SetGlobalFloat(m_DebugAlbedoSaturationTolerance, ValidationSettings.AlbedoSaturationTolerance);
-            cmd.SetGlobalFloat(m_DebugAlbedoHueTolerance, ValidationSettings.AlbedoHueTolerance);
-            cmd.SetGlobalColor(m_DebugAlbedoCompareColor, ValidationSettings.AlbedoCompareColor.linear);
+            cmd.SetGlobalFloat(m_DebugAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+            cmd.SetGlobalFloat(m_DebugAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+            cmd.SetGlobalFloat(m_DebugAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+            cmd.SetGlobalColor(m_DebugAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
 
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
