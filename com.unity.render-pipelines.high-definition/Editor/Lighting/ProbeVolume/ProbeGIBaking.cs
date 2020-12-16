@@ -30,7 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [InitializeOnLoad]
     internal class ProbeGIBaking
     {
-        static bool init = false;
+        private static bool init = false;
+        private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
 
         static ProbeGIBaking()
         {
@@ -66,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
             refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             refVol.SetNormalBias(refVolAuthoring.normalBias);
+
+            cellIndex2SceneReferences.Clear();
         }
 
         private static void OnBakeStarted()
@@ -172,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var cell = ProbeReferenceVolume.instance.Cells[c];
 
-                foreach (var scene in ProbeReferenceVolume.instance.SceneRefs[cell.index])
+                foreach (var scene in cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
                     ProbeReferenceVolumeAuthoring refVol = null;
@@ -413,8 +416,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     placementHappened = true;
                     totalBricks += bricks.Count;
 
-                    ProbeReferenceVolume.instance.Cells.Add(cell);
-                    ProbeReferenceVolume.instance.SceneRefs[cell.index] = new List<Scene>(sortedRefs.Values);
+                    ProbeReferenceVolume.instance.Cells[cell.index] = cell;
+                    cellIndex2SceneReferences[cell.index] = new List<Scene>(sortedRefs.Values);
                 }
             }
 

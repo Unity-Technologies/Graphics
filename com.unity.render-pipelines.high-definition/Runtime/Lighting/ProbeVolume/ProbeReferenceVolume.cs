@@ -145,7 +145,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         public List<Cell> Cells = new List<Cell>();
-        public Dictionary<int, List<Scene>> SceneRefs = new Dictionary<int, List<Scene>>();
         
         private bool m_BricksLoaded = false;
 
