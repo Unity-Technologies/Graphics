@@ -106,23 +106,17 @@ namespace UnityEditor.ShaderGraph
             if (!ValidateMaskInput(InputValueSize))
             {
                 owner.AddValidationError(objectId, "Invalid mask.", ShaderCompilerMessageSeverity.Error);
-                sb.AppendLine(string.Format("{0} {1} = float4 (0, 0, 0, 0);", outputSlotType, outputName));
+                sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
             }
             else
             {
                 string outputValue = "";
                 for (int i = 0; i < 4; i++)
                 {
-                    if (i != 0)
-                        outputValue += ",";
-
                     if (i < _maskInput.Length)
-                        outputValue += inputValue + "." + _maskInput[i];
-
-                    if (i >= _maskInput.Length)
-                        outputValue += "0";
+                        outputValue += _maskInput[i];
                 }
-                sb.AppendLine("{0} {1} = float4 ({2});", outputSlotType, outputName, outputValue);
+                sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, outputValue);
             }
         }
 
