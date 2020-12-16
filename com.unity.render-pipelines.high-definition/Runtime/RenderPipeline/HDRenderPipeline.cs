@@ -1269,6 +1269,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var dynResHandler = DynamicResolutionHandler.instance;
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
 
+            var activeTerrains = Terrain.activeTerrains;
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1618,6 +1620,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
+
+                        foreach (var terrain in activeTerrains)
+                            terrain.SetFreeUnusedRenderingResources(camera.GetInstanceID(), false);
 
                         if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                         {
