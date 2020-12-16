@@ -95,20 +95,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-
-        [SerializeField]
-        TextureChannel m_RedChannel;
-
-        [SerializeField]
-        TextureChannel m_GreenChannel;
-
-        [SerializeField]
-        TextureChannel m_BlueChannel;
-
-        [SerializeField]
-        TextureChannel m_AlphaChannel;
-
-
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
@@ -139,7 +125,6 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{0} {1} = float4 ({2});", outputSlotType, outputName, outputValue);
             }
         }
-
 
         public override int latestVersion => 1;
 
