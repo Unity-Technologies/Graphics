@@ -80,7 +80,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
 #endif
 
 #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    output.projectedPosition = ComputeScreenPos(vertexInput.positionCS);
+    output.projectedPosition = vertexInput.positionNDC;
 #endif
 
     return output;
