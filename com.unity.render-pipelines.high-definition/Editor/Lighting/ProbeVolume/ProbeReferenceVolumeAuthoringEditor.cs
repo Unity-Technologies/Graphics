@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnEnable()
         {
-            // TODO: TMP NAMING for profile.
             m_Profile = serializedObject.FindProperty("m_Profile");
             m_DrawProbes = serializedObject.FindProperty("DrawProbes");
             m_DrawBricks = serializedObject.FindProperty("DrawBricks");

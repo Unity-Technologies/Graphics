@@ -367,8 +367,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (debugMesh == null || debugMaterial == null)
             {
                 // Load debug mesh, material
-                debugMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.debugProbeMesh;
-                debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.instancedProbeShader) { enableInstancing = true };
+                debugMesh = HDRenderPipeline.defaultAsset.renderPipelineEditorResources.assets.debugProbeMesh;
+                debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.shaders.instancedProbeShader) { enableInstancing = true };
             }
         }
 

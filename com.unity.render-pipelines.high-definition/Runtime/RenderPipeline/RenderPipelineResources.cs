@@ -319,10 +319,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
-            //ProbeVolumes
-            [Reload("Runtime/Debug/InstancedProbeShader.shader")]
-            public Shader instancedProbeShader;
-
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
@@ -417,10 +413,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveCylinderMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
             public Mesh emissiveQuadMesh;
-
-            //ProbeVolumes
-            [Reload("Runtime/Debug/DebugProbe.fbx")]
-            public Mesh debugProbeMesh;
         }
 
         public ShaderResources shaders;
