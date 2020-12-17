@@ -45,11 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeShading = serializedObject.FindProperty("ProbeShading");
             m_CullingDistance = serializedObject.FindProperty("CullingDistance");
             m_Exposure = serializedObject.FindProperty("Exposure");
-            m_Dilate = serializedObject.FindProperty("m_Dilate");
-            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
-            m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
-            m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
-            m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
+            m_Dilate = serializedObject.FindProperty("dilate");
+            m_MaxDilationSamples = serializedObject.FindProperty("maxDilationSamples");
+            m_MaxDilationSampleDistance = serializedObject.FindProperty("maxDilationSampleDistance");
+            m_DilationValidityThreshold = serializedObject.FindProperty("dilationValidityThreshold");
+            m_GreedyDilation = serializedObject.FindProperty("greedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;

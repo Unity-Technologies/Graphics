@@ -104,11 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float Exposure = 0f;
 
-        private bool m_Dilate = false;
-        private int m_MaxDilationSamples = 16;
-        private float m_MaxDilationSampleDistance = 1f;
-        private float m_DilationValidityThreshold = 0.25f;
-        private bool m_GreedyDilation = false;
+        public bool dilate = false;
+        public int maxDilationSamples = 16;
+        public float maxDilationSampleDistance = 1f;
+        public float dilationValidityThreshold = 0.25f;
+        public bool greedyDilation = false;
 
         public ProbeVolumeAsset VolumeAsset = null;
         private ProbeVolumeAsset m_PrevAsset = null;
@@ -367,11 +367,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilate = m_Dilate;
-            settings.dilationValidityThreshold = m_DilationValidityThreshold;
-            settings.greedyDilation = m_GreedyDilation;
-            settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
-            settings.maxDilationSamples = m_MaxDilationSamples;
+            settings.dilate = dilate;
+            settings.dilationValidityThreshold = dilationValidityThreshold;
+            settings.greedyDilation = greedyDilation;
+            settings.maxDilationSampleDistance = maxDilationSampleDistance;
+            settings.maxDilationSamples = maxDilationSamples;
             settings.brickSize = brickSize;
 
             return settings;
