@@ -402,9 +402,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // create cells
             List<Vector3Int> cellPositions = new List<Vector3Int>();
 
-            for (var x = 0; x < xCells; ++x)
-                for (var y = 0; y < yCells; ++y)
-                    for (var z = 0; z < zCells; ++z)
+            // TODO: rewrite for infinite space testing
+            for (var x = -xCells; x < xCells; ++x)
+                for (var y = -yCells; y < yCells; ++y)
+                    for (var z = -zCells; z < zCells; ++z)
                         cellPositions.Add(new Vector3Int(x, y, z));
 
             int index = 0;
