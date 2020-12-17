@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
 - Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -27,6 +28,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
+- Fixed AOV api in render graph (case 1296605)
+- Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
+- Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
+- Fixed a bug in the sphere-aabb light cluster (case 1294767).
+- Fixed issue when submitting SRPContext during EndCameraRendering.
 - Fixed baked light being included into the ray tracing light cluster (case 1296203).
 
 ### Changed
