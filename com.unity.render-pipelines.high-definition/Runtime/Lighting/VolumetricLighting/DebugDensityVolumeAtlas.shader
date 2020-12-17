@@ -9,8 +9,6 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
         #pragma vertex Vert
 
-        #pragma enable_d3d11_debug_symbols
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

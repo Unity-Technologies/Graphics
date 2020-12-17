@@ -1,6 +1,5 @@
 #pragma kernel Copy 
 #pragma kernel GenerateMipMap 
-#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

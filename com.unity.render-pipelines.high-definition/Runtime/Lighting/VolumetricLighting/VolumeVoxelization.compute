@@ -75,7 +75,7 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
 
     // We only apply exponential falloff on the Blend Distance and not Distance Fade
     if (falloffMode == DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL)
-        fade = pow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
+        fade = PositivePow(fade, EXPONENTIAL_FALLOFF_EXPONENT);
 
     fade = dstF * (invertFade ? (1 - fade) : fade);
 
