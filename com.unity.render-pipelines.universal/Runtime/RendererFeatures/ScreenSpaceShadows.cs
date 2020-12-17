@@ -98,13 +98,10 @@ namespace UnityEngine.Rendering.Universal
             private RenderTextureDescriptor m_RenderTextureDescriptor;
             private RenderTargetHandle m_RenderTarget;
 
-            // Constants
-            private const string k_SSShadowsTextureName = "_ScreenSpaceShadowmapTexture";
-
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
-                m_RenderTarget.Init(k_SSShadowsTextureName);
+                m_RenderTarget.Init(URPShaderIDs._ScreenSpaceShadowmapTexture);
             }
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings)

@@ -51,8 +51,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
-            k_ColorTextureHandle.Init("_CameraColorTexture");
-            k_DepthTextureHandle.Init("_CameraDepthAttachment");
+            k_ColorTextureHandle.Init(URPShaderIDs._CameraColorTexture);
+            k_DepthTextureHandle.Init(URPShaderIDs._CameraDepthAttachment);
 
             m_Renderer2DData = data;
 

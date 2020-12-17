@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
-            m_CameraColor.Init("_CameraColor");
-            m_CameraDepth.Init("_CameraDepth");
+            m_CameraColor.Init(Shader.PropertyToID("_CameraColor"));
+            m_CameraDepth.Init(Shader.PropertyToID("_CameraDepth"));
         }
 
         /// <inheritdoc />

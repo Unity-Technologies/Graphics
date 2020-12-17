@@ -113,74 +113,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
-        internal static class ShaderConstants
-        {
-            public static readonly int _LitStencilRef = Shader.PropertyToID("_LitStencilRef");
-            public static readonly int _LitStencilReadMask = Shader.PropertyToID("_LitStencilReadMask");
-            public static readonly int _LitStencilWriteMask = Shader.PropertyToID("_LitStencilWriteMask");
-            public static readonly int _SimpleLitStencilRef = Shader.PropertyToID("_SimpleLitStencilRef");
-            public static readonly int _SimpleLitStencilReadMask = Shader.PropertyToID("_SimpleLitStencilReadMask");
-            public static readonly int _SimpleLitStencilWriteMask = Shader.PropertyToID("_SimpleLitStencilWriteMask");
-            public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
-            public static readonly int _StencilReadMask = Shader.PropertyToID("_StencilReadMask");
-            public static readonly int _StencilWriteMask = Shader.PropertyToID("_StencilWriteMask");
-            public static readonly int _LitPunctualStencilRef = Shader.PropertyToID("_LitPunctualStencilRef");
-            public static readonly int _LitPunctualStencilReadMask = Shader.PropertyToID("_LitPunctualStencilReadMask");
-            public static readonly int _LitPunctualStencilWriteMask = Shader.PropertyToID("_LitPunctualStencilWriteMask");
-            public static readonly int _SimpleLitPunctualStencilRef = Shader.PropertyToID("_SimpleLitPunctualStencilRef");
-            public static readonly int _SimpleLitPunctualStencilReadMask = Shader.PropertyToID("_SimpleLitPunctualStencilReadMask");
-            public static readonly int _SimpleLitPunctualStencilWriteMask = Shader.PropertyToID("_SimpleLitPunctualStencilWriteMask");
-            public static readonly int _LitDirStencilRef = Shader.PropertyToID("_LitDirStencilRef");
-            public static readonly int _LitDirStencilReadMask = Shader.PropertyToID("_LitDirStencilReadMask");
-            public static readonly int _LitDirStencilWriteMask = Shader.PropertyToID("_LitDirStencilWriteMask");
-            public static readonly int _SimpleLitDirStencilRef = Shader.PropertyToID("_SimpleLitDirStencilRef");
-            public static readonly int _SimpleLitDirStencilReadMask = Shader.PropertyToID("_SimpleLitDirStencilReadMask");
-            public static readonly int _SimpleLitDirStencilWriteMask = Shader.PropertyToID("_SimpleLitDirStencilWriteMask");
-            public static readonly int _ClearStencilRef = Shader.PropertyToID("_ClearStencilRef");
-            public static readonly int _ClearStencilReadMask = Shader.PropertyToID("_ClearStencilReadMask");
-            public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
-
-            public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
-            public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
-            public static readonly int _DownsamplingWidth = Shader.PropertyToID("_DownsamplingWidth");
-            public static readonly int _DownsamplingHeight = Shader.PropertyToID("_DownsamplingHeight");
-            public static readonly int _SourceShiftX = Shader.PropertyToID("_SourceShiftX");
-            public static readonly int _SourceShiftY = Shader.PropertyToID("_SourceShiftY");
-            public static readonly int _TileShiftX = Shader.PropertyToID("_TileShiftX");
-            public static readonly int _TileShiftY = Shader.PropertyToID("_TileShiftY");
-            public static readonly int _tileXCount = Shader.PropertyToID("_tileXCount");
-            public static readonly int _DepthRangeOffset = Shader.PropertyToID("_DepthRangeOffset");
-            public static readonly int _BitmaskTex = Shader.PropertyToID("_BitmaskTex");
-            public static readonly int UTileList = Shader.PropertyToID("UTileList");
-            public static readonly int _TileList = Shader.PropertyToID("_TileList");
-            public static readonly int UPunctualLightBuffer = Shader.PropertyToID("UPunctualLightBuffer");
-            public static readonly int _PunctualLightBuffer = Shader.PropertyToID("_PunctualLightBuffer");
-            public static readonly int URelLightList = Shader.PropertyToID("URelLightList");
-            public static readonly int _RelLightList = Shader.PropertyToID("_RelLightList");
-            public static readonly int _TilePixelWidth = Shader.PropertyToID("_TilePixelWidth");
-            public static readonly int _TilePixelHeight = Shader.PropertyToID("_TilePixelHeight");
-            public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
-            public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
-            public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
-            public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
-
-            public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
-            public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
-            public static readonly int _unproject1 = Shader.PropertyToID("_unproject1");
-
-            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _SpotLightScale = Shader.PropertyToID("_SpotLightScale");
-            public static int _SpotLightBias = Shader.PropertyToID("_SpotLightBias");
-            public static int _SpotLightGuard = Shader.PropertyToID("_SpotLightGuard");
-            public static int _LightPosWS = Shader.PropertyToID("_LightPosWS");
-            public static int _LightColor = Shader.PropertyToID("_LightColor");
-            public static int _LightAttenuation = Shader.PropertyToID("_LightAttenuation");
-            public static int _LightOcclusionProbInfo = Shader.PropertyToID("_LightOcclusionProbInfo");
-            public static int _LightDirection = Shader.PropertyToID("_LightDirection");
-            public static int _LightFlags = Shader.PropertyToID("_LightFlags");
-            public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
-        }
 
         // Disable Burst for now since there are issues on macos builds.
 #if URP_HAS_BURST
@@ -934,20 +866,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTargetIdentifier depthSurface = this.DepthAttachmentIdentifier;
                 RenderTargetIdentifier depthInfoSurface = (tileMipLevel == intermediateMipLevel) ? this.TileDepthInfoTextureIdentifier : this.DepthInfoTextureIdentifier;
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
-                cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight));
-                cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
-                cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
-                cmd.SetGlobalInt(ShaderConstants._SourceShiftX, intermediateMipLevel);
-                cmd.SetGlobalInt(ShaderConstants._SourceShiftY, intermediateMipLevel);
-                cmd.SetGlobalInt(ShaderConstants._TileShiftX, tileShiftMipLevel);
-                cmd.SetGlobalInt(ShaderConstants._TileShiftY, tileShiftMipLevel);
+                cmd.SetGlobalTexture(URPShaderIDs._DepthTex, depthSurface);
+                cmd.SetGlobalVector(URPShaderIDs._DepthTexSize, new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight));
+                cmd.SetGlobalInt(URPShaderIDs._DownsamplingWidth, tilePixelWidth);
+                cmd.SetGlobalInt(URPShaderIDs._DownsamplingHeight, tilePixelHeight);
+                cmd.SetGlobalInt(URPShaderIDs._SourceShiftX, intermediateMipLevel);
+                cmd.SetGlobalInt(URPShaderIDs._SourceShiftY, intermediateMipLevel);
+                cmd.SetGlobalInt(URPShaderIDs._TileShiftX, tileShiftMipLevel);
+                cmd.SetGlobalInt(URPShaderIDs._TileShiftY, tileShiftMipLevel);
 
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
                 Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
-                cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
-                cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
+                cmd.SetGlobalVector(URPShaderIDs._unproject[0], projScreenInv.GetRow(2));
+                cmd.SetGlobalVector(URPShaderIDs._unproject[1], projScreenInv.GetRow(3));
 
                 string shaderVariant = null;
                 if (tilePixelWidth == tilePixelHeight)
@@ -987,12 +919,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
 
                     if (DeferredConfig.UseCBufferForDepthRange)
-                        cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, m_MaxDepthRangePerBatch * 4);
+                        cmd.SetGlobalConstantBuffer(_depthRanges, URPShaderIDs.UDepthRanges, 0, m_MaxDepthRangePerBatch * 4);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants._DepthRanges, _depthRanges);
+                        cmd.SetGlobalBuffer(URPShaderIDs._DepthRanges, _depthRanges);
 
-                    cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
-                    cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
+                    cmd.SetGlobalInt(URPShaderIDs._tileXCount, tileXCount);
+                    cmd.SetGlobalInt(URPShaderIDs._DepthRangeOffset, tileY * tileXCount);
 
                     cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
                     cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
@@ -1035,9 +967,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int diffWidthLevel = tileWidthLevel - intermediateMipLevel;
                 int diffHeightLevel = tileHeightLevel - intermediateMipLevel;
 
-                cmd.SetGlobalTexture(ShaderConstants._BitmaskTex, depthInfoSurface);
-                cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
-                cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
+                cmd.SetGlobalTexture(URPShaderIDs._BitmaskTex, depthInfoSurface);
+                cmd.SetGlobalInt(URPShaderIDs._DownsamplingWidth, tilePixelWidth);
+                cmd.SetGlobalInt(URPShaderIDs._DownsamplingHeight, tilePixelHeight);
 
                 int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
                 int depthInfoWidth = (this.RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
@@ -1122,8 +1054,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
-            cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
-            cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
+            cmd.SetGlobalVector(URPShaderIDs._MainLightPosition, lightPos);
+            cmd.SetGlobalVector(URPShaderIDs._MainLightColor, lightColor);
         }
 
         void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
@@ -1166,7 +1098,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 screenToWorld[eyeIndex] = Matrix4x4.Inverse(toScreen * zScaleBias * gpuProj * view);
             }
 
-            cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, screenToWorld);
+            cmd.SetGlobalMatrixArray(URPShaderIDs._ScreenToWorld, screenToWorld);
         }
 
         void SortLights(ref NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights)
@@ -1466,12 +1398,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // It doesn't seem UniversalRP use this.
                 Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
-                cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
+                cmd.SetGlobalVector(URPShaderIDs._ScreenSize, screenSize);
 
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
-                cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
-                cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
+                cmd.SetGlobalInt(URPShaderIDs._TilePixelWidth, tileWidth);
+                cmd.SetGlobalInt(URPShaderIDs._TilePixelHeight, tileHeight);
 
                 cmd.SetGlobalTexture(this.TileDepthInfoTexture.id, this.TileDepthInfoTextureIdentifier);
 
@@ -1480,21 +1412,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                     DrawCall dc = drawCalls[i];
 
                     if (DeferredConfig.UseCBufferForTileList)
-                        cmd.SetGlobalConstantBuffer(dc.tileList, ShaderConstants.UTileList, 0, dc.tileListSize);
+                        cmd.SetGlobalConstantBuffer(dc.tileList, URPShaderIDs.UTileList, 0, dc.tileListSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants._TileList, dc.tileList);
+                        cmd.SetGlobalBuffer(URPShaderIDs._TileList, dc.tileList);
 
                     if (DeferredConfig.UseCBufferForLightData)
-                        cmd.SetGlobalConstantBuffer(dc.punctualLightBuffer, ShaderConstants.UPunctualLightBuffer, 0, dc.punctualLightBufferSize);
+                        cmd.SetGlobalConstantBuffer(dc.punctualLightBuffer, URPShaderIDs.UPunctualLightBuffer, 0, dc.punctualLightBufferSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants._PunctualLightBuffer, dc.punctualLightBuffer);
+                        cmd.SetGlobalBuffer(URPShaderIDs._PunctualLightBuffer, dc.punctualLightBuffer);
 
                     if (DeferredConfig.UseCBufferForLightList)
-                        cmd.SetGlobalConstantBuffer(dc.relLightList, ShaderConstants.URelLightList, 0, dc.relLightListSize);
+                        cmd.SetGlobalConstantBuffer(dc.relLightList, URPShaderIDs.URelLightList, 0, dc.relLightListSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
+                        cmd.SetGlobalBuffer(URPShaderIDs._RelLightList, dc.relLightList);
 
-                    cmd.SetGlobalInt(ShaderConstants._InstanceOffset, dc.instanceOffset);
+                    cmd.SetGlobalInt(URPShaderIDs._InstanceOffset, dc.instanceOffset);
                     cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualLit], topology, vertexCount, dc.instanceCount);
                     cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, m_TileDeferredPasses[(int)TileDeferredPasses.PunctualSimpleLit], topology, vertexCount, dc.instanceCount);
                 }
@@ -1584,7 +1516,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     hasDeferredShadows = vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0;
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredShadows);
 
-                    cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                    cmd.SetGlobalInt(URPShaderIDs._ShadowLightIndex, shadowLightIndex);
                 }
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
@@ -1592,9 +1524,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
-                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
-                cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
-                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
+                cmd.SetGlobalVector(URPShaderIDs._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
+                cmd.SetGlobalVector(URPShaderIDs._LightDirection, lightDir);
+                cmd.SetGlobalInt(URPShaderIDs._LightFlags, lightFlags);
 
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
@@ -1645,12 +1577,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
-                cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
-                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
-                cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
-                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
-                cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                cmd.SetGlobalVector(URPShaderIDs._LightPosWS, lightPos);
+                cmd.SetGlobalVector(URPShaderIDs._LightColor, lightColor);
+                cmd.SetGlobalVector(URPShaderIDs._LightAttenuation, lightAttenuation);
+                cmd.SetGlobalVector(URPShaderIDs._LightOcclusionProbInfo, lightOcclusionChannel);
+                cmd.SetGlobalInt(URPShaderIDs._LightFlags, lightFlags);
+                cmd.SetGlobalInt(URPShaderIDs._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1700,16 +1632,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
-                cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
-                cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
-                cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
-                cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
-                cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
-                cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir.x, lightSpotDir.y, lightSpotDir.z));
-                cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
-                cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
-                cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                cmd.SetGlobalVector(URPShaderIDs._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
+                cmd.SetGlobalVector(URPShaderIDs._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
+                cmd.SetGlobalVector(URPShaderIDs._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
+                cmd.SetGlobalVector(URPShaderIDs._LightPosWS, lightPos);
+                cmd.SetGlobalVector(URPShaderIDs._LightColor, lightColor);
+                cmd.SetGlobalVector(URPShaderIDs._LightAttenuation, lightAttenuation);
+                cmd.SetGlobalVector(URPShaderIDs._LightDirection, new Vector3(lightSpotDir.x, lightSpotDir.y, lightSpotDir.z));
+                cmd.SetGlobalVector(URPShaderIDs._LightOcclusionProbInfo, lightOcclusionChannel);
+                cmd.SetGlobalInt(URPShaderIDs._LightFlags, lightFlags);
+                cmd.SetGlobalInt(URPShaderIDs._ShadowLightIndex, shadowLightIndex);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1803,12 +1735,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int pass = 0; pass < k_TileDeferredPassNames.Length; ++pass)
                 m_TileDeferredPasses[pass] = m_TileDeferredMaterial.FindPass(k_TileDeferredPassNames[pass]);
 
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._LitStencilRef, (float)StencilUsage.MaterialLit);
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._LitStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._LitStencilWriteMask, 0.0f);
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilRef, (float)StencilUsage.MaterialSimpleLit);
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_TileDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilWriteMask, 0.0f);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._LitStencilRef, (float)StencilUsage.MaterialLit);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._LitStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._LitStencilWriteMask, 0.0f);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitStencilRef, (float)StencilUsage.MaterialSimpleLit);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_TileDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitStencilWriteMask, 0.0f);
         }
 
         void InitStencilDeferredMaterial()
@@ -1820,24 +1752,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int pass = 0; pass < k_StencilDeferredPassNames.Length; ++pass)
                 m_StencilDeferredPasses[pass] = m_StencilDeferredMaterial.FindPass(k_StencilDeferredPassNames[pass]);
 
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._StencilRef, (float)StencilUsage.MaterialUnlit);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._StencilReadMask, (float)StencilUsage.MaterialMask);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._StencilWriteMask, (float)StencilUsage.StencilLight);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitPunctualStencilRef, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialLit));
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitPunctualStencilReadMask, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialMask));
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitPunctualStencilWriteMask, (float)StencilUsage.StencilLight);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitPunctualStencilRef, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialSimpleLit));
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitPunctualStencilReadMask, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialMask));
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitPunctualStencilWriteMask, (float)StencilUsage.StencilLight);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitDirStencilRef, (float)StencilUsage.MaterialLit);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitDirStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._LitDirStencilWriteMask, 0.0f);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilRef, (float)StencilUsage.MaterialSimpleLit);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilWriteMask, 0.0f);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilRef, 0.0f);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._StencilRef, (float)StencilUsage.MaterialUnlit);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._StencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._StencilWriteMask, (float)StencilUsage.StencilLight);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitPunctualStencilRef, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialLit));
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitPunctualStencilReadMask, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialMask));
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitPunctualStencilWriteMask, (float)StencilUsage.StencilLight);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitPunctualStencilRef, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialSimpleLit));
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitPunctualStencilReadMask, (float)((int)StencilUsage.StencilLight | (int)StencilUsage.MaterialMask));
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitPunctualStencilWriteMask, (float)StencilUsage.StencilLight);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitDirStencilRef, (float)StencilUsage.MaterialLit);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitDirStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._LitDirStencilWriteMask, 0.0f);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitDirStencilRef, (float)StencilUsage.MaterialSimpleLit);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitDirStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._SimpleLitDirStencilWriteMask, 0.0f);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._ClearStencilRef, 0.0f);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._ClearStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(URPShaderIDs._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
         }
 
         static Mesh CreateSphereMesh()

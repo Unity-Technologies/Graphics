@@ -124,12 +124,12 @@ namespace UnityEngine.Rendering.Universal
                 // we will also change it here to avoid breaking existing shaders. (case 1257518)
                 Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
                 Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
-                cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
+                cmd.SetGlobalMatrix(URPShaderIDs.unity_WorldToCamera, worldToCameraMatrix);
+                cmd.SetGlobalMatrix(URPShaderIDs.unity_CameraToWorld, cameraToWorldMatrix);
 
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
+                cmd.SetGlobalMatrix(URPShaderIDs.unity_MatrixInvV, inverseViewMatrix);
+                cmd.SetGlobalMatrix(URPShaderIDs.unity_MatrixInvP, inverseProjectionMatrix);
+                cmd.SetGlobalMatrix(URPShaderIDs.unity_MatrixInvVP, inverseViewProjection);
             }
 
             // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
@@ -199,16 +199,16 @@ namespace UnityEngine.Rendering.Universal
             // We need to enable this when we remove SetupCameraProperties
             // float projectionFlipSign = ???
             // Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
-            // cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
+            // cmd.SetGlobalVector(URPShaderIDs._ProjectionParams, projectionParams);
 
             Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, camera.transform.position);
-            cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
-            cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+            cmd.SetGlobalVector(URPShaderIDs._WorldSpaceCameraPos, camera.transform.position);
+            cmd.SetGlobalVector(URPShaderIDs._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            cmd.SetGlobalVector(URPShaderIDs._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(URPShaderIDs._ZBufferParams, zBufferParams);
+            cmd.SetGlobalVector(URPShaderIDs.unity_OrthoParams, orthoParams);
         }
 
         /// <summary>
@@ -231,11 +231,11 @@ namespace UnityEngine.Rendering.Universal
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
-            cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
+            cmd.SetGlobalVector(URPShaderIDs._Time, timeVector);
+            cmd.SetGlobalVector(URPShaderIDs._SinTime, sinTimeVector);
+            cmd.SetGlobalVector(URPShaderIDs._CosTime, cosTimeVector);
+            cmd.SetGlobalVector(URPShaderIDs.unity_DeltaTime, deltaTimeVector);
+            cmd.SetGlobalVector(URPShaderIDs._TimeParameters, timeParametersVector);
         }
 
         /// <summary>

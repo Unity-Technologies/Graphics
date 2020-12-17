@@ -6,12 +6,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class ShadowRendering
     {
-        private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
-        private static readonly int k_ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
-        private static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
-        private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
-        private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
-
         private static RenderTargetHandle[] m_RenderTargets = null;
         public static  uint maxTextureCount { get; private set; }
 
@@ -46,14 +40,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
         {
             cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[shadowIndex].Identifier());
-            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
+            cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowIntensity, 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowVolumeIntensity, 1 - light.shadowVolumeIntensity);
         }
 
         public static void DisableGlobalShadowTexture(CommandBuffer cmdBuffer)
         {
-            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1);
-            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1);
+            cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowIntensity, 1);
+            cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowVolumeIntensity, 1);
         }
 
         private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderTargetHandle rtHandle, RenderingData renderingData, CommandBuffer cmdBuffer)
@@ -84,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (rendererData.shadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
+                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(URPShaderIDs._ShadowStencilGroup, index);
             }
 
             return rendererData.shadowMaterials[shadowMaterialIndex];
@@ -96,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
             {
                 rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
+                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(URPShaderIDs._ShadowStencilGroup, index);
             }
 
             return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
@@ -109,8 +103,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var shadowRadius = 1.42f * light.boundingSphere.radius;
 
-            cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
-            cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
+            cmdBuffer.SetGlobalVector(URPShaderIDs._LightPos, light.transform.position);
+            cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowRadius, shadowRadius);
 
             var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
             var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);

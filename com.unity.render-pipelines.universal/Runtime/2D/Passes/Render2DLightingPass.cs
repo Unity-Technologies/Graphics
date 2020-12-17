@@ -8,20 +8,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {
-        private static readonly int k_HDREmulationScaleID = Shader.PropertyToID("_HDREmulationScale");
-        private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
-        private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
-        private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
-        private static readonly int k_CameraSortingLayerTextureID = Shader.PropertyToID("_CameraSortingLayerTexture");
-
-        private static readonly int[] k_ShapeLightTextureIDs =
-        {
-            Shader.PropertyToID("_ShapeLightTexture0"),
-            Shader.PropertyToID("_ShapeLightTexture1"),
-            Shader.PropertyToID("_ShapeLightTexture2"),
-            Shader.PropertyToID("_ShapeLightTexture3")
-        };
-
         private static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
@@ -86,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
             RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetRenderTarget(colorAttachment);
-            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
+            cmd.SetGlobalTexture(URPShaderIDs._CameraSortingLayerTexture, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
         }
 
@@ -175,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 if (blendStyleUsed)
                                 {
                                     var identifier = layerBatch.GetRTId(cmd, desc, blendStyleIndex);
-                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], identifier);
+                                    cmd.SetGlobalTexture(URPShaderIDs._ShapeLightTexture[blendStyleIndex], identifier);
                                 }
 
                                 RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
@@ -183,9 +169,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                         else
                         {
-                            for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                            for (var blendStyleIndex = 0; blendStyleIndex < URPShaderIDs._ShapeLightTexture.Length; blendStyleIndex++)
                             {
-                                cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                                cmd.SetGlobalTexture(URPShaderIDs._ShapeLightTexture[blendStyleIndex], Texture2D.blackTexture);
                                 RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
                             }
                         }
@@ -269,10 +255,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 normalsDrawSettings.sortingSettings = sortSettings;
 
                 var cmd = CommandBufferPool.Get();
-                cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
-                cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
-                cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
-                cmd.SetGlobalColor(k_RendererColorID, Color.white);
+                cmd.SetGlobalFloat(URPShaderIDs._HDREmulationScale, m_Renderer2DData.hdrEmulationScale);
+                cmd.SetGlobalFloat(URPShaderIDs._InverseHDREmulationScale, 1.0f / m_Renderer2DData.hdrEmulationScale);
+                cmd.SetGlobalFloat(URPShaderIDs._UseSceneLighting, isLitView ? 1.0f : 0.0f);
+                cmd.SetGlobalColor(URPShaderIDs._RendererColor, Color.white);
                 this.SetShapeLightShaderGlobals(cmd);
 
                 var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
@@ -296,13 +282,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
 
-                    cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
-                    cmd.SetGlobalColor(k_RendererColorID, Color.white);
+                    cmd.SetGlobalFloat(URPShaderIDs._UseSceneLighting, isLitView ? 1.0f : 0.0f);
+                    cmd.SetGlobalColor(URPShaderIDs._RendererColor, Color.white);
 
-                    for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                    for (var blendStyleIndex = 0; blendStyleIndex < URPShaderIDs._ShapeLightTexture.Length; blendStyleIndex++)
                     {
                         if (blendStyleIndex == 0)
-                            cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                            cmd.SetGlobalTexture(URPShaderIDs._ShapeLightTexture[blendStyleIndex], Texture2D.blackTexture);
 
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
                     }

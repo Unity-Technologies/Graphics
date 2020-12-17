@@ -191,23 +191,23 @@ namespace UnityEngine.Rendering.Universal
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
-            m_CameraColorAttachment.Init("_CameraColorTexture");
-            m_CameraDepthAttachment.Init("_CameraDepthAttachment");
-            m_DepthTexture.Init("_CameraDepthTexture");
-            m_NormalsTexture.Init("_CameraNormalsTexture");
+            m_CameraColorAttachment.Init(URPShaderIDs._CameraColorTexture);
+            m_CameraDepthAttachment.Init(URPShaderIDs._CameraDepthAttachment);
+            m_DepthTexture.Init(URPShaderIDs._CameraDepthTexture);
+            m_NormalsTexture.Init(URPShaderIDs._CameraNormalsTexture);
             if (this.renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferHandles = new RenderTargetHandle[(int)DeferredLights.GBufferHandles.Count];
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Init("_GBufferDepthAsColor");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Init("_GBuffer0");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Init("_GBuffer1");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Init("_GBuffer2");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = new RenderTargetHandle();
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Init("_GBuffer4");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Init(URPShaderIDs._CameraOpaqueTexture);
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Init(URPShaderIDs._GBuffer[0]);
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Init(URPShaderIDs._GBuffer[1]);
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Init(URPShaderIDs._GBuffer[2]);
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting].Init(URPShaderIDs._GBuffer[3]);
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Init(URPShaderIDs._GBuffer[4]);
             }
-            m_OpaqueColor.Init("_CameraOpaqueTexture");
-            m_DepthInfoTexture.Init("_DepthInfoTexture");
-            m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
+            m_OpaqueColor.Init(URPShaderIDs._CameraOpaqueTexture);
+            m_DepthInfoTexture.Init(URPShaderIDs._DepthInfoTexture);
+            m_TileDepthInfoTexture.Init(URPShaderIDs._TileDepthInfoTexture);
 
             supportedRenderingFeatures = new RenderingFeatures()
             {

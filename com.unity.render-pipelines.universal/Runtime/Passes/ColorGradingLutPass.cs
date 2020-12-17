@@ -123,34 +123,34 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lutHeight / (lutHeight - 1f));
 
                 // Fill in constants
-                material.SetVector(ShaderConstants._Lut_Params, lutParameters);
-                material.SetVector(ShaderConstants._ColorBalance, lmsColorBalance);
-                material.SetVector(ShaderConstants._ColorFilter, colorAdjustments.colorFilter.value.linear);
-                material.SetVector(ShaderConstants._ChannelMixerRed, channelMixerR);
-                material.SetVector(ShaderConstants._ChannelMixerGreen, channelMixerG);
-                material.SetVector(ShaderConstants._ChannelMixerBlue, channelMixerB);
-                material.SetVector(ShaderConstants._HueSatCon, hueSatCon);
-                material.SetVector(ShaderConstants._Lift, lift);
-                material.SetVector(ShaderConstants._Gamma, gamma);
-                material.SetVector(ShaderConstants._Gain, gain);
-                material.SetVector(ShaderConstants._Shadows, shadows);
-                material.SetVector(ShaderConstants._Midtones, midtones);
-                material.SetVector(ShaderConstants._Highlights, highlights);
-                material.SetVector(ShaderConstants._ShaHiLimits, shadowsHighlightsLimits);
-                material.SetVector(ShaderConstants._SplitShadows, splitShadows);
-                material.SetVector(ShaderConstants._SplitHighlights, splitHighlights);
+                material.SetVector(URPShaderIDs._Lut_Params, lutParameters);
+                material.SetVector(URPShaderIDs._ColorBalance, lmsColorBalance);
+                material.SetVector(URPShaderIDs._ColorFilter, colorAdjustments.colorFilter.value.linear);
+                material.SetVector(URPShaderIDs._ChannelMixerRed, channelMixerR);
+                material.SetVector(URPShaderIDs._ChannelMixerGreen, channelMixerG);
+                material.SetVector(URPShaderIDs._ChannelMixerBlue, channelMixerB);
+                material.SetVector(URPShaderIDs._HueSatCon, hueSatCon);
+                material.SetVector(URPShaderIDs._Lift, lift);
+                material.SetVector(URPShaderIDs._Gamma, gamma);
+                material.SetVector(URPShaderIDs._Gain, gain);
+                material.SetVector(URPShaderIDs._Shadows, shadows);
+                material.SetVector(URPShaderIDs._Midtones, midtones);
+                material.SetVector(URPShaderIDs._Highlights, highlights);
+                material.SetVector(URPShaderIDs._ShaHiLimits, shadowsHighlightsLimits);
+                material.SetVector(URPShaderIDs._SplitShadows, splitShadows);
+                material.SetVector(URPShaderIDs._SplitHighlights, splitHighlights);
 
                 // YRGB curves
-                material.SetTexture(ShaderConstants._CurveMaster, curves.master.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveRed, curves.red.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveGreen, curves.green.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveBlue, curves.blue.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveMaster, curves.master.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveRed, curves.red.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveGreen, curves.green.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveBlue, curves.blue.value.GetTexture());
 
                 // Secondary curves
-                material.SetTexture(ShaderConstants._CurveHueVsHue, curves.hueVsHue.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveHueVsSat, curves.hueVsSat.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveLumVsSat, curves.lumVsSat.value.GetTexture());
-                material.SetTexture(ShaderConstants._CurveSatVsSat, curves.satVsSat.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveHueVsHue, curves.hueVsHue.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveHueVsSat, curves.hueVsSat.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveLumVsSat, curves.lumVsSat.value.GetTexture());
+                material.SetTexture(URPShaderIDs._CurveSatVsSat, curves.satVsSat.value.GetTexture());
 
                 // Tonemapping (baked into the lut for HDR)
                 if (hdr)
@@ -187,35 +187,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             CoreUtils.Destroy(m_LutBuilderLdr);
             CoreUtils.Destroy(m_LutBuilderHdr);
-        }
-
-        // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
-        static class ShaderConstants
-        {
-            public static readonly int _Lut_Params        = Shader.PropertyToID("_Lut_Params");
-            public static readonly int _ColorBalance      = Shader.PropertyToID("_ColorBalance");
-            public static readonly int _ColorFilter       = Shader.PropertyToID("_ColorFilter");
-            public static readonly int _ChannelMixerRed   = Shader.PropertyToID("_ChannelMixerRed");
-            public static readonly int _ChannelMixerGreen = Shader.PropertyToID("_ChannelMixerGreen");
-            public static readonly int _ChannelMixerBlue  = Shader.PropertyToID("_ChannelMixerBlue");
-            public static readonly int _HueSatCon         = Shader.PropertyToID("_HueSatCon");
-            public static readonly int _Lift              = Shader.PropertyToID("_Lift");
-            public static readonly int _Gamma             = Shader.PropertyToID("_Gamma");
-            public static readonly int _Gain              = Shader.PropertyToID("_Gain");
-            public static readonly int _Shadows           = Shader.PropertyToID("_Shadows");
-            public static readonly int _Midtones          = Shader.PropertyToID("_Midtones");
-            public static readonly int _Highlights        = Shader.PropertyToID("_Highlights");
-            public static readonly int _ShaHiLimits       = Shader.PropertyToID("_ShaHiLimits");
-            public static readonly int _SplitShadows      = Shader.PropertyToID("_SplitShadows");
-            public static readonly int _SplitHighlights   = Shader.PropertyToID("_SplitHighlights");
-            public static readonly int _CurveMaster       = Shader.PropertyToID("_CurveMaster");
-            public static readonly int _CurveRed          = Shader.PropertyToID("_CurveRed");
-            public static readonly int _CurveGreen        = Shader.PropertyToID("_CurveGreen");
-            public static readonly int _CurveBlue         = Shader.PropertyToID("_CurveBlue");
-            public static readonly int _CurveHueVsHue     = Shader.PropertyToID("_CurveHueVsHue");
-            public static readonly int _CurveHueVsSat     = Shader.PropertyToID("_CurveHueVsSat");
-            public static readonly int _CurveLumVsSat     = Shader.PropertyToID("_CurveLumVsSat");
-            public static readonly int _CurveSatVsSat     = Shader.PropertyToID("_CurveSatVsSat");
         }
     }
 }

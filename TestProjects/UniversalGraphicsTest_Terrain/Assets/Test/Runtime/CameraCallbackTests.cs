@@ -20,13 +20,13 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
 	public CameraCallbackTests()
 	{
-		beforeAll.Init("_BeforeAll");
-		afterOpaque.Init("_AfterOpaque");
-		afterSkybox.Init("_AfterSkybox");
-	    afterSkybox2.Init("_AfterSkybox2");
-		afterTransparent.Init("_AfterTransparent");
-		afterPost.Init("_AfterPostProcessTexture");
-		afterAll.Init("_AfterAll");
+        beforeAll.Init(Shader.PropertyToID("_BeforeAll"));
+        afterOpaque.Init(Shader.PropertyToID("_AfterOpaque"));
+        afterSkybox.Init(Shader.PropertyToID("_AfterSkybox"));
+        afterSkybox2.Init(Shader.PropertyToID("_AfterSkybox2"));
+        afterTransparent.Init(Shader.PropertyToID("_AfterTransparent"));
+        afterPost.Init(Shader.PropertyToID("_AfterPostProcessTexture"));
+        afterAll.Init(Shader.PropertyToID("_AfterAll"));
 	}
 
 	public override void Create()

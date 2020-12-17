@@ -41,23 +41,23 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
 
-            LightConstantBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
-            LightConstantBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            LightConstantBuffer._MainLightOcclusionProbesChannel = Shader.PropertyToID("_MainLightOcclusionProbes");
-            LightConstantBuffer._AdditionalLightsCount = Shader.PropertyToID("_AdditionalLightsCount");
+            LightConstantBuffer._MainLightPosition = URPShaderIDs._MainLightPosition;
+            LightConstantBuffer._MainLightColor = URPShaderIDs._MainLightColor;
+            LightConstantBuffer._MainLightOcclusionProbesChannel = URPShaderIDs._MainLightOcclusionProbes;
+            LightConstantBuffer._AdditionalLightsCount = URPShaderIDs._AdditionalLightsCount;
 
             if (m_UseStructuredBuffer)
             {
-                m_AdditionalLightsBufferId = Shader.PropertyToID("_AdditionalLightsBuffer");
-                m_AdditionalLightsIndicesId = Shader.PropertyToID("_AdditionalLightsIndices");
+                m_AdditionalLightsBufferId = URPShaderIDs._AdditionalLightsBuffer;
+                m_AdditionalLightsIndicesId = URPShaderIDs._AdditionalLightsIndices;
             }
             else
             {
-                LightConstantBuffer._AdditionalLightsPosition = Shader.PropertyToID("_AdditionalLightsPosition");
-                LightConstantBuffer._AdditionalLightsColor = Shader.PropertyToID("_AdditionalLightsColor");
-                LightConstantBuffer._AdditionalLightsAttenuation = Shader.PropertyToID("_AdditionalLightsAttenuation");
-                LightConstantBuffer._AdditionalLightsSpotDir = Shader.PropertyToID("_AdditionalLightsSpotDir");
-                LightConstantBuffer._AdditionalLightOcclusionProbeChannel = Shader.PropertyToID("_AdditionalLightsOcclusionProbes");
+                LightConstantBuffer._AdditionalLightsPosition = URPShaderIDs._AdditionalLightsPosition;
+                LightConstantBuffer._AdditionalLightsColor = URPShaderIDs._AdditionalLightsColor;
+                LightConstantBuffer._AdditionalLightsAttenuation = URPShaderIDs._AdditionalLightsAttenuation;
+                LightConstantBuffer._AdditionalLightsSpotDir = URPShaderIDs._AdditionalLightsSpotDir;
+                LightConstantBuffer._AdditionalLightOcclusionProbeChannel = URPShaderIDs._AdditionalLightsOcclusionProbes;
 
                 int maxLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 m_AdditionalLightPositions = new Vector4[maxLights];

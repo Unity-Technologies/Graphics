@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_SamplingMaterial = samplingMaterial;
             m_CopyColorMaterial = copyColorMaterial;
-            m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
+            m_SampleOffsetShaderHandle = URPShaderIDs._SampleOffset;
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
             base.useNativeRenderPass = false;

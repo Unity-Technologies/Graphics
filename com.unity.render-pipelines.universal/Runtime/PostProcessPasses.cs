@@ -39,8 +39,8 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLut = new RenderTargetHandle();
             m_CurrentPostProcessData = null;
 
-            m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
-            m_ColorGradingLut.Init("_InternalGradingLut");
+            m_AfterPostProcessColor.Init(URPShaderIDs._AfterPostProcessTexture);
+            m_ColorGradingLut.Init(URPShaderIDs._InternalGradingLut);
 
             m_RendererPostProcessData = rendererPostProcessData;
             m_BlitMaterial = blitMaterial;

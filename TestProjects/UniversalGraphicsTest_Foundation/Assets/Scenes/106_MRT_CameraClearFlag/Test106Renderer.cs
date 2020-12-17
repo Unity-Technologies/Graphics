@@ -19,15 +19,15 @@ namespace UnityEngine.Rendering.Universal
 
         public Test106Renderer(Test106RendererData data) : base(data)
         {
-            m_CameraColor.Init("_CameraColor");
-            m_CameraDepth.Init("_CameraDepth");
+            m_CameraColor.Init(Shader.PropertyToID("_CameraColor"));
+            m_CameraDepth.Init(Shader.PropertyToID("_CameraDepth"));
 
             Material colorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
             m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(colorToMrtMaterial);
 
             m_ColorToMrtOutputs = new RenderTargetHandle[2];
             //m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
-            m_ColorToMrtOutputs[1].Init("_ColorToMrtOutput1");
+            m_ColorToMrtOutputs[1].Init(Shader.PropertyToID("_ColorToMrtOutput1"));
 
             Material copyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
             m_CopyToViewportPasses = new CopyToViewportRenderPass[2];

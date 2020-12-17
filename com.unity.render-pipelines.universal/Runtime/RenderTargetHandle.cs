@@ -26,17 +26,9 @@ namespace UnityEngine.Rendering.Universal
             return CameraTarget;
         }
 
-        public void Init(string shaderProperty)
+        public void Init(int id)
         {
-            // Shader.PropertyToID returns what is internally referred to as a "ShaderLab::FastPropertyName".
-            // It is a value coming from an internal global std::map<char*,int> that converts shader property strings into unique integer handles (that are faster to work with).
-            id = Shader.PropertyToID(shaderProperty);
-        }
-
-        public void Init(RenderTargetIdentifier renderTargetIdentifier)
-        {
-            id = -2;
-            rtid = renderTargetIdentifier;
+            this.id = id;
         }
 
         public RenderTargetIdentifier Identifier()

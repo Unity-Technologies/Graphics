@@ -98,18 +98,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(AdditionalLightsShadowCasterPass));
             renderPassEvent = evt;
 
-            AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
-            AdditionalShadowsConstantBuffer._AdditionalShadowParams = Shader.PropertyToID("_AdditionalShadowParams");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
-            AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
-            AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
-            AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
-            m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
+            AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = URPShaderIDs._AdditionalLightsWorldToShadow;
+            AdditionalShadowsConstantBuffer._AdditionalShadowParams = URPShaderIDs._AdditionalShadowParams;
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = URPShaderIDs._AdditionalShadowOffset[0];
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = URPShaderIDs._AdditionalShadowOffset[1];
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = URPShaderIDs._AdditionalShadowOffset[2];
+            AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = URPShaderIDs._AdditionalShadowOffset[3];
+            AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = URPShaderIDs._AdditionalShadowFadeParams;
+            AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = URPShaderIDs._AdditionalShadowmapSize;
+            m_AdditionalLightsShadowmap.Init(URPShaderIDs._AdditionalLightsShadowmapTexture);
 
-            m_AdditionalLightsWorldToShadow_SSBO = Shader.PropertyToID("_AdditionalLightsWorldToShadow_SSBO");
-            m_AdditionalShadowParams_SSBO = Shader.PropertyToID("_AdditionalShadowParams_SSBO");
+            m_AdditionalLightsWorldToShadow_SSBO = URPShaderIDs._AdditionalLightsWorldToShadow_SSBO;
+            m_AdditionalShadowParams_SSBO = URPShaderIDs._AdditionalShadowParams_SSBO;
 
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;

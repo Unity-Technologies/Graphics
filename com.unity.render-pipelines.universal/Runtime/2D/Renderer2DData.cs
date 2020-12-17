@@ -130,11 +130,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+                m_LightBlendStyles[i].renderTargetHandle.Init(Shader.PropertyToID($"_ShapeLightTexture{i}"));
             }
 
-            normalsRenderTarget.Init("_NormalMap");
-            shadowsRenderTarget.Init("_ShadowTex");
+            normalsRenderTarget.Init(URPShaderIDs._NormalMap);
+            shadowsRenderTarget.Init(URPShaderIDs._ShadowTex);
 
             const int totalMaterials = 256;
             if (shadowMaterials == null || shadowMaterials.Length == 0)

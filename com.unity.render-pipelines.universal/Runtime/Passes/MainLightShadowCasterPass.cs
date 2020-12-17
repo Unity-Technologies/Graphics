@@ -51,20 +51,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];
             m_CascadeSplitDistances = new Vector4[k_MaxCascades];
 
-            MainLightShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_MainLightWorldToShadow");
-            MainLightShadowConstantBuffer._ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 = Shader.PropertyToID("_CascadeShadowSplitSpheres0");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 = Shader.PropertyToID("_CascadeShadowSplitSpheres1");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3 = Shader.PropertyToID("_CascadeShadowSplitSpheres3");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii = Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
-            MainLightShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
-            MainLightShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
-            MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
-            MainLightShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_MainLightShadowOffset3");
-            MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
+            MainLightShadowConstantBuffer._WorldToShadow = URPShaderIDs._MainLightWorldToShadow;
+            MainLightShadowConstantBuffer._ShadowParams = URPShaderIDs._MainLightShadowParams;
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 = URPShaderIDs._CascadeShadowSplitSpheres[0];
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 = URPShaderIDs._CascadeShadowSplitSpheres[1];
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = URPShaderIDs._CascadeShadowSplitSpheres[2];
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3 = URPShaderIDs._CascadeShadowSplitSpheres[3];
+            MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii = URPShaderIDs._CascadeShadowSplitSphereRadii;
+            MainLightShadowConstantBuffer._ShadowOffset0 = URPShaderIDs._MainLightShadowOffset[0];
+            MainLightShadowConstantBuffer._ShadowOffset1 = URPShaderIDs._MainLightShadowOffset[1];
+            MainLightShadowConstantBuffer._ShadowOffset2 = URPShaderIDs._MainLightShadowOffset[2];
+            MainLightShadowConstantBuffer._ShadowOffset3 = URPShaderIDs._MainLightShadowOffset[3];
+            MainLightShadowConstantBuffer._ShadowmapSize = URPShaderIDs._MainLightShadowmapSize;
 
-            m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
+            m_MainLightShadowmap.Init(URPShaderIDs._MainLightShadowmapTexture);
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
         }
 

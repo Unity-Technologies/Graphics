@@ -1086,18 +1086,18 @@ namespace UnityEngine.Rendering.Universal
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
-            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
+            Shader.SetGlobalVector(URPShaderIDs._GlossyEnvironmentColor, glossyEnvColor);
 
             // Ambient
-            Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientEquatorColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
-            Shader.SetGlobalVector(ShaderPropertyId.ambientGroundColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
+            Shader.SetGlobalVector(URPShaderIDs.unity_AmbientSky, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
+            Shader.SetGlobalVector(URPShaderIDs.unity_AmbientEquator, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientEquatorColor));
+            Shader.SetGlobalVector(URPShaderIDs.unity_AmbientGround, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientGroundColor));
 
             // Used when subtractive mode is selected
-            Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+            Shader.SetGlobalVector(URPShaderIDs._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
-            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
+            Shader.SetGlobalColor(URPShaderIDs._RendererColor, Color.white);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
