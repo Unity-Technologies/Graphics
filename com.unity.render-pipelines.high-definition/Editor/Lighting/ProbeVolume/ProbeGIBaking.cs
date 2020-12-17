@@ -408,7 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int index = 0;
 
-            bool placementHappened = false;
             int totalBricks = 0;
             // subdivide and create positions and add them to the bake queue
             foreach (var cellPos in cellPositions)
@@ -445,16 +444,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, probePositionsArr);
                     cell.probePositions = probePositionsArr;
                     cell.bricks = bricks;
-                    placementHappened = true;
                     totalBricks += bricks.Count;
 
                     bakingCells.Add(cell);
                     cellIndex2SceneReferences[cell.index] = new List<Scene>(sortedRefs.Values);
                 }
             }
-
-            if (placementHappened)
-                Debug.Log("Probe Placement completed. " + totalBricks + " Bricks placed.");
         }
     }
 }
