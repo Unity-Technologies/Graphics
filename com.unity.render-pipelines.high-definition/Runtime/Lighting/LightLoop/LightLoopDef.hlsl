@@ -182,8 +182,8 @@ uint BitFieldFromBitRange(int minBit, int maxBit)
         minBit = max( 0, minBit);
         maxBit = min(31, maxBit);
 
-        uint minMask = (1u << (minBit    )) - 1u; // (minBit =  0) -> (minMask = 0)
-        uint maxMask = (1u << (maxBit + 1)) - 1u; // (maxBit = 31) -> (maxMask = 0xFFFFFFFF)
+        uint minMask = (1u << minBit) - 1u;       // (minBit =  0) -> (minMask = 0)
+        uint maxMask = UINT_MAX >> (31 - maxBit); // (maxBit = 31) -> (maxMask = 0xFFFFFFFF)
 
         mask = minMask ^ maxMask;
     }
@@ -219,8 +219,8 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
     for (uint d = 0; (d < dwordCount) && (!found); d++)
     {
         const uint tileDword = TILE_BUFFER[tileBufferIndex + d];
-        const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - (d * 32),
-                                                    zBinEntityIndexRange.y - (d * 32));
+        const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - ((int)d * 32),
+                                                    zBinEntityIndexRange.y - ((int)d * 32));
 
         uint inputDword = tileDword & zbinDword; // Intersect the ranges
 

@@ -235,7 +235,7 @@
 // Wrap this function with WaveReadLaneFirst() to get scalar output.
 uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
-    uint mask = (1u << numBits) - 1u;
+    uint mask = UINT_MAX >> (32u - numBits);
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
@@ -246,9 +246,9 @@ uint BitFieldExtract(uint data, uint offset, uint numBits)
 // Wrap this function with WaveReadLaneFirst() to get scalar output.
 int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
 {
+    uint mask    = UINT_MAX >> (32u - numBits);
     int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
-    int  signBit = shifted & (1u << (numBits - 1u));
-    uint mask    = (1u << numBits) - 1u;
+    int  signBit = shifted & mask;
 
     return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
 }
