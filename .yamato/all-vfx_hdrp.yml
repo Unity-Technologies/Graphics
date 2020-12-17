@@ -41,8 +41,6 @@ PR_VFX_HDRP_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
