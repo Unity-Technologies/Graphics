@@ -30,11 +30,11 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 sceneRefs[origin] += 1;
         }
-        
+
         static protected int RenderersToVolumes(ref Renderer[] renderers, ref Volume cellVolume, ref List<Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             int num = 0;
-            
+
             foreach (Renderer r in renderers)
             {
                 var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Volume v = ToVolume(r.bounds);
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref v))
-                { 
+                {
                     volumes.Add(v);
 
                     TrackSceneRefs(r.gameObject.scene, ref sceneRefs);
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Volume indicatorVolume = new Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
-                { 
+                {
                     volumes.Add(indicatorVolume);
                     TrackSceneRefs(pv.gameObject.scene, ref sceneRefs);
                     num++;
@@ -168,12 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     var brickVolumeMax = brickVolume.Corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
                     var cellVolumeMax = cellVolumeTrans.Corner + cellVolumeTrans.X + cellVolumeTrans.Y + cellVolumeTrans.Z;
 
-                    f.discard = brickVolume.Corner.x < cellVolumeTrans.Corner.x ||
-                                brickVolume.Corner.y < cellVolumeTrans.Corner.y ||
-                                brickVolume.Corner.z < cellVolumeTrans.Corner.z ||
-                                brickVolumeMax.x > cellVolumeMax.x ||
-                                brickVolumeMax.y > cellVolumeMax.y ||
-                                brickVolumeMax.z > cellVolumeMax.z;
+                    f.discard = brickVolume.Corner.x<cellVolumeTrans.Corner.x ||
+                                                     brickVolume.Corner.y<cellVolumeTrans.Corner.y ||
+                                                                          brickVolume.Corner.z<cellVolumeTrans.Corner.z ||
+                                                                                               brickVolumeMax.x> cellVolumeMax.x ||
+                                                                          brickVolumeMax.y> cellVolumeMax.y ||
+                                                     brickVolumeMax.z> cellVolumeMax.z;
                 }
                 else
                 {
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public static void Subdivide(Vector3Int cellPosGridSpace, ProbeReferenceVolume refVol, float cellSize, Vector3 translation, Quaternion rotation, List<Volume> influencerVolumes, 
+        public static void Subdivide(Vector3Int cellPosGridSpace, ProbeReferenceVolume refVol, float cellSize, Vector3 translation, Quaternion rotation, List<Volume> influencerVolumes,
             ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
         {
             //TODO: This per-cell volume is calculated 2 times during probe placement. We should calculate it once and reuse it.
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO move out
             var indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
-            foreach(ProbeVolume pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
+            foreach (ProbeVolume pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
                 if (!pv.enabled)
                     continue;
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ProbeReferenceVolume.SubdivisionDel subdivDel =
                 (RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags) =>
-                { SubdivisionAlgorithm(cellVolume, indicatorVolumes, influencerVolumes, refTrans, inBricks, outFlags); };
+            { SubdivisionAlgorithm(cellVolume, indicatorVolumes, influencerVolumes, refTrans, inBricks, outFlags); };
 
             bricks = new List<ProbeBrickIndex.Brick>();
 

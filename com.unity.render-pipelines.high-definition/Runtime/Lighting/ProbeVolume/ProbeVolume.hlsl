@@ -180,7 +180,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     {
         float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
         EvaluateAPVL1(apvRes, L0, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-        
+
         bakeDiffuseLighting += L0;
         backBakeDiffuseLighting += L0;
     }

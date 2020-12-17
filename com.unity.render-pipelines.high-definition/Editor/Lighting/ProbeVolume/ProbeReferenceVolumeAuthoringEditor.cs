@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
             if (ShaderConfig.s_EnableProbeVolumes == 0)
             {
                 EditorGUILayout.HelpBox("Warning: Probe Volumes are not enabled.\nIt is an highly experimental feature and disabled by default for this reason.\n Its functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\n" +
@@ -161,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private void Constrain()
-        {         
+        {
             m_CullingDistance.floatValue = Mathf.Max(m_CullingDistance.floatValue, 0);
             m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);

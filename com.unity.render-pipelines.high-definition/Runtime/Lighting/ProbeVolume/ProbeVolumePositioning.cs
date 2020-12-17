@@ -18,9 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
         {
             Flags f = new Flags();
-            for( int i = 0; i < inBricks.Count; i++ )
+            for (int i = 0; i < inBricks.Count; i++)
             {
-                if( ShouldKeepBrick( ref refTrans, inBricks[i] ) )
+                if (ShouldKeepBrick(ref refTrans, inBricks[i]))
                 {
                     f.discard = false;
                     f.subdivide = true;

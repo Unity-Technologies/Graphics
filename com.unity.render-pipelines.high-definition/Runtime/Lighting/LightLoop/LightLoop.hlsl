@@ -524,7 +524,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
             apvBuiltinData.bakeDiffuseLighting *= indirectDiffuseMultiplier;
             apvBuiltinData.backBakeDiffuseLighting *= indirectDiffuseMultiplier;
-            
+
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 #ifdef DEBUG_DISPLAY
             // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting

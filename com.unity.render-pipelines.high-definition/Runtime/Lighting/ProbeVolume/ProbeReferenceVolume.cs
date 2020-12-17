@@ -114,9 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
-            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
-            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
-            public override bool Equals(object obj) 
+            public static bool operator==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
+            public static bool operator!=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public override bool Equals(object obj)
             {
                 if ((obj == null) || !this.GetType().Equals(obj.GetType()))
                 {
@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return p == this;
                 }
             }
+
             public override int GetHashCode() => id;
         }
 
@@ -146,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Dictionary<int, Cell> Cells = new Dictionary<int, Cell>();
         public Dictionary<string, List<RegId>> AssetPathToBricks = new Dictionary<string, List<RegId>>();
-        
+
         private bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
@@ -183,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
-            {     
+            {
                 m_PendingAssetsToBeLoaded.Remove(key);
             }
             m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
@@ -199,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Remove bricks and empty cells
-            foreach(var cell in asset.cells)
+            foreach (var cell in asset.cells)
                 Cells.Remove(cell.index);
 
             // Unload brick data
@@ -219,6 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_NeedsIndexDimChange = false;
             }
         }
+
         private void PerformPendingLoading()
         {
             if (m_PendingAssetsToBeLoaded.Count == 0 || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
@@ -272,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PositionOffsets[0] = 0.0f;
             float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
             for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
-                m_PositionOffsets[i] = i * probeDelta; 
+                m_PositionOffsets[i] = i * probeDelta;
             m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
             Profiler.EndSample();
 
@@ -446,6 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Profiler.EndSample();
         }
+
 #endif
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
