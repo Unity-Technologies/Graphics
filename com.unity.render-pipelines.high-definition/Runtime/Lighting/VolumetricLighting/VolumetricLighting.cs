@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          viewCount;
             public bool                         tiledLighting;
 
-            public Texture3D                    volumeAtlas;
+            public RenderTexture                volumeAtlas;
 
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -692,10 +692,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VolumeMaskDimensions = Vector4.zero;
             if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
             {
-                cb._VolumeMaskDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                cb._VolumeMaskDimensions.y = volumeAtlas.width;
-                cb._VolumeMaskDimensions.z = volumeAtlas.depth;
-                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.width, 2); // Max LoD
+                cb._VolumeMaskDimensions.x = (float)volumeAtlas.rt.width / volumeAtlas.rt.depth; // 1 / number of textures
+                cb._VolumeMaskDimensions.y = volumeAtlas.rt.width;
+                cb._VolumeMaskDimensions.z = volumeAtlas.rt.depth;
+                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.rt.width, 2); // Max LoD
             }
 
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, fog);
@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.volumeAtlas == null)
             {
-                parameters.volumeAtlas = CoreUtils.blackVolumeTexture;
+                parameters.volumeAtlas = CoreUtils.emptyUAV;
             }
 
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);

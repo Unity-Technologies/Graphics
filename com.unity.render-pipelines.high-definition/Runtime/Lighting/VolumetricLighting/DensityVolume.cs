@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Tiling rate of the density texture.</summary>
         public Vector3   textureTiling;
 
+        public ComputeShader volumeShader;
+
         /// <summary>Edge fade factor along the positive X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_PositiveFade")]
         public Vector3   positiveFade;
@@ -68,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;
             textureOffset         = textureScrollingSpeed;
+            volumeShader          = null;
 
             size                  = Vector3.one;
 
@@ -158,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
+        private ComputeShader previousVolumeShader = null;
 #if UNITY_EDITOR
         private int volumeMaskHash = 0;
 #endif
@@ -170,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager
-            bool updated = previousVolumeMask != parameters.volumeMask;
+            bool updated = (previousVolumeMask != parameters.volumeMask) || (previousVolumeShader != parameters.volumeShader);
 #if UNITY_EDITOR
             int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
             updated |= newMaskHash != volumeMaskHash;
@@ -180,6 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
+                previousVolumeShader = parameters.volumeShader;
 #if UNITY_EDITOR
                 volumeMaskHash = newMaskHash;
 #endif

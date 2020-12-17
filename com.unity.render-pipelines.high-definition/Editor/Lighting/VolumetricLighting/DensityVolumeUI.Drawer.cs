@@ -13,7 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Expandable
         {
             Volume = 1 << 0,
-            DensityMaskTexture = 1 << 1
+            DensityMaskTexture = 1 << 1,
+            DensityMaskShader = 1 << 2
         }
 
         readonly static ExpandedState<Expandable, DensityVolume> k_ExpandedState = new ExpandedState<Expandable, DensityVolume>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
@@ -30,6 +31,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.FoldoutGroup(
                 Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
                 Drawer_DensityMaskTextureContent
+                ),
+            CED.FoldoutGroup(
+                Styles.k_DensityMaskShaderHeader, Expandable.DensityMaskShader, k_ExpandedState,
+                Drawer_DensityMaskShaderContent
                 )
             );
 
@@ -180,6 +185,11 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
             EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
+        }
+
+        static void Drawer_DensityMaskShaderContent(SerializedDensityVolume serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.volumeShader, Styles.s_VolumeShaderLabel);
         }
     }
 }

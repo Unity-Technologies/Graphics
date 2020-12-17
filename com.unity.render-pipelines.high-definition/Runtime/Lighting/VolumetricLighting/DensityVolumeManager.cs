@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.AddTexture(volume.parameters.volumeMask);
+                volumeAtlas.AddVolume(volume);
             }
         }
 
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+                volumeAtlas.RemoveVolume(volume);
             }
 
             //Upon removal we have to refresh the texture list.
@@ -82,20 +82,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumeAtlasRefresh();
             }
 
-            volumeAtlas.GenerateAtlas(cmd);
+            volumeAtlas.UpdateAtlas(cmd);
 
             return volumes;
         }
 
         private void VolumeAtlasRefresh()
         {
-            volumeAtlas.ClearTextures();
+            volumeAtlas.ClearVolumes();
             foreach (DensityVolume volume in volumes)
             {
-                if (volume.parameters.volumeMask != null)
-                {
-                    volumeAtlas.AddTexture(volume.parameters.volumeMask);
-                }
+                volumeAtlas.AddVolume(volume);
             }
         }
 
@@ -106,10 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void AtlasUpdated()
         {
-            foreach (DensityVolume volume in volumes)
-            {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
-            }
+            //foreach (DensityVolume volume in volumes)
+            //{
+            //    volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
+            //}
         }
     }
 }

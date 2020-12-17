@@ -85,7 +85,8 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     float maxLod         = _VolumeMaskDimensions.w;
 
     float offset = volumeData.textureIndex * rcpNumTextures;
-    voxelCenterUVW.z = voxelCenterUVW.z * rcpNumTextures + offset;
+    // TODO (Apoorva): Understand this and potentially re-enable for density volumes not driven by compute shaders
+    // voxelCenterUVW.z = voxelCenterUVW.z * rcpNumTextures + offset;
 
     // TODO: expose the LoD bias parameter.
     float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth);
@@ -104,8 +105,10 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     float halfTexelSize = 0.5f * rcp(mipSize);
     voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
 
+    // TODO (Apoorva): Make mips work again (last param)
+    lod = 0;
     // Reminder: still no filtering across the the wrap in Z.
-    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
+    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).r;
 }
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
