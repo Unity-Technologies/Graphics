@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cellIndex2SceneReferences.Clear();
+            bakingCells.Clear();
         }
 
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent()
