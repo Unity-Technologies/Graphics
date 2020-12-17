@@ -65,6 +65,7 @@ test_platforms: # refer by testplatform name
 ### Changes when branching out
 - When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
   - In *__shared.metafile* change all references: `editors`, `target_editor` (e.g. trunk), `target_branch` (e.g. master), `target_branch_editor_ci` (editor pinning branch)
+  - Create the `target_branch_editor_ci` manually via git. Make sure the branch can be created and pushed to the remote, and eventually adjust the *_shared.metafile* accordingly.
   - In *__editor.metafile* change all references: `editor_tracks` (used by editor pinning), `trunk_track` (used by editor pinning), `green_revision_jobs`  
   - In *_packages.metafile* change reference: `publish_all_track`
   - Rename `_green_job_revisions_[track].metafile` and `_latest_editor_versions_[track].metafile` to use the correct track
