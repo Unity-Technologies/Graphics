@@ -323,15 +323,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
 
-                // Compute the camera relative position
-                Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    probePositionRWS -= hdCamera.camera.transform.position;
-                }
 
                 if (currentEnvLight != null)
                 {
+                    // If the reflection probe is disabled, we should not be adding it
+                    if (!currentEnvLight.enabled) continue;
+
+                    // Compute the camera relative position
+                    Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        probePositionRWS -= hdCamera.camera.transform.position;
+                    }
+
                     if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
