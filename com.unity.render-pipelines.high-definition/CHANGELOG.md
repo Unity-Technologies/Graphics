@@ -28,11 +28,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
-- Fixed wrong coat normal space in shader graph
-- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
-- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
-- Fixed volumetric fog with XR single-pass rendering.
-- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 - Fixed AOV api in render graph (case 1296605)
 - Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
 
