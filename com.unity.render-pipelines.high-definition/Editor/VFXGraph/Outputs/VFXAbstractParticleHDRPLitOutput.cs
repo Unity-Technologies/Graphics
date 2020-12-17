@@ -407,6 +407,7 @@ namespace UnityEditor.VFX
                 {
                     yield return "onlyAmbientLighting";
                     yield return "preserveSpecularLighting";
+                    yield return "excludeFromTAA";
                 }
             }
         }
