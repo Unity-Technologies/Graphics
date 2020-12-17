@@ -136,6 +136,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
 
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_DecalMeshBiasType",
+                floatType = FloatType.Enum,
+                value = (int)DecalMeshDepthBiasType.DepthBias,
+                enumNames = { "Depth Bias", "View Bias" },
+                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias},
+                hidden = true
+            });
+
+
             Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
             decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
             decalMeshDepthBias.displayName = "DecalMesh DepthBias";
@@ -143,6 +154,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
+
+            Vector1ShaderProperty decalMeshViewBias = new Vector1ShaderProperty();
+            decalMeshViewBias.overrideReferenceName = "_DecalMeshViewBias";
+            decalMeshViewBias.displayName = "DecalMesh ViewBias";
+            decalMeshViewBias.hidden = true;
+            decalMeshViewBias.floatType = FloatType.Default;
+            decalMeshViewBias.value = 0;
+            collector.AddShaderProperty(decalMeshViewBias);
+
             AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
