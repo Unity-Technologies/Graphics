@@ -535,6 +535,11 @@ real FastATan(real x)
     return (x < 0.0) ? -t0 : t0;
 }
 
+real FastAtan2(real y, real x)
+{
+    return FastATan(y / x) + (y >= 0.0 ? PI : -PI) * (x < 0.0);
+}
+
 #if (SHADER_TARGET >= 45)
 uint FastLog2(uint x)
 {

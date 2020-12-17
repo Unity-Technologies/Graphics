@@ -4,7 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.0.2] - XXXX-XX-XX
+## [3.0.2] - 2020-12-08
+
+### Fixed
+- Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
