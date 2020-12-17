@@ -951,7 +951,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
                 if (serialized.renderPipelineSettings.supportRayTracing.boolValue && !UnityEngine.SystemInfo.supportsRayTracing)
                 {
-                    EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
+                    if (PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget)[0] != GraphicsDeviceType.Direct3D12)
+                    {
+                        EditorGUILayout.HelpBox(Styles.rayTracingDX12OnlyWarning.text, MessageType.Warning, wide: true);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
+                    }
                 }
                 --EditorGUI.indentLevel;
             }
