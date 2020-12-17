@@ -8,67 +8,71 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Volumetric Clouds")]
     public sealed class VolumetricClouds : VolumeComponent
     {
-        // Enable/Disable the volumetric clouds effect
+        [Tooltip("Enable/Disable the volumetric clouds effect.")]
         public BoolParameter enable = new BoolParameter(false);
 
         // The size of the cloud dome in kilometers around the center of the world
-        public ClampedFloatParameter cloudDomeSize = new ClampedFloatParameter(32.0f, 16.0f, 64.0f);
+        [Tooltip("The size of the cloud dome in kilometers around the center of the world")]
+        public ClampedFloatParameter cloudDomeSize = new ClampedFloatParameter(32.0f, 16.0f, 128.0f);
 
-        // Lower cloud altitude above the camera
+        [Tooltip("Tiling (x,y) and offset (z,w) of the cloud map")]
+        public Vector4Parameter cloudTiling = new Vector4Parameter(new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+
+        [Tooltip("Altitude in meters of the lowest cloud")]
         public ClampedFloatParameter lowestCloudAltitude = new ClampedFloatParameter(1500f, 600f, 1500f);
 
-        // Highest cloud altitude above the camera
+        [Tooltip("Altitude in meters of the highest cloud")]
         public ClampedFloatParameter highestCloudAltitude = new ClampedFloatParameter(8000, 1500f, 8000f);
 
-        // Number of camera->cloud steps
+        [Tooltip("Number of camera->cloud steps")]
         public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 8, 256);
 
-        // Number of cloud-> light steps
+        [Tooltip("Number of cloud-> light steps")]
         public ClampedIntParameter numLightSteps = new ClampedIntParameter(6, 4, 32);
 
-        // Cloud map (Coverage, Rain, Type)
+        [Tooltip("Cloud map (Coverage, Rain, Type)")]
         public TextureParameter cloudMap = new TextureParameter(null);
 
-        // Cloud type/height map
+        [Tooltip("Cloud type/height map")]
         public TextureParameter cloudLut = new TextureParameter(null);
 
-        // Blend between forward and back scattering
+        [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward")]
         public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        // Intensity of the back scattering function
+        [Tooltip("Intensity of the back scattering function")]
         public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.8f, 0.0f, 1.0f);
 
-        // The intensity of the multi scattering
+        [Tooltip("Intensity of the multi-scattering")]
         public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        // Global density multiplier
+        [Tooltip("Global density multiplier")]
         public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
-        // Density amplifier for the bigger clouds
+        [Tooltip("Density amplifier for larger cloud types")]
         public ClampedFloatParameter densityAmplifier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        // Erosion factor intensity
+        [Tooltip("Erosion factor")]
         public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        // Value to control the intensity of the ambient light probe when lighting the clouds
+        [Tooltip("Value to control the intensity of the ambient light probe when lighting the clouds")]
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        // The global wind speed
-        public ClampedFloatParameter globalWindSpeed = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
+        [Tooltip("Global wind speed in kilometers per hour.")]
+        public MinFloatParameter globalWindSpeed = new MinFloatParameter(50.0f, 0.0f);
 
-        // The  rotation angle of the wind in the horizontal place
-        public ClampedFloatParameter windRotation = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Rotation of the wind in degrees.")]
+        public ClampedFloatParameter windRotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
-        // Large cloud wind speed
+        [Tooltip("Relative wind speed of the large cloud shapes.")]
         public ClampedFloatParameter largeCloudsWindSpeed = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        // Medium cloud wind speed
+        [Tooltip("Relative wind speed of the medium cloud shapes.")]
         public ClampedFloatParameter mediumCloudsWindSpeed = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        // Small cloud wind speed
+        [Tooltip("Relative wind speed of the local cloud shapes.")]
         public ClampedFloatParameter smallCloudsWindSpeed = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
-        // Global accumulation factor
+        [Tooltip("Global temporal accumulation factor.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         public VolumetricClouds()

@@ -122,6 +122,24 @@ float PowderEffect(float cloudDensity, float cosAngle, float intensity)
     return lerp(1.0, lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle)), intensity);
 }
 
+bool RaySphereIntersection(float3 start, float3 dir, float radius, out float2 result)
+{
+    float a = dot(dir, dir);
+    float b = 2.0 * dot(dir, start);
+    float c = dot(start, start) - (radius * radius);
+    float d = (b*b) - 4.0*a*c;
+    result = 0.0;
+    if (d < 0.0)
+        return false;
+    result = float2((-b - sqrt(d))/(2.0*a), (-b + sqrt(d))/(2.0*a));
+    return true;
+}
+
+float2 AdjustSphereIntersectionMin(float2 intersections)
+{
+    return float2(intersections.x < 0.0 ? MAX_CLOUD_RAY_LENGTH : intersections.x, intersections.y < 0.0 ? MAX_CLOUD_RAY_LENGTH : intersections.y);
+}
+
 // Given that the sky is virtually a skybox, we cannot use the motion vector buffer
 float2 EvaluateCloudMotionVectors(float2 fullResCoord)
 {

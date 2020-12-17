@@ -16,12 +16,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // Radius of the earth so that the dome falls exactly at the horizon
         public float _EarthRadius;
 
+        // Stores (_HighestCloudAltitude + _EarthRadius)^2 and (_LowestCloudAltitude + _EarthRadius)^2
+        public Vector2 _CloudRangeSquared;
         // Maximal primary steps that a ray can do
         public int _NumPrimarySteps;
         // Maximal number of light steps a ray can do
         public int _NumLightSteps;
-        // Padding 0
-        public Vector2 _Padding0;
+
+        // Controls the tiling of the cloud map
+        public Vector4 _CloudMapTiling;
 
         // Direction of the wind
         public Vector2 _WindDirection;
@@ -38,9 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _ExposureSunColor;
         // Color * intensity of the directional light
         public Vector3 _SunLightColor;
+
         // Direction to the sun
         public Vector3 _SunDirection;
-        // Padding 2
+        // Is the current sun a physically based one
         public int _PhysicallyBasedSun;
 
         // Factor for the multi scattering
@@ -80,6 +84,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _HistoryBufferSize;
         // Resolution of the history depth buffer
         public Vector2 _HistoryDepthBufferSize;
+        // MipOffset of the first depth mip
+        public Vector2 _DepthMipOffset;
+        // Padding2
+        public Vector2 _Padding2;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
@@ -205,16 +213,24 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesClouds cloudsCB;
         }
 
-        void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings, in VolumetricCloudsParameters parameters, Vector2Int historyDepthBufferSize)
+        float Square(float x)
+        {
+            return x * x;
+        }
+
+        void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings, HDUtils.PackedMipChainInfo info, in VolumetricCloudsParameters parameters, Vector2Int historyDepthBufferSize)
         {
             // Convert to kilometers
             cb._CloudDomeSize = settings.cloudDomeSize.value * 1000.0f;
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
             cb._HighestCloudAltitude = settings.highestCloudAltitude.value;
             cb._EarthRadius = (cb._CloudDomeSize * cb._CloudDomeSize / 4.0f - cb._LowestCloudAltitude * cb._LowestCloudAltitude) / (2.0f * cb._LowestCloudAltitude);
+            cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
+            cb._CloudMapTiling = settings.cloudTiling.value;
+
             // We clamp the erosion factor to 0.33f
             cb._ErosionFactor = settings.erosionFactor.value * 0.33f;
             cb._ScatteringDirection = settings.scatteringDirection.value;
@@ -242,9 +258,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Compute the theta angle for the wind direction
-            float theta = settings.windRotation.value * Mathf.PI * 2.0f;
+            float theta = settings.windRotation.value / 180.0f * Mathf.PI;
             cb._WindDirection = new Vector3(Mathf.Cos(theta), Mathf.Sin(theta));
-            cb._WindVector = new Vector3(Mathf.Cos(theta), Mathf.Sin(theta)) * 0.025f * settings.globalWindSpeed.value * cb._CloudDomeSize;
+            cb._WindVector = new Vector3(Mathf.Cos(theta), Mathf.Sin(theta)) * settings.globalWindSpeed.value * 0.277778f * 2.0f * hdCamera.time;
 
             cb._GlobalWindSpeed = settings.globalWindSpeed.value;
             cb._LargeWindSpeed = settings.largeCloudsWindSpeed.value;
@@ -270,6 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TraceScreenSize.Set((float)parameters.traceWidth, (float)parameters.traceHeight, 1.0f / (float)parameters.traceWidth, 1.0f / (float)parameters.traceHeight);
 
             cb._HistoryDepthBufferSize = new Vector2(1.0f / historyDepthBufferSize.x, 1.0f / historyDepthBufferSize.y);
+            cb._DepthMipOffset = new Vector2(info.mipLevelOffsets[1].x, info.mipLevelOffsets[1].y);
 
             float absoluteCloudHighest = cb._HighestCloudAltitude + cb._EarthRadius;
             cb._MaxCloudDistance = Mathf.Sqrt(absoluteCloudHighest * absoluteCloudHighest - cb._EarthRadius * cb._EarthRadius);
@@ -317,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
 
             // Update the constant buffer
-            UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, historyDepthSize);
+            UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, info, parameters, historyDepthSize);
 
             return parameters;
         }
@@ -341,6 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
             {
                 // Ray-march the clouds for this frame
+                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._DepthTexture, depthPyramid);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);

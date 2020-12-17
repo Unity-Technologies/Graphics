@@ -11,9 +11,10 @@ CBUFFER_START(ShaderVariablesClouds)
     float _HighestCloudAltitude;
     float _LowestCloudAltitude;
     float _EarthRadius;
+    float2 _CloudRangeSquared;
     int _NumPrimarySteps;
     int _NumLightSteps;
-    float2 _Padding0;
+    float4 _CloudMapTiling;
     float2 _WindDirection;
     float2 _WindVector;
     float _GlobalWindSpeed;
@@ -41,6 +42,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryBufferSize;
     float2 _HistoryDepthBufferSize;
+    float2 _DepthMipOffset;
+    float2 _Padding2;
     float4 _AmbientProbeCoeffs[7];
 CBUFFER_END
 

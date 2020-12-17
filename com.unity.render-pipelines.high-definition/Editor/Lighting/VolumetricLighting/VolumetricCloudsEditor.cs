@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_CloudDomeSize;
+        SerializedDataParameter m_CloudTiling;
         SerializedDataParameter m_LowestCloudAltitude;
         SerializedDataParameter m_HighestCloudAltitude;
         SerializedDataParameter m_NumPrimarySteps;
@@ -39,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Enable = Unpack(o.Find(x => x.enable));
             m_CloudDomeSize = Unpack(o.Find(x => x.cloudDomeSize));
+            m_CloudTiling = Unpack(o.Find(x => x.cloudTiling));
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
             m_HighestCloudAltitude = Unpack(o.Find(x => x.highestCloudAltitude));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
@@ -62,12 +64,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
+
+            EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
             PropertyField(m_CloudDomeSize);
+            if (isInAdvancedMode)
+            {
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_CloudTiling);
+                }
+            }
             PropertyField(m_LowestCloudAltitude);
             PropertyField(m_HighestCloudAltitude);
 
-            // Clouds movement and advanced versions of these settings
+            EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
             PropertyField(m_GlobalWindSpeed);
             if (isInAdvancedMode)
             {
@@ -80,20 +92,39 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            PropertyField(m_DensityMultiplier);
+            EditorGUILayout.LabelField("Density", EditorStyles.miniLabel);
             PropertyField(m_CloudMap);
             PropertyField(m_CloudLut);
-            PropertyField(m_AmbientLightProbeDimmer);
+            PropertyField(m_DensityMultiplier);
             if (isInAdvancedMode)
             {
-                PropertyField(m_NumPrimarySteps);
-                PropertyField(m_NumLightSteps);
-                PropertyField(m_DensityAmplifier);
-                PropertyField(m_ErosionFactor);
-                PropertyField(m_TemporalAccumulationFactor);
-                PropertyField(m_ScatteringDirection);
-                PropertyField(m_PowderEffectIntensity);
-                PropertyField(m_MultiScattering);
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_DensityAmplifier);
+                    PropertyField(m_ErosionFactor);
+                }
+            }
+
+            if (isInAdvancedMode)
+            {
+                PropertyField(m_AmbientLightProbeDimmer);
+                EditorGUILayout.LabelField("Quality", EditorStyles.miniLabel);
+                {
+                    PropertyField(m_NumPrimarySteps);
+                    PropertyField(m_NumLightSteps);
+                }
+
+                EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
+                {
+                    PropertyField(m_ScatteringDirection);
+                    PropertyField(m_PowderEffectIntensity);
+                    PropertyField(m_MultiScattering);
+                }
+
+                EditorGUILayout.LabelField("Misc", EditorStyles.miniLabel);
+                {
+                    PropertyField(m_TemporalAccumulationFactor);
+                }
             }
         }
     }
