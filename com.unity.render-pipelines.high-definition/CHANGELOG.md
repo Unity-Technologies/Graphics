@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog with XR single-pass rendering.
 - Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 - Fixed AOV api in render graph (case 1296605)
+- Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
