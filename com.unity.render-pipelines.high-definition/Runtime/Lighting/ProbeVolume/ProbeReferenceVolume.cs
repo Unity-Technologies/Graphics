@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
-            { 
+            {
                 if (cells.ContainsKey(cell.index))
                     cells.Remove(cell.index);
             }

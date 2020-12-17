@@ -28,7 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // ProbeVolumes
             [Reload("Runtime/Debug/InstancedProbeShader.shader")]
             public Shader instancedProbeShader;
-
         }
 
         [Serializable, ReloadGroup]
