@@ -6,3 +6,4 @@ Indicates whether HDRP simulates the translucency of the material using a thickn
 
 </td>
 </tr>
+

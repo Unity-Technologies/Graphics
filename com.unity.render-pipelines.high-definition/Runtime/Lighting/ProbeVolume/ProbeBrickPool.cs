@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EnsureTextureValidity()
         {
             // We assume that if a texture is null, all of them are. In any case we reboot them altogether.
-            if (m_Pool.TexL0 == null)
+            if (m_Pool.TexL0 == null) 
             {
                 m_Pool.Cleanup();
             }
@@ -102,13 +102,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
         {
-            while (m_FreeList.Count > 0 && numberOfBrickChunks > 0)
+            while(m_FreeList.Count > 0 && numberOfBrickChunks > 0 )
             {
                 outAllocations.Add(m_FreeList.Pop());
                 numberOfBrickChunks--;
             }
 
-            for (uint i = 0; i < numberOfBrickChunks; i++)
+            for( uint i = 0; i < numberOfBrickChunks; i++ )
             {
                 if (m_NextFreeChunk.z >= m_Pool.depth)
                 {
@@ -119,11 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 outAllocations.Add(m_NextFreeChunk);
 
                 m_NextFreeChunk.x += m_AllocationSize * kBrickProbeCountPerDim;
-                if (m_NextFreeChunk.x >= m_Pool.width)
+                if(m_NextFreeChunk.x >= m_Pool.width )
                 {
                     m_NextFreeChunk.x = 0;
                     m_NextFreeChunk.y += kBrickProbeCountPerDim;
-                    if (m_NextFreeChunk.y >= m_Pool.height)
+                    if(m_NextFreeChunk.y >= m_Pool.height )
                     {
                         m_NextFreeChunk.y = 0;
                         m_NextFreeChunk.z += kBrickProbeCountPerDim;
@@ -142,12 +142,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(srcLocations.Count == dstLocations.Count);
 
-            for (int i = 0; i < srcLocations.Count; i++)
+            for( int i = 0; i < srcLocations.Count; i++ )
             {
                 BrickChunkAlloc src = srcLocations[i];
                 BrickChunkAlloc dst = dstLocations[i];
 
-                for (int j = 0; j < kBrickProbeCountPerDim; j++)
+                for( int j = 0; j < kBrickProbeCountPerDim; j++ )
                 {
                     int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0  , src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0  , dst.z + j, 0, dst.x, dst.y);
@@ -194,19 +194,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return loc;
         }
 
-        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL1[] shl1)
+        public static void FillDataLocation( ref DataLocation loc, SphericalHarmonicsL1[] shl1 )
         {
             int numBricks = shl1.Length / kBrickProbeCountTotal;
             int shidx = 0;
             int bx = 0, by = 0, bz = 0;
             Color c = new Color();
-            for (int brickIdx = 0; brickIdx < shl1.Length; brickIdx += kBrickProbeCountTotal)
+            for ( int brickIdx = 0; brickIdx < shl1.Length; brickIdx += kBrickProbeCountTotal)
             {
                 for (int z = 0; z < kBrickProbeCountPerDim; z++)
                 {
                     for (int y = 0; y < kBrickProbeCountPerDim; y++)
                     {
-                        for (int x = 0; x < kBrickProbeCountPerDim; x++)
+                        for (int x = 0; x < kBrickProbeCountPerDim; x++ )
                         {
                             int ix = bx + x;
                             int iy = by + y;
@@ -260,9 +260,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
-            // might change the heuristic later on.
+            // might change the heuristic later on. 
             width = (int)memoryBudget;
-            height = (int)memoryBudget;
+            height = (int)memoryBudget;             
             depth = kBrickProbeCountPerDim;
         }
 

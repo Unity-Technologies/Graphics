@@ -23,7 +23,7 @@ An out-of-focus sphere composited over a solid blue background using a *R16G16B1
 
 ![](Images/DoFAlphaCopy.png)
 
-An out-of-focus sphere composited over a solid blue background using *AlphaCopy*. In this case, DoF is NOT applied in the alpha channel, resulting in a sharp outline around the composited sphere (the output alpha used in the composition is shown in the image inset).
+An out-of-focus sphere composited over a solid blue background using *AlphaCopy*. In this case, DoF is NOT applied in the alpha channel, resulting in a sharp outline around the composited sphere (the output alpha used in the composition is shown in the image inset). 
 
 ## Temporal Anti-Aliasing and Alpha Output
 When Temporal Anti-Aliasing (TAA) is enabled it is highly recommended to enable post-processing for the alpha channel (*R16G16B16A16* format for both rendering and post-processing). If the alpha channel is not post-processed, then the alpha mask will be jittered, as shown in the images below:
@@ -36,3 +36,4 @@ A sphere rendered with TAA using *AlphaCopy*, composited over a solid blue backg
 ![](Images/TAA_Alpha.gif)
 
 A sphere rendered with TAA (*R16G16B16A16* for both rendering and post-processing), composited over a solid blue background using the alpha channel. TAA is also applied in the alpha channel, resulting in a stable composition.
+

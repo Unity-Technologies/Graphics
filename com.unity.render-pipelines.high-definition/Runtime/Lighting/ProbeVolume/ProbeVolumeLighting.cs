@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
 
                 bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
-
+                                        
 
                 if (validResources)
                 {

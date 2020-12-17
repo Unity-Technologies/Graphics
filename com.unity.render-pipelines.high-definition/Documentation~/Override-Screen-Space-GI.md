@@ -2,7 +2,7 @@
 
 The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
-HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing. 
 
 ![](Images/HDRPFeatures-SSGI.png)
 
@@ -18,7 +18,7 @@ The property to enable in your Frame Settings is: **Lighting > Screen Space Glob
 HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and modify SSGI properties, you must add a **Screen Space Global Illumination** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Global Illumination** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Global Illumination**.
+2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Global Illumination**. 
    HDRP now calculates SSGI for any Camera this Volume affects.
 
 ## Properties

@@ -21,3 +21,4 @@ If you use a [Skinned Mesh Renderer](<https://docs.unity3d.com/Manual/class-Skin
 3. Override and enable the **Extend Camera Culling** property.
 
 This allows the Skinned Mesh Renderer to animate in ray-traced effects.
+

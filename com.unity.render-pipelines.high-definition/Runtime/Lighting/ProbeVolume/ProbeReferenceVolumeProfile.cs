@@ -10,24 +10,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // TODO: Better documentation, the one here is not really doc!
 
-        /// <summary>
-        /// The size of a Cell.
+            /// <summary>
+        /// The size of a Cell. 
         /// </summary>
         public int CellSize = 64;
         /// <summary>
-        /// The size of a Brick.
+        /// The size of a Brick. 
         /// </summary>
         public int BrickSize = 4;
         /// <summary>
-        /// Max subdivision.
+        /// Max subdivision. 
         /// </summary>
         public int MaxSubdivision = 2;
         /// <summary>
-        /// The normal bias to apply during shading.
+        /// The normal bias to apply during shading. 
         /// </summary>
         public float NormalBias = 0.2f;
         /// <summary>
-        /// Index field dimensions.
+        /// Index field dimensions. 
         /// </summary>
         public Vector3Int IndexDimensions = new Vector3Int(1024, 64, 1024);
 
@@ -38,9 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
             return BrickSize == otherProfile.BrickSize &&
-                CellSize == otherProfile.CellSize &&
-                MaxSubdivision == otherProfile.MaxSubdivision &&
-                NormalBias == otherProfile.NormalBias;
+                   CellSize == otherProfile.CellSize &&
+                   MaxSubdivision == otherProfile.MaxSubdivision &&
+                   NormalBias == otherProfile.NormalBias;
         }
     }
 }

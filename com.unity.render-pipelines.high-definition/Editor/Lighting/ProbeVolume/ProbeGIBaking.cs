@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             ProbeReferenceVolumeAuthoring refVolAuthoring = null;
 
-            foreach (var rV in refVolAuthList)
+            foreach(var rV in refVolAuthList)
             {
                 refVolAuthoring = rV;
                 refVolAuthoring.VolumeAsset = null;
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (refVolAuthoring == null)
                 return;
-
+            
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
             refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (cell.probePositions == null)
                     continue;
-
+                
                 int numProbes = cell.probePositions.Length;
                 Debug.Assert(numProbes > 0);
 
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Put cells into the respective assets
-            foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
+            foreach(var cell in ProbeReferenceVolume.instance.Cells.Values)
             {
                 foreach (var scene in cellIndex2SceneReferences[cell.index])
                 {
@@ -187,11 +187,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Connect the assets to their components
-            foreach (var pair in refVol2Asset)
+            foreach(var pair in refVol2Asset)
             {
                 var refVol = pair.Key;
                 var asset = pair.Value;
-
+                
                 refVol.VolumeAsset = asset;
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
 
-            foreach (var refVol in refVol2Asset.Keys)
+            foreach(var refVol in refVol2Asset.Keys)
                 refVol.QueueAssetLoading();
         }
 
@@ -210,8 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Clear();
         }
 
-        static float CalculateSurfaceArea(Matrix4x4 transform, Mesh mesh)
-        {
+        static float CalculateSurfaceArea(Matrix4x4 transform, Mesh mesh) {
             var triangles = mesh.triangles;
             var vertices = mesh.vertices;
 
@@ -221,8 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             double sum = 0.0;
-            for (int i = 0; i < triangles.Length; i += 3)
-            {
+            for (int i = 0; i < triangles.Length; i += 3) {
                 Vector3 corner = vertices[triangles[i]];
                 Vector3 a = vertices[triangles[i + 1]] - corner;
                 Vector3 b = vertices[triangles[i + 2]] - corner;
@@ -232,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return (float)(sum / 2.0);
         }
-
+        
         private static void DilateInvalidProbes(Vector3[] probePositions,
             List<Brick> bricks, SphericalHarmonicsL1[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
@@ -369,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // create cells
             List<Vector3Int> cellPositions = new List<Vector3Int>();
-
+            
             for (var x = 0; x < xCells; ++x)
                 for (var y = 0; y < yCells; ++y)
                     for (var z = 0; z < zCells; ++z)

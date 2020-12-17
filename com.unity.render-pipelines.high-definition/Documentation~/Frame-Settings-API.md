@@ -98,15 +98,15 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class ChangeFrameSettings : MonoBehaviour
 {
-    public Camera cameraToChange;
+	public Camera cameraToChange;
 
-    public void RemoveOpaqueObjectsFromRendering()
-    {
-        HDAdditionalCameraData hdCameraData = cameraToChange.GetComponent<HDAdditionalCameraData>();
+	public void RemoveOpaqueObjectsFromRendering()
+	{
+		HDAdditionalCameraData hdCameraData = cameraToChange.GetComponent<HDAdditionalCameraData>();
+		
+		hdCameraData.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.OpaqueObjects] = true;
 
-        hdCameraData.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.OpaqueObjects] = true;
-
-        hdCameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.OpaqueObjects, false);
-    }
+		hdCameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.OpaqueObjects, false);
+	}
 }
 ```

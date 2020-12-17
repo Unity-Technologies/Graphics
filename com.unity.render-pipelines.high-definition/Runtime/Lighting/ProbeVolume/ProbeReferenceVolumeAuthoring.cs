@@ -168,6 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_PrevAsset = VolumeAsset;
             }
+
         }
 
         private void OnDestroy()
@@ -185,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 camVec = cam.forward;
 
             float halfCellSize = m_Profile.CellSize * 0.5f;
-
+            
             Vector3 cellPos = cellPosition * m_Profile.CellSize + halfCellSize * Vector3.one + refVolTranslation;
             Vector3 camToCell = cellPos - camPos;
 
@@ -204,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].size;
-
+                
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
                 List<int[]> probeMaps = new List<int[]>();
@@ -239,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
-
+            
                 var debugData = new CellInstancedDebugProbes();
                 debugData.probeBuffers = probeBuffers;
                 debugData.props = props;
@@ -294,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // preview how cells will look before they commit to a bake.
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 Gizmos.color = Color.green;
-
+ 
                 foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
                 {
                     if (ShouldCull(cell.position))
@@ -375,7 +376,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return settings;
         }
-
 #endif
     }
 }

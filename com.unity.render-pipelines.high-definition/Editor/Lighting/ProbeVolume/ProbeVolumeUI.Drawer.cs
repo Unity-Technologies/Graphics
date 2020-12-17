@@ -34,9 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 IsFeatureEnabled,
                 CED.Group(
                     Drawer_VolumeContent
+                    )
                 )
-            )
-        );
+            );
 
         static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
         {
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
-            }
+            }            
         }
     }
 }

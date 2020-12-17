@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void Update()
         {
         }
-
+        
         internal void OnLightingDataCleared()
         {
         }
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void ForceBakingDisabled()
-        {
+        { 
         }
 
         internal void ForceBakingEnabled()
@@ -59,5 +59,5 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
-    }
+    } 
 } // UnityEngine.Experimental.Rendering.HDPipeline

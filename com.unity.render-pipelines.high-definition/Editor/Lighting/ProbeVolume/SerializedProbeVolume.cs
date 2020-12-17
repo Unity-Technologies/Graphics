@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedObject = serializedObject;
 
             probeVolumeParams = m_SerializedObject.FindProperty("parameters");
-
+            
             size = probeVolumeParams.FindPropertyRelative("size");
         }
 
