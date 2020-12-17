@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed baked light being included into the ray tracing light cluster (case 1296203).
 - Fixed enums UI for the shadergraph nodes.
 - Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
+- Fixed white screen when undoing in the editor.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
