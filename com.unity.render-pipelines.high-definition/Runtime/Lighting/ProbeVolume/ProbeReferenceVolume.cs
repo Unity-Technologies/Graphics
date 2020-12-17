@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedLoadAsset = true;
         }
 
-        public void AddPendingAssetLoading(ProbeVolumeAsset asset)
+        internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedLoadAsset = true;
         }
 
-        public void RemovePendingAsset(ProbeVolumeAsset asset)
+        internal void RemovePendingAsset(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))

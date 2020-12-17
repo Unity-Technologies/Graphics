@@ -462,6 +462,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
 
 float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0, float dt, float rndVal, float extinction)
 {
+#if SAMPLE_PROBE_VOLUMES
     float tOffset, weight;
     ImportanceSampleHomogeneousMedium(rndVal, extinction, dt, tOffset, weight);
 
@@ -479,6 +480,9 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     }
 
     return apvDiffuseGI * weight;
+#else
+    return 0;
+#endif
 }
 
 // Computes the in-scattered radiance along the ray.

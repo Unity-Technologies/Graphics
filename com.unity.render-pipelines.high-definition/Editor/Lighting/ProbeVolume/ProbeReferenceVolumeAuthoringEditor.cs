@@ -26,11 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
         internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
-
-        private string[] SizeModes = { "Length", "Density" };
         private string[] ProbeShadingModes = { "Size", "SH", "Validity" };
 
-        private static bool ShadingGroupEnabled;
         private static bool DebugVisualizationGroupEnabled;
         private static bool DilationGroupEnabled;
 
@@ -48,11 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeShading = serializedObject.FindProperty("ProbeShading");
             m_CullingDistance = serializedObject.FindProperty("CullingDistance");
             m_Exposure = serializedObject.FindProperty("Exposure");
-            m_Dilate = serializedObject.FindProperty("Dilate");
-            m_MaxDilationSamples = serializedObject.FindProperty("MaxDilationSamples");
-            m_MaxDilationSampleDistance = serializedObject.FindProperty("MaxDilationSampleDistance");
-            m_DilationValidityThreshold = serializedObject.FindProperty("DilationValidityThreshold");
-            m_GreedyDilation = serializedObject.FindProperty("GreedyDilation");
+            m_Dilate = serializedObject.FindProperty("m_Dilate");
+            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
+            m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
+            m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
+            m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;

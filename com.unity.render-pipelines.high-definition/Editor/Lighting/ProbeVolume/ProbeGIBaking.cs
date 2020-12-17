@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, ref refVolAuthoring);
+                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, refVolAuthoring.GetDilationSettings());
 
                 ProbeReferenceVolume.instance.Cells[cell.index] = cell;
             }
@@ -232,15 +232,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         
         private static void DilateInvalidProbes(Vector3[] probePositions,
-            List<Brick> bricks, SphericalHarmonicsL1[] sh, float[] validity, ref ProbeReferenceVolumeAuthoring settings)
+            List<Brick> bricks, SphericalHarmonicsL1[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
             List<DilationProbe> culledProbes = new List<DilationProbe>();
-            List<DilationProbe> nearProbes = new List<DilationProbe>(settings.MaxDilationSamples);
+            List<DilationProbe> nearProbes = new List<DilationProbe>(dilationSettings.maxDilationSamples);
             for (int brickIdx = 0; brickIdx < bricks.Count; brickIdx++)
             {
                 // Find probes that are in bricks nearby
-                CullDilationProbes(brickIdx, bricks, validity, ref settings, culledProbes);
+                CullDilationProbes(brickIdx, bricks, validity, dilationSettings, culledProbes);
 
                 // Iterate probes in current brick
                 for (int probeOffset = 0; probeOffset < 64; probeOffset++)
@@ -248,11 +248,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     int probeIdx = brickIdx * 64 + probeOffset;
 
                     // Skip valid probes
-                    if (validity[probeIdx] <= settings.DilationValidityThreshold)
+                    if (validity[probeIdx] <= dilationSettings.dilationValidityThreshold)
                         continue;
 
                     // Find distance weighted probes nearest to current probe
-                    FindNearProbes(probeIdx, probePositions, ref settings, culledProbes, nearProbes, out float invDistSum);
+                    FindNearProbes(probeIdx, probePositions, dilationSettings, culledProbes, nearProbes, out float invDistSum);
 
                     // Set invalid probe to weighted average of found neighboring probes
                     var shAverage = new SphericalHarmonicsL1();
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Given a brick index, find and accumulate probes in nearby bricks
         private static void CullDilationProbes(int brickIdx, List<Brick> bricks,
-            float[] validity, ref ProbeReferenceVolumeAuthoring settings, List<DilationProbe> outProbeIndices)
+            float[] validity, ProbeDilationSettings dilationSettings, List<DilationProbe> outProbeIndices)
         {
             outProbeIndices.Clear();
             for (int otherBrickIdx = 0; otherBrickIdx < bricks.Count; otherBrickIdx++)
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: This should probably be revisited.
                 float sqrt2 = 1.41421356237f;
                 float maxDistance = sqrt2 * currentBrickSize + sqrt2 * otherBrickSize;
-                float interval = settings.MaxDilationSampleDistance / settings.brickSize;
+                float interval = dilationSettings.maxDilationSampleDistance / dilationSettings.brickSize;
                 maxDistance = interval * Mathf.Ceil(maxDistance / interval);
 
                 Vector3 currentBrickCenter = currentBrick.position + Vector3.one * currentBrickSize / 2f;
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int otherProbeIdx = otherBrickIdx * 64 + probeOffset;
 
-                        if (validity[otherProbeIdx] <= settings.DilationValidityThreshold)
+                        if (validity[otherProbeIdx] <= dilationSettings.dilationValidityThreshold)
                         {
                             outProbeIndices.Add(new DilationProbe(otherProbeIdx, 0));
                         }
@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Given a probe index, find nearby probes weighted by inverse distance
         private static void FindNearProbes(int probeIdx, Vector3[] probePositions,
-            ref ProbeReferenceVolumeAuthoring settings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
+            ProbeDilationSettings dilationSettings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
         {
             outNearProbes.Clear();
             invDistSum = 0;
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 culledProbes[culledProbeIdx] = new DilationProbe(culledProbes[culledProbeIdx].idx, dist);
             }
 
-            if (!settings.GreedyDilation)
+            if (!dilationSettings.greedyDilation)
             {
                 culledProbes.Sort();
             }
@@ -332,11 +332,11 @@ namespace UnityEngine.Rendering.HighDefinition
             int numSamples = 0;
             for (int sortedProbeIdx = 0; sortedProbeIdx < culledProbes.Count; sortedProbeIdx++)
             {
-                if (numSamples >= settings.MaxDilationSamples)
+                if (numSamples >= dilationSettings.maxDilationSamples)
                     return;
 
                 var current = culledProbes[sortedProbeIdx];
-                if (current.dist <= settings.MaxDilationSampleDistance)
+                if (current.dist <= dilationSettings.maxDilationSampleDistance)
                 {
                     var invDist = 1f / (current.dist * current.dist);
                     invDistSum += invDist;

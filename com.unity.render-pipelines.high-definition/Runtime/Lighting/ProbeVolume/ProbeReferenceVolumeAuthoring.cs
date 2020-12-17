@@ -8,7 +8,19 @@ using UnityEditor;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
-{ 
+{
+    // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
+    internal struct ProbeDilationSettings
+    {
+        public bool dilate;
+        public int maxDilationSamples;
+        public float maxDilationSampleDistance;
+        public float dilationValidityThreshold;
+        public bool greedyDilation;
+
+        public int brickSize;   // Not really a dilation setting, but used during dilation.
+    }
+
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
@@ -92,11 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float Exposure = 0f;
 
-        public bool Dilate = false;
-        public int MaxDilationSamples = 16;
-        public float MaxDilationSampleDistance = 1f;
-        public float DilationValidityThreshold = 0.25f;
-        public bool GreedyDilation = false;
+        private bool m_Dilate = false;
+        private int m_MaxDilationSamples = 16;
+        private float m_MaxDilationSampleDistance = 1f;
+        private float m_DilationValidityThreshold = 0.25f;
+        private bool m_GreedyDilation = false;
 
         public ProbeVolumeAsset VolumeAsset = null;
         private ProbeVolumeAsset m_PrevAsset = null;
@@ -350,6 +362,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugMesh = Resources.Load<Mesh>("DebugProbe");
                 debugMaterial = new Material(Shader.Find("Hidden/HDRP/InstancedProbeShader")) { enableInstancing = true };
             }
+        }
+
+        public ProbeDilationSettings GetDilationSettings()
+        {
+            ProbeDilationSettings settings;
+            settings.dilate = m_Dilate;
+            settings.dilationValidityThreshold = m_DilationValidityThreshold;
+            settings.greedyDilation = m_GreedyDilation;
+            settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
+            settings.maxDilationSamples = m_MaxDilationSamples;
+            settings.brickSize = brickSize;
+
+            return settings;
         }
 #endif
     }

@@ -63,4 +63,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
     }
+
+#if UNITY_EDITOR
+    [UnityEditor.CustomEditor(typeof(ProbeVolumeAsset))]
+    class ProbeVolumeAssetEditor : UnityEditor.Editor
+    {
+        public override void OnInspectorGUI()
+        {}
+    }
+#endif
 }
