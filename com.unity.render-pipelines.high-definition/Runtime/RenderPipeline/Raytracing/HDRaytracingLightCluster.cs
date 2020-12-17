@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     // If the light is flagged as baked and has been effectively been baked, we need to skip it and not add it to the light cluster
-                    if (light.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
+                    if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
                         continue;
 
                     // If this light should not be included when ray tracing is active on the camera, skip it
