@@ -63,11 +63,11 @@ all_hdrp_ci_-_2020.2:
       updated_at: '2020-12-04 17:48:44.742371'
       version: ''
 all_shadergraph_ci_-_2020.2:
-  updated_at: '2020-12-14 07:39:25.930722'
+  updated_at: '2020-12-16 08:06:44.589542'
   last_green_revisions:
     android:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     ios:
       revision: eafde9299d4b1e693885feb2c9a69d76884f0552
@@ -78,19 +78,19 @@ all_shadergraph_ci_-_2020.2:
       updated_at: '2020-12-10 23:25:42.878122'
       version: ''
     macos:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     windows:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
 all_vfx_hdrp_ci_-_2020.2:
-  updated_at: '2020-12-14 07:39:25.930722'
+  updated_at: '2020-12-16 08:06:44.589542'
   last_green_revisions:
     android:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     ios:
       revision: eafde9299d4b1e693885feb2c9a69d76884f0552
@@ -101,12 +101,12 @@ all_vfx_hdrp_ci_-_2020.2:
       updated_at: '2020-12-10 23:25:42.878122'
       version: ''
     macos:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
     windows:
-      revision: eafde9299d4b1e693885feb2c9a69d76884f0552
-      updated_at: '2020-12-10 23:25:42.878122'
+      revision: d953442247f3992df691ba513cd65a95d7f86de0
+      updated_at: '2020-12-16 00:09:59.707268'
       version: ''
 all_vfx_urp_ci_-_2020.2:
   updated_at: '2020-12-15 07:40:01.048822'
