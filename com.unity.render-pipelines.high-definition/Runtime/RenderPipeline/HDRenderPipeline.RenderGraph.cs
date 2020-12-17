@@ -293,15 +293,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, viewIndex);
-
-                    if (target.targetDepth != null)
-                    {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), viewIndex);
-                    }
                 }
 
                 if (aovRequest.isValid)
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
+            }
+
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                if (target.targetDepth != null)
+                {
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), viewIndex);
+                }
             }
 
             // XR mirror view and blit do device

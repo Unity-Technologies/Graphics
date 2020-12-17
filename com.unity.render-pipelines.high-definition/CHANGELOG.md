@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
+- Fixed the planar depth texture not being properly created and rendered to (case 1299617).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
