@@ -54,6 +54,12 @@ struct Light
     half    shadowAttenuation;
 };
 
+// WebGL1 does not support the variable conditioned for loops used for additional lights
+#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3)
+    #define _USE_WEBGL1_LIGHTS 1
+    #define _WEBGL1_MAX_LIGHTS 8
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
@@ -783,8 +789,14 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
     uint lightsCount = GetAdditionalLightsCount();
+    #ifdef _USE_WEBGL1_LIGHTS
+    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex)
+    {
+        if (lightIndex >= lightsCount) break;
+    #else
     for (uint lightIndex = 0u; lightIndex < lightsCount; ++lightIndex)
     {
+    #endif
         Light light = GetAdditionalLight(lightIndex, positionWS);
         half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
@@ -845,8 +857,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
+    #ifdef _USE_WEBGL1_LIGHTS
+    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex)
+    {
+        if (lightIndex >= pixelLightCount) break;
+    #else
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
+    #endif
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -910,8 +928,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
+    #ifdef _USE_WEBGL1_LIGHTS
+    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex)
+    {
+        if (lightIndex >= pixelLightCount) break;
+    #else
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
+    #endif
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
