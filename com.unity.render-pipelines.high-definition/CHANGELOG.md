@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the upscale radius from the RTR.
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
 - When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
+- Enable Reflector for Spotlight by default
 
 ## [10.3.0] - 2020-12-01
 
