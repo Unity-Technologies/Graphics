@@ -643,7 +643,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer3 *= GetCurrentExposureMultiplier();
 
 #ifdef LIGHT_LAYERS
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, ((builtinData.renderingLayers & 0x0000FF00) >> 8) / 255.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
+    //OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -687,10 +688,15 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     if (_EnableLightLayers)
     {
         float4 inGBuffer4 = LOAD_TEXTURE2D_X(_LightLayersTexture, positionSS);
-        builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
+
+        uint inGBufferZ = uint(inGBuffer4.z * 255.0) << 8;
+        uint inGBufferW = uint(inGBuffer4.w * 255.0);
+        builtinData.renderingLayers = uint(inGBufferZ | inGBufferW);
+
+        //builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
     }
     else
-    {
+    { 
         builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
     }
 

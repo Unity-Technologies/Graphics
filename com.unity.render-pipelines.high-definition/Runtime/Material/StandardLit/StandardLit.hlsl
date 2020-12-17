@@ -31,7 +31,8 @@ void EncodeIntoStandardGBuffer( StandardBSDFData standardBSDFData
     outGBuffer3 *= GetCurrentExposureMultiplier();
 
 #ifdef LIGHT_LAYERS
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, standardBSDFData.renderingLayers / 255.0);
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, ((standardBSDFData.renderingLayers & 0x0000FF00) >> 8) / 255.0, (standardBSDFData.renderingLayers & 0x000000FF) / 255.0);
+    //OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, standardBSDFData.renderingLayers / 65536);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
