@@ -63,6 +63,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Volumes.Add(volume);
 
+            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // we avoid doing operations on the atlas.
+            // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore));
+                return;
+
             if (volume.parameters.volumeMask != null)
             {
                 if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
@@ -83,8 +89,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Volumes.Contains(volume))
                 m_Volumes.Remove(volume);
 
+            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // we avoid doing operations on the atlas.
+            // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore));
+                return;
+
             if (volume.parameters.volumeMask != null)
-                volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+            {
+                // Avoid to alloc the atlas to remove a texture if it's not allocated yet.
+                if (m_VolumeAtlas != null)
+                    volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+            }
         }
 
         public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
