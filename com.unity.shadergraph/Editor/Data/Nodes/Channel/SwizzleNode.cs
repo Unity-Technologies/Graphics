@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 _maskInput = value;
                 UpdateNodeAfterDeserialization();
-                if(owner != null)
-                owner.ValidateGraph();
+                //if (owner != null)
+                    owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
         {
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
-            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a'};
+            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
             List<char> CurrentChars = new List<char>();
             for (int i = 0; i < InputValueSize; i++)
             {
@@ -105,7 +105,6 @@ namespace UnityEditor.ShaderGraph
 
             if (!ValidateMaskInput(InputValueSize))
             {
-                owner.AddValidationError(objectId, "Invalid mask for a Vector"+InputValueSize+" input.", ShaderCompilerMessageSeverity.Error);
                 sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
             }
             else
@@ -120,9 +119,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+
+            var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
+            var InputValueSize = SlotValueHelper.GetChannelCount(inputValueType);
+            if (!ValidateMaskInput(InputValueSize))
+            {
+                owner.AddValidationError(objectId, "Invalid mask for a Vector" + InputValueSize + " input.", ShaderCompilerMessageSeverity.Error);
+            }
+        }
+
         public override int latestVersion => 1;
 
-        public override void OnAfterDeserialize(string json)
+        public override void OnAfterMultiDeserialize(string json)
         {
             //collect texturechannel properties
             //get the value
@@ -131,8 +142,11 @@ namespace UnityEditor.ShaderGraph
             {
                 LegacySwizzleChannelData.LegancySwizzleChannel(json, this);
                 ChangeVersion(1);
+                UpdateNodeAfterDeserialization();
             }
         }
+
+        public override IEnumerable<int> allowedNodeVersions => new List<int>{1};
     }
 
     class LegacySwizzleChannelData
@@ -147,6 +161,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         public TextureChannel m_AlphaChannel;
 
+
         public static void LegancySwizzleChannel(string json, SwizzleNode node)
         {
             Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
@@ -158,7 +173,7 @@ namespace UnityEditor.ShaderGraph
                 };
             var legacySwizzleChannelData = new LegacySwizzleChannelData();
             JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
-            node.maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
+           node.maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
         }
     }
 }
