@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed enums UI for the shadergraph nodes.
 - Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
 - Fixed white screen when undoing in the editor.
+- Fixed shader graph not supporting indirectdxr multibounce (case 1294694).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
