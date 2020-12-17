@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AOV api in render graph (case 1296605)
 - Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
 - Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
+- Fixed a bug in the sphere-aabb light cluster (case 1294767).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
