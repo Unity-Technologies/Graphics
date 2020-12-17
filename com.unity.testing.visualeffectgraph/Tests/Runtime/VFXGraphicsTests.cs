@@ -35,6 +35,7 @@ namespace UnityEngine.VFX.Test
         [UnityTest, Category("VisualEffect")]
         [PrebuildSetup("SetupGraphicsTestCases")]
         [UseGraphicsTestCases]
+        [Timeout(450 * 1000)] // Increase timeout to handle complex scenes with many shaders and XR variants
         public IEnumerator Run(GraphicsTestCase testCase)
         {
 #if UNITY_EDITOR

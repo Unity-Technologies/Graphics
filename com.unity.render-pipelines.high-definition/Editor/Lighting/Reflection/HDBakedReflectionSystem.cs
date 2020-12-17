@@ -322,7 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // == 5. ==
 
                 // Create new baked state array
-                var targetSize = m_HDProbeBakedStates.Length + addCount - remCount;
+                var targetSize = m_HDProbeBakedStates.Length - remCount + toBakeIndicesList.Count;
                 var targetBakedStates = stackalloc HDProbeBakedState[targetSize];
                 // Copy baked state that are not removed
                 var targetI = 0;
@@ -330,12 +330,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (CoreUnsafeUtils.IndexOf(remIndices, remCount, i) != -1)
                         continue;
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = m_HDProbeBakedStates[i];
                 }
                 // Add new baked states
                 for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
                     var state = states[toBakeIndicesList.GetUnchecked(i)];
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = new HDProbeBakedState
                     {
                         instanceID = state.instanceID,
