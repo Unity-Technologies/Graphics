@@ -397,7 +397,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     // TODO: add an if()?
     {
         float cosZenithAngle = L.y;
-        float distToLight = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
+        float distToLight = distances.x;
         float fragmentHeight = posInput.positionWS.y;
         color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                           _HeightFogExponents, cosZenithAngle,
