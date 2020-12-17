@@ -8,7 +8,7 @@
 ---
 
 editor-pinning-target-to-ci:
-    name: Merge 2021.1/staging to 2021.1/staging/ci/editor-pinning
+    name: Merge 2021.1/staging to 2021.1/ci/editor-pinning
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -25,7 +25,7 @@ editor-pinning-target-to-ci:
                      fi
       -  git fetch
       -  git checkout 2021.1/staging
-      -  git checkout 2021.1/staging/ci/editor-pinning
+      -  git checkout 2021.1/ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git merge 2021.1/staging --no-ff -X theirs
@@ -53,7 +53,7 @@ editor-pinning-update:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch 2021.1/staging/ci/editor-pinning --force-push
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch 2021.1/ci/editor-pinning --force-push
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
@@ -77,8 +77,8 @@ editor-pinning-merge-revisions-2021.1:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "2021.1/staging/ci/editor-pinning" ]]; then
-                         echo "Should run on '2021.1/staging/ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "2021.1/ci/editor-pinning" ]]; then
+                         echo "Should run on '2021.1/ci/editor-pinning' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
@@ -104,8 +104,8 @@ editor-pinning-merge-revisions-2021.1-abv:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "2021.1/staging/ci/editor-pinning" ]]; then
-                         echo "Should run on '2021.1/staging/ci/editor-pinning' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "2021.1/ci/editor-pinning" ]]; then
+                         echo "Should run on '2021.1/ci/editor-pinning' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
@@ -120,7 +120,7 @@ editor-pinning-merge-all:
 editor-pinning-merge-all-ci:
     name: Merge all [CI][2021.1 no ABV]
     triggers:
-        expression: push.branch eq "2021.1/staging/ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
+        expression: push.branch eq "2021.1/ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
     variables:
         CI: true
     dependencies:
