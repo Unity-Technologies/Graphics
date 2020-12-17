@@ -1,4 +1,4 @@
-# Vertex Color Node
+# Vertex ID Node
 
 ## Description
 
