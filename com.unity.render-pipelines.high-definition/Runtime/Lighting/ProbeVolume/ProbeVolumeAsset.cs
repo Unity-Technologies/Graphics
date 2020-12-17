@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string GetFileName(Scene scene)
         {
             string assetName = "ProbeVolumeData";
-            
+
             String scenePath = scene.path;
             String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
             String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
@@ -56,11 +56,12 @@ namespace UnityEngine.Rendering.HighDefinition
             string assetFileName = GetFileName(scene);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            
+
             asset.m_AssetFullPath = assetFileName;
 
             return asset;
         }
+
 #endif
     }
 

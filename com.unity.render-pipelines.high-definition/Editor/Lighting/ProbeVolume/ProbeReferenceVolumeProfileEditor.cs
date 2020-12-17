@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_NormalBias = serializedObject.FindProperty("NormalBias");
             m_IndexDimensions = serializedObject.FindProperty("IndexDimensions");
         }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -61,7 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Constrain();
                 serializedObject.ApplyModifiedProperties();
             }
-
         }
 
         private void Constrain()
@@ -71,6 +71,5 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MaxSubdivision.intValue = Mathf.Clamp(m_MaxSubdivision.intValue, 0, 15);
             m_NormalBias.floatValue = Mathf.Max(m_NormalBias.floatValue, 0);
         }
-
     }
 }

@@ -4,8 +4,8 @@ The Raytracing Quality Keyword allows you to provide a fast implementation of yo
 
 ## Adding the Raytracing Quality Keyword
 
-The Raytracing Quality Keyword is a [Built-in Keyword](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keywords.html#built-in-keywords). 
-To add the Raytracing  Quality Keyword to the graph: 
+The Raytracing Quality Keyword is a [Built-in Keyword](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keywords.html#built-in-keywords).
+To add the Raytracing  Quality Keyword to the graph:
 1. In the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html), click the plus (\**+**) button.
 2. Select **Keyword > Raytracing Quality**. This creates the keyword and makes it visible on the Blackboard.
 
@@ -15,7 +15,7 @@ To use this keyword in the graph, create a [Keyword Node](https://docs.unity3d.c
 
 ![](Images/RaytracingQualityNode.png)
 
-### Available Ports 
+### Available Ports
 
 | Name          | Direction | Type           | Description                                                  |
 | :------------ | :-------- | :------------- | :----------------------------------------------------------- |

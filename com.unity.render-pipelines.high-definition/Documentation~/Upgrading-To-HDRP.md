@@ -168,4 +168,3 @@ HDRP no longer supports the **Post Processing** package and instead includes its
 Now the Scene in the Game view should look like this:
 
 ![](Images/UpgradingToHDRP3.png)
-
