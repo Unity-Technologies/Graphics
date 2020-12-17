@@ -605,7 +605,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int z = 0; z < logicalBrickRes.z; z++)
                     {
                         Vector3Int pos = origin + new Vector3Int(x, y, z) * brickTotalSize;
-                        Debug.Assert(pos.x >= 0 && pos.y >= 0 && pos.z >= 0);
                         outBricks.Add(new Brick(pos, brickSubDivLevel));
                     }
                 }
