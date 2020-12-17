@@ -94,6 +94,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half multiplier = max(brightness - Threshold, softness) / max(brightness, 1e-4);
             color *= multiplier;
 
+            // Clamp colors to positive once in prefilter. Encode can have a sqrt, and sqrt(-x) == NaN. Up/Downsample passes would then spread the NaN.
+            color = max(color, 0);
             return EncodeHDR(color);
         }
 
