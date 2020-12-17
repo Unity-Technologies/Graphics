@@ -168,12 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     var brickVolumeMax = brickVolume.corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
                     var cellVolumeMax = cellVolumeTrans.corner + cellVolumeTrans.X + cellVolumeTrans.Y + cellVolumeTrans.Z;
 
-                    f.discard = brickVolume.corner.x<cellVolumeTrans.corner.x ||
-                                                     brickVolume.corner.y<cellVolumeTrans.corner.y ||
-                                                                          brickVolume.corner.z<cellVolumeTrans.corner.z ||
-                                                                                               brickVolumeMax.x> cellVolumeMax.x ||
-                                                                          brickVolumeMax.y> cellVolumeMax.y ||
-                                                     brickVolumeMax.z> cellVolumeMax.z;
+                    f.discard = brickVolumeMax.x > cellVolumeMax.x ||
+                        brickVolumeMax.y > cellVolumeMax.y ||
+                        brickVolumeMax.z > cellVolumeMax.z ||
+                        brickVolume.corner.x < cellVolumeTrans.corner.x ||
+                        brickVolume.corner.y < cellVolumeTrans.corner.y ||
+                        brickVolume.corner.z < cellVolumeTrans.corner.z;
                 }
                 else
                 {
