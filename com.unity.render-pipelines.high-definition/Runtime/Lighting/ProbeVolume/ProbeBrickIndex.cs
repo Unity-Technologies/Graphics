@@ -182,6 +182,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RemoveBricks(RegId id)
         {
+            if (!m_BricksToVoxels.ContainsKey(id))
+                return;
+
             BrickMeta bm = m_BricksToVoxels[id];
             foreach (var v in bm.voxels)
             {
