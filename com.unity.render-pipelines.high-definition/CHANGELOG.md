@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed baked light being included into the ray tracing light cluster (case 1296203).
 - Fixed enums UI for the shadergraph nodes.
 - Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
+- Fixed white screen when undoing in the editor.
+- Fixed display of LOD Bias and maximum level in frame settings when using Quality Levels
 - Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
 
 ### Changed
@@ -49,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
+- When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
 
 ## [10.3.0] - 2020-12-01
 
