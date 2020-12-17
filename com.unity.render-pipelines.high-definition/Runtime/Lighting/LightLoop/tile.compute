@@ -343,8 +343,8 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // For the orthographic projection, the resulting (w = 1).
         float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
-        const float3 hapAaBbMinPt = cubeMinCS * abs(hapVertCS.w);
-        const float3 hapAaBbMaxPt = cubeMaxCS * abs(hapVertCS.w);
+        const float3 hapAaBbMinPt = cubeMinCS * hapVertCS.w;
+        const float3 hapAaBbMaxPt = cubeMaxCS * hapVertCS.w;
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -354,6 +354,8 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // TODO: add epsilon for numerical robustness?
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
+            // Test: dot(frustumPlane, hapVertCS) < 0:
+            // (x < -w), (x > w), (y < -w), (y > w), (z < 0), (z > w).
             behindMask |= ((hapVertCS[j] < hapAaBbMinPt[j]) ? 1 : 0) << (2 * j + 0);
             behindMask |= ((hapVertCS[j] > hapAaBbMaxPt[j]) ? 1 : 0) << (2 * j + 1);
         }

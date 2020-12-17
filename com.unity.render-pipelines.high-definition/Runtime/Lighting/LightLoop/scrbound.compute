@@ -260,6 +260,9 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         // For the orthographic projection, the resulting (w = 1).
         float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
+        const float3 hapAaBbMinPt = cubeMinCS * hapVertCS.w;
+        const float3 hapAaBbMaxPt = cubeMaxCS * hapVertCS.w;
+
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
         // is in the positive or the negative half-space.
@@ -268,10 +271,10 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         // TODO: add epsilon for numerical robustness?
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
-            float w = hapVertCS.w;
-
-            behindMask |= ((hapVertCS[j] < -w) ? 1 : 0) << (2 * j + 0); // Planes crossing -w
-            behindMask |= ((hapVertCS[j] >  w) ? 1 : 0) << (2 * j + 1); // Planes crossing +w
+            // Test: dot(frustumPlane, hapVertCS) < 0:
+            // (x < -w), (x > w), (y < -w), (y > w), (z < 0), (z > w).
+            behindMask |= ((hapVertCS[j] < hapAaBbMinPt[j]) ? 1 : 0) << (2 * j + 0);
+            behindMask |= ((hapVertCS[j] > hapAaBbMaxPt[j]) ? 1 : 0) << (2 * j + 1);
         }
 
         if (behindMask == 0) // Inside?

@@ -78,7 +78,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     // and the smallest index (on the right) after we are done adding everything to the bin
     // (or we just went past the bin without adding anything).
     // In practice, we iterate over [a, b], but the important part is how we compute these numbers.
-    int left = -1, right = entityCount;
+    int left = -1, right = (int)entityCount;
 
     if (entityCount > 0) // Avoid wasted work
     {
@@ -91,25 +91,25 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // Therefore, it will be slow if 'n' is large.
         // TODO: we should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
         // TODO: unroll.
-        for (int i = 0; i < (int)entityCount; i++)
+        for (uint i = 0; i < entityCount; i++)
         {
             float2 entityBounds = _wBoundsBuffer[inputStart + i];
 
             if (entityBounds.y < binBounds.x)
             {
                 // No overlap (entity on the left of the bin).
-                left = isEmpty ? i : left;
+                left = isEmpty ? (int)i : left;
             }
             else if (binBounds.y < entityBounds.x)
             {
                 // No overlap (entity on the right of the bin).
-                right = min(i, right);
+                right = min((int)i, right);
             }
             else
             {
                 // Overlap.
                 isEmpty = false;
-                right   = i + 1;
+                right   = (int)i + 1;
             }
         }
     }
