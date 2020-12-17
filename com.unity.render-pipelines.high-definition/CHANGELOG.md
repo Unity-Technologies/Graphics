@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
+- When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
 
 ## [10.3.0] - 2020-12-01
 
