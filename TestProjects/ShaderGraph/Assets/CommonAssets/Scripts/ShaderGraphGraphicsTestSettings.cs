@@ -11,4 +11,8 @@ public class ShaderGraphGraphicsTestSettings : GraphicsTestSettings
         ImageComparisonSettings.AverageCorrectnessThreshold = 0.005f;
         ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.005f;
     }
+
+    public virtual void OnTestComplete() { }
+
+    public virtual void OnTestBegin() { }
 }
