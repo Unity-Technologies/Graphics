@@ -123,9 +123,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // These limits have to match same limits in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
-        const int k_MaxVisibleAdditionalLightsMobile    = 32;
-        const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+        internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
+        internal const int k_MaxVisibleAdditionalLightsMobile    = 32;
+        internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
         public static int maxVisibleAdditionalLights
         {
             get
@@ -144,8 +144,12 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
+            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
+            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -779,6 +783,14 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
             {
@@ -868,8 +880,8 @@ namespace UnityEngine.Rendering.Universal
 
                         Light light = visibleLights[i].light;
 
-                        // UniversalRP doesn't support additional directional lights or point light shadows yet
-                        if (visibleLights[i].lightType == LightType.Spot && light != null && light.shadows != LightShadows.None)
+                        // UniversalRP doesn't support additional directional light shadows yet
+                        if ((visibleLights[i].lightType == LightType.Spot || visibleLights[i].lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
                         {
                             additionalLightsCastShadows = true;
                             break;
@@ -893,6 +905,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
 
             m_ShadowBiasData.Clear();
+            m_ShadowResolutionData.Clear();
 
             for (int i = 0; i < visibleLights.Length; ++i)
             {
@@ -907,14 +920,31 @@ namespace UnityEngine.Rendering.Universal
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
                 else
                     m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
+
+                if (data && (data.additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    m_ShadowResolutionData.Add((int)light.shadowResolution); // native code does not clamp light.shadowResolution between -1 and 3
+                }
+                else if (data && (data.additionalLightsShadowResolutionTier != UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    int resolutionTier = Mathf.Clamp(data.additionalLightsShadowResolutionTier, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh);
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(resolutionTier));
+                }
+                else
+                {
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(UniversalAdditionalLightData.AdditionalLightsShadowDefaultResolutionTier));
+                }
             }
 
             shadowData.bias = m_ShadowBiasData;
+            shadowData.resolution = m_ShadowResolutionData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
+#pragma warning disable 0618
             shadowData.requiresScreenSpaceShadowResolve = false;
+#pragma warning restore 0618
 
             shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;
@@ -952,6 +982,7 @@ namespace UnityEngine.Rendering.Universal
                 : ColorGradingMode.LowDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
+            postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)

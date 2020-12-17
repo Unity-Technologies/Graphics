@@ -732,8 +732,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void Sanitize(ref FrameSettings sanitizedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
         {
             bool reflection = camera.cameraType == CameraType.Reflection;
+            // We have no clear flag to identify if a reflection is a planar reflection or a reflection probe. For now, the only way to do
+            // it is to check if the matrix is oblique.
+            bool reflectionPlanar = GeometryUtils.IsProjectionMatrixOblique(camera.projectionMatrix);
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
+            bool temporalAccumulationAllowed = (!reflection || (reflection && reflectionPlanar));
 
             switch (renderPipelineSettings.supportedLitShaderMode)
             {
@@ -753,7 +757,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
             bool pipelineSupportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(renderPipelineSettings);
-            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview;
+            // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
+            bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
 
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
@@ -761,11 +766,12 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // No recursive reflections
-            bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
+            bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= ssr && renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
+            // Because the camera is shared between the faces of the reflection probes, we cannot allow effects that rely on the accumulation process
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
 
             // We must take care of the scene view fog flags in the editor
@@ -773,10 +779,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Volumetric are disabled if there is no atmospheric scattering
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview && temporalAccumulationAllowed;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection && !preview;
+            // We allow the user to enable exposure control on planar reflections, but not on reflection probes.
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && !preview;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;

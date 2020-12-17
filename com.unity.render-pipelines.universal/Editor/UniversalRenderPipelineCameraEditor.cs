@@ -66,8 +66,9 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
-            public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
+            public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -484,9 +485,9 @@ namespace UnityEditor.Rendering.Universal
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
-            // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
+                // Settings only relevant to base cameras
                 DrawOutputSettings(rpAsset);
                 DrawStackSettings();
             }
@@ -592,11 +593,11 @@ namespace UnityEditor.Rendering.Universal
 
                 if (camType == CameraRenderType.Base)
                 {
-                    DrawPostProcessing();
+                    DrawPostProcessing(rpAsset);
                 }
                 else if (camType == CameraRenderType.Overlay)
                 {
-                    DrawPostProcessingOverlay();
+                    DrawPostProcessingOverlay(rpAsset);
                     EditorGUILayout.PropertyField(m_AdditionalCameraClearDepth, Styles.clearDepth);
                     m_AdditionalCameraDataSO.ApplyModifiedProperties();
                 }
@@ -619,9 +620,34 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawPostProcessingOverlay()
+        private bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
         {
+            int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
+
+            if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues)
+                return false;
+
+            var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
+
+            var fowardRendererData = rendererData as ForwardRendererData;
+            if (fowardRendererData != null && fowardRendererData.postProcessData == null)
+                return true;
+
+            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+            if (fenderer2DData != null && fenderer2DData.postProcessData == null)
+                return true;
+
+            return false;
+        }
+
+        void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
+        {
+            bool isPostProcessingEnabled = IsAnyRendererHasPostProcessingEnabled(rpAsset) && m_AdditionalCameraDataRenderPostProcessing.boolValue;
+
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+
+            if (isPostProcessingEnabled)
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
         void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
@@ -659,6 +685,12 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateCameras();
+
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+                if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
         }
 
@@ -798,6 +830,12 @@ namespace UnityEditor.Rendering.Universal
             else if (!rpAsset.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
+                var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
+                if (GUI.Button(rect, "Select Render Pipeline Asset"))
+                {
+                    Selection.activeObject = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GetAssetPath(UniversalRenderPipeline.asset));
+                }
+                GUILayout.Space(5);
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -807,32 +845,46 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void DrawPostProcessing()
+        void DrawPostProcessing(UniversalRenderPipelineAsset rpAsset)
         {
+            // We want to show post processing warning only once and below the first option
+            // This way we will avoid cluttering the camera UI
+            bool showPostProcessWarning = IsAnyRendererHasPostProcessingEnabled(rpAsset);
+
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataRenderPostProcessing.boolValue);
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
 
             // If AntiAliasing has mixed value we do not draw the sub menu
-            if (m_AdditionalCameraDataAntialiasing.hasMultipleDifferentValues)
+            if (!m_AdditionalCameraDataAntialiasing.hasMultipleDifferentValues)
             {
-                return;
+                var selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
+
+                if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AdditionalCameraDataAntialiasingQuality, Styles.antialiasingQuality);
+                    if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
+                        EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
+                    EditorGUI.indentLevel--;
+                }
+                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && selectedAntialiasing != AntialiasingMode.None);
+
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
+                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataStopNaN.boolValue);
+                EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
+                ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataDithering.boolValue);
             }
+        }
 
-            var selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
-
-            if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_AdditionalCameraDataAntialiasingQuality, Styles.antialiasingQuality);
-                if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
-                    EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
-                EditorGUI.indentLevel--;
-            }
-
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
+        private bool ShowPostProcessingWarning(bool condition)
+        {
+            if (!condition)
+                return false;
+            EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            return true;
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)

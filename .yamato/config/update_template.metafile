@@ -4,6 +4,8 @@ project:
 test_platforms:
   - type: playmode
   - type: editmode
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -21,7 +23,7 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -31,6 +33,10 @@ all:
         - editmode
         - playmode
 #    - project: URPUpdate_BoatAttack
-#      all: true
+#      pr: true
     - project: URPUpdate_Top_Asset_Store
-      all: true  
+      pr: true  
+nightly:
+  dependencies:
+    - project: URPUpdate
+      pr: true
