@@ -170,6 +170,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private void OnDisable()
+        {
+            QueueAssetRemoval();
+        }
+
         private void OnDestroy()
         {
             QueueAssetRemoval();
@@ -286,6 +291,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnDrawGizmos()
         {
             if (ShaderConfig.s_EnableProbeVolumes == 0)
+                return;
+
+            if (!enabled)
                 return;
 
             if (DrawCells)
