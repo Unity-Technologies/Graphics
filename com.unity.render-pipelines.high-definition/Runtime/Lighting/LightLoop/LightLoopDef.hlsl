@@ -173,12 +173,34 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
 #if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 
+uint BitFieldFromBitRange(int minBit, int maxBit)
+{
+    uint mask = 0;
+
+    if ((maxBit >= minBit) && (maxBit >= 0) && (minBit <= 31))
+    {
+        minBit = max( 0, minBit);
+        maxBit = min(31, maxBit);
+
+        uint minMask = (1u << (minBit    )) - 1u; // (minBit =  0) -> (minMask = 0)
+        uint maxMask = (1u << (maxBit + 1)) - 1u; // (maxBit = 31) -> (maxMask = 0xFFFFFFFF)
+
+        mask = minMask ^ maxMask;
+    }
+
+    return mask;
+}
+
 // Internal. Do not call directly.
 uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category, out uint entityIndex)
 {
     entityIndex = UINT16_MAX;
 
     bool found = false;
+
+    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[category];
+
+    if (dwordCount == 0) return found;
 
     const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
     const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
@@ -190,54 +212,34 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
     // To see why there's -1, see the discussion in 'zbin.compute'.
     const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
 
-    if (zBinEntityIndexRange.y < zBinEntityIndexRange.x)
-    {
-        return found; // Empty bin
-    }
-
     const uint tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
-
-    // Tiles of this category may require multiple DWORDs for storage.
-    // However, we don't necessarily have to process all of them.
-    const int2 dwordRange = zBinEntityIndexRange / 32;
 
     uint j = 0; // Dumb, just to test
 
-    for (int d = dwordRange.x; (d <= dwordRange.y) && !found; d++)
+    for (uint d = 0; (d < dwordCount) && (!found); d++)
     {
-        uint inputDword = TILE_BUFFER[tileBufferIndex + d];
+        const uint tileDword = TILE_BUFFER[tileBufferIndex + d];
+        const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - (d * 32),
+                                                    zBinEntityIndexRange.y - (d * 32));
 
-        while (inputDword != 0)
+        uint inputDword = tileDword & zbinDword; // Intersect the ranges
+
+    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        // Scalarize (make wave-uniform).
+        inputDword = WaveActiveBitOr(inputDword);
+    #endif
+
+        while ((inputDword != 0) && (!found))
         {
-            int b = firstbitlow(inputDword);
-            int tileEntityIndex = d * 32 + b;
+            const uint b = firstbitlow(inputDword);
 
-            // Entity indices are stored in the ascending order.
-            // We can distinguish 3 cases:
-            if (tileEntityIndex < zBinEntityIndexRange.x)
+            if (i == j)
             {
-                // Skip this entity; continue the (linear) search
-                // Fine point: entities are currently sorted by Centroid.z.
-                // So it could be that bin #0 starts with entity #1 (which is large)
-                // while bin #1 contains both entity #0 (which is small) and entity #1.
-                // So, for volumetrics, we cannot create a skipping scheme where we cache (and
-                // start from) min_valid(i) per slice, as that may make us skip valid lights.
+                entityIndex = d * 32 + b;
+                found       = true;
             }
-            else if (tileEntityIndex <= zBinEntityIndexRange.y)
-            {
-                if (i == j)
-                {
-                    found       = true;
-                    entityIndex = (uint)tileEntityIndex;
-                    break;
-                }
 
-                j++;
-            }
-            else // if (zBinEntityIndexRange.y < tileEntityIndex)
-            {
-                break;
-            }
+            j++;
 
             inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
         }
