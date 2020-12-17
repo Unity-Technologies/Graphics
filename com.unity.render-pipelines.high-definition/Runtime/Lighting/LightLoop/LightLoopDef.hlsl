@@ -200,48 +200,48 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
 
     const uint dwordCount = s_BoundedEntityDwordCountPerCategory[category];
 
-    if (dwordCount == 0) return found;
-
-    const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
-    const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
-    const uint zBinRangeData0   = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
-    const uint zBinRangeData1   = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
-
-    // Recall that entities are sorted by the z-coordinate.
-    // So we can take the smallest index from the first bin and the largest index from the last bin.
-    // To see why there's -1, see the discussion in 'zbin.compute'.
-    const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
-
-    const uint tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
-
-    uint j = 0; // Dumb, just to test
-
-    for (uint d = 0; (d < dwordCount) && (!found); d++)
+    if (dwordCount > 0)
     {
-        const uint tileDword = TILE_BUFFER[tileBufferIndex + d];
-        const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - ((int)d * 32),
-                                                    zBinEntityIndexRange.y - ((int)d * 32));
+        const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
+        const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
+        const uint zBinRangeData0   = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
+        const uint zBinRangeData1   = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
 
-        uint inputDword = tileDword & zbinDword; // Intersect the ranges
+        // Recall that entities are sorted by the z-coordinate.
+        // So we can take the smallest index from the first bin and the largest index from the last bin.
+        // To see why there's -1, see the discussion in 'zbin.compute'.
+        const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
 
-    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-        // Scalarize (make wave-uniform).
-        inputDword = WaveActiveBitOr(inputDword);
-    #endif
+        const uint tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
 
-        while ((inputDword != 0) && (!found))
+        uint j = 0; // Dumb, just to test
+
+        for (uint d = 0; (d < dwordCount) && (!found); d++)
         {
-            const uint b = firstbitlow(inputDword);
+            const uint tileDword = TILE_BUFFER[tileBufferIndex + d];
+            const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - ((int)d * 32),
+                                                        zBinEntityIndexRange.y - ((int)d * 32));
 
-            if (i == j)
+            uint inputDword = tileDword & zbinDword; // Intersect the ranges
+
+        #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+            inputDword = WaveActiveBitOr(inputDword); // Scalarize (make wave-uniform)
+        #endif
+
+            while ((inputDword != 0) && (!found))
             {
-                entityIndex = d * 32 + b;
-                found       = true;
+                const uint b = firstbitlow(inputDword);
+
+                if (i == j)
+                {
+                    entityIndex = d * 32 + b;
+                    found       = true;
+                }
+
+                j++;
+
+                inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
             }
-
-            j++;
-
-            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
         }
     }
 
