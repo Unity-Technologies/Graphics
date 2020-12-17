@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RemovePendingAsset(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
+
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
             {
                 m_PendingAssetsToBeLoaded.Remove(key);
@@ -201,14 +202,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
-                Cells.Remove(cell.index);
+            { 
+                if (Cells.ContainsKey(cell.index))
+                    Cells.Remove(cell.index);
+            }
 
             // Unload brick data
-            var regIds = AssetPathToBricks[key];
-            foreach (var regId in regIds)
-                ReleaseBricks(regId);
+            if (AssetPathToBricks.ContainsKey(key))
+            {
+                var regIds = AssetPathToBricks[key];
+                foreach (var regId in regIds)
+                    ReleaseBricks(regId);
 
-            AssetPathToBricks.Remove(key);
+                AssetPathToBricks.Remove(key);
+            }
         }
 
         private void PerformPendingIndexDimensionChange()
