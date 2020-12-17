@@ -10,12 +10,19 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
     using UnityEditor;
-
+    class Styles
+    {
+        public static readonly GUIContent userDefaults = EditorGUIUtility.TrTextContent("Use Defaults");
+    }
     public static class CoreRenderPipelinePreferences
     {
         static bool m_Loaded = false;
 
-        static Color s_VolumeGizmoColor = new Color(0.2f, 0.8f, 0.1f, 0.5f);
+        // Added default Colors so that they can be reverted back to these values
+        static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.5f);
+        static Color s_VolumeGizmoColor = s_VolumeGizmoColorDefault;
+        static readonly Color kPreviewCameraBackgroundColorDefault = new Color(82f / 255.0f, 82f / 255.0f, 82.0f / 255.0f, 0.0f);
+
         public static Color volumeGizmoColor
         {
             get => s_VolumeGizmoColor;
@@ -27,6 +34,8 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public static Color previewBackgroundColor => kPreviewCameraBackgroundColorDefault;
+
         static class Keys
         {
             internal const string volumeGizmoColor = "CoreRP.Volume.GizmoColor";
@@ -35,16 +44,29 @@ namespace UnityEngine.Rendering
         [SettingsProvider]
         static SettingsProvider PreferenceGUI()
         {
-            return new SettingsProvider("Preferences/Core Render Pipeline", SettingsScope.User)
+            return new SettingsProvider("Preferences/Colors/SRP", SettingsScope.User)
             {
                 guiHandler = searchContext =>
                 {
                     if (!m_Loaded)
                         Load();
 
-                    volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
+                    Rect r = EditorGUILayout.GetControlRect();
+                    r.xMin = 10;
+                    EditorGUIUtility.labelWidth = 251;
+                    volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
+
+                    if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
+                    {
+                        RevertColors();
+                    }
                 }
             };
+        }
+
+        static void RevertColors()
+        {
+            volumeGizmoColor = s_VolumeGizmoColorDefault;
         }
 
         static CoreRenderPipelinePreferences()
@@ -55,7 +77,6 @@ namespace UnityEngine.Rendering
         static void Load()
         {
             s_VolumeGizmoColor = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
-
             m_Loaded = true;
         }
 
