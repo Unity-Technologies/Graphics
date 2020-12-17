@@ -346,7 +346,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         var props = debug.props[i];
                         props.SetInt("_ShadingMode", (int)ProbeShading);
                         props.SetFloat("_Exposure", -Exposure);
-                        props.SetFloat("_ProbeSize", Gizmos.probeSize);
+                        props.SetFloat("_ProbeSize", Gizmos.probeSize * 100);
+
                         Graphics.DrawMeshInstanced(debugMesh, 0, debugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, null, LightProbeUsage.Off, null);
                     }
                 }
@@ -358,8 +359,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (debugMesh == null || debugMaterial == null)
             {
                 // Load debug mesh, material
-                debugMesh = Resources.Load<Mesh>("DebugProbe");
-                debugMaterial = new Material(Shader.Find("Hidden/HDRP/InstancedProbeShader")) { enableInstancing = true };
+                debugMesh = HDRenderPipeline.defaultAsset.renderPipelineResources.assets.debugProbeMesh;
+                debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.instancedProbeShader) { enableInstancing = true };
             }
         }
 
