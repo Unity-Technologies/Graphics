@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
 - Fixed a bug in the sphere-aabb light cluster (case 1294767).
 - Fixed issue when submitting SRPContext during EndCameraRendering.
+- Fixed baked light being included into the ray tracing light cluster (case 1296203).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
