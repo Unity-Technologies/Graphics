@@ -18,7 +18,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(16, Extension, -905)]
+    [ScriptedImporter(18, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -190,6 +190,7 @@ namespace UnityEditor.ShaderGraph
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
+            asset.previewMode = graph.previewMode;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
@@ -236,6 +237,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // provide top level subgraph function
             registry.ProvideFunction(asset.functionName, sb =>
             {
                 GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
@@ -246,14 +248,14 @@ namespace UnityEditor.ShaderGraph
                 foreach (var prop in graph.properties)
                 {
                     prop.ValidateConcretePrecision(asset.graphPrecision);
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    arguments.Add(prop.GetPropertyAsArgumentString());
                 }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
                 // Now generate outputs
-                foreach (var output in outputSlots)
+                foreach (MaterialSlot output in outputSlots)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
                 // Vt Feedback arguments

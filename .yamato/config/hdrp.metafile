@@ -7,7 +7,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
   - type: playmode
     name: playmode_NonRenderGraph
     utr_flags:

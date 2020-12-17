@@ -113,11 +113,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
                     if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
                     {
-                        for(int i = 0; i <= node.latestVersion; ++i)
+                        var versions = node.allowedNodeVersions ?? Enumerable.Range(0, node.latestVersion + 1);
+                        bool multiple = (versions.Count() > 1);
+                        foreach (int i in versions)
                         {
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
-                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                            if (multiple)
+                                AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                            else
+                                AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }
                     }
                     else

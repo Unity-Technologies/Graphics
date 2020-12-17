@@ -173,7 +173,7 @@ editor:priming:CUSTOM-REVISION:ios:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c iOS -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -191,7 +191,7 @@ editor:priming:test_min_editor:ios:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c iOS -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:

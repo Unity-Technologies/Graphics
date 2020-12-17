@@ -122,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
+                , fallBackToBlackTexture = true
             };
             return renderGraph.CreateTexture(normalDesc);
         }

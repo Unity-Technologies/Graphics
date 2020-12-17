@@ -1603,6 +1603,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public MaterialPropertyBlock taaPropertyBlock;
             public bool resetPostProcessingHistory;
 
+            public Vector4 previousScreenSize;
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
             public bool motionVectorRejection;
@@ -1686,6 +1687,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.taaHistoryPropertyBlock = m_TAAHistoryBlitPropertyBlock;
             parameters.taaPropertyBlock = m_TAAPropertyBlock;
+            Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
+            parameters.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
 
             return parameters;
         }
@@ -1724,9 +1727,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
 
-            Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
-                                              prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
-            var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
+            var taaHistorySize = taaParams.previousScreenSize;
 
             taaParams.taaPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParams.taaParameters);
             taaParams.taaPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);

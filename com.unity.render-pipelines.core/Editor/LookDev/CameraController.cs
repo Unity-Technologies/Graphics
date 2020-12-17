@@ -38,8 +38,23 @@ namespace UnityEditor.Rendering.LookDev
         bool m_InFlyMotion;
 
         bool m_IsDragging;
-        ViewTool m_BehaviorState;
         static TimeHelper s_Timer = new TimeHelper();
+
+        ViewTool m_BehaviorState;
+        ViewTool behaviorState
+        {
+            get { return m_BehaviorState; }
+            set
+            {
+                if (value != m_BehaviorState && m_BehaviorState == ViewTool.FPS)
+                {
+                    isDragging = false;
+                    inFlyMotion = false;
+                    m_DirectionKeyPressed = Direction.None;
+                }
+                m_BehaviorState = value;
+            }
+        }
 
         protected CameraState m_CameraState;
         DisplayWindow m_Window;
@@ -125,13 +140,13 @@ namespace UnityEditor.Rendering.LookDev
         {
             isDragging = false;
             inFlyMotion = false;
-            m_BehaviorState = ViewTool.None;
+            behaviorState = ViewTool.None;
         }
 
         protected virtual void OnScrollWheel(WheelEvent evt)
         {
             // See UnityEditor.SceneViewMotion.HandleScrollWheel
-            switch (m_BehaviorState)
+            switch (behaviorState)
             {
                 case ViewTool.FPS: OnChangeFPSCameraSpeed(evt); break;
                 default: OnZoom(evt); break;
@@ -140,7 +155,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnMouseDrag(MouseMoveEvent evt)
         {
-            switch (m_BehaviorState)
+            switch (behaviorState)
             {
                 case ViewTool.Orbit: OnMouseDragOrbit(evt); break;
                 case ViewTool.FPS: OnMouseDragFPS(evt); break;
@@ -241,7 +256,7 @@ namespace UnityEditor.Rendering.LookDev
         void OnKeyUpOrDownFPS<T>(KeyboardEventBase<T> evt)
             where T : KeyboardEventBase<T>, new()
         {
-            if (m_BehaviorState != ViewTool.FPS)
+            if (behaviorState != ViewTool.FPS)
                 return;
 
             //Note: Keydown is called in loop but between first occurence of the
@@ -318,30 +333,41 @@ namespace UnityEditor.Rendering.LookDev
                 return false;
             }
         }
-        
+
+        ViewTool GetBehaviorTool<T>(MouseEventBase<T> evt, bool onMac) where T : MouseEventBase<T>, new()
+        {
+            if (evt.button == 2)
+                return ViewTool.Pan;
+            else if (evt.button == 0 && evt.ctrlKey && onMac || evt.button == 1 && evt.altKey)
+                return ViewTool.Zoom;
+            else if (evt.button == 0)
+                return ViewTool.Orbit;
+            else if (evt.button == 1 && !evt.altKey)
+                return ViewTool.FPS;
+            return ViewTool.None;
+        }
+
         void OnMouseUp(MouseUpEvent evt)
         {
-            ResetCameraControl();
+            bool onMac = Application.platform == RuntimePlatform.OSXEditor;
+            var state = GetBehaviorTool(evt, onMac);
+
+            if (state == behaviorState)
+                ResetCameraControl();
             evt.StopPropagation();
         }
 
         void OnMouseDown(MouseDownEvent evt)
         {
             bool onMac = Application.platform == RuntimePlatform.OSXEditor;
+            behaviorState = GetBehaviorTool(evt, onMac);
 
-            if (evt.button == 2)
-                m_BehaviorState = ViewTool.Pan;
-            else if (evt.button == 0 && evt.ctrlKey && onMac || evt.button == 1 && evt.altKey)
+            if (behaviorState == ViewTool.Zoom)
             {
-                m_BehaviorState = ViewTool.Zoom;
                 m_StartZoom = m_CameraState.viewSize;
                 m_ZoomSpeed = Mathf.Max(Mathf.Abs(m_StartZoom), .3f);
                 m_TotalMotion = 0;
             }
-            else if (evt.button == 0)
-                m_BehaviorState = ViewTool.Orbit;
-            else if (evt.button == 1 && !evt.altKey)
-                m_BehaviorState = ViewTool.FPS;
 
             // see also SceneView.HandleClickAndDragToFocus()
             if (evt.button == 1 && onMac)

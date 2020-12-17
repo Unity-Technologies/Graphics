@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -24,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
         }
@@ -37,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
         }
@@ -49,6 +52,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+
+            if (!m_Resources.IsResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
+            {
+                var texDimension = m_Resources.GetTextureResourceDesc(input.handle).dimension;
+                if (texDimension == TextureXR.dimension)
+                {
+                    return m_RenderGraph.defaultResources.blackTextureXR;
+                }
+                else if (texDimension == TextureDimension.Tex3D)
+                {
+                    return m_RenderGraph.defaultResources.blackTexture3DXR;
+                }
+                else
+                {
+                    return m_RenderGraph.defaultResources.blackTexture;
+                }
+            }
+
             m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
@@ -61,8 +82,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
             m_RenderPass.AddResourceWrite(input.handle);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Texture resource to read and write to during the pass.
+        /// </summary>
+        /// <param name="input">The Texture resource to read and write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public TextureHandle ReadWriteTexture(in TextureHandle input)
+        {
+            CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
+            m_RenderPass.AddResourceWrite(input.handle);
+            m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
 
@@ -125,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             return input;
         }
 
