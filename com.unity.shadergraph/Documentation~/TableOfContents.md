@@ -87,6 +87,7 @@
             * [View Direction](View-Direction-Node)
         * Gradient
             * [Vertex ID](Vertex-ID-Node)
+            * [Instance ID](Instance-ID-Node)
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)
             * [Sample Gradient](Sample-Gradient-Node)
