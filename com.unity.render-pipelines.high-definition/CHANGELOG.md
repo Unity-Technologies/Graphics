@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
 - Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
 - Fixed a bug in the sphere-aabb light cluster (case 1294767).
+- Fixed issue when submitting SRPContext during EndCameraRendering.
+- Fixed baked light being included into the ray tracing light cluster (case 1296203).
+- Fixed enums UI for the shadergraph nodes.
+- Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
 - Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
 
 ### Changed
@@ -44,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
+- Changed the message when the graphics device doesn't support ray tracing (case 1287355).
 
 ## [10.3.0] - 2020-12-01
 
