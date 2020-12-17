@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private static bool init = false;
         private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         private static List<ProbeReferenceVolume.Cell> bakingCells = new List<ProbeReferenceVolume.Cell>();
+        private static ProbeReferenceVolumeAuthoring bakingReferenceVolumeAuthoring = null;
 
         static ProbeGIBaking()
         {
@@ -52,44 +53,77 @@ namespace UnityEngine.Rendering.HighDefinition
         static public void Clear()
         {
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-            ProbeReferenceVolumeAuthoring refVolAuthoring = null;
 
-            foreach (var rV in refVolAuthList)
+            foreach (var refVolAuthoring in refVolAuthList)
             {
-                refVolAuthoring = rV;
+                if (!refVolAuthoring.enabled)
+                    continue;
+
                 refVolAuthoring.VolumeAsset = null;
+
+                var refVol = ProbeReferenceVolume.instance;
+                refVol.Clear();
+                refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+                refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
+                refVol.SetNormalBias(refVolAuthoring.normalBias);
             }
 
-            if (refVolAuthoring == null)
-                return;
-
-            var refVol = ProbeReferenceVolume.instance;
-            refVol.Clear();
-            refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
-            refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
-            refVol.SetNormalBias(refVolAuthoring.normalBias);
-
             cellIndex2SceneReferences.Clear();
+        }
+
+        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent()
+        {
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
+
+            foreach (var refVolAuthoring in refVolAuthList)
+            {
+                if (!refVolAuthoring.enabled)
+                    continue;
+
+                enabledVolumes.Add(refVolAuthoring);
+            }
+
+            int numVols = enabledVolumes.Count;
+
+            if (numVols == 0)
+                return null;
+
+            if (numVols == 1)
+                return enabledVolumes[0];
+
+            var reference = enabledVolumes[0];
+            for (int c = 1; c < numVols; ++c)
+            {
+                var compare = enabledVolumes[c];
+                if (reference.transform != compare.transform)
+                    return null;
+
+                if (reference.m_Profile != compare.m_Profile)
+                    return null;
+            }
+
+            return reference;
         }
 
         private static void OnBakeStarted()
         {
             if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
+                bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent();
+
+                if (bakingReferenceVolumeAuthoring == null)
+                {
+                    Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
+                    return;
+                }
+
                 RunPlacement();
             }
         }
 
         private static void OnAdditionalProbesBakeCompleted()
         {
-            // TODO: Settings should be copied into ProbeReferenceVolume?
-            var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-            if (refVolAuthoring == null)
-            {
-                Debug.Log("Error: No ProbeReferenceVolumeAuthoring component found.");
-                return;
-            }
-
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
             var numCells = bakingCells.Count;
@@ -154,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, refVolAuthoring.GetDilationSettings());
+                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
 
                 ProbeReferenceVolume.instance.Cells[cell.index] = cell;
             }
@@ -162,7 +196,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Map from each scene to an existing reference volume
             var scene2RefVol = new Dictionary<Scene, ProbeReferenceVolumeAuthoring>();
             foreach (var refVol in GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>())
-                scene2RefVol[refVol.gameObject.scene] = refVol;
+                if (refVol.enabled)
+                    scene2RefVol[refVol.gameObject.scene] = refVol;
 
             // Map from each reference volume to its asset
             var refVol2Asset = new Dictionary<ProbeReferenceVolumeAuthoring, ProbeVolumeAsset>();
@@ -351,18 +386,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void RunPlacement()
         {
-            var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-            if (refVolAuthoring == null)
-                return;
-
             var refVol = ProbeReferenceVolume.instance;
 
             Clear();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
-            var volumeScale = refVolAuthoring.transform.localScale;
-            var CellSize = refVolAuthoring.cellSize;
+            var volumeScale = bakingReferenceVolumeAuthoring.transform.localScale;
+            var CellSize = bakingReferenceVolumeAuthoring.cellSize;
             var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
             var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
             var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
@@ -395,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, refVolAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
+                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, bakingReferenceVolumeAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
@@ -406,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
-                ProbePlacement.Subdivide(cell.position, refVol, refVolAuthoring.cellSize, refVolTransform.posWS, refVolTransform.rot,
+                ProbePlacement.Subdivide(cell.position, refVol, bakingReferenceVolumeAuthoring.cellSize, refVolTransform.posWS, refVolTransform.rot,
                     influenceVolumes, ref probePositionsArr, ref bricks);
 
                 if (probePositionsArr.Length > 0 && bricks.Count > 0)
