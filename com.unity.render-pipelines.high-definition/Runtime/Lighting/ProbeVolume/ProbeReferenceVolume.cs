@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct Volume
         {
-            public Vector3 Corner;
+            public Vector3 corner;
             public Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
             public Vector3 Y;
             public Vector3 Z;
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 X = trs.GetColumn(0);
                 Y = trs.GetColumn(1);
                 Z = trs.GetColumn(2);
-                Corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
+                corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
             }
 
             public Volume(Volume copy)
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 X = copy.X;
                 Y = copy.Y;
                 Z = copy.Z;
-                Corner = copy.Corner;
+                corner = copy.corner;
             }
 
             public Bounds CalculateAABB()
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             Vector3 dir = new Vector3(x, y, z);
 
-                            Vector3 pt = Corner
+                            Vector3 pt = corner
                                 + X * dir.x
                                 + Y * dir.y
                                 + Z * dir.z;
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Transform(Matrix4x4 trs)
             {
-                Corner = trs.MultiplyPoint(Corner);
+                corner = trs.MultiplyPoint(corner);
                 X = trs.MultiplyVector(X);
                 Y = trs.MultiplyVector(Y);
                 Z = trs.MultiplyVector(Z);
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public override string ToString()
             {
-                return $"Corner: {Corner}, X: {X}, Y: {Y}, Z: {Z}";
+                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}";
             }
         }
 
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public override int GetHashCode() => id;
         }
 
-        private int m_id = 0;
+        private int m_ID = 0;
         private RefVolTransform m_Transform;
         private float m_NormalBias;
         private int m_MaxSubdivision;
@@ -145,8 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
-        public Dictionary<int, Cell> Cells = new Dictionary<int, Cell>();
-        public Dictionary<string, List<RegId>> AssetPathToBricks = new Dictionary<string, List<RegId>>();
+        public Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        public Dictionary<string, List<RegId>> assetPathToBricks = new Dictionary<string, List<RegId>>();
 
         private bool m_BricksLoaded = false;
 
@@ -159,9 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // a pending request for re-init (and what it implies) is added from the editor.
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
-
-        // index related
-        Texture3D indexTex;
 
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
@@ -203,18 +200,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             { 
-                if (Cells.ContainsKey(cell.index))
-                    Cells.Remove(cell.index);
+                if (cells.ContainsKey(cell.index))
+                    cells.Remove(cell.index);
             }
 
             // Unload brick data
-            if (AssetPathToBricks.ContainsKey(key))
+            if (assetPathToBricks.ContainsKey(key))
             {
-                var regIds = AssetPathToBricks[key];
+                var regIds = assetPathToBricks[key];
                 foreach (var regId in regIds)
                     ReleaseBricks(regId);
 
-                AssetPathToBricks.Remove(key);
+                assetPathToBricks.Remove(key);
             }
         }
 
@@ -238,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
                 var path = asset.GetSerializedFullPath();
-                AssetPathToBricks[path] = new List<RegId>();
+                assetPathToBricks[path] = new List<RegId>();
 
                 foreach (var cell in asset.cells)
                 {
@@ -252,8 +249,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     brickList.AddRange(cell.bricks);
                     var regId = AddBricks(brickList, dataLocation);
 
-                    Cells[cell.index] = cell;
-                    AssetPathToBricks[path].Add(regId);
+                    cells[cell.index] = cell;
+                    assetPathToBricks[path].Add(regId);
                 }
             }
 
@@ -335,7 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Pool.Clear();
                 m_Index.Clear();
-                Cells.Clear();
+                cells.Clear();
             }
         }
 
@@ -534,8 +531,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // create a registry entry for this request
             RegId id;
-            m_id++;
-            id.id = m_id;
+            m_ID++;
+            id.id = m_ID;
             m_Registry.Add(id, ch_list);
 
             // update the index
@@ -569,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 m = GetRefSpaceToWS().inverse;
 
             // Handle TRS
-            outVolume.Corner = m.MultiplyPoint(inVolume.Corner);
+            outVolume.corner = m.MultiplyPoint(inVolume.corner);
             outVolume.X = m.MultiplyVector(inVolume.X);
             outVolume.Y = m.MultiplyVector(inVolume.Y);
             outVolume.Z = m.MultiplyVector(inVolume.Z);

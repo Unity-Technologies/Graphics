@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static protected Volume ToVolume(Bounds bounds)
         {
             Volume v = new Volume();
-            v.Corner = bounds.center - bounds.size * 0.5f;
+            v.corner = bounds.center - bounds.size * 0.5f;
             v.X = new Vector3(bounds.size.x, 0, 0);
             v.Y = new Vector3(0, bounds.size.y, 0);
             v.Z = new Vector3(0, 0, bounds.size.z);
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
         {
             Volume cellVolume = new Volume();
-            cellVolume.Corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
+            cellVolume.corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
             cellVolume.X = new Vector3(settings.cellSize, 0, 0);
             cellVolume.Y = new Vector3(0, settings.cellSize, 0);
             cellVolume.Z = new Vector3(0, 0, settings.cellSize);
@@ -165,15 +165,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     cellVolumeTrans.Transform(refTrans.refSpaceToWS.inverse);
 
                     // Discard parent brick if it extends outside of the cell, to prevent duplicates
-                    var brickVolumeMax = brickVolume.Corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
-                    var cellVolumeMax = cellVolumeTrans.Corner + cellVolumeTrans.X + cellVolumeTrans.Y + cellVolumeTrans.Z;
+                    var brickVolumeMax = brickVolume.corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
+                    var cellVolumeMax = cellVolumeTrans.corner + cellVolumeTrans.X + cellVolumeTrans.Y + cellVolumeTrans.Z;
 
-                    f.discard = brickVolume.Corner.x<cellVolumeTrans.Corner.x ||
-                                                     brickVolume.Corner.y<cellVolumeTrans.Corner.y ||
-                                                                          brickVolume.Corner.z<cellVolumeTrans.Corner.z ||
-                                                                                               brickVolumeMax.x> cellVolumeMax.x ||
-                                                                          brickVolumeMax.y> cellVolumeMax.y ||
-                                                     brickVolumeMax.z> cellVolumeMax.z;
+                    f.discard = brickVolume.corner.x < cellVolumeTrans.corner.x ||
+                                brickVolume.corner.y < cellVolumeTrans.corner.y ||
+                                brickVolume.corner.z < cellVolumeTrans.corner.z ||
+                                brickVolumeMax.x > cellVolumeMax.x ||
+                                brickVolumeMax.y > cellVolumeMax.y ||
+                                brickVolumeMax.z > cellVolumeMax.z;
                 }
                 else
                 {
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //TODO: This per-cell volume is calculated 2 times during probe placement. We should calculate it once and reuse it.
             Volume cellVolume = new Volume();
-            cellVolume.Corner = new Vector3(cellPosGridSpace.x * cellSize, cellPosGridSpace.y * cellSize, cellPosGridSpace.z * cellSize);
+            cellVolume.corner = new Vector3(cellPosGridSpace.x * cellSize, cellPosGridSpace.y * cellSize, cellPosGridSpace.z * cellSize);
             cellVolume.X = new Vector3(cellSize, 0, 0);
             cellVolume.Y = new Vector3(0, cellSize, 0);
             cellVolume.Z = new Vector3(0, 0, cellSize);

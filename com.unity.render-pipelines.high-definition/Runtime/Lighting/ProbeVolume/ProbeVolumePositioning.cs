@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 Volume v = new Volume();
-                v.Corner = r.bounds.center - r.bounds.size * 0.5f;
+                v.corner = r.bounds.center - r.bounds.size * 0.5f;
                 v.X = new Vector3(r.bounds.size.x, 0, 0);
                 v.Y = new Vector3(0, r.bounds.size.y, 0);
                 v.Z = new Vector3(0, 0, r.bounds.size.z);
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
             Volume bounds;
-            bounds.Corner = scaledPos;
+            bounds.corner = scaledPos;
             bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
             bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static Vector2 ProjectOBB(ref Volume a, Vector3 axis)
         {
-            float min = Vector3.Dot(axis, a.Corner);
+            float min = Vector3.Dot(axis, a.corner);
             float max = min;
 
             for (int x = 0; x < 2; x++)
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int z = 0; z < 2; z++)
                     {
-                        Vector3 vert = a.Corner + a.X * x + a.Y * y + a.Z * z;
+                        Vector3 vert = a.corner + a.X * x + a.Y * y + a.Z * z;
 
                         float proj = Vector3.Dot(axis, vert);
 

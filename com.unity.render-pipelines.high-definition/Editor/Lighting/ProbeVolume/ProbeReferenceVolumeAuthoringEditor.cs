@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 
 using UnityEditor;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -38,18 +39,18 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_DrawProbes = serializedObject.FindProperty("DrawProbes");
-            m_DrawBricks = serializedObject.FindProperty("DrawBricks");
-            m_DrawCells = serializedObject.FindProperty("DrawCells");
-            m_ProbeShading = serializedObject.FindProperty("ProbeShading");
-            m_CullingDistance = serializedObject.FindProperty("CullingDistance");
-            m_Exposure = serializedObject.FindProperty("Exposure");
-            m_Dilate = serializedObject.FindProperty("dilate");
-            m_MaxDilationSamples = serializedObject.FindProperty("maxDilationSamples");
-            m_MaxDilationSampleDistance = serializedObject.FindProperty("maxDilationSampleDistance");
-            m_DilationValidityThreshold = serializedObject.FindProperty("dilationValidityThreshold");
-            m_GreedyDilation = serializedObject.FindProperty("greedyDilation");
-            m_VolumeAsset = serializedObject.FindProperty("VolumeAsset");
+            m_DrawProbes = serializedObject.FindProperty("m_DrawProbes");
+            m_DrawBricks = serializedObject.FindProperty("m_DrawBricks");
+            m_DrawCells = serializedObject.FindProperty("m_DrawCells");
+            m_ProbeShading = serializedObject.FindProperty("m_ProbeShading");
+            m_CullingDistance = serializedObject.FindProperty("m_CullingDistance");
+            m_Exposure = serializedObject.FindProperty("m_Exposure");
+            m_Dilate = serializedObject.FindProperty("m_Dilate");
+            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
+            m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
+            m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
+            m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
+            m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
         }
@@ -76,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     foreach (var o2 in probeReferenceVolumes)
                     {
-                        if (!o1.m_Profile.IsEquivalent(o2.m_Profile) && !foundInconsistency)
+                        if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
                         {
                             EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
                                 + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);

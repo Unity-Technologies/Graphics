@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!refVolAuthoring.enabled)
                     continue;
 
-                refVolAuthoring.VolumeAsset = null;
+                refVolAuthoring.volumeAsset = null;
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (reference.transform != compare.transform)
                     return null;
 
-                if (reference.m_Profile != compare.m_Profile)
+                if (reference.profile != compare.profile)
                     return null;
             }
 
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
 
-                ProbeReferenceVolume.instance.Cells[cell.index] = cell;
+                ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
 
             // Map from each scene to an existing reference volume
@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Put cells into the respective assets
-            foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
                 foreach (var scene in cellIndex2SceneReferences[cell.index])
                 {
@@ -228,10 +228,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var refVol = pair.Key;
                 var asset = pair.Value;
 
-                refVol.VolumeAsset = asset;
+                refVol.volumeAsset = asset;
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                    UnityEditor.EditorUtility.SetDirty(refVol.VolumeAsset);
+                    UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
             }
 
             UnityEditor.AssetDatabase.SaveAssets();

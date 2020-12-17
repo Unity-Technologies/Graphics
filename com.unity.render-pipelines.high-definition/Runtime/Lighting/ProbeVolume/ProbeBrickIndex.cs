@@ -247,6 +247,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void ClearVoxel(Vector3Int pos)
         {
+            if (m_IndexBuffer == null) return;
+
             // clip voxel to index space
             Vector3Int volMin, volMax;
             ClipToIndexSpace(pos, m_VoxelSubdivLevel, out volMin, out volMax);

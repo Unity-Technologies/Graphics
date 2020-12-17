@@ -86,53 +86,67 @@ namespace UnityEngine.Rendering.HighDefinition
             Validity
         }
 
-        public ProbeReferenceVolumeProfile m_Profile = null;
+        [SerializeField]
+        private ProbeReferenceVolumeProfile m_Profile = null;
         private ProbeReferenceVolumeProfile m_PrevProfile = null;
 
+        internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
+        internal int brickSize { get { return m_Profile.brickSize; } }
+        internal int cellSize { get { return m_Profile.cellSize; } }
+        internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
+        internal float normalBias { get { return m_Profile.normalBias; } }
+        internal Vector3Int indexDimensions { get { return m_Profile.indexDimensions; } }
 
-        internal int brickSize { get { return m_Profile.BrickSize; } }
-        internal int cellSize { get { return m_Profile.CellSize; } }
-        internal int maxSubdivision { get { return m_Profile.MaxSubdivision; } }
-        internal float normalBias { get { return m_Profile.NormalBias; } }
-        internal Vector3Int indexDimensions { get { return m_Profile.IndexDimensions; } }
+        [SerializeField]
+        private bool m_DrawProbes = false;
+        [SerializeField]
+        private bool m_DrawBricks = false;
+        [SerializeField]
+        private bool m_DrawCells = false;
 
-        public bool DrawProbes = false;
-        public bool DrawBricks = false;
-        public bool DrawCells = false;
-        public ProbeShadingMode ProbeShading;
-        public float CullingDistance = 200;
+        // Debug shading
+        [SerializeField]
+        private ProbeShadingMode m_ProbeShading;
+        [SerializeField]
+        private float m_CullingDistance = 200;
+        [SerializeField]
+        private float m_Exposure = 0f;
 
-        public float Exposure = 0f;
+        // Dilation
+        [SerializeField]
+        private bool m_Dilate = false;
+        [SerializeField]
+        private int m_MaxDilationSamples = 16;
+        [SerializeField]
+        private float m_MaxDilationSampleDistance = 1f;
+        [SerializeField]
+        private float m_DilationValidityThreshold = 0.25f;
+        [SerializeField]
+        private bool m_GreedyDilation = false;
 
-        public bool dilate = false;
-        public int maxDilationSamples = 16;
-        public float maxDilationSampleDistance = 1f;
-        public float dilationValidityThreshold = 0.25f;
-        public bool greedyDilation = false;
-
-        public ProbeVolumeAsset VolumeAsset = null;
+        public ProbeVolumeAsset volumeAsset = null;
         private ProbeVolumeAsset m_PrevAsset = null;
 
         internal void QueueAssetLoading()
         {
-            if (VolumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
+            if (volumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
-            refVol.SetTRS(transform.position, transform.rotation, m_Profile.BrickSize);
-            refVol.SetMaxSubdivision(m_Profile.MaxSubdivision);
-            refVol.SetNormalBias(m_Profile.NormalBias);
+            refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
+            refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
+            refVol.SetNormalBias(m_Profile.normalBias);
 
-            refVol.AddPendingAssetLoading(VolumeAsset);
+            refVol.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
         {
-            if (VolumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
+            if (volumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
-            ProbeReferenceVolume.instance.RemovePendingAsset(VolumeAsset);
+            ProbeReferenceVolume.instance.RemovePendingAsset(volumeAsset);
         }
 
 #if UNITY_EDITOR
@@ -150,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Profile != null)
                 {
-                    bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.IndexDimensions != m_Profile.IndexDimensions);
+                    bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.indexDimensions != m_Profile.indexDimensions);
                     if (hasIndexDimensionChangedOnProfileSwitch)
                     {
                         var refVol = ProbeReferenceVolume.instance;
@@ -161,12 +175,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     QueueAssetLoading();
                 }
 
-                if (VolumeAsset != m_PrevAsset && m_PrevAsset != null)
+                if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
                 {
                     ProbeReferenceVolume.instance.RemovePendingAsset(m_PrevAsset);
                 }
 
-                m_PrevAsset = VolumeAsset;
+                m_PrevAsset = volumeAsset;
             }
         }
 
@@ -189,21 +203,21 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 camPos = cam.position;
             Vector3 camVec = cam.forward;
 
-            float halfCellSize = m_Profile.CellSize * 0.5f;
+            float halfCellSize = m_Profile.cellSize * 0.5f;
 
-            Vector3 cellPos = cellPosition * m_Profile.CellSize + halfCellSize * Vector3.one + refVolTranslation;
+            Vector3 cellPos = cellPosition * m_Profile.cellSize + halfCellSize * Vector3.one + refVolTranslation;
             Vector3 camToCell = cellPos - camPos;
 
             float angle = Vector3.Dot(camVec.normalized, camToCell.normalized);
 
-            bool shouldRender = (camToCell.magnitude < CullingDistance && angle > 0);// || (Mathf.Abs(camToCell.x) < halfCellSize && Mathf.Abs(camToCell.y) < halfCellSize && Mathf.Abs(camToCell.z) < halfCellSize);
+            bool shouldRender = (camToCell.magnitude < m_CullingDistance && angle > 0);// || (Mathf.Abs(camToCell.x) < halfCellSize && Mathf.Abs(camToCell.y) < halfCellSize && Mathf.Abs(camToCell.z) < halfCellSize);
 
             return !shouldRender;
         }
 
         private void CreateInstancedProbes()
         {
-            foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
@@ -296,31 +310,31 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!enabled)
                 return;
 
-            if (DrawCells)
+            if (m_DrawCells)
             {
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 Gizmos.color = Color.green;
 
-                foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
                     if (ShouldCull(cell.position))
                         continue;
 
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                    var center = positionF * m_Profile.CellSize + m_Profile.CellSize * 0.5f * Vector3.one;
-                    Gizmos.DrawWireCube(center, Vector3.one * m_Profile.CellSize);
+                    var center = positionF * m_Profile.cellSize + m_Profile.cellSize * 0.5f * Vector3.one;
+                    Gizmos.DrawWireCube(center, Vector3.one * m_Profile.cellSize);
                 }
             }
 
-            if (DrawBricks)
+            if (m_DrawBricks)
             {
                 Gizmos.matrix = ProbeReferenceVolume.instance.GetRefSpaceToWS();
                 Gizmos.color = Color.blue;
 
                 // Read refvol transform
-                foreach (var cell in ProbeReferenceVolume.instance.Cells.Values)
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
                     if (ShouldCull(cell.position))
                         continue;
@@ -337,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (DrawProbes)
+            if (m_DrawProbes)
             {
                 // TODO: Update data on ref vol changes
                 if (cellDebugData.Count == 0)
@@ -352,8 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         var props = debug.props[i];
-                        props.SetInt("_ShadingMode", (int)ProbeShading);
-                        props.SetFloat("_Exposure", -Exposure);
+                        props.SetInt("_ShadingMode", (int)m_ProbeShading);
+                        props.SetFloat("_Exposure", -m_Exposure);
                         props.SetFloat("_ProbeSize", Gizmos.probeSize * 100);
 
                         Graphics.DrawMeshInstanced(debugMesh, 0, debugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, null, LightProbeUsage.Off, null);
@@ -375,11 +389,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
-            settings.dilate = dilate;
-            settings.dilationValidityThreshold = dilationValidityThreshold;
-            settings.greedyDilation = greedyDilation;
-            settings.maxDilationSampleDistance = maxDilationSampleDistance;
-            settings.maxDilationSamples = maxDilationSamples;
+            settings.dilate = m_Dilate;
+            settings.dilationValidityThreshold = m_DilationValidityThreshold;
+            settings.greedyDilation = m_GreedyDilation;
+            settings.maxDilationSampleDistance = m_MaxDilationSampleDistance;
+            settings.maxDilationSamples = m_MaxDilationSamples;
             settings.brickSize = brickSize;
 
             return settings;

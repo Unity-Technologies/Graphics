@@ -21,11 +21,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void OnEnable()
         {
-            m_CellSize = serializedObject.FindProperty("CellSize");
-            m_BrickSize = serializedObject.FindProperty("BrickSize");
-            m_MaxSubdivision = serializedObject.FindProperty("MaxSubdivision");
-            m_NormalBias = serializedObject.FindProperty("NormalBias");
-            m_IndexDimensions = serializedObject.FindProperty("IndexDimensions");
+            m_CellSize = serializedObject.FindProperty("cellSize");
+            m_BrickSize = serializedObject.FindProperty("brickSize");
+            m_MaxSubdivision = serializedObject.FindProperty("maxSubdivision");
+            m_NormalBias = serializedObject.FindProperty("normalBias");
+            m_IndexDimensions = serializedObject.FindProperty("indexDimensions");
         }
 
         public override void OnInspectorGUI()
