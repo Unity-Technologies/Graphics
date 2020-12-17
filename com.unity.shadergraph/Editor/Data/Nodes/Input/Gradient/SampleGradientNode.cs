@@ -90,7 +90,5 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-
     }
 }
-
