@@ -176,9 +176,7 @@ namespace UnityEngine.Rendering.Universal
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
-#pragma warning disable 618 // Obsolete warning
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
-#pragma warning restore 618 // Obsolete warning
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
@@ -289,8 +287,6 @@ namespace UnityEngine.Rendering.Universal
             AddRenderPasses(ref renderingData);
             isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
-
-            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
 
             // Should apply post-processing after rendering this camera?
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed an issue with the Gradient color picker displaying different values than the selected color. 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
+- Fixed an issue where interpolators with preprocessors were being packed incorrectly.
 
 
 ## [10.3.0] - 2020-11-03
@@ -31,11 +32,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using TexelSize or reading sampler states from Textures output from a Subgraph or Custom Function Node [1284036]
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
-
-### Fixed 
 - Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
 - Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
 
 ## [10.2.0] - 2020-10-19
 
