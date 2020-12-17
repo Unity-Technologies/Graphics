@@ -37,7 +37,9 @@
 |[**Vertex ID**](Vertex-ID-Node.md)|
 |![Image](images/VertexIDNodeThumb.png)|
 |Provides access to the mesh vertex or fragment's Vertex ID value.|
-
+|[**Instance ID**](Instance-ID-Node.md)|
+|![Image](images/InstanceIDNodeThumb.png)|
+|Provides access to the instance ID of the object when rendering while instancing is enabled.|
 
 ## Gradient
 
