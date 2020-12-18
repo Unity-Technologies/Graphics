@@ -33,6 +33,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ### Changed
 - LookDev menu item entry is now disabled if the current pipeline does not support it.
