@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed display of LOD Bias and maximum level in frame settings when using Quality Levels
 - Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
 - Fixed shader graph not supporting indirectdxr multibounce (case 1294694).
+- Fixed the planar depth texture not being properly created and rendered to (case 1299617).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
