@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -154,9 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // className include the additional "/"
         static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className)
         {
-            var attributes = type.GetCustomAttributes(true);
-            // Get attribute to get the start number of the value for the enum
-            var attr = attributes[0] as GenerateHLSL;
+            var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
             {
