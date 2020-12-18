@@ -145,7 +145,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_overrideVertexColor;
             set => m_overrideVertexColor = value;
         }
-
     }
 
     static class HDSystemDataExtensions

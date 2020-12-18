@@ -13,11 +13,12 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Instance ID";
         }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("UnityGetInstanceID", BindingFlags.Static | BindingFlags.NonPublic);
         }
-
+        
         static string UnityGetInstanceID([Slot(0, Binding.None)] out Vector1 Out)
         {
             return
