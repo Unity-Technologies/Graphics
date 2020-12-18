@@ -4,6 +4,8 @@ The View Lighting tool allows you to set up lighting in camera space. It uses th
 
 Since the View Lighting tool uses camera-space, it is especially useful when setting up lighting for cinematics.
 
+To be able to use the view lighting tool, we need to have at least one camera tagged as "MainCamera" (only one will be used).
+
 ## Using the View Lighting tool
 
 The View Lighting tool uses the Light Anchor component to position and orient the Light. When this component is attached to a Light, you can use a custom Scene view gizmo to position the Light, and use the component's Inspector to orient the Light.

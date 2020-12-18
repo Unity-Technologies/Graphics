@@ -371,11 +371,11 @@ namespace UnityEditor
                 // The mouse position reported by the event is not in the same space as Screen Space.  The Y axis is flipped
                 // Also we need to account for the toolbar.  I couldn't find any way to get an accurate number so this is a best
                 // guess for now
-                var newMousePos = m_ClickCatcher.WorldToLocal(evt.mousePosition);
-                var toolbarHeight = 21f;
-                var mousePos = new Vector3(newMousePos.x, Screen.height - (newMousePos.y + toolbarHeight), 0f);
 
                 // Useful to uncomment for debugging
+                //var newMousePos = m_ClickCatcher.WorldToLocal(evt.mousePosition);
+                //var toolbarHeight = 21f;
+                //var mousePos = new Vector3(newMousePos.x, Screen.height - (newMousePos.y + toolbarHeight), 0f);
                 //var ray = Camera.main.ScreenPointToRay(Event.current.mousePosition);
                 //Debug.DrawLine(ray.origin, ray.origin + ray.direction * 100f, Color.yellow, 10f);
             }
