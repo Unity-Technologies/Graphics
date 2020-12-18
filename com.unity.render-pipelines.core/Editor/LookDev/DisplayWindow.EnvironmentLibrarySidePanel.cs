@@ -450,7 +450,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 //If EnvironmentLibrary asset as been edited by the user (deletion),
                 //update all view to use null environment if it was not temporary ones
-                if (LookDev.currentContext.HasLibraryAssetChanged(m_LibraryField.value as EnvironmentLibrary))
+                if (m_LibraryField != null && LookDev.currentContext.HasLibraryAssetChanged(m_LibraryField.value as EnvironmentLibrary))
                 {
                     ViewContext viewContext = LookDev.currentContext.GetViewContent(ViewIndex.First);
                     if (!(viewContext.environment?.isCubemapOnly ?? false))
