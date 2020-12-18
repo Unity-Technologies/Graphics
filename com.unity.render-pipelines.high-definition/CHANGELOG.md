@@ -36,6 +36,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
 - Fixed LayeredLit shader compilation issue with metal shader and raytracing
 - Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed case where material keywords would not get setup before usage.
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
