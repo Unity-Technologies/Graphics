@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
 - Added View Bias for mesh decals.
-- Added a cloud system and the CloudLayer volume override.
 
 ### Fixed
 - Fixed probe volumes debug views.

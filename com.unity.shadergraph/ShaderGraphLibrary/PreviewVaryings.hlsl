@@ -47,10 +47,6 @@ Varyings BuildVaryings(Attributes input)
     output.color = input.color;
 #endif
 
-#if defined(VARYINGS_NEED_VERTEXID)
-    output.vertexID = input.vertexID;
-#endif
-
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
     output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
 #endif

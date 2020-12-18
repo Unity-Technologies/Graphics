@@ -848,7 +848,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDUtils.IsRegularPreviewCamera(camera))
             {
                 visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
-                visualSky.cloudSettings = null;
                 lightingSky = visualSky;
                 skyAmbientMode = SkyAmbientMode.Dynamic;
             }
@@ -858,7 +857,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
-                visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -866,10 +864,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
                 {
                     SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
-                    CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
-
-                    if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
-                        (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
+                    if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
                     {
                         // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                         // Resetting the visual sky hash will ensure that.
@@ -877,7 +872,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     m_LightingOverrideSky.skySettings = newSkyOverride;
-                    m_LightingOverrideSky.cloudSettings = newCloudOverride;
                     lightingSky = m_LightingOverrideSky;
                 }
                 else

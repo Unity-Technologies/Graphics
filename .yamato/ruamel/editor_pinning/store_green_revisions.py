@@ -80,7 +80,6 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
     # get the revisions used for the job, the last green project revisions, and Yamato dependency tree  
     updated_at = str(datetime.datetime.utcnow())
     revisions_key = f"{track}_latest_internal" if track=="trunk" else f"{track}_staging"
-    revisions_key = revisions_key.replace('.','_')
     revisions = load_yml(editor_versions_file)["editor_versions"][revisions_key]
     last_green_job_revisions = load_yml(project_versions_file)
     dependency_tree = get_yamato_dependency_tree(job_id, api_key)

@@ -95,6 +95,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
+            if (hdriSky.enableBackplate.value == false)
+            {
+                return;
+            }
 
             int passID;
             if (renderForCubemap)

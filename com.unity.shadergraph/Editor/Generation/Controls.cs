@@ -135,19 +135,4 @@ namespace UnityEditor.ShaderGraph
             return ShaderGraphRequirements.none;
         }
     }
-
-    public class VertexColorControl : IControl
-    {
-        public Color value { get; private set; }
-
-        public VertexColorControl(Color value)
-        {
-            this.value = value;
-        }
-
-        public ShaderGraphRequirements GetRequirements()
-        {
-            return new ShaderGraphRequirements() { requiresVertexColor = true };
-        }
-    }
 }

@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
-        internal Light GetCurrentSunLight() { return m_CurrentSunLight; }
+        Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
         struct ScreenSpaceShadowData

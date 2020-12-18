@@ -121,7 +121,6 @@ namespace UnityEditor.ShaderGraph
                     StructFields.Varyings.viewDirectionWS,
                     StructFields.Varyings.screenPosition,
                     StructFields.Varyings.instanceID,
-                    StructFields.Varyings.vertexID,
                     StructFields.Varyings.cullFace,
                 }
             };

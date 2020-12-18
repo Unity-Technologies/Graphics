@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
-                "VERTEXID_SEMANTIC", subscriptOptions: StructFieldOptions.Optional);
+                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct Varyings
@@ -59,8 +59,6 @@ namespace UnityEditor.ShaderGraph
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
-            public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
-                "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct VertexDescriptionInputs

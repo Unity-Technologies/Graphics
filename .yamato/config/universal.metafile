@@ -6,10 +6,9 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
-      #- [Android_OpenGles3, Android_Vulkan]: --timeout=2700
-      #- [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
-      #- [iPhone_Metal]: --timeout=1800
-      - [all]: --timeout=3000
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      - [iPhone_Metal]: --timeout=1800
   - type: playmode
   - type: editmode
   - type: playmode

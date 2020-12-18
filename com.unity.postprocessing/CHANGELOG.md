@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.0.2] - 2020-12-08
 
-### Fixed
-- Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
-
 ### Changed
 - ResetProjection isn't being called anymore if Temporal Anti-aliasing isn't enabled, allowing the use of custom projection matrices.
 

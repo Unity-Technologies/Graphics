@@ -49,7 +49,7 @@ Build_Universal_Win_Vulkan_Standalone_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=3000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -182,7 +182,7 @@ Build_Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=3000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:

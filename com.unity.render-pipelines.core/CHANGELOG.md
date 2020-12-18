@@ -26,7 +26,6 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
-- Fixed issue that caused `UNITY_REVERSED_Z` and `UNITY_UV_STARTS_AT_TOP` being defined in platforms that don't support it.
 
 ### Changed
 - LookDev menu item entry is now disabled if the current pipeline does not support it.

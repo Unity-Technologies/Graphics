@@ -12,7 +12,6 @@ using System.IO;
 
 public class HDRP_GraphicTestRunner
 {
-    [UnityTest]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
@@ -22,7 +21,7 @@ public class HDRP_GraphicTestRunner
 
         // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
         for (int i=0 ; i<5 ; ++i)
-            yield return new WaitForEndOfFrame();
+            yield return null;
 
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
@@ -64,14 +63,14 @@ public class HDRP_GraphicTestRunner
             settings.doBeforeTest.Invoke();
 
             // Wait again one frame, to be sure.
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
 
         // Reset temporal effects on hdCamera
         HDCamera.GetOrCreate(camera).Reset();
 
         for (int i=0 ; i<settings.waitFrames ; ++i)
-            yield return new WaitForEndOfFrame();
+            yield return null;
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
@@ -114,8 +113,8 @@ public class HDRP_GraphicTestRunner
 
             settingsSG.sgObjs.SetActive(true);
             settingsSG.biObjs.SetActive(false);
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return null; // Wait a frame
+            yield return null;
             bool sgFail = false;
             bool biFail = false;
 
@@ -132,8 +131,8 @@ public class HDRP_GraphicTestRunner
             settingsSG.sgObjs.SetActive(false);
             settingsSG.biObjs.SetActive(true);
             settingsSG.biObjs.transform.position = settingsSG.sgObjs.transform.position; // Move to the same location.
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return null; // Wait a frame
+            yield return null;
 
             // Second test: HDRP/Lit Materials
             try
