@@ -1,5 +1,3 @@
-using UnityEngine;
-using UnityEditor.Graphing;
 using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
@@ -18,17 +16,17 @@ namespace UnityEditor.ShaderGraph
         {
             return GetType().GetMethod("UnityGetInstanceID", BindingFlags.Static | BindingFlags.NonPublic);
         }
-        
+
         static string UnityGetInstanceID([Slot(0, Binding.None)] out Vector1 Out)
         {
             return
 @"
 {
-    #if UNITY_ANY_INSTANCING_ENABLED
+#if UNITY_ANY_INSTANCING_ENABLED
     Out = unity_InstanceID;
-    #else
+#else
     Out = 0;
-    #endif
+#endif
 }
 ";
         }

@@ -115,6 +115,7 @@
             * [Scene Color](Scene-Color-Node)  
             * [Scene Depth](Scene-Depth-Node)  
             * [Screen](Screen-Node)
+            * [Eye Index](Eye-Index-Node)
         * Texture  
             * [Cubemap Asset](Cubemap-Asset-Node) 
             * [Sample Cubemap](Sample-Cubemap-Node)

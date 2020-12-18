@@ -90,9 +90,9 @@
 |[**Scene Color**](Scene-Color-Node.md)|[**Scene Depth**](Scene-Depth-Node.md)|
 |![Image](images/SceneColorNodeThumb.png)|![Image](images/SceneDepthNodeThumb.png)|
 |Provides access to the current Camera's color buffer.|Provides access to the current Camera's depth buffer.|
-|[**Screen**](Screen-Node.md)||
-|![Image](images/ScreenNodeThumb.png)||
-|Provides access to parameters of the screen.||
+|[**Screen**](Screen-Node.md)|[**Eye Index**](Eye-Index-Node.md)|
+|![Image](images/ScreenNodeThumb.png)|![Image](images/EyeIndexNodeThumb.png)|
+|Provides access to parameters of the screen.|Provides access to the Eye Index when stereo rendering.|
 
 ## Texture
 
