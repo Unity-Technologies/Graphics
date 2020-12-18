@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                var bakedProbeOctahedralDepth = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                var bakedProbeOctahedralDepth = new NativeArray<float>(numProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(cell.index, sh, validity, bakedProbeOctahedralDepth);
 
