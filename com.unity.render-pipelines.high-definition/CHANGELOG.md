@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
 - Fixed shader graph not supporting indirectdxr multibounce (case 1294694).
 - Fixed the planar depth texture not being properly created and rendered to (case 1299617).
+- Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
