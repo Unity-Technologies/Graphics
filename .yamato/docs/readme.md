@@ -70,6 +70,7 @@ test_platforms: # refer by testplatform name
   - In *_packages.metafile* change reference: `publish_all_track`
   - Rename `_green_job_revisions_[track].metafile` and `_latest_editor_versions_[track].metafile` to use the correct track
   - Additional measures: run editor pinning update job and green revisions job manually (see below how), to ensure everything works as expected and to update the files accordingly.
+  - Change Yamato API link to correct branch and jobname in `store_green_revisions.py`
 
 ### Test platforms and UTR flags:
 Test platforms setup:
