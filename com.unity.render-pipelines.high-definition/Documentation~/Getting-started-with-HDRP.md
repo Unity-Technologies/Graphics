@@ -14,7 +14,7 @@ To set up and manage your Unity Projects, install the [Unity Hub](https://docs.u
 
 Unity provides an HDRP Template Project which you can use to quickly get set up with HDRP. To create an HDRP Template Project:
 
-1. Open the Unity Hub, go to the the **Projects** tab, and click **New**.
+1. Open the Unity Hub, go to the **Projects** tab, and click **New**.
 2. Enter a **Project Name** and, in the **Template** section, click on **High Definition RP**.
 3. Click **Create**.
 
