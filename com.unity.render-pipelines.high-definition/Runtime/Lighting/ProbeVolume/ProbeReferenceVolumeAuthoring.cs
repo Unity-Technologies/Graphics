@@ -160,7 +160,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (!enabled || !gameObject.activeSelf)
+                return;
+
+                if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
                 if (m_Profile != null)
                 {
@@ -307,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
-            if (!enabled)
+            if (!enabled || !gameObject.activeSelf)
                 return;
 
             if (m_DrawCells)

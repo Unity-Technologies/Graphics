@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var refVolAuthoring in refVolAuthList)
             {
-                if (!refVolAuthoring.enabled)
+                if (!refVolAuthoring.enabled || !refVolAuthoring.gameObject.activeSelf)
                     continue;
 
                 refVolAuthoring.volumeAsset = null;
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var refVolAuthoring in refVolAuthList)
             {
-                if (!refVolAuthoring.enabled)
+                if (!refVolAuthoring.enabled || !refVolAuthoring.gameObject.activeSelf)
                     continue;
 
                 enabledVolumes.Add(refVolAuthoring);
@@ -247,7 +247,10 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.AssetDatabase.Refresh();
 
             foreach (var refVol in refVol2Asset.Keys)
-                refVol.QueueAssetLoading();
+            {
+                if (refVol.enabled && refVol.gameObject.activeSelf)
+                    refVol.QueueAssetLoading();
+            }
         }
 
         private static void OnLightingDataCleared()
