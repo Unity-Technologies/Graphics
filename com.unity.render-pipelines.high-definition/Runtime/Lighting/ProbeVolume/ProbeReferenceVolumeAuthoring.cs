@@ -350,7 +350,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+        }
 
+        public void DrawProbeGizmos()
+        {
             if (m_DrawProbes)
             {
                 // TODO: Update data on ref vol changes

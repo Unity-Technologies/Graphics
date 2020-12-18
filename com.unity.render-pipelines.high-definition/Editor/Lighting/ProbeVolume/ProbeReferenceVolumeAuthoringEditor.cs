@@ -166,6 +166,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
         }
+
+        public void OnSceneGUI()
+        {
+            ProbeReferenceVolumeAuthoring pvra = target as ProbeReferenceVolumeAuthoring;
+
+            if (Event.current.type == EventType.Layout)
+                pvra.DrawProbeGizmos();
+        }
     }
 }
 
