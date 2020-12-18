@@ -10,8 +10,10 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public class Environment : ScriptableObject
     {
+        internal const string k_CubemapGUIDSerializedPath = "m_CubemapGUID"; //must be always sync with m_CubemapGUID
+
         [SerializeField]
-        string m_CubemapGUID;
+        string m_CubemapGUID; //must be always sync with k_CubemapGUIDSerializedPath
         Cubemap m_Cubemap;
 
         internal bool isCubemapOnly { get; private set; } = false;
@@ -143,6 +145,8 @@ namespace UnityEditor.Rendering.LookDev
 
             return m_CubemapGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(cubemap));
         }
+
+        internal void RefreshCubemap() => LoadCubemap();
     }
 
     [CustomEditor(typeof(Environment))]
@@ -164,8 +168,16 @@ namespace UnityEditor.Rendering.LookDev
         void Bind(T data);
     }
 
-    class EnvironmentElement : VisualElement, IBendable<Environment>
+    // Note: Current design assime that you will only have one EnvironmentElement at a time
+    // If this change, check the PostprocessModificationsCallback and ensure it is only raised one time.
+    class EnvironmentElement : VisualElement, IBendable<Environment>, IDisposable
     {
+        static class Styles
+        {
+            public static readonly Texture2D Environment = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "Environment", forceLowRes: true);
+            public static readonly Texture2D SunPosition = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "SunPosition", forceLowRes: true);
+        }
+
         internal const int k_SkyThumbnailWidth = 200;
         internal const int k_SkyThumbnailHeight = 100;
         static Material s_cubeToLatlongMaterial;
@@ -193,20 +205,15 @@ namespace UnityEditor.Rendering.LookDev
         TextField environmentName;
 
         Action OnChangeCallback;
+        Func<Image> OnUndoRedoResyncDeportedLatlong;
 
         public Environment target => environment;
-
-        public EnvironmentElement() => Create(withPreview : true);
-        public EnvironmentElement(bool withPreview, Action OnChangeCallback = null)
+        
+        public EnvironmentElement(bool withPreview, Action OnChangeCallback = null, Func<Image> OnUndoRedoResyncDeportedLatlong = null)
         {
             this.OnChangeCallback = OnChangeCallback;
+            this.OnUndoRedoResyncDeportedLatlong = OnUndoRedoResyncDeportedLatlong;
             Create(withPreview);
-        }
-
-        public EnvironmentElement(Environment environment)
-        {
-            Create(withPreview: true);
-            Bind(environment);
         }
 
         void Create(bool withPreview)
@@ -221,6 +228,9 @@ namespace UnityEditor.Rendering.LookDev
 
             environmentParams = GetDefaultInspector();
             Add(environmentParams);
+
+            Undo.postprocessModifications += PostprocessModificationsCallback;
+            Undo.undoRedoPerformed += RefreshIfNecessary;
         }
 
         public void Bind(Environment environment)
@@ -339,14 +349,13 @@ namespace UnityEditor.Rendering.LookDev
             VisualElement inspector = new VisualElement() { name = "inspector" };
 
             VisualElement header = new VisualElement() { name = "inspector-header" };
-            header.Add(new Image()
-            {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "Environment", forceLowRes: true)
-            });
+            header.Add(new Image() { image = Styles.Environment });
             environmentName = new TextField();
             environmentName.isDelayed = true;
             environmentName.RegisterValueChangedCallback(evt =>
             {
+                Undo.RecordObject(environment, "Renamed Environment");
+
                 string path = AssetDatabase.GetAssetPath(environment);
                 environment.name = evt.newValue;
                 AssetDatabase.SetLabels(environment, new string[] { evt.newValue });
@@ -370,7 +379,7 @@ namespace UnityEditor.Rendering.LookDev
             skyCubemapField.RegisterValueChangedCallback(evt =>
             {
                 var tmp = environment.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap, updatePreview: true, customResync: () => environment.cubemap = tmp);
+                RegisterChange(ref tmp, evt.newValue as Cubemap, "Changed Environment Cubemap", updatePreview: true, customResync: () => environment.cubemap = tmp);
             });
             foldout.Add(skyCubemapField);
 
@@ -379,7 +388,7 @@ namespace UnityEditor.Rendering.LookDev
                 tooltip = "Rotation offset on the longitude of the sky."
             };
             skyRotationOffset.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.rotation, Environment.ClampLongitude(evt.newValue), skyRotationOffset, updatePreview: true));
+                => RegisterChange(ref environment.rotation, Environment.ClampLongitude(evt.newValue), "Changed Environment Rotation", skyRotationOffset, updatePreview: true));
             foldout.Add(skyRotationOffset);
 
             skyExposureField = new FloatField("Exposure")
@@ -387,7 +396,7 @@ namespace UnityEditor.Rendering.LookDev
                 tooltip = "The exposure to apply with this sky."
             };
             skyExposureField.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.exposure, evt.newValue));
+                => RegisterChange(ref environment.exposure, evt.newValue, "Changed Environment Exposure"));
             foldout.Add(skyExposureField);
             var style = foldout.Q<Toggle>().style;
             style.marginLeft = 3;
@@ -408,7 +417,7 @@ namespace UnityEditor.Rendering.LookDev
                 var tmpNewValue = new Vector2(
                     Environment.ClampLongitude(evt.newValue.x),
                     Environment.ClampLatitude(evt.newValue.y));
-                RegisterChange(ref tmpContainer, tmpNewValue, sunPosition, customResync: () =>
+                RegisterChange(ref tmpContainer, tmpNewValue, "Changed Environment Sun Position", sunPosition, customResync: () =>
                 {
                     environment.sunLongitude = tmpContainer.x;
                     environment.sunLatitude = tmpContainer.y;
@@ -418,6 +427,8 @@ namespace UnityEditor.Rendering.LookDev
 
             Button sunToBrightess = new Button(() =>
             {
+                Undo.RecordObject(environment, "Computed Environment Brightest Position");
+
                 ResetToBrightestSpot(environment);
                 sunPosition.SetValueWithoutNotify(new Vector2(
                     Environment.ClampLongitude(environment.sunLongitude),
@@ -426,10 +437,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 name = "sunToBrightestButton"
             };
-            sunToBrightess.Add(new Image()
-            {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "SunPosition", forceLowRes: true)
-            });
+            sunToBrightess.Add(new Image() { image = Styles.SunPosition });
             sunToBrightess.AddToClassList("sun-to-brightest-button");
             var vector2Input = sunPosition.Q(className: "unity-vector2-field__input");
             vector2Input.Remove(sunPosition.Q(className: "unity-composite-field__field-spacer"));
@@ -440,7 +448,7 @@ namespace UnityEditor.Rendering.LookDev
                 tooltip = "The wanted shadow tint to be used when computing shadow."
             };
             shadowColor.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.shadowColor, evt.newValue));
+                => RegisterChange(ref environment.shadowColor, evt.newValue, "Changed Environment Shadow Color"));
             foldout.Add(shadowColor);
 
             style = foldout.Q<Toggle>().style;
@@ -451,17 +459,68 @@ namespace UnityEditor.Rendering.LookDev
             return inspector;
         }
 
-        void RegisterChange<TValueType>(ref TValueType reflectedVariable, TValueType newValue, BaseField<TValueType> resyncField = null, bool updatePreview = false, Action customResync = null)
+        void RegisterChange<TValueType>(ref TValueType reflectedVariable, TValueType newValue, string undoRedoName, BaseField<TValueType> resyncField = null, bool updatePreview = false, Action customResync = null)
         {
             if (environment == null || environment.Equals(null))
                 return;
+
+            Undo.RecordObject(environment, undoRedoName);
+
             reflectedVariable = newValue;
             resyncField?.SetValueWithoutNotify(newValue);
             customResync?.Invoke();
+
+            //update thumbnail
             if (updatePreview && latlong != null && !latlong.Equals(null))
                 latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
+
             EditorUtility.SetDirty(environment);
+
+            //update scene
             OnChangeCallback?.Invoke();
+        }
+        
+        private bool disposedValue = false; // To detect redundant calls
+
+        void IDisposable.Dispose()
+        {
+            if (!disposedValue)
+            {
+                Undo.undoRedoPerformed -= RefreshIfNecessary;
+                Undo.postprocessModifications -= PostprocessModificationsCallback;
+                disposedValue = true;
+            }
+        }
+
+        static bool lastUndoIsOnEnvironment = false;
+        static bool lastUndoIsACubemapGUID = false;
+        UndoPropertyModification[] PostprocessModificationsCallback(UndoPropertyModification[] modifications)
+        {
+            lastUndoIsOnEnvironment = modifications[0].currentValue.target is Environment;
+            lastUndoIsACubemapGUID = modifications[0].currentValue.propertyPath == Environment.k_CubemapGUIDSerializedPath;
+            return modifications;
+        }
+
+        void RefreshIfNecessary()
+        {
+            if (lastUndoIsOnEnvironment)
+            {
+                //if environment GUID have changed, be sure loaded cubemap too
+                if (lastUndoIsACubemapGUID)
+                    environment.RefreshCubemap();
+
+                //sync back thumbnail target
+                if (OnUndoRedoResyncDeportedLatlong != null)
+                    latlong = OnUndoRedoResyncDeportedLatlong();
+
+                //update inspector again
+                Bind(environment);
+                
+                //as thumbnail is stored in the Environment asset, it got updated already
+
+                //update scene again
+                OnChangeCallback?.Invoke();
+            }
         }
     }
 }

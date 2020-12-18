@@ -67,11 +67,13 @@ namespace UnityEditor.Rendering.LookDev
             if (sidePanel == SidePanel.Environment)
                 m_MainContainer.AddToClassList(Style.k_ShowEnvironmentPanelClass);
 
-            m_EnvironmentInspector = new EnvironmentElement(withPreview: false, () =>
-            {
-                LookDev.SaveContextChangeAndApply(ViewIndex.First);
-                LookDev.SaveContextChangeAndApply(ViewIndex.Second);
-            });
+            m_EnvironmentInspector = new EnvironmentElement(
+                withPreview: false,
+                () => {
+                    LookDev.SaveContextChangeAndApply(ViewIndex.First);
+                    LookDev.SaveContextChangeAndApply(ViewIndex.Second);
+                },
+                GetSelectedThumbnail);
             m_EnvironmentList = new ListView();
             m_EnvironmentList.AddToClassList("list-environment");
             m_EnvironmentList.selectionType = SelectionType.Single;
@@ -110,16 +112,8 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Visible;
                     m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
-                    int firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
                     Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
-                    var container = m_EnvironmentList.Q("unity-content-container");
-                    if (m_EnvironmentList.selectedIndex - firstVisibleIndex >= container.childCount || m_EnvironmentList.selectedIndex < firstVisibleIndex)
-                    {
-                        m_EnvironmentList.ScrollToItem(m_EnvironmentList.selectedIndex);
-                        firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
-                    }
-                    Image deportedLatLong = container[m_EnvironmentList.selectedIndex - firstVisibleIndex] as Image;
-                    m_EnvironmentInspector.Bind(environment, deportedLatLong);
+                    m_EnvironmentInspector.Bind(environment, GetSelectedThumbnail());
                 }
             };
 #if UNITY_2020_1_OR_NEWER
@@ -246,6 +240,19 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentList.ScrollToItem(-1); //-1: scroll to end
             if (attemptRemaining > 0)
                 EditorApplication.delayCall += () => ScrollToEnd(--attemptRemaining);
+        }
+
+        Image GetSelectedThumbnail()
+        {
+            int firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
+            Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
+            var container = m_EnvironmentList.Q("unity-content-container");
+            if (m_EnvironmentList.selectedIndex - firstVisibleIndex >= container.childCount || m_EnvironmentList.selectedIndex < firstVisibleIndex)
+            {
+                m_EnvironmentList.ScrollToItem(m_EnvironmentList.selectedIndex);
+                firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
+            }
+            return container[m_EnvironmentList.selectedIndex - firstVisibleIndex] as Image;
         }
 
         void RefreshLibraryDisplay()
