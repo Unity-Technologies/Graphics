@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ## [10.0.0] - 2019-06-10
 
