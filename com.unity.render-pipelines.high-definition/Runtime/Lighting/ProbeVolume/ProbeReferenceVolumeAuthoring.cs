@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-                if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
                 if (m_Profile != null)
                 {

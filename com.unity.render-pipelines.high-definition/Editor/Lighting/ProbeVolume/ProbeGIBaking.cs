@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cellIndex2SceneReferences.Clear();
 
-            foreach(var cell in bakingCells)
+            foreach (var cell in bakingCells)
             {
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
             }
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 refVol.volumeAsset = asset;
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                { 
+                {
                     UnityEditor.EditorUtility.SetDirty(refVol);
                     UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
                 }

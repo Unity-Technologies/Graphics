@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ActiveAssets.Remove(key);
             }
-             
+
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             {
@@ -228,8 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AssetPathToBricks.Remove(key);
             }
         }
-
-
 
         private void PerformPendingIndexDimensionChange()
         {
