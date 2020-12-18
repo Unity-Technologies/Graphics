@@ -103,7 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int c = 1; c < numVols; ++c)
             {
                 var compare = enabledVolumes[c];
-                if (reference.transform != compare.transform)
+                if (reference.transform.position != compare.transform.position)
+                    return null;
+
+                if (reference.transform.localScale != compare.transform.localScale)
                     return null;
 
                 if (reference.profile != compare.profile)
