@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore));
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null)
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore));
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null)
