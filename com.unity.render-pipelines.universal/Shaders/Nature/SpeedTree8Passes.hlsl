@@ -39,6 +39,7 @@ struct SpeedTreeVertexOutput
     #endif
 
     float3 positionWS               : TEXCOORD7;
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -267,6 +268,8 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 
@@ -286,7 +289,14 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 
 #ifdef SHADOW_CASTER
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
-    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, _LightDirection));
+
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - vertexInput.positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    float4 positionCS = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, lightDirectionWS));
     output.clipPos = positionCS;
 #else
     output.clipPos = vertexInput.positionCS;
@@ -322,8 +332,9 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
+    inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }
 
 #ifdef GBUFFER
@@ -333,6 +344,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #endif
 {
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
@@ -416,12 +428,9 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
-
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
 
@@ -438,6 +447,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
@@ -497,6 +507,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
 half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
@@ -512,7 +523,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha - 0.3333, 0.0);
 
-    float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
+    float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS.xyz);
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 

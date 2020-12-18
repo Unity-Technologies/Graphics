@@ -35,29 +35,26 @@ Shader "Universal Render Pipeline/Terrain/Lit"
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
 
-		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
+        [HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
 
         [ToggleUI] _EnableInstancedPerPixelNormal("Enable Instanced per-pixel normal", Float) = 1.0
     }
 
-	HLSLINCLUDE
+    HLSLINCLUDE
 
-	#pragma multi_compile_fragment __ _ALPHATEST_ON
+    #pragma multi_compile_fragment __ _ALPHATEST_ON
 
-	ENDHLSL
+    ENDHLSL
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "False"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "False" "TerrainCompatible" = "True"}
 
         Pass
         {
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
@@ -68,12 +65,12 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
@@ -86,7 +83,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _MASKMAP            
+            #pragma shader_feature_local_fragment _MASKMAP
             // Sample normal in pixel shader when doing instancing
             #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
@@ -101,11 +98,9 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
+            ColorMask 0
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex ShadowPassVertex
@@ -113,6 +108,12 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
@@ -125,9 +126,8 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma target 3.0
-
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
 
@@ -136,12 +136,11 @@ Shader "Universal Render Pipeline/Terrain/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
 
             // -------------------------------------
             // Unity defined keywords
@@ -173,9 +172,6 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -198,9 +194,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
-
             #pragma vertex DepthNormalOnlyVertex
             #pragma fragment DepthNormalOnlyFragment
 
@@ -219,9 +213,6 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags { "LightMode" = "SceneSelectionPass" }
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex

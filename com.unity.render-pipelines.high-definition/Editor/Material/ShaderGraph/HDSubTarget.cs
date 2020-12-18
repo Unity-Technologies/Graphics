@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract ShaderID shaderID { get; }
         protected abstract string customInspector { get; }
-        protected abstract string subTargetAssetGuid { get; }
+        protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected virtual string postDecalsInclude => null;
         protected virtual string raytracingInclude => null;
+        protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
 
@@ -73,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal static MigrationDescription<ShaderGraphVersion, HDSubTarget> migrationSteps => MigrationDescription.New(
             Enum.GetValues(typeof(ShaderGraphVersion)).Cast<ShaderGraphVersion>().Select(
                 version => MigrationStep.New(version, (HDSubTarget t) => t.MigrateTo(version))
-            ).ToArray()
+                ).ToArray()
         );
 
         /// <summary>
@@ -84,11 +85,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
+        static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
-            context.SetDefaultShaderGUI(customInspector);
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
+            context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
@@ -100,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 MigrateTo(ShaderGraphVersion.FirstTimeMigration);
                 systemData.firstTimeMigrationExecuted = true;
                 OnBeforeSerialize();
+                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             }
 
             foreach (var subShader in EnumerateSubShaders())
@@ -116,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-            
+
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection finalPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
@@ -146,6 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         include.descriptor.value = postDecalsInclude;
                     if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
                         include.descriptor.value = raytracingInclude;
+                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
+                        include.descriptor.value = pathtracingInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
@@ -161,8 +167,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
                 // Add keywords from subshaders:
-                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
                 CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
@@ -208,8 +214,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (needsUpdate)
                     systemData.materialNeedsUpdateHash = hash;
 
-                return new HDSaveContext{ updateMaterials = needsUpdate };
+                return new HDSaveContext { updateMaterials = needsUpdate };
             }
-        } 
+        }
     }
 }

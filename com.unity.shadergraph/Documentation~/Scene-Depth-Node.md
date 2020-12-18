@@ -19,7 +19,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV     | Input | Vector 4 | Screen Position | Normalized screen coordinates |
-| Out | Output      |    Vector 1 | None | Output value |
+| Out | Output      |    Float    | None | Output value |
 
 ## Depth Sampling modes
 | Name     | Description                        |

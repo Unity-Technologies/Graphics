@@ -27,7 +27,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);

@@ -103,7 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 
-
     static class DebugLightHierarchyExtensions
     {
         public static bool IsEnabledFor(
@@ -188,7 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalImageHistogramView,
         /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
         MeteringWeighted,
-
     }
 
 
@@ -204,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeValidity
     }
 
-	/// <summary>
+    /// <summary>
     /// Probe Volume Atlas Slicing Modes.
     /// </summary>
     [GenerateHLSL]
@@ -223,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
         OctahedralDepth
     }
 
-	/// <summary>
+    /// <summary>
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
@@ -266,13 +264,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         /// <summary>Current Probe Volume Debug Mode.</summary>
         [SerializeField] internal ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
-		/// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
+        /// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
         [SerializeField] internal ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
-		/// <summary>The minimum display threshold for atlas slices.</summary>
+        /// <summary>The minimum display threshold for atlas slices.</summary>
         [SerializeField] internal float probeVolumeMinValue = 0.0f;
-		/// <summary>The maximum display threshold for atlas slices.</summary>
+        /// <summary>The maximum display threshold for atlas slices.</summary>
         [SerializeField] internal float probeVolumeMaxValue = 1.0f;
-		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
+        /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
         public uint                 shadowMapIndex = 0;
@@ -324,7 +322,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
-        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Default Settings.</summary>
+        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
         public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
@@ -362,18 +361,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
         public bool                 showReflectionProbe = true;
 
+        /// <summary>Display the density volume atlas.</summary>
+        public bool                 displayDensityVolumeAtlas = false;
+        /// <summary>Density volume atlas slice.</summary>
+        public uint                 densityVolumeAtlasSlice = 0;
+        /// <summary>True if Density Volume Atlas debug mode should be displayed for the currently selected Density Volume.</summary>
+        public bool                 densityVolumeUseSelection = false;
+
         /// <summary>Tile and Cluster debug mode.</summary>
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
         /// <summary>Category for tile and cluster debug mode.</summary>
         public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
+        /// <summary>Cluster Debug mode.</summary>
+        public ClusterDebugMode clusterDebugMode = ClusterDebugMode.VisualizeOpaque;
+        /// <summary>Distance at which clusters will be visualized.</summary>
+        public float clusterDebugDistance = 1.0f;
 
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
-                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
-                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
-                    debugLightingMode == DebugLightingMode.ProbeVolume;
+            return debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
+                debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
+                debugLightingMode == DebugLightingMode.ProbeVolume;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

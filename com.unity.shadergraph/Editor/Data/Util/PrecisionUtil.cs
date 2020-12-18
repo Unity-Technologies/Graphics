@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -8,9 +8,9 @@ namespace UnityEditor.ShaderGraph
 
         internal static string ToShaderString(this ConcretePrecision precision)
         {
-            switch(precision)
+            switch (precision)
             {
-                case ConcretePrecision.Float:
+                case ConcretePrecision.Single:
                     return "float";
                 case ConcretePrecision.Half:
                     return "half";
@@ -21,14 +21,14 @@ namespace UnityEditor.ShaderGraph
 
         internal static ConcretePrecision ToConcrete(this Precision precision)
         {
-            switch(precision)
+            switch (precision)
             {
-                case Precision.Float:
-                    return ConcretePrecision.Float;
+                case Precision.Single:
+                    return ConcretePrecision.Single;
                 case Precision.Half:
                     return ConcretePrecision.Half;
                 default:
-                    return ConcretePrecision.Float;
+                    return ConcretePrecision.Single;
             }
         }
     }

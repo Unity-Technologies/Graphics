@@ -50,7 +50,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #endif
         }
 
-        half4 Frag(FullscreenVaryings input) : SV_Target
+        half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -118,8 +118,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
                 color = ApplyGrain(color, positionNDC, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
-			
-			#if _LINEAR_TO_SRGB_CONVERSION
+
+            #if _LINEAR_TO_SRGB_CONVERSION
             {
                 color = LinearToSRGB(color);
             }

@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle depthStencilBuffer;
         public RTHandle normalBuffer;
         public RTHandle velocityBuffer;
+        public RTHandle motionVectorBuffer;
         public RTHandle historyDepthTexture;
         public RTHandle historyNormalTexture;
         public RTHandle noisyBuffer;
@@ -40,14 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle outputBuffer;
     }
 
-    class HDTemporalFilter
+    partial class HDTemporalFilter
     {
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
-
-        // Required for fetching depth and normal buffers
-        SharedRTManager m_SharedRTManager;
-        HDRenderPipeline m_RenderPipeline;
 
         // The set of required kernels
         int m_ValidateHistoryKernel;
@@ -65,14 +62,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
         {
             // Keep track of the resources
             m_TemporalFilterCS = rpRTResources.temporalFilterCS;
-
-            // Keep track of the shared rt manager
-            m_SharedRTManager = sharedRTManager;
-            m_RenderPipeline = renderPipeline;
 
             // Grab all the kernels we'll eventually need
             m_ValidateHistoryKernel = m_TemporalFilterCS.FindKernel("ValidateHistory");
@@ -117,26 +110,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return temporalFilterParameters;
         }
 
-        public TemporalFilterResources PrepareTemporalFilterResources(HDCamera hdCamera, RTHandle validationBuffer, RTHandle noisyBuffer, RTHandle historyBuffer, RTHandle outputBuffer)
-        {
-            TemporalFilterResources tfResources = new TemporalFilterResources();
-            tfResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            tfResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            tfResources.velocityBuffer = TextureXR.GetBlackTexture();
-            tfResources.historyDepthTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-            tfResources.historyNormalTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
-            tfResources.noisyBuffer = noisyBuffer;
-
-            // Temporary buffers
-            tfResources.validationBuffer = validationBuffer;
-
-            // Output buffers
-            tfResources.historyBuffer = historyBuffer;
-            tfResources.outputBuffer = outputBuffer;
-
-            return tfResources;
-        }
-
         // Denoiser variant for non history array
         static public void DenoiseBuffer(CommandBuffer cmd, TemporalFilterParameters tfParameters, TemporalFilterResources tfResources)
         {
@@ -160,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._NormalBufferTexture, tfResources.normalBuffer);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._HistoryNormalTexture, tfResources.historyNormalTexture);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._VelocityBuffer, tfResources.velocityBuffer);
+            cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._CameraMotionVectorsTexture, tfResources.motionVectorBuffer);
 
             // Bind the constants
             cmd.SetComputeFloatParam(tfParameters.temporalFilterCS, HDShaderIDs._HistoryValidity, tfParameters.historyValidity);
@@ -178,6 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.temporalAccKernel, HDShaderIDs._DepthTexture, tfResources.depthStencilBuffer);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.temporalAccKernel, HDShaderIDs._ValidationBuffer, tfResources.validationBuffer);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.temporalAccKernel, HDShaderIDs._VelocityBuffer, tfResources.velocityBuffer);
+            cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.temporalAccKernel, HDShaderIDs._CameraMotionVectorsTexture, tfResources.motionVectorBuffer);
 
             // Bind the output buffer
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, tfResources.outputBuffer);
@@ -199,6 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
 
             // Denoising parameters
+            public bool distanceBasedDenoiser;
             public float historyValidity;
             public float pixelSpreadTangent;
             public int sliceIndex;
@@ -216,16 +192,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader temporalFilterCS;
         }
 
-        TemporalFilterArrayParameters PrepareTemporalFilterArrayParameters(HDCamera hdCamera, bool singleChannel, float historyValidity, int sliceIndex, Vector4 channelMask, Vector4 distanceChannelMask)
+        TemporalFilterArrayParameters PrepareTemporalFilterArrayParameters(HDCamera hdCamera, bool distanceBased, bool singleChannel, float historyValidity, int sliceIndex, Vector4 channelMask, Vector4 distanceChannelMask)
         {
             TemporalFilterArrayParameters tfaParams = new TemporalFilterArrayParameters();
-        
+
             // Set the camera parameters
             tfaParams.texWidth = hdCamera.actualWidth;
             tfaParams.texHeight = hdCamera.actualHeight;
             tfaParams.viewCount = hdCamera.viewCount;
 
             // Denoising parameters
+            tfaParams.distanceBasedDenoiser = distanceBased;
             tfaParams.historyValidity = historyValidity;
             tfaParams.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
             tfaParams.sliceIndex = sliceIndex;
@@ -255,6 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle historyNormalTexture;
             public RTHandle noisyBuffer;
             public RTHandle distanceBuffer;
+            public RTHandle motionVectorBuffer;
 
             // Temporary buffers
             public RTHandle validationBuffer;
@@ -269,43 +247,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputDistanceSignal;
         }
 
-        TemporalFilterArrayResources PrepareTemporalFilterArrayResources(HDCamera hdCamera, RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle validationBuffer,
-                                                                        RTHandle historyBuffer, RTHandle validationHistoryBuffer, RTHandle distanceHistorySignal,
-                                                                        RTHandle outputBuffer, RTHandle outputDistanceSignal)
-        {
-            TemporalFilterArrayResources tfaResources = new TemporalFilterArrayResources();
-
-            // Input buffers
-            tfaResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            tfaResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            tfaResources.velocityBuffer = TextureXR.GetBlackTexture();
-            tfaResources.historyDepthTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-            tfaResources.historyNormalTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
-            tfaResources.noisyBuffer = noisyBuffer;
-            tfaResources.distanceBuffer = distanceBuffer;
-
-            // Temporary buffers
-            tfaResources.validationBuffer = validationBuffer;
-
-            // InOut buffers
-            tfaResources.historyBuffer = historyBuffer;
-            tfaResources.validationHistoryBuffer = validationHistoryBuffer;
-            tfaResources.distanceHistorySignal = distanceHistorySignal;
-
-            // Output buffers
-            tfaResources.outputBuffer = outputBuffer;
-            tfaResources.outputDistanceSignal = outputDistanceSignal;
-
-            return tfaResources;
-        }
-
         static void ExecuteTemporalFilterArray(CommandBuffer cmd, TemporalFilterArrayParameters tfaParams, TemporalFilterArrayResources tfaResources)
         {
             if (tfaResources.historyDepthTexture == null || tfaResources.historyNormalTexture == null)
             {
                 HDUtils.BlitCameraTexture(cmd, tfaResources.noisyBuffer, tfaResources.historyBuffer);
                 HDUtils.BlitCameraTexture(cmd, tfaResources.noisyBuffer, tfaResources.outputBuffer);
-                if (tfaResources.distanceBuffer != null && tfaResources.distanceHistorySignal != null && tfaResources.outputDistanceSignal != null)
+                if (tfaParams.distanceBasedDenoiser)
                 {
                     HDUtils.BlitCameraTexture(cmd, tfaResources.distanceBuffer, tfaResources.distanceHistorySignal);
                     HDUtils.BlitCameraTexture(cmd, tfaResources.distanceBuffer, tfaResources.outputDistanceSignal);
@@ -324,6 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._HistoryDepthTexture, tfaResources.historyDepthTexture);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._NormalBufferTexture, tfaResources.normalBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._HistoryNormalTexture, tfaResources.historyNormalTexture);
+            cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._CameraMotionVectorsTexture, tfaResources.motionVectorBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._VelocityBuffer, tfaResources.velocityBuffer);
 
             // Bind the constants
@@ -341,6 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._HistoryBuffer, tfaResources.historyBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._HistoryValidityBuffer, tfaResources.validationHistoryBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._DepthTexture, tfaResources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._CameraMotionVectorsTexture, tfaResources.motionVectorBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._ValidationBuffer, tfaResources.validationBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccKernel, HDShaderIDs._VelocityBuffer, tfaResources.velocityBuffer);
 
@@ -362,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(tfaParams.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, tfaParams.channelMask);
             cmd.DispatchCompute(tfaParams.temporalFilterCS, tfaParams.copyHistoryKernel, numTilesX, numTilesY, tfaParams.viewCount);
 
-            if (tfaResources.distanceBuffer != null && tfaResources.distanceHistorySignal != null && tfaResources.outputDistanceSignal != null)
+            if (tfaParams.distanceBasedDenoiser)
             {
                 // Bind the input buffers
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._DenoiseInputTexture, tfaResources.distanceBuffer);
@@ -371,6 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._DepthTexture, tfaResources.depthStencilBuffer);
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._ValidationBuffer, tfaResources.validationBuffer);
                 cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._VelocityBuffer, tfaResources.velocityBuffer);
+                cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.temporalAccSingleKernel, HDShaderIDs._CameraMotionVectorsTexture, tfaResources.motionVectorBuffer);
 
                 // Bind the constant inputs
                 cmd.SetComputeIntParam(tfaParams.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, tfaParams.sliceIndex);
@@ -389,30 +340,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(tfaParams.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, tfaParams.distanceChannelMask);
                 cmd.DispatchCompute(tfaParams.temporalFilterCS, tfaParams.copyHistoryNoValidityKernel, numTilesX, numTilesY, tfaParams.viewCount);
             }
-        }
-
-        // Denoiser variant when history is stored in an array and the validation buffer is separate
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
-            RTHandle noisyBuffer, RTHandle historyBuffer,
-            RTHandle validationHistoryBuffer,
-            RTHandle velocityBuffer,
-            RTHandle outputBuffer,
-            int sliceIndex, Vector4 channelMask,
-            RTHandle distanceBuffer, RTHandle distanceHistorySignal, RTHandle outputDistanceSignal, Vector4 distanceChannelMask,
-            bool singleChannel = true, float historyValidity = 1.0f)
-        {
-            // If we do not have a depth and normal history buffers, we can skip right away
-            var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-            var historyNormalBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
-
-            // Request the intermediate buffer we need
-            RTHandle validationBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.R0);
-
-            TemporalFilterArrayParameters tfaParams = PrepareTemporalFilterArrayParameters(hdCamera, singleChannel, historyValidity, sliceIndex, channelMask, distanceChannelMask);
-            TemporalFilterArrayResources tfaResources = PrepareTemporalFilterArrayResources(hdCamera, noisyBuffer, distanceBuffer, validationBuffer,
-                                                                                            historyBuffer, validationHistoryBuffer, distanceHistorySignal,
-                                                                                            outputBuffer, outputDistanceSignal);
-            ExecuteTemporalFilterArray(cmd, tfaParams, tfaResources);
         }
     }
 }

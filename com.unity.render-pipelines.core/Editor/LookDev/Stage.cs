@@ -217,16 +217,28 @@ namespace UnityEditor.Rendering.LookDev
                 if (go == null || go.Equals(null))
                     continue;
                 foreach (UnityEngine.Renderer renderer in go.GetComponentsInChildren<UnityEngine.Renderer>())
-                    renderer.enabled = visible;
+                {
+                    if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        renderer.enabled = visible;
+                }
                 foreach (Light light in go.GetComponentsInChildren<Light>())
-                    light.enabled = visible;
+                {
+                    if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        light.enabled = visible;
+                }
             }
 
             // in case we add camera frontal light and such
             foreach (UnityEngine.Renderer renderer in m_Camera.GetComponentsInChildren<UnityEngine.Renderer>())
-                renderer.enabled = visible;
+            {
+                if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    renderer.enabled = visible;
+            }
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
-                light.enabled = visible;
+            {
+                if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    light.enabled = visible;
+            }
         }
 
         public void OnBeginRendering(IDataProvider dataProvider)
@@ -338,7 +350,7 @@ namespace UnityEditor.Rendering.LookDev
             Environment environment = m_Contexts.GetViewContent(index).environment;
             provider.UpdateSky(stage.camera,
                 environment == null ? default : environment.sky,
-                stage.runtimeInterface);
+                    stage.runtimeInterface);
         }
 
         private bool disposedValue = false; // To detect redundant calls

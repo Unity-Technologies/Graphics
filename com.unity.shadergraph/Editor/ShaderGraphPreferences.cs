@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         {
             internal const string variantLimit = "UnityEditor.ShaderGraph.VariantLimit";
             internal const string autoAddRemoveBlocks = "UnityEditor.ShaderGraph.AutoAddRemoveBlocks";
+            internal const string allowDeprecatedBehaviors = "UnityEditor.ShaderGraph.AllowDeprecatedBehaviors";
         }
 
         static bool m_Loaded = false;
@@ -15,14 +16,16 @@ namespace UnityEditor.ShaderGraph
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
         static int m_VariantLimit = 128;
+
+        internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
         internal static int variantLimit
         {
             get { return m_VariantLimit; }
-            set 
+            set
             {
-                if(onVariantLimitChanged != null)
+                if (onVariantLimitChanged != null)
                     onVariantLimitChanged();
-                TrySave(ref m_VariantLimit, value, Keys.variantLimit); 
+                TrySave(ref m_VariantLimit, value, Keys.variantLimit);
             }
         }
 
@@ -31,6 +34,20 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_AutoAddRemoveBlocks;
             set => TrySave(ref m_AutoAddRemoveBlocks, value, Keys.autoAddRemoveBlocks);
+        }
+
+        static bool m_AllowDeprecatedBehaviors = false;
+        internal static bool allowDeprecatedBehaviors
+        {
+            get => m_AllowDeprecatedBehaviors;
+            set
+            {
+                TrySave(ref m_AllowDeprecatedBehaviors, value, Keys.allowDeprecatedBehaviors);
+                if (onAllowDeprecatedChanged != null)
+                {
+                    onAllowDeprecatedChanged();
+                }
+            }
         }
 
         static ShaderGraphPreferences()
@@ -57,18 +74,25 @@ namespace UnityEditor.ShaderGraph
 
             EditorGUILayout.Space();
 
-            EditorGUI.BeginChangeCheck ();
+            EditorGUI.BeginChangeCheck();
             var variantLimitValue = EditorGUILayout.DelayedIntField("Shader Variant Limit", variantLimit);
-            if (EditorGUI.EndChangeCheck ()) 
+            if (EditorGUI.EndChangeCheck())
             {
                 variantLimit = variantLimitValue;
             }
 
-            EditorGUI.BeginChangeCheck ();
+            EditorGUI.BeginChangeCheck();
             var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
-            if (EditorGUI.EndChangeCheck ()) 
+            if (EditorGUI.EndChangeCheck())
             {
                 autoAddRemoveBlocks = autoAddRemoveBlocksValue;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
+            if (EditorGUI.EndChangeCheck())
+            {
+                allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
             }
 
             EditorGUIUtility.labelWidth = previousLabelWidth;
@@ -78,6 +102,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_VariantLimit = EditorPrefs.GetInt(Keys.variantLimit, 128);
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
+            m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
 
             m_Loaded = true;
         }

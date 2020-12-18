@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float iridescenceMask;
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             // Transparency
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float perceptualRoughness;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float coatRoughness; // Automatically fill
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             // Transparency
@@ -190,80 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
         //-----------------------------------------------------------------------------
 
         public override bool IsDefferedMaterial() { return true; }
-
-        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
-        {
-            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in
-            supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
-            supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
-            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
-#if ENABLE_VIRTUALTEXTURES
-            gBufferCount++;
-#endif
-        }
-
-        // This must return the number of GBuffer to allocate
-        public override int GetMaterialGBufferCount(HDRenderPipelineAsset asset)
-        {
-            int gBufferCount;
-            bool unused0;
-            bool unused1;
-            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1);
-
-            return gBufferCount;
-        }
-
-        public override void GetMaterialGBufferDescription(HDRenderPipelineAsset asset, out GraphicsFormat[] RTFormat, out GBufferUsage[] gBufferUsage, out bool[] enableWrite)
-        {
-            int gBufferCount;
-            bool supportShadowMask;
-            bool supportLightLayers;
-            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers);
-
-            RTFormat = new GraphicsFormat[gBufferCount];
-            gBufferUsage = new GBufferUsage[gBufferCount];
-            enableWrite = new bool[gBufferCount];
-
-            RTFormat[0] = GraphicsFormat.R8G8B8A8_SRGB; // Albedo sRGB / SSSBuffer
-            gBufferUsage[0] = GBufferUsage.SubsurfaceScattering;
-            enableWrite[0] = true;
-            RTFormat[1] = GraphicsFormat.R8G8B8A8_UNorm; // Normal Buffer
-            gBufferUsage[1] = GBufferUsage.Normal;
-            enableWrite[1] = true;                    // normal buffer is used as RWTexture to composite decals in forward
-            RTFormat[2] = GraphicsFormat.R8G8B8A8_UNorm; // Data
-            gBufferUsage[2] = GBufferUsage.None;
-            enableWrite[2] = true;
-            RTFormat[3] = Builtin.GetLightingBufferFormat();
-            gBufferUsage[3] = GBufferUsage.None;
-            enableWrite[3] = true;
-
-            #if ENABLE_VIRTUALTEXTURES
-                int index = 4;
-                RTFormat[index] = VTBufferManager.GetFeedbackBufferFormat();
-                gBufferUsage[index] = GBufferUsage.VTFeedback;
-                enableWrite[index] = false;
-                index++;
-            #else
-                int index = 4;
-            #endif
-
-            if (supportLightLayers)
-            {
-                RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
-                gBufferUsage[index] = GBufferUsage.LightLayers;
-                index++;
-            }
-
-            // All buffer above are fixed. However shadow mask buffer can be setup or not depends on light in view.
-            // Thus it need to be the last one, so all indexes stay the same
-            if (supportShadowMask)
-            {
-                RTFormat[index] = Builtin.GetShadowMaskBufferFormat();
-                gBufferUsage[index] = GBufferUsage.ShadowMask;
-                index++;
-            }
-        }
-
 
         //-----------------------------------------------------------------------------
         // Init precomputed texture

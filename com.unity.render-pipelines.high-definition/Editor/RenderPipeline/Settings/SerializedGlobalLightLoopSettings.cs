@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
+        public SerializedProperty reflectionProbeFormat;
         public SerializedProperty planarReflectionAtlasSize;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
@@ -28,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
         public SerializedProperty maxLightsPerClusterCell;
+        public SerializedProperty maxDensityVolumeSize;
+        public SerializedProperty maxDensityVolumesOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -44,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
+            reflectionProbeFormat = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeFormat);
 
             planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
 
@@ -58,6 +62,9 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
             maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
             maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
+
+            maxDensityVolumeSize = root.Find((GlobalLightLoopSettings s) => s.maxDensityVolumeSize);
+            maxDensityVolumesOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDensityVolumesOnScreen);
         }
     }
 }

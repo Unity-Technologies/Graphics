@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -21,6 +23,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DrawObjectsPass));
+
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             foreach (ShaderTagId sid in shaderTagIds)
@@ -39,25 +43,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+            : this(profilerTag,
+            new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly"), new ShaderTagId("LightweightForward")},
+            opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
+        {}
+
+        internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+            : this(profileId.GetType().Name, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
-            m_ProfilerTag = profilerTag;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
-            m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
-            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
-            m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
-            m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
-            renderPassEvent = evt;
-
-            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
-            m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-            m_IsOpaque = opaque;
-
-            if (stencilState.enabled)
-            {
-                m_RenderStateBlock.stencilReference = stencilReference;
-                m_RenderStateBlock.mask = RenderStateMask.Stencil;
-                m_RenderStateBlock.stencilState = stencilState;
-            }
+            m_ProfilingSampler = ProfilingSampler.Get(profileId);
         }
 
         /// <inheritdoc/>

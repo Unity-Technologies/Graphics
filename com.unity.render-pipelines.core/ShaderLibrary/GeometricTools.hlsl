@@ -29,15 +29,16 @@ float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
 
 // Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
 // Returns 'false' if there are no real roots, 'true' otherwise.
-// Numerically stable.
-// Ref: Numerical Recipes in C++ (3rd Edition)
+// Ensures that roots.x <= roots.y.
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
-    float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + CopySign(sqrt(d), b));
-    roots   = float2(q / a, c / q);
+    float det = Sq(b) - 4.0 * a * c;
 
-    return (d >= 0);
+    float sqrtDet = sqrt(det);
+    roots.x = (-b - sign(a) * sqrtDet) / (2.0 * a);
+    roots.y = (-b + sign(a) * sqrtDet) / (2.0 * a);
+
+    return (det >= 0.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -93,25 +94,8 @@ bool IntersectRaySphere(float3 start, float3 dir, float radius, out float2 inter
     float a = dot(dir, dir);
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
-    float discriminant = b * b - 4.0 * a * c;
 
-    bool intersect = false;
-    intersections = float2(0.0, 0.0);
-
-    if (discriminant < 0.0 || a == 0.0)
-    {
-        intersections.x = 0.0;
-        intersections.y = 0.0;
-    }
-    else
-    {
-        float sqrtDiscriminant = sqrt(discriminant);
-        intersections.x = (-b - sqrtDiscriminant) / (2.0 * a);
-        intersections.y = (-b + sqrtDiscriminant) / (2.0 * a);
-        intersect = true;
-    }
-
-    return intersect;
+    return SolveQuadraticEquation(a, b, c, intersections);
 }
 
 // This simplified version assume that we care about the result only when we are inside the sphere
@@ -138,15 +122,15 @@ bool IntersectRayPlane(float3 rayOrigin, float3 rayDirection, float3 planePositi
     bool res = false;
     t = -1.0;
 
-    float denom = dot(planeNormal, rayDirection); 
+    float denom = dot(planeNormal, rayDirection);
     if (abs(denom) > 1e-5)
-    { 
+    {
         float3 d = planePosition - rayOrigin;
         t = dot(d, planeNormal) / denom;
         res = (t >= 0);
     }
 
-    return res; 
+    return res;
 }
 
 // Can support cones with an elliptic base: pre-scale 'coneAxisX' and 'coneAxisY' by (h/r_x) and (h/r_y).
@@ -176,8 +160,8 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     // Check whether we have at least 1 root.
     bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
 
-    tEntr = min(roots.x, roots.y);
-    tExit = max(roots.x, roots.y);
+    tEntr = roots.x;
+    tExit = roots.y;
     float3 pEntr = o + tEntr * d;
     float3 pExit = o + tExit * d;
 

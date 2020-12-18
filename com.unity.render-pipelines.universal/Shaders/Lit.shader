@@ -41,6 +41,10 @@ Shader "Universal Render Pipeline/Lit"
         _DetailNormalMapScale("Scale", Range(0.0, 2.0)) = 1.0
         [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
+        // SRP batching compatibility for Clear Coat (Not used in Lit)
+        [HideInInspector] _ClearCoatMask("_ClearCoatMask", Float) = 0.0
+        [HideInInspector] _ClearCoatSmoothness("_ClearCoatSmoothness", Float) = 0.0
+
         // Blending state
         [HideInInspector] _Surface("__surface", Float) = 0.0
         [HideInInspector] _Blend("__blend", Float) = 0.0
@@ -60,6 +64,10 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
         [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
         [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     SubShader
@@ -84,7 +92,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -97,8 +105,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
             #pragma shader_feature_local _PARALLAXMAP
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
-
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
@@ -106,13 +113,13 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // -------------------------------------
             // Unity defined keywords
@@ -140,10 +147,11 @@ Shader "Universal Render Pipeline/Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -155,6 +163,12 @@ Shader "Universal Render Pipeline/Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -176,7 +190,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -189,7 +203,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
             #pragma shader_feature_local _PARALLAXMAP
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -198,12 +212,12 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // -------------------------------------
             // Unity defined keywords
@@ -214,6 +228,7 @@ Shader "Universal Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
@@ -233,7 +248,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -264,7 +279,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -295,7 +310,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -306,7 +321,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -325,7 +340,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -364,7 +379,6 @@ Shader "Universal Render Pipeline/Lit"
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
-
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -378,7 +392,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
-            // SM2.0: NOT SUPPORTED shader_feature_local _DETAIL_MULX2
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
@@ -387,12 +402,12 @@ Shader "Universal Render Pipeline/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
@@ -416,6 +431,7 @@ Shader "Universal Render Pipeline/Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
@@ -430,6 +446,12 @@ Shader "Universal Render Pipeline/Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -510,6 +532,7 @@ Shader "Universal Render Pipeline/Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
@@ -519,7 +542,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature_local _DETAIL_MULX2 _DETAIL_SCALED
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -539,6 +562,7 @@ Shader "Universal Render Pipeline/Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex vert
             #pragma fragment frag

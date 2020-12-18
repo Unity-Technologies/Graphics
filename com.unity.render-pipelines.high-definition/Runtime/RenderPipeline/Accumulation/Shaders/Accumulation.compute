@@ -4,8 +4,13 @@
 
 #pragma kernel KMain
 
+#pragma multi_compile _ INPUT_FROM_RADIANCE_TEXTURE
+
 // Inputs
+#ifdef INPUT_FROM_RADIANCE_TEXTURE
 TEXTURE2D_X(_RadianceTexture);
+#endif
+
 float4      _AccumulationWeights;
 int         _AccumulationNeedsExposure;
 uint        _AccumulationFrameIndex;
@@ -55,8 +60,12 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier, 1.0);
     }
     else
-    {    
+    {
+#ifdef INPUT_FROM_RADIANCE_TEXTURE
         float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+#else
+        float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+#endif
 
         if (sampleCount++)
             color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * _AccumulationWeights.y + _AccumulationWeights.x * color.xyz) * _AccumulationWeights.z;

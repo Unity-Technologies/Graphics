@@ -2,6 +2,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -32,7 +33,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #define MaxRadius       _CoCParams.z
         #define RcpAspect       _CoCParams.w
 
-        half FragCoC(FullscreenVaryings input) : SV_Target
+        half FragCoC(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -47,7 +48,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return saturate((farCoC + nearCoC + 1.0) * 0.5);
         }
 
-        half4 FragPrefilter(FullscreenVaryings input) : SV_Target
+        half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -120,7 +121,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             avg *= smoothstep(0, _SourceSize.w * 2.0, abs(coc));
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            avg = SRGBToLinear(avg);
+            avg = GetSRGBToLinear(avg);
         #endif
 
             return half4(avg, coc);
@@ -150,7 +151,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             nearAcc += half4(samp.rgb, 1.0) * nearWeight;
         }
 
-        half4 FragBlur(FullscreenVaryings input) : SV_Target
+        half4 FragBlur(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -184,7 +185,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return half4(rgb, alpha);
         }
 
-        half4 FragPostBlur(FullscreenVaryings input) : SV_Target
+        half4 FragPostBlur(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -199,7 +200,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return acc * 0.25;
         }
 
-        half4 FragComposite(FullscreenVaryings input) : SV_Target
+        half4 FragComposite(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -214,16 +215,15 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half4 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = SRGBToLinear(color);
+            color = GetSRGBToLinear(color);
         #endif
 
             half alpha = Max3(dof.r, dof.g, dof.b);
             color = lerp(color, half4(dof.rgb, alpha), ffa + dof.a - ffa * dof.a);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = LinearToSRGB(color);
+            color = GetLinearToSRGB(color);
         #endif
-
             return color;
         }
 

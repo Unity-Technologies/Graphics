@@ -33,8 +33,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
@@ -57,6 +56,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
+
+            ColorMask 0
 
             HLSLPROGRAM
 
@@ -82,12 +83,11 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -12,8 +12,13 @@ using UnityEngine;
 
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
+    internal interface IGetNodePropertyDrawerPropertyData
+    {
+        void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback);
+    }
+
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
-    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
+    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         public Action inspectorUpdateDelegate { get; set; }
 
@@ -31,35 +36,35 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             VisualElement nodeSettings = new VisualElement();
             var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
-            EnumField precisionField = null;
-            if(node.canSetPrecision)
+            if (node.sgVersion < node.latestVersion)
             {
-                precisionField = new EnumField(node.precision);
-                var propertyRow = new PropertyRow(new Label("Precision"));
-                propertyRow.Add(precisionField, (field) =>
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
                 {
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue.Equals(node.precision))
-                            return;
-
-                        m_setNodesAsDirtyCallback();
-                        node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                        node.precision = (Precision)evt.newValue;
-                        node.owner.ValidateGraph();
-                        m_updateNodeViewsCallback();
-                        node.Dirty(ModificationScope.Graph);
-                    });
+                    m_setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
+                    node.ChangeVersion(node.latestVersion);
+                    inspectorUpdateDelegate?.Invoke();
+                    m_updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
                 });
-                nodeSettings.Add(propertyRow);
+
+                if (help != null)
+                {
+                    nodeSettings.Insert(0, help);
+                }
             }
-            propertyVisualElement = precisionField;
+
+            PropertyDrawerUtils.AddDefaultNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+
+            propertyVisualElement = null;
+
             return nodeSettings;
         }
+
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (AbstractMaterialNode) actualObject,
+                (AbstractMaterialNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

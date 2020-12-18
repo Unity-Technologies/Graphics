@@ -1,4 +1,4 @@
-// Complex Lit is similar to Lit, but provides
+// Complex Lit is superset of Lit, but provides
 // advanced material properties and is always forward rendered.
 // It also has higher hardware and shader model requirements.
 Shader "Universal Render Pipeline/Complex Lit"
@@ -29,11 +29,20 @@ Shader "Universal Render Pipeline/Complex Lit"
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
+        _Parallax("Scale", Range(0.005, 0.08)) = 0.005
+        _ParallaxMap("Height Map", 2D) = "black" {}
+
         _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
         _OcclusionMap("Occlusion", 2D) = "white" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+
+        _DetailMask("Detail Mask", 2D) = "white" {}
+        _DetailAlbedoMapScale("Scale", Range(0.0, 2.0)) = 1.0
+        _DetailAlbedoMap("Detail Albedo x2", 2D) = "linearGrey" {}
+        _DetailNormalMapScale("Scale", Range(0.0, 2.0)) = 1.0
+        [Normal] _DetailNormalMap("Normal Map", 2D) = "bump" {}
 
         _ClearCoat("Clear Coat", Float) = 0.0
         _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
@@ -52,6 +61,10 @@ Shader "Universal Render Pipeline/Complex Lit"
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     SubShader
@@ -64,7 +77,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
         // ------------------------------------------------------------------
         // Forward only pass.
-        // Acts as a natural forward fallback for deferred rendering.
+        // Acts also as an opaque forward fallback for deferred rendering.
         Pass
         {
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
@@ -77,21 +90,21 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
-
             #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
-
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
@@ -99,8 +112,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -125,24 +137,6 @@ Shader "Universal Render Pipeline/Complex Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
-    }
-
-    // TODO: Fallback is disable due to a bug
-    // Workaround is to use copy-pasted SubShaders from Lit
-    // Once the bug is fixed, remove the copy-paste and use the Fallback
-    //
-    //FallBack "Universal Render Pipeline/Lit"
-
-    //////////////////////////////////////////////////////
-
-    // TODO: workaround, remove
-    SubShader
-    {
-        // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
-        // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
-        // material work with both Universal Render Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel" = "4.5"}
-        LOD 300
 
         Pass
         {
@@ -151,10 +145,11 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -166,6 +161,12 @@ Shader "Universal Render Pipeline/Complex Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -185,7 +186,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -216,7 +217,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -247,7 +248,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -258,6 +259,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -276,7 +278,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -295,17 +297,15 @@ Shader "Universal Render Pipeline/Complex Lit"
         // Universal Pipeline tag is required. If Universal render pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Universal Render Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel" = "2.0"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
         LOD 300
 
-        // ------------------------------------------------------------------
-        //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
-            Tags{"LightMode" = "UniversalForward"}
+            Tags{"LightMode" = "UniversalForwardOnly"}
 
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
@@ -315,21 +315,18 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _PARALLAXMAP
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
-
+            #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
@@ -337,8 +334,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -351,6 +347,10 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -358,7 +358,6 @@ Shader "Universal Render Pipeline/Complex Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
-
         Pass
         {
             Name "ShadowCaster"
@@ -366,6 +365,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
@@ -460,6 +460,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
@@ -469,6 +470,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
 
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
 
@@ -488,6 +490,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
 
             #pragma vertex vert
             #pragma fragment frag
@@ -499,8 +502,10 @@ Shader "Universal Render Pipeline/Complex Lit"
             ENDHLSL
         }
     }
-    
+
     //////////////////////////////////////////////////////
 
+    FallBack "Hidden/Universal Render Pipeline/Lit"
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.LitShader"
 }

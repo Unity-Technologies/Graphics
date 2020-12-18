@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -121,6 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
+#if UNITY_EDITOR
+        bool m_WasRenderedDuringAsyncCompilation = false;
+#endif
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
@@ -129,6 +137,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if UNITY_EDITOR
+                if (m_WasRenderedDuringAsyncCompilation && !ShaderUtil.anythingCompiling)
+                    return true;
+#endif
                 if (mode != ProbeSettings.Mode.Realtime)
                     return false;
                 switch (realtimeMode)
@@ -139,6 +151,40 @@ namespace UnityEngine.Rendering.HighDefinition
                     default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
                 }
             }
+        }
+
+        // This member and function allow us to fetch the exposure value that was used to render the realtime HDProbe
+        // without forcing a sync between the c# and the GPU code. For the moment it shall only be used for planar reflections.
+        private Queue<AsyncGPUReadbackRequest> probeExposureAsyncRequest = new Queue<AsyncGPUReadbackRequest>();
+        internal void RequestProbeExposureValue(RTHandle exposureTexture)
+        {
+            AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(exposureTexture.rt, 0, 0, 1, 0, 1, 0, 1);
+            probeExposureAsyncRequest.Enqueue(singleReadBack);
+        }
+
+        // This float allows us to keep the previous exposure value in case all the finished requests were already dequeued.
+        private float previousExposure = 1.0f;
+
+        // This function processes the asynchronous read-back requests for the exposure and updates the last known exposure value.
+        internal float ProbeExposureValue()
+        {
+            while (probeExposureAsyncRequest.Count != 0)
+            {
+                AsyncGPUReadbackRequest request = probeExposureAsyncRequest.Peek();
+                if (!request.done && !probeExposureAsyncRequest.Peek().hasError)
+                    break;
+
+                // If this has an error, just skip it
+                if (!request.hasError)
+                {
+                    // Grab the native array from this readback
+                    NativeArray<float> exposureValue = probeExposureAsyncRequest.Peek().GetData<float>();
+                    previousExposure = exposureValue[0];
+                }
+                probeExposureAsyncRequest.Dequeue();
+            }
+
+            return previousExposure;
         }
 
         internal bool HasValidRenderedData()
@@ -249,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the texture for a specific target mode.
         /// </summary>
@@ -327,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the render data for a specific mode.
         ///
@@ -360,9 +408,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
         /// <summary>
-        /// Resolution of the probee.
+        /// Resolution of the probe.
         /// </summary>
-        public PlanarReflectionAtlasResolution resolution { get => m_ProbeSettings.resolution; set => m_ProbeSettings.resolution = value; }
+        public PlanarReflectionAtlasResolution resolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                // We return whatever value is in resolution if there is no hdrp pipeline (nothing will work anyway)
+                return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
+            }
+        }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
@@ -460,14 +516,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
-                ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-                : influenceToWorld;
+            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+            : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal int lastRenderedFrame { get; private set; } = int.MinValue;
 
         internal void SetIsRendered(int frame)
         {
+#if UNITY_EDITOR
+            m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
+#endif
             m_WasRenderedSinceLastOnDemandRequest = true;
             wasRenderedAfterOnEnable = true;
             lastRenderedFrame = frame;
@@ -478,7 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() { }
+        public virtual void PrepareCulling() {}
 
         /// <summary>
         /// Request to render this probe next update.
@@ -497,8 +556,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateProbeName()
         {
-            // TODO: ask if this is ok:
-            if (settings.type == ProbeSettings.ProbeType.PlanarProbe)
+            if (settings.type == ProbeSettings.ProbeType.ReflectionProbe)
             {
                 for (int i = 0; i < 6; i++)
                     probeName[i] = $"Reflection Probe RenderCamera ({name}: {(CubemapFace)i})";
@@ -521,6 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
 #endif
         }
+
         void OnDisable()
         {
             HDProbeSystem.UnregisterProbe(this);

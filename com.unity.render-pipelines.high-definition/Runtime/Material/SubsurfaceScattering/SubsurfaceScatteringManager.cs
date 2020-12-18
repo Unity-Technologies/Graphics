@@ -4,19 +4,12 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        RTHandle m_SSSColor;
-        RTHandle m_SSSColorMSAA;
-        bool m_SSSReuseGBufferMemory;
-
         // Disney SSS Model
         ComputeShader m_SubsurfaceScatteringCS;
         int m_SubsurfaceScatteringKernel;
         int m_SubsurfaceScatteringKernelMSAA;
         Material m_CombineLightingPass;
         // End Disney SSS Model
-
-        // Need an extra buffer on some platforms
-        RTHandle m_SSSCameraFilteringBuffer;
 
         // This is use to be able to read stencil value in compute shader
         Material m_SSSCopyStencilForSplitLighting;
@@ -34,68 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         uint                        m_SSSTexturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
         uint                        m_SSSTransmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
 
-        void InitSSSBuffers()
-        {
-            RenderPipelineSettings settings = asset.currentPlatformRenderPipelineSettings;
-
-            if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly) //forward only
-            {
-                // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
-                // TODO: Provide a way to reuse a render target
-                m_SSSColor = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, useDynamicScale: true, name: "SSSBuffer");
-                m_SSSReuseGBufferMemory = false;
-            }
-
-            // We need to allocate the texture if we are in forward or both in case one of the cameras is in enable forward only mode
-            if (settings.supportMSAA && settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
-            {
-                 m_SSSColorMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, dimension: TextureXR.dimension, enableMSAA: true, bindTextureMS: true, useDynamicScale: true, name: "SSSBufferMSAA");
-            }
-
-            if ((settings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0) //deferred or both
-            {
-                // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
-                m_SSSColor = m_GbufferManager.GetSubsurfaceScatteringBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
-                m_SSSReuseGBufferMemory = true;
-            }
-
-            if (NeedTemporarySubsurfaceBuffer() || settings.supportMSAA)
-            {
-                // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
-                m_SSSCameraFilteringBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "SSSCameraFiltering"); // Enable UAV
-            }
-
-            // fill the list with the max number of diffusion profile so we dont have
-            // the error: exceeds previous array size (5 vs 3). Cap to previous size.
-            m_SSSShapeParamsAndMaxScatterDists = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSDiffusionProfileHashes = new uint[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-            m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
-        }
-
-        void DestroySSSBuffers()
-        {
-            RTHandles.Release(m_SSSColorMSAA);
-            RTHandles.Release(m_SSSCameraFilteringBuffer);
-            if (!m_SSSReuseGBufferMemory)
-            {
-                RTHandles.Release(m_SSSColor);
-            }
-        }
-
-        RTHandle GetSSSBuffer()
-        {
-            return m_SSSColor;
-        }
-
-        RTHandle GetSSSBufferMSAA()
-        {
-            return m_SSSColorMSAA;
-        }
-
         void InitializeSubsurfaceScattering()
         {
             // Disney SSS (compute + combine)
@@ -112,6 +43,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
 
+            // fill the list with the max number of diffusion profile so we dont have
+            // the error: exceeds previous array size (5 vs 3). Cap to previous size.
+            m_SSSShapeParamsAndMaxScatterDists = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSWorldScalesAndFilterRadiiAndThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDiffusionProfileHashes = new uint[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSDiffusionProfileUpdate = new int[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+            m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+
             // If ray tracing is supported by the asset, do the initialization
             if (rayTracingSupported)
                 InitializeSubsurfaceScatteringRT();
@@ -124,12 +65,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_CombineLightingPass);
             CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
-            DestroySSSBuffers();
         }
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = asset.diffusionProfileSettingsList;
+            var currentDiffusionProfiles = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList;
             var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
 
             // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
@@ -248,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
             parameters.subsurfaceScatteringCS.shaderKeywords = null;
 
-            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
             }
@@ -264,52 +204,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return parameters;
         }
-
-
-        void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
-            RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle depthTextureRT)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                return;
-
-            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
-
-            var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-
-            // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
-            {
-                RenderSubsurfaceScatteringRT(hdCamera, cmd, colorBufferRT, diffuseBufferRT, depthStencilBufferRT, depthTextureRT);
-            }
-            else
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
-                {
-                    var parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
-                    var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = colorBufferRT;
-                    resources.diffuseBuffer = diffuseBufferRT;
-                    resources.depthStencilBuffer = depthStencilBufferRT;
-                    resources.depthTexture = depthTextureRT;
-                    resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
-                    resources.sssBuffer = m_SSSColor;
-
-                    // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                    if (parameters.needTemporaryBuffer)
-                    {
-                        // Clear the SSS filtering target
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearSSSFilteringTarget)))
-                        {
-                            CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
-                        }
-                    }
-
-                    RenderSubsurfaceScattering(parameters, resources, cmd);
-                }
-            }
-        }
-
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA

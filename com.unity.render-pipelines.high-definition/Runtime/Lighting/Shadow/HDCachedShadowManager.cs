@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -9,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // we use this cached shadow manager only as a source of utilities functions, but the data is stored in the dynamic shadow atlas.
 
     /// <summary>
-    /// The class responsible to handle cached shadow maps (shadows with Update mode set to OnEnable or OnDemand). 
+    /// The class responsible to handle cached shadow maps (shadows with Update mode set to OnEnable or OnDemand).
     /// </summary>
     public class HDCachedShadowManager
     {
@@ -22,11 +19,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data for cached directional light shadows.
         private const int m_MaxShadowCascades = 4;
         private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
+        private Vector3 m_CachedDirectionalForward;
+        private Vector3 m_CachedDirectionalAngles;
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
         internal HDCachedShadowAtlas areaShadowAtlas;
-        // Cache here to be able to compute resolutions. 
+        // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
         // ------------------------ Debug API -------------------------------
@@ -64,11 +63,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
         // ------------------------ Public API -------------------------------
 
         /// <summary>
-        /// This function verifies if a shadow map of resolution shadowResolution for a light of type lightType would fit in the atlas when inserted. 
+        /// This function verifies if a shadow map of resolution shadowResolution for a light of type lightType would fit in the atlas when inserted.
         /// </summary>
         /// <param name="shadowResolution">The resolution of the hypothetical shadow map that we are assessing.</param>
         /// <param name="lightType">The type of the light that cast the hypothetical shadow map that we are assessing.</param>
@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If a light is added after a scene is loaded, its placement in the atlas might be not optimal and the suboptimal placement might prevent a light to find a place in the atlas.
         /// This function will force a defragmentation of the atlas containing lights of type lightType and redistributes the shadows inside so that the placement is optimal. Note however that this will also mark the shadow maps
-        /// as dirty and they will be re-rendered as soon the light will come into view for the first time after this function call. 
+        /// as dirty and they will be re-rendered as soon the light will come into view for the first time after this function call.
         /// </summary>
         /// <param name="lightType">The type of the light contained in the atlas that need defragmentation.</param>
         public void DefragAtlas(HDLightType lightType)
@@ -123,13 +123,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// This function can be used to register a light to the cached shadow system if not already registered. It is necessary to call this function if a light has been
         /// evicted with ForceEvictLight and it needs to be registered again. Please note that a light is automatically registered when enabled or when the shadow update changes
-        /// from EveryFrame to OnDemand or OnEnable. 
+        /// from EveryFrame to OnDemand or OnEnable.
         /// </summary>
         /// <param name="lightData">The light to register.</param>
         public void ForceRegisterLight(HDAdditionalLightData lightData)
         {
             // Note: this is for now just calling the internal API, but having a separate API helps with future
-            // changes to the process. 
+            // changes to the process.
             RegisterLight(lightData);
         }
 
@@ -150,18 +150,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadowAtlas = new HDCachedShadowAtlas(ShadowMapType.AreaLightAtlas);
         }
 
-        internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
-                                            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
+            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             m_InitParams = initParams;
-            punctualShadowAtlas.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            punctualShadowAtlas.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
         }
 
-        internal void InitAreaLightShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
-                                            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        internal void InitAreaLightShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
+            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             m_InitParams = initParams;
-            areaShadowAtlas.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            areaShadowAtlas.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
         }
 
         internal void RegisterLight(HDAdditionalLightData lightData)
@@ -206,11 +206,56 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void RegisterTransformToCache(HDAdditionalLightData lightData)
+        {
+            HDLightType lightType = lightData.type;
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+                punctualShadowAtlas.RegisterTransformCacheSlot(lightData);
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+                areaShadowAtlas.RegisterTransformCacheSlot(lightData);
+            if (lightType == HDLightType.Directional)
+                m_CachedDirectionalAngles = lightData.transform.eulerAngles;
+        }
+
+        internal void RemoveTransformFromCache(HDAdditionalLightData lightData)
+        {
+            HDLightType lightType = lightData.type;
+
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+                punctualShadowAtlas.RemoveTransformFromCache(lightData);
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+                areaShadowAtlas.RemoveTransformFromCache(lightData);
+        }
+
         internal void AssignSlotsInAtlases()
         {
             punctualShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
-            if(ShaderConfig.s_AreaLights == 1)
+            if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
+        }
+
+        internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
+        {
+            if (lightData.updateUponLightMovement)
+            {
+                if (lightType == HDLightType.Directional)
+                {
+                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
+                    Vector3 angleDiff = m_CachedDirectionalAngles - lightData.transform.eulerAngles;
+                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
+                }
+                else if (lightType == HDLightType.Area)
+                {
+                    return areaShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
+                }
+                else
+                {
+                    return punctualShadowAtlas.NeedRenderingDueToTransformChange(lightData, lightType);
+                }
+            }
+
+            return false;
         }
 
         internal bool ShadowIsPendingUpdate(int shadowIdx, ShadowMapType shadowMapType)
@@ -241,6 +286,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 punctualShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
             else if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.UpdateResolutionRequest(ref request, shadowIdx);
+            else if (shadowMapType == ShadowMapType.CascadedDirectional)
+                request.cachedAtlasViewport = request.dynamicAtlasViewport;
         }
 
         internal void UpdateDebugSettings(LightingDebugSettings lightingDebugSettings)
@@ -299,11 +346,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadowAtlas.Clear();
         }
 
-        internal void Dispose()
+        internal void Cleanup(RenderGraph renderGraph)
         {
-            punctualShadowAtlas.Release();
+            punctualShadowAtlas.Release(renderGraph);
             if (ShaderConfig.s_AreaLights == 1)
-                areaShadowAtlas.Release();
+                areaShadowAtlas.Release(renderGraph);
         }
     }
 }

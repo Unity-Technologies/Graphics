@@ -30,16 +30,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
 
+        static readonly GUID kSourceCodeGuid = new GUID("aea3df556ea7e9b44855d1fff79fed53"); // LightingSubTarget.cs
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("aea3df556ea7e9b44855d1fff79fed53")); // LightingSubTarget.cs
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             base.Setup(ref context);
         }
 
@@ -100,7 +104,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendModePreserveSpecularLighting);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
             if (pass.IsDepthOrMV())

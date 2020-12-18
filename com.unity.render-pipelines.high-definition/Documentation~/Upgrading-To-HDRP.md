@@ -61,7 +61,9 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). Also, since HDRP supports more height map displacement techniques and decompression options, this processes cannot upgrade heightmap related properties correctly. This means your height mapped materials may look incorrect. If you upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Renderer version.
+
+This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
 1. Open the Package Manager window (menu: **Window > Package Manager**).
 2. Find and click the **High Definition RP** entry.
@@ -96,7 +98,7 @@ To set up lighting in your HDRP Project:
 
     1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
 
-    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile) that the Sky and Fog Volume uses.
+    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile.md) that the Sky and Fog Volume uses.
 
     3. For the **Static Lighting Sky** property, select **PhysicallyBasedSky**.
 
