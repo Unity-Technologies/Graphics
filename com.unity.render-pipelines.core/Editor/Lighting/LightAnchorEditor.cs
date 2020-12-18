@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
@@ -15,7 +14,6 @@ namespace UnityEditor
     [CustomEditor(typeof(LightAnchor))]
     public class LightAnchorEditor : Editor
     {
-        //Styles m_Styles;
         float m_Yaw;
         float m_Pitch;
         float m_Roll;
@@ -93,13 +91,11 @@ namespace UnityEditor
                     {
                         Light light = firstManipulator.GetComponent<Light>();
 
-                        // TODO: bool enabledKnob = hasCookie | hasIES | isAreaLight | isDiscLight;
-                        bool enabledKnob = true;
-
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
                         usedColor = Color.grey;
                         usedColor.a = 0.2f;
+                        bool enabledKnob = true;
                         m_Roll = AngleField(localRect, "Roll", m_Roll, -90, usedColor, enabledKnob);
                     }
                     rollChanged = oldValue != m_Roll;
@@ -295,7 +291,8 @@ namespace UnityEditor
                         }
                         manipulator.frameSpace = firstManipulator.frameSpace;
 
-                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Transform");
+                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator }, "Reset Light Anchor Manipulator");
+                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Light Anchor Transform");
                         if (yawChanged)
                             manipulator.yaw = m_Yaw;
                         if (pitchChanged)
@@ -304,21 +301,13 @@ namespace UnityEditor
                             manipulator.roll = m_Roll;
                         if (distanceChanged)
                             manipulator.distance = m_Distance;
-                        if (frameChanged)
-                        {
-                            if (targets.Length > 1)
-                                manipulator.UpdateTransform(camera, manipulator.anchorPosition);
-                            else
-                                manipulator.UpdateTransform(camera, anchor);
-                        }
-                        EditorUtility.SetDirty(manipulator);
-                        IsCacheInvalid(manipulator); // prevent feedback loop
 
+                        if (targets.Length > 1)
+                            manipulator.UpdateTransform(camera, manipulator.anchorPosition);
+                        else
+                            manipulator.UpdateTransform(camera, anchor);
+                        EditorUtility.SetDirty(manipulator);
                         EditorUtility.SetDirty(manipulator.transform);
-                        EditorUtility.SetDirty(manipulator);
-
-                        //Undo.RegisterCompleteObjectUndo(manipulator.transform, "Transform");
-                        //Undo.RegisterCompleteObjectUndo(manipulator, "Inspector");
                     }
                 }
             }
@@ -385,10 +374,10 @@ namespace UnityEditor
                 var newMousePos = m_ClickCatcher.WorldToLocal(evt.mousePosition);
                 var toolbarHeight = 21f;
                 var mousePos = new Vector3(newMousePos.x, Screen.height - (newMousePos.y + toolbarHeight), 0f);
-                //var ray = Camera.main.ScreenPointToRay(Event.current.mousePosition);
 
                 // Useful to uncomment for debugging
-                // Debug.DrawLine(ray.origin, ray.origin + ray.direction * 100f, Color.yellow, 10f);
+                //var ray = Camera.main.ScreenPointToRay(Event.current.mousePosition);
+                //Debug.DrawLine(ray.origin, ray.origin + ray.direction * 100f, Color.yellow, 10f);
             }
         }
 
@@ -473,7 +462,7 @@ namespace UnityEditor
                     Mathf.Cos((angle + offset) * Mathf.Deg2Rad),
                     Mathf.Sin((angle + offset) * Mathf.Deg2Rad)) * state.radius + state.position;
 
-                var dstPos = Slider2D(id, srcPos, 5f, Handles.CircleHandleCap);
+                var dstPos = Slider2DCircular(id, srcPos, 5f, Handles.CircleHandleCap);
                 dstPos -= state.position;
                 dstPos.Normalize();
 
@@ -530,7 +519,7 @@ namespace UnityEditor
         static Vector2 s_DragStartScreenPosition;
         static Vector2 s_DragScreenOffset;
 
-        static internal Vector2 Slider2D(int id, Vector2 position, float size, Handles.CapFunction drawCapFunction)
+        static internal Vector2 Slider2DCircular(int id, Vector2 position, float size, Handles.CapFunction drawCapFunction)
         {
             var type = Event.current.GetTypeForControl(id);
 
@@ -598,15 +587,16 @@ namespace UnityEditor
         static public float inspectorWidthPadding = 60f;
         static public float presetButtonCount = 9f;
         static public GUIStyle centeredLabel = GUI.skin.GetStyle("Label");
-        static public GUIContent presetTextureRimLeft = new GUIContent(Resources.Load<Texture2D>("PresetRim_Left"), "Rim Left");
-        static public GUIContent presetTextureKickLeft = new GUIContent(Resources.Load<Texture2D>("PresetKick_Left"), "Kick Left");
-        static public GUIContent presetTextureBounceLeft = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Left"), "Bounce Left");
-        static public GUIContent presetTextureFillLeft = new GUIContent(Resources.Load<Texture2D>("PresetFill_Left"), "Fill Left");
-        static public GUIContent presetTextureHair = new GUIContent(Resources.Load<Texture2D>("PresetHair"), "Hair");
-        static public GUIContent presetTextureRimRight = new GUIContent(Resources.Load<Texture2D>("PresetRim_Right"), "Rim Right");
-        static public GUIContent presetTextureKickRight = new GUIContent(Resources.Load<Texture2D>("PresetKick_Right"), "Kick Right");
-        static public GUIContent presetTextureBounceRight = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Right"), "Bounce Right");
-        static public GUIContent presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
+        static public string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/";
+        static public GUIContent presetTextureRimLeft = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Left", ".png", false), "Rim Left");
+        static public GUIContent presetTextureKickLeft = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Left", ".png", false), "Kick Left");
+        static public GUIContent presetTextureBounceLeft = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Left", ".png", false), "Bounce Left");
+        static public GUIContent presetTextureFillLeft = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Left", ".png", false), "Fill Left");
+        static public GUIContent presetTextureHair = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetHair", ".png", false), "Hair");
+        static public GUIContent presetTextureRimRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false), "Rim Right");
+        static public GUIContent presetTextureKickRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false), "Kick Right");
+        static public GUIContent presetTextureBounceRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false), "Bounce Right");
+        static public GUIContent presetTextureFillRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false), "Fill Right");
         static public GUIContent distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
         static public GUIContent upDirectionProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
         static public GUIContent[] angleSubContent = new[]
