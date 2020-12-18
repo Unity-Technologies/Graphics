@@ -197,6 +197,10 @@ namespace UnityEditor.Rendering.LookDev
 
         public void Render()
         {
+            //When exiting play mode, RenderPipelineManager.currentPipeline can be null for a few frames
+            if (LookDev.dataProvider == null || LookDev.dataProvider.Equals(null))
+                return;
+
             //TODO: make integration EditorWindow agnostic!
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(m_Displayer as EditorWindow);
