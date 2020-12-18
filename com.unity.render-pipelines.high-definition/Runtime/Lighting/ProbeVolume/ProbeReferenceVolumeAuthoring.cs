@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
-            ProbeReferenceVolume.instance.RemovePendingAsset(volumeAsset);
+            ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
 #if UNITY_EDITOR
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
                 {
-                    ProbeReferenceVolume.instance.RemovePendingAsset(m_PrevAsset);
+                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
                 }
 
                 m_PrevAsset = volumeAsset;

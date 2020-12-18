@@ -152,6 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Information of the probe volume asset that is being loaded (if one is pending)
         private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
+        // Information on probes we need to remove.
+        private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
+
 
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
@@ -188,6 +191,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedLoadAsset = true;
         }
 
+        internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
+        {
+            var key = asset.GetSerializedFullPath();
+            if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
+            {
+                m_PendingAssetsToBeUnloaded.Remove(key);
+            }
+            m_PendingAssetsToBeUnloaded.Add(asset.GetSerializedFullPath(), asset);
+        }
+
         internal void RemovePendingAsset(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
@@ -212,6 +225,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     ReleaseBricks(regId);
 
                 assetPathToBricks.Remove(key);
+            }
+
+            if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
+            {
+                m_PendingAssetsToBeUnloaded.Remove(key);
             }
         }
 
@@ -258,8 +276,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NeedLoadAsset = false;
         }
 
+        private void PerformPendingDeletion()
+        {
+            if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
+                return;
+
+            m_Pool.EnsureTextureValidity();
+
+            foreach (var asset in m_PendingAssetsToBeUnloaded.Values)
+            {
+                RemovePendingAsset(asset);
+            }
+        }
+
         public void PerformPendingOperations()
         {
+            PerformPendingDeletion();
             PerformPendingIndexDimensionChange();
             PerformPendingLoading();
         }
