@@ -28,6 +28,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
+        Dictionary<Guid, bool> m_ExpandedInputs = new Dictionary<Guid, bool>();
+
+        public Dictionary<Guid, bool> expandedInputs => m_ExpandedInputs;
+
         public string assetName
         {
             get { return blackboard.title; }
@@ -325,6 +329,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
             }
 
+            foreach (var expandedInput in expandedInputs)
+            {
+                SessionState.SetBool($"Unity.ShaderGraph.Input.{expandedInput.Key}.isExpanded", expandedInput.Value);
+            }
+
             if (m_Graph.movedInputs.Any())
             {
                 foreach (var row in m_InputRows.Values)
@@ -336,6 +345,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
             }
+
+            m_ExpandedInputs.Clear();
         }
 
         // A map from shaderInput reference names to the viewDataKey of the blackboardFieldView that used to represent them
@@ -414,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Removing the expand button from the blackboard, its added by default
             var expandButton = row.Q<Button>("expandButton");
-            expandButton.RemoveFromHierarchy();
+            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
 
             m_InputRows[input] = row;
 
@@ -434,6 +445,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.OnKeywordChangedNoValidate();
                 }
             }
+        }
+        void OnExpanded(MouseDownEvent evt, ShaderInput input)
+        {
+            m_ExpandedInputs[input.guid] = !m_InputRows[input].expanded;
         }
 
         void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
