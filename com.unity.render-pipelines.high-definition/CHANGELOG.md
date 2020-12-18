@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the planar depth texture not being properly created and rendered to (case 1299617).
 - Fixed C# 8 compilation issue with turning on nullable checks (case 1300167)
 - Fixed affects AO for deacl materials.
+- Fixed case where material keywords would not get setup before usage.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
