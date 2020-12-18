@@ -358,8 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // builtins parameters
                 Type builtin = typeof(Builtin.BuiltinData);
-                var attributes = builtin.GetCustomAttributes(true);
-                var generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                var generateHLSLAttribute = builtin.GetCustomAttribute<GenerateHLSL>();
                 int materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                 int localIndex = 0;
@@ -378,8 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // specific shader parameters
                 foreach (MaterialItem materialItem in materialItems)
                 {
-                    attributes = materialItem.surfaceDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.surfaceDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)
@@ -403,8 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (materialItem.bsdfDataType == null)
                         continue;
 
-                    attributes = materialItem.bsdfDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.bsdfDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)
