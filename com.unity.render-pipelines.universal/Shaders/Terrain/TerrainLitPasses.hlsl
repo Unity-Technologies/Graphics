@@ -330,6 +330,7 @@ FragmentOutput SplatmapFragment(Varyings IN)
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
@@ -418,8 +419,11 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
 // Shadow pass
 
-// x: global clip space bias, y: normal world space bias
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 float3 _LightDirection;
+float3 _LightPosition;
 
 struct AttributesLean
 {
@@ -449,12 +453,18 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
 
-    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
 #if UNITY_REVERSED_Z
-    clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
-    clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #endif
 
     o.clipPos = clipPos;
@@ -575,7 +585,7 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         ClipHoles(IN.uvMainAndLM.xy);
     #endif
 
-    half3 normalWS = IN.normal;
+    half3 normalWS = IN.normal.xyz;
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 

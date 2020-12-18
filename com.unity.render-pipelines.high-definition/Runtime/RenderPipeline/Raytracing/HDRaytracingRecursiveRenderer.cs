@@ -13,9 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId raytracingPassID = new ShaderTagId("Forward");
         RenderStateBlock m_RaytracingFlagStateBlock;
 
-        // Texture that is used to flag which pixels should be evaluated with recursive rendering
-        RTHandle m_FlagMaskTextureRT;
-
         void InitRecursiveRenderer()
         {
             m_RaytracingFlagStateBlock = new RenderStateBlock
@@ -98,25 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputBuffer;
         }
 
-        RecursiveRendererResources PrepareRecursiveRendererResources(RTHandle debugBuffer)
-        {
-            RecursiveRendererResources rrResources = new RecursiveRendererResources();
-
-            // Input buffers
-            rrResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            rrResources.flagMask = m_FlagMaskTextureRT;
-
-            // Debug buffer
-            rrResources.debugBuffer = debugBuffer;
-            RayCountManager rayCountManager = GetRayCountManager();
-            rrResources.rayCountTexture = rayCountManager.GetRayCountTexture();
-
-            // Output buffer
-            rrResources.outputBuffer = m_CameraColorBuffer;
-
-            return rrResources;
-        }
-
         // Recursive rendering works as follow:
         // - Shader have a _RayTracing property
         // When this property is setup to true, a RayTracingPrepass pass on the material is enabled (otherwise it is disabled)
@@ -139,26 +117,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // We render Recursive render object before transparent, so transparent object can be overlayed on top
         // like lens flare on top of headlight. We write the depth, so it correctly z-test object behind as recursive rendering
         // re-render everything (Mean we should also support fog and sky into it).
-
-        void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            // If ray tracing is disabled in the frame settings or the effect is not enabled
-            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !recursiveSettings.enable.value)
-                return;
-
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
-            {
-                RTHandle debugBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-
-                RecursiveRendererParameters rrParams = PrepareRecursiveRendererParameters(hdCamera, recursiveSettings);
-                RecursiveRendererResources rrResources = PrepareRecursiveRendererResources(debugBuffer);
-                ExecuteRecursiveRendering(cmd, rrParams, rrResources);
-                PushFullScreenDebugTexture(hdCamera, cmd, debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
-            }
-        }
-
         class RecursiveRenderingPassData
         {
             public RecursiveRendererParameters parameters;
@@ -186,8 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = rrParams;
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
                 passData.flagMask = builder.ReadTexture(flagMask);
-                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
-                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
+                passData.outputBuffer = builder.ReadWriteTexture(colorBuffer);
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
