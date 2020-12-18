@@ -41,6 +41,12 @@ namespace UnityEditor
         {
             var camera = Camera.main;
 
+            if (camera == null)
+            {
+                Debug.LogError("At least one camera must be tagged as MainCamera");
+                return;
+            }
+
             foreach (var curTarget in targets)
             {
                 LightAnchor manipulator = curTarget as LightAnchor;

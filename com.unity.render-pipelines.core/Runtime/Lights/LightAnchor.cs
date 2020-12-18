@@ -183,7 +183,15 @@ namespace UnityEngine
 
         void OnDrawGizmosSelected()
         {
-            Axes axes = GetWorldSpaceAxes(Camera.main);
+            var camera = Camera.main;
+
+            if (camera == null)
+            {
+                Debug.LogError("At least one camera must be tagged as MainCamera");
+                return;
+            }
+
+            Axes axes = GetWorldSpaceAxes(camera);
             Vector3 anchor = anchorPosition;
             Vector3 d = transform.position - anchor;
             Vector3 proj = Vector3.ProjectOnPlane(d, axes.up);
