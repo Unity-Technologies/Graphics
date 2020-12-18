@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: VertexID
-  m_Shader: {fileID: -6465566751694194690, guid: 346c8e787c0c5b44eb9d2ad772753eae,
+  m_Shader: {fileID: -6465566751694194690, guid: f6de7dd122e8ad4499b4e408592bf920,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
