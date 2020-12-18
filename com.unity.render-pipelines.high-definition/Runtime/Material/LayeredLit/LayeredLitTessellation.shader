@@ -908,6 +908,8 @@ Shader "HDRP/LayeredLitTessellation"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
+            #define DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

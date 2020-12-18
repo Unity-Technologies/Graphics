@@ -1008,6 +1008,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static KeywordDescriptor DebugDisplayDefine = new KeywordDescriptor()
+        {
+            displayName = "Debug Display",
+            referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
         public static KeywordDescriptor Lightmap = new KeywordDescriptor()
         {
             displayName = "Lightmap",

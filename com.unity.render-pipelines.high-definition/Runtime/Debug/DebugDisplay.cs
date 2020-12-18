@@ -483,7 +483,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsFullScreenDebugPassEnabled()
         {
             return data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw ||
-                data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity;
+                data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity ||
+                IsDebugMaterialDisplayEnabled();
         }
 
         /// <summary>

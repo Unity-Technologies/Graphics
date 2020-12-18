@@ -1257,6 +1257,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
                     { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
                     { CoreIncludes.CoreUtility },
+                    { CoreIncludes.kDebugDisplay, IncludeLocation.Pregraph },
                     { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                     { CoreIncludes.kPassFullScreenDebug, IncludeLocation.Postgraph },
                 };

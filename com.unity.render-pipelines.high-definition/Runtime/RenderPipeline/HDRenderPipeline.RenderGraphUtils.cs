@@ -43,7 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                 // Special handling for Preview we force to clear with background color (i.e black)
                 // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
-                HDUtils.IsRegularPreviewCamera(hdCamera.camera))
+                HDUtils.IsRegularPreviewCamera(hdCamera.camera) ||
+                // If we run full screen debug we need to clear to avoid issues with skybox.
+                m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
             {
                 return true;
             }
@@ -57,8 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
-                clearColor = Color.black;
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+                m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
+                clearColor = Color.clear;
 
             return clearColor;
         }
