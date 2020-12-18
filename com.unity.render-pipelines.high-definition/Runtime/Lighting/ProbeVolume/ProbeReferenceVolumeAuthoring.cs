@@ -357,6 +357,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cellDebugData.Count == 0)
                     CreateInstancedProbes();
 
+                // Debug data has not been loaded yet.
+                if (debugMesh == null || debugMaterial == null)
+                    return;
+
                 foreach (var debug in cellDebugData)
                 {
                     if (ShouldCull(debug.cellPosition))

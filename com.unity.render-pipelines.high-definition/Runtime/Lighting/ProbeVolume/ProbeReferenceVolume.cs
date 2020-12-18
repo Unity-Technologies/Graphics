@@ -226,11 +226,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 assetPathToBricks.Remove(key);
             }
-
-            if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
-            {
-                m_PendingAssetsToBeUnloaded.Remove(key);
-            }
         }
 
         private void PerformPendingIndexDimensionChange()
@@ -283,10 +278,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Pool.EnsureTextureValidity();
 
-            foreach (var asset in m_PendingAssetsToBeUnloaded.Values)
+            var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
+            foreach (var asset in dictionaryValues)
             {
                 RemovePendingAsset(asset);
             }
+
+            m_PendingAssetsToBeUnloaded.Clear();
         }
 
         public void PerformPendingOperations()
