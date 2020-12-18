@@ -782,6 +782,14 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
             {
@@ -896,6 +904,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
 
             m_ShadowBiasData.Clear();
+            m_ShadowResolutionData.Clear();
 
             for (int i = 0; i < visibleLights.Length; ++i)
             {
@@ -910,9 +919,24 @@ namespace UnityEngine.Rendering.Universal
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
                 else
                     m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
+
+                if (data && (data.additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    m_ShadowResolutionData.Add((int)light.shadowResolution); // native code does not clamp light.shadowResolution between -1 and 3
+                }
+                else if (data && (data.additionalLightsShadowResolutionTier != UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    int resolutionTier = Mathf.Clamp(data.additionalLightsShadowResolutionTier, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh);
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(resolutionTier));
+                }
+                else
+                {
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(UniversalAdditionalLightData.AdditionalLightsShadowDefaultResolutionTier));
+                }
             }
 
             shadowData.bias = m_ShadowBiasData;
+            shadowData.resolution = m_ShadowResolutionData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
             // We no longer use screen space shadows in URP.
@@ -952,7 +976,6 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
         {
-            postProcessingData.resources = settings.postProcessData;
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;

@@ -337,6 +337,7 @@ FragmentOutput SplatmapFragment(Varyings IN)
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
@@ -591,7 +592,7 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         ClipHoles(IN.uvMainAndLM.xy);
     #endif
 
-    half3 normalWS = IN.normal;
+    half3 normalWS = IN.normal.xyz;
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 
