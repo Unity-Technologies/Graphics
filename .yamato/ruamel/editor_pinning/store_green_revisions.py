@@ -38,7 +38,7 @@ def commit_and_push(commit_msg, working_dir, development_mode=False):
 def get_last_nightly_id(api_key):
     try:
         current_date = str(datetime.date.today())
-        url = f"http://yamato-api.cds.internal.unity3d.com/jobs?filter=project eq 902 and branch eq 'master' and filename eq '.yamato%252F_abv.yml%2523all_project_ci_nightly_trunk' and submitted gt '{current_date}'"
+        url = f"http://yamato-api.cds.internal.unity3d.com/jobs?filter=project eq 902 and branch eq '2021.1/staging' and filename eq '.yamato%252F_abv.yml%2523all_project_ci_nightly_2021.1' and submitted gt '{current_date}'"
         headers={"Authorization":f"ApiKey {api_key}"}
         response = requests.get(url=url, headers=headers)
         if response.status_code != 200:
@@ -80,6 +80,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
     # get the revisions used for the job, the last green project revisions, and Yamato dependency tree  
     updated_at = str(datetime.datetime.utcnow())
     revisions_key = f"{track}_latest_internal" if track=="trunk" else f"{track}_staging"
+    revisions_key = revisions_key.replace('.','_')
     revisions = load_yml(editor_versions_file)["editor_versions"][revisions_key]
     last_green_job_revisions = load_yml(project_versions_file)
     dependency_tree = get_yamato_dependency_tree(job_id, api_key)
