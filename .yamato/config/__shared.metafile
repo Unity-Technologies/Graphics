@@ -60,6 +60,7 @@ test_platforms:
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER% 
+      - [OSX_Metal]: --zero-tests-are-ok=1
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
@@ -67,6 +68,7 @@ test_platforms:
 
     utr_flags_build:
       - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -112,6 +114,7 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --reruncount=2
@@ -136,6 +139,7 @@ test_platforms:
   - type: editmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
