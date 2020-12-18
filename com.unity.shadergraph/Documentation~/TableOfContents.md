@@ -117,6 +117,7 @@
             * [Screen](Screen-Node)
         * Texture
             * [Cubemap Asset](Cubemap-Asset-Node)
+            * [Eye Index](Eye-Index-Node)
             * [Sample Cubemap](Sample-Cubemap-Node)
             * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)
