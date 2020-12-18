@@ -43,6 +43,7 @@ test_platforms:
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       - [all]: --reruncount=2
+      - [all]: --zero-tests-are-ok=1
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -60,7 +61,6 @@ test_platforms:
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER% 
-      - [OSX_Metal]: --zero-tests-are-ok=1
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
@@ -68,7 +68,6 @@ test_platforms:
 
     utr_flags_build:
       - [all]: --testfilter=%TEST_FILTER% 
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>

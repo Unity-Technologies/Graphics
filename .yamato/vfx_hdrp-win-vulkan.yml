@@ -20,7 +20,7 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -49,7 +49,7 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200 --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -152,7 +152,7 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -184,7 +184,7 @@ Build_VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200 --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:

@@ -20,7 +20,7 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -45,7 +45,7 @@ Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -90,7 +90,7 @@ VFX_URP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -118,7 +118,7 @@ Build_VFX_URP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
