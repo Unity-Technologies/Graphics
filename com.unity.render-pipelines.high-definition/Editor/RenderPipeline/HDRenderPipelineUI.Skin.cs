@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
+            public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -137,6 +138,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
             internal static readonly GUIContent probeVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible ProbeVolumes.");
             internal static readonly GUIContent probeVolumeAtlasOctahedralDepthResolution = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Resolution", "Resolution of the 2D texture atlas containing visible ProbeVolumes octahedral depth data.");
+            public static readonly GUIContent maxDensityVolumeSizeStyle = EditorGUIUtility.TrTextContent("Max Density Volume Size", "Specifies the maximum size for the individual 3D density volume texture that HDRP uses for Density Volumes. This settings will affect your memory consumption.");
+            public static readonly GUIContent maxDensityVolumesOnScreenStyle = EditorGUIUtility.TrTextContent("Max Density Volumes On Screen", "Sets the maximum number of density volume HDRP can handle on screen at once. This settings will affect your memory consumption.");
 
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
