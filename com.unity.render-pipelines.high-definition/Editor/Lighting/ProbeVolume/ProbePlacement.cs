@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
                 bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
 
-                if (!r.enabled || !contributeGI)
+                if (!r.enabled || !r.gameObject.activeSelf || !contributeGI)
                     continue;
 
                 Volume v = ToVolume(r.bounds);
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (ProbeVolume pv in probeVolumes)
             {
-                if (!pv.enabled)
+                if (!pv.enabled || !pv.gameObject.activeSelf)
                     continue;
 
                 Volume indicatorVolume = new Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
