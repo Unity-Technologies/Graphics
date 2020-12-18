@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 refVol.volumeAsset = asset;
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
-                    UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
+                    UnityEditor.EditorUtility.SetDirty(refVol);
             }
 
             UnityEditor.AssetDatabase.SaveAssets();
