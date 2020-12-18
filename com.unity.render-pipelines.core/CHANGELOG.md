@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-### Fixed
-- Fixed the default background color for previews to use the original color.
+### Added
+- Added Undo/Redo support when modifying Environment's Inspector in LookDev window.
 
 ### Fixed
+- Fixed the default background color for previews to use the original color.
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed issue when exiting play mode while LookDev window was opened.
 
 ## [10.2.0] - 2020-10-19
 
