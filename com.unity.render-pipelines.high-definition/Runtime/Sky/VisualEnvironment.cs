@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Type of sky that should be used for rendering.</summary>
         public NoInterpIntParameter skyType = new NoInterpIntParameter(0);
+        /// <summary>Type of clouds that should be used for rendering.</summary>
+        public NoInterpIntParameter cloudType = new NoInterpIntParameter(0);
         /// <summary>Defines the way the ambient probe should be computed.</summary>
         public SkyAmbientModeParameter skyAmbientMode = new SkyAmbientModeParameter(SkyAmbientMode.Static);
 
@@ -35,6 +37,16 @@ namespace UnityEngine.Rendering.HighDefinition
         Gradient = 3,
         /// <summary>Physically Based Sky Unique ID.</summary>
         PhysicallyBased = 4,
+    }
+
+    /// <summary>
+    /// Informative enumeration containing CloudUniqeIDs already used by HDRP.
+    /// When users write their own cloud type, they can use any ID not present in this enumeration or in their project.
+    /// </summary>
+    public enum CloudType
+    {
+        /// <summary>Cloud Layer Unique ID.</summary>
+        CloudLayer = 1,
     }
 
     /// <summary>

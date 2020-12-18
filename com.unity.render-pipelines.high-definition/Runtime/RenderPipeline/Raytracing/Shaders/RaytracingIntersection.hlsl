@@ -174,4 +174,15 @@ void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionV
 #endif
 }
 
+// Compute the proper world space geometric normal from the intersected triangle
+void GetCurrentIntersectionGeometricNormal(AttributeData attributeData, out float3 geomNormalWS)
+{
+    uint3 triangleIndices = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
+    float3 p0 = UnityRayTracingFetchVertexAttribute3(triangleIndices.x, kVertexAttributePosition);
+    float3 p1 = UnityRayTracingFetchVertexAttribute3(triangleIndices.y, kVertexAttributePosition);
+    float3 p2 = UnityRayTracingFetchVertexAttribute3(triangleIndices.z, kVertexAttributePosition);
+
+    geomNormalWS = normalize(mul(cross(p1 - p0, p2 - p0), (float3x3)WorldToObject3x4()));
+}
+
 #endif // UNITY_RAYTRACING_INTERSECTION_INCLUDED
