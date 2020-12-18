@@ -7,6 +7,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -382,7 +383,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
                     property.onAfterVersionChange += UpdateField;
-                    row = new BlackboardRow(field, null);
+                    var textTest = new ShaderInputPropertyDrawer();
+                    row = new BlackboardRow(field, textTest.DrawBlackboardProperty(input));
 
                     if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;

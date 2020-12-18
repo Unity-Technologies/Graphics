@@ -117,6 +117,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return propertySheet;
         }
 
+        //try to break out a minimal view for the blackboard settings
+        public VisualElement DrawBlackboardProperty(
+            object actualObject)
+        {
+            var propertySheet = new PropertySheet();
+            shaderInput = actualObject as ShaderInput;
+            BuildReferenceNameField(propertySheet);
+            BuildDefaultField(propertySheet, shaderInput as AbstractShaderProperty);
+            return propertySheet;
+        }
+
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             if (shaderInput is ShaderKeyword)
@@ -223,6 +234,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
+            BuildDefaultField(propertySheet, property);
+
+            BuildPrecisionField(propertySheet, property);
+
+            BuildExposedField(propertySheet);
+
+            BuildHLSLDeclarationOverrideFields(propertySheet, property);
+        }
+
+        void BuildDefaultField(PropertySheet propertySheet, AbstractShaderProperty property) 
+        {
+            if (property == null)
+                return;
+
             switch (property)
             {
                 case IShaderPropertyDrawer propDrawer:
@@ -282,12 +307,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     HandleGradientPropertyField(propertySheet, gradientProperty);
                     break;
             }
-
-            BuildPrecisionField(propertySheet, property);
-
-            BuildExposedField(propertySheet);
-
-            BuildHLSLDeclarationOverrideFields(propertySheet, property);
         }
 
         static string[] allHLSLDeclarationStrings = new string[]
