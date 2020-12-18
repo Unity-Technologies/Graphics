@@ -96,19 +96,22 @@ Shader "HDRP/AxF"
         // Stencil state
         // Forward
         [HideInInspector] _StencilRef("_StencilRef", Int) = 0   // StencilUsage.Clear
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 6 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // Depth prepass
-        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 16 // DecalsForwardOutputNormalBuffer
-        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 48 // DoesntReceiveSSR | DecalsForwardOutputNormalBuffer
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // StencilUsage.Clear
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 8 // StencilUsage.TraceReflectionRay (8)
         // Motion vector pass
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 32 // StencilUsage.ObjectMotionVector
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector (32)
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 40 // StencilUsage.ObjectMotionVector (32) | StencilUsage.TraceReflectionRay (8) as it can be a prepass
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
+        [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
         [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
@@ -119,7 +122,7 @@ Shader "HDRP/AxF"
 
 
 //      [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
-//      [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
+        [HideInInspector][ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
@@ -145,6 +148,9 @@ Shader "HDRP/AxF"
         [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     HLSLINCLUDE
@@ -176,8 +182,6 @@ Shader "HDRP/AxF"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // enable dithering LOD crossfade
@@ -190,6 +194,8 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
+
+    #define SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -212,6 +218,35 @@ Shader "HDRP/AxF"
     {
         // This tags allow to use the shader replacement features
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDLitShader" }
+
+        Pass
+        {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            // Note: Require _SelectionID variable
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #pragma editor_sync_compilation
+
+            ENDHLSL
+        }
 
         Pass
         {
@@ -318,6 +353,7 @@ Shader "HDRP/AxF"
 
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -354,6 +390,7 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #define WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
@@ -442,6 +479,30 @@ Shader "HDRP/AxF"
             ENDHLSL
         }
 
+        Pass
+        {
+            Name "FullScreenDebug"
+            Tags{ "LightMode" = "FullScreenDebug" }
+
+            Cull[_CullMode]
+
+            ZWrite Off
+            ZTest LEqual
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
     }
 
     CustomEditor "Rendering.HighDefinition.AxFGUI"

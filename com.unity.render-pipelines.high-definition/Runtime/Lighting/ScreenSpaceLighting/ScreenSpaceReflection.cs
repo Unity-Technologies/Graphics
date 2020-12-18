@@ -1,17 +1,46 @@
 using System;
+using System.Diagnostics;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Screen Space Reflection Algorithm
+    /// </summary>
+    public enum ScreenSpaceReflectionAlgorithm
+    {
+        /// <summary>Legacy SSR approximation.</summary>
+        Approximation,
+        /// <summary>Screen Space Reflection, Physically Based with Accumulation through multiple frame.</summary>
+        PBRAccumulation
+    }
+
+    /// <summary>
+    /// Screen Space Reflection Algorithm Type volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class SSRAlgoParameter : VolumeParameter<ScreenSpaceReflectionAlgorithm>
+    {
+        /// <summary>
+        /// Screen Space Reflection Algorithm Type volume parameter constructor.
+        /// </summary>
+        /// <param name="value">SSR Algo Type parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public SSRAlgoParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Screen-Space-Reflection" + Documentation.endURL)]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
         {
-            return mode.overrideState && mode == RayTracingMode.Quality;
+            // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
+            return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
         bool UsesRayTracing()
@@ -23,6 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
+
+        /// <summary>Screen Space Reflections Algorithm used.</summary>
+        public SSRAlgoParameter usedAlgorithm = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
         /// Enable ray traced reflections.
@@ -75,6 +107,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the typical thickness of objects the reflection rays may pass behind.
         /// </summary>
         public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the amount of accumulation (0 no accumulation, 1 just accumulate)
+        /// </summary>
+        public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
@@ -212,8 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private IntParameter m_RayMaxIterations = new IntParameter(32);
 
         [SerializeField, FormerlySerializedAs("rayLength")]
-        [Tooltip("Controls the length of reflection rays.")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]

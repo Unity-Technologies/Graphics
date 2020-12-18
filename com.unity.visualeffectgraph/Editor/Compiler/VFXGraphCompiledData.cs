@@ -229,7 +229,7 @@ namespace UnityEditor.VFX
             eventAttributeDescs.AddRange(listWithOffset);
         }
 
-        private static List<VFXContext> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts)
+        private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList, ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
             var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t)).Select(t => t.context).Distinct().ToList();
@@ -250,7 +250,7 @@ namespace UnityEditor.VFX
 
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext, ref SubgraphInfos subgraphContexts)
         {
-            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init).ToList();
+            var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent).ToList();
             var spawnerList = CollectContextParentRecursively(initContext, ref subgraphContexts);
             return spawnerList.Where(o => o.contextType == VFXContextType.Spawner).Reverse().ToArray();
         }
@@ -896,7 +896,7 @@ namespace UnityEditor.VFX
                 {
                     stripBufferIndex = bufferDescs.Count;
                     uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 5, stride = 4 });
                 }
                 buffers.stripBuffers.Add(data, stripBufferIndex);
             }
@@ -989,7 +989,7 @@ namespace UnityEditor.VFX
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progesses ) in an empty graph.
+            // Prevent doing anything ( and especially showing progress) in an empty graph.
             if (m_Graph.children.Count() < 1)
             {
                 // Cleaning
@@ -1098,8 +1098,7 @@ namespace UnityEditor.VFX
 
                 subgraphInfos.contextEffectiveInputLinks = new Dictionary<VFXContext, List<VFXContextLink>[]>();
 
-                ComputeEffectiveInputLinks(ref subgraphInfos, compilableContexts.OfType<VFXBasicInitialize>());
-
+                ComputeEffectiveInputLinks(ref subgraphInfos, compilableContexts.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent));
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating Attribute layouts", 6 / nbSteps);
                 foreach (var data in compilableData)
@@ -1140,7 +1139,7 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
                 {
-                    data.FillDescs(bufferDescs,
+                    data.FillDescs(VFXGraph.compileReporter, bufferDescs,
                         temporaryBufferDescs,
                         systemDescs,
                         m_ExpressionGraph,
@@ -1151,8 +1150,15 @@ namespace UnityEditor.VFX
                         m_Graph.systemNames);
                 }
 
+                // Early check : OutputEvent should not be duplicated with same name
+                var outputEventNames = systemDescs.Where(o => o.type == VFXSystemType.OutputEvent).Select(o => o.name);
+                if (outputEventNames.Count() != outputEventNames.Distinct().Count())
+                {
+                    throw new InvalidOperationException("There are duplicated entries in OutputEvent");
+                }
+
                 // Update transient renderer settings
-                ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                    ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
                 MotionVectorGenerationMode motionVectorGenerationMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
@@ -1161,7 +1167,6 @@ namespace UnityEditor.VFX
                 expressionSheet.expressionsPerSpawnEventAttribute = expressionPerSpawnEventAttributesDescs.ToArray();
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
-
 
                 resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;

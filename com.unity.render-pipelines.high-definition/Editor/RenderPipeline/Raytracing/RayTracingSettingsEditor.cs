@@ -9,7 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
     class RayTracingSettingsEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RayBias;
-        SerializedDataParameter m_ExtendCulling;
+        SerializedDataParameter m_ExtendShadowCulling;
+        SerializedDataParameter m_ExtendCameraCulling;
+        SerializedDataParameter m_DirectionalShadowRayLength;
 
         public override void OnEnable()
         {
@@ -18,7 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<RayTracingSettings>(serializedObject);
 
             m_RayBias = Unpack(o.Find(x => x.rayBias));
-            m_ExtendCulling = Unpack(o.Find(x => x.extendCulling));
+            m_ExtendShadowCulling = Unpack(o.Find(x => x.extendShadowCulling));
+            m_ExtendCameraCulling = Unpack(o.Find(x => x.extendCameraCulling));
+            m_DirectionalShadowRayLength = Unpack(o.Find(x => x.directionalShadowRayLength));
         }
 
         public override void OnInspectorGUI()
@@ -32,7 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_RayBias);
-            PropertyField(m_ExtendCulling);
+            PropertyField(m_ExtendShadowCulling);
+            PropertyField(m_ExtendCameraCulling);
+            PropertyField(m_DirectionalShadowRayLength);
         }
     }
 }

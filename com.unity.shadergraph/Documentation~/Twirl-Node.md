@@ -10,7 +10,7 @@ Applies a twirl warping effect similar to a black hole to the value of input **U
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
 | Center      | Input | Vector 2 | None | Center reference point |
-| Strength      | Input | Vector 1 | None | Strength of the effect |
+| Strength      | Input | Float    | None | Strength of the effect |
 | Offset      | Input | Vector 2 | None | Individual channel offsets |
 | Out | Output      |    Vector 2 | None | Output UV value |
 

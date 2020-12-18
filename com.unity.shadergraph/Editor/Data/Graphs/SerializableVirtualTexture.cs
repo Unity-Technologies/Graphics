@@ -18,12 +18,33 @@ namespace UnityEditor.ShaderGraph.Internal
         public string layerRefName;
         public SerializableTexture layerTexture;
         public LayerTextureType layerTextureType;
+        [SerializeField]
+        private Guid guid;
 
         public SerializableVirtualTextureLayer(string name, string refName, SerializableTexture texture)
         {
+            this.layerName = name; this.layerName = name;
+            this.guid = Guid.NewGuid();
+            this.layerRefName = refName; this.layerRefName = refName;
+            this.layerTexture = texture; this.layerTexture = texture;
+            this.layerTextureType = LayerTextureType.Default; this.layerTextureType = LayerTextureType.Default;
+        }
+
+        public SerializableVirtualTextureLayer(string name, SerializableTexture texture)
+        {
             this.layerName = name;
-            this.layerRefName = refName;
+            this.guid = Guid.NewGuid();
+            this.layerRefName = $"Layer_{GuidEncoder.Encode(this.guid)}";
             this.layerTexture = texture;
+            this.layerTextureType = LayerTextureType.Default;
+        }
+
+        public SerializableVirtualTextureLayer(SerializableVirtualTextureLayer other)
+        {
+            this.layerName = other.layerName;
+            this.guid = Guid.NewGuid();
+            this.layerRefName = $"Layer_{GuidEncoder.Encode(this.guid)}";
+            this.layerTexture = other.layerTexture;
             this.layerTextureType = LayerTextureType.Default;
         }
     }

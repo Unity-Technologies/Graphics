@@ -6,12 +6,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination (Preview)")]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
         {
-            return mode.overrideState && mode == RayTracingMode.Quality;
+            // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
+            return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GlobalIllumination()
         {
-            displayName = "Screen Space Global Illumination (Preview)";
+            displayName = "Screen Space Global Illumination";
         }
 
         /// <summary>
@@ -47,25 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        public ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
-
-        /// <summary>
-        /// The maximal world space radius from which we should get indirect lighting contribution.
-        /// </summary>
-        public float maximalRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_MaximalRadius.value;
-                else
-                    return GetLightingQualitySettings().SSGIRadius[(int)quality.value];
-            }
-            set { m_MaximalRadius.value = value; }
-        }
-        [SerializeField]
-        [Tooltip("Controls the maximal world space radius from which we should get indirect lighting contribution.")]
-        public ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
+        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -82,24 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_FullResolutionSS.value = value; }
         }
         [SerializeField]
-        public BoolParameter m_FullResolutionSS = new BoolParameter(true);
-
-        /// <summary>
-        /// Defines if the effect should be evaluated at full resolution.
-        /// </summary>
-        public float clampValueSS
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_ClampValueSS.value;
-                else
-                    return GetLightingQualitySettings().SSGIClampValue[(int)quality.value];
-            }
-            set { m_ClampValueSS.value = value; }
-        }
-        [SerializeField]
-        public ClampedFloatParameter m_ClampValueSS = new ClampedFloatParameter(2.0f, 0.01f, 10.0f);
+        private BoolParameter m_FullResolutionSS = new BoolParameter(true);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -117,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [Tooltip("Filter Radius")]
         [SerializeField]
-        public ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
 
         /// <summary>
         /// Toggles ray traced global illumination.
@@ -272,25 +239,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_SecondDenoiserPass.value = value; }
         }
 
-        /// <summary>
-        /// Controls the radius of the global illumination denoiser (Second Pass).
-        /// </summary>
-        public float secondDenoiserRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings() || UsesQualityMode())
-                    return m_SecondDenoiserRadius.value;
-                else
-                    return GetLightingQualitySettings().RTGISecondDenoiserRadius[(int)quality.value];
-            }
-            set { m_SecondDenoiserRadius.value = value; }
-        }
 
         // RTGI
         [SerializeField, FormerlySerializedAs("rayLength")]
-        [Tooltip("Controls the length of GI rays.")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]
@@ -319,9 +271,5 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("secondDenoiserPass")]
         [Tooltip("Enable second denoising pass.")]
         private BoolParameter m_SecondDenoiserPass = new BoolParameter(true);
-
-        [SerializeField, FormerlySerializedAs("secondDenoiserRadius")]
-        [Tooltip("Controls the radius of the GI denoiser (Second Pass).")]
-        private ClampedFloatParameter m_SecondDenoiserRadius = new ClampedFloatParameter(0.3f, 0.001f, 0.5f);
     }
 }

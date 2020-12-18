@@ -176,7 +176,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Format
             rect.width = formatLabelWidth;
-            rect.position += new Vector2(-15, 0);
             EditorGUI.LabelField(rect, s_Styles.gpuCacheSizeOverrideFormat);
 
             rect.position += new Vector2(formatLabelWidth, 0);

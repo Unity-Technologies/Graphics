@@ -21,21 +21,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is FabricMasterNode1 fabricMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)fabricMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)fabricMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = fabricMasterNode.m_AlphaTest;
             systemData.sortPriority = fabricMasterNode.m_SortPriority;
             systemData.doubleSidedMode = fabricMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = fabricMasterNode.m_ZWrite;
             systemData.transparentCullMode = fabricMasterNode.m_transparentCullMode;
             systemData.zTest = fabricMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = fabricMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = fabricMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = fabricMasterNode.m_TransparencyFog;
             builtinData.addPrecomputedVelocity = fabricMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = fabricMasterNode.m_depthOffset;
@@ -54,6 +56,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             fabricData.materialType = (FabricData.MaterialType)fabricMasterNode.m_MaterialType;
             target.customEditorGUI = fabricMasterNode.m_OverrideEnabled ? fabricMasterNode.m_ShaderGUIOverride : "";
 
+
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
+                    break;
+                default:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
+                    break;
+            }
+
+
             // Convert SlotMask to BlockMap entries
             var blockMapLookup = new Dictionary<FabricMasterNode1.SlotMask, BlockFieldDescriptor>()
             {
@@ -70,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { FabricMasterNode1.SlotMask.DiffusionProfile, HDBlockFields.SurfaceDescription.DiffusionProfileHash },
                 { FabricMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
                 { FabricMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },
-                { FabricMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
+                { FabricMasterNode1.SlotMask.Tangent, tangentBlock },
                 { FabricMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
                 { FabricMasterNode1.SlotMask.Emission, BlockFields.SurfaceDescription.Emission },
                 { FabricMasterNode1.SlotMask.Alpha, BlockFields.SurfaceDescription.Alpha },

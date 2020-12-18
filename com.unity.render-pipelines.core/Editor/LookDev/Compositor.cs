@@ -130,7 +130,6 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        IDataProvider m_DataProvider;
         IViewDisplayer m_Displayer;
         Context m_Contexts;
         RenderTextureCache m_RenderTextures = new RenderTextureCache();
@@ -156,7 +155,6 @@ namespace UnityEditor.Rendering.LookDev
             IDataProvider dataProvider,
             StageCache stages)
         {
-            m_DataProvider = dataProvider;
             m_Displayer = displayer;
             m_Contexts = contexts;
 
@@ -202,25 +200,22 @@ namespace UnityEditor.Rendering.LookDev
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(m_Displayer as EditorWindow);
 
-            using (new UnityEngine.Rendering.VolumeIsolationScope(true))
+            switch (m_Contexts.layout.viewLayout)
             {
-                switch (m_Contexts.layout.viewLayout)
-                {
-                    case Layout.FullFirstView:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        break;
-                    case Layout.FullSecondView:
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.HorizontalSplit:
-                    case Layout.VerticalSplit:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.CustomSplit:
-                        RenderCompositeAndOutput();
-                        break;
-                }
+                case Layout.FullFirstView:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    break;
+                case Layout.FullSecondView:
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.HorizontalSplit:
+                case Layout.VerticalSplit:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.CustomSplit:
+                    RenderCompositeAndOutput();
+                    break;
             }
 
             //TODO: make integration EditorWindow agnostic!
@@ -253,7 +248,7 @@ namespace UnityEditor.Rendering.LookDev
                 RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
                 view.environment?.UpdateSunPosition(renderingData.stage.sunLight);
                 renderingData.stage.sunLight.intensity = 1f;
-                m_DataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
+                LookDev.dataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
                 renderingData.stage.sunLight.intensity = 0f;
                 m_RenderTextures[index, ShadowCompositionPass.ShadowMask] = tmp;
             }

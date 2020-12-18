@@ -34,12 +34,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             m_MigrateFromOldCrossPipelineSG = true;
+            m_MigrateFromOldSG = true;
 
             // Set data
             systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
             systemData.dotsInstancing = false;
@@ -61,13 +62,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradeHDUnlitMasterNode(HDUnlitMasterNode1 hdUnlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdUnlitMasterNode.m_RenderingPass;
+            systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdUnlitMasterNode.m_RenderingPass);
             // Patch rendering pass in case the master node had an old configuration
-            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
-                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdUnlitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdUnlitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdUnlitMasterNode.m_DoubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;

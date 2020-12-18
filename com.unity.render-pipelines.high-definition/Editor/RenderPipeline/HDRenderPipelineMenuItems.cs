@@ -76,10 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
-            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
-            Selection.activeObject = settings;
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -101,6 +98,57 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
             MaterialReimporter.ReimportAllMaterials();
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Loaded Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMask()
+        {
+            var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
+
+            foreach (var mesh in meshRenderers)
+            {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
+                mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
+            }
+
+            var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
+
+            foreach (var terrain in terrains)
+            {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
+                terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Selected Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMaskForSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is GameObject)
+                {
+                    GameObject gameObj = obj as GameObject;
+                    MeshRenderer mesh;
+                    if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
+                    {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
+                        mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
+                    }
+
+                    Terrain terrain;
+                    if (gameObj.TryGetComponent<Terrain>(out terrain))
+                    {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
+                        terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
+                    }
+                }
+            }
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
@@ -420,6 +468,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         continue;
                     }
                     numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
+                }
+
+                // Check the number of sub-meshes
+                if (numSubMeshes >= 32)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has more than 32 sub-meshes. Above this limit, the cutoff and double sided flags may not match the one defined in the materials.");
+                    generalErrorFlag = true;
+                    continue;
                 }
 
                 bool materialIsOnlyTransparent = true;

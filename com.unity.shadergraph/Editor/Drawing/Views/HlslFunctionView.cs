@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -52,8 +52,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if(m_FunctionName.value == "")
                     m_FunctionName.value = CustomFunctionNode.defaultFunctionName;
-                    
-                if(m_FunctionName.value != node.functionName)
+                else
+                    m_FunctionName.value = NodeUtils.ConvertToValidHLSLIdentifier(m_FunctionName.value);
+
+                if (m_FunctionName.value != node.functionName)
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Name");
                     node.functionName = m_FunctionName.value;
@@ -77,7 +79,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Source");
                     node.functionSource = guidString;
-                    Draw(node);
                     node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }

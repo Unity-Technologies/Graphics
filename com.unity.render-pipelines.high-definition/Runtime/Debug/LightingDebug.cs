@@ -214,6 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition
         IrradianceSH1_1,
         IrradianceSH10,
         IrradianceSH11,
+        IrradianceSH2_2,
+        IrradianceSH2_1,
+        IrradianceSH20,
+        IrradianceSH21,
+        IrradianceSH22,
         Validity,
         OctahedralDepth
     }
@@ -319,7 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
-        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Default Settings.</summary>
+        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
         public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
@@ -327,6 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 centerHistogramAroundMiddleGrey = false;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 displayFinalImageHistogramAsRGB = false;
+        /// <summary>Whether to show the only the mask in the picture in picture. If unchecked, the mask view is weighted by the scene color.</summary>
+        public bool                 displayMaskOnly = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
@@ -359,6 +367,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
         /// <summary>Category for tile and cluster debug mode.</summary>
         public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
+        /// <summary>Cluster Debug mode.</summary>
+        public ClusterDebugMode clusterDebugMode = ClusterDebugMode.VisualizeOpaque;
+        /// <summary>Distance at which clusters will be visualized.</summary>
+        public float clusterDebugDistance = 1.0f;
 
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()

@@ -72,55 +72,73 @@ namespace UnityEngine.Rendering.HighDefinition
             Both = Performance | Quality
         }
 
-        internal static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
+        internal static RenderPipelineSettings NewDefault()
         {
-            supportShadowMask = true,
-            supportSSAO = true,
-            supportSubsurfaceScattering = true,
-            sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
-                                                             (int)DefaultSssSampleBudgetForQualityLevel.Medium,
-                                                             (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
-            supportVolumetrics = true,
-            supportDistortion = true,
-            supportTransparentBackface = true,
-            supportTransparentDepthPrepass = true,
-            supportTransparentDepthPostpass = true,
-            colorBufferFormat = ColorBufferFormat.R11G11B10,
-            supportCustomPass = true,
-            customBufferFormat = CustomBufferFormat.R8G8B8A8,
-            supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
-            supportDecals = true,
-            msaaSampleCount = MSAASamples.None,
-            supportMotionVectors = true,
-            supportRuntimeDebugDisplay = true,
-            supportDitheringCrossFade = true,
-            supportTerrainHole = false,
+            RenderPipelineSettings settings = new RenderPipelineSettings()
+            {
+                supportShadowMask = true,
+                supportSSAO = true,
+                supportSubsurfaceScattering = true,
+                sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                                                                 (int)DefaultSssSampleBudgetForQualityLevel.Medium,
+                                                                 (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
+                supportVolumetrics = true,
+                supportDistortion = true,
+                supportTransparentBackface = true,
+                supportTransparentDepthPrepass = true,
+                supportTransparentDepthPostpass = true,
+                colorBufferFormat = ColorBufferFormat.R11G11B10,
+                supportCustomPass = true,
+                customBufferFormat = CustomBufferFormat.R8G8B8A8,
+                supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
+                supportDecals = true,
+                supportDecalLayers = false,
+                decalLayerName0 = "Decal Layer default",
+                decalLayerName1 = "Decal Layer 1",
+                decalLayerName2 = "Decal Layer 2",
+                decalLayerName3 = "Decal Layer 3",
+                decalLayerName4 = "Decal Layer 4",
+                decalLayerName5 = "Decal Layer 5",
+                decalLayerName6 = "Decal Layer 6",
+                decalLayerName7 = "Decal Layer 7",
+                msaaSampleCount = MSAASamples.None,
+                supportMotionVectors = true,
+                supportRuntimeDebugDisplay = false,
+                supportRuntimeAOVAPI = false,
+                supportDitheringCrossFade = true,
+                supportTerrainHole = false,
+                planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
+                                                                                PlanarReflectionAtlasResolution.Resolution1024,
+                                                                                PlanarReflectionAtlasResolution.Resolution2048 },
+                                                                                ScalableSettingSchemaId.With3Levels),
+                lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
+                hdShadowInitParams = HDShadowInitParameters.NewDefault(),
+                decalSettings = GlobalDecalSettings.NewDefault(),
+                postProcessSettings = GlobalPostProcessSettings.NewDefault(),
+                dynamicResolutionSettings = GlobalDynamicResolutionSettings.NewDefault(),
+                lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
+                xrSettings = GlobalXRSettings.NewDefault(),
+                postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
+                lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
+                lightSettings = LightSettings.NewDefault(),
 
-            lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
-            hdShadowInitParams = HDShadowInitParameters.NewDefault(),
-            decalSettings = GlobalDecalSettings.NewDefault(),
-            postProcessSettings = GlobalPostProcessSettings.NewDefault(),
-            dynamicResolutionSettings = GlobalDynamicResolutionSettings.NewDefault(),
-            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.NewDefault(),
-            xrSettings = GlobalXRSettings.NewDefault(),
-            postProcessQualitySettings = GlobalPostProcessingQualitySettings.NewDefault(),
-            lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
-
-            supportRayTracing = false,
-            supportedRayTracingMode = SupportedRayTracingMode.Both,
-            lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
-            maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-            lightLayerName0 = "Light Layer default",
-            lightLayerName1 = "Light Layer 1",
-            lightLayerName2 = "Light Layer 2",
-            lightLayerName3 = "Light Layer 3",
-            lightLayerName4 = "Light Layer 4",
-            lightLayerName5 = "Light Layer 5",
-            lightLayerName6 = "Light Layer 6",
-            lightLayerName7 = "Light Layer 7",
-            supportProbeVolume = false,
-            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
-        };
+                supportRayTracing = false,
+                supportedRayTracingMode = SupportedRayTracingMode.Both,
+                lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
+                maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+                lightLayerName0 = "Light Layer default",
+                lightLayerName1 = "Light Layer 1",
+                lightLayerName2 = "Light Layer 2",
+                lightLayerName3 = "Light Layer 3",
+                lightLayerName4 = "Light Layer 4",
+                lightLayerName5 = "Light Layer 5",
+                lightLayerName6 = "Light Layer 6",
+                lightLayerName7 = "Light Layer 7",
+                supportProbeVolume = false,
+                probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+            };
+            return settings;
+        }
 
         /// <summary>
         /// Light Settings.
@@ -130,6 +148,30 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             /// <summary>Enable contact shadows.</summary>
             public BoolScalableSetting useContactShadow;
+
+            internal static LightSettings NewDefault() => new LightSettings()
+            {
+                useContactShadow = new BoolScalableSetting(new[] { false, false, true }, ScalableSettingSchemaId.With3Levels)
+            };
+
+        }
+
+
+        /// <summary>
+        /// Represents resolution settings for planar reflections.
+        /// </summary>
+        [Serializable]
+        public class PlanarReflectionAtlasResolutionScalableSetting : ScalableSetting<PlanarReflectionAtlasResolution>
+        {
+            /// <summary>
+            /// Instantiate a new PlanarReflectionAtlasResolution scalable setting.
+            /// </summary>
+            /// <param name="values">The values of the settings</param>
+            /// <param name="schemaId">The schema of the setting.</param>
+            public PlanarReflectionAtlasResolutionScalableSetting(PlanarReflectionAtlasResolution[] values, ScalableSettingSchemaId schemaId)
+            : base(values, schemaId)
+            {
+            }
         }
 
         // Lighting
@@ -183,10 +225,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public CustomBufferFormat customBufferFormat;
         /// <summary>Supported Lit shader modes.</summary>
         public SupportedLitShaderMode supportedLitShaderMode;
-
+        /// <summary></summary>
+        public PlanarReflectionAtlasResolutionScalableSetting planarReflectionResolution;
         // Engine
         /// <summary>Support decals.</summary>
         public bool supportDecals;
+        /// <summary>Support decal Layers.</summary>
+        public bool supportDecalLayers;
+        /// <summary>Name for decal layer 0.</summary>
+        public string decalLayerName0;
+        /// <summary>Name for decal layer 1.</summary>
+        public string decalLayerName1;
+        /// <summary>Name for decal layer 2.</summary>
+        public string decalLayerName2;
+        /// <summary>Name for decal layer 3.</summary>
+        public string decalLayerName3;
+        /// <summary>Name for decal layer 4.</summary>
+        public string decalLayerName4;
+        /// <summary>Name for decal layer 5.</summary>
+        public string decalLayerName5;
+        /// <summary>Name for decal layer 6.</summary>
+        public string decalLayerName6;
+        /// <summary>Name for decal layer 7.</summary>
+        public string decalLayerName7;
 
         /// <summary>Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
@@ -200,6 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportMotionVectors;
         /// <summary>Support runtime debug display.</summary>
         public bool supportRuntimeDebugDisplay;
+        /// <summary>Support runtime AOV API.</summary>
+        public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>

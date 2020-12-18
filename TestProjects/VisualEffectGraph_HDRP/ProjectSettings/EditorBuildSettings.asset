@@ -36,11 +36,29 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity
     guid: 6d090a604691ff048bb6cd282208c7bd
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/009_MultiCamera_MotionVector.unity
+    guid: c3aad03df123b0b4fa26a6480fcbe297
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_ReadAttributeInSpawner.unity
     guid: a6e75e236a616124d9604762b5402ac7
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/009_MultiCamera_MotionVector.unity
-    guid: c3aad03df123b0b4fa26a6480fcbe297
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_OutputEvent.unity
+    guid: fa108e309b0697045b8474742e8d9a0a
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/013_MeshStripping.unity
+    guid: b87edfbe03e2426478130a56dc42a592
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_ScreenSpaceSize.unity
+    guid: 61def4e00f202154a972b59fa6fb735e
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
+    guid: 42a36d7781122534f9ce00fa769bdd5c
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/101_Exposure.unity
+    guid: 4125f3630764c6a43a752a73908fa0ee
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Shadow/102_ShadergraphShadow.unity
+    guid: b5fab92e71d9dd747b87a111d703bd95
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/06_LineOutput.unity
     guid: ad1aa14fb546a3744b989a07c0415a94
@@ -168,7 +186,7 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphLit.unity
     guid: 44dfb01e7c5915a4ca6396f344dbc22b
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/ShadergraphShadow.unity
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Shadow/102_ShadergraphShadow.unity
     guid: b5fab92e71d9dd747b87a111d703bd95
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphShadowLit.unity
@@ -182,4 +200,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/SubgraphContexts.unity
     guid: df4a078e6e8404b4d953f8cdc87c0aa8
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/25_PerParticleLOD.unity
+    guid: 1110c31d91331ec40bf5774016d2a4d8
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/27_SampleSDF.unity
+    guid: 752aca8c0a90b8241adb9c287bc26b55
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/28_CameraProject.unity
+    guid: c479ba3b3ad2ba64dbfc1729ed0a7590
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/30_PositionOnSDF.unity
+    guid: 04855e9751809c7488746e5e54ae0cfa
+    path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
+    guid: 6500f9adfe104274fb2b90091786a2d4
   m_configObjects: {}

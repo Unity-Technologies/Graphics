@@ -545,6 +545,7 @@ namespace UnityEditor.Graphing
             }
         }
 
+        // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
@@ -555,6 +556,250 @@ namespace UnityEditor.Graphing
                 safeName = $"var{safeName}";
             }
             return safeName;
+        }
+
+        static readonly string[] k_HLSLNumericKeywords =
+        {
+            "float",
+            "half",     // not technically in HLSL spec, but prob should be
+            "real",     // Unity thing, but included here
+            "int",
+            "uint",
+            "bool",
+            "min10float",
+            "min16float",
+            "min12int",
+            "min16int",
+            "min16uint"
+        };
+
+        static readonly string[] k_HLSLNumericKeywordSuffixes =
+        {
+            "",
+            "1", "2", "3", "4",
+            "1x1", "1x2", "1x3", "1x4",
+            "2x1", "2x2", "2x3", "2x4",
+            "3x1", "3x2", "3x3", "3x4",
+            "4x1", "4x2", "4x3", "4x4"
+        };
+
+        static HashSet<string> m_HLSLKeywords = new HashSet<string>()
+        {
+            "AppendStructuredBuffer",
+            "asm",
+            "asm_fragment",
+            "auto",
+            "BlendState",
+            "break",
+            "Buffer",
+            "ByteAddressBuffer",
+            "case",
+            "catch",
+            "cbuffer",
+            "centroid",
+            "char",
+            "class",
+            "column_major",
+            "compile",
+            "compile_fragment",
+            "CompileShader",
+            "const",
+            "const_cast",
+            "continue",
+            "ComputeShader",
+            "ConsumeStructuredBuffer",
+            "default",
+            "delete",
+            "DepthStencilState",
+            "DepthStencilView",
+            "discard",
+            "do",
+            "double",
+            "DomainShader",
+            "dynamic_cast",
+            "dword",
+            "else",
+            "enum",
+            "explicit",
+            "export",
+            "extern",
+            "false",
+            "for",
+            "friend",
+            "fxgroup",
+            "GeometryShader",
+            "goto",
+            "groupshared",
+            "half",
+            "Hullshader",
+            "if",
+            "in",
+            "inline",
+            "inout",
+            "InputPatch",
+            "interface",
+            "line",
+            "lineadj",
+            "linear",
+            "LineStream",
+            "long",
+            "matrix",
+            "mutable",
+            "namespace",
+            "new",
+            "nointerpolation",
+            "noperspective",
+            "NULL",
+            "operator",
+            "out",
+            "OutputPatch",
+            "packoffset",
+            "pass",
+            "pixelfragment",
+            "PixelShader",
+            "point",
+            "PointStream",
+            "precise",
+            "private",
+            "protected",
+            "public",
+            "RasterizerState",
+            "reinterpret_cast",
+            "RenderTargetView",
+            "return",
+            "register",
+            "row_major",
+            "RWBuffer",
+            "RWByteAddressBuffer",
+            "RWStructuredBuffer",
+            "RWTexture1D",
+            "RWTexture1DArray",
+            "RWTexture2D",
+            "RWTexture2DArray",
+            "RWTexture3D",
+            "sample",
+            "sampler",
+            "SamplerState",
+            "SamplerComparisonState",
+            "shared",
+            "short",
+            "signed",
+            "sizeof",
+            "snorm",
+            "stateblock",
+            "stateblock_state",
+            "static",
+            "static_cast",
+            "string",
+            "struct",
+            "switch",
+            "StructuredBuffer",
+            "tbuffer",
+            "technique",
+            "technique10",
+            "technique11",
+            "template",
+            "texture",
+            "Texture1D",
+            "Texture1DArray",
+            "Texture2D",
+            "Texture2DArray",
+            "Texture2DMS",
+            "Texture2DMSArray",
+            "Texture3D",
+            "TextureCube",
+            "TextureCubeArray",
+            "this",
+            "throw",
+            "true",
+            "try",
+            "typedef",
+            "typename",
+            "triangle",
+            "triangleadj",
+            "TriangleStream",
+            "uniform",
+            "unorm",
+            "union",
+            "unsigned",
+            "using",
+            "vector",
+            "vertexfragment",
+            "VertexShader",
+            "virtual",
+            "void",
+            "volatile",
+            "while"
+        };
+
+        static bool m_HLSLKeywordDictionaryBuilt = false;
+
+        public static bool IsHLSLKeyword(string id)
+        {
+            if (!m_HLSLKeywordDictionaryBuilt)
+            {
+                foreach (var numericKeyword in k_HLSLNumericKeywords)
+                    foreach (var suffix in k_HLSLNumericKeywordSuffixes)
+                        m_HLSLKeywords.Add(numericKeyword + suffix);
+
+                m_HLSLKeywordDictionaryBuilt = true;
+            }
+
+            bool isHLSLKeyword = m_HLSLKeywords.Contains(id);
+
+            return isHLSLKeyword;
+        }
+
+
+        public static string ConvertToValidHLSLIdentifier(string originalId)
+        {
+            // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
+            StringBuilder hlslId = new StringBuilder(originalId.Length);
+            bool lastInvalid = false;
+            for (int i = 0; i < originalId.Length; i++)
+            {
+                char c = originalId[i];
+
+                bool isLetter = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+                bool isUnderscore = (c == '_');
+                bool isDigit = (c >= '0' && c <= '9');
+
+                bool validChar = isLetter || isUnderscore || isDigit;
+
+                if (!validChar)
+                {
+                    // when we see an invalid character, we just record that we saw it and go to the next character
+                    // this way we combine multiple invalid characters, and trailing ones just get dropped
+                    lastInvalid = true;
+                }
+                else
+                {
+                    // whenever we hit a valid character
+                    // if the last character was invalid, append an underscore
+                    // unless we're at the beginning of the string
+                    if (lastInvalid && (hlslId.Length > 0))
+                        hlslId.Append("_");
+
+                    // HLSL ids can't start with a digit, prepend an underscore to prevent this
+                    if (isDigit && (hlslId.Length == 0))
+                        hlslId.Append("_");
+
+                    hlslId.Append(c);
+
+                    lastInvalid = false;
+                }
+            }
+
+            // empty strings not allowed -- append an underscore if it's empty
+            if (hlslId.Length <= 0)
+                hlslId.Append("_");
+
+            var result = hlslId.ToString();
+
+            while (IsHLSLKeyword(result))
+                result = "_" + result;
+
+            return result;
         }
 
         private static string GetDisplaySafeName(string input)

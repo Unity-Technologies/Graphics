@@ -29,7 +29,11 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
     unsafe struct ShaderVariablesGlobal
     {
-        public const int defaultLightLayers = 0xFF;
+        public const int RenderingLightLayersMask       = 0x000000FF;
+        public const int RenderingLightLayersMaskShift  = 0;
+        public const int RenderingDecalLayersMask       = 0x0000FF00;
+        public const int RenderingDecalLayersMaskShift  = 8;
+        public const int DefaultRenderingLayerMask      = 0x0101;       
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -125,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _HeightFogBaseExtinction;
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
-        public float    _Pad3;
+        public int      _VolumetricFilteringEnabled;
         public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _Pad4;
         public float    _Pad5;
@@ -253,14 +257,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public int      _ProbeVolumeLeakMitigationMode;
         public float    _ProbeVolumeBilateralFilterWeightMin;
         public float    _ProbeVolumeBilateralFilterWeight;
-        public float    _Pad8;
+        public uint     _EnableDecalLayers;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 
         public int      _TransparentCameraOnlyMotionVectors;
+
+        // Can be set to 0 to globally "disable" tessellation
+        // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
+        public float    _GlobalTessellationFactorMultiplier;
+
+        public float    _Pad8;
         public float    _Pad9;
-        public float    _Pad10;
-        public float    _Pad11;
     }
 }

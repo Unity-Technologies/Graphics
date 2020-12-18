@@ -92,7 +92,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: e346f8573410f414ea2a8a4740526c88
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/035_Shader_TerrainShaders.unity
     guid: 770b86964e87d47e4bdbafa425ccd238
   - enabled: 1
@@ -102,8 +102,14 @@ EditorBuildSettings:
     path: Assets/Scenes/038_Shader_TerrainBlend.unity
     guid: 5578c9d8b0329024d8020e3094f70302
   - enabled: 1
+    path: Assets/Scenes/039_Particles_Instanced.unity
+    guid: 5fca56b2f8a46664e858cbb290338fc8
+  - enabled: 1
     path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
+  - enabled: 1
+    path: Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity
+    guid: a27d5eebd041b42dab7ad89ce8249e81
   - enabled: 1
     path: Assets/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
@@ -111,8 +117,8 @@ EditorBuildSettings:
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
   - enabled: 1
-    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
-    guid: 4e49334e530744e0eaeaa5e3a7e874ca
+    path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
+    guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
@@ -213,6 +219,9 @@ EditorBuildSettings:
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
   - enabled: 1
+    path: Assets/Scenes/110_URPShadersAlphaOutputRendererFeature.unity
+    guid: 73a6a02c48ea444fba7dec75de3c4156
+  - enabled: 1
     path: Assets/Scenes/111_CameraStackMSAA.unity
     guid: 83adeebeb3ba74a13816f2b8636588aa
   - enabled: 1
@@ -254,10 +263,45 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/127_DynamicScaling_DOF.unity
     guid: 069f595c511c463418479db2f730eec1
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/130_ClearCoat.unity
     guid: 2242f9ac270754ebea6016ff9370de29
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
+  - enabled: 1
+    path: Assets/Scenes/131_ParallaxMapping.unity
+    guid: ac4701d765fa26b4f83d2fb9ed6b3c08
+  - enabled: 1
+    path: Assets/Scenes/132_DetailMapping.unity
+    guid: 0ad4d46f32f2cc942b4592c2f4368b83
+  - enabled: 1
+    path: Assets/Scenes/133_ShadowFading.unity
+    guid: 137382e53d5a3714088dc0496a166199
+  - enabled: 1
+    path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance.unity
+    guid: 7ec898d33586cf84ca02ac537472e20d
+    path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
+    guid: f1454a5402867f14e8df402c507e29db
+  - enabled: 1
+    path: Assets/Scenes/136_Lighting_Directional2Cascades.unity
+    guid: d99ff34133a649145adf85fcdfc11ddb
+  - enabled: 1
+    path: Assets/Scenes/137_Lighting_Directional3Cascades.unity
+    guid: 9a39ba2c4ee3d0a4ebb103a52b6030cd
+  - enabled: 1
+    path: Assets/Scenes/138_Lighting_Directional4Cascades.unity
+    guid: 69d2953b4a7ccaa468758f8517116950
+  - enabled: 1
+    path: Assets/Scenes/142_SSAO_DepthNormal_Projection.unity
+    guid: c207f769f3e194ebc8cbd51e788ac65d
+  - enabled: 1
+    path: Assets/Scenes/143_SSAO_DepthNormals_Orthographic.unity
+    guid: 44c3bddf1a7da4af28d764901f2e9507
+  - enabled: 1
+    path: Assets/Scenes/144_SSAO_RenderToBackBuffer.unity
+    guid: b23d8daad85b546c883dbbdc58ab8fef
+  - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
+    guid: 7b2479971db0f4b1b87c121244585fe5
   m_configObjects: {}

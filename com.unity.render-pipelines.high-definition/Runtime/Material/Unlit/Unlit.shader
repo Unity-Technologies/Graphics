@@ -46,6 +46,7 @@ Shader "HDRP/Unlit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
         [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
         [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
@@ -112,7 +113,6 @@ Shader "HDRP/Unlit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
@@ -150,7 +150,7 @@ Shader "HDRP/Unlit"
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
+            Cull Off
 
             ZWrite On
 
@@ -215,6 +215,7 @@ Shader "HDRP/Unlit"
 
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
+            // Note we don't need to define WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
 
@@ -267,6 +268,7 @@ Shader "HDRP/Unlit"
 
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
+            // Note we don't need to define WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
 
@@ -437,6 +439,35 @@ Shader "HDRP/Unlit"
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "FullScreenDebug"
+            Tags{ "LightMode" = "FullScreenDebug" }
+
+            Cull[_CullMode]
+
+            ZWrite Off
+            ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
     }
 
     SubShader
@@ -451,6 +482,8 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -480,6 +513,8 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
+            #pragma multi_compile _ DEBUG_DISPLAY
+
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -492,7 +527,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl"
 
             ENDHLSL
         }
@@ -506,10 +541,6 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
-
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -527,7 +558,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingGBuffer.hlsl"
 
             ENDHLSL
         }
@@ -544,7 +575,7 @@ Shader "HDRP/Unlit"
 
             #define SHADOW_LOW
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
-            
+
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -558,7 +589,7 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl"
 
             ENDHLSL
         }
@@ -575,6 +606,9 @@ Shader "HDRP/Unlit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            #define SHADER_UNLIT
+            #define HAS_LIGHTLOOP // Used when computing volumetric scattering
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -585,7 +619,6 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
 

@@ -7,21 +7,22 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Component that allow you to control the indirect specular and diffuse intensity
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Indirect Lighting Controller")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Indirect-Lighting-Controller" + Documentation.endURL)]
     public class IndirectLightingController : VolumeComponent
     {
-        [UnityEngine.Serialization.FormerlySerializedAs("indirectDiffuseIntensity")]
         /// <summary>Indirect diffuse lighting multiplier, between 0 and 1</summary>
+        [Serialization.FormerlySerializedAs("indirectDiffuseIntensity")]
         public MinFloatParameter indirectDiffuseLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
-        /// Controls which layer will be affected by the indirect diffuse lighting multiplier 
-        public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+        /// <summary>Controls which layer will be affected by the indirect diffuse lighting multiplier </summary>
+        public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
         /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
-        /// Controls which layer will be affected by the reflection lighting multiplier 
-        public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+        /// <summary>Controls which layer will be affected by the reflection lighting multiplier </summary>
+        public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.Everything); // Default to everything to not have migration issue
 
-        [UnityEngine.Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
         /// <summary>Reflection probe and Planar reflection intensity multiplier, between 0 and 1</summary>
+        [Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
         public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
 
         /// <summary>

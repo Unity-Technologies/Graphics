@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Tests
 {
     class RenderGraphTests
     {
-        RenderGraph m_RenderGraph = new RenderGraph(false, MSAASamples.None);
+        RenderGraph m_RenderGraph = new RenderGraph();
 
         [SetUp]
         public void SetupRenderGraph()
@@ -20,9 +20,9 @@ namespace UnityEngine.Rendering.Tests
             public ComputeBufferHandle[] buffers = new ComputeBufferHandle[8];
         }
 
-        // Final output (back buffer) of render graph needs to be explicitly imported in order to know that the chain of dependency should not be pruned.
+        // Final output (back buffer) of render graph needs to be explicitly imported in order to know that the chain of dependency should not be culled.
         [Test]
-        public void WriteToBackBufferNotPruned()
+        public void WriteToBackBufferNotCulled()
         {
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -34,12 +34,12 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
         }
 
-        // If no back buffer is ever written to, everything should be pruned.
+        // If no back buffer is ever written to, everything should be culled.
         [Test]
-        public void NoWriteToBackBufferPruned()
+        public void NoWriteToBackBufferCulled()
         {
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -51,12 +51,12 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(true, compiledPasses[0].pruned);
+            Assert.AreEqual(true, compiledPasses[0].culled);
         }
 
-        // Writing to imported resource is considered as a side effect so passes should not be pruned.
+        // Writing to imported resource is considered as a side effect so passes should not be culled.
         [Test]
-        public void WriteToImportedTextureNotPruned()
+        public void WriteToImportedTextureNotCulled()
         {
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -68,11 +68,11 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
         }
 
         [Test]
-        public void WriteToImportedComputeBufferNotPruned()
+        public void WriteToImportedComputeBufferNotCulled()
         {
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -84,15 +84,15 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
         }
 
-        // TODO RENDERGRAPH : Temporarily removed. See RenderGraph.cs pass pruning
-        //// A pass not writing to anything is useless and should be pruned.
+        // TODO RENDERGRAPH : Temporarily removed. See RenderGraph.cs pass culling
+        //// A pass not writing to anything is useless and should be culled.
         //[Test]
-        //public void PrunePassWithNoProduct()
+        //public void CullPassWithNoProduct()
         //{
-        //    // This pass reads an input but does not produce anything (no writes) so it should be pruned.
+        //    // This pass reads an input but does not produce anything (no writes) so it should be culled.
         //    TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
         //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
         //    {
@@ -104,15 +104,15 @@ namespace UnityEngine.Rendering.Tests
 
         //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
         //    Assert.AreEqual(1, compiledPasses.size);
-        //    Assert.AreEqual(true, compiledPasses[0].pruned);
+        //    Assert.AreEqual(true, compiledPasses[0].culled);
         //}
 
-        //// A series of passes with no final product should be pruned.
+        //// A series of passes with no final product should be culled.
         //[Test]
-        //public void PrunePassWithTextureDependenciesAndNoProduct()
+        //public void CullPassWithTextureDependenciesAndNoProduct()
         //{
         //    // First pass produces an output that is read by second pass.
-        //    // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
+        //    // Second pass does not produce anything so it should be culled as well as all its unused dependencies.
         //    TextureHandle texture;
         //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
         //    {
@@ -130,18 +130,18 @@ namespace UnityEngine.Rendering.Tests
 
         //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
         //    Assert.AreEqual(2, compiledPasses.size);
-        //    Assert.AreEqual(true, compiledPasses[0].pruned);
-        //    Assert.AreEqual(true, compiledPasses[1].pruned);
+        //    Assert.AreEqual(true, compiledPasses[0].culled);
+        //    Assert.AreEqual(true, compiledPasses[1].culled);
         //}
 
-        //// A series of passes with no final product should be pruned.
-        //// Here first pass is not pruned because Compute Buffer is imported.
+        //// A series of passes with no final product should be culled.
+        //// Here first pass is not culled because Compute Buffer is imported.
         //// TODO: Add test where compute buffer is created instead of imported once the API exists.
         //[Test]
-        //public void PrunePassWithBufferDependenciesAndNoProduct()
+        //public void CullPassWithBufferDependenciesAndNoProduct()
         //{
         //    // First pass produces an output that is read by second pass.
-        //    // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
+        //    // Second pass does not produce anything so it should be culled as well as all its unused dependencies.
         //    ComputeBufferHandle computeBuffer;
         //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
         //    {
@@ -159,14 +159,14 @@ namespace UnityEngine.Rendering.Tests
 
         //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
         //    Assert.AreEqual(2, compiledPasses.size);
-        //    Assert.AreEqual(false, compiledPasses[0].pruned); // Not pruned because writing to an imported resource is a side effect.
-        //    Assert.AreEqual(true, compiledPasses[1].pruned);
+        //    Assert.AreEqual(false, compiledPasses[0].culled); // Not culled because writing to an imported resource is a side effect.
+        //    Assert.AreEqual(true, compiledPasses[1].culled);
         //}
 
         [Test]
-        public void PassWriteResourcePartialNotReadAfterNotPruned()
+        public void PassWriteResourcePartialNotReadAfterNotCulled()
         {
-            // If a pass writes to a resource that is not unused globally by the graph but not read ever AFTER the pass then the pass should be pruned unless it writes to another used resource.
+            // If a pass writes to a resource that is not unused globally by the graph but not read ever AFTER the pass then the pass should be culled unless it writes to another used resource.
             TextureHandle texture0;
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -182,9 +182,9 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            // This pass writes to texture0 which is used so will not be pruned out.
-            // Since texture0 is never read after this pass, we should decrement refCount for this pass and potentially prune it.
-            // However, it also writes to texture1 which is used in the last pass so we musn't prune it.
+            // This pass writes to texture0 which is used so will not be culled out.
+            // Since texture0 is never read after this pass, we should decrement refCount for this pass and potentially cull it.
+            // However, it also writes to texture1 which is used in the last pass so we mustn't cull it.
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.WriteTexture(texture0);
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
             {
                 builder.ReadTexture(texture1);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -203,19 +203,19 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(4, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
-            Assert.AreEqual(false, compiledPasses[1].pruned);
-            Assert.AreEqual(false, compiledPasses[2].pruned);
-            Assert.AreEqual(false, compiledPasses[3].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
+            Assert.AreEqual(false, compiledPasses[1].culled);
+            Assert.AreEqual(false, compiledPasses[2].culled);
+            Assert.AreEqual(false, compiledPasses[3].culled);
         }
 
         [Test]
-        public void PassDisallowPruningNotPruned()
+        public void PassDisallowCullingNotCulled()
         {
-            // This pass does nothing so should be pruned but we explicitly disallow it.
+            // This pass does nothing so should be culled but we explicitly disallow it.
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.AllowPassPruning(false);
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -223,12 +223,12 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
         }
 
-        // First pass produces two textures and second pass only read one of the two. Pass one should not be pruned.
+        // First pass produces two textures and second pass only read one of the two. Pass one should not be culled.
         [Test]
-        public void PartialUnusedProductNotPruned()
+        public void PartialUnusedProductNotCulled()
         {
             TextureHandle texture;
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
@@ -249,8 +249,8 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(2, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned);
-            Assert.AreEqual(false, compiledPasses[1].pruned);
+            Assert.AreEqual(false, compiledPasses[0].culled);
+            Assert.AreEqual(false, compiledPasses[1].culled);
         }
 
         // Simple cycle of create/release of a texture across multiple passes.
@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.ReadTexture(texture);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.Tests
                 using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
                 {
                     builder.ReadTexture(texture); // This is illegal (transient resource was created in previous pass)
-                    builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                    builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                     builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
                 }
 
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 texture = builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 builder.ReadTexture(texture1);
                 builder.ReadTexture(texture3);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.EnableAsyncCompute(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void TransientResourceNotPruned()
+        public void TransientResourceNotCulled()
         {
             TextureHandle texture0;
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass5", out var passData))
             {
                 builder.ReadTexture(texture0);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.EnableAsyncCompute(false);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(3, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[1].pruned);
+            Assert.AreEqual(false, compiledPasses[1].culled);
         }
 
         [Test]
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.ReadTexture(texture0);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
                 builder.ReadTexture(texture1);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -513,7 +513,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.WriteTexture(texture0);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
                 builder.ReadTexture(texture0);
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be culled
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 

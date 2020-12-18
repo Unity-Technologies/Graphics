@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Basic", "Vector 1")]
+    [Title("Input", "Basic", "Float")]
     class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
@@ -21,7 +21,8 @@ namespace UnityEditor.ShaderGraph
 
         public Vector1Node()
         {
-            name = "Vector 1";
+            name = "Float";
+            synonyms = new string[]{"Vector 1"};
             UpdateNodeAfterDeserialization();
         }
 
@@ -43,6 +44,13 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
             return new Vector1ShaderProperty { value = slot.value };
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            name = "Float";
         }
 
         int IPropertyFromNode.outputSlotId { get { return OutputSlotId; } }

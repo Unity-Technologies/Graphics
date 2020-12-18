@@ -250,7 +250,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if ((GetData() as VFXDataParticle).NeedsIndirectBuffer())
+                if ((GetData() as VFXDataParticle).NeedsGlobalIndirectBuffer())
                     yield return "VFX_HAS_INDIRECT_DRAW";
 
                 if (ownedType == VFXDataType.ParticleStrip)

@@ -277,3 +277,11 @@ Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
 {
     flex:0 0 auto;
 }
+
+.ListPropertyRM > .ReorderableList
+{
+    margin-top:4px;
+    margin-left:4px;
+    margin-right:4px;
+    flex:1 1 auto;
+}

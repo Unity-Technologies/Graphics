@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering
                         guard = "_" + guard;
 
                     writer.WriteLine("//");
-                    writer.WriteLine("// This file was automatically generated. Please don't edit by hand.");
+                    writer.WriteLine("// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead");
                     writer.WriteLine("//");
                     writer.WriteLine();
                     writer.WriteLine("#ifndef " + guard);

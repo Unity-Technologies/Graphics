@@ -25,6 +25,11 @@
             "name": "com.unity.adaptiveperformance",
             "expression": "2.0.0-preview.7",
             "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
+        },
+		{
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "ENABLE_XR_MODULE"
         }
     ],
     "noEngineReferences": false

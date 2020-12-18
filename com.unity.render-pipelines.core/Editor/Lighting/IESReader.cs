@@ -40,8 +40,9 @@ namespace UnityEditor.Rendering
         }
 
         int m_PhotometricType;
+
         /// <summary>
-        /// Type of Photometric light in the IES file, varying per IES-Type & version
+        /// Type of Photometric light in the IES file, varying per IES-Type and version
         /// </summary>
         public int PhotometricType
         {

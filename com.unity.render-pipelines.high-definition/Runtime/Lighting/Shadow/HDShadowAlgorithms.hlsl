@@ -1,3 +1,5 @@
+#ifndef HD_SHADOW_ALGORITHMS_INCLUDED
+#define HD_SHADOW_ALGORITHMS_INCLUDED
 // Configure which shadow algorithms to use per shadow level quality
 
 // Since we use slope-scale bias, the constant bias is for now set as a small fixed value
@@ -6,7 +8,10 @@
 // WARNINGS:
 // Keep in sync with both HDShadowManager::GetDirectionalShadowAlgorithm() and GetPunctualFilterWidthInTexels() in C# as well!
 
-#ifdef SHADOW_LOW
+#ifdef SHADOW_ULTRA_LOW
+#define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCF_Tent_3x3(sd.isInCachedAtlas ? _CachedShadowAtlasSize.zwxy : _ShadowAtlasSize.zwxy, posTC, tex, samp, bias)
+#define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_Gather_PCF(_CascadeShadowAtlasSize.zwxy, posTC, tex, samp, bias)
+#elif defined(SHADOW_LOW)
 #define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCF_Tent_3x3(sd.isInCachedAtlas ? _CachedShadowAtlasSize.zwxy : _ShadowAtlasSize.zwxy, posTC, tex, samp, bias)
 #define DIRECTIONAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCF_Tent_5x5(_CascadeShadowAtlasSize.zwxy, posTC, tex, samp, bias)
 #elif defined(SHADOW_MEDIUM)
@@ -324,3 +329,4 @@ float EvalShadow_SampleClosestDistance_Punctual(HDShadowData sd, Texture2D tex, 
 
     return distance(occluderPosWS, lightPositionWS);
 }
+#endif

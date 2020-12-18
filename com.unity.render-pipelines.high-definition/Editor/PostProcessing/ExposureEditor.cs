@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Mode;
         SerializedDataParameter m_MeteringMode;
         SerializedDataParameter m_LuminanceSource;
-        
+
         SerializedDataParameter m_FixedExposure;
         SerializedDataParameter m_Compensation;
         SerializedDataParameter m_LimitMin;
@@ -37,6 +37,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_TargetMidGray;
 
+        private static LightUnitSliderUIDrawer k_LightUnitSlider;
+
         static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
 
         public override bool hasAdvancedMode => true;
@@ -44,11 +46,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
-            
+
             m_Mode = Unpack(o.Find(x => x.mode));
             m_MeteringMode = Unpack(o.Find(x => x.meteringMode));
             m_LuminanceSource = Unpack(o.Find(x => x.luminanceSource));
-            
+
             m_FixedExposure = Unpack(o.Find(x => x.fixedExposure));
             m_Compensation = Unpack(o.Find(x => x.compensation));
             m_LimitMin = Unpack(o.Find(x => x.limitMin));
@@ -74,6 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ProceduralMaxIntensity = Unpack(o.Find(x => x.maskMaxIntensity));
 
             m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
+
+            k_LightUnitSlider = new LightUnitSliderUIDrawer();
         }
 
         public override void OnInspectorGUI()
@@ -87,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)ExposureMode.Fixed)
             {
-                PropertyField(m_FixedExposure);
+                DoFixedExposureField(m_FixedExposure);
                 PropertyField(m_Compensation);
             }
             else
@@ -197,6 +201,36 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                 }
+            }
+        }
+
+        // TODO: See if it's possible to refactor into a custom VolumeParameterDrawer
+        void DoFixedExposureField(SerializedDataParameter fixedExposure)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                DrawOverrideCheckbox(fixedExposure);
+
+                using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
+                    EditorGUILayout.LabelField(fixedExposure.displayName);
+            }
+
+            using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
+            {
+                var xOffset = EditorGUIUtility.labelWidth + 22;
+                var lineRect = EditorGUILayout.GetControlRect();
+                lineRect.x += xOffset;
+                lineRect.width -= xOffset;
+
+                var sliderRect = lineRect;
+                sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                k_LightUnitSlider.SetSerializedObject(serializedObject);
+                k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
+
+                // GUIContent.none disables horizontal scrolling, ur TrTextContent and adjust the rect to make it work
+                lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                lineRect.width += EditorGUIUtility.labelWidth + 2;
+                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, EditorGUIUtility.TrTextContent(" "));
             }
         }
     }

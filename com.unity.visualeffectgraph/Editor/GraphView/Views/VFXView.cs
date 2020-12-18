@@ -19,7 +19,20 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    /// <summary>
+    /// Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor.
+    /// </summary>
+    [Obsolete("Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor")]
+    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        /// <summary>
+        /// Initialized to false by default.
+        /// Obsolete API : Use a custom UnityEditor.AssetModificationProcessor and implement OnWillMoveAsset if you relied on this behavior.
+        /// </summary>
+        public static bool assetMoved = false;
+    }
+
+    class VFXViewModificationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -27,6 +40,72 @@ namespace UnityEditor.VFX.UI
         {
             assetMoved = true;
             return AssetMoveResult.DidNotMove;
+        }
+    }
+
+    class EdgeDragInfo : VisualElement
+    {
+        VFXView m_View;
+        public EdgeDragInfo(VFXView view)
+        {
+            m_View = view;
+            var tpl = Resources.Load<VisualTreeAsset>("uxml/EdgeDragInfo");
+            tpl.CloneTree(this);
+
+            this.AddStyleSheetPath("EdgeDragInfo");
+
+            m_Text = this.Q<Label>("title");
+
+            pickingMode = PickingMode.Ignore;
+            m_Text.pickingMode = PickingMode.Ignore;
+        }
+
+        Label m_Text;
+
+        public void StartEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
+        {
+            string error = null;
+            if (draggedAnchor != overAnchor)
+            {
+                if (draggedAnchor.direction == overAnchor.direction)
+                {
+                    if (draggedAnchor.direction == Direction.Input)
+                        error = "You must link an input to an output";
+                    else
+                        error = "You must link an output to an input";
+                }
+                else if (draggedAnchor.controller.connections.Any(t => draggedAnchor.direction == Direction.Input ? t.output == overAnchor.controller : t.input == overAnchor.controller))
+                {
+                    error = "An edge with the same input and output already exists";
+                }
+                else if (!draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
+                {
+                    error = "The input and output have incompatible types";
+                }
+                else
+                {
+                    bool can = draggedAnchor.controller.CanLink(overAnchor.controller);
+
+                    if( !can )
+                    {
+                        if( ! draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode,null))
+                            error = "The edge would create a loop in the operators";
+                        else
+                            error = "Link impossible for an unknown reason";
+                    }
+
+                    
+                }
+            }
+            if (error == null)
+                style.display = DisplayStyle.None;
+            else
+                m_Text.text = error;
+
+            var layout = overAnchor.connector.parent.ChangeCoordinatesTo(m_View, overAnchor.connector.layout);
+
+            style.top = layout.yMax + 16;
+            style.left = layout.xMax;
         }
     }
 
@@ -61,6 +140,7 @@ namespace UnityEditor.VFX.UI
         {
             if (controller.model && controller.graph)
                 controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+
 
             m_Controller.UnregisterHandler(this);
             m_Controller.useCount--;
@@ -105,6 +185,12 @@ namespace UnityEditor.VFX.UI
             m_Systems.Clear();
             VFXExpression.ClearCache();
             m_NodeProvider = null;
+
+            if (m_Controller.graph)
+            {
+                m_Controller.graph.errorManager.onClearAllErrors -= ClearAllErrors;
+                m_Controller.graph.errorManager.onRegisterError -= RegisterError;
+            }
         }
 
         void ConnectController()
@@ -114,6 +200,12 @@ namespace UnityEditor.VFX.UI
                 if (controller != null && controller.graph)
                     controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
             }).ExecuteLater(1);
+
+            if (m_Controller.graph)
+            {
+                m_Controller.graph.errorManager.onClearAllErrors += ClearAllErrors;
+                m_Controller.graph.errorManager.onRegisterError += RegisterError;
+            }
 
             m_Controller.RegisterHandler(this);
             m_Controller.useCount++;
@@ -128,6 +220,7 @@ namespace UnityEditor.VFX.UI
             groupTitleChanged = GroupNodeTitleChanged;
 
             m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos), null, GetAcceptedTypeNodes());
+
 
             //Make sure a subgraph block as a block subgraph  context
             if (controller.model.isSubgraph && controller.model.subgraph is VisualEffectSubgraphBlock)
@@ -225,7 +318,9 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                if(path.StartsWith(VisualEffectAssetEditorUtility.templatePath) || ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && path.StartsWith(VFXResources.defaultResources.userTemplateDirectory)) )
+                    CreateTemplateSystem(path, mPos, groupNode);
+                else
                 {
                     if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                     {
@@ -243,8 +338,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                    CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
@@ -263,6 +356,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
         VisualElement m_Toolbar;
+        ToolbarButton m_SaveButton;
 
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
@@ -294,7 +388,7 @@ namespace UnityEditor.VFX.UI
             string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
             if (!string.IsNullOrEmpty(filePath))
             {
-                VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+                VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
                 VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
             }
@@ -312,8 +406,8 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new FreehandSelector());
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
-            if (!EditorGUIUtility.isProSkin)
-            {
+            if( ! EditorGUIUtility.isProSkin)
+            { 
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
             else
@@ -340,6 +434,11 @@ namespace UnityEditor.VFX.UI
             compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
+
+            m_SaveButton = new ToolbarButton(OnSave);
+            m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            m_SaveButton.text = "Save";
+            m_Toolbar.Add(m_SaveButton);
 
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
@@ -434,12 +533,12 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
+            RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
             graphViewChanged = VFXGraphViewChanged;
 
             elementResized = VFXElementResized;
-
-            Undo.undoRedoPerformed = OnUndoPerformed;
 
             viewDataKey = "VFXView";
 
@@ -479,6 +578,136 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Checked;
             else
                 return DropdownMenuAction.Status.Normal;
+        }
+
+        [NonSerialized]
+        Dictionary<VFXModel, List<IconBadge>> m_InvalidateBadges = new Dictionary<VFXModel, List<IconBadge>>();
+
+        [NonSerialized]
+        List<IconBadge> m_CompileBadges = new List<IconBadge>();
+
+        private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin,string error,VFXErrorType type, string description)
+        {
+            VisualElement target = null;
+            VisualElement targetParent = null;
+            SpriteAlignment alignement = SpriteAlignment.TopLeft;
+
+            if (model is VFXSlot)
+            {
+                var slot = (VFXSlot)model;
+                // todo manage parameter slot if they can have error
+
+                var nodeController = controller.GetNodeController(slot.owner as VFXModel, 0);
+                if (nodeController == null)
+                    return;
+                var anchorController = (slot.direction == VFXSlot.Direction.kInput ? nodeController.inputPorts : nodeController.outputPorts).FirstOrDefault(t => t.model == slot);
+                if (anchorController == null)
+                    return;
+
+                targetParent = GetNodeByController(nodeController);
+                target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
+                alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
+            }
+            else if (model is IVFXSlotContainer)
+            {
+                var node = model;
+                var nodeController = controller.GetNodeController(node, 0);
+                if (nodeController == null)
+                    return;
+                target = GetNodeByController(nodeController);
+                if (target == null)
+                    return;
+                if (nodeController is VFXBlockController blkController)
+                {
+                    VFXNodeUI targetContext = GetNodeByController(blkController.contextController);
+                    if (targetContext == null)
+                        return;
+                    targetParent = targetContext.parent;
+                }
+                target = (target as VFXNodeUI).titleContainer;
+                alignement = SpriteAlignment.LeftCenter;
+            }
+            if (target != null)
+            {
+                var badge = type == VFXErrorType.Error ? IconBadge.CreateError(description) : IconBadge.CreateComment(description);
+                targetParent.Add(badge);
+                badge.AttachTo(target, alignement);
+
+
+                if(errorOrigin == VFXErrorOrigin.Compilation)
+                {
+                    m_CompileBadges.Add(badge);
+                }
+                else
+                {
+                    List<IconBadge> badges;
+                    if (!m_InvalidateBadges.TryGetValue(model, out badges))
+                    {
+                        badges = new List<IconBadge>();
+                        m_InvalidateBadges[model] = badges;
+                    }
+                    badges.Add(badge);
+
+                }
+                badge.AddManipulator(new Clickable(() =>
+                {
+                    badge.Detach();
+                    badge.RemoveFromHierarchy();
+                }));
+                badge.AddManipulator(new DownClickable(()=>
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(EditorGUIUtility.TrTextContent("Hide"), false, () =>
+                    {
+                        badge.Detach();
+                        badge.RemoveFromHierarchy();
+                    });
+
+                    if (type != VFXErrorType.Error)
+                    {
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Ignore"), false, () =>
+                        {
+                            badge.Detach();
+                            badge.RemoveFromHierarchy();
+                            model.IgnoreError(error);
+                        });
+                    }
+                    menu.ShowAsContext();
+                }
+                ));
+            }
+        }
+
+        private void ClearAllErrors(VFXModel model, VFXErrorOrigin errorOrigin)
+        {
+            if (errorOrigin == VFXErrorOrigin.Compilation )
+            {
+                foreach (var badge in m_CompileBadges)
+                {
+                    badge.Detach();
+                    badge.RemoveFromHierarchy();
+                }
+                m_CompileBadges.Clear();
+            }
+            else
+            {
+                if (!object.ReferenceEquals(model,null))
+                {
+                    List<IconBadge> badges;
+                    if (m_InvalidateBadges.TryGetValue(model, out badges))
+                    {
+                        foreach (var badge in badges)
+                        {
+                            badge.Detach();
+                            badge.RemoveFromHierarchy();
+                        }
+                        m_InvalidateBadges.Remove(model);
+                    }
+                }
+                else
+                    throw new InvalidOperationException("Can't clear in Invalidate mode without a model");
+
+            }
         }
 
         public void SetBoardToFront(GraphElement board)
@@ -743,6 +972,8 @@ namespace UnityEditor.VFX.UI
 
         void FrameAfterAWhile()
         {
+
+
             var rectToFit = contentViewContainer.layout;
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
@@ -754,7 +985,16 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            CalculateFrameTransform(rectToFit, layout, 30, out frameTranslation, out frameScaling);
+            Rect rectAvailable = layout;
+
+            float validateFloat = rectAvailable.x + rectAvailable.y + rectAvailable.width + rectAvailable.height;
+            if (float.IsInfinity(validateFloat) || float.IsNaN(validateFloat))
+            {
+                schedule.Execute(FrameAfterAWhile);
+                return;
+            }
+
+            CalculateFrameTransform(rectToFit, rectAvailable, 30, out frameTranslation, out frameScaling);
 
             Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
 
@@ -852,6 +1092,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
+                    newElement.controller.model.RefreshErrors(controller.graph);
                 }
                 Profiler.EndSample();
 
@@ -1112,7 +1353,7 @@ namespace UnityEditor.VFX.UI
                 if (edge != null)
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1143,8 +1384,66 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXGraph.explicitCompile = true;
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
+                using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                {
+                    VFXGraph.compileReporter = reporter;
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
+                    VFXGraph.compileReporter = null;
+                }
                 VFXGraph.explicitCompile = false;
+            }
+        }
+
+        void OnSave()
+        {
+            OnCompile();
+            var graphToSave = new HashSet<VFXGraph>();
+            GetGraphsRecursively(controller.graph,graphToSave);
+
+            foreach(var graph in graphToSave)
+            {
+                graph.GetResource().WriteAsset();
+                graph.OnSaved();
+            }
+        }
+
+        void GetGraphsRecursively(VFXGraph start,HashSet<VFXGraph> graphs)
+        {
+            if (graphs.Contains(start))
+                return;
+            graphs.Add(start);
+            foreach(var child in start.children)
+            {
+                if (child is VFXSubgraphOperator ope)
+                {
+                    if (ope.subgraph != null)
+                    {
+                        var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
+                }
+                else if (child is VFXSubgraphContext subCtx)
+                {
+                    if (subCtx.subgraph != null)
+                    {
+                        var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
+                }
+                else if( child is VFXContext ctx)
+                {
+                    foreach( var block in ctx.children.Cast<VFXBlock>())
+                    {
+                        if( block is VFXSubgraphBlock subBlock)
+                        {
+                            if( subBlock.subgraph!= null)
+                            {
+                                var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                                GetGraphsRecursively(graph, graphs);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -1336,8 +1635,8 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-
-                foreach (var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
+                
+                foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
                     dataEdges.Remove(dataEdge.controller);
@@ -1616,7 +1915,7 @@ namespace UnityEditor.VFX.UI
                     if (targetControllers[i] is VFXBlockController blkController)
                         AddToSelection((rootNodes[blkController.contextController] as VFXContextUI).GetAllBlocks().First(t => t.controller == blkController));
                     else
-                        AddToSelection(rootNodes[targetControllers[i]]);
+                    AddToSelection(rootNodes[targetControllers[i]]);
                 }
             }
 
@@ -1719,6 +2018,16 @@ namespace UnityEditor.VFX.UI
             {
                 return canCopySelection && !selection.Any(t => t is Group);
             }
+        }
+
+        void OnEnterPanel(AttachToPanelEvent e)
+        {
+            Undo.undoRedoPerformed += OnUndoPerformed;
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e)
+        {
+            Undo.undoRedoPerformed -= OnUndoPerformed;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)
@@ -1830,6 +2139,7 @@ namespace UnityEditor.VFX.UI
                 {
                     evt.menu.AppendAction("Enter Subgraph", OnEnterSubgraph, e => DropdownMenuAction.Status.Normal, node.controller.model);
                 }
+                    evt.menu.AppendAction("Clear Ignored Errors",a=>node.controller.model.ClearIgnoredErrors(), node.controller.model.HasIgnoredErrors()?DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
 
             if (evt.target is VFXDataEdge edge)
@@ -2106,6 +2416,26 @@ namespace UnityEditor.VFX.UI
             {
                 item.AssetMoved();
             }
+        }
+
+        VFXEdgeDragInfo m_EdgeDragInfo;
+
+        public void StartEdgeDragInfo(VFXDataAnchor draggerAnchor, VFXDataAnchor overAnchor)
+        {
+            if (m_EdgeDragInfo == null)
+            {
+                m_EdgeDragInfo = new VFXEdgeDragInfo(this);
+                Add(m_EdgeDragInfo);
+                m_EdgeDragInfo.style.display = DisplayStyle.None;
+            }
+
+            m_EdgeDragInfo.StartEdgeDragInfo(draggerAnchor, overAnchor);
+        }
+
+        public void StopEdgeDragInfo()
+        {
+            if (m_EdgeDragInfo != null)
+                m_EdgeDragInfo.StopEdgeDragInfo();
         }
     }
 }

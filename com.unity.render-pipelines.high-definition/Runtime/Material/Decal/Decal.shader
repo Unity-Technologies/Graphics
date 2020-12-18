@@ -7,16 +7,10 @@ Shader "HDRP/Decal"
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
-		[ToggleUI] _AlbedoMode("_AlbedoMode", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
-		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 4.0 // smoothness 3RT default
-		[ToggleUI] _MaskmapMetal("_MaskmapMetal", Range(0.0, 1.0)) = 0.0
-		[ToggleUI] _MaskmapAO("_MaskmapAO", Range(0.0, 1.0)) = 0.0
-		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
 		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
-        [ToggleUI] _Emissive("_Emissive", Range(0.0, 1.0)) = 0.0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
         // in the shader only the _EmissiveColor should be used
@@ -28,20 +22,42 @@ Shader "HDRP/Decal"
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
-
-        // Stencil state
-        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
-        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
-
         // Remapping
+        [HideInInspector] _MetallicRemapMin("_MetallicRemapMin", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _MetallicRemapMax("_MetallicRemapMax", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         [HideInInspector] _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
         [HideInInspector] _AORemapMin("AORemapMin", Float) = 0.0
         [HideInInspector] _AORemapMax("AORemapMax", Float) = 1.0
 
         // scaling
-        [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
+
+        // Alternative when no mask map is provided
+        [HideInInspector] _Smoothness("_Smoothness",  Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _Metallic("_Metallic",  Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _AO("_AO",  Range(0.0, 1.0)) = 1.0
+
+        [HideInInspector][ToggleUI]_AffectAlbedo("Boolean", Float) = 1
+        [HideInInspector][ToggleUI]_AffectNormal("Boolean", Float) = 1
+        [HideInInspector][ToggleUI]_AffectAO("Boolean", Float) = 0
+        [HideInInspector][ToggleUI]_AffectMetal("Boolean", Float) = 1
+        [HideInInspector][ToggleUI]_AffectSmoothness("Boolean", Float) = 1
+        [HideInInspector][ToggleUI]_AffectEmission("Boolean", Float) = 0
+
+        // Stencil state
+        [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
+        [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
+
+		// Decal color masks
+        [HideInInspector]_DecalColorMask0("_DecalColorMask0", Int) = 0
+        [HideInInspector]_DecalColorMask1("_DecalColorMask1", Int) = 0
+		[HideInInspector]_DecalColorMask2("_DecalColorMask2", Int) = 0
+		[HideInInspector]_DecalColorMask3("_DecalColorMask3", Int) = 0
+
+        // TODO: Remove when name garbage is solve (see IsHDRenderPipelineDecal)
+        // This marker allow to identify that a Material is a HDRP/Decal
+        [HideInInspector]_Unity_Identify_HDRP_Decal("_Unity_Identify_HDRP_Decal", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -54,10 +70,13 @@ Shader "HDRP/Decal"
     // Variant
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _COLORMAP
-    #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _MASKMAP
+    #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _EMISSIVEMAP
-	#pragma shader_feature_local _ALBEDOCONTRIBUTION
+
+	#pragma shader_feature_local _MATERIAL_AFFECTS_ALBEDO
+    #pragma shader_feature_local _MATERIAL_AFFECTS_NORMAL
+    #pragma shader_feature_local _MATERIAL_AFFECTS_MASKMAP
 
     #pragma multi_compile_instancing
 
@@ -79,68 +98,15 @@ Shader "HDRP/Decal"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
-		// c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
-        // and DecalSet.InitializeMaterialValues()
+        // c# code relies on the order in which the passes are declared, any change will need to be reflected in
+        // DecalSystem.cs - enum MaterialDecalPass
+        // DecalSubTarget.cs  - class SubShaders
+        // Caution: passes stripped in builds (like the scene picking pass) need to be put last to have consistent indices
 
-		// pass 0 is mesh 3RT mode
-		Pass
+		Pass // 0
 		{
-			Name "DBufferMesh_3RT"
-			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness
-
-            Stencil
-            {
-                WriteMask [_DecalStencilWriteMask]
-                Ref [_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-
-			ColorMask BA 2	// smoothness/smoothness alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_3RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		// enum MaskBlendFlags
-		//{
-		//	Metal = 1 << 0,
-		//	AO = 1 << 1,
-		//	Smoothness = 1 << 2,
-		//}
-
-		// Projectors
-		//
-		// 1 - Metal
-		// 2 - AO
-		// 3 - Metal + AO
-		// 4 - Smoothness also 3RT
-		// 5 - Metal + Smoothness
-		// 6 - AO + Smoothness
-		// 7 - Metal + AO + Smoothness
-		//
-
-		Pass // 1
-		{
-			Name "DBufferProjector_M"
-			Tags{"LightMode" = "DBufferProjector_M"} // Metalness
+			Name "DBufferProjector"
+			Tags{"LightMode" = "DBufferProjector"} // Metalness
 
             Stencil
             {
@@ -154,137 +120,21 @@ Shader "HDRP/Decal"
 			Cull Front
 			ZWrite Off
 			ZTest Greater
+
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 3 Zero OneMinusSrcColor
 
-			ColorMask R 2	// metal
-			ColorMask R 3	// metal alpha
+            ColorMask [_DecalColorMask0]
+            ColorMask [_DecalColorMask1] 1
+            ColorMask [_DecalColorMask2] 2
+            ColorMask [_DecalColorMask3] 3
 
 			HLSLPROGRAM
 
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 2
-		{
-			Name "DBufferProjector_AO"
-			Tags{"LightMode" = "DBufferProjector_AO"} // AO only
-													  // back faces with zfail, for cases when camera is inside the decal volume
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask G 2	// ao
-			ColorMask G 3	// ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 3
-		{
-			Name "DBufferProjector_MAO"
-			Tags{"LightMode" = "DBufferProjector_MAO"} // AO + Metalness
-													   // back faces with zfail, for cases when camera is inside the decal volume
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask RG 2	// metalness + ao
-			ColorMask RG 3	// metalness alpha + ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 4
-		{
-			Name "DBufferProjector_S"
-			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness - also use as DBufferProjector_3RT
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-
-			ColorMask BA 2	// smoothness/smoothness alpha
-            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
-
-			HLSLPROGRAM
-
-            // We need multicompile here as DBufferProjector_S is also use as DBufferProjector_3RT so for both 3RT and 4RT
             #pragma multi_compile DECALS_3RT DECALS_4RT
-
 			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
@@ -296,399 +146,10 @@ Shader "HDRP/Decal"
 			ENDHLSL
 		}
 
-		Pass // 5
-		{
-			Name "DBufferProjector_MS"
-			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask RBA 2	// metal/smoothness/smoothness alpha
-			ColorMask R 3	// metal alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 6
-		{
-			Name "DBufferProjector_AOS"
-			Tags{"LightMode" = "DBufferProjector_AOS"} // AO + Smoothness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask GBA 2	// ao, smoothness, smoothness alpha
-			ColorMask G 3	// ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-        Pass // 7
+        Pass // 1
         {
-            Name "DBufferProjector_MAOS"
-            Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-            // back faces with zfail, for cases when camera is inside the decal volume
-            Cull Front
-            ZWrite Off
-            ZTest Greater
-            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-            HLSLPROGRAM
-
-            #define DECALS_4RT
-            #define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-            ENDHLSL
-        }
-
-		// Mesh
-		// 8 - Metal
-		// 9 - AO
-		// 10 - Metal + AO
-		// 11 - Smoothness
-		// 12 - Metal + Smoothness
-		// 13 - AO + Smoothness
-		// 14 - Metal + AO + Smoothness
-
-		Pass // 8
-		{
-			Name "DBufferMesh_M"
-			Tags{"LightMode" = "DBufferMesh_M"} // Metalness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask R 2	// metal
-			ColorMask R 3	// metal alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 9
-		{
-			Name "DBufferMesh_AO"
-			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask G 2	// ao
-			ColorMask G 3	// ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 10
-		{
-			Name "DBufferMesh_MAO"
-			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask RG 2	// metalness + ao
-			ColorMask RG 3	// metalness alpha + ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 11
-		{
-			Name "DBufferMesh_S"
-			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-
-			ColorMask BA 2	// smoothness/smoothness alpha
-            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-
-		Pass // 12
-		{
-			Name "DBufferMesh_MS"
-			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask RBA 2	// metal/smoothness/smoothness alpha
-			ColorMask R 3	// metal alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 13
-		{
-			Name "DBufferMesh_AOS"
-			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask GBA 2	// ao, smoothness, smoothness alpha
-			ColorMask G 3	// ao alpha
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass // 14
-		{
-			Name "DBufferMesh_MAOS"
-			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
-
-            Stencil
-            {
-                WriteMask[_DecalStencilWriteMask]
-                Ref[_DecalStencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			HLSLPROGRAM
-
-            #define DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-
-			ENDHLSL
-		}
-
-        Pass // 15
-        {
-            Name "Projector_Emissive"
-            Tags{ "LightMode" = "Projector_Emissive" } // Emissive
+            Name "DecalProjectorForwardEmissive"
+            Tags{ "LightMode" = "DecalProjectorForwardEmissive" }
 
             Stencil
             {
@@ -707,6 +168,7 @@ Shader "HDRP/Decal"
 
             HLSLPROGRAM
 
+            #define _MATERIAL_AFFECTS_EMISSION
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
@@ -718,10 +180,54 @@ Shader "HDRP/Decal"
             ENDHLSL
         }
 
-        Pass // 16
+		Pass // 2
+		{
+			Name "DBufferMesh"
+			Tags{"LightMode" = "DBufferMesh"}
+
+            Stencil
+            {
+                WriteMask [_DecalStencilWriteMask]
+                Ref [_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+
+			ZWrite Off
+			ZTest LEqual
+
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 3 Zero OneMinusSrcColor
+
+            ColorMask [_DecalColorMask0]
+            ColorMask [_DecalColorMask1] 1
+            ColorMask [_DecalColorMask2] 2
+            ColorMask [_DecalColorMask3] 3
+
+			HLSLPROGRAM
+
+            #pragma multi_compile DECALS_3RT DECALS_4RT
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+			ENDHLSL
+		}
+
+        Pass // 3
         {
-            Name "Mesh_Emissive"
-            Tags{ "LightMode" = "Mesh_Emissive" } // Emissive
+            Name "DecalMeshForwardEmissive"
+            Tags{ "LightMode" = "DecalMeshForwardEmissive" }
 
             Stencil
             {
@@ -738,7 +244,10 @@ Shader "HDRP/Decal"
             Blend 0 SrcAlpha One
 
             HLSLPROGRAM
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+            #define _MATERIAL_AFFECTS_EMISSION
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_MESH
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
@@ -746,6 +255,40 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass // 4
+        {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // Note: Require _SelectionID variable
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+            
+            #pragma editor_sync_compilation
 
             ENDHLSL
         }

@@ -42,13 +42,31 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #endif
 #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#define LIGHTMAP_NAME unity_Lightmaps
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
+#define SHADOWMASK_NAME unity_ShadowMasks
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS uvStaticLightmap, unity_LightmapIndex.x
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv, unity_LightmapIndex.x
+#else
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define SHADOWMASK_NAME unity_ShadowMask
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS uvStaticLightmap
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS uv
+#endif
+
 #ifdef LIGHTMAP_ON
 #ifdef DIRLIGHTMAP_COMBINED
-    SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
-        uvStaticLightmap, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+    SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+            TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+            LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
 #else
-    float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+    float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
     bakeDiffuseLighting += illuminance;
     backBakeDiffuseLighting += illuminance;
 #endif
@@ -105,14 +123,15 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
-    // The check need to be here to work with both regular shader and shader graph
-    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
-    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
+    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)	
+    // The check need to be here to work with both regular shader and shader graph	
+    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and	
+    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior	
+    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing	
+#if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
     if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
-        return ;
-#endif
+        return;
+#endif	
 
     float3 positionRWS = posInputs.positionWS;
 
@@ -131,7 +150,7 @@ void SampleBakedGI(
 #if !SAMPLE_LIGHTMAP
     bakeDiffuseLighting = UNINITIALIZED_GI;
     return;
-#endif 
+#endif
 
 #else // PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS || PROBEVOLUMESEVALUATIONMODES_DISABLED
 #if SAMPLE_PROBEVOLUME
@@ -147,7 +166,7 @@ void SampleBakedGI(
 #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
 #if SHADERPASS == SHADERPASS_GBUFFER || (SHADERPASS == SHADERPASS_FORWARD && defined(USE_FPTL_LIGHTLIST))
         // posInputs.tileCoord will be zeroed out in GBuffer pass.
-        // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration). 
+        // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration).
         // Need to manually compute tile coord here.
         float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
         uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
@@ -184,7 +203,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 {
     // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
     // Reconstruct.
-    uint renderingLayers = DEFAULT_LIGHT_LAYERS;
+    uint renderingLayers = 0;
     PositionInputs posInputs;
     ZERO_INITIALIZE(PositionInputs, posInputs);
     posInputs.positionWS = positionRWS;
@@ -204,7 +223,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     posInputs.deviceDepth = 0.0f; // Not needed for probe volume cluster indexing.
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+    renderingLayers = GetMeshRenderingLightLayer();
     #endif
     #endif // #ifdef SHADERPASS
 #endif
@@ -217,11 +236,12 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     return bakeDiffuseLighting;
 }
 
+
 float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS not use for now
 {
 #if defined(LIGHTMAP_ON)
     float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
-    float4 rawOcclusionMask = SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, uv); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
+    float4 rawOcclusionMask = SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, SHADOWMASK_SAMPLE_EXTRA_ARGS); // Can't reuse sampler from Lightmap because with shader graph, the compile could optimize out the lightmaps if metal is 1
 #else
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)

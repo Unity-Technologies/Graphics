@@ -16,10 +16,10 @@ Shader "Universal Render Pipeline/Particles/Lit"
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
         _ReceiveShadows("Receive Shadows", Float) = 1.0
-        
+
         // -------------------------------------
         // Particle specific
         _SoftParticlesNearFadeDistance("Soft Particles Near Fade", Float) = 0.0
@@ -62,7 +62,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
+        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit"}
 
         // ------------------------------------------------------------------
         //  Forward pass.
@@ -79,7 +79,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -110,6 +109,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
@@ -118,7 +119,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
-        // ------------------------------------------------------------------
+	    // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
         {
@@ -130,19 +131,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             ZWrite[_ZWrite]
             Cull[_Cull]
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -171,11 +161,84 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+
             #pragma vertex ParticlesGBufferVertex
             #pragma fragment ParticlesGBufferFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGBufferPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGbufferPass.hlsl"
+            ENDHLSL
+        }
+        // ------------------------------------------------------------------
+        //  Scene view outline pass.
+        Pass
+        {
+            Name "SceneSelectionPass"
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            BlendOp Add
+            Blend One Zero
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Particle Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleSceneHighlight
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
+
+            ENDHLSL
+        }
+        // ------------------------------------------------------------------
+        //  Scene picking buffer pass.
+        Pass
+        {
+            Name "ScenePickingPass"
+            Tags{ "LightMode" = "Picking" }
+
+            BlendOp Add
+            Blend One Zero
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Particle Keywords
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:ParticleInstancingSetup
+
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleScenePicking
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
+
             ENDHLSL
         }
         Pass
@@ -188,8 +251,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
-
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON

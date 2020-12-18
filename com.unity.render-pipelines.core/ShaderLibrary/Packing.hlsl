@@ -177,7 +177,7 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 {
     real3 normal;
     normal.xy = packedNormal.ag * 2.0 - 1.0;
-    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    normal.z = max(1.0e-16, sqrt(1.0 - saturate(dot(normal.xy, normal.xy))));
 
     // must scale after reconstruction of normal.z which also
     // mirrors UnpackNormalRGB(). This does imply normal is not returned
@@ -282,6 +282,15 @@ float3 UnpackFromR11G11B10f(uint rgb)
 }
 
 #endif // SHADER_API_GLES
+
+//-----------------------------------------------------------------------------
+// Color packing
+//-----------------------------------------------------------------------------
+
+float4 UnpackFromR8G8B8A8(uint rgba)
+{
+    return float4(rgba & 255, (rgba >> 8) & 255, (rgba >> 16) & 255, (rgba >> 24) & 255) * (1.0 / 255);
+}
 
 //-----------------------------------------------------------------------------
 // Quaternion packing

@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specifies the base color (RGB) and opacity (A) of the Material.");
 
             public static GUIContent metallicText = new GUIContent("Metallic", "Controls the scale factor for the Material's metallic effect.");
+            public static GUIContent metallicRemappingText = new GUIContent("Metallic Remapping", "Controls a remap for the metallic channel in the Mask Map.");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the scale factor for the Material's smoothness.");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
             public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
@@ -113,6 +114,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kBaseColorMap = "_BaseColorMap";
         MaterialProperty[] metallic = new MaterialProperty[kMaxLayerCount];
         const string kMetallic = "_Metallic";
+        MaterialProperty[] metallicRemapMin = new MaterialProperty[kMaxLayerCount];
+        const string kMetallicRemapMin = "_MetallicRemapMin";
+        MaterialProperty[] metallicRemapMax = new MaterialProperty[kMaxLayerCount];
+        const string kMetallicRemapMax = "_MetallicRemapMax";
         MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
         const string kSmoothness = "_Smoothness";
         MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
@@ -269,6 +274,8 @@ namespace UnityEditor.Rendering.HighDefinition
             baseColor = FindPropertyLayered(kBaseColor, m_LayerCount);
             baseColorMap = FindPropertyLayered(kBaseColorMap, m_LayerCount);
             metallic = FindPropertyLayered(kMetallic, m_LayerCount);
+            metallicRemapMin = FindPropertyLayered(kMetallicRemapMin, m_LayerCount);
+            metallicRemapMax = FindPropertyLayered(kMetallicRemapMax, m_LayerCount);
             smoothness = FindPropertyLayered(kSmoothness, m_LayerCount);
             smoothnessRemapMin = FindPropertyLayered(kSmoothnessRemapMin, m_LayerCount);
             smoothnessRemapMax = FindPropertyLayered(kSmoothnessRemapMax, m_LayerCount);
@@ -369,22 +376,32 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
-            // TODO: does not work with multi-selection
-            MaterialId materialIdValue = materials[0].GetMaterialId();
-
-            if (materialIdValue == MaterialId.LitStandard ||
-                materialIdValue == MaterialId.LitAniso ||
-                materialIdValue == MaterialId.LitIridescence)
-            {
-                materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
-            }
+            bool hasMetallic = materials.All(m =>
+                m.GetMaterialId() == MaterialId.LitStandard ||
+                m.GetMaterialId() == MaterialId.LitAniso ||
+                m.GetMaterialId() == MaterialId.LitIridescence);
 
             if (maskMap[m_LayerIndex].textureValue == null)
             {
+                if (hasMetallic)
+                    materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
                 materialEditor.ShaderProperty(smoothness[m_LayerIndex], Styles.smoothnessText);
             }
             else
             {
+                if (hasMetallic)
+                {
+                    float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
+                    float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref metallicMin, ref metallicMax, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        metallicRemapMin[m_LayerIndex].floatValue = metallicMin;
+                        metallicRemapMax[m_LayerIndex].floatValue = metallicMax;
+                    }
+                }
+
                 float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
                 float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
                 EditorGUI.BeginChangeCheck();
@@ -406,7 +423,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            materialEditor.TexturePropertySingleLine((materialIdValue == MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
+            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
 
             materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
 
@@ -490,31 +507,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            switch (materialIdValue)
+            if (materials.All(m => m.GetMaterialId() == materials[0].GetMaterialId()))
             {
-                case MaterialId.LitSSS:
-                case MaterialId.LitTranslucent:
-                    ShaderSSSAndTransmissionInputGUI();
-                    break;
-                case MaterialId.LitStandard:
-                    // Nothing
-                    break;
+                // We can use materials[0] because all the material IDs have the same value
+                switch (materials[0].GetMaterialId())
+                {
+                    case MaterialId.LitSSS:
+                    case MaterialId.LitTranslucent:
+                        ShaderSSSAndTransmissionInputGUI();
+                        break;
+                    case MaterialId.LitStandard:
+                        // Nothing
+                        break;
 
-                // Following mode are not supported by layered lit and will not be call by it
-                // as the MaterialId enum don't define it
-                case MaterialId.LitAniso:
-                    ShaderAnisoInputGUI();
-                    break;
-                case MaterialId.LitSpecular:
-                    ShaderSpecularColorInputGUI();
-                    break;
-                case MaterialId.LitIridescence:
-                    ShaderIridescenceInputGUI();
-                    break;
+                    // Following mode are not supported by layered lit and will not be call by it
+                    // as the MaterialId enum don't define it
+                    case MaterialId.LitAniso:
+                        ShaderAnisoInputGUI();
+                        break;
+                    case MaterialId.LitSpecular:
+                        ShaderSpecularColorInputGUI();
+                        break;
+                    case MaterialId.LitIridescence:
+                        ShaderIridescenceInputGUI();
+                        break;
 
-                default:
-                    Debug.Assert(false, "Encountered an unsupported MaterialID.");
-                    break;
+                    default:
+                        Debug.Assert(false, "Encountered an unsupported MaterialID.");
+                        break;
+                }
             }
 
             if (!isLayeredLit)
@@ -560,8 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
 
-            // TODO: does not work with multi-selection
-            if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials[0].GetSurfaceType() != SurfaceType.Transparent)
+            if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials.All(m => m.GetSurfaceType() != SurfaceType.Transparent))
             {
                 materialEditor.ShaderProperty(subsurfaceMask[m_LayerIndex], Styles.subsurfaceMaskText);
                 materialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[m_LayerIndex]);

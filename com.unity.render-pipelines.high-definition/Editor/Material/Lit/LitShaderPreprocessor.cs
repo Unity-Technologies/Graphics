@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            // Apply following set of rules only to inspector version of shader as we don't have Transparent keyword with shader graph
+            // Apply following set of rules only to lit shader (remember that LitPreprocessor is call for any shader)
             if (isBuiltInLit)
             {
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
@@ -87,15 +87,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!inputData.shaderKeywordSet.IsEnabled(m_Transparent)) // Opaque
                 {
-                    // If opaque, we never need transparent specific passes (even in forward only mode)
-                    bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-                    bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-                    bool isTransparentBackface = snippet.passName == "TransparentBackface";
-                    bool isDistortionPass = snippet.passName == "DistortionVectors";
-                    bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
-                    if (isTransparentForwardPass)
-                        return true;
-
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
                         // When we are in deferred, we only support tile lighting
@@ -106,34 +97,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }
-
-                    // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
-                    // For now comment following code
-                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
-                    //    return true;
                 }
-            }
 
-            // We strip passes for transparent passes outside of isBuiltInLit because we want Hair, Fabric
-            // and StackLit shader graphs to be taken in account.
-            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
-            {
-                // If transparent, we never need GBuffer pass.
-                if (isGBufferPass)
-                    return true;
+                if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+                {
+                    // If transparent, we never need GBuffer pass.
+                    if (isGBufferPass)
+                        return true;
 
-                // If transparent we don't need the depth only pass
-                if (isDepthOnlyPass)
-                    return true;
-
-                // If transparent we don't need the motion vector pass
-                bool isMotionPass = snippet.passName == "MotionVectors";
-                if (isMotionPass)
-                    return true;
-
-                // If we are transparent we use cluster lighting and not tile lighting
-                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
-                    return true;
+                    // If transparent we don't need the depth only pass
+                    if (isDepthOnlyPass)
+                        return true;
+                }
             }
 
             // TODO: Tests for later

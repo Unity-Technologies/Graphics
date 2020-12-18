@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def_MSAAForward
   m_EditorClassIdentifier: 
-  m_Version: 15
+  m_Version: 16
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -202,13 +202,13 @@ MonoBehaviour:
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
+    supportSSGI: 0
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    increaseResolutionOfVolumetrics: 0
     supportLightLayers: 0
     lightLayerName0: Light Layer default
     lightLayerName1: Light Layer 1
@@ -227,6 +227,15 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 1
     supportDecals: 1
+    supportDecalLayers: 1
+    decalLayerName0: Decal Layer default
+    decalLayerName1: Decal Layer 1
+    decalLayerName2: Decal Layer 2
+    decalLayerName3: Decal Layer 3
+    decalLayerName4: Decal Layer 4
+    decalLayerName5: Decal Layer 5
+    decalLayerName6: Decal Layer 6
+    decalLayerName7: Decal Layer 7
     msaaSampleCount: 8
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -234,24 +243,20 @@ MonoBehaviour:
     supportTerrainHole: 0
     supportProbeVolume: 0
     supportRayTracing: 0
+    supportedRayTracingMode: 3
     probeVolumeSettings:
-      atlasWidth: 128
-      atlasHeight: 128
-      atlasDepth: 512
-      atlasOctahedralDepthWidth: 2048
-      atlasOctahedralDepthHeight: 2048
+      atlasResolution: 128
+      atlasOctahedralDepthResolution: 2048
     lightLoopSettings:
       cookieAtlasSize: 512
       cookieFormat: 74
       pointCookieSize: 128
-      cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
       planarReflectionAtlasSize: 2048
       reflectionProbeCacheSize: 64
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 0
-      planarReflectionCacheCompressed: 0
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -275,6 +280,8 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
+      cachedPunctualLightShadowAtlas: 2048
+      cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
         m_Values: 00010000000200000004000000080000
         m_SchemaId:
@@ -337,7 +344,7 @@ MonoBehaviour:
       ChromaticAberrationMaxSamples: 03000000060000000c000000
     lightSettings:
       useContactShadow:
-        m_Values: 
+        m_Values: 000000
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
@@ -359,6 +366,57 @@ MonoBehaviour:
       AODirectionCount: 010000000200000004000000
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
+      RTAORayLength:
+      - 0.5
+      - 3
+      - 20
+      RTAOSampleCount: 010000000200000008000000
+      RTAODenoise: 010101
+      RTAODenoiserRadius:
+      - 0.25
+      - 0.5
+      - 0.65
+      RTGIRayLength:
+      - 50
+      - 50
+      - 50
+      RTGIFullResolution: 000001
+      RTGIClampValue:
+      - 0.5
+      - 0.8
+      - 1.5
+      RTGIUpScaleRadius: 040000000400000004000000
+      RTGIDenoise: 010101
+      RTGIHalfResDenoise: 010000
+      RTGIDenoiserRadius:
+      - 0.66
+      - 0.66
+      - 1
+      RTGISecondDenoise: 010101
+      RTGISecondDenoiserRadius:
+      - 0.33
+      - 0.33
+      - 0.5
+      RTRMinSmoothness:
+      - 0.6
+      - 0.4
+      - 0
+      RTRSmoothnessFadeStart:
+      - 0.7
+      - 0.5
+      - 0
+      RTRRayLength:
+      - 50
+      - 50
+      - 50
+      RTRClampValue:
+      - 0.8
+      - 1
+      - 1.2
+      RTRUpScaleRadius: 040000000400000003000000
+      RTRFullResolution: 000001
+      RTRDenoise: 010101
+      RTRDenoiserRadius: 080000000c00000010000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
@@ -368,5 +426,11 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
   beforeTransparentCustomPostProcesses: []
+  beforeTAACustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
+  virtualTexturingSettings:
+    streamingCpuCacheSizeInMegaBytes: 256
+    streamingGpuCacheSettings:
+    - format: 0
+      sizeInMegaBytes: 128

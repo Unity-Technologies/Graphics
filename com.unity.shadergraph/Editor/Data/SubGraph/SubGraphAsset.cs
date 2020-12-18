@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
@@ -69,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
         public ShaderStageCapability effectiveShaderStage;
 
@@ -77,12 +81,16 @@ namespace UnityEditor.ShaderGraph
 
         public ConcretePrecision outputPrecision;
 
+        public PreviewMode previewMode;
+
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if(m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
             }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();

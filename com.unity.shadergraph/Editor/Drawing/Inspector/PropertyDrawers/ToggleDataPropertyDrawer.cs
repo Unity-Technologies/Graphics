@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;

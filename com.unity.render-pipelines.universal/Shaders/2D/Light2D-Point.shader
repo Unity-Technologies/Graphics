@@ -17,7 +17,6 @@ Shader "Hidden/Light2D-Point"
             Cull Off
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
@@ -62,8 +61,8 @@ Shader "Hidden/Light2D-Point"
             SHADOW_VARIABLES
 
             half4	    _LightColor;
-            half4x4	    _LightInvMatrix;
-            half4x4	    _LightNoRotInvMatrix;
+            float4x4    _LightInvMatrix;
+            float4x4    _LightNoRotInvMatrix;
             half	    _OuterAngle;			    // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius

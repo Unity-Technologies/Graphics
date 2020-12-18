@@ -61,7 +61,6 @@ namespace UnityEditor.VFX.UI
         public void UpdateLabel()
         {
             var graph = controller.model.GetGraph();
-
             if (graph != null && controller.model.contextType == VFXContextType.Spawner)
                 m_Label.text = graph.systemNames.GetUniqueSystemName(controller.model);
             else
@@ -166,8 +165,17 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Footer.parent == null)
                     mainContainer.Add(m_Footer);
-                m_FooterTitle.text = controller.model.outputType.ToString();
-                m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+
+                if (controller.model.outputFlowSlot.Any())
+                {
+                    m_FooterTitle.text = controller.model.outputType.ToString();
+                    m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+                }
+                else
+                {
+                    m_FooterTitle.text = string.Empty;
+                    m_FooterIcon.image = null;
+                }
                 m_FooterIcon.visible = m_FooterIcon.image != null;
             }
 
@@ -594,6 +602,8 @@ namespace UnityEditor.VFX.UI
                             blockUI = InstantiateBlock(blockController);
                             m_BlockContainer.Add(blockUI);
                             m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
+                            //Refresh error can only be called after the block has been instanciated
+                            blockController.model.RefreshErrors(controller.viewController.graph);
                         }
                         prevBlock = blockUI;
                     }
@@ -744,6 +754,15 @@ namespace UnityEditor.VFX.UI
 
             if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
+
+            foreach( var links in controller.model.inputFlowSlot.Select((t,i)=>new { index = i, links = t.link }))
+            {
+                foreach (var link in links.links)
+                {
+                    if (!VFXContext.CanLink(link.context, (VFXContext)desc.model, links.index, link.slotIndex))
+                        return false;
+                }
+            }
 
             return (desc.model as VFXContext).contextType == VFXContextType.Output;
         }

@@ -23,6 +23,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle magentaTextureXR { get; private set; }
         /// <summary>Default black XR 2D texture.</summary>
         public TextureHandle blackTextureXR { get; private set; }
+        /// <summary>Default black XR 2D Array texture.</summary>
+        public TextureHandle blackTextureArrayXR { get; private set; }
         /// <summary>Default black (UInt) XR 2D texture.</summary>
         public TextureHandle blackUIntTextureXR { get; private set; }
         /// <summary>Default black XR 3D texture.</summary>
@@ -44,28 +46,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void InitializeForRendering(RenderGraph renderGraph)
         {
-            if (!m_IsValid)
-            {
-                blackTexture = renderGraph.ImportTexture(m_BlackTexture2D);
-                whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D);
+            blackTexture = renderGraph.ImportTexture(m_BlackTexture2D);
+            whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D);
 
-                clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture());
-                magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture());
-                blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
-                blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
-                blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
-                whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
-
-                m_IsValid = true;
-            }
+            clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture());
+            magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture());
+            blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+            blackTextureArrayXR = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray());
+            blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
+            blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
+            whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
         }
 
-        // Imported resources are cleared everytime the Render Graph is executed, so we need to know if that happens
-        // so that we can re-import all default resources if needed.
-        internal void Clear()
-        {
-            m_IsValid = false;
-        }
     }
 }
 

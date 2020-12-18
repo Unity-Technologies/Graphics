@@ -7,7 +7,7 @@
 #define A_GPU 1
 #define A_HLSL 1
 
-#include "ffx_a.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
 // two elements:
 // [0] = const0 
 // [1] = const1
@@ -42,7 +42,7 @@ void WritePix(AU2 gxy, AF4 casPix)
 	_OutputTexture[COORD_TEXTURE2D_X(gxy)] = casPix;
 }
 
-#include "ffx_cas.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_cas.hlsl"
 
 
 [numthreads(64, 1, 1)]

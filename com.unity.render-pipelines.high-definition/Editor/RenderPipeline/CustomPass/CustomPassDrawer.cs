@@ -80,11 +80,12 @@ namespace UnityEditor.Rendering.HighDefinition
 			// Store all fields in CustomPass so we can exclude them when retrieving the user custom pass type
 			var customPassFields = typeof(CustomPass).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-			foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-			{
-				var serializeField = field.GetCustomAttribute<SerializeField>();
-				var hideInInspector = field.GetCustomAttribute<HideInInspector>();
-				var nonSerialized = field.GetCustomAttribute<NonSerializedAttribute>();
+            m_CustomPassUserProperties.Clear();
+            foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var serializeField = field.GetCustomAttribute<SerializeField>();
+                var hideInInspector = field.GetCustomAttribute<HideInInspector>();
+                var nonSerialized = field.GetCustomAttribute<NonSerializedAttribute>();
 
 				if (customPassFields.Any(f => f.Name == field.Name))
 					continue;
@@ -196,8 +197,8 @@ namespace UnityEditor.Rendering.HighDefinition
 		{
 			foreach (var prop in m_CustomPassUserProperties)
 			{
-				EditorGUI.PropertyField(rect, prop);
-				rect.y += Styles.defaultLineSpace;
+				EditorGUI.PropertyField(rect, prop, true);
+				rect.y += EditorGUI.GetPropertyHeight(prop);
 			}
 		}
 

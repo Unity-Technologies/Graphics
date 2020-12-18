@@ -24,16 +24,16 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public Action<VFXObject> onModified;
+        public Action<VFXObject,bool> onModified;
         void OnValidate()
         {
-            Modified();
+            Modified(false);
         }
 
-        public void Modified()
+        public void Modified(bool uiChange)
         {
             if (onModified != null)
-                onModified(this);
+                onModified(this,uiChange);
         }
     }
 
@@ -50,6 +50,7 @@ namespace UnityEditor.VFX
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
+            kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
         }
 
         public new virtual string name  { get { return string.Empty; } }
@@ -116,10 +117,30 @@ namespace UnityEditor.VFX
                 try
                 {
                     onInvalidateDelegate(model, cause);
+
                 }
                 finally
                 {
                     Profiler.EndSample();
+                }
+            }
+        }
+
+        public void RefreshErrors(VFXGraph graph)
+        {
+            if (graph != null)
+            {
+                graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
+                using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
+                {
+                    try
+                    {
+                        GenerateErrors(reporter);
+                    }
+                    catch(Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
@@ -318,7 +339,7 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        protected virtual void OnSettingModified(VFXSetting setting) { }
+        public virtual void OnSettingModified(VFXSetting setting) { }
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)
@@ -329,7 +350,9 @@ namespace UnityEditor.VFX
         public void Invalidate(InvalidationCause cause)
         {
             if (cause != InvalidationCause.kExpressionGraphChanged && cause != InvalidationCause.kExpressionInvalidated)
-                Modified();
+                Modified(cause == InvalidationCause.kUIChanged || cause == InvalidationCause.kUIChangedTransient);
+
+
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try
@@ -340,6 +363,38 @@ namespace UnityEditor.VFX
             {
                 Profiler.EndSample();
             }
+        }
+
+        [SerializeField]
+        List<string> m_UIIgnoredErrors = new List<string>();
+
+
+        public void IgnoreError(string error)
+        {
+            if (m_UIIgnoredErrors == null)
+                m_UIIgnoredErrors = new List<string>();
+            if (!m_UIIgnoredErrors.Contains(error))
+                m_UIIgnoredErrors.Add(error);
+        }
+
+        public bool IsErrorIgnored(string error)
+        {
+            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Contains(error);
+        }
+
+        public void ClearIgnoredErrors()
+        {
+            m_UIIgnoredErrors = null;
+            RefreshErrors(GetGraph());
+        }
+
+        public bool HasIgnoredErrors()
+        {
+            return m_UIIgnoredErrors != null && m_UIIgnoredErrors.Count > 0;
+        }
+
+        protected virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
         }
 
         protected internal virtual void Invalidate(VFXModel model, InvalidationCause cause)

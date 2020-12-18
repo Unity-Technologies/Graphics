@@ -20,7 +20,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
     $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
 
-    #ifdef _HAS_REFRACTION
+    #if defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)
         if (_EnableSSRefraction)
         {
             $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;
@@ -91,7 +91,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
     surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-    $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
+
+    $SurfaceDescription.TangentOS: surfaceData.tangentWS = TransformObjectToWorldNormal(surfaceDescription.TangentOS);
+    $SurfaceDescription.TangentTS: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.TangentTS, fragInputs.tangentToWorld);
+    $SurfaceDescription.TangentWS: surfaceData.tangentWS = surfaceDescription.TangentWS;
 
     #if HAVE_DECALS
         if (_EnableDecals)
@@ -100,8 +103,8 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             $SurfaceDescription.Alpha: alpha = surfaceDescription.Alpha;
 
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs.tangentToWorld[2], alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
         }
     #endif
 

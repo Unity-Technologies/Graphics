@@ -21,21 +21,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(!(masterNode is StackLitMasterNode1 stackLitMasterNode))
                 return false;
 
+            m_MigrateFromOldSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)stackLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)stackLitMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = stackLitMasterNode.m_AlphaTest;
             systemData.sortPriority = stackLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = stackLitMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = stackLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = stackLitMasterNode.m_transparentCullMode;
             systemData.zTest = stackLitMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = stackLitMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = stackLitMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = stackLitMasterNode.m_TransparencyFog;
             builtinData.distortion = stackLitMasterNode.m_Distortion;
             builtinData.distortionMode = stackLitMasterNode.m_DistortionMode;
@@ -84,24 +86,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap.Add(BlockFields.VertexDescription.Normal, StackLitMasterNode1.VertexNormalSlotId);
             blockMap.Add(BlockFields.VertexDescription.Tangent, StackLitMasterNode1.VertexTangentSlotId);
 
-            // Handle mapping of Normal block specifically
+            // Handle mapping of Normal and Tangent block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
             blockMap.Add(normalBlock, StackLitMasterNode1.NormalSlotId);
 
             blockMap.Add(HDBlockFields.SurfaceDescription.BentNormal, StackLitMasterNode1.BentNormalSlotId);
-            blockMap.Add(HDBlockFields.SurfaceDescription.Tangent, StackLitMasterNode1.TangentSlotId);
+            blockMap.Add(tangentBlock, StackLitMasterNode1.TangentSlotId);
             blockMap.Add(BlockFields.SurfaceDescription.BaseColor, StackLitMasterNode1.BaseColorSlotId);
 
             if (stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic)

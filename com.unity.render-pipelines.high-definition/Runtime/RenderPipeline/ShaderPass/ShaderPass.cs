@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,
+        TransparentDepthPrepass,
+        TransparentDepthPostpass,
         MotionVectors,
         Distortion,
         LightTransport,
@@ -28,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingGBuffer,
         RaytracingSubSurface,
         PathTracing,
-        Constant
+        Constant,
+        FullScreenDebug,
     }
 }
