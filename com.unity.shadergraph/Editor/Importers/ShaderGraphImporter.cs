@@ -751,22 +751,7 @@ Shader ""Hidden/GraphErrorShader2""
                     asset.outputPropertyIndices[portIndex] = portPropertyIndices[portIndex].ToArray();
                 }
 
-<<<<<<< HEAD
-            result.codeSnippets = codeSnippets.ToArray();
-            result.sharedCodeIndices = sharedCodeIndices.ToArray();
-            result.outputCodeIndices = new IntArray[ports.Count];
-            for (var i = 0; i < ports.Count; i++)
-            {
-                result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
-        }
-
-            var outputMetadatas = new OutputMetadata[ports.Count];
-            for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
-            {
-                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
-=======
                 return asset;
->>>>>>> origin/10.x.x/release
             }
             finally
             {

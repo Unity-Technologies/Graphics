@@ -453,40 +453,7 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
 
-<<<<<<< HEAD
-                if (layerOutputVariables.Count > 0)
-                {
-                    // assign feedback variable
-                    sb.AppendIndentation();
-                    if (!noFeedback)
-                    {
-                        sb.Append("float4 ");
-                        sb.Append(GetFeedbackVariableName());
-                        sb.Append(" = ");
-                    }
-                    sb.Append(GetFunctionName(out var unused));
-                    sb.Append("(");
-                    sb.Append(GetSlotValue(UVInputId, generationMode));
-                    switch (lodCalculation)
-                    {
-                        case LodCalculation.VtLevel_Lod:
-                        case LodCalculation.VtLevel_Bias:
-                            sb.Append(", ");
-                            sb.Append((lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode));
-                            break;
-                        case LodCalculation.VtLevel_Derivatives:
-                            sb.Append(", ");
-                            sb.Append(GetSlotValue(DxInputId, generationMode));
-                            sb.Append(", ");
-                            sb.Append(GetSlotValue(DyInputId, generationMode));
-                            break;
-                    }
-                    sb.Append(", ");
-                    sb.Append(vtProperty.referenceName);
-                    foreach (string layerOutputVariable in layerOutputVariables)
-=======
                     if (layerOutputVariables.Count > 0)
->>>>>>> origin/10.x.x/release
                     {
                         // assign feedback variable
                         sb.AppendIndentation();
