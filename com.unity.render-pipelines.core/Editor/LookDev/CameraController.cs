@@ -131,7 +131,6 @@ namespace UnityEditor.Rendering.LookDev
 
         public CameraController(DisplayWindow window, Action focused)
         {
-            m_CameraState = null;
             m_Window = window;
             m_Focused = focused;
         }
@@ -466,8 +465,6 @@ namespace UnityEditor.Rendering.LookDev
         public SwitchableCameraController(DisplayWindow window, Action<ViewIndex> focused)
             : base(window, null)
         {
-            m_FirstView = null;
-            m_SecondView = null;
             m_CurrentViewIndex = ViewIndex.First;
 
             m_Focused = () => focused?.Invoke(m_CurrentViewIndex);

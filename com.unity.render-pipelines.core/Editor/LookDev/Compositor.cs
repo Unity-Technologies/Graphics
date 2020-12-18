@@ -154,7 +154,6 @@ namespace UnityEditor.Rendering.LookDev
             StageCache stages)
         {
             m_Displayer = displayer;
-            m_Contexts = null;
 
             m_RenderDataCache = new RenderingData[2]
             {

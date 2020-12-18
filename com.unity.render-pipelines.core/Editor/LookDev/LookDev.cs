@@ -27,8 +27,6 @@ namespace UnityEditor.Rendering.LookDev
         /// </summary>
         internal static Context currentContext
         {
-            //get => s_CurrentContext ?? (s_CurrentContext = LoadConfigInternal() ?? defaultContext);
-
             //Lazy init: load it when needed instead in static even if you do not support lookdev
             get
             {
