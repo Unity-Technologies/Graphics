@@ -8,7 +8,7 @@ test_platforms:
   - type: playmode
   - type: editmode
 expression_trigger: 
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
 platforms:
   - name: Win
     apis:
