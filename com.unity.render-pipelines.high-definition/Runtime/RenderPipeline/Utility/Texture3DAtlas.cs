@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // For the packing in 3D, we use an algorithm that packs the 3D textures in an octree
         // where the top level elements are divided into piece of maxElementSize size.
-        // Due to the hardware limitation of max 2048 pixels in one dimension of a Texture3D, 
+        // Due to the hardware limitation of max 2048 pixels in one dimension of a Texture3D,
         // the atlas uses first the x axis and then y to place the volumes.
         // The z dimension of the atlas will always have the size of maxElementSize.
         // Here's a 2D representation of a possible atlas layout with 5 volumes:
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public AtlasElement[]   children = null;
             public AtlasElement     parent = null;
 
-            // If the texture is null, then it means this space is free 
+            // If the texture is null, then it means this space is free
             public bool IsFree() => texture == null && children == null;
 
             public AtlasElement(Vector3Int position, int size, Texture texture = null)
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 children[6] = new AtlasElement(position + new Vector3Int(0, halfSize, halfSize), halfSize);
                 // Up Back right corner
                 children[7] = new AtlasElement(position + new Vector3Int(halfSize, halfSize, halfSize), halfSize);
-                
+
                 foreach (var child in children)
                     child.parent = this;
             }
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    // If we didn't found any empty element of the same size as the texture, then we have to create a new one 
+                    // If we didn't found any empty element of the same size as the texture, then we have to create a new one
                     freeElem = m_Elements.FirstOrDefault(e => e.IsFree());
 
                     // No more space in the atlas
@@ -413,16 +413,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Generating the first mip from the source texture into the atlas to save a copy.
                     GenerateMip(cmd, element.texture, Vector3Int.zero, 0, m_Atlas, element.position, 1);
 
-                    MipGenerationSwapData source = new MipGenerationSwapData{ target = m_Atlas, offset = element.position, mipOffset = 0};
+                    MipGenerationSwapData source = new MipGenerationSwapData { target = m_Atlas, offset = element.position, mipOffset = 0};
                     // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it.
                     int tempMipOffset = (int)Mathf.Log((m_MipMapGenerationTemp.width / (element.size >> 2)), 2);
-                    MipGenerationSwapData destination = new MipGenerationSwapData{ target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = tempMipOffset - 2};
+                    MipGenerationSwapData destination = new MipGenerationSwapData { target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = tempMipOffset - 2};
 
                     for (int i = 2; i < mipMapCount; i++)
                     {
                         GenerateMip(cmd, source.target, source.offset, i + source.mipOffset - 1, destination.target, destination.offset, i + destination.mipOffset);
 
-                        // Swap rt settings 
+                        // Swap rt settings
                         var temp = source;
                         source = destination;
                         destination = temp;
@@ -484,16 +484,16 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3Int destinationTextureMipSize = new Vector3Int(destination.width >> destinationMip, destination.height >> destinationMip, GetTextureDepth(destination) >> destinationMip);
 
             Vector3 scale = Vector3.one;
-            
+
             Vector3Int sourceMipSize = new Vector3Int(source.width >> (sourceMip + 1), source.height >> (sourceMip + 1), GetTextureDepth(source) >> (sourceMip + 1));
             Vector3Int destinationMipSize = new Vector3Int(destination.width >> destinationMip, destination.height >> destinationMip, GetTextureDepth(destination) >> destinationMip);
             // if (source.width > destination.width)
             // {
             scale = new Vector3(
-                    Mathf.Min((float)destinationMipSize.x / sourceMipSize.x, 1),
-                    Mathf.Min((float)destinationMipSize.y / sourceMipSize.y, 1),
-                    Mathf.Min((float)destinationMipSize.z / sourceMipSize.z, 1)
-                );
+                Mathf.Min((float)destinationMipSize.x / sourceMipSize.x, 1),
+                Mathf.Min((float)destinationMipSize.y / sourceMipSize.y, 1),
+                Mathf.Min((float)destinationMipSize.z / sourceMipSize.z, 1)
+            );
             // }
 
             cmd.SetComputeTextureParam(m_Texture3DAtlasCompute, m_GenerateMipKernel, HDShaderIDs._Src3DTexture, source);

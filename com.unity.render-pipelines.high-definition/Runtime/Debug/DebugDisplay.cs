@@ -1488,8 +1488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
 #endif
-                    return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
-                
+                return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});

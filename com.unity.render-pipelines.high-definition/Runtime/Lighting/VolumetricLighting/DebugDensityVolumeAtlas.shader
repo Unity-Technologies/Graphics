@@ -68,7 +68,7 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
             Cull Off
 
             HLSLPROGRAM
-            #pragma fragment Color 
+            #pragma fragment Color
             ENDHLSL
         }
 
@@ -80,7 +80,7 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
             Cull Off
 
             HLSLPROGRAM
-            #pragma fragment Alpha 
+            #pragma fragment Alpha
             ENDHLSL
         }
     }
