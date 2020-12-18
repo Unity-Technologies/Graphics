@@ -16,7 +16,7 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
 expression_trigger: 
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:

@@ -13,7 +13,7 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
 expression_trigger:
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"]'
 platforms:
   - name: Win
     apis:
