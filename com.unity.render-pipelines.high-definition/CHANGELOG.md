@@ -37,6 +37,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed enums UI for the shadergraph nodes.
 - Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
 - Fixed white screen when undoing in the editor.
+- Fixed display of LOD Bias and maximum level in frame settings when using Quality Levels
+- Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
+- Fixed shader graph not supporting indirectdxr multibounce (case 1294694).
+- Fixed the planar depth texture not being properly created and rendered to (case 1299617).
+- Fixed C# 8 compilation issue with turning on nullable checks (case 1300167)
 - Fixed affects AO for deacl materials.
 
 ### Changed
@@ -51,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the upscale radius from the RTR.
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
 - When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
+- Enable Reflector for Spotlight by default
 
 ## [10.3.0] - 2020-12-01
 
