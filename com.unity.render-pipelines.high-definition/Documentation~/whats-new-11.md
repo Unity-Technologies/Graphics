@@ -64,6 +64,16 @@ There is a new field to change the falloff HDRP applies when it blends the volum
 
 Finally, the minimal value of the **Fog Distance** parameter was lowered to 0.05 instead of 1 and now allows thicker fog effects to be created.
 
+### Cloud System
+
+![](Images/HDRPFeatures-CloudLayer.png)
+
+From HDRP 11.0, HDRP introduces a cloud system, which can be controlled through the volume framework in a similar way to the sky system.
+
+HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
+
+For detailed steps on how to create your custom cloud solution, see the documentation about [creating custom clouds](Creating-Custom-Clouds.md).
+
 ## Issues resolved
 
 For information on issues resolved in version 11 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@11.0/changelog/CHANGELOG.html).

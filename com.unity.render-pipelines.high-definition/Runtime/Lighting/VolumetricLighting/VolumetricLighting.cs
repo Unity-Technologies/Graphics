@@ -304,7 +304,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
             int h = Mathf.RoundToInt(viewportHeight * screenFraction);
-            int d = sliceCount;
+
+            // Round to nearest multiple of viewCount so that each views have the exact same number of slices (important for XR)
+            int d = hdCamera.viewCount * Mathf.CeilToInt(sliceCount / hdCamera.viewCount);
 
             return new Vector3Int(w, h, d);
         }

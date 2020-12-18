@@ -81,6 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
+        RenderClouds,
         OpaqueAtmosphericScattering,
         InScatteredRadiancePrecomputation,
 
@@ -97,8 +98,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
-        RaytracingReflectionUpscaleGeneration,
-        RaytracingFilterReflection,
+        RaytracingReflectionAdjustWeight,
+        RaytracingReflectionFilter,
+        RaytracingReflectionUpscale,
         // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,

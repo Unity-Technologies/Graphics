@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<Renderer2DData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
