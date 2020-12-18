@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         public Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
-        public Dictionary<string, List<RegId>> assetPathToBricks = new Dictionary<string, List<RegId>>();
+        private Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
 
         private bool m_BricksLoaded = false;
 
@@ -154,7 +154,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
         private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
-
+        // Information of the probe volume asset that is being loaded (if one is pending)
+        private Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
@@ -205,11 +206,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var key = asset.GetSerializedFullPath();
 
-            if (m_PendingAssetsToBeLoaded.ContainsKey(key))
+            if (m_ActiveAssets.ContainsKey(key))
             {
-                m_PendingAssetsToBeLoaded.Remove(key);
+                m_ActiveAssets.Remove(key);
             }
-
+             
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             {
@@ -218,15 +219,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Unload brick data
-            if (assetPathToBricks.ContainsKey(key))
+            if (m_AssetPathToBricks.ContainsKey(key))
             {
-                var regIds = assetPathToBricks[key];
+                var regIds = m_AssetPathToBricks[key];
                 foreach (var regId in regIds)
                     ReleaseBricks(regId);
 
-                assetPathToBricks.Remove(key);
+                m_AssetPathToBricks.Remove(key);
             }
         }
+
+
 
         private void PerformPendingIndexDimensionChange()
         {
@@ -238,37 +241,54 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private void LoadAsset(ProbeVolumeAsset asset)
+        {
+            var path = asset.GetSerializedFullPath();
+            m_AssetPathToBricks[path] = new List<RegId>();
+
+            foreach (var cell in asset.cells)
+            {
+                // Push data to HDRP
+                bool compressed = false;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+
+                // TODO register ID of brick list
+                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                brickList.AddRange(cell.bricks);
+                var regId = AddBricks(brickList, dataLocation);
+
+                cells[cell.index] = cell;
+                m_AssetPathToBricks[path].Add(regId);
+            }
+        }
+
         private void PerformPendingLoading()
         {
-            if (m_PendingAssetsToBeLoaded.Count == 0 || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
+            if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
             m_Pool.EnsureTextureValidity();
 
+            // Load the ones that are already active but reload if we said we need to load
+            foreach (var asset in m_ActiveAssets.Values)
+            {
+                LoadAsset(asset);
+            }
+
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
             {
-                var path = asset.GetSerializedFullPath();
-                assetPathToBricks[path] = new List<RegId>();
-
-                foreach (var cell in asset.cells)
+                LoadAsset(asset);
+                if (!m_ActiveAssets.ContainsKey(asset.GetSerializedFullPath()))
                 {
-                    // Push data to HDRP
-                    bool compressed = false;
-                    var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                    ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
-
-                    // TODO register ID of brick list
-                    List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                    brickList.AddRange(cell.bricks);
-                    var regId = AddBricks(brickList, dataLocation);
-
-                    cells[cell.index] = cell;
-                    assetPathToBricks[path].Add(regId);
+                    m_ActiveAssets.Add(asset.GetSerializedFullPath(), asset);
                 }
             }
 
             // Mark the loading as done.
             m_NeedLoadAsset = false;
+
+            m_PendingAssetsToBeLoaded.Clear();
         }
 
         private void PerformPendingDeletion()
