@@ -2,7 +2,8 @@ project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
   url: https://github.com/Unity-Technologies/BoatAttack.git
-  branch: %BOAT_ATTACK_BRANCH%
+  branch: '%BOAT_ATTACK_BRANCH%'
+  revision: '%BOAT_ATTACK_REVISION%'
   unity_config_commands:
     - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
     - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'

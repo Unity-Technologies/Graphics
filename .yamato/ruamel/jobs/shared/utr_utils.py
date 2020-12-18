@@ -42,13 +42,8 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
                 flag = flag.replace('<COLORSPACE>',color_space)
                 flag = flag.replace('<PROJECT_FOLDER>',project_folder)
                 if f'{platform_name}_{api_name}'.lower() in ['osx_metal', 'iphone_metal','osx_openglcore', 'linux_vulkan', 'linux_openglcore']:
-                    if '%' in flag:
-                        indices = [pos for pos, char in enumerate(flag) if char == '%']
-                        if len(indices) != 2:
-                            print(f'WARNING :: check utr flags for variables for {flag}')
-                        flag = flag[:indices[0]] + '$' + flag[indices[0]+1:]
-                        flag = flag.replace('%','')
-
+                    flag = switch_var_sign(flag)
+                
                 # check if such a flag is already present, if it is then overwrite. otherwise just append it
                 existing_indices = [i for i, existing_flag in enumerate(flags) if flag_key in existing_flag]
                 if flag_key != '--extra-editor-arg' and len(existing_indices)>0:
@@ -56,3 +51,14 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
                 else:
                     flags.append(flag)
     return sorted(flags)
+
+
+def switch_var_sign(variable):
+    '''Replaces %variable% with $variable'''
+    if '%' in variable:
+        indices = [pos for pos, char in enumerate(variable) if char == '%']
+        if len(indices) != 2:
+            print(f'WARNING :: check references to {variable}')
+        variable = variable[:indices[0]] + '$' + variable[indices[0]+1:]
+        variable = variable.replace('%','')
+    return variable

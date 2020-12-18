@@ -94,7 +94,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
@@ -197,7 +197,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
         players:
             paths:
               -  "players/**"
