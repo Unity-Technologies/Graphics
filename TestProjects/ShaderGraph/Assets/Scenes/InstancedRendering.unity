@@ -190,7 +190,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 09c55465953160e44a4917bb41fd93d2, type: 2}
+  - {fileID: 2100000, guid: e868d24ea03159942958ab8a08e36b1f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -382,7 +382,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 09c55465953160e44a4917bb41fd93d2, type: 2}
+  - {fileID: 2100000, guid: e868d24ea03159942958ab8a08e36b1f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -831,16 +831,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1592147963}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4a47710edeb1684b8a31e884fa8dccc, type: 3}
+  m_Script: {fileID: 11500000, guid: 74cdbabad045a6546b635061d00e2a24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1800
-    TargetHeight: 960
-    PerPixelCorrectnessThreshold: 0.00075
+    TargetWidth: 1080
+    TargetHeight: 640
+    PerPixelCorrectnessThreshold: 0.005
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.0001
+    AverageCorrectnessThreshold: 0.005
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
@@ -848,7 +848,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 2
-  SRPBatchingDisabledPipeline: {fileID: 11400000, guid: 501afcc7bab8cc1488f38bfdce6a231c,
+  SRPBatchingDisabledPipeline: {fileID: 11400000, guid: f1a70a52e24138940b132a55cdd4f48a,
     type: 2}
 --- !u!114 &1592147968
 MonoBehaviour:
