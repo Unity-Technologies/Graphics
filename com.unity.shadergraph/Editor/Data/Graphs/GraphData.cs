@@ -283,6 +283,17 @@ namespace UnityEditor.ShaderGraph
             set => m_ConcretePrecision = value;
         }
 
+        // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
+        // if we change this, we would have to introduce a versioning step if we want to maintain the old behavior
+        [SerializeField]
+        private PreviewMode m_PreviewMode = PreviewMode.Preview3D;
+
+        public PreviewMode previewMode
+        {
+            get => m_PreviewMode;
+            set => m_PreviewMode = value;
+        }
+
         [SerializeField]
         JsonRef<AbstractMaterialNode> m_OutputNode;
 
@@ -1052,6 +1063,7 @@ namespace UnityEditor.ShaderGraph
             if (m_NodeEdges.TryGetValue(output.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
+            m_AddedEdges.Remove(e);
             m_RemovedEdges.Add(e);
             if (b != null)
             {
@@ -1121,6 +1133,21 @@ namespace UnityEditor.ShaderGraph
         {
             var edges = new List<IEdge>();
             GetEdges(s, edges);
+            return edges;
+        }
+
+        public void GetEdges(AbstractMaterialNode node, List<IEdge> foundEdges)
+        {
+            if (m_NodeEdges.TryGetValue(node.objectId, out var edges))
+            {
+                foundEdges.AddRange(edges);
+            }
+        }
+
+        public IEnumerable<IEdge> GetEdges(AbstractMaterialNode node)
+        {
+            List<IEdge> edges = new List<IEdge>();
+            GetEdges(node, edges);
             return edges;
         }
 
@@ -1508,6 +1535,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
             concretePrecision = other.concretePrecision;
+            m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
             if ((this.vertexContext.position != other.vertexContext.position) ||
@@ -2051,6 +2079,32 @@ namespace UnityEditor.ShaderGraph
                                         var outputSlot = edge.outputSlot;
                                         m_Edges.Remove(edge);
                                         m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
+                                    }
+                                }
+
+                                // manually handle a bug where fragment normal slots could get out of sync of the master node's set fragment normal space
+                                if (descriptor == BlockFields.SurfaceDescription.NormalOS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Object)
+                                    {
+                                        norm.space = CoordinateSpace.Object;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalTS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.Tangent)
+                                    {
+                                        norm.space = CoordinateSpace.Tangent;
+                                    }
+                                }
+                                else if (descriptor == BlockFields.SurfaceDescription.NormalWS)
+                                {
+                                    NormalMaterialSlot norm = newSlot as NormalMaterialSlot;
+                                    if (norm.space != CoordinateSpace.World)
+                                    {
+                                        norm.space = CoordinateSpace.World;
                                     }
                                 }
                             }
