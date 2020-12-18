@@ -69,6 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cellIndex2SceneReferences.Clear();
+
+            foreach(var cell in bakingCells)
+            {
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
+            }
+
             bakingCells.Clear();
         }
 
