@@ -267,7 +267,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 0
+  WaitFrames: 2
 --- !u!81 &971756571
 AudioListener:
   m_ObjectHideFlags: 0
@@ -536,7 +536,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0561ef625dcb0fa41acd16e6a7fe9dfa, type: 2}
+  - {fileID: 2100000, guid: 09d227349c99fb24997ae10bb7b3ac7a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
