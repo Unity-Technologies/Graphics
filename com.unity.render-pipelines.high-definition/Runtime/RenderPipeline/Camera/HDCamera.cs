@@ -1352,7 +1352,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            if (!camera.usePhysicalProperties)
+            if (camera.orthographic)
+            {
+                verticalFoV = -1;
+            }
+            else if (!camera.usePhysicalProperties)
             {
                 verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
             }
