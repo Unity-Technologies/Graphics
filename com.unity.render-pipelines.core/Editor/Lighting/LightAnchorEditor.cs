@@ -603,8 +603,8 @@ namespace UnityEditor
         static public GUIContent presetTextureKickRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetKick_Right", ".png", false), "Kick Right");
         static public GUIContent presetTextureBounceRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetBounce_Right", ".png", false), "Bounce Right");
         static public GUIContent presetTextureFillRight = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetFill_Right", ".png", false), "Fill Right");
-        static public GUIContent distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
-        static public GUIContent upDirectionProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
+        static public GUIContent distanceProperty = new GUIContent("Distance", "Controls how far 'back', the light is placed from its anchor");
+        static public GUIContent upDirectionProperty = new GUIContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
         static public GUIContent[] angleSubContent = new[]
         {
             EditorGUIUtility.TrTextContent("Yaw"),

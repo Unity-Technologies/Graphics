@@ -12,6 +12,7 @@ namespace UnityEngine
     [RequireComponent(typeof(Light))]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
+    [HelpURL(Rendering.Documentation.baseURL + Rendering.Documentation.version + Rendering.Documentation.subURL + "View-Lighting-Tool" + Rendering.Documentation.endURL)]
     public class LightAnchor : MonoBehaviour
     {
         const float k_ArcRadius = 5;
