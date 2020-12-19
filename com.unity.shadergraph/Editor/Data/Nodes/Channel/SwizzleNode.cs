@@ -132,10 +132,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override int latestVersion => 1;
-        //public override void OnAfterDeserialize()
-        //{
-        //    base.OnAfterDeserialize();
-        //}
 
         public override void OnAfterMultiDeserialize(string json)
         {
