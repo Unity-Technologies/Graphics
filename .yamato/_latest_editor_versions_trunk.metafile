@@ -17,12 +17,12 @@ editor_versions:
       updated_at: '2020-12-17 23:18:06.814977'
       version: ''
     linux:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     macos:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     windows:
       revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
@@ -38,12 +38,12 @@ editor_versions:
       updated_at: '2020-12-17 23:18:06.814977'
       version: ''
     linux:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     macos:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     windows:
       revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
@@ -59,12 +59,12 @@ editor_versions:
       updated_at: '2020-12-17 23:18:06.814977'
       version: ''
     linux:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     macos:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
+      updated_at: '2020-12-19 23:15:06.274318'
       version: ''
     windows:
       revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
