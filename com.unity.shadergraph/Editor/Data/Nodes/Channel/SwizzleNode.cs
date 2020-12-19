@@ -42,8 +42,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 _maskInput = value;
                 UpdateNodeAfterDeserialization();
-                //if (owner != null)
-                    owner.ValidateGraph();
+                if (owner != null)
+                owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -132,6 +132,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override int latestVersion => 1;
+        //public override void OnAfterDeserialize()
+        //{
+        //    base.OnAfterDeserialize();
+        //}
 
         public override void OnAfterMultiDeserialize(string json)
         {
@@ -147,33 +151,35 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override IEnumerable<int> allowedNodeVersions => new List<int>{1};
-    }
 
-    class LegacySwizzleChannelData
-    {
-        //collect texturechannel properties
-        [SerializeField]
-        public TextureChannel m_RedChannel;
-        [SerializeField]
-        public TextureChannel m_GreenChannel;
-        [SerializeField]
-        public TextureChannel m_BlueChannel;
-        [SerializeField]
-        public TextureChannel m_AlphaChannel;
-
-
-        public static void LegancySwizzleChannel(string json, SwizzleNode node)
+        class LegacySwizzleChannelData
         {
-            Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
+            //collect texturechannel properties
+            [SerializeField]
+            public TextureChannel m_RedChannel;
+            [SerializeField]
+            public TextureChannel m_GreenChannel;
+            [SerializeField]
+            public TextureChannel m_BlueChannel;
+            [SerializeField]
+            public TextureChannel m_AlphaChannel;
+
+
+            public static void LegancySwizzleChannel(string json, SwizzleNode node)
+            {
+                Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
                 {
                     {TextureChannel.Red, "r" },
                     {TextureChannel.Green, "g" },
                     {TextureChannel.Blue, "b" },
                     {TextureChannel.Alpha, "a" },
                 };
-            var legacySwizzleChannelData = new LegacySwizzleChannelData();
-            JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
-           node.maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
+                var legacySwizzleChannelData = new LegacySwizzleChannelData();
+                JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
+                node._maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
+            }
         }
     }
+
+
 }
