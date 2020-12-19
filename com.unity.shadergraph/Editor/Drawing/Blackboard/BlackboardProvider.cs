@@ -264,8 +264,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
-                input.displayName = newText;
-                m_Graph.SanitizeGraphInputName(input);
+                input.SetDisplayNameAndSanitize(newText, m_Graph);
                 field.text = input.displayName;
                 // need to trigger the inspector update to match
                 field.InspectorUpdateTrigger();
@@ -350,6 +349,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
             {
                 m_Graph.SanitizeGraphInputName(input);
+                input.UpdateDefaultReferenceName(m_Graph);
                 input.generatePropertyBlock = input.isExposable;
             }
 
@@ -440,7 +440,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var newFieldView = evt.target as BlackboardFieldView;
             // If this field view represents a value that was previously selected
-            if (oldSelectionPersistenceData.TryGetValue(newFieldView?.shaderInput.referenceName, out var oldViewDataKey))
+            var refName = newFieldView?.shaderInput?.referenceName;
+            if (refName != null && oldSelectionPersistenceData.TryGetValue(refName, out var oldViewDataKey))
             {
                 // ViewDataKey is how UIElements handles UI state persistence,
                 // This selects the newly added field view

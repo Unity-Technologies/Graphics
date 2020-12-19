@@ -63,18 +63,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         bool isSubGraph { get; set;  }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         ChangeDisplayNameCallback _displayNameChangedCallback;
-        ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
         PostChangeValueCallback _postChangeValueCallback;
+
         public void GetPropertyData(
             bool isSubGraph,
             GraphData graphData,
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeDisplayNameCallback displayNameCallback,
-            ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
@@ -85,7 +84,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.graphData = graphData;
             this._exposedFieldChangedCallback = exposedFieldCallback;
             this._displayNameChangedCallback = displayNameCallback;
-            this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
             this._keywordChangedCallback = keywordChangedCallback;
@@ -149,15 +147,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_DisplayNameField.RegisterValueChangedCallback(
                 evt =>
                 {
-                    this._preChangeValueCallback("Change Display Name");
-                    this._displayNameChangedCallback(evt.newValue);
+                    if (evt.newValue != shaderInput.displayName)
+                    {
+                        this._preChangeValueCallback("Change Display Name");
+                        shaderInput.SetDisplayNameAndSanitize(evt.newValue, graphData);
+                        this._displayNameChangedCallback(evt.newValue);
 
-                    if (string.IsNullOrEmpty(shaderInput.displayName))
-                        m_DisplayNameField.RemoveFromClassList("modified");
-                    else
-                        m_DisplayNameField.AddToClassList("modified");
+                        if (string.IsNullOrEmpty(shaderInput.displayName))
+                            m_DisplayNameField.RemoveFromClassList("modified");
+                        else
+                            m_DisplayNameField.AddToClassList("modified");
 
-                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                        this._postChangeValueCallback(true, ModificationScope.Topological);
+                    }
                 });
 
             if (!string.IsNullOrEmpty(shaderInput.displayName))
@@ -181,7 +183,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     evt =>
                     {
                         this._preChangeValueCallback("Change Reference Name");
-                        this._referenceNameChangedCallback(evt.newValue);
+
+                        if (evt.newValue != shaderInput.referenceName)
+                            shaderInput.SetOverrideReferenceNameAndSanitize(evt.newValue, graphData);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                         {
@@ -228,9 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public void ResetReferenceName()
         {
             this._preChangeValueCallback("Reset Reference Name");
-            shaderInput.overrideReferenceName = null;
-            var refName = shaderInput.referenceName;
-            this._referenceNameChangedCallback(refName);
+            var refName = shaderInput.ResetReferenceName(graphData);
             m_ReferenceNameField.value = refName;
             this._postChangeValueCallback(true, ModificationScope.Graph);
         }
@@ -238,9 +240,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public void UpgradeDefaultReferenceName()
         {
             this._preChangeValueCallback("Upgrade Reference Name");
-            shaderInput.UpgradeDefaultReferenceName();
-            var refName = shaderInput.referenceName;
-            this._referenceNameChangedCallback(refName);
+            var refName = shaderInput.UpgradeDefaultReferenceName(graphData);
             m_ReferenceNameField.value = refName;
             this._postChangeValueCallback(true, ModificationScope.Graph);
         }

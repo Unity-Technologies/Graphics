@@ -579,6 +579,12 @@ namespace UnityEditor.Graphing
             "4x1", "4x2", "4x3", "4x4"
         };
 
+        static HashSet<string> m_ShaderLabKeywords = new HashSet<string>()
+        {
+            "Float",
+            "Color",
+        };
+
         static HashSet<string> m_HLSLKeywords = new HashSet<string>()
         {
             "AppendStructuredBuffer",
@@ -746,7 +752,13 @@ namespace UnityEditor.Graphing
             return isHLSLKeyword;
         }
 
-        public static string ConvertToValidHLSLIdentifier(string originalId)
+        public static bool IsShaderLabKeyWord(string id)
+        {
+            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id);
+            return isShaderLabKeyword;
+        }
+
+        public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)
         {
             // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
             StringBuilder hlslId = new StringBuilder(originalId.Length);
@@ -793,6 +805,10 @@ namespace UnityEditor.Graphing
 
             while (IsHLSLKeyword(result))
                 result = "_" + result;
+
+            if (isDisallowedIdentifier != null)
+                while (isDisallowedIdentifier(result))
+                    result = "_" + result;
 
             return result;
         }

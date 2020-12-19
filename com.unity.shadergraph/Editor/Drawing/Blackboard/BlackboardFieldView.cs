@@ -146,8 +146,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.isSubGraph,
                     m_Graph,
                     ChangeExposedField,
-                    ChangeDisplayNameField,
-                    ChangeReferenceNameField,
+                    OnDisplayNameChanged,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
                     ChangePropertyValue,
@@ -167,20 +166,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
         }
 
-        void ChangeDisplayNameField(string newValue)
+        void OnDisplayNameChanged(string newValue)
         {
-            if (newValue != m_Input.displayName)
-            {
-                m_Input.displayName = newValue;
-                m_Graph.SanitizeGraphInputName(m_Input);
-                this.BlackBoardUpdateTrigger();
-            }
-        }
-
-        void ChangeReferenceNameField(string newValue)
-        {
-            if (newValue != m_Input.referenceName)
-                m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
+            this.BlackBoardUpdateTrigger();
         }
 
         void RegisterPropertyChangeUndo(string actionName)

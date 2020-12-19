@@ -109,8 +109,7 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = !value;
         }
 
-        internal override bool isExposable => !isBuiltIn
-        && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
+        internal override bool isExposable => !isBuiltIn;
 
         internal override bool isRenamable => !isBuiltIn;
 
@@ -140,7 +139,7 @@ namespace UnityEditor.ShaderGraph
                     if (referenceName.EndsWith("_ON"))
                         return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
                     else
-                        return string.Empty;
+                        return $"[Toggle({referenceName})]{referenceName}(\"{displayName}\", Float) = {value}";
                 default:
                     throw new ArgumentOutOfRangeException();
             }

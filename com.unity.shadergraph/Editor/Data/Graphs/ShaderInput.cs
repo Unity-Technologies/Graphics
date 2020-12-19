@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -28,9 +29,41 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Name = value;
         }
 
-        internal void SetDisplayName(string desiredName, GraphData graphData)
+        internal void SetDisplayNameAndSanitize(string desiredName, GraphData graphData)
         {
             m_Name = desiredName;
+            graphData.SanitizeGraphInputName(this);
+            if (String.IsNullOrEmpty(overrideReferenceName))
+                UpdateDefaultReferenceName(graphData);
+        }
+
+        internal void SetOverrideReferenceNameAndSanitize(string desiredRefName, GraphData graphData)
+        {
+            graphData.SanitizeGraphInputReferenceName(this, desiredRefName);
+        }
+
+        // resets the reference name to a "default" value (deduplicated against existing reference names)
+        // returns the new default reference name
+        internal string ResetReferenceName(GraphData graphData)
+        {
+            overrideReferenceName = null;
+            UpdateDefaultReferenceName(graphData);
+            return referenceName;
+        }
+
+        internal void UpdateDefaultReferenceName(GraphData graphData)
+        {
+            if (m_DefaultRefNameVersion <= 0)
+                return; // old version is updated in the getter
+
+            var dispName = displayName;
+            if (string.IsNullOrEmpty(m_DefaultReferenceName) ||
+                (m_RefNameGeneratedByDisplayName != dispName))
+            {
+                var hlslName = NodeUtils.ConvertToValidHLSLIdentifier(dispName, NodeUtils.IsShaderLabKeyWord);
+                m_DefaultReferenceName = graphData.DeduplicateGraphInputReferenceName(this, hlslName);
+                m_RefNameGeneratedByDisplayName = dispName;
+            }
         }
 
         const int k_LatestDefaultRefNameVersion = 1;
@@ -58,13 +91,8 @@ namespace UnityEditor.ShaderGraph.Internal
                     }
                     else // version 1
                     {
-                        var dispName = displayName;
-                        if (string.IsNullOrEmpty(m_DefaultReferenceName) ||
-                            (m_RefNameGeneratedByDisplayName != dispName))
-                        {
-                            m_DefaultReferenceName = NodeUtils.ConvertToValidHLSLIdentifier(dispName);
-                            m_RefNameGeneratedByDisplayName = dispName;
-                        }
+                        if (m_DefaultReferenceName == null)
+                            Debug.Log("Default Reference Name is NULL for " + displayName);
                         return m_DefaultReferenceName;
                     }
                 }
@@ -93,11 +121,13 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         // upgrades the default reference name to use the new naming scheme
-        public void UpgradeDefaultReferenceName()
+        internal string UpgradeDefaultReferenceName(GraphData graphData)
         {
             m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
             m_DefaultReferenceName = null;
             m_RefNameGeneratedByDisplayName = null;
+            UpdateDefaultReferenceName(graphData);
+            return referenceName;
         }
 
         [SerializeField]

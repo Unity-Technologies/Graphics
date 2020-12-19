@@ -718,6 +718,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var copiedInput = (ShaderKeyword)keyword.Copy();
                 subGraph.SanitizeGraphInputName(copiedInput);
+                copiedInput.UpdateDefaultReferenceName(subGraph);
                 subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
                 subGraph.AddGraphInput(copiedInput);
 
@@ -888,6 +889,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         : fromSlot.concreteValueType.ToString();
                     prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
                         prop.displayName);
+                    prop.UpdateDefaultReferenceName(subGraph);
                     subGraph.AddGraphInput(prop);
                     if (fromProperty != null)
                     {

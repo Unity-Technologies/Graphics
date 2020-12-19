@@ -82,8 +82,7 @@ namespace UnityEditor.ShaderGraph
                     graph.isSubGraph,
                     graph,
                     this.ChangeExposedField,
-                    this.ChangeDisplayNameField,
-                    this.ChangeReferenceNameField,
+                    this.OnDisplayNameChanged,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
@@ -101,23 +100,8 @@ namespace UnityEditor.ShaderGraph
             icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
         }
 
-        void ChangeDisplayNameField(string newValue)
+        void OnDisplayNameChanged(string newValue)
         {
-            var graph = node.owner as GraphData;
-
-            if (newValue != property.displayName)
-            {
-                property.displayName = newValue;
-                graph.SanitizeGraphInputName(property);
-            }
-        }
-
-        void ChangeReferenceNameField(string newValue)
-        {
-            var graph = node.owner as GraphData;
-
-            if (newValue != property.referenceName)
-                graph.SanitizeGraphInputReferenceName(property, newValue);
         }
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)

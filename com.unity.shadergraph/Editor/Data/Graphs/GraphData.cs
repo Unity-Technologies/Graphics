@@ -1284,6 +1284,32 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public string DeduplicateGraphInputReferenceName(ShaderInput input, string newName)
+        {
+            if (string.IsNullOrEmpty(newName))
+                newName = "_";
+
+            string name = newName.Trim();
+            if (string.IsNullOrEmpty(name))
+                name = "_";
+
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
+
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+
+            switch (input)
+            {
+                case AbstractShaderProperty property:
+                    return GraphUtil.DeduplicateName(properties.Where(p => p != property).Select(p => p.referenceName), "{0}_{1}", name);
+                case ShaderKeyword keyword:
+                    name = name.ToUpper();
+                    return GraphUtil.DeduplicateName(keywords.Where(p => p != input).Select(p => p.referenceName), "{0}_{1}", name.ToUpper());
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
         {
             if (string.IsNullOrEmpty(newName))
@@ -1765,6 +1791,7 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         SanitizeGraphInputName(keywordNode.keyword);
+                        keyword.UpdateDefaultReferenceName(this);
                         SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
                         AddGraphInput(keywordNode.keyword);
                     }

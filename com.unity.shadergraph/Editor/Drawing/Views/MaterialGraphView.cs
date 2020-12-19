@@ -715,6 +715,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
                 graph.SanitizeGraphInputName(prop);
+                prop.UpdateDefaultReferenceName(graph);
                 graph.AddGraphInput(prop);
 
                 var propNode = new PropertyNode();
@@ -1138,6 +1139,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             var copy = (AbstractShaderProperty)property.Copy();
                             graph.SanitizeGraphInputName(copy);
+                            copy.UpdateDefaultReferenceName(graph);
                             graph.SanitizeGraphInputReferenceName(copy, property.overrideReferenceName); // We do want to copy the overrideReferenceName
 
                             property = copy;
@@ -1161,6 +1163,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             var copy = (ShaderKeyword)keyword.Copy();
                             graph.SanitizeGraphInputName(copy);
+                            copy.UpdateDefaultReferenceName(graph);
                             graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName); // We do want to copy the overrideReferenceName
 
                             keyword = copy;
@@ -1323,6 +1326,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copy != null) // some ShaderInputs cannot be copied
             {
                 graph.SanitizeGraphInputName(copy);
+                copy.UpdateDefaultReferenceName(graph);
                 graph.AddGraphInput(copy, index);
                 copy.generatePropertyBlock = original.generatePropertyBlock;
             }
