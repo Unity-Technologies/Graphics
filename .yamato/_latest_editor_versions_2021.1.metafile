@@ -9,25 +9,25 @@ editor_version_names:
 editor_versions:
   2021_1_latest_internal:
     android:
-      revision: fa6955fa3c39
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a10
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-20 23:15:00.460217'
+      version: 2021.1.0b1
     ios:
-      revision: fa6955fa3c39
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a10
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-20 23:15:00.460217'
+      version: 2021.1.0b1
     linux:
-      revision: fa6955fa3c39
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a10
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-20 23:15:00.460217'
+      version: 2021.1.0b1
     macos:
-      revision: fa6955fa3c39
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a10
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-20 23:15:00.460217'
+      version: 2021.1.0b1
     windows:
-      revision: fa6955fa3c39
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a10
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-20 23:15:00.460217'
+      version: 2021.1.0b1
   2021_1_latest_public:
     android:
       revision: 18321e85013a
@@ -51,22 +51,22 @@ editor_versions:
       version: 2021.1.0a9
   2021_1_staging:
     android:
-      revision: 971cea6609ea4b9507381a75f2be5f40650327ee
-      updated_at: '2020-12-19 23:15:30.591006'
+      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
+      updated_at: '2020-12-20 23:15:00.460217'
       version: ''
     ios:
-      revision: eb92f44dc702a7cefe400e9aab1d05138393f4ad
-      updated_at: '2020-12-19 23:15:30.591006'
+      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
+      updated_at: '2020-12-20 23:15:00.460217'
       version: ''
     linux:
-      revision: 971cea6609ea4b9507381a75f2be5f40650327ee
-      updated_at: '2020-12-19 23:15:30.591006'
+      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
+      updated_at: '2020-12-20 23:15:00.460217'
       version: ''
     macos:
-      revision: eb92f44dc702a7cefe400e9aab1d05138393f4ad
-      updated_at: '2020-12-19 23:15:30.591006'
+      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
+      updated_at: '2020-12-20 23:15:00.460217'
       version: ''
     windows:
-      revision: 971cea6609ea4b9507381a75f2be5f40650327ee
-      updated_at: '2020-12-19 23:15:30.591006'
+      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
+      updated_at: '2020-12-20 23:15:00.460217'
       version: ''
