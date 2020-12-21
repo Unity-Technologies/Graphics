@@ -62,6 +62,26 @@ namespace UnityEngine.Rendering.Universal
         AfterRenderingPrePasses = 200,
 
         /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering gbuffer pass.
+        /// </summary>
+        BeforeRenderingGbuffer = 210,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering gbuffer pass.
+        /// </summary>
+        AfterRenderingGbuffer = 220,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering deferred shading pass.
+        /// </summary>
+        BeforeRenderingDeferredLights = 230,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering deferred shading pass.
+        /// </summary>
+        AfterRenderingDeferredLights = 240,
+
+        /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering opaque objects.
         /// </summary>
         BeforeRenderingOpaques = 250,
