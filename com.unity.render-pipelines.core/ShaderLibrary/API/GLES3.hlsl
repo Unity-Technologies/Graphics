@@ -2,8 +2,6 @@
 #error GLES.hlsl should not be included if SHADER_API_GLES3 is not defined
 #endif
 
-#define UNITY_UV_STARTS_AT_TOP 0
-#define UNITY_REVERSED_Z 0
 #define UNITY_NEAR_CLIP_VALUE (-1.0)
 
 // This value will not go through any matrix projection convertion
@@ -166,4 +164,3 @@
 #define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)             ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_BLUE_TEXTURE2D)
 #define GATHER_ALPHA_TEXTURE2D(textureName, samplerName, coord2)            ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_ALPHA_TEXTURE2D)
 #endif
-

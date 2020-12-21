@@ -108,9 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
-                                                                                PlanarReflectionAtlasResolution.Resolution1024,
-                                                                                PlanarReflectionAtlasResolution.Resolution2048 },
-                                                                                ScalableSettingSchemaId.With3Levels),
+                                                                                                        PlanarReflectionAtlasResolution.Resolution1024,
+                                                                                                        PlanarReflectionAtlasResolution.Resolution2048 },
+                    ScalableSettingSchemaId.With3Levels),
                 lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
                 hdShadowInitParams = HDShadowInitParameters.NewDefault(),
                 decalSettings = GlobalDecalSettings.NewDefault(),
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName6 = "Light Layer 6",
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
-                probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+                probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
             };
             return settings;
         }
@@ -153,7 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 useContactShadow = new BoolScalableSetting(new[] { false, false, true }, ScalableSettingSchemaId.With3Levels)
             };
-
         }
 
 
@@ -169,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="values">The values of the settings</param>
             /// <param name="schemaId">The schema of the setting.</param>
             public PlanarReflectionAtlasResolutionScalableSetting(PlanarReflectionAtlasResolution[] values, ScalableSettingSchemaId schemaId)
-            : base(values, schemaId)
+                : base(values, schemaId)
             {
             }
         }
@@ -269,14 +268,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         [SerializeField] internal bool supportProbeVolume;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
         /// <summary>Support ray tracing mode.</summary>
         public SupportedRayTracingMode supportedRayTracingMode;
 
-        /// <summary>Global Probe Volume settings.</summary>
-        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
-		/// <summary>Global light loop settings.</summary>
+        /// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
         public HDShadowInitParameters hdShadowInitParams;

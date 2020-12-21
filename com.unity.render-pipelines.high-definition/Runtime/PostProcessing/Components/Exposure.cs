@@ -49,14 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the minimum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMin = new FloatParameter(-10f);
+        public FloatParameter limitMin = new FloatParameter(-1f);
 
         /// <summary>
         /// Sets the maximum value that the Scene exposure can be set to.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the maximum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMax = new FloatParameter(20f);
+        public FloatParameter limitMax = new FloatParameter(14f);
 
         /// <summary>
         /// Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.
@@ -237,8 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Create a weight mask centered around the specified UV and with the desired parameters.
         /// </summary>
         ProceduralMask,
-
-
     }
 
     /// <summary>
@@ -329,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { }
+        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -371,6 +369,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) { }
+        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

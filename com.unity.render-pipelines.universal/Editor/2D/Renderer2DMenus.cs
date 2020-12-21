@@ -15,8 +15,6 @@ using UnityEditor.ProjectWindowCallback;
 using UnityEditorInternal;
 
 
-
-
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     static class Renderer2DMenus
@@ -37,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<Renderer2DData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
@@ -57,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     view.MoveToView(go.transform);
             }
         }
-
 
         // This is from GOCreationCommands
         internal static void Place(GameObject go, GameObject parent)
@@ -95,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Light2D light2D = go.GetComponent<Light2D>();
             light2D.lightType = type;
 
-            if(shapePath != null && shapePath.Length > 0)
+            if (shapePath != null && shapePath.Length > 0)
                 light2D.shapePath = shapePath;
 
             var parent = menuCommand.context as GameObject;
@@ -191,7 +189,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

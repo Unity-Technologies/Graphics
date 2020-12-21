@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
         OutputEvent =   1 << 1,
         Particle =      1 << 2,
         Mesh =          1 << 3,
-        ParticleStrip = 1 << 4 | Particle, // strips 
+        ParticleStrip = 1 << 4 | Particle, // strips
     };
 
     [Serializable]
@@ -243,6 +243,10 @@ namespace UnityEditor.VFX
 
             //Special incorrect case, GPUEvent use the same type than Spawner which leads to an unexpected allowed link.
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
+                return false;
+
+            //Can't connect directly event to context (OutputEvent or Initialize) for now
+            if (from.m_ContextType == VFXContextType.Event && to.contextType != VFXContextType.Spawner && to.contextType != VFXContextType.Subgraph)
                 return false;
 
             return true;

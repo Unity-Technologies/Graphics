@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
-            while(lightIndex < lights.Count)
+            while (lightIndex < lights.Count)
             {
                 var remainingLights = (uint)lights.Count - lightIndex;
                 var batchedLights = 0;
@@ -260,14 +260,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 // Release all of the temporary shadow textures
-                for (var releaseIndex = shadowLightCount-1; releaseIndex >= 0; releaseIndex--)
+                for (var releaseIndex = shadowLightCount - 1; releaseIndex >= 0; releaseIndex--)
                     ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             var maxShadowTextureCount = ShadowRendering.maxTextureCount;
             var requiresRTInit = true;
@@ -281,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
-            while(lightIndex < lights.Count)
+            while (lightIndex < lights.Count)
             {
                 var remainingLights = (uint)lights.Count - lightIndex;
                 var batchedLights = 0;
@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // Set the current RT to the light RT
                 if (shadowLightCount > 0 || requiresRTInit)
                 {
-                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    cmd.SetRenderTarget(renderTexture, depthTexture);
                     requiresRTInit = false;
                 }
 
@@ -528,7 +528,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         i,
                         cmd,
                         layerToRender,
-                            identifier,
+                        identifier,
                         pass.rendererData.lightCullResult.visibleLights
                     );
                 }

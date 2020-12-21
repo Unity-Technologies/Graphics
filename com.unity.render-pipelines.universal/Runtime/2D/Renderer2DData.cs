@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
-        [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
+        [SerializeField]
         PostProcessData m_PostProcessData = null;
 
         [SerializeField, Reload("Runtime/2D/Data/Textures/FalloffLookupTexture.png")]
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader samplingShader => m_SamplingShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
-        internal PostProcessData postProcessData => m_PostProcessData;
+        internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
@@ -118,8 +118,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+                ReloadAllNullProperties();
             }
 #endif
             return new Renderer2D(this);
@@ -138,9 +137,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             shadowsRenderTarget.Init("_ShadowTex");
 
             const int totalMaterials = 256;
-            if(shadowMaterials == null || shadowMaterials.Length == 0)
+            if (shadowMaterials == null || shadowMaterials.Length == 0)
                 shadowMaterials = new Material[totalMaterials];
-            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
+            if (removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
         }
 

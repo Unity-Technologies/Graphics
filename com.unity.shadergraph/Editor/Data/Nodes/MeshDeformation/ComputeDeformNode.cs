@@ -98,10 +98,10 @@ namespace UnityEditor.ShaderGraph
             if (generationMode == GenerationMode.ForReals)
             {
                 sb.AppendLine($"{GetFunctionName()}(" +
-                           $"IN.VertexID, " +
-                           $"{GetVariableNameForSlot(kPositionOutputSlotId)}, " +
-                           $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
-                           $"{GetVariableNameForSlot(kTangentOutputSlotId)});");
+                    $"IN.VertexID, " +
+                    $"{GetVariableNameForSlot(kPositionOutputSlotId)}, " +
+                    $"{GetVariableNameForSlot(kNormalOutputSlotId)}, " +
+                    $"{GetVariableNameForSlot(kTangentOutputSlotId)});");
             }
 #if ENABLE_HYBRID_RENDERER_V2
             sb.AppendLine("#else");
@@ -131,10 +131,10 @@ namespace UnityEditor.ShaderGraph
             registry.ProvideFunction(GetFunctionName(), sb =>
             {
                 sb.AppendLine($"void {GetFunctionName()}(" +
-                            "uint vertexID, " +
-                            "out $precision3 positionOut, " +
-                            "out $precision3 normalOut, " +
-                            "out $precision3 tangentOut)");
+                    "uint vertexID, " +
+                    "out $precision3 positionOut, " +
+                    "out $precision3 normalOut, " +
+                    "out $precision3 tangentOut)");
 
                 sb.AppendLine("{");
                 using (sb.IndentScope())

@@ -49,8 +49,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4  positionCS  : SV_POSITION;
                 half4   color       : COLOR;
-                float2	uv          : TEXCOORD0;
-                half2	lightingUV  : TEXCOORD1;
+                float2  uv          : TEXCOORD0;
+                half2   lightingUV  : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -86,8 +86,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                float4 clipVertex = o.positionCS / o.positionCS.w;
-                o.lightingUV = ComputeScreenPos(clipVertex).xy;
+                o.lightingUV = ComputeNormalizedDeviceCoordinates(o.positionCS);
                 o.color = v.color;
                 return o;
             }
@@ -114,20 +113,20 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Attributes
             {
                 float3 positionOS   : POSITION;
-                float4 color		: COLOR;
-                float2 uv			: TEXCOORD0;
+                float4 color        : COLOR;
+                float2 uv           : TEXCOORD0;
                 float4 tangent      : TANGENT;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                half4   color			: COLOR;
-                float2	uv				: TEXCOORD0;
-                half3   normalWS		: TEXCOORD1;
-                half3   tangentWS		: TEXCOORD2;
-                half3   bitangentWS		: TEXCOORD3;
+                float4  positionCS      : SV_POSITION;
+                half4   color           : COLOR;
+                float2  uv              : TEXCOORD0;
+                half3   normalWS        : TEXCOORD1;
+                half3   tangentWS       : TEXCOORD2;
+                half3   bitangentWS     : TEXCOORD3;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -173,16 +172,16 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Attributes
             {
                 float3 positionOS   : POSITION;
-                float4 color		: COLOR;
-                float2 uv			: TEXCOORD0;
+                float4 color        : COLOR;
+                float2 uv           : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                float4  color			: COLOR;
-                float2	uv				: TEXCOORD0;
+                float4  positionCS      : SV_POSITION;
+                float4  color           : COLOR;
+                float2  uv              : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 

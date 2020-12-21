@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Material m_SamplingMaterial;
 
         private readonly Renderer2DData m_Renderer2DData;
-        
+
         private bool m_HasValidDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
@@ -104,7 +104,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return short.MinValue;
         }
 
-
         private int DrawLayerBatches(
             LayerBatch[] layerBatches,
             int batchCount,
@@ -159,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
             using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+                cmd.SetRenderTarget(colorAttachment, depthAttachment);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -222,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
 
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
                         }
@@ -315,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBufferPool.Release(cmd);
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                    context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
             }
 

@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
                 return false;
             }
             EditorGUILayout.BeginHorizontal();
-            
+
             var height = 18f;
             if (!EditorGUIUtility.wideMode && GenerateMultipleField(ref parameter, valueProperty))
             {
@@ -200,7 +200,7 @@ namespace UnityEditor.VFX
                     else
                         EditorGUI.IntSlider(rect, valueProperty, (int)parameter.min, (int)parameter.max, nameContent);
                 }
-                else if( parameter.enumValues != null && parameter.enumValues.Count > 0)
+                else if (parameter.enumValues != null && parameter.enumValues.Count > 0)
                 {
                     long currentValue = valueProperty.longValue;
                     int newIndex = EditorGUI.Popup(rect, nameContent, (int)currentValue, parameter.enumValues.ToArray());
@@ -219,9 +219,8 @@ namespace UnityEditor.VFX
                         valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                 }
                 else if (parameter.realType == typeof(Gradient).Name)
-
                 {
-                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true,ColorSpace.Linear);
+                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true, ColorSpace.Linear);
 
                     if (GUI.changed)
                         valueProperty.gradientValue = newGradient;
@@ -783,7 +782,6 @@ namespace UnityEditor.VFX
             serializedObject.ApplyModifiedProperties();
         }
 
-
         Dictionary<string, Dictionary<string, SerializedProperty>> m_PropertyToProp = new Dictionary<string, Dictionary<string, SerializedProperty>>();
 
         protected virtual void DrawParameters(VisualEffectResource resource)
@@ -808,7 +806,7 @@ namespace UnityEditor.VFX
 
                 m_PropertyToProp.Clear();
 
-                foreach (var sheetType in graph.m_ParameterInfo.Select(t => t.sheetType).Where(t=>!string.IsNullOrEmpty(t)).Distinct())
+                foreach (var sheetType in graph.m_ParameterInfo.Select(t => t.sheetType).Where(t => !string.IsNullOrEmpty(t)).Distinct())
                 {
                     var nameToIndices = new Dictionary<string, SerializedProperty>();
 
@@ -896,7 +894,7 @@ namespace UnityEditor.VFX
                                 }
                             }
                             else if (!ignoreUntilNextCat)
-                            {   
+                            {
                                 SerializedProperty sourceProperty = null;
 
                                 m_PropertyToProp[parameter.sheetType].TryGetValue(parameter.path, out sourceProperty);
@@ -1333,6 +1331,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
             public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
             public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent createAsset =         EditorGUIUtility.TrTextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.");
             public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
             public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
