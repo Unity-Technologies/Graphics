@@ -23,7 +23,7 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -44,7 +44,7 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
@@ -76,14 +76,14 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
          rerun: always
       -  path: .yamato/shadergraph-iphone-metal.yml#Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
@@ -116,5 +116,5 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
          rerun: always

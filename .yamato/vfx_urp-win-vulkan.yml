@@ -19,7 +19,7 @@ VFX_URP_Win_Vulkan_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -41,7 +41,7 @@ Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -70,14 +70,14 @@ VFX_URP_Win_Vulkan_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -96,14 +96,14 @@ VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
       -  path: .yamato/vfx_urp-win-vulkan.yml#Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -138,7 +138,7 @@ Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
 VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
@@ -161,12 +161,12 @@ VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always

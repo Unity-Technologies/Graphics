@@ -22,9 +22,9 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_t
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -71,7 +71,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Li
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -140,28 +140,28 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_tru
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -183,16 +183,16 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_C
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
-      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -266,7 +266,7 @@ Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Li
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
 URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Win_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
@@ -315,26 +315,26 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_CUS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=.
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always

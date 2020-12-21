@@ -10,8 +10,6 @@
 all_project_ci_trunk:
     name: _ABV for SRP repository (all PR jobs) - trunk
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
-         rerun: on-new-revision
       -  path: .yamato/all-universal.yml#PR_Universal_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
@@ -22,11 +20,11 @@ all_project_ci_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on-new-revision
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
+         rerun: on-new-revision
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
-         rerun: on-new-revision
       -  path: .yamato/all-universal.yml#Nightly_Universal_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
@@ -37,6 +35,8 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_trunk
          rerun: on-new-revision
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
@@ -44,10 +44,6 @@ all_project_ci_nightly_trunk:
 all_project_ci_weekly_trunk:
     name: _Weekly ABV against trunk
     dependencies: []
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: weekly
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
@@ -72,8 +68,6 @@ trunk_verification_trunk:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
@@ -84,6 +78,30 @@ all_project_ci_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+all_project_ci_nightly_CUSTOM-REVISION:
+    name: _Nightly ABV against CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-universal.yml#Nightly_Universal_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+all_project_ci_weekly_CUSTOM-REVISION:
+    name: _Weekly ABV against CUSTOM-REVISION
+    dependencies: []
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 trunk_verification_CUSTOM-REVISION:

@@ -32,6 +32,9 @@ Nightly_VFX_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_VFX_HDRP_CUSTOM-REVISION:
     name: VFX_HDRP PR Job - CUSTOM-REVISION
     dependencies:
@@ -58,3 +61,5 @@ Nightly_VFX_HDRP_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

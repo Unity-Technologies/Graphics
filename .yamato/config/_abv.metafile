@@ -1,19 +1,31 @@
-abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
-  projects:
-    - name: Universal
-    - name: ShaderGraph
-    - name: HDRP
-    - name: VFX_HDRP
-    - name: VFX_URP
-  build_configs:
-    - mono
-    - il2cpp
-  color_spaces: 
-    - Linear
+abv:
+  dependencies:
+    - project: Universal
+      pr: true
+    - project: ShaderGraph
+      pr: true
+    - project: HDRP
+      pr: true
+    - project: VFX_HDRP
+      pr: true
+    - project: VFX_URP
+      pr: true
 weekly:
-  extra_dependencies: # additional project jobs to run weekly
+  dependencies: 
     []
-trunk_verification: # jobs to include in trunk verification job
+nightly:
+  dependencies:
+    - project: Universal
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: HDRP
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+trunk_verification:
   dependencies:
     - project: Universal
       platform: Win

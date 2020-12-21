@@ -29,7 +29,7 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -52,7 +52,7 @@ Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
@@ -92,7 +92,7 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -100,7 +100,7 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always
       -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
@@ -136,5 +136,5 @@ Build_Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
             paths:
               -  "players/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always
