@@ -66,19 +66,6 @@ float3 DecodeSH( float l0, float3 l1 )
     return (l1 - 0.5) * 4.0 * l0;
 }
 
-float3 EvaluateAmbientProbe(float3 normalWS)
-{
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-
-    return SampleSH9(SHCoefficients, normalWS);
-}
 
 #define APV_USE_BASE_OFFSET
 
@@ -232,11 +219,21 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-// Without a normal we only evaluate L0
-void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
+// Without a normal we only evaluate L0, also we have an option to undo the constant coefficients that are there due to the cosine convolution.
+void EvaluateAdaptiveProbeVolume(in float3 posWS, bool undoCosineRescale, out float3 bakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
     bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), apvRes);
+    if (undoCosineRescale)
+    {
+        float invC0 = 3.54490770181f; // 1 / (0.5 * sqrt(1/Pi))
+        bakeDiffuseLighting *= invC0;
+    }
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
+{
+    EvaluateAdaptiveProbeVolume(posWS, false, bakeDiffuseLighting);
 }
 
 

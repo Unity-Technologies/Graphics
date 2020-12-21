@@ -470,7 +470,8 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
 
     float3 apvDiffuseGI;
-    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), apvDiffuseGI);
+    const bool undoCosineRescaling = true; // We want to undo the effect of the convolution with cosine kernel.
+    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), undoCosineRescaling, apvDiffuseGI);
 
     // It is possible that some invalid probes are sampled due to how APV is laying the probes
     // For now the safest way is to ignore the NaN data when sampled.

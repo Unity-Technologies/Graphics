@@ -4,6 +4,21 @@
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
+// We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
+real3 EvaluateAmbientProbe(real3 normalWS)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
+
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
@@ -104,18 +119,8 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
 {
     if (unity_ProbeVolumeParams.x == 0.0)
     {
-        // TODO: pass a tab of coefficient instead!
-        real4 SHCoefficients[7];
-        SHCoefficients[0] = unity_SHAr;
-        SHCoefficients[1] = unity_SHAg;
-        SHCoefficients[2] = unity_SHAb;
-        SHCoefficients[3] = unity_SHBr;
-        SHCoefficients[4] = unity_SHBg;
-        SHCoefficients[5] = unity_SHBb;
-        SHCoefficients[6] = unity_SHC;
-
-        bakeDiffuseLighting += SampleSH9(SHCoefficients, normalWS);
-        backBakeDiffuseLighting += SampleSH9(SHCoefficients, backNormalWS);
+        bakeDiffuseLighting += EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting += EvaluateAmbientProbe(backNormalWS);
     }
     else
     {
