@@ -497,7 +497,7 @@ namespace UnityEditor.Rendering.Universal
                         null);
                 }
             }
-            else // Missing ScriptableRendererData
+            else     // Missing ScriptableRendererData
             {
                 if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
                 {
