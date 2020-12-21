@@ -331,8 +331,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            if (CloudMap.s_DefaultTexture == null)
-                CloudMap.s_DefaultTexture = HDRenderPipeline.defaultAsset.renderPipelineResources.textures.defaultCloudMap;
+            var asset = HDRenderPipeline.currentAsset;
+            if (asset != null)
+                CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
         }
     }
 }

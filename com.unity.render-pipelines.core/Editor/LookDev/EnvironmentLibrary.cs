@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using System.IO;
+using UnityEditor;
 using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
@@ -117,14 +118,15 @@ namespace UnityEditor.Rendering.LookDev
     [CustomEditor(typeof(EnvironmentLibrary))]
     class EnvironmentLibraryEditor : Editor
     {
-        VisualElement root;
+        VisualElement m_Root;
+        VisualElement m_OpenButton;
 
         public sealed override VisualElement CreateInspectorGUI()
         {
             var library = target as EnvironmentLibrary;
-            root = new VisualElement();
+            m_Root = new VisualElement();
 
-            Button open = new Button(() =>
+            m_OpenButton = new Button(() =>
             {
                 if (!LookDev.open)
                     LookDev.Open();
@@ -132,11 +134,22 @@ namespace UnityEditor.Rendering.LookDev
                 LookDev.currentEnvironmentDisplayer.Repaint();
             })
             {
-                text = "Open in LookDev window"
+                text = "Open in Look Dev window"
             };
+            m_OpenButton.SetEnabled(LookDev.supported);
 
-            root.Add(open);
-            return root;
+            m_Root.Add(m_OpenButton);
+            return m_Root;
+        }
+
+        void OnEnable() => EditorApplication.update += Update;
+        void OnDisable() => EditorApplication.update -= Update;
+
+        void Update()
+        {
+            // Current SRP can be changed at any time so we need to do this at every update.
+            if (m_OpenButton != null)
+                m_OpenButton.SetEnabled(LookDev.supported);
         }
 
         // Don't use ImGUI
