@@ -96,12 +96,11 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private ScreenSpaceShadowsSettings m_CurrentSettings;
             private RenderTextureDescriptor m_RenderTextureDescriptor;
-            private RenderTargetHandle m_RenderTarget;
+            private RTHandle m_RenderTarget;
 
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
-                m_RenderTarget.Init(URPShaderIDs._ScreenSpaceShadowmapTexture);
             }
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings)
@@ -122,10 +121,21 @@ namespace UnityEngine.Rendering.Universal
                     ? GraphicsFormat.R8_UNorm
                     : GraphicsFormat.B8G8R8A8_UNorm;
 
-                cmd.GetTemporaryRT(m_RenderTarget.id, m_RenderTextureDescriptor, FilterMode.Point);
+                m_RenderTarget = RTHandles.Alloc(
+                    m_RenderTextureDescriptor.width, m_RenderTextureDescriptor.height, 1,
+                    (DepthBits)m_RenderTextureDescriptor.depthBufferBits,
+                    m_RenderTextureDescriptor.graphicsFormat,
+                    FilterMode.Point,
+                    dimension: m_RenderTextureDescriptor.dimension,
+                    enableRandomWrite: m_RenderTextureDescriptor.enableRandomWrite,
+                    useMipMap: m_RenderTextureDescriptor.useMipMap,
+                    autoGenerateMips: m_RenderTextureDescriptor.autoGenerateMips,
+                    msaaSamples: (MSAASamples)m_RenderTextureDescriptor.msaaSamples,
+                    useDynamicScale: m_RenderTextureDescriptor.useDynamicScale,
+                    memoryless: m_RenderTextureDescriptor.memoryless,
+                    name: "_ScreenSpaceShadowmapTexture");
 
-                RenderTargetIdentifier renderTargetTexture = m_RenderTarget.Identifier();
-                ConfigureTarget(renderTargetTexture);
+                ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -152,8 +162,7 @@ namespace UnityEngine.Rendering.Universal
                     else
                     {
                         // Avoid setting and restoring camera view and projection matrices when in stereo.
-                        RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        cmd.Blit(null, screenSpaceShadowTexture, material);
+                        cmd.Blit(null, m_RenderTarget, material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -173,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentNullException("cmd");
                 }
 
-                cmd.ReleaseTemporaryRT(m_RenderTarget.id);
+                m_RenderTarget.Release();
             }
         }
 

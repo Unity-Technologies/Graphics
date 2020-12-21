@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         Material m_ScreenSpaceShadowsMaterial;
-        RenderTargetHandle m_ScreenSpaceShadowmap;
+        RTHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(ScreenSpaceShadowResolvePass));
 
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
-            m_ScreenSpaceShadowmap.Init(URPShaderIDs._ScreenSpaceShadowmapTexture);
             renderPassEvent = evt;
         }
 
@@ -33,10 +32,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
-
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-            ConfigureTarget(screenSpaceOcclusionTexture);
+            m_ScreenSpaceShadowmap = RTHandles.Alloc(
+                m_RenderTextureDescriptor.width, m_RenderTextureDescriptor.height, 1,
+                (DepthBits)m_RenderTextureDescriptor.depthBufferBits,
+                m_RenderTextureDescriptor.graphicsFormat,
+                FilterMode.Bilinear,
+                dimension: m_RenderTextureDescriptor.dimension,
+                enableRandomWrite: m_RenderTextureDescriptor.enableRandomWrite,
+                useMipMap: m_RenderTextureDescriptor.useMipMap,
+                autoGenerateMips: m_RenderTextureDescriptor.autoGenerateMips,
+                msaaSamples: (MSAASamples)m_RenderTextureDescriptor.msaaSamples,
+                useDynamicScale: m_RenderTextureDescriptor.useDynamicScale,
+                memoryless: m_RenderTextureDescriptor.memoryless,
+                name: "_ScreenSpaceShadowmapTexture");
+            ConfigureTarget(m_ScreenSpaceShadowmap);
             ConfigureClear(ClearFlag.All, Color.white);
         }
 
@@ -66,8 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     // Avoid setting and restoring camera view and projection matrices when in stereo.
-                    RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-                    Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+                    Blit(cmd, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowsMaterial);
                 }
             }
 
@@ -81,7 +89,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowmap.id);
+            m_ScreenSpaceShadowmap.Release();
         }
     }
 }
