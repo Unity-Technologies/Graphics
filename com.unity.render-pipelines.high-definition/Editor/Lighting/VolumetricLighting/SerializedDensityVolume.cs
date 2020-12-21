@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -24,6 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty distanceFadeStart;
         public SerializedProperty distanceFadeEnd;
+
+        public SerializedProperty falloffMode;
 
         SerializedObject m_SerializedObject;
 
@@ -54,6 +57,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             distanceFadeStart = densityParams.FindPropertyRelative("distanceFadeStart");
             distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
+
+            falloffMode = densityParams.FindPropertyRelative(nameof(DensityVolumeArtistParameters.falloffMode));
         }
 
         public void Apply()
