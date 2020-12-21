@@ -41,7 +41,7 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
 
         float3 GetUVs(float2 texcoords)
         {
-            return float3(texcoords * float2(1, _TextureSize.x / _TextureSize.y) * _TextureSize, _Slice) + _Offset;
+            return float3(texcoords * float2(1, _TextureSize.x / _TextureSize.y) * _TextureSize.xy, _Slice) + _Offset;
         }
 
         float4 Color(Varyings input) : SV_Target
