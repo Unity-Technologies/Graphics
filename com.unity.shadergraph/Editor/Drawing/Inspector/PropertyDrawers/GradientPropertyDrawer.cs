@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyGradientField,
             int indentLevel = 0)
         {
-            var objectField = new GradientField { value = fieldToDraw};
+            var objectField = new GradientField { value = fieldToDraw, colorSpace = ColorSpace.Linear};
 
             if (valueChangedCallback != null)
             {

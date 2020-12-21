@@ -196,7 +196,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 
             // Compute the position of the actual source pixel
             #ifdef HALF_RESOLUTION
-            uint2 actualSourceCoord = ComputeSourceCoordinates(sampleCoord / 2, _RaytracingFrameIndex);
+            uint2 actualSourceCoord = ComputeSourceCoordinates(sampleCoord * 0.5, _RaytracingFrameIndex);
             #else
             uint2 actualSourceCoord = sampleCoord;
             #endif

@@ -14,15 +14,15 @@ To set up and manage your Unity Projects, install the [Unity Hub](https://docs.u
 
 Unity provides an HDRP Template Project which you can use to quickly get set up with HDRP. To create an HDRP Template Project:
 
-1. Open the Unity Hub and click the **New** button.
-2. Enter a **Project Name** and, in the **Template** section, click on **High-Definition RP**.
+1. Open the Unity Hub, go to the **Projects** tab, and click **New**.
+2. Enter a **Project Name** and, in the **Template** section, click on **High Definition RP**.
 3. Click **Create**.
 
 Unity creates a Project and automatically installs the HDRP package, and all of its dependencies. After Unity opens the Template Project, you can see the main Scene. Which looks like this:
 
 ![](Images/GettingStarted1.png)
 
-In the Template Scene, you can view GameObjects in the Inspector to see things like HDRP Material or [Volume](Volumes.md) examples. You can then use these examples as a reference when creating your own Scene in HDRP.
+This template is a great starting point for projects aiming at high-end graphics. It includes multiple physically-based lighting setups to help you realistically illuminate environments with HDRP. It also includes use-case examples for many of HDRP's features such as [Decals](Decal.md), [Volumes](Volumes.md), and physically-accurate Materials.
 
 ## Pipeline setup
 
@@ -80,4 +80,4 @@ For more information, see [Shadows](Override-Shadows.md).
 ## Related information
 
 - For the full list of HDRP features, see [HDRP Features](HDRP-Features.md).
-- Explore an HDRP Scene in [Getting Started Guide for Artists](https://blogs.unity3d.com/2018/09/24/the-high-definition-render-pipeline-getting-started-guide-for-artists/). Be aware that the blog post uses a pre-release version of HDRP, so some property and component names are different in this release.
+- For an online session on how to achieve real-time high-fidelity graphics in HDRP, see [Achieving High Fidelity Graphics for Games with HDRP](https://resources.unity.com/unitenow/onlinesessions/achieving-high-fidelity-graphics-for-games-with-hdrp).

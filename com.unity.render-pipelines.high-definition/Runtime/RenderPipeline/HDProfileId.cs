@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DisplayPlanarReflectionProbeAtlas,
         BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
+        DisplayDensityVolumeAtlas,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
@@ -81,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
+        RenderClouds,
         OpaqueAtmosphericScattering,
         InScatteredRadiancePrecomputation,
 
@@ -88,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLighting,
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
+        UpdateDensityVolumeAtlas,
 
         // RT Cluster
         RaytracingBuildCluster,

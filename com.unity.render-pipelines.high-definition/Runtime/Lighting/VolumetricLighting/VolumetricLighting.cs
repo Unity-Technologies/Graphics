@@ -13,13 +13,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
-        public int     textureIndex;
-        public Vector3 textureScroll;
         public int     invertFade;    // bool...
-        public Vector3 rcpPosFaceFade;
+        public Vector3 textureScroll;
         public float   rcpDistFadeLen;
-        public Vector3 rcpNegFaceFade;
+        public Vector3 rcpPosFaceFade;
         public float   endTimesRcpDistFadeLen;
+        public Vector3 rcpNegFaceFade;
+        public int     useVolumeMask; // bool
+        public Vector3 atlasOffset;   // coordinates in the atlas in pixels
+        public DensityVolumeFalloffMode falloffMode;
+        public Vector4 maskSize;      // xyz: atlas size / mask size, w: mask size in pixels
 
         public static DensityVolumeEngineData GetNeutralValues()
         {
@@ -27,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering             = Vector3.zero;
             data.extinction             = 0;
-            data.textureIndex           = -1;
+            data.atlasOffset            = Vector3.zero;
             data.textureTiling          = Vector3.one;
             data.textureScroll          = Vector3.zero;
             data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -35,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.invertFade             = 0;
             data.rcpDistFadeLen         = 0;
             data.endTimesRcpDistFadeLen = 1;
+            data.useVolumeMask          = 0;
+            data.maskSize               = Vector4.zero;
+            data.falloffMode            = DensityVolumeFalloffMode.Linear;
 
             return data;
         }
@@ -74,6 +80,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _Pad1_SVV;
     }
 
+    /// <summary></summary>
+    [GenerateHLSL]
+    public enum DensityVolumeFalloffMode
+    {
+        /// <summary></summary>
+        Linear,
+        /// <summary></summary>
+        Exponential,
+    }
 
     class VolumeRenderingUtils
     {
@@ -205,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox>            m_VisibleVolumeBounds           = null;
         List<DensityVolumeEngineData> m_VisibleVolumeData             = null;
-        const int                     k_MaxVisibleVolumeCount         = 512;
+        internal const int            k_MaxVisibleDensityVolumeCount  = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer     = null;
@@ -253,6 +268,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Release(); // The texture itself is not destroyed: https://docs.unity3d.com/ScriptReference/RenderTexture.Release.html
                 Object.DestroyImmediate(rt); // Destroy() may not be called from the Edit mode
             }
+        }
+
+        static uint VolumetricFrameIndex(HDCamera hdCamera)
+        {
+            // Here we do modulo 14 because we need the enable to detect a change every frame, but the accumulation is done on 7 frames (7x2=14)
+            return hdCamera.GetCameraFrameCount() % 14;
         }
 
         static internal Vector3Int ComputeVolumetricViewportSize(HDCamera hdCamera, ref float voxelSize)
@@ -341,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This function relies on being called once per camera per frame.
         // The results are undefined otherwise.
-        static internal void UpdateVolumetricBufferParams(HDCamera hdCamera, int frameIndex)
+        static internal void UpdateVolumetricBufferParams(HDCamera hdCamera)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
@@ -351,6 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var currentParams = ComputeVolumetricBufferParameters(hdCamera);
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
@@ -404,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new GenerateMaxZParameters();
             parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
@@ -421,6 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.minDepthMipOffset.x = depthMipInfo.mipLevelOffsets[4].x;
             parameters.minDepthMipOffset.y = depthMipInfo.mipLevelOffsets[4].y;
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = frameIndex & 1;
             var currentParams = hdCamera.vBufferParams[currIdx];
 
@@ -534,7 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Must be called AFTER UpdateVolumetricBufferParams.
         static readonly string[] volumetricHistoryBufferNames = new string[2] { "VBufferHistory0", "VBufferHistory1" };
-        static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera, int frameIndex)
+        static internal void ResizeVolumetricHistoryBuffers(HDCamera hdCamera)
         {
             if (!hdCamera.IsVolumetricReprojectionEnabled())
                 return;
@@ -543,6 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(hdCamera.vBufferParams.Length == 2);
             Debug.Assert(hdCamera.volumetricHistoryBuffers != null);
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
@@ -572,8 +596,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeBounds       = new List<OrientedBBox>();
             m_VisibleVolumeData         = new List<DensityVolumeEngineData>();
-            m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
+            m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
+            m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
             // Allocate the smallest possible 3D texture.
             // We will perform rescaling manually, in a custom manner, based on volume parameters.
@@ -612,7 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Must be called AFTER UpdateVolumetricBufferParams.
-        internal void ResizeVolumetricLightingBuffers(HDCamera hdCamera, int frameIndex)
+        internal void ResizeVolumetricLightingBuffers(HDCamera hdCamera)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
                 return;
@@ -628,6 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateVolumetricLightingBuffers();
             }
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
@@ -742,7 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera, time);
 
-                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
+                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleDensityVolumeCount); i++)
                 {
                     DensityVolume volume = volumes[i];
 
@@ -785,7 +810,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          viewCount;
             public bool                         tiledLighting;
 
-            public Texture3D                    volumeAtlas;
+            public Texture                      volumeAtlas;
 
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -804,11 +829,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._AmbientProbeCoeffs[i * 4 + j] = m_PackedCoeffs[i][j];
         }
 
-        unsafe void UpdateShaderVariableslVolumetrics(ref ShaderVariablesVolumetric cb, HDCamera hdCamera, in Vector4 resolution, int frameIndex)
+        unsafe void UpdateShaderVariableslVolumetrics(ref ShaderVariablesVolumetric cb, HDCamera hdCamera, in Vector4 resolution)
         {
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             var gpuAspect = HDUtils.ProjectionMatrixAspect(hdCamera.mainViewConstants.projMatrix);
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
 
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(resolution, gpuAspect, ref m_PixelCoordToViewDirWS);
@@ -833,10 +859,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VolumeMaskDimensions = Vector4.zero;
             if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
             {
-                cb._VolumeMaskDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                cb._VolumeMaskDimensions.y = volumeAtlas.width;
-                cb._VolumeMaskDimensions.z = volumeAtlas.depth;
-                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.width, 2); // Max LoD
+                cb._VolumeMaskDimensions.x = volumeAtlas.width; // 1 / number of textures
+                cb._VolumeMaskDimensions.y = volumeAtlas.height;
+                cb._VolumeMaskDimensions.z = volumeAtlas.volumeDepth;
+                cb._VolumeMaskDimensions.w = 0; // Not used
             }
 
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, fog);
@@ -871,10 +897,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumTileBigTileY = (uint)GetNumTileBigTileY(hdCamera);
         }
 
-        VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera, int frameIndex)
+        VolumeVoxelizationParameters PrepareVolumeVoxelizationParameters(HDCamera hdCamera)
         {
             var parameters = new VolumeVoxelizationParameters();
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
@@ -897,7 +924,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.volumeAtlas = CoreUtils.blackVolumeTexture;
             }
 
-            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
+            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
             parameters.lightListCB = m_ShaderVariablesLightListCB;
 
@@ -977,10 +1004,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesLightList     lightListCB;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera, int frameIndex)
+        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera)
         {
             var parameters = new VolumetricLightingParameters();
 
+            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
@@ -1017,7 +1045,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
             parameters.sliceCount = (int)(cvp.z);
 
-            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
+            UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
             parameters.lightListCB = m_ShaderVariablesLightListCB;
 

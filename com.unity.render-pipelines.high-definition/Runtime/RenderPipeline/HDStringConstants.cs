@@ -725,6 +725,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
         public static readonly int _Params1                        = Shader.PropertyToID("_Params1");
         public static readonly int _Params2                        = Shader.PropertyToID("_Params2");
+        public static readonly int _Params3                        = Shader.PropertyToID("_Params3");
         public static readonly int _BokehKernel                    = Shader.PropertyToID("_BokehKernel");
         public static readonly int _InputCoCTexture                = Shader.PropertyToID("_InputCoCTexture");
         public static readonly int _InputHistoryCoCTexture         = Shader.PropertyToID("_InputHistoryCoCTexture");
@@ -928,6 +929,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+
+        // 3D Atlas
+        public static readonly int _Dst3DTexture                   = Shader.PropertyToID("_Dst3DTexture");
+        public static readonly int _Src3DTexture                   = Shader.PropertyToID("_Src3DTexture");
+        public static readonly int _AlphaOnlyTexture               = Shader.PropertyToID("_AlphaOnlyTexture");
+        public static readonly int _SrcSize                        = Shader.PropertyToID("_SrcSize");
+        public static readonly int _SrcMip                         = Shader.PropertyToID("_SrcMip");
+        public static readonly int _SrcScale                       = Shader.PropertyToID("_SrcScale");
+        public static readonly int _SrcOffset                      = Shader.PropertyToID("_SrcOffset");
     }
 
     /// <summary>
