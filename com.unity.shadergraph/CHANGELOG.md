@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
+- Fixed a broken link in the TOC to Main Preview
 - Fixed an issue with the Gradient color picker displaying different values than the selected color. 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
