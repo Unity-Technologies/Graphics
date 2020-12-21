@@ -35,13 +35,13 @@ namespace UnityEditor.ShaderGraph
     {
         public static IEnumerable<KeywordDescriptor> GetBuiltinKeywordDescriptors() =>
             TypeCache.GetMethodsWithAttribute<BuiltinKeywordAttribute>()
-            .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
-            .Select(method =>
-                (KeywordDescriptor) method.Invoke(null, new object[0] { }));
+                .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
+                .Select(method =>
+                    (KeywordDescriptor)method.Invoke(null, new object[0] {}));
 
         public static ConcreteSlotValueType ToConcreteSlotValueType(this KeywordType keywordType)
         {
-            switch(keywordType)
+            switch (keywordType)
             {
                 case KeywordType.Boolean:
                     return ConcreteSlotValueType.Boolean;
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string ToDeclarationString(this KeywordDefinition keywordDefinition)
         {
-            switch(keywordDefinition)
+            switch (keywordDefinition)
             {
                 case KeywordDefinition.MultiCompile:
                     return "multi_compile";
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
             string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
             string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}";
 
-            switch(keyword.type)
+            switch (keyword.type)
             {
                 case KeywordType.Boolean:
                     return $"#pragma {definitionString} _ {keyword.referenceName}";
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string ToDefineString(this KeywordDescriptor keyword, int value)
         {
-            switch(keyword.type)
+            switch (keyword.type)
             {
                 case KeywordType.Boolean:
                     return value == 1 ? $"#define {keyword.referenceName}" : string.Empty;
@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
             // Gather all unique keywords from the Graph including Sub Graphs
             IEnumerable<ShaderKeyword> allKeywords = graph.keywords;
             var subGraphNodes = graph.GetNodes<SubGraphNode>();
-            foreach(SubGraphNode subGraphNode in subGraphNodes)
+            foreach (SubGraphNode subGraphNode in subGraphNodes)
             {
                 if (subGraphNode.asset == null)
                 {
@@ -114,9 +114,9 @@ namespace UnityEditor.ShaderGraph
 
             // Get permutation count for all Keywords
             int permutationCount = 1;
-            foreach(ShaderKeyword keyword in allKeywords)
+            foreach (ShaderKeyword keyword in allKeywords)
             {
-                if(keyword.keywordType == KeywordType.Boolean)
+                if (keyword.keywordType == KeywordType.Boolean)
                     permutationCount *= 2;
                 else
                     permutationCount *= keyword.entries.Count;
@@ -130,10 +130,10 @@ namespace UnityEditor.ShaderGraph
             StringBuilder sb = new StringBuilder();
             sb.Append("#if ");
 
-            for(int i = 0; i < permutationSet.Count; i++)
+            for (int i = 0; i < permutationSet.Count; i++)
             {
                 // Subsequent permutation predicates require ||
-                if(i != 0)
+                if (i != 0)
                     sb.Append(" || ");
 
                 // Append permutation
@@ -153,18 +153,18 @@ namespace UnityEditor.ShaderGraph
             if (permutations.Count == 0)
                 return;
 
-            for(int p = 0; p < permutations.Count; p++)
+            for (int p = 0; p < permutations.Count; p++)
             {
                 // ShaderStringBuilder.Append doesnt apply indentation
                 sb.AppendIndentation();
 
                 // Append correct if
                 bool isLast = false;
-                if(p == 0)
+                if (p == 0)
                 {
                     sb.Append("#if ");
                 }
-                else if(p == permutations.Count - 1)
+                else if (p == permutations.Count - 1)
                 {
                     sb.Append("#else");
                     isLast = true;
@@ -175,18 +175,18 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Last permutation is always #else
-                if(!isLast)
+                if (!isLast)
                 {
                     // Track whether && is required
                     bool appendAnd = false;
 
                     // Iterate all keywords that are part of the permutation
-                    for(int i = 0; i < permutations[p].Count; i++)
+                    for (int i = 0; i < permutations[p].Count; i++)
                     {
                         // When previous keyword was inserted subsequent requires &&
                         string and = appendAnd ? " && " : string.Empty;
 
-                        switch(permutations[p][i].Key.keywordType)
+                        switch (permutations[p][i].Key.keywordType)
                         {
                             case KeywordType.Enum:
                             {
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph
                             case KeywordType.Boolean:
                             {
                                 // HLSL does not support a !value predicate
-                                if(permutations[p][i].Value != 0)
+                                if (permutations[p][i].Value != 0)
                                 {
                                     continue;
                                 }

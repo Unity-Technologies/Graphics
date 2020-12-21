@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.Universal
 
             // New button in header to assign asset
             Rect fullRect = EditorGUILayout.GetControlRect();
-            float titleHeight = EditorGUIUtility.singleLineHeight+5;
+            float titleHeight = EditorGUIUtility.singleLineHeight + 5;
             Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
             if (GUI.Button(titleRect, "Assign to Project Settings - Graphics"))
             {
@@ -384,7 +384,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 1)
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                
+
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
@@ -472,13 +472,13 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.ObjectField(objRect, m_RendererDataProp.GetArrayElementAtIndex(index), GUIContent.none);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
                 EditorUtility.SetDirty(target);
 
             Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
             var defaultRenderer = m_DefaultRendererProp.intValue;
             GUI.enabled = index != defaultRenderer;
-            if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+            if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
             {
                 m_DefaultRendererProp.intValue = index;
                 EditorUtility.SetDirty(target);
@@ -519,14 +519,14 @@ namespace UnityEditor.Rendering.Universal
 
         bool CanRemoveElement(ReorderableList list)
         {
-           return list.count > 1;
+            return list.count > 1;
         }
 
         void RemoveElement(ReorderableList list)
         {
             if (list.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
             {
-                if(list.serializedProperty.GetArrayElementAtIndex(list.serializedProperty.arraySize - 1).objectReferenceValue != null)
+                if (list.serializedProperty.GetArrayElementAtIndex(list.serializedProperty.arraySize - 1).objectReferenceValue != null)
                     list.serializedProperty.DeleteArrayElementAtIndex(list.serializedProperty.arraySize - 1);
                 list.serializedProperty.arraySize--;
                 list.index = list.count - 1;

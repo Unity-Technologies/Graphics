@@ -6,7 +6,7 @@
 // #pragma enable_d3d11_debug_symbols
 
 // The process is done in 3 steps. We start by converting the depth from oblique to regular frustum depth.
-// Then we build a mip chain of both the depth and the color. The depth is averaged in 2x2 and the color 
+// Then we build a mip chain of both the depth and the color. The depth is averaged in 2x2 and the color
 // is filtered in a wider neighborhood (otherwise we get too much artifacts) when doing the actual filtering.
 // The filtering estimates the pixel footprint of the blur based on the distance to the occluder, the roughness
 // of the current mip and the distance to the pixel. we then select the input from the right mip (the idea)
@@ -58,7 +58,7 @@ CBUFFER_END
 // Output buffer of our filtering code
 RW_TEXTURE2D(float3, _FilteredPlanarReflectionBuffer);
 
-// These angles have been experimentally computed to match the result of reflection probes. Initially this was a table dependent on angle and roughness, but given that every planar has a 
+// These angles have been experimentally computed to match the result of reflection probes. Initially this was a table dependent on angle and roughness, but given that every planar has a
 // finite number of LODs and those LODS have fixed roughness and the angle changes the result, but not that much. I changed it to a per LOD LUT
 static const float reflectionProbeEquivalentAngles[UNITY_SPECCUBE_LOD_STEPS + 1] = {0.0, 0.04, 0.12, 0.4, 0.9, 1.2, 1.2};
 
@@ -86,7 +86,7 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // Compute the position on the plane we shall be integrating from
     float t = -1.0;
     if (!IntersectRayPlane(_CaptureCameraPositon, rayDirection, _ReflectionPlanePosition, _ReflectionPlaneNormal, t))
-    { 
+    {
         // If there is no plane intersection, there is nothing to filter (means that is a position that cannot be reflected)
         _FilteredPlanarReflectionBuffer[currentCoord] = float3(0.0, 0.0, 0.0);
         return;
@@ -120,7 +120,7 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     const float mipBias = _SourceMipIndex > 3 ? lerp(0.0, 2.0, (_MaxMipLevels - _SourceMipIndex) / _MaxMipLevels) : 0.0;
 
     // Read the integration color that we should take
-    const float3 integrationColor = SAMPLE_TEXTURE2D_LOD(_ReflectionColorMipChain, s_trilinear_clamp_sampler, sampleCoords, clamp(miplevel + _SourceMipIndex + mipBias, 0, _MaxMipLevels)).xyz; 
+    const float3 integrationColor = SAMPLE_TEXTURE2D_LOD(_ReflectionColorMipChain, s_trilinear_clamp_sampler, sampleCoords, clamp(miplevel + _SourceMipIndex + mipBias, 0, _MaxMipLevels)).xyz;
 
     // Write the output ray data
     _FilteredPlanarReflectionBuffer[currentCoord] = integrationColor;
@@ -148,7 +148,7 @@ void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId
         {
             const int2 tapCoord = currentCoord * 2 + uint2(x, y);
             // If the pixel is outside the current screen size, its weight becomes zero
-            float weight =  tapCoord.x > _CaptureCurrentScreenSize.x ||  tapCoord.x < 0 
+            float weight =  tapCoord.x > _CaptureCurrentScreenSize.x ||  tapCoord.x < 0
                             || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : 1.0;
             averageColor += LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, tapCoord, _SourceMipIndex).xyz * weight;
             sumW += weight;
@@ -158,7 +158,7 @@ void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId
     _HalfResReflectionBuffer[currentCoord] = averageColor / sumW;
 
     // We average the 4 depths and move on
-    _HalfResDepthBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x 
+    _HalfResDepthBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x
                                         + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(0,1), _SourceMipIndex).x
                                         + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(1,0), _SourceMipIndex).x
                                         + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(1,1), _SourceMipIndex).x) * 0.25;

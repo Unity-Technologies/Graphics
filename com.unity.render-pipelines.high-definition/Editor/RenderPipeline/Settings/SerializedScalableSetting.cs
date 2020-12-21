@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetLevelValue<T>(int level, out T value)
-            where T: struct
+            where T : struct
         {
             if (level < values.arraySize && level >= 0)
             {
@@ -135,13 +135,13 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="subLabels">The labels for each sub value field.</param>
         /// <param name="values">The current values of the fields.</param>
         static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
-            where T: struct
+            where T : struct
         {
             // The number of slots we need to fit into this rectangle
             var length = values.Length;
 
             // Let's compute the space allocated for every field including the label
-            var num = position.width / (float) length;
+            var num = position.width / (float)length;
 
             // Reset the indentation
             var indentLevel = EditorGUI.indentLevel;
@@ -157,13 +157,13 @@ namespace UnityEditor.Rendering.HighDefinition
             for (var index = 0; index < values.Length; ++index)
             {
                 // Let's first compute what is the width of the label of this scalable setting level
-				// We make sure that the label doesn't go beyond the space available for this scalable setting level
+                // We make sure that the label doesn't go beyond the space available for this scalable setting level
                 EditorGUIUtility.labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
-				
-				// Define the rectangle for the field
+
+                // Define the rectangle for the field
                 var fieldSlot = new Rect(position.x + pixelShift, position.y, num, position.height);
 
-				// Draw the right field depending on its type.
+                // Draw the right field depending on its type.
                 if (typeof(T) == typeof(int))
                     values[index] = (T)(object)EditorGUI.DelayedIntField(fieldSlot, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 else if (typeof(T) == typeof(float))
                     values[index] = (T)(object)EditorGUI.FloatField(fieldSlot, subLabels[index], (float)(object)values[index]);
                 else if (typeof(T).IsEnum)
-                        values[index] = (T)(object)EditorGUI.EnumPopup(fieldSlot, subLabels[index], (Enum)(object)values[index]);
+                    values[index] = (T)(object)EditorGUI.EnumPopup(fieldSlot, subLabels[index], (Enum)(object)values[index]);
                 else
                     throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
 

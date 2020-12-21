@@ -9,7 +9,7 @@
 #pragma kernel CopyHistorySingleArray                           COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
 #pragma kernel CopyHistorySingleArrayNoValidity                 COPY_HISTORY=CopyHistorySingleArrayNoValidity SINGLE_CHANNEL OUTPUT_IS_ARRAY NO_VALIDITY
 
-#pragma kernel CopyHistoryColor                                 COPY_HISTORY=CopyHistoryColor 
+#pragma kernel CopyHistoryColor                                 COPY_HISTORY=CopyHistoryColor
 #pragma kernel CopyHistoryColorArray                            COPY_HISTORY=CopyHistoryColorArray OUTPUT_IS_ARRAY
 
 // Common includes
@@ -52,7 +52,7 @@ float _HistoryValidity;
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
 // The minimal motion distance
-#define MINIMAL_MOTION_DISTANCE 0.001 
+#define MINIMAL_MOTION_DISTANCE 0.001
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -120,14 +120,14 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float4 historyNormal = LOAD_TEXTURE2D_X(_HistoryNormalTexture, historyTapCoord);
     NormalData historyNormalData;
     DecodeFromNormalBuffer(historyNormal, historyNormalData);
-    
+
     // If the current normal is too different from the previous one, discard the history.
     if (dot(normalData.normalWS, historyNormalData.normalWS) < MAX_NORMAL_DIFFERENCE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
     }
-    
+
     // We sample the velocity buffer, if not null
     float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
     if (sampleVelocity > MINIMAL_MOTION_DISTANCE)
@@ -209,7 +209,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         float sampleCount = history.w;
     #endif
 #endif
-    
+
     // Get the velocity of the current sample
     float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
 
@@ -265,10 +265,10 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     #endif
 
     #if SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues 
+        _DenoiseOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).x;
         #if !defined(NO_VALIDITY)
-        _ValidityOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousValidityValues 
+        _ValidityOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousValidityValues
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).y;
         #endif
     #else

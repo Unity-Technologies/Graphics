@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.Universal
         List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
         public void Init()
         {
-
             var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
             foreach (string asset in rpAssets)
             {
@@ -50,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
                 if (urpAsset != null)
                 {
                     rpaList.Add(urpAsset);
-                    minSize+= new Vector2(0,25);
+                    minSize += new Vector2(0, 25);
                 }
             }
         }
@@ -146,7 +145,7 @@ namespace UnityEditor.Rendering.Universal
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
             m_RenderPipelineAssetsFoldout = new SavedBool($"{target.GetType()}.RenderPipelineAssetsFoldout", true);
-            m_RenderPipeLineAssets = new List<ValueTuple<string,string>>();
+            m_RenderPipeLineAssets = new List<ValueTuple<string, string>>();
             //m_RenderPipelineAssetNames = new List<string>();
             rpAssets = GetAllUniversalRenderPipelineAssets();
             FindAssignedRenderPipelineAssets();
@@ -190,8 +189,6 @@ namespace UnityEditor.Rendering.Universal
                 // toggle1 = EditorGUILayout.Toggle("Toggle 1", toggle1);
                 // toggle2 = EditorGUILayout.Toggle("Toggle 2", toggle2);
                 // toggle3 = EditorGUILayout.Toggle("Toggle 3", toggle3);
-
-
             }
             //if (Event.current.type == EventType.Repaint) buttonRect = GUILayoutUtility.GetLastRect();
         }
@@ -204,6 +201,7 @@ namespace UnityEditor.Rendering.Universal
                 Debug.Log("Got a click");
             }
         }
+
         List<UniversalRenderPipelineAsset> GetAllUniversalRenderPipelineAssets()
         {
             List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
@@ -281,9 +279,9 @@ namespace UnityEditor.Rendering.Universal
             m_RenderPipelineAssetsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderPipelineAssetsFoldout.value, Styles.renderPipelineAssetsText);
             if (m_RenderPipelineAssetsFoldout.value)
             {
-                foreach ((string, string) renderPipeLineAsset in m_RenderPipeLineAssets)
+                foreach ((string, string)renderPipeLineAsset in m_RenderPipeLineAssets)
                 {
-                    if(GUILayout.Button(renderPipeLineAsset.Item1, "Label"))
+                    if (GUILayout.Button(renderPipeLineAsset.Item1, "Label"))
                     {
                         var asset = AssetDatabase.LoadAssetAtPath<Object>(renderPipeLineAsset.Item2);
                         EditorGUIUtility.PingObject(asset);
@@ -342,7 +340,6 @@ namespace UnityEditor.Rendering.Universal
                     Debug.Log(options[c]);
                     // Assign the renderer to the data list
                     AssignRendererToRPAsset(options[c]);
-
                 }
             }
 
@@ -351,7 +348,6 @@ namespace UnityEditor.Rendering.Universal
 
         void AssignRendererToRPAsset(string rpName)
         {
-
             foreach (var asset in rpAssets)
             {
                 if (asset.name == rpName)
@@ -446,7 +442,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature,renderFeatureProperty, m_FalseBool,pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))

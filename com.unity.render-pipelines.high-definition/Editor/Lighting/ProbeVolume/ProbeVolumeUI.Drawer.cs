@@ -54,10 +54,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         Expandable.Baking,
                         k_ExpandedStateBaking,
                         Drawer_BakeToolBar
-                        )
                     )
                 )
-            );
+            )
+        );
 
         static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
         {
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthEnabledNoData, MessageType.Error);
             }
-            
+
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth
                 && asset != null && asset.payload.dataOctahedralDepth != null)
             {
@@ -114,14 +114,14 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.FlexibleSpace();
 
             EditMode.DoInspectorToolbar(new[] { ProbeVolumeEditor.k_EditShape, ProbeVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
+            {
+                var bounds = new Bounds();
+                foreach (Component targetObject in owner.targets)
                 {
-                    var bounds = new Bounds();
-                    foreach (Component targetObject in owner.targets)
-                    {
-                        bounds.Encapsulate(targetObject.transform.position);
-                    }
-                    return bounds;
-                },
+                    bounds.Encapsulate(targetObject.transform.position);
+                }
+                return bounds;
+            },
                 owner);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();

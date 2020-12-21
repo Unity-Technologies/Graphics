@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Disable the block if one of the materials is not transparent:
             if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
-                return ;
+                return;
 
             // If refraction model is not enabled in SG, we don't show the section
             var shader = materials[0].shader;

@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Universal Render Pipeline/MaterialError"
+Shader "Hidden/Universal Render Pipeline/MaterialError"
 {
     SubShader
     {
