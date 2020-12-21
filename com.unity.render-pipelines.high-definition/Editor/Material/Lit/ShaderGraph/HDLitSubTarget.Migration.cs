@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDLitMasterNode1.SlotMask.IridescenceMask, HDBlockFields.SurfaceDescription.IridescenceMask },
                 { HDLitMasterNode1.SlotMask.IridescenceLayerThickness, HDBlockFields.SurfaceDescription.IridescenceThickness },
                 { HDLitMasterNode1.SlotMask.Specular, BlockFields.SurfaceDescription.Specular },
-                { HDLitMasterNode1.SlotMask.CoatMask, HDBlockFields.SurfaceDescription.CoatMask },
+                { HDLitMasterNode1.SlotMask.CoatMask, BlockFields.SurfaceDescription.CoatMask },
                 { HDLitMasterNode1.SlotMask.Metallic, BlockFields.SurfaceDescription.Metallic },
                 { HDLitMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness },
                 { HDLitMasterNode1.SlotMask.Occlusion, BlockFields.SurfaceDescription.Occlusion },
