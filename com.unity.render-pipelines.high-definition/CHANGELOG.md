@@ -30,6 +30,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
+
+### Changed
+- Removed the material pass probe volumes evaluation mode.
+- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Removed the superior clamping value for the recursive rendering max ray length. 
+- Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
+- When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
+- Removed the upscale radius from the RTR.
+- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
+- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+
+## [10.3.0] - 2020-12-01
+
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Fixed wrong coat normal space in shader graph
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 - Fixed AOV api in render graph (case 1296605)
 - Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
 - Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
@@ -48,35 +72,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed case where material keywords would not get setup before usage.
 
 ### Changed
-- Removed the material pass probe volumes evaluation mode.
-- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
-- Removed the superior clamping value for the recursive rendering max ray length. 
-- Removed the superior clamping value for the ray tracing light cluster size.
-- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
-- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
-- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
-- When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
-- Removed the upscale radius from the RTR.
-- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
-- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+- Replaced last package version checker in Wizard to a link on Package Manager
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
 - When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
 - Enable Reflector for Spotlight by default
-
-## [10.3.0] - 2020-12-01
-
-### Fixed
-- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
-- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
-- Fixed wrong coat normal space in shader graph
-- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
-- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
-- Fixed volumetric fog with XR single-pass rendering.
-- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
-
-### Changed
-- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
-- Replaced last package version checker in Wizard to a link on Package Manager
 
 ## [10.2.1] - 2020-11-30
 
