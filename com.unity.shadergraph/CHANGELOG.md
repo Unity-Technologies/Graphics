@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the Gradient color picker displaying different values than the selected color. 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 
 
 ## [10.3.0] - 2020-11-03
