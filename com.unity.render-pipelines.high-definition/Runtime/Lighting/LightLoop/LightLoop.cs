@@ -898,7 +898,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
-                ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, new Vector3Int(1024, 64, 1024));
+                ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
             }
             InitShadowSystem(asset, defaultResources);
 

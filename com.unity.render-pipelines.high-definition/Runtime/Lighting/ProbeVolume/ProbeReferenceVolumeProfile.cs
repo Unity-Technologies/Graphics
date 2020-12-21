@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public sealed class ProbeReferenceVolumeProfile : ScriptableObject
     {
+        internal static Vector3Int s_DefaultIndexDimensions = new Vector3Int(1024, 64, 1024);
         // TODO: Better documentation, the one here is not really doc!
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Index field dimensions.
         /// </summary>
-        public Vector3Int indexDimensions = new Vector3Int(1024, 64, 1024);
+        public Vector3Int indexDimensions = s_DefaultIndexDimensions;
 
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.

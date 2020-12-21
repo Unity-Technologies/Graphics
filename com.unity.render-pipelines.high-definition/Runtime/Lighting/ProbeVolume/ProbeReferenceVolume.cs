@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class ProbeReferenceVolume
     {
+        internal static int s_ProbeIndexPoolAllocationSize = 1024;
+
+
         [System.Serializable]
         public struct Cell
         {
