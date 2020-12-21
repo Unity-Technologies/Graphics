@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent renderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
                 public static readonly GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information appears in the Unity Console when the build finishes.");
                 public static readonly GUIContent lensAttenuationModeContent = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
-                public static readonly GUIContent useRenderGraphContent = EditorGUIUtility.TrTextContent("Use Render Graph", "Use the render graph code path internally. This toggle can be used to revert back to the regular code path in case of regression.");
             }
 
             public static readonly GUIContent generalSectionTitle = EditorGUIUtility.TrTextContent("General");
@@ -31,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
+            public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
-            public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
+            public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
@@ -138,6 +138,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
             internal static readonly GUIContent probeVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible ProbeVolumes.");
             internal static readonly GUIContent probeVolumeAtlasOctahedralDepthResolution = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Resolution", "Resolution of the 2D texture atlas containing visible ProbeVolumes octahedral depth data.");
+            public static readonly GUIContent maxDensityVolumeSizeStyle = EditorGUIUtility.TrTextContent("Max Density Volume Size", "Specifies the maximum size for the individual 3D density volume texture that HDRP uses for Density Volumes. This settings will affect your memory consumption.");
+            public static readonly GUIContent maxDensityVolumesOnScreenStyle = EditorGUIUtility.TrTextContent("Max Density Volumes On Screen", "Sets the maximum number of density volume HDRP can handle on screen at once. This settings will affect your memory consumption.");
 
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";

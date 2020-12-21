@@ -629,6 +629,7 @@ namespace UnityEditor.Rendering.HighDefinition
             unitRect.width = k_UnitWidth + .5f;
 
             // Draw the unit textfield
+            EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
@@ -689,8 +690,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
             }
-
-            EditorGUI.BeginChangeCheck();
 
             DrawLightIntensityGUILayout(serialized, owner);
 
@@ -754,8 +753,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.settings.cookie != null && lightType == HDLightType.Directional)
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.cookieSizeX);
-                    EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.cookieSizeY);
+                    EditorGUI.BeginChangeCheck();
+                    var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                    size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.shapeWidth.floatValue = size.x;
+                        serialized.shapeHeight.floatValue = size.y;
+                    }
                     EditorGUI.indentLevel--;
                 }
 

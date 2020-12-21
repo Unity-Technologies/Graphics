@@ -118,11 +118,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit
 
             public static BlockFieldDescriptor CoatNormalOS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalOS", "Coat Normal (Object Space)", "SURFACEDESCRIPTION_COATNORMALOS",
-                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+                new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatNormalTS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalTS", "Coat Normal (Tangent Space)", "SURFACEDESCRIPTION_COATNORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalWS", "Coat Normal (World Space)", "SURFACEDESCRIPTION_COATNORMALWS",
-                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+                new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
             public static BlockFieldDescriptor DielectricIor = new BlockFieldDescriptor(SurfaceDescription.name, "DielectricIor", "Dielectric IOR", "SURFACEDESCRIPTION_DIELECTRICIOR",
                 new FloatControl(1.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SmoothnessB = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessB", "Smoothness B", "SURFACEDESCRIPTION_SMOOTHNESSB",

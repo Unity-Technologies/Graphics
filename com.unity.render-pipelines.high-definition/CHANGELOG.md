@@ -4,14 +4,101 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-10-21
+## [11.0.0] - 2020-12-02
 
-### Changed
-- Removed the material pass probe volumes evaluation mode. 
+### Added
+- Added a new API to bake HDRP probes from C# (case 1276360)
+- Added support for pre-exposure for planar reflections.
+- Added support for nested volume components to volume system.
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
+- Added a toggle to allow to include or exclude smooth surfaces from ray traced reflection denoising.
+- Added light unit slider for automatic and automatic histrogram exposure limits.
+- Added support for raytracing for AxF material
+- Added rasterized area light shadows for AxF material
+- Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
+- Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
+- Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
+- Fixed couple samplers that had the wrong name in raytracing code
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
+- Fixed computation of geometric normal in path tracing (case 1293029).
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed the default background color for previews to use the original color.
+
+### Changed
+- Removed the material pass probe volumes evaluation mode.
+- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Removed the superior clamping value for the recursive rendering max ray length. 
+- Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
+- When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
+- Removed the upscale radius from the RTR.
+- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
+- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+
+## [10.3.0] - 2020-12-01
+
+### Fixed
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
+- Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Fixed wrong coat normal space in shader graph
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
+
+### Changed
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+- Replaced last package version checker in Wizard to a link on Package Manager
+
+## [10.2.1] - 2020-11-30
+
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
+### Fixed
+- Fixed stylesheet reloading for LookDev window and Wizard window.
 - Fixed XR single-pass rendering with legacy shaders using unity_StereoWorldSpaceCameraPos.
+- Fixed issue displaying wrong debug mode in runtime debug menu UI.
+- Fixed useless editor repaint when using lod bias.
+- Fixed multi-editing with new light intensity slider.
+- Fixed issue with density volumes flickering when editing shape box.
+- Fixed issue with image layers in the graphics compositor (case 1289936).
+- Fixed issue with angle fading when rotating decal projector.
+- Fixed issue with gameview repaint in the graphics compositor (case 1290622).
+- Fixed some labels being clipped in the Render Graph Viewer
+- Fixed issue when decal projector material is none.
+- Fixed the sampling of the normal buffer in the the forward transparent pass.
+- Fixed bloom prefiltering tooltip.
+- Fixed NullReferenceException when loading multipel scene async
+- Fixed missing alpha blend state properties in Axf shader and update default stencil properties
+- Fixed normal buffer not bound to custom pass anymore.
+- Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
+- Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+- Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
+- Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
+- Fixed alpha output when atmospheric scattering is enabled.
+- Fixed issue with TAA history sharpening when view is downsampled.
+- Fixed lookdev movement.
+- Fixed volume component tooltips using the same parameter name.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- Fixed SSGI texture allocation when not using the RenderGraph.
+- Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+
+### Changed
+- Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
+- Now the screen space shadow is only used if the analytic value is valid.
+- Distance based roughness is disabled by default and have a control
 
 ## [10.2.0] - 2020-10-19
 
@@ -31,6 +118,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
+- Added the TerrainCompatible SubShader Tag. Use this Tag in your custom shader to tell Unity that the shader is compatible with the Terrain system.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
 
 ### Fixed
@@ -100,7 +188,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed picking for materials with depth offset.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
-- Fixes some labels being clipped in the Render Graph Viewer
+- Fixed path tracing accumulation not being reset when changing to a different frame of an animation.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.

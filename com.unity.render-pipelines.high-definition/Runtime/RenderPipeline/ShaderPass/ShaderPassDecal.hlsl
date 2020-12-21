@@ -4,6 +4,9 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DecalMeshBiasTypeEnum.cs.hlsl"
+#endif
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
@@ -17,9 +20,23 @@ void MeshDecalsPositionZBias(inout VaryingsToPS input)
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-    MeshDecalsPositionZBias(varyingsType);
+
+    float3 worldSpaceBias = 0.0f;
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_VIEW_BIAS)
+    {
+        float3 positionRWS = TransformObjectToWorld(inputMesh.positionOS);
+        float3 V = GetWorldSpaceNormalizeViewDir(positionRWS);
+
+        worldSpaceBias = V * (_DecalMeshViewBias);
+    }
+    varyingsType.vmesh = VertMesh(inputMesh, worldSpaceBias);
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_DEPTH_BIAS)
+    {
+        MeshDecalsPositionZBias(varyingsType);
+    }
+#else
+    varyingsType.vmesh = VertMesh(inputMesh);
 #endif
     return PackVaryingsType(varyingsType);
 }
@@ -105,7 +122,8 @@ void Frag(  PackedVaryingsToPS packedInput,
 
         if (angleFade.y < 0.0f) // if angle fade is enabled
         {
-            float dotAngle = dot(material.geomNormalWS, normalToWorld[2].xyz);
+            float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
+            float dotAngle = dot(material.geomNormalWS, decalNormal);
             // See equation in DecalSystem.cs - simplified to a madd mul add here
             angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
         }

@@ -1047,6 +1047,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661614742}
   cullMode: 2
@@ -4460,6 +4461,7 @@ MonoBehaviour:
   m_Type:
     m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
+  safeNormalize: 0
 --- !u!114 &8926484042661614551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5576,6 +5578,7 @@ MonoBehaviour:
   m_Type:
     m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
+  safeNormalize: 0
 --- !u!114 &8926484042661614585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5912,6 +5915,7 @@ MonoBehaviour:
   blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661614743}
   cullMode: 0
