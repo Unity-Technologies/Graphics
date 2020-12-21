@@ -182,6 +182,15 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     return hit;
 }
 
+bool IntersectSphereAABB(float3 position, float radius, float3 aabbMin, float3 aabbMax)
+{
+  float x = max(aabbMin.x, min(position.x, aabbMax.x));
+  float y = max(aabbMin.y, min(position.y, aabbMax.y));
+  float z = max(aabbMin.z, min(position.z, aabbMax.z));
+  float distance2 = ((x - position.x) * (x - position.x) + (y - position.y) * (y - position.y) + (z - position.z) * (z - position.z));
+  return distance2 < radius * radius;
+}
+
 //-----------------------------------------------------------------------------
 // Miscellaneous functions
 //-----------------------------------------------------------------------------

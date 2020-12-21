@@ -880,6 +880,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Raytracing Indirect
 
+        public static KeywordCollection IndirectDiffuseKeywordCollection = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.multiBounceIndirect },
+        };
+
         public static PassDescriptor GenerateRaytracingIndirect(bool supportLighting)
         {
             return new PassDescriptor
@@ -893,6 +898,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
+                keywords = supportLighting ? IndirectDiffuseKeywordCollection : null,
                 includes = GenerateIncludes(),
             };
 
