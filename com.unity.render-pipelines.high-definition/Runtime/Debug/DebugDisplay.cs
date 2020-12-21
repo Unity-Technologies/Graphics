@@ -1426,6 +1426,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
+            list.Add(new DebugUI.BoolField { displayName = "Display Density Volume Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayDensityVolumeAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetDensityVolumeSliceCount()},
+                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.densityVolumeUseSelection, setter = value => data.lightingDebugSettings.densityVolumeUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                    }
+                });
+            }
+
+            uint GetDensityVolumeSliceCount()
+            {
+#if UNITY_EDITOR
+                if (data.lightingDebugSettings.densityVolumeUseSelection)
+                {
+                    var selectedGO = UnityEditor.Selection.activeGameObject;
+                    if (selectedGO != null && selectedGO.TryGetComponent<DensityVolume>(out var densityVolume))
+                    {
+                        var texture = densityVolume.parameters.volumeMask;
+
+                        if (texture != null)
+                            return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
+                    }
+                    return 0;
+                }
+                else
+#endif
+                return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
+            }
+
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
             m_DebugLightingItems = list.ToArray();

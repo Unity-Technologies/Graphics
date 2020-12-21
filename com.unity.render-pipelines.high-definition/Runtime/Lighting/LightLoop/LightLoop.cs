@@ -636,6 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
+        Material m_DebugDensityVolumeMaterial;
         Material m_DebugBlitMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
@@ -759,6 +760,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
+            m_DebugDensityVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDensityVolumeAtlasPS);
             m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
@@ -943,6 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
+            CoreUtils.Destroy(m_DebugDensityVolumeMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
         }
 
@@ -3793,6 +3796,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          debugSelectedLightShadowIndex;
             public int                          debugSelectedLightShadowCount;
             public Material                     debugShadowMapMaterial;
+            public Material                     debugDensityVolumeMaterial;
             public Material                     debugBlitMaterial;
             public LightCookieManager           cookieManager;
             public PlanarReflectionProbeCache   planarProbeCache;
@@ -3807,6 +3811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
             parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
             parameters.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
+            parameters.debugDensityVolumeMaterial = m_DebugDensityVolumeMaterial;
             parameters.debugBlitMaterial = m_DebugBlitMaterial;
             parameters.cookieManager = m_TextureCaches.lightCookieManager;
             parameters.planarProbeCache = m_TextureCaches.reflectionPlanarProbeCache;
@@ -3911,6 +3916,45 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.planarProbeCache.GetTexCache());
                     debugParameters.debugOverlay.SetViewport(cmd);
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    debugParameters.debugOverlay.Next();
+                }
+            }
+
+            if (lightingDebug.displayDensityVolumeAtlas)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDensityVolumeAtlas)))
+                {
+                    var atlas = DensityVolumeManager.manager.volumeAtlas;
+                    var atlasTexture = atlas.GetAtlas();
+                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, atlasTexture);
+                    m_LightLoopDebugMaterialProperties.SetFloat("_Slice", (float)lightingDebug.densityVolumeAtlasSlice);
+                    m_LightLoopDebugMaterialProperties.SetVector("_Offset", Vector3.zero);
+                    m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(atlasTexture.width, atlasTexture.height, atlasTexture.volumeDepth));
+
+#if UNITY_EDITOR
+                    if (lightingDebug.densityVolumeUseSelection)
+                    {
+                        var obj = UnityEditor.Selection.activeGameObject;
+
+                        if (obj != null && obj.TryGetComponent<DensityVolume>(out var densityVolume))
+                        {
+                            var texture = densityVolume.parameters.volumeMask;
+
+                            if (texture != null)
+                            {
+                                float textureDepth = texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 0;
+                                m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(texture.width, texture.height, textureDepth));
+                                m_LightLoopDebugMaterialProperties.SetVector("_Offset", atlas.GetTextureOffset(texture));
+                            }
+                        }
+                    }
+#endif
+
+                    debugParameters.debugOverlay.SetViewport(cmd);
+                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    debugParameters.debugOverlay.Next();
+                    debugParameters.debugOverlay.SetViewport(cmd);
+                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
                     debugParameters.debugOverlay.Next();
                 }
             }

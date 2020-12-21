@@ -904,6 +904,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ViewportScaleBias              = Shader.PropertyToID("_ViewportScaleBias");
         public static readonly int _SourceSize                     = Shader.PropertyToID("_SourceSize");
         public static readonly int _SourceScaleFactor              = Shader.PropertyToID("_SourceScaleFactor");
+
+        // 3D Atlas
+        public static readonly int _Dst3DTexture                   = Shader.PropertyToID("_Dst3DTexture");
+        public static readonly int _Src3DTexture                   = Shader.PropertyToID("_Src3DTexture");
+        public static readonly int _AlphaOnlyTexture               = Shader.PropertyToID("_AlphaOnlyTexture");
+        public static readonly int _SrcSize                        = Shader.PropertyToID("_SrcSize");
+        public static readonly int _SrcMip                         = Shader.PropertyToID("_SrcMip");
+        public static readonly int _SrcScale                       = Shader.PropertyToID("_SrcScale");
+        public static readonly int _SrcOffset                      = Shader.PropertyToID("_SrcOffset");
     }
 
     /// <summary>
