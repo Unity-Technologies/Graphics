@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (importer == null)
                     return;
 
+                // TODOJENNY++
+                /*
                 var currentHDAsset = HDRenderPipeline.currentAsset;
                 if (currentHDAsset == null)
                     throw new Exception("Can't upgrade diffusion profile when the HDRenderPipeline asset is not assigned in Graphic Settings");
@@ -67,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     index++;
                 }
 
-                // We write in the main diffusion profile meta filethe list of created asset so we know where to look
+                // We write in the main diffusion profile meta file the list of created asset so we know where to look
                 // when we upgrade materials inside scenes (from the menu item)
                 SerializableGUIDs toJson;
                 toJson.assetGUIDs = new string[16];
@@ -102,6 +104,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         UpgradeMaterial(mat, d);
                     }
                 }
+                */
+                // TODOJENNY--
 #endif
 #pragma warning restore 618
             })

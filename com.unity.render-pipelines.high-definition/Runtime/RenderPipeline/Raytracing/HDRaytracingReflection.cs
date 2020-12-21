@@ -21,8 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedReflections()
         {
-            ComputeShader reflectionShaderCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS;
-            ComputeShader reflectionBilateralFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            ComputeShader reflectionShaderCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionRaytracingCS;
+            ComputeShader reflectionBilateralFilterCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingReflectionsFullResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsFullRes");
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtrDirGenParams.minSmoothness = settings.minSmoothness;
 
             // Grab the right kernel
-            rtrDirGenParams.directionGenCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS;
+            rtrDirGenParams.directionGenCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionRaytracingCS;
             if (settings.fullResolution)
             {
                 rtrDirGenParams.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
@@ -172,9 +172,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lightCluster = RequestLightCluster();
 
             // Shaders
-            deferredParameters.gBufferRaytracingRT = m_Asset.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = m_Asset.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.gBufferRaytracingRT = HDDefaultSettings.instance.renderPipelineRayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.rayBinningCS;
 
             // XRTODO: add ray binning support for single-pass
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Other parameters
             rtrUpscaleParams.blueNoiseTexture = GetBlueNoiseManager().textureArray16RGB;
-            rtrUpscaleParams.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            rtrUpscaleParams.reflectionFilterCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
             return rtrUpscaleParams;
         }
 
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtrQualityRenderingParameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             rtrQualityRenderingParameters.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
             rtrQualityRenderingParameters.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-            rtrQualityRenderingParameters.reflectionShader = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingRT;
+            rtrQualityRenderingParameters.reflectionShader = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionRaytracingRT;
 
             return rtrQualityRenderingParameters;
         }

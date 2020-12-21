@@ -113,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentStaticLightingSky()
         {
+            if ((RenderPipelineManager.currentPipeline is HDRenderPipeline) == false)
+                return;
+
             // First, grab the sky settings of the right type in the profile.
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;
@@ -132,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var newSkyParameters = m_SkySettings.parameters;
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
 
-                var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+                var defaultVolume = HDDefaultSettings.instance.GetOrCreateDefaultVolume();
                 SkySettings defaultSky = null;
                 if (defaultVolume.sharedProfile != null) // This can happen with old projects.
                     defaultVolume.sharedProfile.TryGet(skyType, out defaultSky);

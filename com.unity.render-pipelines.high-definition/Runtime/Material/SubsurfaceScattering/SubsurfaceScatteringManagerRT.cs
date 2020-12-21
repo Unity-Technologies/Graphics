@@ -25,8 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeSubsurfaceScatteringRT()
         {
-            ComputeShader rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
-            ComputeShader deferredRayTracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+            ComputeShader rayTracingSubSurfaceCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+            ComputeShader deferredRayTracingCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
 
             m_SSSClearTextureKernel = rayTracingSubSurfaceCS.FindKernel("ClearTexture");
             m_RaytracingDiffuseDeferredKernel = deferredRayTracingCS.FindKernel("RaytracingDiffuseDeferred");
@@ -79,9 +79,9 @@ namespace UnityEngine.Rendering.HighDefinition
             sssrtParams.rtDeferredLightingKernel = m_RaytracingDiffuseDeferredKernel;
 
             // other required parameters
-            sssrtParams.rayTracingSubSurfaceRT = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingRT;
-            sssrtParams.rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
-            sssrtParams.deferredRayTracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+            sssrtParams.rayTracingSubSurfaceRT = HDDefaultSettings.instance.renderPipelineRayTracingResources.subSurfaceRayTracingRT;
+            sssrtParams.rayTracingSubSurfaceCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+            sssrtParams.deferredRayTracingCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
             sssrtParams.accelerationStructure = RequestAccelerationStructure();
             sssrtParams.lightCluster = RequestLightCluster();
             sssrtParams.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ssscParams.combineSSSKernel = ssscParams.validSSGI ? m_CombineSubSurfaceWithGIKernel : m_CombineSubSurfaceKernel;
 
             // Other parameters
-            ssscParams.rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+            ssscParams.rayTracingSubSurfaceCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
             ssscParams.combineLightingMat = m_CombineLightingPass;
 
             return ssscParams;

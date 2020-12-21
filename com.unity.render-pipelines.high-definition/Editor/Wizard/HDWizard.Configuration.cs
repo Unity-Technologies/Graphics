@@ -393,44 +393,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsHdrpAssetRuntimeResourcesCorrect()
             => IsHdrpAssetUsedCorrect()
-            && HDRenderPipeline.defaultAsset.renderPipelineResources != null;
+            && HDDefaultSettings.instance.AreResourcesCreated();
         void FixHdrpAssetRuntimeResources(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset == null)
-                return;
-
-            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
-            hdrpAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
-            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
-                HDUtils.GetHDRenderPipelinePath()))
-            {
-                InternalEditorUtility.SaveToSerializedFileAndForget(
-                    new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineEditorResources },
-                    editorResourcesPath,
-                    true);
-            }
+            HDDefaultSettings.instance.EnsureResources(forceReload: true);
         }
 
         bool IsHdrpAssetEditorResourcesCorrect()
             => IsHdrpAssetUsedCorrect()
-            && HDRenderPipeline.defaultAsset.renderPipelineEditorResources != null;
+            && HDDefaultSettings.instance.AreEditorResourcesCreated();
         void FixHdrpAssetEditorResources(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset == null)
-                return;
-
-            hdrpAsset.renderPipelineEditorResources
-                = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
-            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
+            HDDefaultSettings.instance.EnsureEditorResources(forceReload: true);
         }
 
         bool IsSRPBatcherCorrect()
@@ -440,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipeline.currentAsset;
             if (hdrpAsset == null)
                 return;
 
@@ -464,7 +444,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+            HDRenderPipeline.defaultAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
             foreach (var diffusionProfileAsset in defaultAssetList)
             {
@@ -472,7 +452,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
 
                 var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                hdrpAsset.AddDiffusionProfile(userAsset);
+                HDRenderPipeline.defaultAsset.AddDiffusionProfile(userAsset);
             }
 
             EditorUtility.SetDirty(hdrpAsset);
@@ -483,10 +463,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 return false;
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            return hdAsset.defaultVolumeProfile != null
-                && !hdAsset.defaultVolumeProfile.Equals(null)
-                && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+            return HDDefaultSettings.instance.IsVolumeProfileFromResources();
         }
 
         void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
@@ -498,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrpAsset == null)
                 return;
 
-            VolumeProfile defaultSettingsVolumeProfileInPackage = hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+            VolumeProfile defaultSettingsVolumeProfileInPackage = HDDefaultSettings.instance.renderPipelineEditorResources.defaultSettingsVolumeProfile;
             string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
 
             //try load one if one already exist
@@ -509,7 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultSettingsVolumeProfileInPackage), defaultSettingsVolumeProfilePath);
                 defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
             }
-            hdrpAsset.defaultVolumeProfile = defaultSettingsVolumeProfile;
+            HDDefaultSettings.instance.volumeProfile = defaultSettingsVolumeProfile;
 
             EditorUtility.SetDirty(hdrpAsset);
         }
@@ -582,6 +559,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRDirect3D12Correct()
             => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
@@ -638,16 +616,15 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => HDRenderPipeline.defaultAsset != null
-            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
+            => HDDefaultSettings.instance.AreRayTracingResourcesCreated()
             && SystemInfo.supportsRayTracing;
         void FixDXRAsset(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
-            HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
-                = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
-            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+
+            HDDefaultSettings.instance.EnsureRayTracingResources(forceReload: true);
+
             // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
             // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.
             if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct())
@@ -664,7 +641,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRScreenSpaceShadowFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -680,7 +657,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRReflectionsFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -696,7 +673,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRTransparentReflectionsFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -712,7 +689,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRGIFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -945,7 +922,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             void Progress()
             {
-                //Can occures on Wizard close or if scripts reloads
+                //Can occur on Wizard close or if scripts reloads
                 if (m_CurrentRequest == null || m_CurrentRequest.Equals(null))
                 {
                     EditorApplication.update -= Progress;

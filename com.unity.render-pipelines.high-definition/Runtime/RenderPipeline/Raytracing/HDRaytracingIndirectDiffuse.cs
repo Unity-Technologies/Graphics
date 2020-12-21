@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -68,9 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lightCluster = RequestLightCluster();
 
             // Shaders
-            deferredParameters.gBufferRaytracingRT = m_Asset.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = m_Asset.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.gBufferRaytracingRT = HDDefaultSettings.instance.renderPipelineRayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.rayBinningCS;
 
             // XRTODO: add ray binning support for single-pass
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtidDirGenParams.fullResolution = settings.fullResolution;
 
             // Grab the right kernel
-            rtidDirGenParams.directionGenCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            rtidDirGenParams.directionGenCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
             rtidDirGenParams.dirGenKernel = settings.fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
             // Grab the additional parameters
@@ -202,13 +202,13 @@ namespace UnityEngine.Rendering.HighDefinition
             rtidUpscaleParams.upscaleRadius = settings.upscaleRadius;
 
             // Grab the right kernel
-            rtidUpscaleParams.upscaleCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            rtidUpscaleParams.upscaleCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
             rtidUpscaleParams.upscaleKernel = settings.fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
             // Grab the additional parameters
             BlueNoise blueNoise = GetBlueNoiseManager();
             rtidUpscaleParams.blueNoiseTexture = blueNoise.textureArray16RGB;
-            rtidUpscaleParams.scramblingTexture = m_Asset.renderPipelineResources.textures.scramblingTex;
+            rtidUpscaleParams.scramblingTexture = HDDefaultSettings.instance.renderPipelineResources.textures.scramblingTex;
 
             return rtidUpscaleParams;
         }
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
 
             // Grab the right kernel
-            parameters.adjustWeightCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            parameters.adjustWeightCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
             parameters.adjustWeightKernel = m_AdjustIndirectDiffuseWeightKernel;
 
             return parameters;
@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             qrtidParams.bounceCount = settings.bounceCount.value;
 
             // Grab the additional parameters
-            qrtidParams.indirectDiffuseRT = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
+            qrtidParams.indirectDiffuseRT = HDDefaultSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
             qrtidParams.accelerationStructure = RequestAccelerationStructure();
             qrtidParams.lightCluster = RequestLightCluster();
             qrtidParams.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);

@@ -93,14 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
-                decalLayerName0 = "Decal Layer default",
-                decalLayerName1 = "Decal Layer 1",
-                decalLayerName2 = "Decal Layer 2",
-                decalLayerName3 = "Decal Layer 3",
-                decalLayerName4 = "Decal Layer 4",
-                decalLayerName5 = "Decal Layer 5",
-                decalLayerName6 = "Decal Layer 6",
-                decalLayerName7 = "Decal Layer 7",
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeDebugDisplay = false,
@@ -126,14 +118,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                lightLayerName0 = "Light Layer default",
-                lightLayerName1 = "Light Layer 1",
-                lightLayerName2 = "Light Layer 2",
-                lightLayerName3 = "Light Layer 3",
-                lightLayerName4 = "Light Layer 4",
-                lightLayerName5 = "Light Layer 5",
-                lightLayerName6 = "Light Layer 6",
-                lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
                 probeVolumeSettings = GlobalProbeVolumeSettings.@default,
             };
@@ -193,21 +177,53 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0;
+        public string lightLayerName0
+        {
+            get { return HDDefaultSettings.instance.lightLayerName0; }
+            set { HDDefaultSettings.instance.lightLayerName0 = value; }
+        }
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1;
+        public string lightLayerName1
+        {
+            get { return HDDefaultSettings.instance.lightLayerName1; }
+            set { HDDefaultSettings.instance.lightLayerName1 = value; }
+        }
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2;
+        public string lightLayerName2
+        {
+            get { return HDDefaultSettings.instance.lightLayerName2; }
+            set { HDDefaultSettings.instance.lightLayerName2 = value; }
+        }
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3;
+        public string lightLayerName3
+        {
+            get { return HDDefaultSettings.instance.lightLayerName3; }
+            set { HDDefaultSettings.instance.lightLayerName3 = value; }
+        }
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4;
+        public string lightLayerName4
+        {
+            get { return HDDefaultSettings.instance.lightLayerName4; }
+            set { HDDefaultSettings.instance.lightLayerName4 = value; }
+        }
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5;
+        public string lightLayerName5
+        {
+            get { return HDDefaultSettings.instance.lightLayerName5; }
+            set { HDDefaultSettings.instance.lightLayerName5 = value; }
+        }
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6;
+        public string lightLayerName6
+        {
+            get { return HDDefaultSettings.instance.lightLayerName6; }
+            set { HDDefaultSettings.instance.lightLayerName6 = value; }
+        }
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7;
+        public string lightLayerName7
+        {
+            get { return HDDefaultSettings.instance.lightLayerName7; }
+            set { HDDefaultSettings.instance.lightLayerName7 = value; }
+        }
         /// <summary>Support distortion.</summary>
         public bool supportDistortion;
         /// <summary>Support transparent backface pass.</summary>
@@ -232,21 +248,53 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
         /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0;
+        public string decalLayerName0
+        {
+            get { return HDDefaultSettings.instance.decalLayerName0; }
+            set { HDDefaultSettings.instance.decalLayerName0 = value; }
+        }
         /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1;
+        public string decalLayerName1
+        {
+            get { return HDDefaultSettings.instance.decalLayerName1; }
+            set { HDDefaultSettings.instance.decalLayerName1 = value; }
+        }
         /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2;
+        public string decalLayerName2
+        {
+            get { return HDDefaultSettings.instance.decalLayerName2; }
+            set { HDDefaultSettings.instance.decalLayerName2 = value; }
+        }
         /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3;
+        public string decalLayerName3
+        {
+            get { return HDDefaultSettings.instance.decalLayerName3; }
+            set { HDDefaultSettings.instance.decalLayerName3 = value; }
+        }
         /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4;
+        public string decalLayerName4
+        {
+            get { return HDDefaultSettings.instance.decalLayerName4; }
+            set { HDDefaultSettings.instance.decalLayerName4 = value; }
+        }
         /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5;
+        public string decalLayerName5
+        {
+            get { return HDDefaultSettings.instance.decalLayerName5; }
+            set { HDDefaultSettings.instance.decalLayerName5 = value; }
+        }
         /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6;
+        public string decalLayerName6
+        {
+            get { return HDDefaultSettings.instance.decalLayerName6; }
+            set { HDDefaultSettings.instance.decalLayerName6 = value; }
+        }
         /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7;
+        public string decalLayerName7
+        {
+            get { return HDDefaultSettings.instance.decalLayerName7; }
+            set { HDDefaultSettings.instance.decalLayerName7 = value; }
+        }
 
         /// <summary>Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
@@ -305,6 +353,40 @@ namespace UnityEngine.Rendering.HighDefinition
     #pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
+
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName0;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName1;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName2;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName3;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName4;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName5;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName6;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletelightLayerName7;
+
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName0;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName1;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName2;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName3;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName4;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName5;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName6;
+        [Obsolete("Moved to HDDefault Settings")]
+        internal string m_ObsoletedecalLayerName7;
     #pragma warning restore 618
     }
 }

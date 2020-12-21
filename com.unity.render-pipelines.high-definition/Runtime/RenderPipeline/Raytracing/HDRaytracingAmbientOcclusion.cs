@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Init(HDRenderPipeline renderPipeline)
         {
             // Keep track of the pipeline asset
-            m_PipelineRayTracingResources = renderPipeline.asset.renderPipelineRayTracingResources;
+            m_PipelineRayTracingResources = HDDefaultSettings.instance.renderPipelineRayTracingResources;
 
             // keep track of the render pipeline
             m_RenderPipeline = renderPipeline;

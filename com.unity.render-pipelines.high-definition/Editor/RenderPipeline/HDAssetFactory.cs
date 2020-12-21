@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var newAsset = CreateInstance<RenderPipelineResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
+                // to prevent cases when the asset existed prior but then when upgrading the package, there is null field inside the resource asset
                 ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
 
                 AssetDatabase.CreateAsset(newAsset, pathName);
@@ -108,6 +109,32 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineEditorResources>(), "New HDRenderPipelineEditorResources.asset", icon, null);
+        }
+
+        internal class HDDefaultSettingsCreator : UnityEditor.ProjectWindowCallback.EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var newAsset = HDDefaultSettings.Create(pathName, settings);
+                HDDefaultSettings.UpdateGraphicsSettings(newAsset);
+                ProjectWindowUtil.ShowCreatedAsset(newAsset);
+            }
+
+            static HDDefaultSettings settings;
+            public static void Clone(HDDefaultSettings src)
+            {
+                settings = src;
+                var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+                var assetCreator = ScriptableObject.CreateInstance<HDDefaultSettingsCreator>();
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/New HDDefaultSettings.asset", icon, null);
+            }
+        }
+
+        [MenuItem("Assets/Create/Rendering/High Definition Default Settings Asset", priority = CoreUtils.assetCreateMenuPriority2)]
+        internal static void CreateHDDefaultSettings()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDDefaultSettingsCreator>(), "New HDDefaultSettings.asset", icon, null);
         }
     }
 }

@@ -306,8 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = HDRenderPipeline.defaultAsset;
-                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+                m_Material = HDDefaultSettings.instance != null ? HDDefaultSettings.instance.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif
