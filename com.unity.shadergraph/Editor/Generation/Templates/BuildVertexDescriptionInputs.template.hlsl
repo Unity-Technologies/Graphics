@@ -7,7 +7,7 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     $VertexDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            TransformObjectToWorldNormal(input.normalOS);
     $VertexDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             TransformWorldToViewDir(output.WorldSpaceNormal);
     $VertexDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-    $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS;
+    $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS.xyz;
     $VertexDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           TransformObjectToWorldDir(input.tangentOS.xyz);
     $VertexDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
     $VertexDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
