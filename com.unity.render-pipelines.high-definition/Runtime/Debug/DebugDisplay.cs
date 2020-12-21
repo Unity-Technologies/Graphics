@@ -734,7 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
@@ -765,18 +764,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
+
+            // Ray Traced Reflections
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscaleGeneration));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter));
+
+            // Ray Traced Ambient Occlusion
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
+
+            // Ray Traced Shadows
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingLightShadow));
+
+            // Ray Traced Indirect Diffuse
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse));
+
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
             m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
@@ -1459,6 +1468,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
+            list.Add(new DebugUI.BoolField { displayName = "Display Density Volume Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayDensityVolumeAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetDensityVolumeSliceCount()},
+                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.densityVolumeUseSelection, setter = value => data.lightingDebugSettings.densityVolumeUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                    }
+                });
+            }
+
+            uint GetDensityVolumeSliceCount()
+            {
+#if UNITY_EDITOR
+                if (data.lightingDebugSettings.densityVolumeUseSelection)
+                {
+                    var selectedGO = UnityEditor.Selection.activeGameObject;
+                    if (selectedGO != null && selectedGO.TryGetComponent<DensityVolume>(out var densityVolume))
+                    {
+                        var texture = densityVolume.parameters.volumeMask;
+
+                        if (texture != null)
+                            return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
+                    }
+                    return 0;
+                }
+                else
+#endif
+                return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
+            }
+
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
             m_DebugLightingItems = list.ToArray();
@@ -1813,8 +1855,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
-
-            widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

@@ -102,6 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
             public Shader combineLightingPS;
 
+            [Reload("Runtime/Lighting/VolumetricLighting/DebugDensityVolumeAtlas.shader")]
+            public Shader debugDensityVolumeAtlasPS;
+
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
             public Shader cameraMotionVectorsPS;
@@ -155,6 +158,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader        physicallyBasedSkyPS;
             [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
             public ComputeShader planarReflectionFilteringCS;
+            [Reload("Runtime/Sky/CloudSystem/CloudLayer/CloudLayer.shader")]
+            public Shader        cloudLayerPS;
+            [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudTexture.compute")]
+            public ComputeShader bakeCloudTextureCS;
+            [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudShadows.compute")]
+            public ComputeShader bakeCloudShadowsCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -180,6 +189,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader customPassUtils;
             [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
             public Shader customPassRenderersUtils;
+            [Reload("Runtime/RenderPipeline/Utility/Texture3DAtlas.compute")]
+            public ComputeShader texture3DAtlasCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
@@ -306,10 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
-#if ENABLE_VIRTUALTEXTURES
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
             public ComputeShader VTFeedbackDownsample;
-#endif
 
             // Accumulation
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
@@ -405,6 +414,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
+
+            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudMap.png")]
+            public Texture2D    defaultCloudMap;
         }
 
         [Serializable, ReloadGroup]
