@@ -219,22 +219,10 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-// Without a normal we only evaluate L0, also we have an option to undo the constant coefficients that are there due to the cosine convolution.
-void EvaluateAdaptiveProbeVolume(in float3 posWS, bool undoCosineRescale, out float3 bakeDiffuseLighting)
+void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
 {
     APVResources apvRes = FillAPVResources();
     bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), apvRes);
-    if (undoCosineRescale)
-    {
-        float invC0 = 3.54490770181f; // 1 / (0.5 * sqrt(1/Pi))
-        bakeDiffuseLighting *= invC0;
-    }
 }
-
-void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
-{
-    EvaluateAdaptiveProbeVolume(posWS, false, bakeDiffuseLighting);
-}
-
 
 #endif // __PROBEVOLUME_HLSL__
