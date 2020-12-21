@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
+#if UNITY_EDITOR
         internal static ProbeReferenceVolumeProfile CreateReferenceVolumeProfile(Scene scene, string targetName)
         {
             string path;
@@ -63,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AssetDatabase.Refresh();
             return profile;
         }
-
+#endif
         // debug gizmo data
         class CellInstancedDebugProbes
         {
@@ -88,7 +89,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private ProbeReferenceVolumeProfile m_Profile = null;
+#if UNITY_EDITOR
         private ProbeReferenceVolumeProfile m_PrevProfile = null;
+#endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
         internal int brickSize { get { return m_Profile.brickSize; } }
@@ -97,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float normalBias { get { return m_Profile.normalBias; } }
         internal Vector3Int indexDimensions { get { return m_Profile.indexDimensions; } }
 
+#if UNITY_EDITOR
         [SerializeField]
         private bool m_DrawProbes = false;
         [SerializeField]
@@ -124,8 +128,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         private bool m_GreedyDilation = false;
 
-        public ProbeVolumeAsset volumeAsset = null;
         private ProbeVolumeAsset m_PrevAsset = null;
+#endif
+        public ProbeVolumeAsset volumeAsset = null;
 
         internal void QueueAssetLoading()
         {
@@ -355,6 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
         public void DrawProbeGizmos()
         {
             if (m_DrawProbes)
@@ -385,6 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+#endif
 
         private void CheckInit()
         {
@@ -395,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.shaders.instancedProbeShader) { enableInstancing = true };
             }
         }
-
+#if UNITY_EDITOR
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
@@ -408,6 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return settings;
         }
+#endif
 
 #endif
     }
