@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Hybrid renderer compatibility [1296776]
 
 ## [10.3.1] - 2021-01-26
+- Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
