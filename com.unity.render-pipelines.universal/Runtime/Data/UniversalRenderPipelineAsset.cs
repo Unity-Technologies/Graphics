@@ -816,7 +816,6 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 3)
             {
                 m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);
-                k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 3;
             }
 
@@ -826,7 +825,6 @@ namespace UnityEngine.Rendering.Universal
                 m_AdditionalLightsShadowmapResolution = m_LocalShadowsAtlasResolution;
                 m_AdditionalLightsPerObjectLimit = m_MaxPixelLights;
                 m_MainLightShadowmapResolution = m_ShadowAtlasResolution;
-                k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 4;
             }
 
@@ -836,7 +834,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_RendererDataList[0] = m_RendererData;
                 }
-                k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 5;
             }
 
@@ -858,19 +855,20 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
             }
 
-
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
                 EditorApplication.delayCall += () => UpgradeAsset(this);
             }
 #endif
+
+            k_AssetVersion = k_MaxAssetVersion;
         }
 
 #if UNITY_EDITOR
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
-            if(asset.k_AssetPreviousVersion < k_MaxAssetVersion)
+            if(asset.k_AssetPreviousVersion < 5)
             {
                 if (asset.m_RendererType == RendererType.ForwardRenderer)
                 {
@@ -886,8 +884,11 @@ namespace UnityEngine.Rendering.Universal
                     asset.m_RendererData = null; // Clears the old renderer
                 }
 
-                asset.k_AssetPreviousVersion = k_MaxAssetVersion;
+                asset.k_AssetPreviousVersion = 5;
             }
+
+            // This needs to be at the end.
+            asset.k_AssetPreviousVersion = k_MaxAssetVersion;
         }
 #endif
 
