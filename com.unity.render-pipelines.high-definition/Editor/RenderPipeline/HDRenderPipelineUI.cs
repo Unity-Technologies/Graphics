@@ -41,7 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
             VirtualTexturing = 1 << 27,
-            FogQuality = 1 << 28
+            FogQuality = 1 << 28,
+            Volumetric = 1 << 29,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -80,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
+                    CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
@@ -223,6 +225,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.renderPipelineSettings.decalLayerName6);
                 HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.renderPipelineSettings.decalLayerName7);
                 --EditorGUI.indentLevel;
+            }
+        }
+
+        static void Drawer_Volumetric(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+
+            using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.supportVolumetrics.boolValue))
+            {
+                var lightSettings = serialized.renderPipelineSettings.lightLoopSettings;
+                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumeSize, Styles.maxDensityVolumeSizeStyle);
+                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumesOnScreen, Styles.maxDensityVolumesOnScreenStyle);
+
+                // Clamp values
+                lightSettings.maxDensityVolumeSize.intValue = Mathf.Clamp(lightSettings.maxDensityVolumeSize.intValue, (int)DensityVolumeResolution.Resolution32, (int)DensityVolumeResolution.Resolution256);
+                lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
+
+                if (lightSettings.maxDensityVolumeSize.hasMultipleDifferentValues || lightSettings.maxDensityVolumesOnScreen.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
+                else
+                {
+                    long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
+                        lightSettings.maxDensityVolumeSize.intValue,
+                        lightSettings.maxDensityVolumesOnScreen.intValue,
+                        DensityVolumeManager.densityVolumeAtlasFormat,
+                        true
+                    );
+
+                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    {
+                        int count = Texture3DAtlas.GetMaxElementCountForWeightInByte(
+                            HDRenderPipeline.k_MaxCacheSize,
+                            lightSettings.maxDensityVolumeSize.intValue,
+                            lightSettings.maxDensityVolumesOnScreen.intValue,
+                            DensityVolumeManager.densityVolumeAtlasFormat,
+                            true
+                        );
+                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
+                    else
+                    {
+                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                    }
+                }
             }
         }
 
@@ -973,8 +1021,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
-
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
