@@ -114,6 +114,22 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Possible values for one element of the density volume atlas.
+    /// </summary>
+    [Serializable]
+    public enum DensityVolumeResolution
+    {
+        /// <summary>3D volume of 32x32x32 voxels.</summary>
+        Resolution32 = 32,
+        /// <summary>3D volume of 64x64x64 voxels.</summary>
+        Resolution64 = 64,
+        /// <summary>3D volume of 128x128x128 voxels.</summary>
+        Resolution128 = 128,
+        /// <summary>3D volume of 256x256x256 voxels.</summary>
+        Resolution256 = 256,
+    }
+
+    /// <summary>
     /// Global Light Loop Settings.
     /// </summary>
     [Serializable]
@@ -148,6 +164,8 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
             maxLightsPerClusterCell = 8,
+            maxDensityVolumeSize = DensityVolumeResolution.Resolution32,
+            maxDensityVolumesOnScreen = 64, // 8MB texture atlas allocated by default
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -199,5 +217,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxPlanarReflectionOnScreen;
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
+
+        /// <summary>Maximum size of one density volume texture.</summary>
+        public DensityVolumeResolution maxDensityVolumeSize;
+        /// <summary>Maximum number of density volumes at the same time on screen.</summary>
+        public int maxDensityVolumesOnScreen;
     }
 }
