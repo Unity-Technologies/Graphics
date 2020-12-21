@@ -28,7 +28,7 @@ if __name__== "__main__":
     with open(config_file) as f:
         config = yaml.load(f)
     gfx_sdet_tools_dir = config["gfx_sdet_tools_path"]
-    build_py = os.path.join(gfx_sdet_tools_dir,'.yamato','ruamel','build.py')
+    build_py = os.path.join(gfx_sdet_tools_dir,'yml-generator','ruamel','build.py')
 
     cmd = f'python "{build_py}" --yamato-dir "{current_yamato_dir}"'
     print(f'Calling [{cmd}]')
