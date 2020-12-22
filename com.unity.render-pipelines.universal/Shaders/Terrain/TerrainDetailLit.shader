@@ -244,6 +244,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.alpha = 1.0;
+                surfaceData.occlusion = 1.0;
 
                 InputData inputData = (InputData)0;
                 inputData.normalWS = half3(0, 1, 0); // need some default to avoid division by 0.

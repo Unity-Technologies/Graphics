@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_DeferredAdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+        ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
@@ -136,7 +136,6 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-
             // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
@@ -147,8 +146,8 @@ namespace UnityEditor.Rendering.Universal
                 if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x) // [Work-around] We do not strip this variant on GLES3 because it could make some scenes crash current Unity GLES3 AndroidPlayer on OnePlus6T - TODO: remove this line once https://issuetracker.unity3d.com/product/unity/issues/guid/1293454/ is fixed
                     return true;
 
-            bool isDeferredAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredAdditionalLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredAdditionalShadow)
+            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredShadow)
                 return true;
 
             // Additional light are shaded per-vertex or per-pixel.
@@ -227,11 +226,9 @@ namespace UnityEditor.Rendering.Universal
             if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
                 return true;
 
-            bool isDeferredAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredAdditionalLightShadows);
-            if (isDeferredAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
-                return true;
+            bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
 
-            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredAdditionalShadow;
+            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredShadow;
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
@@ -265,9 +262,11 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
                     return true;
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+
+                // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
+                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct) && compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan)
                     return true;
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
             }
             return false;
@@ -471,10 +470,10 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures |= ShaderFeatures.DeferredShading;
 
             // We can only strip accurateGbufferNormals related variants if all DeferredRenderers use the same option.
-            if (withAccurateGbufferNormals && !withoutAccurateGbufferNormals)
+            if (withAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithAccurateGbufferNormals;
 
-            if (!withAccurateGbufferNormals && withoutAccurateGbufferNormals)
+            if (withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
 
             if (hasScreenSpaceShadows)
