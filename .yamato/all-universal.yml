@@ -47,7 +47,7 @@ PR_Universal_trunk:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -78,6 +78,9 @@ Nightly_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-linux-vulkan.yml#Universal_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_Universal_CUSTOM-REVISION:
     name: Universal PR Job - CUSTOM-REVISION
     dependencies:
@@ -150,3 +153,5 @@ Nightly_Universal_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

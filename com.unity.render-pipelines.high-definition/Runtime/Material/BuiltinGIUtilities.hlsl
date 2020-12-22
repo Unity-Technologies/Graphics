@@ -4,20 +4,51 @@
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
-#ifdef SHADERPASS
-#if ((SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-#endif
-#endif // #ifdef SHADERPASS
+// We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
+real3 EvaluateAmbientProbe(real3 normalWS)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return SampleSH9(SHCoefficients, normalWS);
+}
 
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
+// y channel is reserved for potential payload information to carry alongside the unintialized flag.
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
 bool IsUninitializedGI(float3 bakedGI)
 {
     const float3 unitializedGI = UNINITIALIZED_GI;
-    return all(bakedGI == unitializedGI);
+    return all(bakedGI.xz == unitializedGI.xz);
+}
+
+
+void SetAsUninitializedGI(out float3 bakedGI)
+{
+    bakedGI = UNINITIALIZED_GI;
+}
+
+float ExtractPayloadFromUninitializedGI(float3 inputBakedGI)
+{
+    float payload = 1.0f;
+    if (IsUninitializedGI(inputBakedGI))
+        payload = inputBakedGI.y;
+
+    return payload;
+}
+
+void EncodePayloadWithUninitGI(float payload, inout float3 bakedGI)
+{
+    bakedGI.y = payload;
 }
 #endif
 
@@ -88,18 +119,8 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
 {
     if (unity_ProbeVolumeParams.x == 0.0)
     {
-        // TODO: pass a tab of coefficient instead!
-        real4 SHCoefficients[7];
-        SHCoefficients[0] = unity_SHAr;
-        SHCoefficients[1] = unity_SHAg;
-        SHCoefficients[2] = unity_SHAb;
-        SHCoefficients[3] = unity_SHBr;
-        SHCoefficients[4] = unity_SHBg;
-        SHCoefficients[5] = unity_SHBb;
-        SHCoefficients[6] = unity_SHC;
-
-        bakeDiffuseLighting += SampleSH9(SHCoefficients, normalWS);
-        backBakeDiffuseLighting += SampleSH9(SHCoefficients, backNormalWS);
+        bakeDiffuseLighting += EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting += EvaluateAmbientProbe(backNormalWS);
     }
     else
     {
@@ -145,7 +166,7 @@ void SampleBakedGI(
     // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
-    bakeDiffuseLighting = UNINITIALIZED_GI;
+    SetAsUninitializedGI(bakeDiffuseLighting);
     return;
 #endif
 

@@ -9,29 +9,29 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     android:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
     ios:
       revision: d150da89ba968c1a0c56d353c61d6adefd04e714
       updated_at: '2020-12-21 17:06:21.827346'
       version: ''
     linux:
-      revision: d8065c12f0dab46bb892de0e4ef43426490c9b22
-      updated_at: '2020-12-19 23:15:06.274318'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
     macos:
       revision: d150da89ba968c1a0c56d353c61d6adefd04e714
       updated_at: '2020-12-21 17:06:21.827346'
       version: ''
     windows:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
   trunk_latest_public:
     android:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
     ios:
       revision: d150da89ba968c1a0c56d353c61d6adefd04e714
@@ -46,13 +46,13 @@ editor_versions:
       updated_at: '2020-12-21 17:06:21.827346'
       version: ''
     windows:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
   trunk_staging:
     android:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''
     ios:
       revision: d150da89ba968c1a0c56d353c61d6adefd04e714
@@ -67,6 +67,6 @@ editor_versions:
       updated_at: '2020-12-21 17:06:21.827346'
       version: ''
     windows:
-      revision: 31233d44259e770c6ebb2e8a70bbc96b59f147fd
-      updated_at: '2020-12-17 23:18:06.814977'
+      revision: d150da89ba968c1a0c56d353c61d6adefd04e714
+      updated_at: '2020-12-21 23:15:46.145416'
       version: ''

@@ -182,6 +182,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
+        surfaceData.occlusion = 1.0;
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
@@ -237,8 +238,8 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         clip(diffuse.a - _Cutoff);
     #endif
 
-    float3 normalWS = input.normalWS.xyz;
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    float3 normalWS = NormalizeNormalPerPixel(input.normalWS.xyz);
+    return half4(normalWS, 0.0);
 }
 
 #endif
