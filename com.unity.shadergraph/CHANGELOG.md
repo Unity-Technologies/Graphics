@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
+- Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 
 
 ## [10.3.0] - 2020-11-03
