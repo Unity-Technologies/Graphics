@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the default background color for previews to use the original color.
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 - Fixed an issue with half res ssgi upscale.
+- Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

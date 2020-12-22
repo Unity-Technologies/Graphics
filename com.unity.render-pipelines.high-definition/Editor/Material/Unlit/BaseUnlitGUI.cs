@@ -299,6 +299,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
             }
+            else if (material.shader.IsShaderGraph())
+            {
+                // Shader graph generate distortion pass only if required. So we can safely enable it
+                // all the time here.
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
+            }
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
