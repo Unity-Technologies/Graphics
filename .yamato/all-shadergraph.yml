@@ -44,6 +44,9 @@ Nightly_ShaderGraph_trunk:
          rerun: on-new-revision
       -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
@@ -82,3 +85,5 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
