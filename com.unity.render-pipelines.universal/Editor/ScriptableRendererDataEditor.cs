@@ -41,6 +41,9 @@ namespace UnityEditor.Rendering.Universal
         List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
         public void Init()
         {
+            var window = GetWindow<AssignToRendererDataPopup>();
+            window.titleContent = new GUIContent("Assign To Renderer");
+
             var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
             foreach (string asset in rpAssets)
             {
