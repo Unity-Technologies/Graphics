@@ -22,6 +22,9 @@ Nightly_ShaderGraph_Stereo_trunk:
     dependencies:
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: ShaderGraph_Stereo PR Job - CUSTOM-REVISION
     dependencies:
@@ -40,3 +43,5 @@ Nightly_ShaderGraph_Stereo_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

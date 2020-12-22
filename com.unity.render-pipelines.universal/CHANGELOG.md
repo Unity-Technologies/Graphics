@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added the Detail Inputs setting group in the Lit shader (Lit.shader).
 - Added Smooth shadow fading.
+- Added SSAO support for deferred renderer.
 - The pipeline now outputs a warning in the console when trying to access camera color or depth texture when those are not valid. Those textures are only available in the context of `ScriptableRenderPass`.
 - Added a property to access the renderer from the `CameraData`.
 

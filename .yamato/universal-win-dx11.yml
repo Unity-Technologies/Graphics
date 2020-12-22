@@ -20,7 +20,7 @@ Universal_Win_DX11_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -78,7 +78,7 @@ Universal_Win_DX11_playmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -104,7 +104,7 @@ Universal_Win_DX11_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -130,7 +130,7 @@ Universal_Win_DX11_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -150,7 +150,7 @@ Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -215,7 +215,7 @@ Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -245,7 +245,7 @@ Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -275,7 +275,7 @@ Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
