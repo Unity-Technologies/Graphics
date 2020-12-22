@@ -61,5 +61,5 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
         shadow = lerp(shadow, shadow2, weights.y);
     }
 
-    _CloudShadows[dispatchThreadId] = lerp(1, _ShadowTint, saturate(shadow * _ShadowOpacity));
+    _CloudShadows[dispatchThreadId] = lerp(float3(1.0, 1.0, 1.0), _ShadowTint, saturate(shadow * _ShadowOpacity));
 }
