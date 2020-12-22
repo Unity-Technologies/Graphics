@@ -30,6 +30,6 @@ class ABV_AllProjectCiJob():
         # (Temporarily?) disable automatic runs of the ABV for PRs
         if editor.get("abv_pr"):
             job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]')
-        if editor['name'].lower() != 'custom-revision':
+        if str(editor['name']).lower() != 'custom-revision':
             job.set_trigger_on_expression(expression_trigger["expression"])
         return job
