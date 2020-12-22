@@ -23,7 +23,7 @@ Universal_OSX_OpenGLCore_playmode_mono_Linear_2021.1:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.2021_1_staging.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -45,7 +45,7 @@ Universal_OSX_OpenGLCore_playmode_cache_mono_Linear_2021.1:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.2021_1_staging.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -67,7 +67,7 @@ Universal_OSX_OpenGLCore_editmode_mono_Linear_2021.1:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.2021_1_staging.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -90,7 +90,7 @@ Universal_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -116,7 +116,7 @@ Universal_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -142,7 +142,7 @@ Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

@@ -25,7 +25,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_2021.1:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.2021_1_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -49,7 +49,7 @@ VFX_URP_Linux_OpenGLCore_playmode_cache_mono_Linear_2021.1:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.2021_1_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -102,7 +102,7 @@ VFX_URP_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
