@@ -5,8 +5,8 @@ import ruamel.yaml as yml
 # This script calls the ruamel build.py script, with an argument pointing to current GIT repo
 # i.e. when this is called within Graphics repo, then build.py will edit the files in Graphics repo 
 #
-# 1) create .config file (yml format) in the same directory with this script, with the following content
-# build_py_path: "[full path to gfx-sdet-tools repo checkout]"
+# 1) create path.config file (yml format) in the same directory with this script, with the following content (this file is ignored by git)
+# gfx_sdet_tools_path: "[your path to repo checkout using forward slashes]/gfx-sdet-tools"
 # 
 # 2) call 
 # python generate_ymls.py
@@ -22,7 +22,7 @@ if __name__== "__main__":
     yaml = yml.YAML()
     
     current_yamato_dir = os.path.join(root_dir, '.yamato')
-    config_file = os.path.join(current_yamato_dir, 'script', '.config')
+    config_file = os.path.join(current_yamato_dir, 'script', 'path.config')
     gfx_sdet_tools_rev_file = os.path.join(current_yamato_dir, 'script', 'gfx_sdet_tools_revision.txt')
     
     with open(config_file) as f:
