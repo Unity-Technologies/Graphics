@@ -39,7 +39,7 @@
 |Provides access to the mesh vertex or fragment's Vertex ID value.|
 |[**Instance ID**](Instance-ID-Node.md)|
 |![Image](images/InstanceIDNodeThumb.png)|
-|Provides access to the instance ID of the object when rendering while instancing is enabled.|
+|When you enable instancing, this node provides access to the instance ID of the target object.|
 
 ## Gradient
 
@@ -92,7 +92,7 @@
 |Provides access to the current Camera's color buffer.|Provides access to the current Camera's depth buffer.|
 |[**Screen**](Screen-Node.md)|[**Eye Index**](Eye-Index-Node.md)|
 |![Image](images/ScreenNodeThumb.png)|![Image](images/EyeIndexNodeThumb.png)|
-|Provides access to parameters of the screen.|Provides access to the Eye Index when stereo rendering.|
+|Provides access to parameters of the screen.|Provides access to the Eye Index during stereo rendering.|
 
 ## Texture
 

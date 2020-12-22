@@ -2,7 +2,7 @@
 
 ## Description
 
-Provides access to the **Eye Index** when stereo rendering is enabled.
+ When you enable stereo rendering, this node provides access to the **Eye Index**.
 
 ## Ports
 
