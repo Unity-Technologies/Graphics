@@ -213,7 +213,6 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
     - platform: Linux
       api: Vulkan
       build_config: mono
