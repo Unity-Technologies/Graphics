@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        RenderTargetHandle m_Source;
+        RTHandle m_Source;
         Material m_BlitMaterial;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle)
         {
             m_Source = colorHandle;
         }
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+                    cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
                 }
                 else
                 {
