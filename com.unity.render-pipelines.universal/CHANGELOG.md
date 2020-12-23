@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 - Fixed the default background color for previews to use the original color.
+- MSAA post-filter only clear stencil buffer instead of depth and stencil buffers.
 
 ## [10.2.0] - 2020-10-19
 

@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
-
-### Fixed
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+
+### Changed
+- ClearFlag moved out of core package (now part of CommandBuffer interface).
 
 ## [10.2.0] - 2020-10-19
 

@@ -2,6 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering
 {
+    #if !UNITY_2021_2_OR_NEWER
     /// <summary>
     /// Render Textures clear flag.
     /// </summary>
@@ -18,4 +19,5 @@ namespace UnityEngine.Rendering
         /// <summary>Clear both color and depth buffers.</summary>
         All = Depth | Color
     }
+    #endif
 }
