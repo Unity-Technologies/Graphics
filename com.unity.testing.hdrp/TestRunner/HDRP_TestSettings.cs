@@ -16,8 +16,6 @@ using UnityEngine.SceneManagement;
 [ExecuteAlways]
 public class HDRP_TestSettings : GraphicsTestSettings
 {
-    public bool captureFromBackBuffer = false;
-
 	public UnityEngine.Events.UnityEvent doBeforeTest;
 	public int captureFramerate = 0;
 	public int waitFrames = 0;
@@ -61,14 +59,5 @@ public class HDRP_TestSettings : GraphicsTestSettings
         Debug.Log($"Scenes that needed to change the RP asset:{Environment.NewLine}{quitDebug.ToString()}");
 
         quitDebug.Clear();
-    }
-
-    private void OnValidate()
-    {
-        if (ImageComparisonSettings.UseBackBuffer)
-        {
-            ImageComparisonSettings.UseBackBuffer = false;
-            captureFromBackBuffer = true;
-        }
     }
 }
