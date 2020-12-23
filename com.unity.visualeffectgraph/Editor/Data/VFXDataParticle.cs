@@ -310,9 +310,18 @@ namespace UnityEditor.VFX
             if (init == null)
                 return 0u;
 
-            var cpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Count();
-            var gpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.SpawnerGPU).Count();
+            var cpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context))
+                .Where(o => o.contextType == VFXContextType.Spawner)
+                .Select(spawn =>
+                {
+                    if (spawn is VFXBasicSpawner)
+                    {
+                        return 1 + (int)(spawn as VFXBasicSpawner).GetReplicationCount();
+                    }
+                    return 1;
+                }).Sum();
 
+            var gpuCount = effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.SpawnerGPU).Count();
             if (cpuCount != 0 && gpuCount != 0)
             {
                 throw new InvalidOperationException("Cannot mix GPU & CPU spawners in init");
@@ -331,7 +340,7 @@ namespace UnityEditor.VFX
                 var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
                 return parent != null ? parent.capacity : 0u;
             }
-            return init != null ? (uint)effectiveFlowInputLinks[init].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner /* Explicitly ignore spawner gpu */).Count() : 0u;
+            return init != null ? (uint)cpuCount : 0u;
         }
 
         public uint attributeBufferSize
@@ -533,7 +542,7 @@ namespace UnityEditor.VFX
             List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXContext, int[]> contextSpawnToBufferIndex,
             VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
@@ -616,7 +625,11 @@ namespace UnityEditor.VFX
 
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
-                systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
+                systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext]
+                    .SelectMany(t => t.Select(u => u.context))
+                    .Where(o => o.contextType == VFXContextType.Spawner)
+                    .SelectMany(o => contextSpawnToBufferIndex[o].Select(bufferIndex => new VFXMapping("spawner_input", bufferIndex))));
+
             if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;

@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
         SerializedProperty m_LoopCountProperty;
         SerializedProperty m_DelayBeforeLoopProperty;
         SerializedProperty m_DelayAfterLoopProperty;
+        SerializedProperty m_ReplicationCountProperty;
 
         private void OnEnable()
         {
@@ -27,6 +28,7 @@ namespace UnityEditor.VFX
             m_LoopCountProperty = serializedObject.FindProperty("loopCount");
             m_DelayBeforeLoopProperty = serializedObject.FindProperty("delayBeforeLoop");
             m_DelayAfterLoopProperty = serializedObject.FindProperty("delayAfterLoop");
+            m_ReplicationCountProperty = serializedObject.FindProperty("replicationCount");
         }
 
         enum DisplayedDelayMode
@@ -82,6 +84,7 @@ namespace UnityEditor.VFX
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_ReplicationCountProperty);
             EditorGUILayout.PropertyField(m_LoopDurationProperty);
             EditorGUILayout.PropertyField(m_LoopCountProperty);
 
@@ -182,6 +185,15 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private DelayMode delayAfterLoop = DelayMode.None;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        private uint replicationCount = 0u;
+
+        public uint GetReplicationCount()
+        {
+            //TODO : return 0 if link to spawn !
+            return replicationCount;
+        }
 
         public VFXBasicSpawner() : base(VFXContextType.Spawner, VFXDataType.SpawnEvent, VFXDataType.SpawnEvent) {}
         public override string name { get { return "Spawn"; } }

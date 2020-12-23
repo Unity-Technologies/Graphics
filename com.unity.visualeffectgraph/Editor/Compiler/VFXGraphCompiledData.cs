@@ -239,6 +239,12 @@ namespace UnityEditor.VFX
             public int systemIndex;
         }
 
+        class SpawnInstance
+        {
+            public VFXContext source;
+            public uint index;
+        }
+
         private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
         {
             var data = new VFXCPUBufferData();
@@ -429,7 +435,7 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo,
+        private static void FillSpawner(Dictionary<SpawnInstance, SpawnInfo> outContextSpawnToSpawnInfo,
             List<VFXCPUBufferDesc> outCpuBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
             IEnumerable<VFXContext> contexts,
@@ -438,7 +444,35 @@ namespace UnityEditor.VFX
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             ref SubgraphInfos subgraphInfos)
         {
-            var spawners = CollectSpawnersHierarchy(contexts, ref subgraphInfos);
+            var spawnersOrigin = CollectSpawnersHierarchy(contexts, ref subgraphInfos);
+
+            var spawners = spawnersOrigin.SelectMany(o =>
+            {
+                if (o is VFXBasicSpawner)
+                {
+                    var replication = (o as VFXBasicSpawner).GetReplicationCount();
+                    if (replication != 0u)
+                    {
+                        return Enumerable
+                                .Range(0, (int)replication + 1)
+                                .Select(replicat => new SpawnInstance()
+                                {
+                                    index = (uint)replicat,
+                                    source = o
+                                });
+                    }
+                }
+                
+                return new[]
+                {
+                    new SpawnInstance()
+                    {
+                        index = 0u,
+                        source = o
+                    }
+                };
+            }).ToArray(); //ToArray *must* be kept, we use the same reference of SpawnInstance
+
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
             {
                 outContextSpawnToSpawnInfo.Add(it.spawner, new SpawnInfo() { bufferIndex = outCpuBufferDescs.Count, systemIndex = it.index });
@@ -459,23 +493,23 @@ namespace UnityEditor.VFX
                     name = "spawner_output"
                 });
 
-                for (int indexSlot = 0; indexSlot < 2 && indexSlot < spawnContext.inputFlowSlot.Length; ++indexSlot)
+                for (int indexSlot = 0; indexSlot < 2 && indexSlot < spawnContext.source.inputFlowSlot.Length; ++indexSlot)
                 {
-                    foreach (var input in subgraphInfos.contextEffectiveInputLinks[spawnContext][indexSlot])
+                    foreach (var input in subgraphInfos.contextEffectiveInputLinks[spawnContext.source][indexSlot])
                     {
                         var inputContext = input.context;
-                        if (outContextSpawnToSpawnInfo.ContainsKey(inputContext))
+                        foreach (var spawnInput in outContextSpawnToSpawnInfo.Where(o => o.Key.source == inputContext))
                         {
                             buffers.Add(new VFXMapping()
                             {
-                                index = outContextSpawnToSpawnInfo[inputContext].bufferIndex,
+                                index = spawnInput.Value.bufferIndex,
                                 name = "spawner_input_" + (indexSlot == 0 ? "OnPlay" : "OnStop")
                             });
                         }
                     }
                 }
 
-                var contextData = contextToCompiledData[spawnContext];
+                var contextData = contextToCompiledData[spawnContext.source];
                 var contextExpressions = contextData.cpuMapper.CollectExpression(-1);
                 var systemValueMappings = new List<VFXMapping>();
                 foreach (var contextExpression in contextExpressions)
@@ -491,7 +525,7 @@ namespace UnityEditor.VFX
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
-                    tasks = spawnContext.activeFlattenedChildrenWithImplicit.Select((b, index) =>
+                    tasks = spawnContext.source.activeFlattenedChildrenWithImplicit.Select((b, index) =>
                     {
                         var spawnerBlock = b as VFXAbstractSpawner;
                         if (spawnerBlock == null)
@@ -573,12 +607,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, ref SubgraphInfos subgraphInfos)
+        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<SpawnInstance, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, ref SubgraphInfos subgraphInfos)
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
-            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][0].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
-            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][1].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
+            var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][0].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
+            var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][1].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
 
             var eventDescTemp = new[]
             {
@@ -601,7 +635,7 @@ namespace UnityEditor.VFX
 
                 foreach (var link in effecitveOuts)
                 {
-                    if (contextSpawnToSpawnInfo.ContainsKey(link.context))
+                    foreach (var sourceSpawn in contextSpawnToSpawnInfo.Where(o => o.Key.source == link.context))
                     {
                         var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
                         if (eventIndex == -1)
@@ -616,7 +650,7 @@ namespace UnityEditor.VFX
                         }
 
                         var startSystem = link.slotIndex == 0;
-                        var spawnerIndex = (uint)contextSpawnToSpawnInfo[link.context].systemIndex;
+                        var spawnerIndex = (uint)sourceSpawn.Value.systemIndex;
                         if (startSystem)
                         {
                             eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
@@ -951,7 +985,7 @@ namespace UnityEditor.VFX
                     initialData = ComputeArrayOfStructureInitialData(globalEventAttributeDescs)
                 });
 
-                var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
+                var contextSpawnToSpawnInfo = new Dictionary<SpawnInstance, SpawnInfo>();
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, globalEventAttributeDescs, contextToCompiledData, ref subgraphInfos);
 
                 var eventDescs = new List<VFXEventDesc>();
@@ -960,7 +994,12 @@ namespace UnityEditor.VFX
                 var dependentBuffersData = new VFXDependentBuffersData();
                 FillDependentBuffer(compilableData, bufferDescs, dependentBuffersData);
 
-                var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
+                var contextSpawnToBufferIndex = contextSpawnToSpawnInfo
+                    .GroupBy(o => o.Key.source)
+                    .ToDictionary(
+                    o => o.Key,
+                    o => o.Select(b => b.Value.bufferIndex).ToArray());
+
                 foreach (var data in compilableData)
                 {
                     data.FillDescs(bufferDescs,
