@@ -30,43 +30,43 @@ editor_versions:
       version: 2021.1.0b1
   2021_1_latest_public:
     android:
-      revision: 18321e85013a
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a9
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-23 23:46:40.865478'
+      version: 2021.1.0b1
     ios:
-      revision: 18321e85013a
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a9
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-23 23:46:40.865478'
+      version: 2021.1.0b1
     linux:
-      revision: 18321e85013a
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a9
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-23 23:46:40.865478'
+      version: 2021.1.0b1
     macos:
-      revision: 18321e85013a
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a9
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-23 23:46:40.865478'
+      version: 2021.1.0b1
     windows:
-      revision: 18321e85013a
-      updated_at: '2020-12-17 16:34:19.352884'
-      version: 2021.1.0a9
+      revision: 9f7c487dd2da
+      updated_at: '2020-12-23 23:46:40.865478'
+      version: 2021.1.0b1
   2021_1_staging:
     android:
-      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
-      updated_at: '2020-12-20 23:15:00.460217'
+      revision: 9edd3b7c574e9cdd534eb8d5504405dfd0f52005
+      updated_at: '2020-12-23 23:46:40.865478'
       version: ''
     ios:
-      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
-      updated_at: '2020-12-20 23:15:00.460217'
+      revision: 9edd3b7c574e9cdd534eb8d5504405dfd0f52005
+      updated_at: '2020-12-23 23:46:40.865478'
       version: ''
     linux:
-      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
-      updated_at: '2020-12-20 23:15:00.460217'
+      revision: 9edd3b7c574e9cdd534eb8d5504405dfd0f52005
+      updated_at: '2020-12-23 23:46:40.865478'
       version: ''
     macos:
-      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
-      updated_at: '2020-12-20 23:15:00.460217'
+      revision: 9edd3b7c574e9cdd534eb8d5504405dfd0f52005
+      updated_at: '2020-12-23 23:46:40.865478'
       version: ''
     windows:
-      revision: 9f7c487dd2dadac41f2381d7e66b9ba0af012893
-      updated_at: '2020-12-20 23:15:00.460217'
+      revision: 9edd3b7c574e9cdd534eb8d5504405dfd0f52005
+      updated_at: '2020-12-23 23:46:40.865478'
       version: ''
