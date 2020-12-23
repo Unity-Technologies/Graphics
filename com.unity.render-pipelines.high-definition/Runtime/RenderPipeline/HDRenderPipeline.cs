@@ -3197,8 +3197,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
                 cb._SsrAccumulationAmount = 1.0f;
             else
-                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, volumeSettings.accumulationFactor.value));
-
+                cb._SsrAccumulationAmount = volumeSettings.accumulationFactor.value;
+				
             parameters.offsetBufferData = depthPyramid.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             return parameters;

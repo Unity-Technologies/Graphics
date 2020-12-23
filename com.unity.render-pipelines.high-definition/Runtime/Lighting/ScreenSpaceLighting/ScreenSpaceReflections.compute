@@ -698,12 +698,19 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
-    float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
-
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
-
-    float4 result = lerp(previous, original, coefExpAvg);
-
+    
+	#if 0
+		float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
+		float localAccum = pow(2, lerp(0.0f, -7.0f, _SsrAccumulationAmount));
+		float coefExpAvg = lerp(localAccum, 1.0f, speed);
+		float4 result = lerp(previous, original, coefExpAvg);
+	#else
+		float speed = saturate((speedDst + speedDst)); 
+		float mu = _SsrAccumulationAmount * 8192.0f * (1.0f - speed) + 1.0f;
+		float k = _SsrFrameIndex;
+		float4 result = previous * (k / (k + mu)) + original * (mu / (k + mu));
+	#endif
+	
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
 

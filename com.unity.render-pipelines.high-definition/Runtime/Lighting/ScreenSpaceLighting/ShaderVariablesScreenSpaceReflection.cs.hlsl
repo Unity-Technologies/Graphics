@@ -20,6 +20,7 @@ CBUFFER_START(ShaderVariablesScreenSpaceReflection)
     int _SsrColorPyramidMaxMip;
     int _SsrReflectsSky;
     float _SsrAccumulationAmount;
+    float _SsrFrameIndex;
 CBUFFER_END
 
 
