@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the Gradient color picker displaying different values than the selected color. 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
-- - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
-
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
+- Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 
 ## [10.3.0] - 2020-11-03
 

@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AssetDatabase.Refresh();
             return profile;
         }
+
 #endif
         // debug gizmo data
         class CellInstancedDebugProbes
@@ -391,6 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
 
         private void CheckInit()
@@ -402,6 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.shaders.instancedProbeShader) { enableInstancing = true };
             }
         }
+
 #if UNITY_EDITOR
         public ProbeDilationSettings GetDilationSettings()
         {
@@ -415,6 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return settings;
         }
+
 #endif
 
 #endif
