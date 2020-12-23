@@ -637,27 +637,35 @@ namespace UnityEditor.VFX
                 {
                     foreach (var sourceSpawn in contextSpawnToSpawnInfo.Where(o => o.Key.source == link.context))
                     {
-                        var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
-                        if (eventIndex == -1)
-                        {
-                            eventIndex = eventDescTemp.Count;
-                            eventDescTemp.Add(new
-                            {
-                                eventName = eventName,
-                                playSystems = new List<uint>(),
-                                stopSystems = new List<uint>(),
-                            });
-                        }
+                        var eventToLink = new List<string>();
+                        if (sourceSpawn.Key.index == 0u)
+                            eventToLink.Add(eventName);
+                        eventToLink.Add(string.Format("{0}_{1}", eventName, sourceSpawn.Key.index));
 
-                        var startSystem = link.slotIndex == 0;
-                        var spawnerIndex = (uint)sourceSpawn.Value.systemIndex;
-                        if (startSystem)
+                        foreach (var proxyEventName in eventToLink)
                         {
-                            eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
-                        }
-                        else
-                        {
-                            eventDescTemp[eventIndex].stopSystems.Add(spawnerIndex);
+                            var eventIndex = eventDescTemp.FindIndex(o => o.eventName == proxyEventName);
+                            if (eventIndex == -1)
+                            {
+                                eventIndex = eventDescTemp.Count;
+                                eventDescTemp.Add(new
+                                {
+                                    eventName = proxyEventName,
+                                    playSystems = new List<uint>(),
+                                    stopSystems = new List<uint>(),
+                                });
+                            }
+
+                            var startSystem = link.slotIndex == 0;
+                            var spawnerIndex = (uint)sourceSpawn.Value.systemIndex;
+                            if (startSystem)
+                            {
+                                eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
+                            }
+                            else
+                            {
+                                eventDescTemp[eventIndex].stopSystems.Add(spawnerIndex);
+                            }
                         }
                     }
                 }
