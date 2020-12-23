@@ -16,7 +16,7 @@ test_platforms:
       - [all]: --testfilter=Build
       - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
       - [all]: --timeout=2400
-      - [all]: --platform=StandaloneWindows64
+      - [all]: --platform=editmode
       - [all]: --loglevel=verbose --player-connection-ip=%BOKKEN_HOST_IP%
 expression_trigger:
   expression: ""
