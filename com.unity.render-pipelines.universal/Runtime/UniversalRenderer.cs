@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(sourceForFinalPass.Identifier()));
                     EnqueuePass(m_FinalBlitPass);
                 }
 

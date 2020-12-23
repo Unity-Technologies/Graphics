@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(colorTargetHandle.Identifier()));
                 EnqueuePass(m_FinalBlitPass);
             }
         }

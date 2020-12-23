@@ -7,7 +7,7 @@ using UnityEngine.Rendering.Universal;
 internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
 {
     private RenderTargetIdentifier source { get; set; }
-    private RenderTargetHandle[] destination { get; set; }
+    private RTHandle[] destination { get; set; }
     private RenderTextureDescriptor destDescriptor;
 
     string profilerTag = "Split Color";
@@ -17,7 +17,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
     {
         renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
 
-        destination = new RenderTargetHandle[2];
+        destination = new RTHandle[2];
 
         destDescriptor = new RenderTextureDescriptor(1920, 1080, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);
 
@@ -25,7 +25,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
     }
 
     // Configure the pass with the source and destination to execute on.
-    public void Setup(ref RenderingData renderingData, RenderTargetIdentifier source, RenderTargetHandle[] destination)
+    public void Setup(ref RenderingData renderingData, RenderTargetIdentifier source, RTHandle[] destination)
     {
         this.source = source;
         this.destination[0] = destination[0];
@@ -38,12 +38,12 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
     {
         // Create and declare the render targets used in the pass
 
-        cmd.GetTemporaryRT(destination[0].id, destDescriptor, FilterMode.Point);
-        cmd.GetTemporaryRT(destination[1].id, destDescriptor, FilterMode.Point);
+        cmd.GetTemporaryRT(Shader.PropertyToID(destination[0].name), destDescriptor, FilterMode.Point);
+        cmd.GetTemporaryRT(Shader.PropertyToID(destination[1].name), destDescriptor, FilterMode.Point);
 
         RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[2];
-        colorAttachmentIdentifiers[0] = destination[0].Identifier();
-        colorAttachmentIdentifiers[1] = destination[1].Identifier();
+        colorAttachmentIdentifiers[0] = destination[0];
+        colorAttachmentIdentifiers[1] = destination[1];
 
         ConfigureTarget(colorAttachmentIdentifiers);
         //ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
@@ -58,7 +58,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
         CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
         cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-      //  cmd.SetGlobalTexture(shaderPropertyId_srcTex, source);
+        //  cmd.SetGlobalTexture(shaderPropertyId_srcTex, source);
         cmd.DrawMesh(RenderingUtils.fullscreenMesh, scaleMatrix, colorToMrtMaterial);
 
         context.ExecuteCommandBuffer(cmd);
@@ -67,8 +67,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
 
     public override void OnCameraCleanup(CommandBuffer cmd)
     {
-        cmd.ReleaseTemporaryRT(destination[1].id);
-        cmd.ReleaseTemporaryRT(destination[0].id);
+        cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination[1].name));
+        cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination[0].name));
     }
 }
-
