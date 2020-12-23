@@ -17,7 +17,7 @@ _abv_for_srp_repository_-_2020.2:
       revision: 92852ae685d86ada439969305ade7595f9c31ef9
       version: ''
 all_universal_ci_-_2020.2:
-  updated_at: '2020-12-22 08:06:45.465051'
+  updated_at: '2020-12-23 08:06:39.943773'
   last_green_revisions:
     android:
       revision: ae8b7f387047bba97a64fd9fa8d321bb2e043ba4
@@ -86,7 +86,7 @@ all_shadergraph_ci_-_2020.2:
       updated_at: '2020-12-21 23:15:32.634561'
       version: ''
 all_vfx_hdrp_ci_-_2020.2:
-  updated_at: '2020-12-22 08:06:45.465051'
+  updated_at: '2020-12-23 08:06:39.943773'
   last_green_revisions:
     android:
       revision: ae8b7f387047bba97a64fd9fa8d321bb2e043ba4
@@ -109,7 +109,7 @@ all_vfx_hdrp_ci_-_2020.2:
       updated_at: '2020-12-21 23:15:32.634561'
       version: ''
 all_vfx_urp_ci_-_2020.2:
-  updated_at: '2020-12-22 08:06:45.465051'
+  updated_at: '2020-12-23 08:06:39.943773'
   last_green_revisions:
     android:
       revision: ae8b7f387047bba97a64fd9fa8d321bb2e043ba4
