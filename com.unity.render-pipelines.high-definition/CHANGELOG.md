@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
+- Fixed an issue with half res ssgi upscale.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
@@ -51,7 +52,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the message when the graphics device doesn't support ray tracing (case 1287355).
 - When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
 - Enable Reflector for Spotlight by default
-
+- Changed the convergence time of ssgi to 16 frames and the preset value
+	
 ## [10.2.1] - 2020-11-30
 
 ### Added
