@@ -12,6 +12,8 @@ public class SimpleBurst : MonoBehaviour
     static readonly int s_PositionID = Shader.PropertyToID("position");
     static readonly int s_ColorID = Shader.PropertyToID("color");
 
+    static readonly int s_FireID = Shader.PropertyToID("fire");
+
     public int m_Seed;
     public float m_Period = 1.0f;
 
@@ -51,10 +53,6 @@ public class SimpleBurst : MonoBehaviour
             int count = m_Random.Next(24, 32);
             for (int i = 0; i < count; ++i)
             {
-                var eventName = "fire";
-                if (m_currentSpawnIndex != 0)
-                    eventName = string.Format("{0}_{1}", eventName, m_currentSpawnIndex);
-
                 float r = radius * 0.5f * Mathf.Sqrt((float)m_Random.NextDouble());
                 float theta = (float)m_Random.NextDouble() * Mathf.PI * 2.0f;
 
@@ -63,11 +61,8 @@ public class SimpleBurst : MonoBehaviour
                 randPosition.y += r * Mathf.Sin(theta);
 
                 m_CachedAttribute.SetVector3(s_PositionID, randPosition);
-                m_VisualEffect.SendEvent(eventName, m_CachedAttribute);
 
-                m_currentSpawnIndex++;
-                if (m_currentSpawnIndex > 32u)
-                    m_currentSpawnIndex = 0u;
+                m_VisualEffect.SendReplicatedEvent(s_FireID, m_CachedAttribute, m_currentSpawnIndex++);
             }
         }
     }

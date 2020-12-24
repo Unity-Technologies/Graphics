@@ -13,6 +13,10 @@ public class SimpleRate : MonoBehaviour
     static readonly int s_PositionID = Shader.PropertyToID("position");
     static readonly int s_ColorID = Shader.PropertyToID("color");
 
+    static readonly int s_OnID = Shader.PropertyToID("on");
+    static readonly int s_OffID = Shader.PropertyToID("off");
+
+
     public int m_Seed;
     public float m_Period = 1.0f;
 
@@ -22,11 +26,11 @@ public class SimpleRate : MonoBehaviour
     VFXEventAttribute m_CachedAttribute;
 
     const uint m_NumberOfReplication = 64;
-    Queue<int> m_FreeReplication = new Queue<int>();
+    Queue<uint> m_FreeReplication = new Queue<uint>();
     struct SpawnRecord
     {
         public Vector3 position;
-        public int index;
+        public uint index;
     }
     List<SpawnRecord> m_spawnRecords = new List<SpawnRecord>();
 
@@ -42,7 +46,7 @@ public class SimpleRate : MonoBehaviour
         var color = new Vector3(colorRGB.r, colorRGB.g, colorRGB.b);
         m_CachedAttribute.SetVector3(s_ColorID, color);
         m_VisualEffect.SetVector3(s_DebugColorID, color);
-        for (int i = 0; i < m_NumberOfReplication; ++i)
+        for (uint i = 0; i < m_NumberOfReplication; ++i)
             m_FreeReplication.Enqueue(i);
     }
 
@@ -68,12 +72,8 @@ public class SimpleRate : MonoBehaviour
             var d = record.position - currentCenter;
             if (Vector3.Dot(d, d) > currentRadius * currentRadius)
             {
-                var eventName = "off";
-                if (record.index != 0)
-                    eventName = string.Format("off_{0}", record.index);
-
                 m_CachedAttribute.SetVector3(s_PositionID, record.position);
-                m_VisualEffect.SendEvent(eventName, m_CachedAttribute);
+                m_VisualEffect.SendReplicatedEvent(s_OffID, m_CachedAttribute, record.index);
 
                 m_FreeReplication.Enqueue(record.index);
                 m_spawnRecords.RemoveAt(i);
@@ -94,12 +94,8 @@ public class SimpleRate : MonoBehaviour
                 position = randPosition
             };
 
-            var eventName = "on";
-            if (newRecord.index != 0)
-                eventName = string.Format("on_{0}", newRecord.index);
-
             m_CachedAttribute.SetVector3(s_PositionID, newRecord.position);
-            m_VisualEffect.SendEvent(eventName, m_CachedAttribute);
+            m_VisualEffect.SendReplicatedEvent(s_OnID, m_CachedAttribute, newRecord.index);
 
             m_spawnRecords.Add(newRecord);
         }
