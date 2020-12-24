@@ -218,6 +218,13 @@ namespace UnityEditor.VFX
                 replicationCount = 1u;
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (replicationCount == 0u)
+                replicationCount = 1u;
+        }
+
         public VFXBasicSpawner() : base(VFXContextType.Spawner, VFXDataType.SpawnEvent, VFXDataType.SpawnEvent) {}
         public override string name { get { return "Spawn"; } }
 
