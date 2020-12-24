@@ -127,27 +127,27 @@ shadergraph_pr_job_-_trunk:
       updated_at: '2020-12-21 23:15:46.145416'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2020-12-23 08:07:00.550749'
+  updated_at: '2020-12-24 07:33:50.364654'
   last_green_revisions:
     android:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
     ios:
       revision: da76c15a8bccc75cd89665165e5424aecaff2a05
       updated_at: '2020-12-23 00:10:41.962473'
       version: ''
     linux:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
     macos:
       revision: da76c15a8bccc75cd89665165e5424aecaff2a05
       updated_at: '2020-12-23 00:10:41.962473'
       version: ''
     windows:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
   updated_at: '2020-12-23 08:07:00.550749'
@@ -173,27 +173,27 @@ vfx_hdrp_pr_job_-_trunk:
       updated_at: '2020-12-23 00:10:41.962473'
       version: ''
 nightly_vfx_urp_-_trunk:
-  updated_at: '2020-12-23 08:07:00.550749'
+  updated_at: '2020-12-24 07:33:50.364654'
   last_green_revisions:
     android:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
     ios:
       revision: da76c15a8bccc75cd89665165e5424aecaff2a05
       updated_at: '2020-12-23 00:10:41.962473'
       version: ''
     linux:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
     macos:
       revision: da76c15a8bccc75cd89665165e5424aecaff2a05
       updated_at: '2020-12-23 00:10:41.962473'
       version: ''
     windows:
-      revision: da76c15a8bccc75cd89665165e5424aecaff2a05
-      updated_at: '2020-12-23 00:10:41.962473'
+      revision: c0ea871375513c1c4379e9eb24b5981040cf228f
+      updated_at: '2020-12-23 23:36:42.053535'
       version: ''
 nightly_vfx_hdrp_-_trunk:
   updated_at: '2020-12-23 08:07:00.550749'
