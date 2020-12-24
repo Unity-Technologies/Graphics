@@ -316,7 +316,7 @@ namespace UnityEditor.VFX
                 {
                     if (spawn is VFXBasicSpawner)
                     {
-                        return 1 + (int)(spawn as VFXBasicSpawner).GetReplicationCount();
+                        return (int)(spawn as VFXBasicSpawner).GetReplicationCount();
                     }
                     return 1;
                 }).Sum();

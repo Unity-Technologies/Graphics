@@ -187,11 +187,13 @@ namespace UnityEditor.VFX
         private DelayMode delayAfterLoop = DelayMode.None;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        private uint replicationCount = 0u;
+        private uint replicationCount = 1u;
 
         public uint GetReplicationCount()
         {
-            //TODO : return 0 if link to spawn !
+            if (replicationCount == 0u)
+                return 1u; //Min value is actually 1
+            //TODO : return 1 if link to any spawn
             return replicationCount;
         }
 

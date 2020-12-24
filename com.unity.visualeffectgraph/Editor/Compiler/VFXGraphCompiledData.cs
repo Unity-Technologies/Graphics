@@ -454,7 +454,7 @@ namespace UnityEditor.VFX
                     if (replication != 0u)
                     {
                         return Enumerable
-                                .Range(0, (int)replication + 1)
+                                .Range(0, (int)replication)
                                 .Select(replicat => new SpawnInstance()
                                 {
                                     index = (uint)replicat,
@@ -614,6 +614,7 @@ namespace UnityEditor.VFX
             var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][0].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][1].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
 
+            //TODO : Should we generate OnPlay_1/OnPlay_2/... ?
             var eventDescTemp = new[]
             {
                 new { eventName = "OnPlay", playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
@@ -621,7 +622,6 @@ namespace UnityEditor.VFX
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
-
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
             foreach (var evt in events)
