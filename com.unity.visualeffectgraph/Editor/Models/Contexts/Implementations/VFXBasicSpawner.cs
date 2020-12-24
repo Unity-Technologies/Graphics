@@ -186,15 +186,36 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private DelayMode delayAfterLoop = DelayMode.None;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField]
         private uint replicationCount = 1u;
 
-        public uint GetReplicationCount()
+        public uint GetReplicationCount(System.Text.StringBuilder error = null)
         {
             if (replicationCount == 0u)
-                return 1u; //Min value is actually 1
-            //TODO : return 1 if link to any spawn
+            {
+                if (error != null)
+                    error.AppendFormat("Spawn Context \"{0}\" : Minimal value for replication is 1 (got 0).\n", this.label);
+                return 1u;
+            }
+
+            var anyInputIsntEvent = inputFlowSlot.Any(o => o.link.Any(l => l.context.contextType != VFXContextType.Event));
+            var anyOutputIsntInit = outputFlowSlot.Any(o => o.link.Any(l => l.context.contextType != VFXContextType.Init));
+
+            if (replicationCount > 1u && (anyInputIsntEvent || anyOutputIsntInit))
+            {
+                if (error != null)
+                    error.AppendFormat("Spawn Context \"{0}\" : Replication isn't supported with chaining.\n", this.label);
+                return 1u;
+            }
+
             return replicationCount;
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+            if (replicationCount == 0u)
+                replicationCount = 1u;
         }
 
         public VFXBasicSpawner() : base(VFXContextType.Spawner, VFXDataType.SpawnEvent, VFXDataType.SpawnEvent) {}

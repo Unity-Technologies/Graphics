@@ -243,6 +243,7 @@ namespace UnityEditor.VFX
         {
             public VFXContext source;
             public uint index;
+            public uint count;
         }
 
         private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
@@ -446,11 +447,12 @@ namespace UnityEditor.VFX
         {
             var spawnersOrigin = CollectSpawnersHierarchy(contexts, ref subgraphInfos);
 
+            var errorReplication = new StringBuilder();
             var spawners = spawnersOrigin.SelectMany(o =>
             {
                 if (o is VFXBasicSpawner)
                 {
-                    var replication = (o as VFXBasicSpawner).GetReplicationCount();
+                    var replication = (o as VFXBasicSpawner).GetReplicationCount(errorReplication);
                     if (replication != 0u)
                     {
                         return Enumerable
@@ -458,7 +460,8 @@ namespace UnityEditor.VFX
                                 .Select(replicat => new SpawnInstance()
                                 {
                                     index = (uint)replicat,
-                                    source = o
+                                    source = o,
+                                    count = replication
                                 });
                     }
                 }
@@ -468,10 +471,14 @@ namespace UnityEditor.VFX
                     new SpawnInstance()
                     {
                         index = 0u,
+                        count = 1u,
                         source = o
                     }
                 };
             }).ToArray(); //ToArray *must* be kept, we use the same reference of SpawnInstance
+
+            if (errorReplication.Length != 0)
+                Debug.LogError(errorReplication.ToString());
 
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
             {
