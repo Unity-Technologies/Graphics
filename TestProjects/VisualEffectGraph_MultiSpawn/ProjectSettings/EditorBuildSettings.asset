@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/000_Basic.unity
     guid: 519e8438cc563b844ae74a210e1b9e9c
+  - enabled: 1
+    path: Assets/001_SimpleBurst.unity
+    guid: cc0c3b8a4416f4240a3051f9d24c6299
   m_configObjects: {}
