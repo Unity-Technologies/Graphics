@@ -19,7 +19,7 @@ public class SimpleBurst : MonoBehaviour
     float m_Wait;
     VisualEffect m_VisualEffect;
     VFXEventAttribute m_CachedAttribute;
-    public uint m_currentSpawnIndex;
+    uint m_currentSpawnIndex;
 
     void Start()
     {
