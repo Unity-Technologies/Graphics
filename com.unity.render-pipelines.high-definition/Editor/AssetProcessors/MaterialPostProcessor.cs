@@ -651,7 +651,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Force Forward emissive for deferred pass is only setup for Lit shader
             if (id == HDShaderUtils.ShaderID.SG_Lit || id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
-             || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
