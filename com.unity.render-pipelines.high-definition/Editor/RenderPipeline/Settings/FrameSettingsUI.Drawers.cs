@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
-                overridedDefaultValue: QualitySettings.lodBias,
+                overridedDefaultValue: hdrpSettings.lodBias[serialized.lodBiasQualityLevel.intValue],
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
                 customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
@@ -288,7 +288,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
-                overridedDefaultValue: QualitySettings.maximumLODLevel,
+                overridedDefaultValue: hdrpSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue],
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
                 customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,

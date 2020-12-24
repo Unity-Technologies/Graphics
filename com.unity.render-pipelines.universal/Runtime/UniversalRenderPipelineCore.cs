@@ -294,10 +294,6 @@ namespace UnityEngine.Rendering.Universal
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
         public bool useFastSRGBLinearConversion;
-        /// <summary>
-        /// Post process data materials and texture.
-        /// </summary>
-        internal PostProcessData resources;
     }
 
     public static class ShaderKeywordStrings
@@ -351,7 +347,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _SPOT = "_SPOT";
         public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
         public static readonly string _POINT = "_POINT";
-        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
+        public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
+        public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";

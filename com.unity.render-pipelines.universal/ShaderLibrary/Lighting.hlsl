@@ -253,6 +253,7 @@ int GetAdditionalLightsCount()
 
 struct BRDFData
 {
+    half3 albedo;
     half3 diffuse;
     half3 specular;
     half reflectivity;
@@ -272,7 +273,7 @@ half ReflectivitySpecular(half3 specular)
 #if defined(SHADER_API_GLES)
     return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
 #else
-    return max(max(specular.r, specular.g), specular.b);
+    return Max3(specular.r, specular.g, specular.b);
 #endif
 }
 
@@ -287,8 +288,16 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+half MetallicFromReflectivity(half reflectivity)
 {
+    half oneMinusDielectricSpec = kDielectricSpec.a;
+    return (reflectivity - kDielectricSpec.r) / oneMinusDielectricSpec;
+}
+
+inline void InitializeBRDFDataDirect(half3 albedo, half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+{
+    outBRDFData = (BRDFData)0;
+    outBRDFData.albedo = albedo;
     outBRDFData.diffuse = diffuse;
     outBRDFData.specular = specular;
     outBRDFData.reflectivity = reflectivity;
@@ -306,6 +315,13 @@ inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflect
 #endif
 }
 
+// Legacy: do not call, will not correctly initialize albedo property.
+inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+{
+    InitializeBRDFDataDirect(half3(0.0, 0.0, 0.0), diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
+}
+
+// Initialize BRDFData for material, managing both specular and metallic setup using shader keyword _SPECULAR_SETUP.
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha, out BRDFData outBRDFData)
 {
 #ifdef _SPECULAR_SETUP
@@ -320,7 +336,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half3 brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
 #endif
 
-    InitializeBRDFDataDirect(brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
+    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
 }
 
 half3 ConvertF0ForClearCoat15(half3 f0)
@@ -334,6 +350,9 @@ half3 ConvertF0ForClearCoat15(half3 f0)
 
 inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
 {
+    outBRDFData = (BRDFData)0;
+    outBRDFData.albedo = 1.0h;
+
     // Calculate Roughness of Clear Coat layer
     outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
     outBRDFData.specular            = kDielectricSpec.rgb;
@@ -641,13 +660,13 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half NoV = saturate(dot(normalWS, viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
 
-    half3 indirectDiffuse = bakedGI * occlusion;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
+    half3 indirectDiffuse = bakedGI;
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, 1.0h);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, 1.0h);
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
@@ -655,9 +674,9 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     // Smooth surface & "ambiguous" lighting
     // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
-    return color * (1.0 - coatFresnel * clearCoatMask) + coatColor;
+    return (color * (1.0 - coatFresnel * clearCoatMask) + coatColor) * occlusion;
 #else
-    return color;
+    return color * occlusion;
 #endif
 }
 

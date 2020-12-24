@@ -1,4 +1,5 @@
 using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Experimental.Rendering;
 using System.Reflection;
 
 namespace UnityEngine.Rendering.Universal
@@ -22,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
     public sealed class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
+        static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
 
         private static class Profiling
         {
@@ -137,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;
 
-                m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
+                m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingGbuffer, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
                 // Forward-only pass only runs if deferred renderer is enabled.
                 // It allows specific materials to be rendered in a forward-like pass.
                 // We render both gbuffer pass and forward-only pass before the deferred lighting pass so we can minimize copies of depth buffer and
@@ -154,11 +156,11 @@ namespace UnityEngine.Rendering.Universal
                     new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
                 };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
-                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
-                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 2, m_CopyDepthMaterial);
-                m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 0);
-                m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights, 1);
-                m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 5, m_DeferredLights);
+                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, m_CopyDepthMaterial);
+                m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingGbuffer + 2, m_DeferredLights, 0);
+                m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingGbuffer + 3, m_DeferredLights, 1);
+                m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingDeferredLights, m_DeferredLights);
+                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
@@ -176,9 +178,7 @@ namespace UnityEngine.Rendering.Universal
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
-#pragma warning disable 618 // Obsolete warning
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
-#pragma warning restore 618 // Obsolete warning
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
@@ -290,8 +290,6 @@ namespace UnityEngine.Rendering.Universal
             isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
-            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
-
             // Should apply post-processing after rendering this camera?
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
 
@@ -316,6 +314,15 @@ namespace UnityEngine.Rendering.Universal
             requiresDepthPrepass |= isPreviewCamera;
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
+
+            // Current aim of depth prepass is to generate a copy of depth buffer, it is NOT to prime depth buffer and reduce overdraw on non-mobile platforms.
+            // When deferred renderer is enabled, depth buffer is already accessible so depth prepass is not needed.
+            // The only exception is for generating depth-normal textures: SSAO pass needs it and it must run before forward-only geometry.
+            // DepthNormal prepass will render:
+            // - forward-only geometry when deferred renderer is enabled
+            // - all geometry when forward renderer is enabled
+            if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
+                requiresDepthPrepass = false;
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -399,13 +406,39 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (renderPassInputs.requiresNormalsTexture)
                 {
-                    m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture);
+                    if (this.actualRenderingMode == RenderingMode.Deferred)
+                    {
+                        // In deferred mode, depth-normal prepass does really primes the depth and normal buffers, instead of creating a copy.
+                        // It is necessary because we need to render depth&normal for forward-only geometry and it is the only way
+                        // to get them before the SSAO pass.
+
+                        int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
+
+                        // Change the normal format to the one used by the gbuffer.
+                        RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
+                        normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(gbufferNormalIndex);
+                        m_DepthNormalPrepass.normalDescriptor = normalDescriptor;
+                        // Depth is allocated by this renderer.
+                        m_DepthNormalPrepass.allocateDepth = false;
+                        // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
+                        m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
+                    }
+                    else
+                    {
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture);
+                    }
+
                     EnqueuePass(m_DepthNormalPrepass);
                 }
                 else
                 {
-                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
-                    EnqueuePass(m_DepthPrepass);
+                    // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
+                    if (this.actualRenderingMode != RenderingMode.Deferred)
+                    {
+                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                        EnqueuePass(m_DepthPrepass);
+                    }
                 }
             }
 
@@ -421,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             if (this.actualRenderingMode == RenderingMode.Deferred)
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows);
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
@@ -432,14 +465,16 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            // If deferred rendering path was selected, it has already made a copy.
             bool requiresDepthCopyPass = !requiresDepthPrepass
                 && renderingData.cameraData.requiresDepthTexture
-                && createDepthTexture
-                && this.actualRenderingMode != RenderingMode.Deferred;
+                && createDepthTexture;
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+
+                if (this.actualRenderingMode == RenderingMode.Deferred)
+                    m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
+
                 EnqueuePass(m_CopyDepthPass);
             }
 
@@ -616,7 +651,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow)
+        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             // the last slice is the lighting buffer created in DeferredRenderer.cs
             m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraColorAttachment;
@@ -625,6 +660,7 @@ namespace UnityEngine.Rendering.Universal
                 ref renderingData,
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
                 hasDepthPrepass,
+                hasNormalPrepass,
                 renderingData.cameraData.renderType == CameraRenderType.Overlay,
                 m_DepthTexture,
                 m_DepthInfoTexture,
@@ -634,14 +670,9 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_GBufferPass);
 
-            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
-
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            if (!hasDepthPrepass)
-            {
-                m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
-                EnqueuePass(m_GBufferCopyDepthPass);
-            }
+            m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
+            EnqueuePass(m_GBufferCopyDepthPass);
 
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
@@ -662,6 +693,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EnqueuePass(m_DeferredPass);
+
+            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
         private struct RenderPassInputSummary
@@ -681,10 +714,10 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool eventBeforeOpaque = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingOpaques;
+                bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
-                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeOpaque;
+                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
             }

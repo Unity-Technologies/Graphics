@@ -30,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
+            public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
+            public static readonly GUIContent probeVolumeSubTitle = EditorGUIUtility.TrTextContent("Probe Volume");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -131,12 +133,15 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
+            public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
-            internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
+            public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
+            public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
             internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
-            internal static readonly GUIContent probeVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible ProbeVolumes.");
-            internal static readonly GUIContent probeVolumeAtlasOctahedralDepthResolution = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Resolution", "Resolution of the 2D texture atlas containing visible ProbeVolumes octahedral depth data.");
+            public static readonly GUIContent maxDensityVolumeSizeStyle = EditorGUIUtility.TrTextContent("Max Density Volume Size", "Specifies the maximum size for the individual 3D density volume texture that HDRP uses for Density Volumes. This settings will affect your memory consumption.");
+            public static readonly GUIContent maxDensityVolumesOnScreenStyle = EditorGUIUtility.TrTextContent("Max Density Volumes On Screen", "Sets the maximum number of density volume HDRP can handle on screen at once. This settings will affect your memory consumption.");
+            public const string probeVolumeNotEnabled = "Warning: Probe Volumes are not enabled.\nIt is an highly experimental feature and disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
 
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";

@@ -66,10 +66,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void ReloadAllNullProperties()
         {
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-
-            // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
-            if (m_PostProcessData == PostProcessData.GetDefaultPostProcessData())
-                m_PostProcessData = null;
         }
 
         private void Awake()

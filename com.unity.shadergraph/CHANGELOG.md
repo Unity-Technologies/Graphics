@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -12,8 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
+- Fixed a broken link in the TOC to Main Preview
+- Fixed an issue with the Gradient color picker displaying different values than the selected color. 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
-
+- Fixed an issue where interpolators with preprocessors were being packed incorrectly.
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
+- Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 
 ## [10.3.0] - 2020-11-03
 
@@ -30,10 +35,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using TexelSize or reading sampler states from Textures output from a Subgraph or Custom Function Node [1284036]
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
-
-### Fixed
+- Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
-- 
+- Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property
 
 ## [10.2.0] - 2020-10-19
 
@@ -63,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the presence of an HDRP DiffusionProfile property or node would cause the graph to fail to load when HDRP package was not present [1287904]
 - Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
 - Fixed an issue where dropping HDRP-only properties from the blackboard field into the graph would soft-lock the graph [1288887]
+- Fixed an issue using the sample gradient macros in custom function nodes, which was using a scalar value instead of a vector value for the gradients [1299830]
 
 ## [10.1.0] - 2020-10-12
 
