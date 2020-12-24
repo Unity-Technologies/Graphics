@@ -81,6 +81,36 @@ namespace UnityEngine.VFX
             return cache;
         }
 
+        public static uint GetReplicationCount(this VisualEffect visualEffect, string eventNameID)
+        {
+            return GetReplicationCount(visualEffect, Shader.PropertyToID(eventNameID));
+        }
+
+        public static uint GetReplicationCount(this VisualEffect visualEffect, int eventNameID)
+        {
+            var asset = visualEffect.visualEffectAsset;
+            if (asset != null)
+                return GetReplicationCount(asset, eventNameID);
+
+            return 1u;
+        }
+
+        public static uint GetReplicationCount(this VisualEffectAsset asset, string eventNameID)
+        {
+            return GetReplicationCount(asset, Shader.PropertyToID(eventNameID));
+        }
+
+        public static uint GetReplicationCount(this VisualEffectAsset asset, int eventNameID)
+        {
+            var cache = GetOrUpdateReplicationCache(asset);
+            int[] replicationIDs;
+            if (cache.replicatedEventID != null && cache.replicatedEventID.TryGetValue(eventNameID, out replicationIDs))
+            {
+                return (uint)replicationIDs.Length;
+            }
+            return 1u;
+        }
+
         public static void SendReplicatedEvent(this VisualEffect visualEffect, string eventName, VFXEventAttribute eventAttribute, uint replicationIndex)
         {
             SendReplicatedEvent(visualEffect, Shader.PropertyToID(eventName), eventAttribute, replicationIndex);
@@ -97,6 +127,7 @@ namespace UnityEngine.VFX
                 {
                     replicationIndex = replicationIndex % (uint)replicationIDs.Length;
                     visualEffect.SendEvent(replicationIDs[replicationIndex], eventAttribute);
+                    return;
                 }
             }
 
