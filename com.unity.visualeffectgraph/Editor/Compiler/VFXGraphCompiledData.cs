@@ -643,16 +643,17 @@ namespace UnityEditor.VFX
                     {
                         var eventToLink = new List<string>();
 
+                        var proxyEventName = eventName;
                         if (sourceSpawn.Key.index != 0u)
-                            eventName = string.Format("{0}_{1}", eventName, sourceSpawn.Key.index);
+                            proxyEventName = string.Format("{0}_{1}", proxyEventName, sourceSpawn.Key.index);
 
-                        var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
+                        var eventIndex = eventDescTemp.FindIndex(o => o.eventName == proxyEventName);
                         if (eventIndex == -1)
                         {
                             eventIndex = eventDescTemp.Count;
                             eventDescTemp.Add(new
                             {
-                                eventName = eventName,
+                                eventName = proxyEventName,
                                 playSystems = new List<uint>(),
                                 stopSystems = new List<uint>(),
                             });
