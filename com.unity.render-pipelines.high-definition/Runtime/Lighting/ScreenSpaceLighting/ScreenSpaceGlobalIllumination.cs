@@ -215,8 +215,16 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIConvertParameters parameters = new SSGIConvertParameters();
 
             // Set the camera parameters
-            parameters.texWidth = hdCamera.actualWidth;
-            parameters.texHeight = hdCamera.actualHeight;
+            if (!halfResolution)
+            {
+                parameters.texWidth = hdCamera.actualWidth;
+                parameters.texHeight = hdCamera.actualHeight;
+            }
+            else
+            {
+                parameters.texWidth = hdCamera.actualWidth / 2;
+                parameters.texHeight = hdCamera.actualHeight / 2;
+            }
             parameters.viewCount = hdCamera.viewCount;
 
             // Grab the right kernel
