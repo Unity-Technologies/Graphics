@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the default background color for previews to use the original color.
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed an issue with half res ssgi upscale.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
+- Changed the convergence time of ssgi to 16 frames and the preset value
 
 ## [10.3.0] - 2020-12-01
 
