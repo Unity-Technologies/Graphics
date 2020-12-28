@@ -22,6 +22,9 @@ Nightly_HDRP_DXR_trunk:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_HDRP_DXR_CUSTOM-REVISION:
     name: HDRP_DXR PR Job - CUSTOM-REVISION
     dependencies:
@@ -40,3 +43,5 @@ Nightly_HDRP_DXR_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

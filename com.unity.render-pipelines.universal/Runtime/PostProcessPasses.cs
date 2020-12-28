@@ -44,6 +44,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_RendererPostProcessData = rendererPostProcessData;
             m_BlitMaterial = blitMaterial;
+
+
+            Recreate(rendererPostProcessData);
         }
 
         /// <summary>

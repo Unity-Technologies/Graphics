@@ -6,9 +6,10 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
-      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
-      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
-      - [iPhone_Metal]: --timeout=1800
+      #- [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      #- [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      #- [iPhone_Metal]: --timeout=1800
+      - [all]: --timeout=3000
   - type: playmode
   - type: editmode
   - type: playmode
@@ -16,7 +17,7 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
 expression_trigger: 
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
