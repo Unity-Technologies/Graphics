@@ -1,13 +1,43 @@
 using System;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// The model used to control the complexity of the simulation.
+    /// </summary>
+    public enum PhysicallyBasedSkyModel
+    {
+        /// <summary>Suitable to simulate Earth</summary>
+        EarthSimple,
+        /// <summary>Suitable to simulate Earth</summary>
+        EarthAdvanced,
+        /// <summary>Suitable to simulate any planet</summary>
+        Custom
+    };
+
+    /// <summary>
+    /// Physically Based Sky model volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class PhysicallyBasedSkyModelParameter : VolumeParameter<PhysicallyBasedSkyModel>
+    {
+        /// <summary>
+        /// constructor.
+        /// </summary>
+        /// <param name="value">Model parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
     /// <summary>
     /// Physically Based Sky Volume Component.
     /// </summary>
     [VolumeComponentMenu("Sky/Physically Based Sky")]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
-    public class PhysicallyBasedSky : SkySettings
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Physically-Based-Sky" + Documentation.endURL)]
+    public partial class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */
         const float k_DefaultEarthRadius    = 6.3781f * 1000000;
@@ -18,10 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         const float k_DefaultAirAlbedoR     = 0.9f; // BS values to account for absorption
         const float k_DefaultAirAlbedoG     = 0.9f; // due to the ozone layer. We assume that ozone
         const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
+        const float k_DefaultAerosolScaleHeight = 1200;
+        static readonly float k_DefaultAerosolMaximumAltitude = LayerDepthFromScaleHeight(k_DefaultAerosolScaleHeight);
 
-        /// <summary> Simplifies the interface by using parameters suitable to simulate Earth. </summary>
-        [Tooltip("When enabled, Unity simplifies the interface and only exposes properties suitable to simulate Earth.")]
-        public BoolParameter earthPreset = new BoolParameter(true);
+        /// <summary> Simplifies the interface by reducing the number of parameters available. </summary>
+        public PhysicallyBasedSkyModelParameter type = new PhysicallyBasedSkyModelParameter(PhysicallyBasedSkyModel.EarthAdvanced);
 
         /// <summary> Allows to specify the location of the planet. If disabled, the planet is always below the camera in the world-space X-Z plane. </summary>
         [Tooltip("When enabled, you can define the planet in terms of a world-space position and radius. Otherwise, the planet is always below the Camera in the world-space x-z plane.")]
@@ -64,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> Opacity of aerosols as measured by an observer on the ground looking towards the zenith. </summary>
         [Tooltip("Controls the opacity of aerosols at the point in the sky directly above the observer (zenith).")]
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
-        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000000, 1200), 0, 1);
+        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000000, k_DefaultAerosolScaleHeight), 0, 1);
 
         /// <summary> Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones. </summary>
         [Tooltip("Specifies the color that HDRP tints aerosols to. This controls the single scattering albedo of aerosol molecules (per color channel). A value of 0 results in absorbing molecules, and a value of 1 results in scattering ones.")]
@@ -74,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the depth, in meters, of the atmospheric layer, from sea level, composed of aerosol particles. Controls the rate of height-based density falloff.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
-        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1200), 0);
+        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(k_DefaultAerosolMaximumAltitude, 0);
 
         /// <summary> Positive values for forward scattering, 0 for isotropic scattering. negative values for backward scattering. </summary>
         [Tooltip("Controls the direction of anisotropy. Set this to a positive value for forward scattering, a negative value for backward scattering, or 0 for isotropic scattering.")]
@@ -170,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float GetAirScaleHeight()
         {
-            if (earthPreset.value)
+            if (type.value != PhysicallyBasedSkyModel.Custom)
             {
                 return k_DefaultAirScaleHeight;
             }
@@ -180,9 +211,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal float GetMaximumAltitude()
+        {
+            if (type.value == PhysicallyBasedSkyModel.Custom)
+                return Mathf.Max(airMaximumAltitude.value, aerosolMaximumAltitude.value);
+
+            float aerosolMaxAltitude = (type.value == PhysicallyBasedSkyModel.EarthSimple) ? k_DefaultAerosolMaximumAltitude : aerosolMaximumAltitude.value;
+            return Mathf.Max(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), aerosolMaxAltitude);
+        }
+
         internal float GetPlanetaryRadius()
         {
-            if (earthPreset.value)
+            if (type.value != PhysicallyBasedSkyModel.Custom)
             {
                 return k_DefaultEarthRadius;
             }
@@ -194,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
         {
-            if (sphericalMode.value)
+            if (sphericalMode.value && (type.value != PhysicallyBasedSkyModel.EarthSimple))
             {
                 return planetCenterPosition.value;
             }
@@ -211,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3 airExt = new Vector3();
 
-            if (earthPreset.value)
+            if (type.value != PhysicallyBasedSkyModel.Custom)
             {
                 airExt.x = k_DefaultAirScatteringR;
                 airExt.y = k_DefaultAirScatteringG;
@@ -231,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3 airAlb = new Vector3();
 
-            if (earthPreset.value)
+            if (type.value != PhysicallyBasedSkyModel.Custom)
             {
                 airAlb.x = k_DefaultAirAlbedoR;
                 airAlb.y = k_DefaultAirAlbedoG;
@@ -260,7 +300,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float GetAerosolScaleHeight()
         {
-            return ScaleHeightFromLayerDepth(aerosolMaximumAltitude.value);
+            if (type.value == PhysicallyBasedSkyModel.EarthSimple)
+            {
+                return k_DefaultAerosolScaleHeight;
+            }
+            else
+            {
+                return ScaleHeightFromLayerDepth(aerosolMaximumAltitude.value);
+            }
+        }
+
+        internal float GetAerosolAnisotropy()
+        {
+            if (type.value == PhysicallyBasedSkyModel.EarthSimple)
+            {
+                return 0;
+            }
+            else
+            {
+                return aerosolAnisotropy.value;
+            }
         }
 
         internal float GetAerosolExtinctionCoefficient()
@@ -290,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 // These parameters affect precomputation.
-                hash = hash * 23 + earthPreset.overrideState.GetHashCode();
+                hash = hash * 23 + type.overrideState.GetHashCode();
                 hash = hash * 23 + planetaryRadius.overrideState.GetHashCode();
                 hash = hash * 23 + groundTint.overrideState.GetHashCode();
 
@@ -308,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + numberOfBounces.overrideState.GetHashCode();
 #else
                 // These parameters affect precomputation.
-                hash = hash * 23 + earthPreset.GetHashCode();
+                hash = hash * 23 + type.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + groundTint.GetHashCode();
 

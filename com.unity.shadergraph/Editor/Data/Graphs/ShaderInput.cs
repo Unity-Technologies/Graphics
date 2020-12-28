@@ -72,6 +72,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
         internal abstract bool isExposable { get; }
+        internal virtual bool isAlwaysExposed => false;
         internal abstract bool isRenamable { get; }
 
         internal abstract ShaderInput Copy();

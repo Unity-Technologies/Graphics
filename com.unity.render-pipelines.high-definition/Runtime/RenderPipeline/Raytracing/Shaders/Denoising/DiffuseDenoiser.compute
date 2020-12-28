@@ -16,6 +16,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
 
 // Ray Tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
@@ -38,7 +39,9 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 // Radius of the filter (world space)
 float _DenoiserFilterRadius;
 float _PixelSpreadAngleTangent;
-#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+int _JitterFramePeriod;
+
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 2
 
 // Flag used to do a half resolution filter
 int _HalfResolutionFilter;
@@ -76,34 +79,39 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     float wSum = 0.0;
     #endif
 
-    // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
-    int numSamples = _HalfResolutionFilter ? 4 : 16;
-
     // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
     const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
-    const float3 viewWS = normalize(-center.position);
+    // Compute the view in world space
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
     const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, viewWS));
     const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
 
     // Compute the sigma value
-    const float sigma = 0.5 * denoisingRadius;
+    const float sigma = 0.9 * denoisingRadius;
 
     // Index of the pixel in the 2x2 group that are used for the half res filter
     int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
+
+    // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
+    const int numSamples = _HalfResolutionFilter ? 4 : 16;
+
+    int sampleOffset = (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0);
+    if (_JitterFramePeriod != -1)
+        sampleOffset += _JitterFramePeriod * 16;
 
     // Loop through the samples that we need to aggrgate
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
         // Fetch the noise value for the current sample
         float2 newSample;
-        newSample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
-        newSample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 1);
         
         // Convert the sample to a local unit disk
-        newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
+        newSample = SampleDiskCubic(newSample.x, newSample.y);
 
         // Distribute them according a square profile
-        newSample *= denoisingRadius * denoisingRadius;
+        newSample *= denoisingRadius;
 
         // Convert the point to hemogenous clip space
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;

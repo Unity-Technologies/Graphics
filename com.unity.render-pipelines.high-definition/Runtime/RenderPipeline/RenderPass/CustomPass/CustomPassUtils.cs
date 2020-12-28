@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="destination">Destination buffer of the downsample</param>
         /// <param name="sourceMip">Source mip level to sample from.</param>
         /// <param name="destMip">Destination mip level to write to.</param>
-        /// <param name="ctx">Custom Pass Context</param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => DownSample(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
@@ -409,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StartSinglePass(ctx.cmd);
+                    m_Context.hdCamera.xr.StopSinglePass(ctx.cmd);
             }
 
             /// <summary>
@@ -418,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             void IDisposable.Dispose()
             {
                 if (m_Context.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StopSinglePass(m_Context.cmd);
+                    m_Context.hdCamera.xr.StartSinglePass(m_Context.cmd);
             }
         }
 

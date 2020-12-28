@@ -4,7 +4,7 @@ __Volume Overrides__ are structures which contain values that override the defau
 
 [Fog](Override-Fog.md) is an example of a Volume Override:
 
-![](Images/VolumeComponents1.png)
+![](Images/Override-VolumetricFog1.png)
 
 Each Volume Override property has a checkbox on its left. Enable the checkbox to make that property editable. This also tells HDRP to use that property for this Volume component rather than the default value. If you disable the checkbox, HDRP ignores the property you set and uses the Volume’s default value for that property instead.
 

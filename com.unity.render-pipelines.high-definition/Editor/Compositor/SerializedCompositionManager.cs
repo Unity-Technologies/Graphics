@@ -37,13 +37,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public void Update()
         {
-            compositionProfileSO.Update();
+            compositionProfileSO?.Update();
             compositorSO.Update();
         }
 
         public void ApplyModifiedProperties()
         {
-            compositionProfileSO.ApplyModifiedProperties();
+            compositionProfileSO?.ApplyModifiedProperties();
             compositorSO.ApplyModifiedProperties();
         }
     }

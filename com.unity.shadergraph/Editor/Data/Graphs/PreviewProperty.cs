@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         ClassData m_ClassData;
         StructData m_StructData;
+        Texture2DShaderProperty.DefaultType m_texture2dDefaultType;
 
         public Color colorValue
         {
@@ -76,6 +77,22 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture2D, propType));
                 m_ClassData.textureValue = value;
+            }
+        }
+
+        public Texture2DShaderProperty.DefaultType texture2DDefaultType
+        {
+            get
+            {
+                if (propType != PropertyType.Texture2D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, "Texture2DShaderProperty.DefaultType", propType));
+                return m_texture2dDefaultType;
+            }
+            set
+            {
+                if (propType != PropertyType.Texture2D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, "Texture2DShaderProperty.DefaultType", propType));
+                m_texture2dDefaultType = value;
             }
         }
 
@@ -148,14 +165,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (propType != PropertyType.Vector1)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector1, propType));
+                if (propType != PropertyType.Float)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Float, propType));
                 return m_StructData.floatValue;
             }
             set
             {
-                if (propType != PropertyType.Vector1)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector1, propType));
+                if (propType != PropertyType.Float)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Float, propType));
                 m_StructData.floatValue = value;
             }
         }
@@ -197,15 +214,52 @@ namespace UnityEditor.ShaderGraph
 
         public void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock mat)
         {
-            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
-                mat.SetTexture(name, m_ClassData.textureValue);
-            else if (propType == PropertyType.Cubemap && cubemapValue != null)
-                mat.SetTexture(name, m_ClassData.cubemapValue);
+            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D))
+            {
+                if (m_ClassData.textureValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    switch (m_texture2dDefaultType)
+                    {
+                        case Texture2DShaderProperty.DefaultType.White:
+                            mat.SetTexture(name, Texture2D.whiteTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Black:
+                            mat.SetTexture(name, Texture2D.blackTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Grey:
+                            mat.SetTexture(name, Texture2D.grayTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Bump:
+                            mat.SetTexture(name, Texture2D.normalTexture);
+                            break;
+                    }
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.textureValue);
+            }
+            else if (propType == PropertyType.Cubemap)
+            {
+                if (m_ClassData.cubemapValue == null)
+                {
+                    // there's no way to set the texture back to NULL
+                    // and no way to delete the property either
+                    // so instead we set the value to what we know the default will be
+                    // (all textures in ShaderGraph default to white)
+                    // there's no Cubemap.whiteTexture, but this seems to work
+                    mat.SetTexture(name, Texture2D.whiteTexture);
+                }
+                else
+                    mat.SetTexture(name, m_ClassData.cubemapValue);
+            }
             else if (propType == PropertyType.Color)
                 mat.SetColor(name, m_StructData.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
                 mat.SetVector(name, m_StructData.vector4Value);
-            else if (propType == PropertyType.Vector1)
+            else if (propType == PropertyType.Float)
                 mat.SetFloat(name, m_StructData.floatValue);
             else if (propType == PropertyType.Boolean)
                 mat.SetFloat(name, m_StructData.booleanValue ? 1 : 0);

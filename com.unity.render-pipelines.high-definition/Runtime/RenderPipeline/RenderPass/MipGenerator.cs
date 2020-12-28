@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Generates an in-place depth pyramid
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
-        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
+        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info, bool mip1AlreadyComputed)
         {
             HDUtils.CheckRTCreated(texture);
 
@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
             for (int i = 1; i < info.mipLevelCount; i++)
             {
+                if (mip1AlreadyComputed && i == 1) continue; 
+
                 Vector2Int dstSize   = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
                 Vector2Int srcSize   = info.mipLevelSizes[i - 1];

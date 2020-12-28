@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,10 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionAABox : PositionBase
     {
-        public override string name { get { return "Position (AABox)"; } }
+        public override string name { get { return string.Format(base.name, "AABox"); ; } }
 
         public class InputProperties
         {
@@ -23,11 +24,11 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
+                VFXExpression boxSize = inputSlots[0][1].GetExpression();
+
                 if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                 {
                     VFXExpression factor = VFXValue.Constant(Vector3.zero);
-                    VFXExpression boxSize = inputSlots[0][1].GetExpression();
-
                     switch (positionMode)
                     {
                         case PositionMode.ThicknessAbsolute:
@@ -59,6 +60,7 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXNamedExpression(volumeXZ, "volumeXZ");
                     yield return new VFXNamedExpression(volumeYZ, "volumeYZ");
                     yield return new VFXNamedExpression(cumulativeVolumes, "cumulativeVolumes");
+
                 }
             }
         }
@@ -70,63 +72,120 @@ namespace UnityEditor.VFX.Block
                 yield return "spawnMode";
             }
         }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
             get
             {
+                string outSource;
+
                 if (positionMode == PositionMode.Volume)
                 {
-                    return @"position = Box_size * (RAND3 - 0.5f) + Box_center;";
+                    outSource = @"
+float3 localRand3 = RAND3 - (float3)0.5f;
+float3 outPos =  Box_size * localRand3;
+";
+                    outSource += @"
+float3 outPosSizeGreaterThanZero = max(Box_size, VFX_EPSILON) * localRand3;
+float3 planeBound = 0.5f * Box_size;
+float top    = planeBound.z - outPosSizeGreaterThanZero.z;
+float bottom = planeBound.z + outPosSizeGreaterThanZero.z;
+float front  = planeBound.y - outPosSizeGreaterThanZero.y;
+float back   = planeBound.y + outPosSizeGreaterThanZero.y;
+float right  = planeBound.x - outPosSizeGreaterThanZero.x;
+float left   = planeBound.x + outPosSizeGreaterThanZero.x;
+
+float3 outDir = float3(0,0,1);
+float min = top;
+if (bottom < min) { outDir = float3(0, 0,-1);  min = bottom; }
+if (front  < min) { outDir = float3(0, 1, 0);  min = front;  }
+if (back   < min) { outDir = float3(0,-1, 0);  min = back;   }
+if (right  < min) { outDir = float3(1, 0, 0);  min = right;  }
+if (left   < min) { outDir = float3(-1,0, 0);  min = left;   }
+";
                 }
                 else if (positionMode == PositionMode.Surface)
                 {
-                    return @"
+                    outSource = @"
 float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
 float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
 float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
 
 float face = RAND * (areaXY + areaXZ + areaYZ);
-float flip = (RAND >= 0.5f) ? 0.5f : -0.5f;
-float3 cube = float3(RAND2 - 0.5f, flip);
+float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
+float3 cube = float3(RAND2 - 0.5f, flip * 0.5f);
 
+float3 outDir;
 if (face < areaXY)
+{
     cube = cube.xyz;
+    outDir = float3(0, 0, flip);
+}
 else if(face < areaXY + areaXZ)
+{
     cube = cube.xzy;
+    outDir = float3(0, flip, 0);
+}
 else
+{
     cube = cube.zxy;
-
-position = cube * Box_size + Box_center;
+    outDir = float3(flip, 0, 0);
+}
+float3 outPos = cube * Box_size;
 ";
                 }
-                else
+                else if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
                 {
-                    return @"
+                    outSource = @"
 float face = RAND * cumulativeVolumes.z;
 float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
 float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
 
+float3 outDir;
 if (face < cumulativeVolumes.x)
 {
     cube = (cube * volumeXY).xyz + float3(0.0f, 0.0f, Box_size.z);
     cube.z *= flip;
+    outDir = float3(0, 0, flip);
 }
 else if(face < cumulativeVolumes.y)
 {
     cube = (cube * volumeXZ).xzy + float3(0.0f, Box_size.y, 0.0f);
     cube.y *= flip;
+    outDir = float3(0, flip, 0);
 }
 else
 {
     cube = (cube * volumeYZ).zxy + float3(Box_size.x, 0.0f, 0.0f);
     cube.x *= flip;
+    outDir = float3(flip, 0, 0);
 }
-
-position = cube * 0.5f + Box_center;
+float3 outPos = cube * 0.5f;
 ";
                 }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                outSource += string.Format(composeDirectionFormatString, "outDir");
+                outSource += string.Format(composePositionFormatString, "outPos + Box_center");
+
+                return outSource;
             }
         }
+
+
+        public override void Sanitize(int version)
+        {
+            if(version < 5)
+            {
+                // SANITIZE : if older version, ensure position composition is overwrite.
+                compositionPosition = AttributeCompositionMode.Overwrite;
+            }
+            base.Sanitize(version);
+        }
+
     }
 }

@@ -50,7 +50,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #endif
         }
 
-        half4 FragPrefilter(FullscreenVaryings input) : SV_Target
+        half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -84,10 +84,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
         #endif
 
-        #if UNITY_COLORSPACE_GAMMA
-            color = SRGBToLinear(color);
-        #endif
-
             // User controlled clamp to limit crazy high broken spec
             color = min(ClampMax, color);
 
@@ -101,7 +97,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return EncodeHDR(color);
         }
 
-        half4 FragBlurH(FullscreenVaryings input) : SV_Target
+        half4 FragBlurH(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _SourceTex_TexelSize.x * 2.0;
@@ -125,7 +121,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return EncodeHDR(color);
         }
 
-        half4 FragBlurV(FullscreenVaryings input) : SV_Target
+        half4 FragBlurV(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _SourceTex_TexelSize.y;
@@ -158,7 +154,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return lerp(highMip, lowMip, Scatter);
         }
 
-        half4 FragUpsample(FullscreenVaryings input) : SV_Target
+        half4 FragUpsample(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             half3 color = Upsample(UnityStereoTransformScreenSpaceTex(input.uv));

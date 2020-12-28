@@ -250,40 +250,47 @@ namespace UnityEditor.Rendering.LookDev
 
         void RefreshLibraryDisplay()
         {
-            int itemMax = LookDev.currentContext.environmentLibrary?.Count ?? 0;
-            if (itemMax == 0 || m_EnvironmentList.selectedIndex == -1)
+            if (m_LibraryField != null)
+                m_LibraryField.SetValueWithoutNotify(LookDev.currentContext.environmentLibrary);
+
+            if (m_EnvironmentInspector != null && m_EnvironmentList != null)
             {
-                m_EnvironmentInspector.style.visibility = Visibility.Hidden;
-                m_EnvironmentInspector.style.height = 0;
-            }
-            else
-            {
-                m_EnvironmentInspector.style.visibility = Visibility.Visible;
-                m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
-            }
-            var items = new List<int>(itemMax);
-            for (int i = 0; i < itemMax; i++)
-                items.Add(i);
-            m_EnvironmentList.itemsSource = items;
-            if (LookDev.currentContext.environmentLibrary == null)
-            {
-                m_EnvironmentList
-                    .Q(className: "unity-scroll-view__vertical-scroller")
-                    .Q("unity-dragger")
-                    .style.visibility = Visibility.Hidden;
-                m_EnvironmentListToolbar.style.visibility = Visibility.Hidden;
-                m_NoEnvironmentList.style.display = DisplayStyle.Flex;
-            }
-            else
-            {
-                m_EnvironmentList
-                    .Q(className: "unity-scroll-view__vertical-scroller")
-                    .Q("unity-dragger")
-                    .style.visibility = itemMax == 0
-                        ? Visibility.Hidden
-                        : Visibility.Visible;
-                m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
-                m_NoEnvironmentList.style.display = DisplayStyle.None;
+                int itemMax = LookDev.currentContext.environmentLibrary?.Count ?? 0;
+                if (itemMax == 0 || m_EnvironmentList.selectedIndex == -1)
+                {
+                    m_EnvironmentInspector.style.visibility = Visibility.Hidden;
+                    m_EnvironmentInspector.style.height = 0;
+                }
+                else
+                {
+                    m_EnvironmentInspector.style.visibility = Visibility.Visible;
+                    m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
+                }
+
+                var items = new List<int>(itemMax);
+                for (int i = 0; i < itemMax; i++)
+                    items.Add(i);
+                m_EnvironmentList.itemsSource = items;
+                if (LookDev.currentContext.environmentLibrary == null)
+                {
+                    m_EnvironmentList
+                        .Q(className: "unity-scroll-view__vertical-scroller")
+                        .Q("unity-dragger")
+                        .style.visibility = Visibility.Hidden;
+                    m_EnvironmentListToolbar.style.visibility = Visibility.Hidden;
+                    m_NoEnvironmentList.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    m_EnvironmentList
+                        .Q(className: "unity-scroll-view__vertical-scroller")
+                        .Q("unity-dragger")
+                        .style.visibility = itemMax == 0
+                            ? Visibility.Hidden
+                            : Visibility.Visible;
+                    m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
+                    m_NoEnvironmentList.style.display = DisplayStyle.None;
+                }
             }
         }
 

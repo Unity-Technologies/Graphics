@@ -51,7 +51,7 @@ The [Visual Environment](Override-Visual-Environment.md) override allows you to 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#SkyOverview.md), and [Fog overview](HDRP-Features.md#FogOverview.md).
+For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#sky), and [Fog overview](HDRP-Features.md#fog).
 
 ## Materials and Shaders
 
@@ -74,10 +74,6 @@ Use the Light Explorer to change the settings of any type of Light within your P
 ## Shadows
 
 The [Shadows](Override-Shadows.md) Volume override allows you to determine the overall quality of the Shadows in a Volume. For example, the **Max Distance** field calculates the quality of the Shadows based on the distance of the Camera from the Shadow.
-
-The below gif is from a pre-release version of HDRP and, at that point, the **Shadows** Volume override was named **HD Shadow Settings**.
-
-![](Images/GettingStarted5.gif)
 
 For more information, see [Shadows](Override-Shadows.md).
 

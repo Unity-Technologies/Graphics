@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public XROcclusionMeshPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(XROcclusionMeshPass));
             renderPassEvent = evt;
         }
 

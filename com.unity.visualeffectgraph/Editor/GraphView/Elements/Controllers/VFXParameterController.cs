@@ -132,6 +132,8 @@ namespace UnityEditor.VFX.UI
             expanded = false;
             NotifyChange(ExpandedChange);
         }
+        void IPropertyRMProvider.StartLiveModification() { m_Parameter.viewController.errorRefresh = false; }
+        void IPropertyRMProvider.EndLiveModification() { m_Parameter.viewController.errorRefresh = true; }
 
         public Type portType
         {
@@ -227,6 +229,9 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
 
     class VFXMinMaxParameterController : IPropertyRMProvider
@@ -328,6 +333,8 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
     class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider, IGizmoController, IGizmoable
     {
@@ -965,6 +972,9 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+
+        void IPropertyRMProvider.StartLiveModification() { viewController.errorRefresh = false; }
+        void IPropertyRMProvider.EndLiveModification() { viewController.errorRefresh = true; }
     }
 
     class ParameterGizmoContext : VFXGizmoUtility.Context

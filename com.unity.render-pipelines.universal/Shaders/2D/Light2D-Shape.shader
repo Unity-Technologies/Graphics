@@ -17,7 +17,6 @@ Shader "Hidden/Light2D-Shape"
             Cull Off
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __

@@ -341,6 +341,7 @@ namespace UnityEditor.VFX.Test
 
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
@@ -398,6 +399,7 @@ namespace UnityEditor.VFX.Test
             CreateAssetAndComponent(3615.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;

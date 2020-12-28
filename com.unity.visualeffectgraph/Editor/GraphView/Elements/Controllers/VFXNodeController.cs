@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
             foreach (var setting in settings)
             {
                 var settingController = new VFXSettingController();
-                settingController.Init(this.slotContainer, setting.field.Name, setting.field.FieldType);
+                settingController.Init(viewController,this.slotContainer, setting.field.Name, setting.field.FieldType);
                 m_Settings[cpt++] = settingController;
             }
         }

@@ -3,11 +3,17 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMainColor        MAIN=KMainColor           CTYPE=float3
-#pragma kernel KMainColorAlpha   MAIN=KMainColorAlpha      CTYPE=float4
-#pragma kernel KMainCoC          MAIN=KMainCoC             CTYPE=float
+#pragma kernel KMainColor           MAIN=KMainColor           CTYPE=float3
+#pragma kernel KMainColorAlpha      MAIN=KMainColorAlpha      CTYPE=float4
+#pragma kernel KMainCoC             MAIN=KMainCoC             CTYPE=float
+#pragma kernel KMainColorCopy       MAIN=KMainColorCopy       CTYPE=float3  COPY_MIP0
+#pragma kernel KMainColorCopyAlpha  MAIN=KMainColorCopyAlpha  CTYPE=float4  COPY_MIP0
 
 RW_TEXTURE2D_X(CTYPE, _InputTexture);
+
+#ifdef COPY_MIP0
+RW_TEXTURE2D_X(CTYPE, _OutputTexture);
+#endif
 
 RW_TEXTURE2D_X(CTYPE, _OutputMip1);
 RW_TEXTURE2D_X(CTYPE, _OutputMip2);
@@ -38,6 +44,13 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_Gro
 
     // First mip
     CTYPE color = _InputTexture[COORD_TEXTURE2D_X(ul)];
+#ifdef COPY_MIP0
+    _OutputTexture[COORD_TEXTURE2D_X(ul)]                 = _InputTexture[COORD_TEXTURE2D_X(ul)];
+    _OutputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))] = _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))];
+    _OutputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))] = _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))];
+    _OutputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))] = _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))];
+#endif
+
     color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))];
     color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))];
     color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))];

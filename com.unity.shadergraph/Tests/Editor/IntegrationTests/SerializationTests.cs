@@ -234,8 +234,8 @@ namespace UnityEditor.Graphing.IntegrationTests
         {
             var toSerialize = new List<MaterialSlot>()
             {
-                new TestSlot(0, "InSlot", SlotType.Input, 0),
-                new TestSlot(1, "OutSlot", SlotType.Output, 5),
+                new TestSlot(0, "InSlot", SlotType.Input),
+                new TestSlot(1, "OutSlot", SlotType.Output),
             };
 
             DummyJsonHolder dummyJsonHolder = new DummyJsonHolder(toSerialize);

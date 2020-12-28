@@ -3,7 +3,7 @@
     width: 12px;
     height: 12px;
     position: absolute;
-    left: 180px;
+    left: 425px;
 }
 
 #DefaultResourceFolder > Label, #NewScene > Label, #NewDXRScene > Label
@@ -13,7 +13,7 @@
 
 #TestLabel
 {
-    width: 180px;
+    width: 425px;
 }
 
 #Resolver

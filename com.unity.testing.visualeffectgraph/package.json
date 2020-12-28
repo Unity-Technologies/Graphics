@@ -1,12 +1,12 @@
 {
     "name": "com.unity.testing.visualeffectgraph",
     "displayName": "Visual Effect Graphic Tests",
-    "version": "8.0.0",
-    "unity": "2020.1",
-    "unityRelease": "0a23",
+    "version": "10.2.0",
+    "unity": "2020.2",
+    "unityRelease": "0b8",
     "description": "This package contains common graphics tests from several scriptable renderpipeline",
     "dependencies": {
-        "com.unity.visualeffectgraph": "8.0.0",
-        "com.unity.testframework.graphics": "7.2.1-preview"
+        "com.unity.visualeffectgraph": "10.2.0",
+        "com.unity.testframework.graphics": "7.7.1-preview"
     }
 }

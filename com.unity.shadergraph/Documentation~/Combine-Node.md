@@ -8,10 +8,10 @@ Creates new vectors from the four inputs **R**, **G**, **B** and **A**. Output *
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| R      | Input | Vector 1 | None | Defines red channel of output |
-| G      | Input | Vector 1 | None | Defines green channel of output |
-| B      | Input | Vector 1 | None | Defines blue channel of output |
-| A      | Input | Vector 1 | None | Defines alpha channel of output |
+| R      | Input | Float    | None | Defines red channel of output |
+| G      | Input | Float    | None | Defines green channel of output |
+| B      | Input | Float    | None | Defines blue channel of output |
+| A      | Input | Float    | None | Defines alpha channel of output |
 | RGBA | Output      |    Vector 4 | None | Output value as **Vector 4** |
 | RGB | Output      |    Vector 3 | None | Output value as **Vector 3** |
 | RG | Output      |    Vector 2 | None | Output value as **Vector 2** |

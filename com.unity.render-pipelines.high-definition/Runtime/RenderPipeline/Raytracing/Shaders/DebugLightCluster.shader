@@ -134,19 +134,13 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionOS *= clusterCellSize;
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
-                // Move to true world space
-                float3 positionWS = GetAbsolutePositionWS(positionRWS);
-
                 // Compute the grid coordinates of this cell
                 int width = instanceID % 64;
                 int height = (instanceID / 64) % 64;
                 int depth = instanceID / 4096;
 
                 // Compute the world space coordinate of this cell
-                positionWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + positionWS;
-
-                // Convert this position back to camera relative
-                positionRWS = GetCameraRelativePositionWS(positionWS);
+                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
@@ -211,19 +205,13 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionOS *= clusterCellSize;
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
-                // Move to true world space
-                float3 positionWS = GetAbsolutePositionWS(positionRWS);
-
                 // Compute the grid coordinates of this cell
                 int width = instanceID % 64;
                 int height = (instanceID / 64) % 64;
                 int depth = instanceID / 4096;
 
                 // Compute the world space coordinate of this cell
-                positionWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + positionWS;
-
-                // Convert this position back to camera relative
-                positionRWS = GetCameraRelativePositionWS(positionWS);
+                positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
                 uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);

@@ -1,13 +1,18 @@
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel MAIN         KERNEL_NAME=MAIN         NUM_SAMPLES=1
-#pragma kernel MAIN_MSAA_2  KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2 MSAA
-#pragma kernel MAIN_MSAA_4  KERNEL_NAME=MAIN_MSAA_4  NUM_SAMPLES=4 MSAA 
-#pragma kernel MAIN_MSAA_8  KERNEL_NAME=MAIN_MSAA_8  NUM_SAMPLES=8 MSAA
+#pragma kernel MAIN         KERNEL_NAME=MAIN         NUM_SAMPLES=1      COARSE_STENCIL  
+#pragma kernel MAIN_MSAA_2  KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2 MSAA COARSE_STENCIL 
+#pragma kernel MAIN_MSAA_4  KERNEL_NAME=MAIN_MSAA_4  NUM_SAMPLES=4 MSAA COARSE_STENCIL
+#pragma kernel MAIN_MSAA_8  KERNEL_NAME=MAIN_MSAA_8  NUM_SAMPLES=8 MSAA COARSE_STENCIL
 
-#pragma kernel MAIN_MSAA_2_RESOLVE  KERNEL_NAME=MAIN_MSAA_2_RESOLVE  NUM_SAMPLES=2 MSAA RESOLVE
-#pragma kernel MAIN_MSAA_4_RESOLVE  KERNEL_NAME=MAIN_MSAA_4_RESOLVE  NUM_SAMPLES=4 MSAA RESOLVE
-#pragma kernel MAIN_MSAA_8_RESOLVE  KERNEL_NAME=MAIN_MSAA_8_RESOLVE  NUM_SAMPLES=8 MSAA RESOLVE
+#pragma kernel MAIN_MSAA_2_RESOLVE  KERNEL_NAME=MAIN_MSAA_2_RESOLVE  NUM_SAMPLES=2 MSAA RESOLVE COARSE_STENCIL
+#pragma kernel MAIN_MSAA_4_RESOLVE  KERNEL_NAME=MAIN_MSAA_4_RESOLVE  NUM_SAMPLES=4 MSAA RESOLVE COARSE_STENCIL
+#pragma kernel MAIN_MSAA_8_RESOLVE  KERNEL_NAME=MAIN_MSAA_8_RESOLVE  NUM_SAMPLES=8 MSAA RESOLVE COARSE_STENCIL
+
+#pragma kernel MAIN_MSAA_2_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_2_RESOLVE_ONLY  NUM_SAMPLES=2 MSAA RESOLVE
+#pragma kernel MAIN_MSAA_4_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_4_RESOLVE_ONLY  NUM_SAMPLES=4 MSAA RESOLVE
+#pragma kernel MAIN_MSAA_8_RESOLVE_ONLY  KERNEL_NAME=MAIN_MSAA_8_RESOLVE_ONLY  NUM_SAMPLES=8 MSAA RESOLVE
+
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -63,7 +68,18 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
     _OutputStencilBuffer[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = uint2(resolvedStencil, resolvedStencil);
 #endif
 
-#if USE_INTRINSICS == 0
+#ifdef COARSE_STENCIL
+
+#if USE_INTRINSICS
+
+    // Need to workaround a warning incorrectly triggered when on Xbox One, so instead of using WaveIsFirstLane()
+    // we check the groupThreadId as in the non intrinsic version.
+    //bool isFirstThread = WaveIsFirstLane();
+    bool isFirstThread = groupThreadId.x == 0 && groupThreadId.y == 0;
+    uint coarseStencilValue = WaveActiveBitOr(resolvedStencil);
+
+
+#else
 
     bool isFirstThread = groupThreadId.x == 0 && groupThreadId.y == 0;
     if (isFirstThread)
@@ -77,14 +93,6 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 
     GroupMemoryBarrierWithGroupSync();
 
-#else
-
-    // Need to workaround a warning incorrectly triggered when on Xbox One, so instead of using WaveIsFirstLane()
-    // we check the groupThreadId as in the non intrinsic version.
-    //bool isFirstThread = WaveIsFirstLane();
-    bool isFirstThread = groupThreadId.x == 0 && groupThreadId.y == 0;
-    uint coarseStencilValue = WaveActiveBitOr(resolvedStencil);
-
 #endif
 
     //This temp is needed outside the if(isFirstThread) condition to workaround a DXC DXIL codegen
@@ -96,4 +104,7 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
         uint addressIndex = Get1DAddressFromPixelCoord(groupId.xy, _CoarseStencilBufferSize.xy, groupId.z);
         _CoarseStencilBuffer[addressIndex] = perThreadCoarseStencilValue;
     }
+
+#endif
+
 }

@@ -16,6 +16,8 @@
 #pragma kernel TraceGlobalIlluminationHalf      TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
 #pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
 #pragma kernel ReprojectGlobalIlluminationHalf  REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
+#pragma kernel ConvertYCoCgToRGB                CONVERT_YCOCG_TO_RGB=ConvertYCoCgToRGB
+#pragma kernel ConvertYCoCgToRGBHalf            CONVERT_YCOCG_TO_RGB=ConvertYCoCgToRGBHalf HALF_RES
 
 // The dispatch tile resolution
 #define INDIRECT_DIFFUSE_TILE_SIZE 8
@@ -28,15 +30,18 @@ TEXTURE2D_X(_DepthTexture);
 // Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
+
 // Constant buffer that holds all scalar that we need
 CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseSteps;
     float _IndirectDiffuseThicknessScale;
     float _IndirectDiffuseThicknessBias;
-    float _IndirectDiffuseMaximalRadius;
     int _IndirectDiffuseProbeFallbackFlag;
     int _IndirectDiffuseProbeFallbackBias;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
+    int _SsrStencilBit;
 CBUFFER_END
 
 // Output texture that holds the hit point NDC coordinates
@@ -48,24 +53,28 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
     // Initialize ray pos to invalid value
     rayPos = float3(-1.0, -1.0, -1.0);
 
-    // Compute the sampled position in world space (one meter away from the original point along the sampled direction)
-    float3 sampledPosWS  = positionWS + sampleDir * _IndirectDiffuseMaximalRadius;
-
-    // Convert the sampled position to NDC, then to SS
-    float3 sampledPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledPosWS, UNITY_MATRIX_VP); // Jittered
-    float3 sampledPosSS  = float3(sampledPosNDC.xy * _ScreenSize.xy, sampledPosNDC.z);
-
     // Due to a warning on Vulkan and Metal if returning early, this is the only way we found to avoid it.
     bool status = false;
 
     // If the point is behind the camera or the ray is invalid, this ray should not be cast
-    if (!killRay || (sampledPosSS.z <= 0))
+    if (!killRay)
     {
         // We start tracing from the center of the current pixel, and do so up to the far plane.
         float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
 
-        // Compute the ray direction in screen space
+        float3 sampledPosWS  = positionWS + sampleDir * 0.01;
+        float3 sampledPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledPosWS, UNITY_MATRIX_VP); // Jittered
+        float3 sampledPosSS  = float3(sampledPosNDC.xy * _ScreenSize.xy, sampledPosNDC.z);
+
         float3 rayDir = (sampledPosSS - rayOrigin);
+
+        float2 rayDirSS = normalize(rayDir.xy);
+
+        float tx = (rayDirSS.x > 0 ? (_ScreenSize.x - rayOrigin.x) : rayOrigin.x) / rayDirSS.x;
+        float ty = (rayDirSS.y > 0 ? (_ScreenSize.y - rayOrigin.y) : rayOrigin.y) / rayDirSS.y;
+
+        // Compàute the actual ray direction
+        rayDir = min(abs(tx), abs(ty)) * normalize(rayDir);
 
         // Compute the reciprocal of the direction (not sure why tho ftm)
         float3 rcpRayDir  = rcp(rayDir);
@@ -86,8 +95,8 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
             const float halfTexel = 0.5;
 
             float3 bounds;
-            bounds.x = clamp(sampledPosSS.x, halfTexel, _ScreenSize.x - halfTexel);
-            bounds.y = clamp(sampledPosSS.y, halfTexel, _ScreenSize.y - halfTexel);
+            bounds.x = clamp(rayOrigin.x + rayDir.x, halfTexel, _ScreenSize.x - halfTexel);
+            bounds.y = clamp(rayOrigin.y + rayDir.y, halfTexel, _ScreenSize.y - halfTexel);
             // If we do not want to intersect the skybox, it is more efficient to not trace too far.
             float maxDepth = -0.00000024; // 2^-22
             bounds.z = (rcpRayDir.z >= 0) ? 1 : maxDepth;
@@ -266,7 +275,31 @@ TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
 // Depth buffer of the previous frame (full resolution)
 TEXTURE2D_X(_HistoryDepthTexture); 
 // Output indirect diffuse texture 
-RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
+RW_TEXTURE2D_X(float4, _IndirectDiffuseTexture0RW);
+RW_TEXTURE2D_X(float4, _IndirectDiffuseTexture1RW);
+
+// The maximal difference in depth that is considered acceptable to read from the color pyramid
+#define DEPTH_DIFFERENCE_THRESHOLD 0.1
+
+void RGBToYCoCgUtil(float3 inColor, float3 inDirection, out float4 outYSH, out float2 outCoCg)
+{
+    // Convert the color to ycocg space
+    float3 yCoCg = RGBToYCoCg(inColor);
+
+    // Compute the coeffs required for the projection
+    float Y00     = 0.282095;
+    float Y11     = 0.488603 * inDirection.x;
+    float Y10     = 0.488603 * inDirection.z;
+    float Y1_1    = 0.488603 * inDirection.y;
+
+    // Output the values
+    outYSH.x = yCoCg.x * Y00;
+    outYSH.y = yCoCg.x * Y11;
+    outYSH.z = yCoCg.x * Y10;
+    outYSH.w = yCoCg.x * Y1_1;
+    outCoCg.x = yCoCg.y;
+    outCoCg.y = yCoCg.z;
+}
 
 [numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -318,7 +351,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Grab the depth of the hit point and reject the history buffer if the depth is too different
     // TODO: Find a better metric
     float hitPointHistoryDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, prevFrameNDC * _ScreenSize.xy).x;
-    if (abs(hitPointHistoryDepth - hitPointDepth) > 0.01)
+    if (abs(hitPointHistoryDepth - hitPointDepth) > DEPTH_DIFFERENCE_THRESHOLD)
         invalid = true;
 
     // Based on if the intersection was valid (or not, pick a source for the lighting)
@@ -331,24 +364,113 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (AnyIsNaN(color))
         color = 0.0f;
 
-    // Convert the color to HSV
-    float3 hsvColor = RgbToHsv(color);
+    // We need to recreate the direction that was generated
+    float2 newSample;
+    newSample.x = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 0);
+    newSample.y = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 1);
 
-    // We need to clamp before leaving, this need to be exposed properly before clamping
-    // We only apply the clamp to the luminance
-    hsvColor.z = clamp(hsvColor.z * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    // Read the pixel normal
+    NormalData normalData;
+#if HALF_RES
+    // For half resolution, we take the top left corner (0, 0) in the upscaled 2x2 pixel neighborhood
+    DecodeFromNormalBuffer(fullResCoord.xy, normalData);
+#else
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+#endif
 
-    // Convert back to the RGB space
-    color = HsvToRgb(hsvColor);
+    // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal
+    color = color / (1.0 + color);
+
+    // Re-compute the direction that was used to do the generation
+    float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalData.normalWS);
+
+    // Convert the color to our target format
+    float4 outYSH;
+    float2 outCoCg;
+    RGBToYCoCgUtil(color, sampleDir, outYSH, outCoCg);
 
     // We are simply interested to know if the intersected pixel was moving, so we multiply it by a big number
     // TODO: make this process not binary
+    // Write the output to the target pixel
+    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(outYSH);
+    _IndirectDiffuseTexture1RW[COORD_TEXTURE2D_X(currentCoord)] = float4(outCoCg, invalid ? 0.0 : 1.0, length(motionVectorNDC * 10000.0f));
+}
+
+void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out float3 outColor)
+{
+    // Compute the coeffs required for the projection
+    float Y00     = 0.282095;
+    float Y11     = 0.488603 * inNormal.x;
+    float Y10     = 0.488603 * inNormal.z;
+    float Y1_1    = 0.488603 * inNormal.y;
+
+    // Compute the Y value
+    float y = 3.141593 * Y00 * inYSH.x
+                + 2.094395 * Y1_1 * inYSH.w
+                + 2.094395 * Y10 * inYSH.z
+                + 2.094395 * Y11 * inYSH.y;
+
+    // Compute the output color
+    outColor = y != 0.0 ? YCoCgToRGB(float3(y, inCoCg.xy)) : 0.0;
+    outColor = max(outColor, 0.0);
+}
+
+TEXTURE2D_X(_IndirectDiffuseTexture1); 
+
+[numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
+void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
+
+    // If the depth of this pixel is the depth of the background, we can end the process right away
 #if HALF_RES
-    // Write the output to the target pixel
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(color / (1.0 + color), length(motionVectorNDC * 10000.0f));
+    // Fetch the mipoffset for the second mip (given that we are in half res)
+    int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
+    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
+
+    // Compute the full resolution pixel for the inputs that do not have a pyramid
+    uint2 fullResCoord = currentCoord * 2;
 #else
-    // Write the output to the target pixel
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(color, length(motionVectorNDC * 10000.0f));
+    // Fetch the depth of the current pixel
+    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+#endif
+    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+        return;
+    }
+
+    // Fetch the normal
+    NormalData normalData;
+#if HALF_RES
+    // For half resolution, we take the top left corner (0, 0) in the upscaled 2x2 pixel neighborhood
+    DecodeFromNormalBuffer(fullResCoord.xy, normalData);
+#else
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
 #endif
 
+    // Convert the signal back to a color
+    float3 color;
+    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)]; 
+    float3 cocgB = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1, currentCoord).xyz;
+    ConvertYCoCgToRGBUtil(ySH, cocgB.xy, normalData.normalWS, color);
+
+    // We invert the tonemap
+    color = color / (1.0 - color);
+
+    // The mulitplication is wrong, but with all the approximations that we need to compensate a bit
+    // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness). 
+    // This has been experimentally tested. However, it needs more testing and potetially reverted if found more harmful than useful
+    color *= (lerp(2.5, 1.0, cocgB.z));
+
+    // Does this pixel recieve SSGI?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        cocgB.z = 0.0;
+
+    // Output the color as well as the blend factor
+    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(color, cocgB.z);
 }

@@ -65,12 +65,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent defaultValues = new GUIContent("Channel Default Values");
             public readonly GUIContent metallic = new GUIContent("R: Metallic");
             public readonly GUIContent ao = new GUIContent("G: AO");
-            public readonly GUIContent height = new GUIContent("B: Height");
-            public readonly GUIContent heightParametrization = new GUIContent("Parametrization");
-            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)");
-            public readonly GUIContent heightBase = new GUIContent("Base (cm)");
-            public readonly GUIContent heightMin = new GUIContent("Min (cm)");
-            public readonly GUIContent heightMax = new GUIContent("Max (cm)");
+            public readonly GUIContent height = new GUIContent("B: Height", "Specifies the Height Map for this Material.");
+            public readonly GUIContent heightParametrization = new GUIContent("Parametrization", "Specifies the parametrization method for the Height Map.");
+            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude", "Sets the amplitude of the Height Map (in centimeters).");
+            public readonly GUIContent heightBase = new GUIContent("Base", "Controls the base of the Height Map (between 0 and 1).");
+            public readonly GUIContent heightMin = new GUIContent("Min", "Sets the minimum value in the Height Map (in centimeters).");
+            public readonly GUIContent heightMax = new GUIContent("Max", "Sets the maximum value in the Height Map (in centimeters).");
             public readonly GUIContent heightCm = new GUIContent("B: Height (cm)");
             public readonly GUIContent smoothness = new GUIContent("A: Smoothness");
         }
@@ -311,8 +311,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             float amplitude = Mathf.Max(maskMapRemapMax.z - maskMapRemapMin.z, Mathf.Epsilon); // to avoid divide by zero
                             float heightBase = -maskMapRemapMin.z / amplitude;
                             amplitude = EditorGUILayout.FloatField(styles.heightAmplitude, amplitude * 100) / 100;
-                            heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase * 100) / 100;
-                            maskMapRemapMin.z = heightBase * amplitude;
+                            heightBase = EditorGUILayout.Slider(styles.heightBase, heightBase, 0.0f, 1.0f);
+                            maskMapRemapMin.z = -heightBase * amplitude;
                             maskMapRemapMax.z = (1 - heightBase) * amplitude;
                         }
                         else

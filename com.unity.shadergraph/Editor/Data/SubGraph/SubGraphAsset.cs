@@ -73,13 +73,15 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
         public ShaderStageCapability effectiveShaderStage;
 
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
+
+        public PreviewMode previewMode;
 
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {

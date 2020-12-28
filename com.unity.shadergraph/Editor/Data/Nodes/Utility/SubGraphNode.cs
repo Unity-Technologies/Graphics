@@ -34,15 +34,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_SerializedSubGraph = string.Empty;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 var assetReference = JsonUtility.FromJson<SubGraphAssetReference>(m_SerializedSubGraph);
-                var guid = assetReference?.subGraph?.guid;
-                if (guid != null)
+                string guidString = assetReference?.subGraph?.guid;
+                if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out GUID guid))
                 {
-                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
-                        paths.Add(assetPath);
+                    // subgraphs are read as artifacts
+                    // they also should be pulled into .unitypackages
+                    assetCollection.AddAssetDependency(
+                        guid,
+                        AssetCollection.Flags.ArtifactDependency |
+                        AssetCollection.Flags.IsSubGraph |
+                        AssetCollection.Flags.IncludeInExportPackage);
                 }
             }
         }
@@ -153,17 +157,17 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview
         {
-            get { return asset != null; }
+            get { return true; }
         }
 
         public override PreviewMode previewMode
         {
             get
             {
-                if (asset == null)
-                    return PreviewMode.Preview2D;
-
-                return PreviewMode.Preview3D;
+                PreviewMode mode = m_PreviewMode;
+                if ((mode == PreviewMode.Inherit) && (asset != null))
+                    mode = asset.previewMode;
+                return mode;
             }
         }
 
@@ -188,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Float;
+                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -210,24 +214,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch (prop)
-                {
-                    case Texture2DShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture2DArrayShaderProperty texture2DArrayProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture3DShaderProperty texture3DProp:
-                        arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case CubemapShaderProperty cubemapProp:
-                        arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    default:
-                        arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                }
+                arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
             }
 
             // pass surface inputs through
@@ -239,11 +226,23 @@ namespace UnityEditor.ShaderGraph
             foreach (var feedbackSlot in asset.vtFeedbackVariables)
             {
                 string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
-                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), feedbackVar);
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+            sb.AppendIndentation();
+            sb.Append(asset.functionName);
+            sb.Append("(");
+            bool firstArg = true;
+            foreach (var arg in arguments)
+            {
+                if (!firstArg)
+                    sb.Append(", ");
+                firstArg = false;
+                sb.Append(arg);
+            }
+            sb.Append(");");
+            sb.AppendNewLine();
         }
 
         public void OnEnable()
@@ -251,11 +250,17 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
 
-        public void Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencies)
         {
+            if (!changedFileDependencies.Contains(subGraphGuid))
+            {
+                return false;
+            }
+
             if (asset == null)
             {
-                return;
+                // asset missing or deleted
+                return true;
             }
 
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
@@ -265,13 +270,15 @@ namespace UnityEditor.ShaderGraph
 
                 if (hasError)
                 {
-                    return;
+                    return true;
                 }
 
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
             }
+
+            return true;
         }
 
         public virtual void UpdateSlots()
@@ -424,6 +431,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             RemoveSlotsNameNotMatching(validNames, true);
+
+            // sort slot order to match subgraph property order
+            SetSlotOrder(validNames);
         }
 
         void ValidateShaderStage()
@@ -477,7 +487,7 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
             }
 
-            // detect VT layer count mismatches
+            // detect disconnected VT properties, and VT layer count mismatches
             foreach (var paramProp in asset.inputs)
             {
                 if (paramProp is VirtualTextureShaderProperty vtProp)
@@ -485,14 +495,26 @@ namespace UnityEditor.ShaderGraph
                     int paramLayerCount = vtProp.value.layers.Count;
 
                     var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
-                    var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
-                    if (argProp != null)
+                    if (!IsSlotConnected(argSlotId))
                     {
-                        int argLayerCount = argProp.value.layers.Count;
-
-                        if (argLayerCount != paramLayerCount)
-                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                        owner.AddValidationError(objectId, $"A VirtualTexture property must be connected to the input slot \"{paramProp.displayName}\"");
                     }
+                    else
+                    {
+                        var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
+                        if (argProp != null)
+                        {
+                            int argLayerCount = argProp.value.layers.Count;
+
+                            if (argLayerCount != paramLayerCount)
+                                owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                        }
+                        else
+                        {
+                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" is not connected to a valid VirtualTexture property");
+                        }
+                    }
+
                     break;
                 }
             }

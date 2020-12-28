@@ -42,7 +42,7 @@ class VFXParameterEditor : VFXSlotContainerEditor
         base.OnDisable();
     }
 
-    public override void DoInspectorGUI()
+    public override SerializedProperty DoInspectorGUI()
     {
         if (serializedObject.isEditingMultipleObjects)
         {
@@ -68,6 +68,6 @@ class VFXParameterEditor : VFXSlotContainerEditor
                 }
             }
         }
-        base.DoInspectorGUI();
+        return base.DoInspectorGUI();
     }
 }

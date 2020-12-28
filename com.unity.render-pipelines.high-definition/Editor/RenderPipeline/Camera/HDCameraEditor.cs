@@ -78,15 +78,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove HD Camera");
-            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+
+                Undo.SetCurrentGroupName("Remove HD Camera");
+                var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
-        
+
         [MenuItem("CONTEXT/Camera/Reset", false, 0)]
         static void ResetCamera(MenuCommand menuCommand)
         {

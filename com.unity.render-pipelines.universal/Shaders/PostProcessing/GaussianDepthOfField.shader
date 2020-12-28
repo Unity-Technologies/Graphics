@@ -65,7 +65,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
         #endif
 
-        half FragCoC(FullscreenVaryings input) : SV_Target
+        half FragCoC(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -82,7 +82,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             half3 color : SV_Target1;
         };
 
-        PrefilterOutput FragPrefilter(FullscreenVaryings input)
+        PrefilterOutput FragPrefilter(Varyings input)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -136,7 +136,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             return o;
         }
 
-        half4 Blur(FullscreenVaryings input, float2 dir, float premultiply)
+        half4 Blur(Varyings input, float2 dir, float premultiply)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -164,17 +164,17 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             return half4(acc.xyz, 1.0);
         }
 
-        half4 FragBlurH(FullscreenVaryings input) : SV_Target
+        half4 FragBlurH(Varyings input) : SV_Target
         {
             return Blur(input, float2(1.0, 0.0), 1.0);
         }
 
-        half4 FragBlurV(FullscreenVaryings input) : SV_Target
+        half4 FragBlurV(Varyings input) : SV_Target
         {
             return Blur(input, float2(0.0, 1.0), 0.0);
         }
 
-        half4 FragComposite(FullscreenVaryings input) : SV_Target
+        half4 FragComposite(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);

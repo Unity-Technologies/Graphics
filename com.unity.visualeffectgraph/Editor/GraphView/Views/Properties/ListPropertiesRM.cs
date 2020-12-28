@@ -170,6 +170,8 @@ namespace UnityEditor.VFX.UI
             {
                 throw new NotImplementedException();
             }
+            void IPropertyRMProvider.StartLiveModification() { m_List.provider.StartLiveModification(); }
+            void IPropertyRMProvider.EndLiveModification() { m_List.provider.EndLiveModification(); }
         }
 
         protected abstract U CreateField(IPropertyRMProvider provider);

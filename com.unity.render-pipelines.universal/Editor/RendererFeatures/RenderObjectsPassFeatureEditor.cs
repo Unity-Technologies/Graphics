@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using UnityEngine;
-using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -73,6 +75,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
+        static bool FilterRenderPassEvent(int evt) =>
+            // Return all events higher or equal than before rendering prepasses
+            evt >= (int) RenderPassEvent.BeforeRenderingPrepasses &&
+            // filter obsolete events
+            typeof(RenderPassEvent).GetField(Enum.GetName(typeof(RenderPassEvent), evt))?.GetCustomAttribute(typeof(ObsoleteAttribute)) == null;
+
+        // Return all render pass event names that match filterRenderPassEvent
+        private GUIContent[] m_EventOptionNames = Enum.GetValues(typeof(RenderPassEvent)).Cast<int>()
+            .Where(FilterRenderPassEvent)
+            .Select(x => new GUIContent(Enum.GetName(typeof(RenderPassEvent), x))).ToArray();
+
+        // Return all render pass event options that match filterRenderPassEvent
+        private int[] m_EventOptionValues = Enum.GetValues(typeof(RenderPassEvent)).Cast<int>()
+            .Where(FilterRenderPassEvent).ToArray();
+
         private void Init(SerializedProperty property)
         {
             //Header bools
@@ -131,10 +148,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			}
 
 			//Forward Callbacks
-			EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
-			rect.y += Styles.defaultLineSpace;
+            EditorGUI.BeginChangeCheck();
+            int selectedValue = EditorGUI.IntPopup(rect, Styles.callback, m_Callback.intValue, m_EventOptionNames, m_EventOptionValues);
+            if (EditorGUI.EndChangeCheck())
+                m_Callback.intValue = selectedValue;
+            rect.y += Styles.defaultLineSpace;
 
-			DoFilters(ref rect);
+            DoFilters(ref rect);
 
 			m_RenderFoldout.value = EditorGUI.Foldout(rect, m_RenderFoldout.value, Styles.renderHeader, true);
 			SaveHeaderBool(m_RenderFoldout);

@@ -19,7 +19,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
 
 #pragma only_renderers d3d11
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 // Tile size of this compute
 #define SHADOW_DENOISER_TILE_SIZE 8
@@ -62,20 +62,17 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Read the center pixel0
     const BilateralData center = TapBilateralData(centerCoord);
 
-    // Get the world space positon of the center pixel to filter
-    const float3 positionWS = GetAbsolutePositionWS(center.position);
-
 #if DIRECTIONAL_LIGHT
     // For the directonal light, the solid angle can be used directly 
     float lightSolidAngle = _DirectionalLightAngle;
 #else
     // Compute the light vector
-    float lightPointDistance = length(_SphereLightPosition - positionWS);
+    float lightPointDistance = length(_SphereLightPosition - center.position);
     // Evaluate the normalized solid angle of the light
     float lightSolidAngle = atan(_SphereLightRadius / lightPointDistance);
 #endif
     // Compute the distances we need for our filtering
-    const float distanceCameraToPlane = length(positionWS - _WorldSpaceCameraPos);
+    const float distanceCameraToPlane = length(GetWorldSpaceViewDir(center.position));
     const float distancePlaneToObject = LOAD_TEXTURE2D_X(_DistanceTexture, centerCoord).x;
 
     // Compute the cone footprint on the image reflection plane for this configuration

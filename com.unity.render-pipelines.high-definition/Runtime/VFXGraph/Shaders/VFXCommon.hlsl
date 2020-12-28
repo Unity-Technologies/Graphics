@@ -141,7 +141,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-
+    
 #if VFX_BLENDMODE_ALPHA
     color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD

@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float iridescenceMask;
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             // Transparency
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float perceptualRoughness;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float coatRoughness; // Automatically fill
 
             // Forward property only
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, precision = FieldPrecision.Real, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             // Transparency

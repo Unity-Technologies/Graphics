@@ -3,8 +3,8 @@ MasterPreviewView {
     position: absolute;
     right: 10px;
     bottom: 10px;
-    width: 225px;
-    height: 225px;
+    width: 125px;
+    height: 125px;
     min-width: 100px;
     min-height: 100px;
     background-color: rgb(79, 79, 79);
@@ -40,6 +40,6 @@ MasterPreviewView > #middle {
 
 MasterPreviewView > #middle > #preview {
     flex-grow: 1;
-    width: 200px;
-    height: 200px;
+    width: 100px;
+    height: 100px;
 }

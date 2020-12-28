@@ -78,26 +78,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!m_CascadeShadowSplitCount.value.hasMultipleDifferentValues)
             {
-                EditorGUI.indentLevel++;
-                int cascadeCount = m_CascadeShadowSplitCount.value.intValue;
-                Debug.Assert(cascadeCount <= 4); // If we add support for more than 4 cascades, then we should add new entries in the next line
-                string[] cascadeOrder = { "first", "second", "third" };
+                int cascadeCount;
 
-                for (int i = 0; i < cascadeCount - 1; i++)
+                using (new HDEditorUtils.IndentScope())
                 {
-                    string tooltipOverride = (unit == Unit.Metric) ?
-                        $"Distance from the Camera (in meters) to the {cascadeOrder[i]} cascade split." :
-                        $"Distance from the Camera (as a percentage of Max Distance) to the {cascadeOrder[i]} cascade split.";
-                    PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1), tooltipOverride));
-                }
+                    cascadeCount = m_CascadeShadowSplitCount.value.intValue;
+                    Debug.Assert(cascadeCount <= 4); // If we add support for more than 4 cascades, then we should add new entries in the next line
+                    string[] cascadeOrder = { "first", "second", "third" };
 
-                if (HDRenderPipeline.s_UseCascadeBorders)
-                {
-                    EditorGUILayout.Space();
-
-                    for (int i = 0; i < cascadeCount; i++)
+                    for (int i = 0; i < cascadeCount - 1; i++)
                     {
-                        PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
+                        string tooltipOverride = (unit == Unit.Metric) ?
+                            $"Distance from the Camera (in meters) to the {cascadeOrder[i]} cascade split." :
+                            $"Distance from the Camera (as a percentage of Max Distance) to the {cascadeOrder[i]} cascade split.";
+                        PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1), tooltipOverride));
+                    }
+
+                    if (HDRenderPipeline.s_UseCascadeBorders)
+                    {
+                        EditorGUILayout.Space();
+
+                        for (int i = 0; i < cascadeCount; i++)
+                        {
+                            PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
+                        }
                     }
                 }
 
@@ -105,7 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 GUILayout.Label("Cascade splits");
                 ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, HDRenderPipeline.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
-                EditorGUI.indentLevel--;
             }
 
             HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -118,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             visualizeCascade.x += EditorGUIUtility.labelWidth + 20;
             visualizeCascade.width -= EditorGUIUtility.labelWidth + 20;
             bool currentCascadeValue = hdrp.showCascade;
-            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Visualize Cascades"), EditorStyles.miniButton);
+            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Show Cascades"), EditorStyles.miniButton);
             if (currentCascadeValue ^ newCascadeValue)
                 hdrp.showCascade = newCascadeValue;
         }

@@ -14,8 +14,6 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create 
 
 3. Click the __Shader__ drop-down at the top of the Material Inspector, and select __HDRP > Unlit__.
 
-![](Images/UnlitShader1.png)
-
 ## Properties
 
 ### Surface Options

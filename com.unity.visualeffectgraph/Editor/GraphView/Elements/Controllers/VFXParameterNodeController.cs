@@ -265,6 +265,8 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
 
         public override void DrawGizmos(VisualEffect component)
         {

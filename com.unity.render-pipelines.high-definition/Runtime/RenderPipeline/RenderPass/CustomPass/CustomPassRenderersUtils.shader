@@ -57,6 +57,7 @@
 
                 // Outline linear eye depth to the color
                 surfaceData.color = LinearEyeDepth(fragInputs.positionSS.z, _ZBufferParams);
+                surfaceData.normalWS = 0.0;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
@@ -86,6 +87,7 @@
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = 0;
+                surfaceData.normalWS = 0.0;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
@@ -114,6 +116,7 @@
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[2].xyz;
+                surfaceData.normalWS = 0.0;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
@@ -142,6 +145,7 @@
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[0].xyz;
+                surfaceData.normalWS = 0.0;
             }
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"

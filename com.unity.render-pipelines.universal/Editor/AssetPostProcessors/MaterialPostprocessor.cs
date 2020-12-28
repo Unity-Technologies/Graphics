@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.Universal
 
             foreach (var asset in importedAssets)
             {
-                if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
@@ -133,14 +133,18 @@ namespace UnityEditor.Rendering.Universal
 
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
-                var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
-                AssetVersion assetVersion = null;
-                foreach (var subAsset in assetVersions)
-                {
-                    if(subAsset.GetType() == typeof(AssetVersion))
-                        assetVersion = subAsset as AssetVersion;
-                }
+
                 var debug = "\n" + material.name;
+
+                AssetVersion assetVersion = null;
+                var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
+                foreach (var subAsset in allAssets)
+                {
+                    if (subAsset is AssetVersion sub)
+                    {
+                        assetVersion = sub;
+                    }
+                }
 
                 if (!assetVersion)
                 {
@@ -151,15 +155,16 @@ namespace UnityEditor.Rendering.Universal
                         assetVersion.version = k_Upgraders.Length;
                         s_CreatedAssets.Remove(asset);
                         InitializeLatest(material, id);
+                        debug += " initialized.";
                     }
                     else
                     {
-                        assetVersion.version = 0;
+                        assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
+                        debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
                     }
 
                     assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
                     AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                    debug += " initialized.";
                 }
 
                 while (assetVersion.version < k_Upgraders.Length)
@@ -249,6 +254,9 @@ namespace UnityEditor.Rendering.Universal
                     break;
             }
         }
+
+        static void UpgradeV4(Material material, ShaderPathID shaderID)
+        {}
     }
 
     // Upgraders v1

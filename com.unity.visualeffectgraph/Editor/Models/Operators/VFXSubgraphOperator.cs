@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Operator"; } }
+        public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Operator"; } }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -178,7 +178,7 @@ namespace UnityEditor.VFX
                     if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
                         m_Subgraph = null; // prevent cyclic dependencies.
 
-                    if (graph.GetResource().isSubgraph) // BuildSubgraphDependenciesis called for vfx by recompilation, but in subgraph we must call it explicitely
+                    if (graph.GetResource().isSubgraph) // BuildSubgraphDependencies is called for vfx by recompilation, but in subgraph we must call it explicitely
                         graph.BuildSubgraphDependencies();
 
                     RecreateCopy();
@@ -236,13 +236,6 @@ namespace UnityEditor.VFX
             {
                 outputExpressions.AddRange(param.inputSlots[0].GetExpressionSlots().Select(t => t.GetExpression()));
             }
-
-            foreach (var param in parameters)
-            {
-                param.ResetOutputValueExpression();
-            }
-
-            VFXSubgraphUtility.TransferExpressionToParameters(backedUpExpressions, parameters);
 
             return outputExpressions.ToArray();
         }

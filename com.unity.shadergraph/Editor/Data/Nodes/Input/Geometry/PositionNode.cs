@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
     [Title("Input", "Geometry", "Position")]
     class PositionNode : GeometryNode, IMayRequirePosition
     {
+        public override int latestVersion => 1;
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
         public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
@@ -20,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         public PositionNode()
         {
             name = "Position";
-            precision = Precision.Float;
+            precision = Precision.Single;
             UpdateNodeAfterDeserialization();
         }
 
@@ -36,17 +37,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override int GetCompiledNodeVersion() => 1;
-
-        public override void UpgradeNodeWithVersion(int from, int to)
-        {
-            if (from == 0 && to == 1 && space == CoordinateSpace.World)
-            {
-                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
-                spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
-            }
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
@@ -55,6 +45,16 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return space.ToNeededCoordinateSpace();
+        }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            base.OnAfterMultiDeserialize(json);
+            //required update
+            if(sgVersion < 1)
+            {
+                ChangeVersion(1);
+            }
         }
     }
 }

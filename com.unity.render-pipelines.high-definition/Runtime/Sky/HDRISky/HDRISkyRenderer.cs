@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDRISkyRenderer : SkyRenderer
@@ -82,6 +86,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
+        public override bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams)
+        {
+            var hdriSky = builtinParams.skySettings as HDRISky;
+            return hdriSky.enableBackplate.value;
+        }
+
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
@@ -149,8 +159,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-                scrollFactor += hdriSky.scrollSpeed.value * (Time.time - lastTime) * 0.01f;
-                lastTime = Time.time;
+#if UNITY_EDITOR
+                // Time.time is not always updated in editor
+                float time = (float)EditorApplication.timeSinceStartup;
+#else
+                float time = Time.time;
+#endif
+                scrollFactor += hdriSky.scrollSpeed.value * (time - lastTime) * 0.01f;
+                lastTime = time;
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
@@ -169,8 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdriSky.rectLightShadow.value)
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
             m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
-
-            CloudLayer.Apply(builtinParams.cloudLayer, m_SkyHDRIMaterial);
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

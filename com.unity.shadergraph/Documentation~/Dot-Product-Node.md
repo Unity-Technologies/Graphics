@@ -14,7 +14,7 @@ For normalized input vectors, the **Dot Product** node returns 1 if they point i
 |:------------ |:-------------|:-----|:---|
 | A      | Input | Dynamic Vector | First input value |
 | B      | Input | Dynamic Vector | Second input value |
-| Out | Output      |   Vector 1 | Output value |
+| Out | Output      |   Float    | Output value |
 
 ## Generated Code Example
 

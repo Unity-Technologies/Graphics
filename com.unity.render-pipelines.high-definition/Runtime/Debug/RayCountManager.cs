@@ -1,6 +1,7 @@
 using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -62,9 +63,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the compute shader we are going to use
             rayCountCS = rayTracingResources.countTracedRays;
 
-            // Allocate the texture that will hold the ray count
-            m_RayCountTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices * (int)RayCountValues.Count, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_UInt, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
-
             // We only require 3 buffers (this supports a maximal size of 8192x8192)
             m_ReducedRayCountBuffer0 = new ComputeBuffer((int)RayCountValues.Count * 256 * 256, sizeof(uint));
             m_ReducedRayCountBuffer1 = new ComputeBuffer((int)RayCountValues.Count * 32 * 32, sizeof(uint));
@@ -83,10 +81,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release()
         {
-            RTHandles.Release(m_RayCountTexture);
             CoreUtils.SafeRelease(m_ReducedRayCountBuffer0);
             CoreUtils.SafeRelease(m_ReducedRayCountBuffer1);
             CoreUtils.SafeRelease(m_ReducedRayCountBuffer2);
+        }
+
+        public void InitializeNonRenderGraphResources()
+        {
+            // Allocate the texture that will hold the ray count
+            m_RayCountTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices * (int)RayCountValues.Count, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_UInt, dimension: TextureDimension.Tex2DArray, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
+        }
+
+        public void CleanupNonRenderGraphResources()
+        {
+            RTHandles.Release(m_RayCountTexture);
+            m_RayCountTexture = null;
         }
 
         public void ClearRayCount(CommandBuffer cmd, HDCamera camera, bool isActive)
@@ -118,6 +127,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle GetRayCountTexture()
         {
             return m_RayCountTexture;
+        }
+
+        static public TextureHandle CreateRayCountTexture(RenderGraph renderGraph)
+        {
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            {
+                colorFormat = GraphicsFormat.R16_UInt,
+                slices = TextureXR.slices * (int)RayCountValues.Count,
+                dimension = TextureDimension.Tex2DArray,
+                enableRandomWrite = true,
+                name = "RayCountTextureDebug"
+            });
         }
 
         public void EvaluateRayCount(CommandBuffer cmd, HDCamera camera)

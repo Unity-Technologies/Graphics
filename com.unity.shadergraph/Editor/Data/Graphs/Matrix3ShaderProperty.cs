@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [BlackboardInputInfo(71)]
     class Matrix3ShaderProperty : MatrixShaderProperty
     {
         public Matrix3ShaderProperty()
@@ -49,6 +50,19 @@ namespace UnityEditor.ShaderGraph
                 value = value,
                 precision = precision,
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                // all old matrices were declared global; yes even if flagged hybrid!
+                // maintain old behavior on versioning, users can always change the override if they wish
+                overrideHLSLDeclaration = true;
+                hlslDeclarationOverride = HLSLDeclaration.Global;
+                ChangeVersion(1);
+            }
         }
     }
 }

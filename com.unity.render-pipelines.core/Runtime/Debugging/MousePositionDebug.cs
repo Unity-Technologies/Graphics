@@ -1,3 +1,9 @@
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+    #define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+    using UnityEngine.InputSystem.Controls;
+#endif
+
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -52,17 +58,33 @@ namespace UnityEngine.Rendering
 
             void Update()
             {
-                if (Input.mousePosition.x < 0
-                    || Input.mousePosition.y < 0
-                    || Input.mousePosition.x > Screen.width
-                    || Input.mousePosition.y > Screen.height)
+                Vector2 mousePosition;
+                bool    rightClickPressed = false;
+                bool    endKeyPressed = false;
+
+#if USE_INPUT_SYSTEM
+                mousePosition = Pointer.current != null ? Pointer.current.position.ReadValue() : new Vector2(-1, -1);
+                if (Mouse.current != null)
+                    rightClickPressed = Mouse.current.rightButton.isPressed;
+                if (Keyboard.current != null)
+                    endKeyPressed = Keyboard.current.endKey.isPressed;
+#else
+                mousePosition = Input.mousePosition;
+                rightClickPressed = Input.GetMouseButton(1);
+                endKeyPressed = Input.GetKey(KeyCode.End);
+#endif
+
+                if (mousePosition.x < 0
+                    || mousePosition.y < 0
+                    || mousePosition.x > Screen.width
+                    || mousePosition.y > Screen.height)
                     return;
 
-                instance.m_mousePosition = Input.mousePosition;
+                instance.m_mousePosition = mousePosition;
                 instance.m_mousePosition.y = Screen.height - instance.m_mousePosition.y;
-                if (Input.GetMouseButton(1))
+                if (rightClickPressed)
                     instance.m_MouseClickPosition = instance.m_mousePosition;
-                if (Input.GetKey(KeyCode.End))
+                if (endKeyPressed)
                     instance.m_MouseClickPosition = instance.m_mousePosition;
             }
         }
@@ -139,7 +161,7 @@ namespace UnityEngine.Rendering
                 // In play mode, Input.mousecoords matches the position in the game view
                 if (EditorApplication.isPlayingOrWillChangePlaymode)
                 {
-                    return Input.mousePosition;
+                    return GetInputMousePosition();
                 }
                 else
                 {
@@ -151,6 +173,15 @@ namespace UnityEngine.Rendering
             }
 #else
             // In app mode, we only use the Input.mousecoords
+            return GetInputMousePosition();
+#endif
+        }
+
+        Vector2 GetInputMousePosition()
+        {
+#if USE_INPUT_SYSTEM
+            return Pointer.current != null ? Pointer.current.position.ReadValue() : new Vector2(-1, -1);
+#else
             return Input.mousePosition;
 #endif
         }

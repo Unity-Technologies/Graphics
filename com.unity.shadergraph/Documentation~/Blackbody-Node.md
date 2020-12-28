@@ -11,7 +11,7 @@ For more information, see [What color is a blackbody?](http://www.vendian.org/mn
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Temperature      | Input | Vector 1 | None | Temperature or temperature map in Kelvin to sample.  |
+| Temperature      | Input | Float    | None | Temperature or temperature map in Kelvin to sample.  |
 | Out | Output      |    Vector 3 | None | Intensity represented by color in Vector 3. |
 
 ## Generated Code Example

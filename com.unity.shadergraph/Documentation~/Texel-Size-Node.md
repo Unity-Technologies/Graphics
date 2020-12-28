@@ -11,8 +11,8 @@ Returns the **Width** and **Height** of the texel size of **Texture 2D** input. 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | Texture      | Input | Texture | None | Texture asset |
-| Width      | Output | Vector 1 | None | Texel width |
-| Height | Output      |    Vector 1 | None | Texel height |
+| Width      | Output | Float    | None | Texel width |
+| Height | Output      |    Float    | None | Texel height |
 
 ## Generated Code Example
 

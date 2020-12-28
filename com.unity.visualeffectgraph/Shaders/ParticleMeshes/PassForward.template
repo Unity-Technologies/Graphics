@@ -35,27 +35,27 @@ Pass
 		// y: alpha threshold
 		// z: frame blending factor
 		// w: exposure weight
-		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		nointerpolation float4 builtInInterpolants : TEXCOORD4;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vectors scale X
 		// y: motion vectors scale Y
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
-		float3 posWS : TEXCOORD4;
+		float3 posWS : TEXCOORD6;
 		#endif
 		
 		#if WRITE_MOTION_VECTOR_IN_FORWARD
-		float4 cPosPrevious : TEXCOORD5;
-		float4 cPosNonJiterred : TEXCOORD6;
+		float4 cPosPrevious : TEXCOORD7;
+		float4 cPosNonJiterred : TEXCOORD8;
 		#endif
 		
 		#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
-		float3 normal : TEXCOORD7;
+		float3 normal : TEXCOORD9;
 		#endif
 		#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
-		float4 tangent : TEXCOORD8;
+		float4 tangent : TEXCOORD10;
 		#endif
 		
         ${VFXAdditionalInterpolantsDeclaration}

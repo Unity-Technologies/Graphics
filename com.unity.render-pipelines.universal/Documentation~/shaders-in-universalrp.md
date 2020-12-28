@@ -2,6 +2,7 @@
 
 The Universal Render Pipeline uses a different shading approach than the Unity built-in Render Pipeline. As a result, built-in Lit and custom Lit Shaders do not work with the URP. Instead, URP has a new set of standard Shaders. URP provides the following Shaders for the most common use case scenarios:
 
+- [Complex Lit](shader-complex-lit.md)
 - [Lit](lit-shader.md)
 - [Simple Lit](simple-lit-shader.md)
 - [Baked Lit](baked-lit-shader.md)

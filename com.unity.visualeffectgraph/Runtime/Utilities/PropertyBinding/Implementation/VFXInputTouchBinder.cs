@@ -1,3 +1,9 @@
+#if ENABLE_INPUT_SYSTEM && VFX_HAS_INPUT_SYSTEM_PACKAGE
+    #define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem;
+    using System.Linq;
+#endif
+
 using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
@@ -43,14 +49,14 @@ namespace UnityEngine.VFX.Utility
             Vector3 position = Vector3.zero;
             bool touch = false;
 
-            if (Input.touchCount > TouchIndex)
+            if (GetTouchCount() > TouchIndex)
             {
-                Touch t = Input.GetTouch(TouchIndex);
+                Vector2 touchPosition = GetTouchPosition(TouchIndex); 
 #if VFX_USE_PHYSICS
                 if (UseRaycast) // Raycast version
                 {
                     RaycastHit info;
-                    Ray r = Target.ScreenPointToRay(t.position);
+                    Ray r = Target.ScreenPointToRay(touchPosition);
                     if (Physics.Raycast(r, out info, Distance))
                     {
                         touch = true;
@@ -67,7 +73,7 @@ namespace UnityEngine.VFX.Utility
 #endif
                 {
                     touch = true;
-                    Vector3 pos = t.position;
+                    Vector3 pos = touchPosition;
                     pos.z = Distance;
                     position = Target.ScreenToWorldPoint(pos);
                 }
@@ -92,6 +98,29 @@ namespace UnityEngine.VFX.Utility
 
             m_PreviousTouch = touch;
             m_PreviousPosition = position;
+        }
+
+        int GetTouchCount()
+        {
+#if USE_INPUT_SYSTEM
+            return Touchscreen.current != null ? Touchscreen.current.touches.Count(t => t.IsPressed()) : 0;
+#else
+            return Input.touchCount;
+#endif
+        }
+
+        Vector2 GetTouchPosition(int touchIndex)
+        {
+#if USE_INPUT_SYSTEM
+            if (Touchscreen.current == null || touchIndex >= Touchscreen.current.touches.Count || touchIndex < 0)
+                return Vector2.zero;
+
+            var touch = Touchscreen.current.touches[touchIndex];
+            return touch.ReadValue().position;
+#else
+            var touch = Input.GetTouch(TouchIndex);
+            return touch.position;
+#endif
         }
 
         public override string ToString()

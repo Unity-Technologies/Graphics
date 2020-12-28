@@ -25,6 +25,7 @@ void UpdateParticleStrip(uint3 groupId          : SV_GroupID,
         bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) & ~1) == ~1;
         STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) = isEmpty ? 0 : (STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + STRIP_DATA(STRIP_MIN_ALIVE, stripIndex)) % particlePerStripCount;
         STRIP_DATA(STRIP_NEXT_INDEX, stripIndex) = isEmpty ? 0 : STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) - STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) + 1;
+        STRIP_DATA(STRIP_PREV_NEXT_INDEX, stripIndex) = STRIP_DATA(STRIP_NEXT_INDEX, stripIndex); // Store particle count twice so that it can be read consistenly in next Init (as next index will be atomically incremented in init)
         STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) = isEmpty ? ~1 : ~0;
         STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) = 0;
     }

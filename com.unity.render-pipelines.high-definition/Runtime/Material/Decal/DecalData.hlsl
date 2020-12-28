@@ -4,17 +4,22 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
-void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
+void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
 {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     // With inspector version of decal we can use instancing to get normal to world access
     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-    float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+    float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
 	float2 texCoords = input.texCoord0.xy * scale + offset;
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
-	float fadeFactor = _DecalBlend;
+
+    #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+    #endif
+
+	float fadeFactor = _DecalBlend.x;
 	float2 texCoords = input.texCoord0.xy;
 #endif
 
@@ -42,13 +47,8 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	surfaceData.baseColor.w *= fadeFactor;
     albedoMapBlend = surfaceData.baseColor.w;
     // outside _COLORMAP because we still have base color for albedoMapBlend
-#ifdef _MATERIAL_AFFECTS_ALBEDO
-    if (surfaceData.baseColor.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-    }	
-#else
-	surfaceData.baseColor.w = 0.0;	// dont blend any albedo
+#ifndef _MATERIAL_AFFECTS_ALBEDO
+	surfaceData.baseColor.w = 0.0;	// dont blend any albedo - Note: as we already do RT color masking this is not needed, albedo will not be affected anyway
 #endif
 
     // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
@@ -60,7 +60,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.mask.z *= _DecalMaskMapBlueScale;
 	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
     #ifdef DECALS_4RT
-    surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
+    surfaceData.mask.x = lerp(_MetallicRemapMin, _MetallicRemapMax, surfaceData.mask.x);
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
     #endif
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
@@ -75,11 +75,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     #endif
 
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
-
-    if (surfaceData.mask.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-    }
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
@@ -103,10 +98,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 
 	surfaceData.normalWS.xyz = normalWS;
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
-    if (surfaceData.normalWS.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-    }
 
 #endif
 

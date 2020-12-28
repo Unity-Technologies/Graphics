@@ -1,6 +1,13 @@
 // This file should only be included inside of ProbeVolume.hlsl.
 // There are no #ifndef HEADER guards to stop multiple inclusion, as this is simply used for code gen.
 
+#ifndef SCALARIZE_LIGHT_LOOP
+// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
+// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#endif
+
+
 #ifndef PROBE_VOLUMES_ACCUMULATE_MODE
     #error "PROBE_VOLUMES_ACCUMULATE_MODE must be defined as 0, 1, or 2 before including ProbeVolumeAccumulate.hlsl. 0 triggers generation of SH0 variant, 1 triggers generation of SH1 variant, and 2 triggers generation of SH2 variant.";
 #endif
@@ -40,9 +47,22 @@
     if (weightHierarchy >= 1.0) { return; }
 #endif
 
+    bool fastPath = false;
+
+
     uint probeVolumeStart, probeVolumeCount;
-    bool fastPath;
-    ProbeVolumeGetCountAndStartAndFastPath(posInput, probeVolumeStart, probeVolumeCount, fastPath);
+    // Fetch first probe volume to provide the scene proxy for screen space computation
+    ProbeVolumeGetCountAndStart(posInput, probeVolumeStart, probeVolumeCount);
+
+#if SCALARIZE_LIGHT_LOOP
+    uint probeStartLane0;
+    fastPath = IsFastPath(probeVolumeStart, probeStartLane0);
+
+    if (fastPath)
+    {
+        probeVolumeStart = probeStartLane0;
+    }
+#endif
 
     // Scalarized loop, same rationale of the punctual light version
     uint v_probeVolumeListOffset = 0;
@@ -50,7 +70,12 @@
     while (v_probeVolumeListOffset < probeVolumeCount)
     {
         v_probeVolumeIdx = ProbeVolumeFetchIndex(probeVolumeStart, v_probeVolumeListOffset);
-        uint s_probeVolumeIdx = ProbeVolumeScalarizeElementIndex(v_probeVolumeIdx, fastPath);
+#if SCALARIZE_LIGHT_LOOP
+        uint s_probeVolumeIdx = ScalarizeElementIndex(v_probeVolumeIdx, fastPath);
+#else
+        uint s_probeVolumeIdx = v_probeVolumeIdx;
+#endif
+
         if (s_probeVolumeIdx == -1) { break; }
 
         // Scalar load.

@@ -62,6 +62,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DrawOrder = value;
         }
 
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+        public bool supportLodCrossFade
+        {
+            get => m_SupportLodCrossFade;
+            set => m_SupportLodCrossFade = value;
+        }
+
         public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
     }
 }

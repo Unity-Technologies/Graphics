@@ -62,7 +62,7 @@ namespace UnityEditor
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject("Visual Effect");
+            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null,"Visual Effect"));
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             var vfxComp = go.AddComponent<VisualEffect>();
 
@@ -128,22 +128,28 @@ namespace UnityEditor
             return resources == null || resources.Length == 0;
         }
 
+
+        public static void CreateTemplateAsset(string pathName)
+        {
+
+            try
+            {
+                var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
+                System.IO.File.WriteAllText(pathName, templateString);
+            }
+            catch (FileNotFoundException)
+            {
+                CreateNewAsset(pathName);
+            }
+
+            AssetDatabase.ImportAsset(pathName);
+        }
+
         internal class DoCreateNewVFX : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                try
-                {
-                    var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
-                    System.IO.File.WriteAllText(pathName, templateString);
-                }
-                catch (FileNotFoundException)
-                {
-                    CreateNewAsset(pathName);
-                }
-
-                AssetDatabase.ImportAsset(pathName);
-
+                CreateTemplateAsset(pathName);
                 var resource = VisualEffectResource.GetResourceAtPath(pathName);
                 ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetInstanceID());
             }

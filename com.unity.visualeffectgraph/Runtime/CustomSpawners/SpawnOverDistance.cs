@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX // TODO Change namespace to UnityEngine.VFX
 {
     class SpawnOverDistance : VFXSpawnerCallbacks
     {
@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
             public Vector3 Position = Vector3.zero;
             public float RatePerUnit = 10.0f;
             public float VelocityThreshold = 50.0f;
+            public bool ClampToOne = false;
         }
 
         private Vector3 m_OldPosition;
@@ -18,6 +19,7 @@ namespace UnityEditor.VFX
         static private readonly int positionPropertyId = Shader.PropertyToID("Position");
         static private readonly int ratePerUnitPropertyId = Shader.PropertyToID("RatePerUnit");
         static private readonly int velocityThresholdPropertyId = Shader.PropertyToID("VelocityThreshold");
+        static private readonly int clampToOnePropertyId = Shader.PropertyToID("ClampToOne");
 
         static private readonly int positionAttributeId = Shader.PropertyToID("position");
         static private readonly int oldPositionAttributeId = Shader.PropertyToID("oldPosition");
@@ -27,24 +29,20 @@ namespace UnityEditor.VFX
             m_OldPosition = vfxValues.GetVector3(positionPropertyId);
         }
 
-        private float cachedSqrThreshold;
-        private float cachedRatePerSqrUnit;
-
         public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            cachedSqrThreshold = vfxValues.GetFloat(velocityThresholdPropertyId);
-            cachedSqrThreshold *= cachedSqrThreshold;
-
-            cachedRatePerSqrUnit = vfxValues.GetFloat(ratePerUnitPropertyId);
-            cachedRatePerSqrUnit *= cachedRatePerSqrUnit;
-
             if (!state.playing || state.deltaTime == 0) return;
 
+            float threshold = vfxValues.GetFloat(velocityThresholdPropertyId);
+
             Vector3 pos = vfxValues.GetVector3(positionPropertyId);
-            float sqrDistance = Vector3.SqrMagnitude(m_OldPosition - pos);
-            if (sqrDistance < cachedSqrThreshold * state.deltaTime)
+            float dist = Vector3.Magnitude(m_OldPosition - pos);
+            if (threshold <= 0.0f || dist < threshold * state.deltaTime)
             {
-                state.spawnCount += sqrDistance * cachedRatePerSqrUnit;
+                float count = dist * vfxValues.GetFloat(ratePerUnitPropertyId);
+                if (vfxValues.GetBool(clampToOnePropertyId))
+                    count = Mathf.Min(count, 1.0f);
+                state.spawnCount += count;
 
                 state.vfxEventAttribute.SetVector3(oldPositionAttributeId, m_OldPosition);
                 state.vfxEventAttribute.SetVector3(positionAttributeId, pos);

@@ -200,7 +200,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // == 4. ==
                 var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
+                // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
+                var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+                var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
 
                 handle.EnterStage(
                     (int)BakingStages.ReflectionProbes,
@@ -257,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                     {
-                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
+                        var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
                         planarRT.Release();
                     }
@@ -373,20 +376,24 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
             {
-                Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
-                    "please switch your render pipeline or use another reflection system");
+                Debug.LogWarning("HDBakedReflectionSystem only works with HDRP, " +
+                    "please switch your render pipeline or use another reflection probe system.");
                 return false;
             }
 
-            var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+            hdPipeline.reflectionProbeBaking = true;
 
-            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
+            var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+            // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
+            var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+            var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize, probeFormat);
 
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
             {
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
-                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat);
+                var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
                 planarRT.Release();
             }
@@ -441,6 +448,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             cubeRT.Release();
+
+            hdPipeline.reflectionProbeBaking = false;
 
             return true;
         }

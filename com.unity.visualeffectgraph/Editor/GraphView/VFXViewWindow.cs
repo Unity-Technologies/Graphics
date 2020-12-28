@@ -154,6 +154,9 @@ namespace  UnityEditor.VFX.UI
         {
             VFXManagerEditor.CheckVFXManager();
 
+            if (m_ResourceHistory == null)
+                m_ResourceHistory = new List<VisualEffectResource>();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
@@ -229,7 +232,7 @@ namespace  UnityEditor.VFX.UI
         void OnFocus()
         {
             if (graphView != null) // OnFocus can be somehow called before OnEnable
-                graphView.OnFocus();
+            graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }
@@ -262,9 +265,17 @@ namespace  UnityEditor.VFX.UI
                         }
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
+
                             VFXGraph.explicitCompile = true;
-                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                            graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
+                            using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                            {
+                                VFXGraph.compileReporter = reporter;
+                                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                                VFXGraph.compileReporter = null;
+                            }
                             VFXGraph.explicitCompile = false;
+                        
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
@@ -274,10 +285,10 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            if (VFXViewModicationProcessor.assetMoved)
+            if (VFXViewModificationProcessor.assetMoved)
             {
                 graphView.AssetMoved();
-                VFXViewModicationProcessor.assetMoved = false;
+                VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
 

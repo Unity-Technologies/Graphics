@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Mesh Deformation", "Compute Deformation")]
+    [Title("Input", "Mesh Deformation", "Compute Deformation")]
     class ComputeDeformNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireVertexID
     {
         public const int kPositionOutputSlotId = 0;
@@ -76,7 +76,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Compute Mesh Buffer Index Offset",
                 overrideReferenceName = "_ComputeMeshIndex",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif

@@ -158,6 +158,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
+#if UNITY_EDITOR
+        private int volumeMaskHash = 0;
+#endif
 
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
@@ -167,10 +170,19 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager
-            if (previousVolumeMask != parameters.volumeMask)
+            bool updated = previousVolumeMask != parameters.volumeMask;
+#if UNITY_EDITOR
+            int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
+            updated |= newMaskHash != volumeMaskHash;
+#endif
+
+            if (updated)
             {
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
+#if UNITY_EDITOR
+                volumeMaskHash = newMaskHash;
+#endif
             }
 
             parameters.Update(animate, time);

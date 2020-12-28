@@ -4,7 +4,8 @@ The High Definition Render Pipeline (HDRP) uses a separate [package](https://doc
 
 For example, you can use it to:
 
-* Enable [ray tracing](Ray-Tracing-Getting-Started.md).
+* Disable Area Light.
+* Disable Pre-exposition.
 * Enable [camera-relative rendering](Camera-Relative-Rendering.md).
 
 ## Using the HDRP Config package
@@ -14,7 +15,7 @@ To use the HDRP Config package in your HDRP Project, you need to create a local 
 * **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
 * **HDRP Wizard**: Open the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package. 
 
-**Note**: Using the Package Manger to upgrade your HDRP package does not automatically upgrade the local config package. To manually upgrade the local config package:
+**Note**: Using the Package Manager to upgrade your HDRP package does not automatically upgrade the local config package. To manually upgrade the local config package:
 
 1. Make a copy of your current config package.
 2. Use the HDRP Wizard to create a new, compatible config package.

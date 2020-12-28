@@ -19,7 +19,7 @@ And so on.
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
 | In      | Input | Dynamic Vector | Input value |
-| Out | Output      |   Vector 1 | Output value |
+| Out | Output      |   Float    | Output value |
 
 ## Generated Code Example
 

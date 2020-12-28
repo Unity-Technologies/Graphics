@@ -82,16 +82,21 @@ namespace UnityEditor.Rendering.LookDev
         /// <returns>The created Environment</returns>
         public Environment Duplicate(int fromIndex)
         {
+            Undo.SetCurrentGroupName("Duplicate Environment");
+            int group = Undo.GetCurrentGroup();
+
             Environment environment = ScriptableObject.CreateInstance<Environment>();
             Environment environmentToCopy = environments[fromIndex];
             environmentToCopy.CopyTo(environment);
 
             Undo.RegisterCreatedObjectUndo(environment, "Duplicate Environment");
-
+            Undo.RecordObject(this, "Duplicate Environment");
             environments.Add(environment);
 
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
+
+            Undo.CollapseUndoOperations(group);
 
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
             EditorUtility.SetDirty(this);
