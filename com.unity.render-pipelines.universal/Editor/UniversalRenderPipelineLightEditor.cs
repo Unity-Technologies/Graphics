@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -93,17 +94,25 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void OnEnable()
         {
-            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+            var additionalLightList = new List<Object>();
+            foreach (var lightTarget in targets)
+            {
+                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                if (additionData == null)
+                    additionData = (lightTarget as Component).gameObject.AddComponent<UniversalAdditionalLightData>();
+                additionalLightList.Add(additionData);
+            }
+            m_AdditionalLightData = (target as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
             settings.OnEnable();
-            init(m_AdditionalLightData);
+            init(additionalLightList);
             UpdateShowOptions(true);
         }
 
-        void init(UniversalAdditionalLightData additionalLightData)
+        void init(List<Object> additionalLightData)
         {
             if (additionalLightData == null)
                 return;
-            m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
+            m_AdditionalLightDataSO = new SerializedObject(additionalLightData.ToArray());
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
@@ -262,32 +271,54 @@ namespace UnityEditor.Rendering.Universal
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
-            if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+            // Check mixed values
+            if (!m_UseAdditionalDataProp.hasMultipleDifferentValues)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
-                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
-                EditorGUI.indentLevel--;
+                if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
+                    EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                    EditorGUI.indentLevel--;
 
-                m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                }
             }
 
             if (hasChanged)
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+                    var additionalLightList = new List<Object>();
+                    foreach (var lightTarget in targets)
+                    {
+                        var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                        if (additionData == null)
+                            additionData = (lightTarget as Component).gameObject.AddComponent<UniversalAdditionalLightData>();
+
+                        additionalLightList.Add(additionData);
+                    }
+                    m_AdditionalLightData = (target as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
 
                     var asset = UniversalRenderPipeline.asset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
                     settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
 
-                    init(m_AdditionalLightData);
+                    init(additionalLightList);
                 }
+                else
+                {
+                    foreach (var lightTarget in targets)
+                    {
+                        var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                        if (additionData == null)
+                            break;
 
-                m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
+                        additionData.usePipelineSettings = selectedUseAdditionalData != 0;
+                    }
+                }
+                //m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
         }
@@ -361,15 +392,21 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+                    var additionalLightList = new List<Object>();
+                    foreach (var LightTarget in targets)
+                    {
+                        var additionData = (LightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                        if (additionData == null)
+                            additionData = (LightTarget as Component).gameObject.AddComponent<UniversalAdditionalLightData>();
+                        additionalLightList.Add(additionData);
+                    }
 
                     UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
                     settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
 
-                    init(m_AdditionalLightData);
+                    init(additionalLightList);
                 }
 
                 m_AdditionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;
