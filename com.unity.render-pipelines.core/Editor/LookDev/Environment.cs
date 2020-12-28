@@ -175,7 +175,10 @@ namespace UnityEditor.Rendering.LookDev
             {
                 if (s_cubeToLatlongMaterial == null || s_cubeToLatlongMaterial.Equals(null))
                 {
-                    s_cubeToLatlongMaterial = new Material(Shader.Find("Hidden/LookDev/CubeToLatlong"));
+                    // If Library need to be reconstructed at editor start, this shader can 
+                    // be requested to compute thumbnail while asset data base not ready.
+                    Shader shader = Shader.Find("Hidden/LookDev/CubeToLatlong");
+                    s_cubeToLatlongMaterial = shader == null ? null : new Material(shader);
                 }
                 return s_cubeToLatlongMaterial;
             }
@@ -303,6 +306,13 @@ namespace UnityEditor.Rendering.LookDev
 
         public static Texture2D GetLatLongThumbnailTexture(Environment environment, int width)
         {
+            // If Library need to be reconstructed at editor start, the shader can be not available.
+            // But we can need it if an Environment is in the Project window. In this case do nothing.
+            // EnvironmentLibrary will be closed so nothing will be shown to user. They will be
+            // redrawn successfully when user will expend EnvironmentLibrary.
+            if (cubeToLatlongMaterial == null)
+                return null;
+
             int height = width >> 1;
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture temporaryRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);

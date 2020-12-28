@@ -1027,10 +1027,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            widgetList.AddRange(new DebugUI.Widget[]
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
             {
-                new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
-            });
+                widgetList.AddRange(new DebugUI.Widget[]
+                {
+                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
+                });
+            }
 
             widgetList.AddRange(new DebugUI.Widget[]
             {

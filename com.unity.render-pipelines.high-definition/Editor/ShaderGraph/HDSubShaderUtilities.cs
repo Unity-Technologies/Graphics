@@ -1050,7 +1050,7 @@ namespace UnityEditor.Rendering.HighDefinition
             "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
-            "#define USE_CLUSTERED_LIGHTLIST",
+            "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
             "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH",
             HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };

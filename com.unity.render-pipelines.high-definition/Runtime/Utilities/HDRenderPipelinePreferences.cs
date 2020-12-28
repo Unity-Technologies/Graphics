@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_MatcapScale == value) return;
                 s_MatcapScale = value;
-                EditorPrefs.SetFloat(Keys.matcapViewMixAlbedo, s_MatcapScale);
+                EditorPrefs.SetFloat(Keys.matcapViewScale, s_MatcapScale);
             }
         }
 

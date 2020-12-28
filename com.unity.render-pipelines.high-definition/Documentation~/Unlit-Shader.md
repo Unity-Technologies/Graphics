@@ -48,8 +48,8 @@ Surface options control the overall look of your Material's surface and how Unit
 | **- Offset**               | Set an **X** and **Y** offset for the **Emissive Color** UV. HDRP uses the **X** and **Y** values to offset the Texture assigned to the **Emissive Color** across the Material’s surface, in object space. |
 | **Emission Intensity**     | Set the overall strength of the emission effect for this Material.<br />Use the drop-down to select one of the following [physical light units](Physical-Light-Units.html) to use for intensity:<br />&#8226; [Luminance](Physical-Light-Units.html#Luminance)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.html#EV) |
 | **Exposure Weight**        | Use the slider to set how much effect the exposure has on the emission power. For example, if you create a neon tube, you would want to apply the emissive glow effect at every exposure. |
-| **Emission**               | Enable the checkbox to make the emission color affect global illumination. |
-| **- Global Illumination**  | Use the drop-down to choose how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
+| **Emission**               | Toggles whether emission affects global illumination. |
+| **- Global Illumination**  | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 
 ### Transparency Inputs
 
@@ -59,5 +59,5 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 
 | Property| Description |
 |:---|:---|
-| **Enable GPU instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them.  |
+| **Enable GPU instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them.  |
 | **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |

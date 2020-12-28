@@ -13,7 +13,7 @@ To add a **Diffusion Profile Override** to a Volume:
 
 ![](Images\Override-DiffusionProfile1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |

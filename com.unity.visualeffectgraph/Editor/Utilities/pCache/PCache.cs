@@ -514,7 +514,11 @@ namespace UnityEditor.Experimental.VFX.Utility
                         char c = sr.ReadChar();
                         byteLength++;
 
-                        if (c == '\n' || c == '\r')
+                        if (c == '\r')
+                        {
+                            // skip
+                        }
+                        else if (c == '\n')
                         {
                             if (sb.Length > 0)
                                 newline = true;

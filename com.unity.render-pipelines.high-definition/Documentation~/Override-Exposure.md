@@ -13,7 +13,7 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 ![](Images/Override-Exposure1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |

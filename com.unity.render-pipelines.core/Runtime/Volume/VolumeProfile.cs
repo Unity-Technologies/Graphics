@@ -75,6 +75,10 @@ namespace UnityEngine.Rendering
                 throw new InvalidOperationException("Component already exists in the volume");
 
             var component = (VolumeComponent)CreateInstance(type);
+#if UNITY_EDITOR
+            component.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+            component.name = type.Name;
+#endif
             component.SetAllOverridesTo(overrides);
             components.Add(component);
             isDirty = true;

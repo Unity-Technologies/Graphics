@@ -61,7 +61,7 @@ The following table describes the input ports on a Lit master node, including th
 
 ### Master node settings menu
 
-To view these properties, click the cog icon in the top right of the master node.
+To view these properties, click the gear icon in the top right of the master node.
 
 | **Property**                         | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
@@ -106,6 +106,6 @@ These properties are in the **Exposed Properties** section of the Inspector and 
 
 | **Property**                           | **Description**                                              |
 | -------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing**              | Enable this setting to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU Instancing**              | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Emission**                           | Defines the Material's emission color value. Expects positive values. |
-| **Motion Vector For Vertex Animation** | Indicates whether HDRP should evaluate motion vectors for animation. |
+| **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |

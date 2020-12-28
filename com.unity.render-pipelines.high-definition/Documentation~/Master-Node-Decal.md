@@ -42,7 +42,7 @@ The following table describes the input ports on a Decal Master Node, including 
 
 ### Master Node settings menu
 
-To view these properties, click the **Cog** in the top right of the Master Node.
+To view these properties, click the gear in the top right of the Master Node.
 
 ![](Images/MasterNodeDecal2.png))
 

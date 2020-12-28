@@ -151,7 +151,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                         switch (prop.PropertyType)
                         {
                             case "byte":
-                                val = Mathf.Clamp01(((int)pcache.buckets[idx][i]) / 256.0f);
+                                val = Mathf.Clamp01(((byte)pcache.buckets[idx][i]) / 255.0f);
                                 break;
                             case "float":
                                 val = ((float)pcache.buckets[idx][i]);

@@ -244,9 +244,7 @@ namespace UnityEditor.Rendering
 
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID("HierarchicalBox".GetHashCode() + i, FocusType.Passive);
-
-            EditorGUI.BeginChangeCheck();
-
+            
             var leftPosition = center + size.x * .5f * Vector3.left;
             var rightPosition = center + size.x * .5f * Vector3.right;
             var topPosition = center + size.y * .5f * Vector3.up;
@@ -255,6 +253,8 @@ namespace UnityEditor.Rendering
             var backPosition = center + size.z * .5f * Vector3.back;
 
             var theChangedFace = NamedFace.None;
+
+            EditorGUI.BeginChangeCheck();
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, EditorSnapSettings.scale, GetHandleColor(NamedFace.Left));
@@ -338,6 +338,27 @@ namespace UnityEditor.Rendering
                             case NamedFace.Front: backPosition.z += delta; break;
                             case NamedFace.Back: frontPosition.z -= delta; break;
                         }
+                        
+                        //ensure that the box face are still facing outside
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left:
+                            case NamedFace.Right:
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                break;
+                            case NamedFace.Top:
+                            case NamedFace.Bottom:
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                            case NamedFace.Front:
+                            case NamedFace.Back:
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                        }
+
                     }
 
                     if (useHomothety)
@@ -367,21 +388,77 @@ namespace UnityEditor.Rendering
                                 topPosition.y -= halfDelta;
                                 break;
                         }
+                        
+                        //ensure that the box face are still facing outside
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left:
+                                if (rightPosition.x < leftPosition.x)
+                                    leftPosition.x = rightPosition.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Right:
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Top:
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Bottom:
+                                if (topPosition.y < bottomPosition.y)
+                                    bottomPosition.y = topPosition.y;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Front:
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                            case NamedFace.Back:
+                                if (frontPosition.z < backPosition.z)
+                                    backPosition.z = frontPosition.z;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                        }
                     }
 
                     var max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
                     var min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
 
-                    //ensure that the box face are still facing outside
-                    for (int axis = 0; axis < 3; ++axis)
+                    if (!useSymetry && !useHomothety)
                     {
-                        if (min[axis] > max[axis])
+                        //ensure that the box face are still facing outside
+                        for (int axis = 0; axis < 3; ++axis)
                         {
-                            // Control IDs in m_ControlIDs[0-3[ are for positive axes
-                            if (GUIUtility.hotControl == m_ControlIDs[axis])
-                                max[axis] = min[axis];
-                            else
-                                min[axis] = max[axis];
+                            if (min[axis] > max[axis])
+                            {
+                                // Control IDs in m_ControlIDs[0-3[ are for positive axes
+                                if (GUIUtility.hotControl == m_ControlIDs[axis])
+                                    max[axis] = min[axis];
+                                else
+                                    min[axis] = max[axis];
+                            }
                         }
                     }
 

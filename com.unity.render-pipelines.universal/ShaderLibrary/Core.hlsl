@@ -117,9 +117,9 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 #endif
 }
 
-half OutputAlpha(half outputAlpha)
+half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
 {
-    return saturate(outputAlpha + _DrawObjectPassData.a);
+    return surfaceType == 1 ? outputAlpha : 1.0;
 }
 
 // A word on normalization of normals:
@@ -233,7 +233,7 @@ half3 MixFog(real3 fragColor, real fogFactor)
 #else
 
     #define SLICE_ARRAY_INDEX       0
-    
+
     #define TEXTURE2D_X(textureName)                                        TEXTURE2D(textureName)
     #define TEXTURE2D_X_PARAM(textureName, samplerName)                     TEXTURE2D_PARAM(textureName, samplerName)
     #define TEXTURE2D_X_ARGS(textureName, samplerName)                      TEXTURE2D_ARGS(textureName, samplerName)

@@ -48,7 +48,7 @@ namespace UnityEditor
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject("Visual Effect");
+            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null,"Visual Effect"));
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             var vfxComp = go.AddComponent<VisualEffect>();
 

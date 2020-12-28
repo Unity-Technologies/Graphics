@@ -279,6 +279,21 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void UpdateCameraStack()
+        {
+#if UNITY_EDITOR
+            Undo.RecordObject(this, "Update camera stack");
+#endif
+            int prev = m_Cameras.Count;
+            m_Cameras.RemoveAll(cam => cam == null);
+            int curr = m_Cameras.Count;
+            int removedCamsCount = prev - curr;
+            if (removedCamsCount != 0)
+            {
+                Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
+            }
+        }
+
         /// <summary>
         /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
         /// </summary>
