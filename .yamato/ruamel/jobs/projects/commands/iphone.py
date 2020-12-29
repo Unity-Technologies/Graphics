@@ -22,8 +22,7 @@ def cmd_editmode(project, platform, api, test_platform, editor, build_config, co
          export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
         ./utr {" ".join(utr_args)}'''))
 
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
     return base
 
 def cmd_playmode(project, platform, api, test_platform, editor, build_config, color_space):
@@ -42,8 +41,7 @@ def cmd_playmode(project, platform, api, test_platform, editor, build_config, co
          export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
         ./utr {" ".join(utr_args)}'''))
     
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
     return base
 
 def cmd_standalone(project, platform, api, test_platform, editor, build_config, color_space):
@@ -80,25 +78,22 @@ def cmd_standalone_build(project, platform, api, test_platform, editor, build_co
         ./utr {" ".join(utr_args)}'''))
     
 
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
     return base
 
-def extra_perf_cmd(project):   
-    if not project.get("url"):
-        return []
-    return [
-        f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} TestProjects/{project["folder"]}',
-        f'cd TestProjects/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
-        ]
 
-def install_unity_config(project):
-    cmds = [
-        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
-        f'brew install unity-config',
-    ]
-
-    for unity_config in project["unity_config_commands"]:
-        cmds.append(f'cd TestProjects/{project["folder"]} && {unity_config}')
-
+def add_project_commands(project):
+    cmds = []
+    if project.get("url"):
+        cmds.extend([
+            f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} TestProjects/{project["folder"]}',
+            f'cd TestProjects/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
+        ])
+    if project.get("unity_config_commands"):
+        cmds.extend([
+            f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+            f'brew install unity-config',
+        ])
+        for unity_config in project["unity_config_commands"]:
+            cmds.append(f'cd TestProjects/{project["folder"]} && {unity_config}')
     return cmds

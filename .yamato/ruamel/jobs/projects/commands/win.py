@@ -24,9 +24,7 @@ def cmd_editmode(project, platform, api, test_platform, editor, build_config, co
     
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     base = _cmd_base(project, platform, utr_calls, editor)
-
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
 
     return base
 
@@ -35,9 +33,7 @@ def cmd_playmode(project, platform, api, test_platform, editor, build_config, co
 
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     base = _cmd_base(project, platform, utr_calls, editor)
-
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
 
     return base
 
@@ -57,28 +53,24 @@ def cmd_standalone(project, platform, api, test_platform, editor, build_config, 
 def cmd_standalone_build(project, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"], utr_flags_key="utr_flags_build")
     base = _cmd_base(project, platform, utr_calls, editor)
-    
-    if project["folder"].lower() == "BoatAttack".lower():
-        base = extra_perf_cmd(project) + install_unity_config(project) + base
+    base = add_project_commands(project) + base
 
     return base
 
-def extra_perf_cmd(project):   
-    if not project.get("url"):
-        return []
-    return [
-        f'git clone {project["url"]} -b {project["branch"]} TestProjects/{project["folder"]}',
-        f'cd TestProjects/{project["folder"]} && git checkout {project["revision"]}',
-        f'NetSh Advfirewall set allprofiles state off'
-        ]
 
-def install_unity_config(project):
-    cmds = [
-        f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
-        f'choco install unity-config'
-    ]
-
-    for unity_config in project["unity_config_commands"]:
-        cmds.append(f'cd TestProjects/{project["folder"]} && {unity_config}')
-
+def add_project_commands(project):
+    cmds = []
+    if project.get("url"):
+        cmds.extend([
+            f'git clone {project["url"]} -b {project["branch"]} TestProjects/{project["folder"]}',
+            f'cd TestProjects/{project["folder"]} && git checkout {project["revision"]}',
+            f'NetSh Advfirewall set allprofiles state off'
+        ])
+    if project.get("unity_config_commands"):
+        cmds.extend([
+            f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
+            f'choco install unity-config'
+        ])
+        for unity_config in project["unity_config_commands"]:
+            cmds.append(f'cd TestProjects/{project["folder"]} && {unity_config}')
     return cmds

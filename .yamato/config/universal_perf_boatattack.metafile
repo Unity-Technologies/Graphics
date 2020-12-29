@@ -23,6 +23,9 @@ project:
     - 'unity-config project add testable com.unity.render-pipelines.core  --project-path .'
     - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
     - 'unity-config project set project-update false --project-path .'
+  variables:
+    BOAT_ATTACK_BRANCH: master
+    BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
 
 test_platforms:
   - type: Standalone
