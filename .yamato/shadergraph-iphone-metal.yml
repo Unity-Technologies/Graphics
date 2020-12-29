@@ -58,7 +58,7 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: ShaderGraph on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -114,7 +114,7 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
          rerun: always
