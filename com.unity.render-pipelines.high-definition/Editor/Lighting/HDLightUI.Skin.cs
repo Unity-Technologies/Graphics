@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constant whatever the size of the cone.");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data
