@@ -68,7 +68,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Universal on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -134,7 +134,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
