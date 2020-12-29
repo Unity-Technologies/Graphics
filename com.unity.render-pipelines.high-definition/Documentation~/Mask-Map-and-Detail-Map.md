@@ -47,15 +47,15 @@ The following example image demonstrates the individual components of a full det
 
 ### Desaturated albedo (red channel)
 
-The red channel represents the albedo variation. It can make the underlying material's albedo gradually darken down to black when going from `0.5` to `0` or brighten up to white when going from `0.5` to `1`. A value of `0.5` is neutral, which means the detail map does not modify the albedo.
+The red channel represents the albedo variation. It makes the underlying material's albedo gradually darken down to black when going from `0.5` to `0` or brighten up to white when going from `0.5` to `1`. A value of `0.5` is neutral, which means the detail map does not modify the albedo.
 
-The image below shows the impact of the detail albedo on the final color. As you can see, HDRP calculates color interpolation in sRGB space.
+The image below shows the impact of the detail albedo on the final color. HDRP calculates color interpolation in sRGB space.
 
 ![](Images/DetailMap-red.png)
 
 ### Smoothness (blue channel)
 
-The blue channel represents the smoothness variation and HDRP computes it the same way as the albedo variation. The underlying material's smoothness gradually decreases if the detail smoothness is below `0.5` or increases if it is above `0.5`. A value of `0.5` is neutral, which means the detail map does not modify the smoothness.
+The blue channel represents the smoothness variation and HDRP calculates it the same way as the albedo variation. The underlying material's smoothness gradually decreases if the detail smoothness is below `0.5` or increases if it is above `0.5`. A value of `0.5` is neutral, which means the detail map does not modify the smoothness.
 
 The image below shows the impact of the detail smoothness on the final color.
 
