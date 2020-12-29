@@ -32,7 +32,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 
     base = [
         f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
-        f'brew install unity/unity/unity-downloader-cli',
+        f'brew install unity-downloader-cli',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
