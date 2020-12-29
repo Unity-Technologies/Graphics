@@ -22,7 +22,7 @@ PR_VFX_HDRP_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_HDRP_trunk:
-    name: Nightly ordereddict([('name', 'VFX_HDRP'), ('folder', 'VisualEffectGraph_HDRP')]) - trunk
+    name: Nightly VFX_HDRP - trunk
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on-new-revision
@@ -49,7 +49,7 @@ PR_VFX_HDRP_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_HDRP_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'VFX_HDRP'), ('folder', 'VisualEffectGraph_HDRP')]) - CUSTOM-REVISION
+    name: Nightly VFX_HDRP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: always

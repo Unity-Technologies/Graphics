@@ -18,7 +18,7 @@ PR_URPUpdate_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URPUpdate_BoatAttack_trunk:
-    name: Nightly ordereddict([('name', 'URPUpdate_BoatAttack'), ('folder', 'BoatAttack-19-4')]) - trunk
+    name: Nightly URPUpdate_BoatAttack - trunk
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_trunk
          rerun: on-new-revision
@@ -37,7 +37,7 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URPUpdate_BoatAttack_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'URPUpdate_BoatAttack'), ('folder', 'BoatAttack-19-4')]) - CUSTOM-REVISION
+    name: Nightly URPUpdate_BoatAttack - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION
          rerun: always

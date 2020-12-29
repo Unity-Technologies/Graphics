@@ -37,7 +37,7 @@ class Project_NightlyJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Nightly {project} - {editor["name"]}')
+        job.set_name(f'Nightly {project["name"]} - {editor["name"]}')
         job.add_dependencies(dependencies)
         # if expression_trigger != "":
         #     job.set_trigger_on_expression(expression_trigger)

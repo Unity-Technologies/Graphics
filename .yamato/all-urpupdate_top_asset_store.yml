@@ -18,7 +18,7 @@ PR_URPUpdate_Top_Asset_Store_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URPUpdate_Top_Asset_Store_trunk:
-    name: Nightly ordereddict([('name', 'URPUpdate_Top_Asset_Store'), ('folder', 'Top-URP-Assets')]) - trunk
+    name: Nightly URPUpdate_Top_Asset_Store - trunk
     dependencies:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
@@ -37,7 +37,7 @@ PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'URPUpdate_Top_Asset_Store'), ('folder', 'Top-URP-Assets')]) - CUSTOM-REVISION
+    name: Nightly URPUpdate_Top_Asset_Store - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: always

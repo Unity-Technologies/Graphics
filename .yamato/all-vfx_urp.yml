@@ -18,7 +18,7 @@ PR_VFX_URP_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_URP_trunk:
-    name: Nightly ordereddict([('name', 'VFX_URP'), ('folder', 'VisualEffectGraph_URP')]) - trunk
+    name: Nightly VFX_URP - trunk
     dependencies:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on-new-revision
@@ -39,7 +39,7 @@ PR_VFX_URP_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_URP_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'VFX_URP'), ('folder', 'VisualEffectGraph_URP')]) - CUSTOM-REVISION
+    name: Nightly VFX_URP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always

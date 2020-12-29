@@ -52,7 +52,7 @@ PR_Universal_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_trunk:
-    name: Nightly ordereddict([('name', 'Universal'), ('folder', 'UniversalGraphicsTest')]) - trunk
+    name: Nightly Universal - trunk
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_trunk
          rerun: on-new-revision
@@ -125,7 +125,7 @@ PR_Universal_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'Universal'), ('folder', 'UniversalGraphicsTest')]) - CUSTOM-REVISION
+    name: Nightly Universal - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
          rerun: always

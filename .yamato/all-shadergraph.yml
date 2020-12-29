@@ -28,7 +28,7 @@ PR_ShaderGraph_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_ShaderGraph_trunk:
-    name: Nightly ordereddict([('name', 'ShaderGraph'), ('folder', 'ShaderGraph')]) - trunk
+    name: Nightly ShaderGraph - trunk
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
@@ -67,7 +67,7 @@ PR_ShaderGraph_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_ShaderGraph_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'ShaderGraph'), ('folder', 'ShaderGraph')]) - CUSTOM-REVISION
+    name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always

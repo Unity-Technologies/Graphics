@@ -40,7 +40,7 @@ PR_HDRP_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_trunk:
-    name: Nightly ordereddict([('name', 'HDRP'), ('folder', 'HDRP_Tests'), ('folder_standalone', 'HDRP_RuntimeTests')]) - trunk
+    name: Nightly HDRP - trunk
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on-new-revision
@@ -97,7 +97,7 @@ PR_HDRP_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'HDRP'), ('folder', 'HDRP_Tests'), ('folder_standalone', 'HDRP_RuntimeTests')]) - CUSTOM-REVISION
+    name: Nightly HDRP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: always

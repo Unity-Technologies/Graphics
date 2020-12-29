@@ -18,7 +18,7 @@ PR_Universal_Hybrid_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_Hybrid_trunk:
-    name: Nightly ordereddict([('name', 'Universal_Hybrid'), ('folder', 'UniversalHybridTest')]) - trunk
+    name: Nightly Universal_Hybrid - trunk
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_trunk
          rerun: on-new-revision
@@ -37,7 +37,7 @@ PR_Universal_Hybrid_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_Hybrid_CUSTOM-REVISION:
-    name: Nightly ordereddict([('name', 'Universal_Hybrid'), ('folder', 'UniversalHybridTest')]) - CUSTOM-REVISION
+    name: Nightly Universal_Hybrid - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
          rerun: always
