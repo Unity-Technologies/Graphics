@@ -23,7 +23,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -76,7 +76,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

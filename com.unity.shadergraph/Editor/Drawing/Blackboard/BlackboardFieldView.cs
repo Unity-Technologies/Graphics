@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
     {
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
-        internal delegate void BlackBoardCallback();
 
         ShaderInput m_Input;
 
@@ -62,10 +61,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
+        // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
         private Action m_inspectorUpdateTrigger;
-        private BlackBoardCallback BlackBoardUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Label m_NameLabelField;
 
         public string inspectorTitle
         {
@@ -97,13 +96,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
-                                   Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public BlackboardFieldView(GraphData graph,
+                                    ShaderInput input,
+                                    Texture icon,
+                                    string text,
+                                    string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
-            this.BlackBoardUpdateTrigger = updateBlackboardView;
             this.name = "blackboardFieldView";
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
@@ -121,6 +122,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 else
                     DirtyNodes(ModificationScope.Topological);
             });
+
+            m_NameLabelField = this.Q("title-label") as Label;
+
+            // Set callback association for display name updates
+            m_Input.displayNameUpdateTrigger += UpdateDisplayNameText;
         }
 
         ~BlackboardFieldView()
@@ -198,8 +204,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 m_Input.displayName = newValue;
                 m_Graph.SanitizeGraphInputName(m_Input);
-                this.BlackBoardUpdateTrigger();
             }
+        }
+
+        void UpdateDisplayNameText(string newDisplayName)
+        {
+            m_NameLabelField.text = newDisplayName;
         }
 
         void ChangeReferenceNameField(string newValue)

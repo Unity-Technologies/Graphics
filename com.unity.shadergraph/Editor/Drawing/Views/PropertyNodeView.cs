@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
 
+        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
+
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
 
@@ -56,6 +58,9 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
             UpdateReferenceNameResetMenu();
+
+            // Set callback association for display name updates
+            m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }
 
         public Node gvNode => this;
@@ -65,6 +70,8 @@ namespace UnityEditor.ShaderGraph
 
         [Inspectable("ShaderInput", null)]
         AbstractShaderProperty property => (node as PropertyNode)?.property;
+
+        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
 
         public object GetObjectToInspect()
         {
@@ -111,6 +118,8 @@ namespace UnityEditor.ShaderGraph
             {
                 property.displayName = newValue;
                 graph.SanitizeGraphInputName(property);
+                m_displayNameUpdateTrigger?.Invoke(newValue);
+                MarkNodesAsDirty(true, ModificationScope.Node);
             }
         }
 

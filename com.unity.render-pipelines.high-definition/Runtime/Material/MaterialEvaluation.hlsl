@@ -186,16 +186,5 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         lightLoopOutput.diffuseLighting = mipmapColor;
         lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-    else if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_NONE)
-    {
-        switch (_DebugProbeVolumeMode)
-        {
-        case PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS:
-        case PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY:
-            lightLoopOutput.diffuseLighting = builtinData.bakeDiffuseLighting;
-            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
-            break;
-        }
-    }
 }
 #endif

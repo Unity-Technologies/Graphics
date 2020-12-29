@@ -1133,12 +1133,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graph.AddNode(node);
             }
 
-            var blackboardField = obj as BlackboardField;
-            if (blackboardField != null)
+            var blackboardFieldView = obj as BlackboardFieldView;
+            if (blackboardFieldView != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
 
-                switch (blackboardField.userData)
+                switch (blackboardFieldView.userData)
                 {
                     case AbstractShaderProperty property:
                     {
