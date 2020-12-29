@@ -1,13 +1,13 @@
 # Mask and detail maps
 
-The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.md#ChannelPacking) Textures to store multiple Material maps in a single Texture. Channel packing is efficient because it allows the renderer to sample up to four grayscale maps that use the same UV coordinates with a single Texture fetch. HDRP uses two types of channel-packed Textures: the [Mask Map](#MaskMap), and the [Detail Map](#DetailMap). They can use a different set of UV coordinates, or a different UV tiling value, giving you more creative freedom.
+The High Definition Render Pipeline (HDRP) uses [channel-packed](Glossary.md#ChannelPacking) textures to store multiple Material maps in a single texture. Channel packing is efficient because it allows the renderer to sample up to four grayscale maps that use the same UV coordinates with a single texture fetch. HDRP uses two types of channel-packed textures: the [Mask Map](#MaskMap), and the [Detail Map](#DetailMap). They can use a different set of UV coordinates, or a different UV tiling value, giving you more creative freedom.
 
 This document describes the format of the mask map and detail map so that you can author your own to use in HDRP.
 
 To create a mask map:
 
 1. Open image editing software that supports channel editing (such as Adobe Photoshop).
-2. Drag your grayscale Textures into their respective color channel. For information about which Texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
+2. Drag your grayscale textures into their respective color channel. For information about which texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
 3. Export your image.
 4. When you import the image into Unity, make sure that it uses linear color space.
 
@@ -15,7 +15,7 @@ To create a mask map:
 
 ## Mask map
 
-The mask map contains four grayscale Textures, one in each of its color channels.
+The mask map contains four grayscale textures, one in each color channel. HDRP uses the mask map to store the metallic map, occlusion map, detail mask, and smoothness map for the material. The mask map stores these textures in the following channels:
 
 | **Color channel** | **Map**     |
 | ----------------- | ----------- |
@@ -32,9 +32,7 @@ The following example image demonstrates the individual components of a full mas
 
 ## Detail map
 
-The detail map allow you to overlay a second set of textures on top of the base surface information. Typically, the detail map would be scaled several times across the object’s surface to add small details to a material.
-The detail map contains two grayscale Textures and one two-component Texture, which is the Material's detail normal map.
-When you import the detail map, make sure to disable the **sRGB** checkbox in the Import Settings.
+The detail map enables you to overlay a second set of textures on top of the base surface information. Typically, the detail map scales several times across the object’s surface to add small details to a material. The detail map contains two grayscale textures and one two-component texture, which is the Material's detail normal map. When you import the detail map, disable the **sRGB** checkbox in the **Import Settings** window to make it work as expected.
 
 | **Color channel** | **Map**            |
 | ----------------- | ------------------ |
