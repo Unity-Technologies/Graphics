@@ -24,20 +24,31 @@ def run_cmd(cmd, cwd=None):
     logging.info("  Running: {0}".format(' '.join(cmd)))
     return subprocess.check_output(cmd, cwd=cwd, universal_newlines=True).rstrip()
 
+def get_git_dir():
+    # Custom method to retrieve the root .git folder, even if we are in a worktree (git-worktree)
+    absolute_git_dir = run_cmd('git rev-parse --absolute-git-dir')
+    absolute_git_dir_normd = os.path.normpath(absolute_git_dir)
+    path_as_list = absolute_git_dir_normd.split(os.sep)
+    path_as_list = path_as_list[:(path_as_list.index('.git') + 1)]
+    # On windows, os.path.join(*path_as_list) will return DiskDrive:path_to without any slash.
+    # So workaround to first append a slash to the DiskDrive in path_as_list[0] and then join the rest of the path.
+    root = os.path.join(path_as_list[0] + os.sep, *path_as_list[1:])
+    return root
+
 
 def install_git_lfs():
     run_cmd('git lfs install --force')
 
 
 def replace_shebangs():
-    repo_root = run_cmd('git rev-parse --show-toplevel')
-    hooks_folder = os.path.join(repo_root, '.git/hooks')
+    # pre-commit only deals with legacy hooks if their shebang is "#!/usr/bin/env sh".
+    hooks_folder = os.path.join(get_git_dir(), 'hooks')
     current_shebang = "#!/bin/sh"
     replacement = "#!/usr/bin/env sh"
     for dname, dirs, files in os.walk(hooks_folder):
         for fname in files:
             fpath = os.path.join(dname, fname)
-            with open(fpath) as f:
+            with open(fpath, 'r') as f:
                 s = f.read()
             s = s.replace(current_shebang, replacement)
             with open(fpath, "w") as f:
@@ -57,8 +68,9 @@ def install_hooks():
     run_cmd('pre-commit install --hook-type pre-push --allow-missing-config')
 
 
-# Check perl installation
-# (used for code formatting)
+# Check perl installation (used for code formatting)
+# We explictly store the Strawberry perl binary's path because we don't want
+# the hooks to use git's own perl on Windows (unsupported by the formatter)
 def config_perl(config):
     try:
         if sys.platform == "win32" or sys.platform == "cygwin":
@@ -73,11 +85,10 @@ def config_perl(config):
         exit(1)
 
 
-# Fetch unity-meta
-# (used for code formatting)
+# Fetch unity-meta (used for code formatting)
 def config_unity_meta(config):
     home = str(Path.home())
-    default_unity_meta_path = os.path.join(home, 'unity-meta/')
+    default_unity_meta_path = os.path.join(home, 'unity-meta')
     if os.path.exists(default_unity_meta_path):
         config['unity-meta'] = default_unity_meta_path
         return config
@@ -87,8 +98,7 @@ def config_unity_meta(config):
 
 
 def config_hooks():
-    repo_root = run_cmd('git rev-parse --show-toplevel')
-    config_path = os.path.join(repo_root, ".git/hooks/hooks-config.json")
+    config_path = os.path.join(get_git_dir(), "hooks", "hooks-config.json")
     config = {}
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file_r:

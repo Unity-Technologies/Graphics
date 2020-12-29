@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 5;
-        [SerializeField] int k_AssetPreviousVersion = 5;
+        [SerializeField] int k_AssetVersion = 7;
+        [SerializeField] int k_AssetPreviousVersion = 7;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -135,7 +135,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
-        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._512;
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = 256;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = 512;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = 1024;
 
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
@@ -286,8 +290,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
-            // If no data we can't create pipeline instance
-            if (m_RendererDataList[0] == null)
+            // If no default data we can't create pipeline instance
+            if (m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
@@ -563,6 +567,44 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowmapResolution
         {
             get { return (int)m_AdditionalLightsShadowmapResolution; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Low" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierLow
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Medium" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierMedium
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "High" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierHigh
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
+        }
+
+        internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
+        {
+            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow /* 0 */)
+                return additionalLightsShadowResolutionTierLow;
+
+            if (additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium /* 1 */)
+                return additionalLightsShadowResolutionTierMedium;
+
+            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh /* 2 */)
+                return additionalLightsShadowResolutionTierHigh;
+
+            return additionalLightsShadowResolutionTierMedium;
         }
 
         /// <summary>
@@ -866,6 +908,11 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
             }
 
+            if (k_AssetVersion < 7)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 7;
+            }
 
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
@@ -896,6 +943,14 @@ namespace UnityEngine.Rendering.Universal
 
                 asset.k_AssetPreviousVersion = 5;
             }
+
+            if (asset.k_AssetPreviousVersion < 7)
+            {
+                // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
+                asset.k_AssetPreviousVersion = 7;
+            }
+
+            EditorUtility.SetDirty(asset);
         }
 
 #endif
@@ -916,7 +971,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Check to see if the RendererData list contains valide RendererData references.
+        /// Check to see if the RendererData list contains valid RendererData references.
         /// </summary>
         /// <param name="partial">This bool controls whether to test against all or any, if false then there has to be no invalid RendererData</param>
         /// <returns></returns>

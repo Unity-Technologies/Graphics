@@ -245,6 +245,10 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
                 return false;
 
+            //Can't connect directly event to context (OutputEvent or Initialize) for now
+            if (from.m_ContextType == VFXContextType.Event && to.contextType != VFXContextType.Spawner && to.contextType != VFXContextType.Subgraph)
+                return false;
+
             return true;
         }
 

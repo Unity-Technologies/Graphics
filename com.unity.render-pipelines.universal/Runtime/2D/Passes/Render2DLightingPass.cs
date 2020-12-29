@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
             using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+                cmd.SetRenderTarget(colorAttachment, depthAttachment);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {

@@ -15,11 +15,14 @@ namespace UnityEditor.Rendering.HighDefinition
             densityVolume.AddComponent<DensityVolume>();
         }
 
-        //[MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateProbeVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var probeVolume = CoreEditorUtils.CreateGameObject("Probe Volume", parent);
+            var probeVolume = CoreEditorUtils.CreateGameObject(parent, "Probe Volume");
+            GameObjectUtility.SetParentAndAlign(probeVolume, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(probeVolume, "Create " + probeVolume.name);
+            Selection.activeObject = probeVolume;
 
             probeVolume.AddComponent<ProbeVolume>();
         }

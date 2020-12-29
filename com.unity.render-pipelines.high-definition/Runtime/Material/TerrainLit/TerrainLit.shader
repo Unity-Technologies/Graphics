@@ -104,6 +104,7 @@ Shader "HDRP/TerrainLit"
             "MaskMapA" = "Smoothness"
             "DiffuseA" = "Smoothness (becomes Density when Mask map is assigned)"   // when MaskMap is disabled
             "DiffuseA_MaskMapUsed" = "Density"                                      // when MaskMap is enabled
+            "TerrainCompatible" = "True"
         }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.

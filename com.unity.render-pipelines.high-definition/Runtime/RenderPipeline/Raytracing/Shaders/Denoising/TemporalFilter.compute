@@ -88,7 +88,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     }
 
     // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
-    float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, 0).r;
+    float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0).r;
     if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
@@ -190,22 +190,22 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 #if HISTORY_IS_ARRAY
     #if SINGLE_CHANNEL
         float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
-        float history = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
-        float sampleCount = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
+        float history = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
+        float sampleCount = dot(_DenoisingHistoryMask, SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0));
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
         // In case we are processing a color texture, it is always stored in the first three channels
-        float3 history = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).xyz;
-        float sampleCount = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).x;
+        float3 history = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).xyz;
+        float sampleCount = SAMPLE_TEXTURE2D_ARRAY_LOD(_HistoryValidityBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice), 0).x;
     #endif
 #else
     #if SINGLE_CHANNEL
         float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
-        float2 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, 0).xy;
+        float2 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0).xy;
         float sampleCount = history.y;
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
-        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw, 0);
+        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0);
         float sampleCount = history.w;
     #endif
 #endif
