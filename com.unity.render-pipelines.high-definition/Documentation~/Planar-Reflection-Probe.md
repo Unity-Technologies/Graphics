@@ -12,7 +12,7 @@ Planar Reflection Probes use the same texture format than the one selected in [H
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Realtime Mode** | A Planar Reflection Probe updates in real time. Use this property to tell HDRP how often to update the Probe.<br />**Every Frame** updates the Probe’s capture data every frame.<br />**On Enable** updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to. |
+| **Realtime Mode** | A Planar Reflection Probe updates in real time. Use this property to tell HDRP how often to update the Probe.<br />&#8226; **Every Frame**: Updates the Probe’s capture data every frame.<br />&#8226; **On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to.<br/>&#8226; **On Demand**: Updates the Probe's capture data when you request it. To do this, access the Probe's `HDAdditionalReflectionData` and call the `RequestRenderNextUpdate()` function. |
 
 ### Projection Settings
 
