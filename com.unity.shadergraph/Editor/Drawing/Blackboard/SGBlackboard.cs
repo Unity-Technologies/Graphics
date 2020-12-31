@@ -39,6 +39,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 }
             };
 
+            associatedGraphView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
             this.RegisterCallback<DragExitedEvent>(evt => HideScrollBoundaryRegions());
