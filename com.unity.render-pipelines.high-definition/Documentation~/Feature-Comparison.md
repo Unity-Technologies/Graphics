@@ -1,6 +1,6 @@
 # High Definition Render Pipeline/Built-in Render Pipeline comparison
 
-The tables that follow provide an overview of the **Features** that the High Definition Render Pipeline (HDRP) supports, compared to Unity's Built-in Render Pipeline.
+The tables that follow provide an overview of the Features that the High Definition Render Pipeline (HDRP) supports, compared to Unity's [Built-in Render Pipeline](https://docs.unity3d.com/Manual/built-in-render-pipeline.html).
 
 ## Camera
 
