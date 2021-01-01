@@ -1,30 +1,56 @@
-using System.Collections;
+#if UNITY_EDITOR
+using System.Linq;
+#endif
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEngine.VFX
 {
     public static class VFXReplicationExtension
     {
-        struct ReplicationCache
+        struct ReplicationData
         {
             //Contains only eventID with count > 1
             public Dictionary<int, int[]> replicatedEventID;
+#if UNITY_EDITOR
+            //Use this list of event to invalidate the cache if needed.
+            //Only in editor : asset can't change in runtime.
+            public List<string> m_SavedEvents;
+#endif
         }
 
-        private static ReplicationCache GetOrUpdateReplicationCache(VisualEffectAsset asset)
+        static Dictionary<VisualEffectAsset, ReplicationData> s_ReplicationCache = new Dictionary<VisualEffectAsset, ReplicationData>();
+        static List<string> s_EventsCache = new List<string>();
+
+        private static ReplicationData GetOrUpdateReplicationCache(VisualEffectAsset asset)
         {
-            //TODO : Really cache it (with a specific editor behavior)
-            var cache = new ReplicationCache();
+            ReplicationData replication;
+            if (s_ReplicationCache.TryGetValue(asset, out replication))
+            {
+#if UNITY_EDITOR
+                s_EventsCache.Clear();
+                asset.GetEvents(s_EventsCache);
+                if (s_EventsCache.SequenceEqual(replication.m_SavedEvents))
+                    return replication;
 
-            var events = new List<string>();
-            asset.GetEvents(events);
+                //EventList changed, the cache is invalid, rebuild it
+                s_ReplicationCache.Remove(asset);
+#else
+                return replication;
+#endif
+            }
 
-            //TODO : Can be simplified with a struct
+            var newCacheEntry = new ReplicationData();
+            s_EventsCache.Clear();
+            asset.GetEvents(s_EventsCache);
+
+#if UNITY_EDITOR
+            newCacheEntry.m_SavedEvents = s_EventsCache.ToList();
+#endif
+
+            //TODOPAUL : Can be simplified with a temporary struct
             var replicationCandidate = new Dictionary<int, List<uint>>();
             var propertyIDToName = new Dictionary<int, string>();
-            foreach (var eventName in events)
+            foreach (var eventName in s_EventsCache)
             {
                 uint index = 0u;
                 var baseEventName = eventName;
@@ -54,7 +80,7 @@ namespace UnityEngine.VFX
                 var listOfIndices = candidate.Value;
                 if (listOfIndices.Count > 1)
                 {
-                    listOfIndices.Sort(); //Generally already sorted (TODOPAUL : Check the sort on already sorted hasn't any impact)
+                    listOfIndices.Sort();
                     int i = 0;
                     for (; i < listOfIndices.Count; ++i)
                         if (i != listOfIndices[i])
@@ -62,23 +88,32 @@ namespace UnityEngine.VFX
 
                     if (i == listOfIndices.Count)
                     {
-                        //This list of indices is valid
-                        if (cache.replicatedEventID == null)
-                            cache.replicatedEventID = new Dictionary<int, int[]>();
+                        //This list of event is valid, there isn't any missing entry.
+                        if (newCacheEntry.replicatedEventID == null)
+                            newCacheEntry.replicatedEventID = new Dictionary<int, int[]>();
 
                         var eventNameID = new int[listOfIndices.Count];
                         var baseEvent = propertyIDToName[candidate.Key];
                         for (int j = 0; j < listOfIndices.Count; j++)
                         {
-                            eventNameID[j] = j == 0 ? candidate.Key : Shader.PropertyToID(string.Format("{0}_{1}", baseEvent, j));
+                            var eventName = GetEventNameFromReplicationIndex(baseEvent, (uint)j);
+                            eventNameID[j] = Shader.PropertyToID(eventName);
                         }
-
-                        cache.replicatedEventID.Add(candidate.Key, eventNameID);
+                        newCacheEntry.replicatedEventID.Add(candidate.Key, eventNameID);
                     }
                 }
             }
 
-            return cache;
+            s_ReplicationCache.Add(asset, newCacheEntry);
+            return newCacheEntry;
+        }
+
+        public static string GetEventNameFromReplicationIndex(string baseEventName, uint index)
+        {
+            if (index == 0u)
+                return baseEventName;
+
+            return string.Format("{0}_{1}", baseEventName, index);
         }
 
         public static uint GetReplicationCount(this VisualEffect visualEffect, string eventNameID)
