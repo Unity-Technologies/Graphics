@@ -14,7 +14,7 @@ namespace UnityEngine.VFX
 #if UNITY_EDITOR
             //Use this list of event to invalidate the cache if needed.
             //Only in editor : asset can't change in runtime.
-            public List<string> m_SavedEvents;
+            public List<string> savedEvents;
 #endif
         }
 
@@ -35,7 +35,7 @@ namespace UnityEngine.VFX
 #if UNITY_EDITOR
                 s_EventsCache.Clear();
                 asset.GetEvents(s_EventsCache);
-                if (s_EventsCache.SequenceEqual(replication.m_SavedEvents))
+                if (s_EventsCache.SequenceEqual(replication.savedEvents))
                     return replication;
 
                 //EventList changed, the cache is invalid, rebuild it
@@ -50,7 +50,7 @@ namespace UnityEngine.VFX
             asset.GetEvents(s_EventsCache);
 
 #if UNITY_EDITOR
-            newCacheEntry.m_SavedEvents = s_EventsCache.ToList();
+            newCacheEntry.savedEvents = s_EventsCache.ToList();
 #endif
 
             var replicationCandidates = new Dictionary<int, ReplicationCandidate>();
