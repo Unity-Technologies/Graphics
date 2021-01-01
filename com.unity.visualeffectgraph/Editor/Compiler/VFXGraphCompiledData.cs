@@ -618,7 +618,6 @@ namespace UnityEditor.VFX
             var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][0].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key.source][1].Any()).Select(o => (uint)o.Value.systemIndex).ToList();
 
-            //TODO : Should we generate OnPlay_1/OnPlay_2/... ?
             var eventDescTemp = new[]
             {
                 new { eventName = "OnPlay", playSystems = allPlayNotLinked, stopSystems = new List<uint>() },

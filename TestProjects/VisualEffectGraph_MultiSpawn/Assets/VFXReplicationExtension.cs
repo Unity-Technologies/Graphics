@@ -21,6 +21,12 @@ namespace UnityEngine.VFX
         static Dictionary<VisualEffectAsset, ReplicationData> s_ReplicationCache = new Dictionary<VisualEffectAsset, ReplicationData>();
         static List<string> s_EventsCache = new List<string>();
 
+        struct ReplicationCandidate
+        {
+            public string baseEventName;
+            public List<uint> eventIndices;
+        }
+
         private static ReplicationData GetOrUpdateReplicationCache(VisualEffectAsset asset)
         {
             ReplicationData replication;
@@ -47,9 +53,7 @@ namespace UnityEngine.VFX
             newCacheEntry.m_SavedEvents = s_EventsCache.ToList();
 #endif
 
-            //TODOPAUL : Can be simplified with a temporary struct
-            var replicationCandidate = new Dictionary<int, List<uint>>();
-            var propertyIDToName = new Dictionary<int, string>();
+            var replicationCandidates = new Dictionary<int, ReplicationCandidate>();
             foreach (var eventName in s_EventsCache)
             {
                 uint index = 0u;
@@ -63,21 +67,19 @@ namespace UnityEngine.VFX
                 }
 
                 var eventNameID = Shader.PropertyToID(baseEventName);
-                if (!propertyIDToName.ContainsKey(eventNameID))
-                    propertyIDToName.Add(eventNameID, baseEventName);
-
-                List<uint> replicationIndices;
-                if (!replicationCandidate.TryGetValue(eventNameID, out replicationIndices))
+                ReplicationCandidate replicationCandidate;
+                if (!replicationCandidates.TryGetValue(eventNameID, out replicationCandidate))
                 {
-                    replicationIndices = new List<uint>();
-                    replicationCandidate.Add(eventNameID, replicationIndices);
+                    replicationCandidate.eventIndices = new List<uint>();
+                    replicationCandidate.baseEventName = baseEventName;
+                    replicationCandidates.Add(eventNameID, replicationCandidate);
                 }
-                replicationIndices.Add(index);
+                replicationCandidate.eventIndices.Add(index);
             }
 
-            foreach (var candidate in replicationCandidate)
+            foreach (var candidate in replicationCandidates)
             {
-                var listOfIndices = candidate.Value;
+                var listOfIndices = candidate.Value.eventIndices;
                 if (listOfIndices.Count > 1)
                 {
                     listOfIndices.Sort();
@@ -92,14 +94,13 @@ namespace UnityEngine.VFX
                         if (newCacheEntry.replicatedEventID == null)
                             newCacheEntry.replicatedEventID = new Dictionary<int, int[]>();
 
-                        var eventNameID = new int[listOfIndices.Count];
-                        var baseEvent = propertyIDToName[candidate.Key];
+                        var eventNameIds = new int[listOfIndices.Count];
                         for (int j = 0; j < listOfIndices.Count; j++)
                         {
-                            var eventName = GetEventNameFromReplicationIndex(baseEvent, (uint)j);
-                            eventNameID[j] = Shader.PropertyToID(eventName);
+                            var eventName = GetEventNameFromReplicationIndex(candidate.Value.baseEventName, (uint)j);
+                            eventNameIds[j] = Shader.PropertyToID(eventName);
                         }
-                        newCacheEntry.replicatedEventID.Add(candidate.Key, eventNameID);
+                        newCacheEntry.replicatedEventID.Add(candidate.Key, eventNameIds);
                     }
                 }
             }
@@ -166,7 +167,6 @@ namespace UnityEngine.VFX
                 }
             }
 
-            //Default fallback
             visualEffect.SendEvent(eventNameID, eventAttribute);
         }
     }
