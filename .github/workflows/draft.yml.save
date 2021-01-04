@@ -1,3 +1,4 @@
+# GH Enterprise does not support github actions yet. Reenable when it does.
 name: Draft reminder
 
 on:
