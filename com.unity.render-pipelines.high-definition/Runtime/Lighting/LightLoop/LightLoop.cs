@@ -132,7 +132,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Release the resources that are NOT automatically managed by C#.
-        // TODO: call this somewhere.
         public void Release()
         {
             for (int i = 0, n = (int)BoundedEntityCategory.Count; i < n; i++)
