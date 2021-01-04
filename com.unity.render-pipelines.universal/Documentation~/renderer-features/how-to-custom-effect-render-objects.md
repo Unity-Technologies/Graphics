@@ -22,7 +22,7 @@ This example requires the following:
 
 * The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
 
-## Example Scene and GameObjects
+## Example Scene and GameObjects<a name="example-objects"></a>
 
 To follow the steps in this example, create a new Scene. Add the following GameObjects:
 
@@ -43,8 +43,24 @@ Now you have the objects necessary to follow the steps in this example.
 
 ## Example implementation
 
-The following steps let you create this effect using the Render Objects Renderer Feature.
+This section assumes that you created a Scene as described in section [Example Scene and GameObjects](#example-objects).
 
-1. Create a new Scene and add the following GameObjects to it:
+The following steps let you create the example effect using the Render Objects Renderer Feature.
 
-    * A Cube 
+1. Select a URP Renderer.
+
+    ![Select a URP Renderer](../Images/renderer-features/rendobj-select-urp-renderer.png)
+
+2. In Inspector, click **Add Renderer Feature** and select **Render Objects**.
+
+    ![Add Render Object Renderer Feature](../Images/renderer-features/rendobj-add-rend-obj.png)
+
+    Call the new Renderer Feature **DrawCharacterBehind**.
+
+3. Renderer Features in this example use Layers to filter the objects to render. Create a new Layer and call it **Character**.
+
+    ![Create new Layer called Character](../Images/renderer-features/rendobj-new-layer-character.png)
+
+TODO: Start HERE
+
+
