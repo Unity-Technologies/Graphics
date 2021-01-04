@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
             m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
             m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
-
+            m_ProbeVolumes = new ShaderKeyword("PROBE_VOLUMES");
             m_ShadowKeywords = new ShadowKeywords();
         }
 
