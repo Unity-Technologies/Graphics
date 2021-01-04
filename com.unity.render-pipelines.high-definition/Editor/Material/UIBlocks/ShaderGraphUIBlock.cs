@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;

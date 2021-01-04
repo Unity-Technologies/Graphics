@@ -38,11 +38,11 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             return parentAsset;
         }
-        
+
         #region MaterialVariant Overrides Management
         public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
         {
-            foreach(var modification in modifications)
+            foreach (var modification in modifications)
             {
                 int pos;
                 if (modification.propertyPath.StartsWith("::"))
@@ -85,12 +85,13 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
         }
-        
+
         public void ResetOverrideForNonMaterialProperty(string propertyName)
         {
             propertyName = $"::{propertyName}:";
             overrides.RemoveAll(modification => modification.propertyPath.StartsWith(propertyName));
         }
+
         #endregion
 
         #region MaterialVariant Blocks Management
@@ -142,6 +143,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             return overrides;
         }
+
         #endregion
 
         #region MaterialVariant Create Menu
@@ -164,11 +166,16 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
+                Material og = AssetDatabase.LoadAssetAtPath(resourceFile, typeof(Material)) as Material;
+                Material material = new Material(og);
+
                 var matVariant = CreateInstance<MaterialVariant>();
                 matVariant.rootGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
                 matVariant.name = Path.GetFileName(pathName);
+                //matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
 
-                InternalEditorUtility.SaveToSerializedFileAndForget(new[] { matVariant }, pathName, true);
+                AssetDatabase.CreateAsset(material, pathName);
+                AssetDatabase.AddObjectToAsset(matVariant, pathName);
                 AssetDatabase.ImportAsset(pathName);
             }
         }
@@ -185,7 +192,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                     0,
                     ScriptableObject.CreateInstance<DoCreateNewMaterialVariant>(),
-                    "New Material Variant.asset",
+                    "New Material Variant.mat",
                     null,
                     "");
             }
@@ -193,7 +200,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 string sourcePath = AssetDatabase.GetAssetPath(target);
                 string variantPath = Path.Combine(Path.GetDirectoryName(sourcePath),
-                                        Path.GetFileNameWithoutExtension(sourcePath) + " Variant.matVariant");
+                    Path.GetFileNameWithoutExtension(sourcePath) + " Variant.mat");
 
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                     0,
@@ -203,6 +210,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                     sourcePath);
             }
         }
+
         #endregion
     }
 }

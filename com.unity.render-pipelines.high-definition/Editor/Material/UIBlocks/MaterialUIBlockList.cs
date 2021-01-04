@@ -78,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!m_Initialized)
             {
+                if (Count == 0 || this[0].GetType() != typeof(VariantHierarchyUIBlock))
+                    Insert(0, new VariantHierarchyUIBlock());
                 foreach (var uiBlock in this)
                     uiBlock.Initialize(materialEditor, properties, this);
 

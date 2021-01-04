@@ -1,13 +1,10 @@
 using System;
 using System.Linq;
 using UnityEditor;
-
-using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using System.Collections.Generic;
-using UnityEditor.IMGUI.Controls;
+using Object = UnityEngine.Object;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
@@ -43,10 +40,25 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         public static MaterialVariant[] GetMaterialVariantsFor(MaterialEditor editor)
         {
-            if (!registeredVariants.ContainsKey(editor))
-                return null;
+            if (registeredVariants.TryGetValue(editor, out var variants))
+                return variants;
 
-            return registeredVariants[editor];
+            var deletedEntries = new List<UnityEditor.Editor>();
+            foreach (var entry in registeredVariants)
+            {
+                if (entry.Key == null)
+                    deletedEntries.Add(entry.Key);
+            }
+            foreach (var key in deletedEntries)
+                registeredVariants.Remove(key);
+
+            int i = 0;
+            variants = new MaterialVariant[editor.targets.Length];
+            foreach (var target in editor.targets)
+                variants[i++] = MaterialVariantImporter.GetMaterialVariantFromObject(target);
+
+            registeredVariants.Add(editor, variants);
+            return variants;
         }
 
         public override void OnEnable()

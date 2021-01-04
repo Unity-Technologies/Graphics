@@ -129,5 +129,11 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             return GetMaterialVariantFromAssetPath(AssetDatabase.GUIDToAssetPath(GUID));
         }
+
+        public static MaterialVariant GetMaterialVariantFromObject(Object obj)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(obj));
+            return System.Array.Find(assets, o => o.GetType() == typeof(MaterialVariant)) as MaterialVariant;
+        }
     }
 }

@@ -86,6 +86,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public override void OnClosed(Material material)
+        {
+            ;
+        }
+
         /// <summary>
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>

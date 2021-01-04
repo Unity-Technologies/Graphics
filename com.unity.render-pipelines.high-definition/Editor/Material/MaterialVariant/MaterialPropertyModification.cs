@@ -147,7 +147,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 property.intValue = int.Parse(pathParts[1]);
             }
         }
-        
+
         static SerializedType ResolveType(MaterialProperty value)
         {
             switch (value.type)
@@ -161,7 +161,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                     throw new ArgumentException("Unhandled MaterialProperty Type", "value");
             }
         }
-        
+
         static (SerializedType type, string[] pathParts) RecreateType(MaterialPropertyModification propertyModification)
         {
             if (propertyModification.m_PropertyPath.StartsWith("::"))
@@ -185,17 +185,17 @@ namespace Unity.Assets.MaterialVariant.Editor
                 else
                 {
                     // replace on the fly the sub path as in YAML vector are stored as r g b a
-                    if (sub == "x")         { parts[1] = "r"; return (SerializedType.Vector, parts); }
-                    else if (sub == "y")    { parts[1] = "g"; return (SerializedType.Vector, parts); }
-                    else if (sub == "z")    { parts[1] = "b"; return (SerializedType.Vector, parts); }
-                    else if (sub == "w")    { parts[1] = "a"; return (SerializedType.Vector, parts); }
+                    if (sub == "x") { parts[1] = "r"; return (SerializedType.Vector, parts); }
+                    else if (sub == "y") { parts[1] = "g"; return (SerializedType.Vector, parts); }
+                    else if (sub == "z") { parts[1] = "b"; return (SerializedType.Vector, parts); }
+                    else if (sub == "w") { parts[1] = "a"; return (SerializedType.Vector, parts); }
                     // else it is a texture object name
                 }
             }
 
             return (SerializedType.Texture, parts);  //could be length 2 only if object reference, else length is 3
         }
-        
+
         static SerializedProperty FindBase(SerializedObject material, SerializedType type)
         {
             var propertyBase = material.FindProperty("m_SavedProperties");
@@ -218,7 +218,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
             return propertyBase;
         }
-        
+
         static (SerializedProperty property, int index, SerializedProperty parent) FindProperty(SerializedObject material, string propertyName, SerializedType type)
         {
             var propertyBase = FindBase(material, type);
@@ -239,18 +239,36 @@ namespace Unity.Assets.MaterialVariant.Editor
             return (property, indexOf, propertyBase);
         }
 
-        public static bool operator ==(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
+        public static bool operator==(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
         {
             return mpm1.m_PropertyPath == mpm2.m_PropertyPath
                 && mpm1.m_Value == mpm2.m_Value
                 && mpm1.m_ObjectReference == mpm2.m_ObjectReference;
         }
 
-        public static bool operator !=(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
+        public static bool operator!=(MaterialPropertyModification mpm1, MaterialPropertyModification mpm2)
         {
             return mpm1.m_PropertyPath != mpm2.m_PropertyPath
                 || mpm1.m_Value != mpm2.m_Value
                 || mpm1.m_ObjectReference != mpm2.m_ObjectReference;
+        }
+
+        public override bool Equals(object o)
+        {
+            if (o == null)
+                return false;
+
+            var second = (MaterialPropertyModification)o;
+            return this == second;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + m_PropertyPath.GetHashCode();
+            hash = hash * 23 + m_Value.GetHashCode();
+            hash = hash * 23 + m_ObjectReference.GetHashCode();
+            return hash;
         }
     }
 }

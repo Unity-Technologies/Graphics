@@ -209,12 +209,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get
             {
+#if UNITY_2021_1_OR_NEWER
+                return new HDSaveContext { updateMaterials = false };
+#else
                 int hash = ComputeMaterialNeedsUpdateHash();
                 bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
                 if (needsUpdate)
                     systemData.materialNeedsUpdateHash = hash;
 
                 return new HDSaveContext { updateMaterials = needsUpdate };
+#endif
             }
         }
     }

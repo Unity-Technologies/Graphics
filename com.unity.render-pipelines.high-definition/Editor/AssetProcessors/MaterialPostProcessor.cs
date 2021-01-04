@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -9,6 +8,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -116,6 +116,44 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        void OnPreprocessAsset()
+        {
+            if (!context.assetPath.ToLowerInvariant().EndsWith(".mat"))
+                return;
+
+            Material material = null;
+            MaterialVariant materialVariant = null;
+            var assets = AssetDatabase.LoadAllAssetsAtPath(context.assetPath);
+            foreach (var subAsset in assets)
+            {
+                if (subAsset == null)
+                    continue;
+                if (subAsset.GetType() == typeof(Material))
+                    material = subAsset as Material;
+                else if (subAsset.GetType() == typeof(MaterialVariant))
+                    materialVariant = subAsset as MaterialVariant;
+            }
+
+            if (material == null)
+                return;
+
+            if (material.shader != null && material.shader.IsShaderGraph())
+            {
+                // Add dependency on shadergraph
+                var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                context.DependsOnSourceAsset(shaderPath);
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+
+            // subasset not found
+            if (!materialVariant)
+            {
+                materialVariant = ScriptableObject.CreateInstance<MaterialVariant>();
+                materialVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+                AssetDatabase.AddObjectToAsset(materialVariant, context.assetPath);
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
@@ -123,23 +161,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!asset.ToLowerInvariant().EndsWith(".mat"))
                     continue;
 
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
-                    continue;
+                PostProcessMaterial(asset);
+            }
+        }
 
+        static Material PostProcessMaterial(string asset)
+        {
+            Material material = null;
+            AssetVersion assetVersion = null;
+            var assets = AssetDatabase.LoadAllAssetsAtPath(asset);
+            foreach (var subAsset in assets)
+            {
+                if (subAsset == null)
+                    continue;
+                if (subAsset.GetType() == typeof(AssetVersion))
+                    assetVersion = subAsset as AssetVersion;
+                else if (subAsset.GetType() == typeof(Material))
+                    material = subAsset as Material;
+            }
+
+            if (HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+            {
                 HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
                 var wasUpgraded = false;
-                var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
-                AssetVersion assetVersion = null;
-                foreach (var subAsset in assetVersions)
-                {
-                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
-                    {
-                        assetVersion = subAsset as AssetVersion;
-                        break;
-                    }
-                }
 
                 //subasset not found
                 if (!assetVersion)
@@ -184,6 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     s_NeedsSavingAssets = true;
                 }
             }
+            return material;
         }
 
         // Note: It is not possible to separate migration step by kind of shader
