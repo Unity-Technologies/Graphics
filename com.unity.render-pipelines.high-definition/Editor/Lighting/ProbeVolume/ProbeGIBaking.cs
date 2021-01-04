@@ -118,18 +118,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void OnBakeStarted()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent();
+
+            if (bakingReferenceVolumeAuthoring == null)
             {
-                bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent();
-
-                if (bakingReferenceVolumeAuthoring == null)
-                {
-                    Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
-                    return;
-                }
-
-                RunPlacement();
+                Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
+                return;
             }
+
+            RunPlacement();
         }
 
         private static void OnAdditionalProbesBakeCompleted()

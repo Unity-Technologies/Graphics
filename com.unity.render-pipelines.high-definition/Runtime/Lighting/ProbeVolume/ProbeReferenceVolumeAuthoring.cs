@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void QueueAssetLoading()
         {
-            if (volumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
+            if (volumeAsset == null)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void QueueAssetRemoval()
         {
-            if (volumeAsset == null || ShaderConfig.s_EnableProbeVolumes == 0)
+            if (volumeAsset == null)
                 return;
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         private void Start()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 1 && m_Profile == null)
+            if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 
             CheckInit();
@@ -169,28 +169,25 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (m_Profile != null)
             {
-                if (m_Profile != null)
+                bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.indexDimensions != m_Profile.indexDimensions);
+                if (hasIndexDimensionChangedOnProfileSwitch)
                 {
-                    bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.indexDimensions != m_Profile.indexDimensions);
-                    if (hasIndexDimensionChangedOnProfileSwitch)
-                    {
-                        var refVol = ProbeReferenceVolume.instance;
-                        refVol.AddPendingIndexDimensionChange(indexDimensions);
-                    }
-
-                    m_PrevProfile = m_Profile;
-                    QueueAssetLoading();
+                    var refVol = ProbeReferenceVolume.instance;
+                    refVol.AddPendingIndexDimensionChange(indexDimensions);
                 }
 
-                if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
-                {
-                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
-                }
-
-                m_PrevAsset = volumeAsset;
+                m_PrevProfile = m_Profile;
+                QueueAssetLoading();
             }
+
+            if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
+            {
+                ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
+            }
+
+            m_PrevAsset = volumeAsset;
         }
 
         private void OnDisable()
@@ -313,9 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnDrawGizmos()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 0)
-                return;
-
             if (!enabled || !gameObject.activeSelf)
                 return;
 
