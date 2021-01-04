@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#ifdef PROBE_VOLUMES
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #else
 // Required to have access to the indirectDiffuseMode enum in forward pass where we don't include BuiltinUtilities
@@ -493,7 +493,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#ifdef PROBE_VOLUMES
     bool uninitializedGI = IsUninitializedGI(builtinData.bakeDiffuseLighting);
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
     // Even so, the bound resources might be invalid in some cases, so we still need to check on _EnableProbeVolumes.
@@ -551,6 +551,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             builtinData.bakeDiffuseLighting += apvBuiltinData.bakeDiffuseLighting;
         }
     }
+#else
+    builtinData.bakeDiffuseLighting = float3(1, 0, 0);
 #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)

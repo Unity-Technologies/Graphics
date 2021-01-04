@@ -1158,6 +1158,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
             }
 
+            CoreUtils.SetKeyword(cmd, "PROBE_VOLUMES", m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume);
+
             // Raise the normal buffer flag only if we are in forward rendering
             CoreUtils.SetKeyword(cmd, "WRITE_NORMAL_BUFFER", hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward);
 

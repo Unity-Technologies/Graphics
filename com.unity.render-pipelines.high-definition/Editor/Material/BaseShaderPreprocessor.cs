@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_SubsurfaceScattering;
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
+        protected ShaderKeyword m_ProbeVolumes;
 
         protected ShadowKeywords m_ShadowKeywords;
 

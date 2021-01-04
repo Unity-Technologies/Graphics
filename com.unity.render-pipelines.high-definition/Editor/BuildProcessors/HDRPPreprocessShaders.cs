@@ -168,6 +168,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
+            // Global Illumination
+            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumes) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                return true;
+
             return false;
         }
     }
