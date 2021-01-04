@@ -124,8 +124,12 @@ def project_job_id_test(project_name, platform_name, api_name, test_platform_nam
 def project_job_id_build(project_name, platform_name, api_name, test_platform_name, editor_name, scripting_backend, color_space):
     return f'Build_{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_name}'.replace('__','_')
 
-def project_job_id_all(project_name, editor_name):
-    return f'All_{project_name}_{ editor_name}'
+def project_job_id_pr(project_name, editor_name):
+    return f'PR_{project_name}_{ editor_name}'
+
+def project_job_id_nightly(project_name, editor_name):
+    return f'Nightly_{project_name}_{ editor_name}'
+
 
 
 # abv specific

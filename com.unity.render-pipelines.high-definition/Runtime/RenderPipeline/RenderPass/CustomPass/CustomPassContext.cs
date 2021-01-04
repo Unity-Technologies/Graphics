@@ -25,7 +25,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Result of the culling either of the camera or the custom pass if AggregateCullingParameters is used.
         /// </summary>
-        public readonly CullingResults           cullingResults;
+        public CullingResults                   cullingResults;
+
+        /// <summary>
+        /// Camera culling results, not modified by the custom pass culling.
+        /// </summary>
+        public readonly CullingResults          cameraCullingResults;
 
         /// <summary>
         /// Camera color buffer.
@@ -60,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal CustomPassContext(
             ScriptableRenderContext renderContext, CommandBuffer cmd,
             HDCamera hdCamera, CullingResults cullingResults,
+            CullingResults cameraCullingResults,
             RTHandle cameraColorBuffer, RTHandle cameraDepthBuffer,
             RTHandle cameraNormalBuffer, Lazy<RTHandle> customColorBuffer,
             Lazy<RTHandle> customDepthBuffer, MaterialPropertyBlock propertyBlock)
@@ -68,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.cmd = cmd;
             this.hdCamera = hdCamera;
             this.cullingResults = cullingResults;
+            this.cameraCullingResults = cameraCullingResults;
             this.cameraColorBuffer = cameraColorBuffer;
             this.cameraDepthBuffer = cameraDepthBuffer;
             this.customColorBuffer = customColorBuffer;

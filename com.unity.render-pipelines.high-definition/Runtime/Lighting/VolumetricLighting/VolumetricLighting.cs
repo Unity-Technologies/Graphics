@@ -13,13 +13,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
-        public int     textureIndex;
-        public Vector3 textureScroll;
         public int     invertFade;    // bool...
-        public Vector3 rcpPosFaceFade;
+        public Vector3 textureScroll;
         public float   rcpDistFadeLen;
-        public Vector3 rcpNegFaceFade;
+        public Vector3 rcpPosFaceFade;
         public float   endTimesRcpDistFadeLen;
+        public Vector3 rcpNegFaceFade;
+        public int     useVolumeMask; // bool
+        public Vector3 atlasOffset;   // coordinates in the atlas in pixels
+        public DensityVolumeFalloffMode falloffMode;
+        public Vector4 maskSize;      // xyz: atlas size / mask size, w: mask size in pixels
 
         public static DensityVolumeEngineData GetNeutralValues()
         {
@@ -27,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering             = Vector3.zero;
             data.extinction             = 0;
-            data.textureIndex           = -1;
+            data.atlasOffset            = Vector3.zero;
             data.textureTiling          = Vector3.one;
             data.textureScroll          = Vector3.zero;
             data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -35,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.invertFade             = 0;
             data.rcpDistFadeLen         = 0;
             data.endTimesRcpDistFadeLen = 1;
+            data.useVolumeMask          = 0;
+            data.maskSize               = Vector4.zero;
+            data.falloffMode            = DensityVolumeFalloffMode.Linear;
 
             return data;
         }
@@ -74,6 +80,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _Pad1_SVV;
     }
 
+    /// <summary></summary>
+    [GenerateHLSL]
+    public enum DensityVolumeFalloffMode
+    {
+        /// <summary></summary>
+        Linear,
+        /// <summary></summary>
+        Exponential,
+    }
 
     class VolumeRenderingUtils
     {
@@ -205,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox>            m_VisibleVolumeBounds           = null;
         List<DensityVolumeEngineData> m_VisibleVolumeData             = null;
-        const int                     k_MaxVisibleVolumeCount         = 512;
+        internal const int            k_MaxVisibleDensityVolumeCount  = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer     = null;
@@ -289,7 +304,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
             int h = Mathf.RoundToInt(viewportHeight * screenFraction);
-            int d = sliceCount;
+
+            // Round to nearest multiple of viewCount so that each views have the exact same number of slices (important for XR)
+            int d = hdCamera.viewCount * Mathf.CeilToInt(sliceCount / hdCamera.viewCount);
 
             return new Vector3Int(w, h, d);
         }
@@ -570,8 +587,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeBounds       = new List<OrientedBBox>();
             m_VisibleVolumeData         = new List<DensityVolumeEngineData>();
-            m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
-            m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
+            m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
+            m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
             // Allocate the smallest possible 3D texture.
             // We will perform rescaling manually, in a custom manner, based on volume parameters.
@@ -740,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera, time);
 
-                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
+                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleDensityVolumeCount); i++)
                 {
                     DensityVolume volume = volumes[i];
 
@@ -783,7 +800,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          viewCount;
             public bool                         tiledLighting;
 
-            public Texture3D                    volumeAtlas;
+            public Texture                      volumeAtlas;
 
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -831,10 +848,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VolumeMaskDimensions = Vector4.zero;
             if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
             {
-                cb._VolumeMaskDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                cb._VolumeMaskDimensions.y = volumeAtlas.width;
-                cb._VolumeMaskDimensions.z = volumeAtlas.depth;
-                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.width, 2); // Max LoD
+                cb._VolumeMaskDimensions.x = volumeAtlas.width; // 1 / number of textures
+                cb._VolumeMaskDimensions.y = volumeAtlas.height;
+                cb._VolumeMaskDimensions.z = volumeAtlas.volumeDepth;
+                cb._VolumeMaskDimensions.w = 0; // Not used
             }
 
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, fog);

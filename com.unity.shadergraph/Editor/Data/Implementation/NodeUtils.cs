@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.Graphing
@@ -145,6 +146,8 @@ namespace UnityEditor.Graphing
             var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
             foreach (var slot in ids)
             {
+                if (node.owner == null)
+                    break;
                 foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
                 {
                     var outputNode = ((Edge)edge).outputSlot.node;
@@ -394,9 +397,8 @@ namespace UnityEditor.Graphing
                 return;
             }
 
-            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            using (ListPool<MaterialSlot>.Get(out var slots))
             {
-                var slots = slotsHandle.value;
                 node.GetInputSlots(slots);
                 foreach (var slot in slots)
                 {
