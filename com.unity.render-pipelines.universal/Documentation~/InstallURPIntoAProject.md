@@ -44,4 +44,4 @@ To add the Universal Render Pipeline Asset to your Graphics settings:
 
 ## Upgrading your shaders
 
-If your Project uses Lit Shaders from the Built-in Render Pipeline, you must convert those Shaders to URP Shaders. For information on this, see [Upgrading your Shaders](upgrading-your-shaders.md).
+If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Manual/shader-StandardShader.html), or custom Unity shaders made for the Built-in Render Pipeline, you must convert them to URP-compatible Unity shaders. For more information on this topic, see [Upgrading your Shaders](upgrading-your-shaders.md).

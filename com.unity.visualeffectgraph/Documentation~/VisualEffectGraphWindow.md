@@ -34,6 +34,7 @@ The Visual Effect Graph window Toolbar contains functionality to operate on a Vi
 | --------------------- | ------------------------------------------------------------ |
 | **Auto**              | **Toggle** : Toggles Auto-compilation of the Visual Effect Graph. |
 | **Compile**           | **Action** : Recompiles the currently opened Visual Effect Graph. |
+| **Save**              | **Action** : Save the currently opened Visual Effect Graph and its subgraphs. |
 | **Show in Project**   | **Action** : Focuses the currently opened Visual Effect Graph's Asset in the Project window. |
 | **Blackboard**        | **Toggle** : Toggles visibility of the **Blackboard Panel**. |
 | **Target GameObject** | **Toggle** : Toggles visibility of the **Target VisualEffect GameObject Panel**. |

@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering
         {
             if (cmd != null)
 #if UNITY_USE_RECORDER
-                if (sampler != null)
+                if (sampler != null && sampler.isValid)
                     cmd.BeginSample(sampler);
                 else
                     cmd.BeginSample(name);
@@ -124,12 +124,12 @@ namespace UnityEngine.Rendering
         {
             if (cmd != null)
 #if UNITY_USE_RECORDER
-                if (sampler != null)
+                if (sampler != null && sampler.isValid)
                     cmd.EndSample(sampler);
                 else
                     cmd.EndSample(name);
 #else
-                    m_Cmd.EndSample(name);
+                m_Cmd.EndSample(name);
 #endif
             inlineSampler?.End();
         }
@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering
         public int inlineCpuSampleCount => 0;
 #endif
         // Keep the constructor private
-        ProfilingSampler() { }
+        ProfilingSampler() {}
     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -234,6 +234,13 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
+            // NOTE: Do not mix with named CommandBuffers.
+            // Currently there's an issue which results in mismatched markers.
+            // The named CommandBuffer will close its "profiling scope" on execution.
+            // That will orphan ProfilingScope markers as the named CommandBuffer marker
+            // is their "parent".
+            // Resulting in following pattern:
+            // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             m_Cmd = cmd;
             m_Disposed = false;
             m_Sampler = sampler;
@@ -264,7 +271,7 @@ namespace UnityEngine.Rendering
 
             m_Disposed = true;
         }
-}
+    }
 #else
     /// <summary>
     /// Scoped Profiling markers
@@ -278,7 +285,6 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
-
         }
 
         /// <summary>

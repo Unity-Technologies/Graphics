@@ -51,6 +51,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1702487465686445240, guid: 85161be91b7eeca488c205296f897b1e, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -1176591200614087865, guid: 85161be91b7eeca488c205296f897b1e, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967294
@@ -67,9 +71,17 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 4294967294
       objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 85161be91b7eeca488c205296f897b1e, type: 3}
+      propertyPath: m_LODs.Array.data[0].screenRelativeHeight
+      value: 0.103479154
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: 85161be91b7eeca488c205296f897b1e, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0.04247798
+      objectReference: {fileID: 0}
     - target: {fileID: 8008222691161872435, guid: 85161be91b7eeca488c205296f897b1e, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 4294967294
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 85161be91b7eeca488c205296f897b1e, type: 3}

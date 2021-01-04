@@ -3,83 +3,137 @@ project:
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  - playmode_RenderGraph
-  - editmode
-  - Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests" 
+  - type: editmode
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+expression_trigger:
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"]'
 platforms:
   - name: Win
-    os: windows
     apis:
-      DX11: -force-d3d11
-      DX12: -force-d3d12
-      Vulkan: -force-vulkan
-    agent_default:
-      type: Unity::VM::GPU
-      image: graphics-foundation/win10-dxr:stable
-      flavor: b1.xlarge
-      model: rtx2080
-    agent_editmode:
-      type: Unity::VM
-      image: graphics-foundation/win10-dxr:stable
-      flavor: b1.xlarge
-    agent_standalone:
-      type: Unity::VM::GPU
-      image: graphics-foundation/win10-dxr:stable
-      flavor: b1.xlarge
-      model: rtx2080
-    agent_standalone_build:
-      type: Unity::VM
-      image: graphics-foundation/win10-dxr:stable
-      flavor: b1.xlarge
-      model: rtx2080
-    components:
-      - editor
-      - il2cpp
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
   - name: OSX
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
-      - Vulkan
-all:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
-        - editmode
+        - Standalone
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
-        - Standalone
+        - editmode
     - platform: Win
       api: DX12
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
-        # - Standalone
     - platform: Win
       api: Vulkan
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
-        # - Standalone
     - platform: OSX
       api: Metal
+      build_config: mono
+      color_space: Linear
       test_platforms:
-        - Standalone
-        - editmode
+        # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
+      build_config: mono
+      color_space: Linear
       test_platforms:
-        - editmode
+        - Standalone
         - playmode
     - project: HDRP_DXR
-      platform: Win
-      api: DX12
-      test_platforms:
-        - playmode
-        - playmode_XR
+      pr: true
     - project: HDRP_Hybrid
-      all: true
+      pr: true
+    - project: VFX_HDRP
+      pr: true
+nightly:
+  dependencies:
+    - project: HDRP
+      pr: true
+    - project: HDRP_DXR
+      nightly: true
+    - project: HDRP_Hybrid
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+        - playmode_XR
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+        - playmode_XR
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode

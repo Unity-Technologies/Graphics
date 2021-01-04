@@ -79,7 +79,7 @@ float4 FullScreenPass(Varyings varyings) : SV_Target
 
     // Load the camera color buffer at the mip 0 if we're not at the before rendering injection point
     if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
-        color = float4(CustomPassSampleCameraColor(posInput.positionNDC.xy, 0), 1);
+        color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
     // Add your custom pass code here
 
@@ -98,10 +98,11 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
 | **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
 | **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
+| **Before Pre-Refraction and After post-process**: On these injection points, the camera color buffer set as the target for the fullscreen pass is the same as the one you can access inside the shader. Because the camera color buffer is the target, and because of read/write restrictions on certain platforms, you cannot directly sample from the camera color buffer inside the shader. Instead, you need to split your effect into two passes and use the custom color buffer as an intermediate buffer. This avoids reading and writing simultaneously to the same buffer. |
 
 ### DrawRenderers Custom Pass
 
-This pass will allow you to draw a subset of objects that are in the camera view (the result of the camera culling).  
+This pass will allow you to draw any objects in a certain layer, note that the layer don't require to be visible by the camera to be rendered in this pass.
 Here is how the inspector for the DrawRenderers pass looks like:
 
 ![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)

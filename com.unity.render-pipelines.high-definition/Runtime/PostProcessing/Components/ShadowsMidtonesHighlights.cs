@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Shadows, Midtones, Highlights effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Shadows-Midtones-Highlights" + Documentation.endURL)]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

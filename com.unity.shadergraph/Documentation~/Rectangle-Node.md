@@ -11,9 +11,9 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Vector 1 | None | Rectangle width |
-| Height      | Input | Vector 1 | None | Rectangle height |
-| Out | Output      |    Vector 1 | None | Output value |
+| Width      | Input | Float    | None | Rectangle width |
+| Height      | Input | Float    | None | Rectangle height |
+| Out | Output      |    Float    | None | Output value |
 
 ## Generated Code Example
 

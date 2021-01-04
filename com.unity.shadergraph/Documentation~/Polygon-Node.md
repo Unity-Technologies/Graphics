@@ -11,10 +11,10 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Sides      | Input | Vector 1 | None | Amount of sides |
-| Width      | Input | Vector 1 | None | Polygon width |
-| Height      | Input | Vector 1 | None | Polygon height |
-| Out | Output      |    Vector 1 | None | Output value |
+| Sides      | Input | Float    | None | Amount of sides |
+| Width      | Input | Float    | None | Polygon width |
+| Height      | Input | Float    | None | Polygon height |
+| Out | Output      |    Float    | None | Output value |
 
 ## Generated Code Example
 

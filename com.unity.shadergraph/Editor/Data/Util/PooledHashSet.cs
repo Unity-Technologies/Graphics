@@ -43,6 +43,7 @@ namespace UnityEditor.ShaderGraph
         {
             throw new InvalidOperationException($"{nameof(PooledHashSet<T>)} must be disposed manually.");
         }
+
 #endif
     }
 }

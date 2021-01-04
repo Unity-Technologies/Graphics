@@ -10,10 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateDensityVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var densityVolume = CoreEditorUtils.CreateGameObject(parent, "Density Volume");
-            GameObjectUtility.SetParentAndAlign(densityVolume, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(densityVolume, "Create " + densityVolume.name);
-            Selection.activeObject = densityVolume;
+            var densityVolume = CoreEditorUtils.CreateGameObject("Density Volume", parent);
 
             densityVolume.AddComponent<DensityVolume>();
         }

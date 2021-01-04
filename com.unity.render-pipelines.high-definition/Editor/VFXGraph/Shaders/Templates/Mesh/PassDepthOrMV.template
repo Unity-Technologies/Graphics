@@ -36,10 +36,13 @@ struct ps_input
 	float4 tangent : TEXCOORD5;
 	#endif
 	#endif
+	#if VFX_NEEDS_POSWS_INTERPOLATOR
+	float3 posWS : TEXCOORD6;
+	#endif
 	
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-	float4 cPosPrevious : TEXCOORD6;
-	float4 cPosNonJiterred : TEXCOORD7;
+	float4 cPosPrevious : TEXCOORD7;
+	float4 cPosNonJiterred : TEXCOORD8;
 	#endif
     ${VFXAdditionalInterpolantsDeclaration}
 	
@@ -67,6 +70,9 @@ struct ps_input
 #endif
 #if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
 #define VFX_VARYING_TANGENT tangent
+#endif
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+#define VFX_VARYING_POSWS posWS
 #endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}

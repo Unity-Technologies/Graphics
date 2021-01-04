@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
             ResyncSlots(true);
         }
 
-        public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Block"; } }
+        public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Block"; } }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -196,16 +196,6 @@ namespace UnityEditor.VFX
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order));
         }
 
-        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
-        {
-            if (cause == InvalidationCause.kSettingChanged && (subgraph != null || object.ReferenceEquals(m_Subgraph, null)))
-            {
-                RecreateCopy();
-            }
-
-            base.OnInvalidate(model, cause);
-        }
-
         public VFXModel[] subChildren
         {
             get { return m_SubChildren; }
@@ -263,6 +253,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void SetSubblocksFlattenedParent()
+        {
+            VFXContext parent = GetParent();
+            foreach (var block in recursiveSubBlocks)
+                block.flattenedParent = parent;
+        }
+
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kSettingChanged)
@@ -272,11 +269,11 @@ namespace UnityEditor.VFX
                 if (graph != null && subgraph != null && m_Subgraph.GetResource() != null)
                 {
                     var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
-                    if (otherGraph != m_UsedSubgraph)
-                        RecreateCopy();
                     if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
                         m_Subgraph = null; // prevent cyclic dependencies.
-                    if (graph.GetResource().isSubgraph) // BuildSubgraphDependenciesis called for vfx by recompilation, but in subgraph we must call it explicitely
+                    if (otherGraph != m_UsedSubgraph)
+                        RecreateCopy();
+                    if (graph.GetResource().isSubgraph) // BuildSubgraphDependencies is called for vfx by recompilation, but in subgraph we must call it explicitely
                         graph.BuildSubgraphDependencies();
                 }
                 else if (m_UsedSubgraph != null)

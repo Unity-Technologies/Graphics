@@ -8,21 +8,26 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Reload(new[]
         {
-            "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
-            "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
+            "Runtime/RenderPipelineResources/SkinDiffusionProfile.asset",
+            "Runtime/RenderPipelineResources/FoliageDiffusionProfile.asset"
         })]
         [SerializeField]
         internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
-        
+
         [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
         public VolumeProfile defaultSettingsVolumeProfile;
 
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            // Terrain
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
+
+            // ProbeVolumes
+            [Reload("Runtime/Debug/InstancedProbeShader.shader")]
+            public Shader instancedProbeShader;
         }
 
         [Serializable, ReloadGroup]
@@ -39,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
-            [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]
+            [Reload("Editor/RenderPipelineResources/Material/GUITextureBlit2SRGB.mat")]
             public Material GUITextureBlit2SRGB;
         }
 
@@ -66,13 +71,23 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumeProfile defaultLookDevVolumeProfile;
         }
 
+
+        [Serializable, ReloadGroup]
+        public sealed class AssetResources
+        {
+            // Probe Volumes
+            [Reload("Runtime/Debug/DebugProbe.fbx")]
+            public Mesh debugProbeMesh;
+        }
+
         public ShaderResources shaders;
         public MaterialResources materials;
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
+        public AssetResources assets;
     }
-    
+
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
@@ -84,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                foreach(var field in typeof(HDRenderPipelineEditorResources).GetFields())
+                foreach (var field in typeof(HDRenderPipelineEditorResources).GetFields())
                     field.SetValue(target, null);
 
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());

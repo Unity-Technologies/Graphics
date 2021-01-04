@@ -110,6 +110,8 @@ namespace UnityEditor.VFX
                             vfxAsset.GetResource().GetOrCreateGraph().SetCompilationMode(m_ForceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
                     }
 
+                    var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
+
                     if (GUI.changed)
                     {
                         EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
@@ -117,8 +119,15 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
                         EditorPrefs.SetBool(advancedLogsKey, m_AdvancedLogs);
                         EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
+                        userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
+                        userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
+                        userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });
+                        VFXResources.defaultResources.userTemplateDirectory = userTemplateDirectory;
                     }
                 }
+
+                if ((VFXResources.defaultResources.userTemplateDirectory.Length > 0) && (!System.IO.Directory.Exists(VFXResources.defaultResources.userTemplateDirectory)))
+                    EditorGUILayout.HelpBox("The specified User Systems directory does not exist in the project.", MessageType.Warning);
 
                 base.OnGUI(searchContext);
             }

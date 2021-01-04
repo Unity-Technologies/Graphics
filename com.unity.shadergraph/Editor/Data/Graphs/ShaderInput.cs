@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -10,7 +10,9 @@ namespace UnityEditor.ShaderGraph.Internal
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
+        internal void OverrideGuid(string namespaceId, string name) { m_Guid.guid = GenerateNamespaceUUID(namespaceId, name); }
+
         [SerializeField]
         string m_Name;
 
@@ -70,6 +72,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
         internal abstract bool isExposable { get; }
+        internal virtual bool isAlwaysExposed => false;
         internal abstract bool isRenamable { get; }
 
         internal abstract ShaderInput Copy();

@@ -40,8 +40,9 @@ namespace UnityEditor.Rendering
         }
 
         int m_PhotometricType;
+
         /// <summary>
-        /// Type of Photometric light in the IES file, varying per IES-Type & version
+        /// Type of Photometric light in the IES file, varying per IES-Type and version
         /// </summary>
         public int PhotometricType
         {
@@ -72,7 +73,6 @@ namespace UnityEditor.Rendering
         /// <returns>Return the error during the import otherwise null if no error</returns>
         public string ReadFile(string iesFilePath)
         {
-
             using (var iesReader = File.OpenText(iesFilePath))
             {
                 string versionLine = iesReader.ReadLine();

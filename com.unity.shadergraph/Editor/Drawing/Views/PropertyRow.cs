@@ -16,10 +16,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement label
         {
-            get { return (m_LabelContainer.childCount > 0)?m_LabelContainer[0]:null; }
+            get { return (m_LabelContainer.childCount > 0) ? m_LabelContainer[0] : null; }
             set
             {
-                if(m_LabelContainer.childCount > 0)
+                if (m_LabelContainer.childCount > 0)
                 {
                     m_LabelContainer.Clear();
                 }

@@ -53,7 +53,7 @@ BilateralData TapBilateralData(uint2 coordSS)
     {
         NormalData normalData;
         const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
-        DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
+        DecodeFromNormalBuffer(normalBuffer, normalData);
         key.normal = normalData.normalWS;
     #ifdef BILATERAL_ROUGHNESS
         key.roughness = normalData.perceptualRoughness;

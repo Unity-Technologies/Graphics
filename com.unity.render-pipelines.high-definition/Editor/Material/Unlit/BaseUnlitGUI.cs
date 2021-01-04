@@ -12,29 +12,28 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
-        static class BaseUnlitGUI
+    static class BaseUnlitGUI
     {
         public static void SetupBaseUnlitKeywords(this Material material)
         {
+            // First thing, be sure to have an up to date RenderQueue
+            material.ResetMaterialCustomRenderQueue();
+
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
+            // Setup alpha to mask using the _AlphaToMaskInspectorValue that we configure in the material UI
+            float alphaToMaskEnabled = material.HasProperty("_AlphaToMaskInspectorValue") && material.GetFloat("_AlphaToMaskInspectorValue") > 0.0 ? 1 : 0;
+            material.SetFloat(kAlphaToMask, alphaTestEnable ? alphaToMaskEnabled : 0);
+
             bool alphaToMaskEnable = alphaTestEnable && material.HasProperty(kAlphaToMask) && material.GetFloat(kAlphaToMask) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATOMASK_ON", alphaToMaskEnable);
-            
+
             SurfaceType surfaceType = material.GetSurfaceType();
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
-            bool enableBlendModePreserveSpecularLighting = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kEnableBlendModePreserveSpecularLighting) && material.GetFloat(kEnableBlendModePreserveSpecularLighting) > 0.0f;
-            CoreUtils.SetKeyword(material, "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING", enableBlendModePreserveSpecularLighting);
-
             bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && material.GetInt(kTransparentWritingMotionVec) > 0;
             CoreUtils.SetKeyword(material, "_TRANSPARENT_WRITES_MOTION_VEC", transparentWritesMotionVec);
-
-            // These need to always been set either with opaque or transparent! So a users can switch to opaque and remove the keyword correctly
-            CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", false);
-            CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
-            CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
             HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool needOffScreenBlendFactor = renderQueueType == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent || renderQueueType == HDRenderQueue.RenderQueueType.LowTransparent;
@@ -85,10 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (material.HasProperty(kBlendMode))
                 {
                     BlendMode blendMode = material.GetBlendMode();
-
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", BlendMode.Alpha == blendMode);
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
-                    CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
 
                     // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                     switch (blendMode)
@@ -235,6 +230,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // So we need a way to work around that before we activate this.
             material.SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor");
 
+            // depth offset for ShaderGraphs (they don't have the displacement mode property)
+            if (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable))
+            {
+                // Depth offset is only enabled if per pixel displacement is
+                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            }
+
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
             var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
@@ -321,8 +324,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool rayTracingEnable = (material.GetFloat(kRayTracing) > 0.0f);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
             }
-            
+
             // Shader graphs materials have their own management of motion vector pass in the material inspector
+            // (see DrawMotionVectorToggle())
             if (!material.shader.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
@@ -338,10 +342,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
-
-             }
-
+            }
         }
-
     }
 }

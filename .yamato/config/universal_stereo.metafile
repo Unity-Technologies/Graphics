@@ -2,17 +2,29 @@ project:
   name: Universal_Stereo
   folder: UniversalGfxTestStereo
 test_platforms:
-  - Standalone
-#  - playmode
-  - editmode
+  - type: Standalone
+    utr_flags:
+      - [all]: compilation-errors-as-warnings
+  - type: editmode
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis: 
-all:
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: ''
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode
-  #      - playmode
+nightly:
+  dependencies:
+    - project: Universal_Stereo
+      pr: true

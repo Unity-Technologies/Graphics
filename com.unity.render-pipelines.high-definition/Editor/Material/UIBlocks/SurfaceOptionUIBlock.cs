@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
+using System.Linq;
 
 using Unity.Assets.MaterialVariant.Editor;
 
@@ -11,26 +13,54 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class SurfaceOptionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents surface option properties for materials.
+    /// </summary>
+    public class SurfaceOptionUIBlock : MaterialUIBlock
     {
+        /// <summary>
+        /// Options for surface option features. This allows you to display or hide certain parts f the UI.
+        /// </summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Displays the minimum surface option fields.</summary>
             None                        = 0,
+            /// <summary>Displays the surface field.</summary>
             Surface                     = 1 << 0,
+            /// <summary>Displays the blend mode field.</summary>
             BlendMode                   = 1 << 1,
+            /// <summary>Displays the double sided field.</summary>
             DoubleSided                 = 1 << 2,
+            /// <summary>Displays the alpha cutoff field.</summary>
             AlphaCutoff                 = 1 << 3,
+            /// <summary>Displays the alpha cutoff threshold field.</summary>
             AlphaCutoffThreshold        = 1 << 4,
+            /// <summary>Displays the alpha cutoff shadow treshold field.</summary>
             AlphaCutoffShadowThreshold  = 1 << 5,
+            /// <summary>Displays the double sided normal mode field.</summary>
             DoubleSidedNormalMode       = 1 << 6,
+            /// <summary>Displays the back then front rendering field.</summary>
             BackThenFrontRendering      = 1 << 7,
+            /// <summary>Displays the receive ssr field.</summary>
             ReceiveSSR                  = 1 << 8,
-            ShowAfterPostProcessPass    = 1 << 9,
-            AlphaToMask                 = 1 << 10,
-            ShowPrePassAndPostPass      = 1 << 11,
-            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
-            Lit                         = All,
+            /// <summary>Displays the receive decal field.</summary>
+            ReceiveDecal                = 1 << 9,
+            /// <summary>Displays the show after post process field.</summary>
+            ShowAfterPostProcessPass    = 1 << 10,
+            /// <summary>Displays the alpha to mask field.</summary>
+            AlphaToMask                 = 1 << 11,
+            /// <summary>Displays the show pre pass and post pass fields.</summary>
+            ShowPrePassAndPostPass      = 1 << 12,
+            /// <summary>Displays the depth offset field.</summary>
+            ShowDepthOffsetOnly         = 1 << 13,
+            /// <summary>Displays the preserve specular lighting field.</summary>
+            PreserveSpecularLighting    = 1 << 14,
+            /// <summary>Displays all the Unlit Surface Option fields.</summary>
+            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            /// <summary>Displays all the Lit Surface Option fields field.</summary>
+            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
+            /// <summary>Displays all the fields.</summary>
             All                         = ~0,
         }
 
@@ -64,7 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
-            public static GUIContent rayTracingText = new GUIContent("Ray Tracing (Preview)", "If this option is enabled and recursive rendering is active, the object will be rendered using ray tracing.");
+            public static GUIContent rayTracingText = new GUIContent("Recursive Rendering (Preview)");
+            public static GUIContent rayTracingTextInfo = new GUIContent("When enabled, if you enabled ray tracing in your project and a recursive rendering volume override is active, Unity uses recursive rendering to render the GameObject.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
@@ -101,9 +132,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
             // SSR
-            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRText = new GUIContent("Receive SSR/SSGI", "When enabled, this Material can receive screen space reflections and screen space global illumination.");
             public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
-            
+
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
@@ -125,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty alphaCutoffPostpass = null;
         const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
         MaterialProperty alphaToMask = null;
-        const string kAlphaToMask = "_AlphaToMask";
+        const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
         const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
@@ -135,7 +166,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentSortPriority = null;
         const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
         MaterialProperty transparentWritingMotionVec = null;
-        const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
         MaterialProperty doubleSidedEnable = null;
         const string kDoubleSidedEnable = "_DoubleSidedEnable";
         MaterialProperty blendMode = null;
@@ -187,7 +217,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
-        const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
         MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
@@ -214,8 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kHeightParametrization = "_HeightMapParametrization";
 
         // Refraction (for show pre-refraction pass enum)
-        protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
+        MaterialProperty refractionModel = null;
 
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
@@ -265,17 +293,26 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
 
-        public SurfaceOptionUIBlock(Expandable expandableBit, int layerCount = 1, Features features = Features.All)
+        /// <summary>
+        /// Constructs a SurfaceOptionUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit used for the foldout state.</param>
+        /// <param name="layerCount">Number of layers available in the shader.</param>
+        /// <param name="features">Features of the block.</param>
+        public SurfaceOptionUIBlock(ExpandableBit expandableBit, int layerCount = 1, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             surfaceType = FindProperty(kSurfaceType);
@@ -297,7 +334,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transparentWritingMotionVec = FindProperty(kTransparentWritingMotionVec);
 
-            enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting);
+            if ((m_Features & Features.PreserveSpecularLighting) != 0)
+                enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting);
+
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent);
 
             if ((m_Features & Features.DoubleSided) != 0)
@@ -343,7 +382,10 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationMode = FindProperty(kTessellationMode);
 
             // Decal
-            supportDecals = FindProperty(kSupportDecals);
+            if ((m_Features & Features.ReceiveDecal) != 0)
+            {
+                supportDecals = FindProperty(kSupportDecals);
+            }
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA);
@@ -367,9 +409,11 @@ namespace UnityEditor.Rendering.HighDefinition
             refractionModel = FindProperty(kRefractionModel);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
-
             using (var header = new MaterialHeaderScope(Styles.optionText, (uint)m_ExpandableBit, materialEditor))
             {
                 if (header.expanded)
@@ -377,7 +421,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawSurfaceOptionGUI()
+        /// <summary>
+        /// Draws the entire Surface Options GUI.
+        /// </summary>
+        protected void DrawSurfaceOptionGUI()
         {
             if ((m_Features & Features.Surface) != 0)
                 DrawSurfaceGUI();
@@ -391,26 +438,59 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
-        void DrawAlphaCutoffGUI()
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+
+        /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
+        float GetShaderDefaultFloatValue(string propName)
         {
-            EditorGUI.BeginChangeCheck();
-            if (alphaCutoffEnable != null)
+            if (!materials[0].HasProperty(propName))
+                return 0;
+
+            // It's okay to ignore all other materials here because if the material editor is displayed, the shader is the same for all materials
+            var shader = materials[0].shader;
+            return shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(propName));
+        }
+
+        /// <summary>
+        /// Draws the Alpha Cutoff GUI.
+        /// </summary>
+        protected void DrawAlphaCutoffGUI()
+        {
+            // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
+            bool showAlphaClipThreshold = true;
+
+            bool isShaderGraph = AreMaterialsShaderGraphs();
+            if (isShaderGraph)
+                showAlphaClipThreshold = GetShaderDefaultFloatValue(kAlphaCutoffEnabled) > 0.0f;
+
+            if (showAlphaClipThreshold && alphaCutoffEnable != null)
+            {
                 using (CreateOverrideScopeFor(alphaCutoffEnable))
                     materialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText);
+            }
 
-            if (alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
+            if (showAlphaClipThreshold && alphaCutoffEnable != null && alphaCutoffEnable.floatValue == 1.0f)
             {
                 EditorGUI.indentLevel++;
 
-                if (alphaCutoff != null)
+                if (showAlphaClipThreshold && alphaCutoff != null)
+                {
                     using (CreateOverrideScopeFor(alphaCutoff))
                         materialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText);
+                }
 
-                if ((m_Features & Features.AlphaCutoffThreshold) != 0)
+                if (showAlphaClipThreshold && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                 {
-                    if (useShadowThreshold != null)
+                    // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
+                    bool showUseShadowThreshold = useShadowThreshold != null;
+                    if (isShaderGraph)
+                        showUseShadowThreshold = GetShaderDefaultFloatValue(kUseShadowThreshold) > 0.0f;
+
+                    if (showUseShadowThreshold)
+                    {
                         using (CreateOverrideScopeFor(useShadowThreshold))
                             materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
+                    }
 
                     if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                     {
@@ -421,7 +501,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                if ((m_Features & Features.AlphaToMask) != 0)
+                if (showAlphaClipThreshold && (m_Features & Features.AlphaToMask) != 0)
                 {
                     if (alphaToMask != null)
                         using (CreateOverrideScopeFor(alphaToMask))
@@ -430,8 +510,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
-                if (surfaceTypeValue == SurfaceType.Transparent)
+                if (showAlphaClipThreshold && surfaceTypeValue == SurfaceType.Transparent)
                 {
+                    // TODO: check if passes exists
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
                         if (alphaCutoffPrepass != null)
@@ -448,45 +529,42 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            else if ((m_Features & Features.AlphaToMask) != 0)
-            {
-                if (alphaToMask != null)
-                    using (CreateOverrideScopeFor(alphaToMask, forceMode: true))
-                        alphaToMask.floatValue = 0.0f;
-            }
 
-
-            // Update the renderqueue when we change the alphaTest
-            if (EditorGUI.EndChangeCheck())
-            {
-                var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(renderQueue);
-
-                renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1);
-            }
+            EditorGUI.showMixedValue = false;
         }
 
-        void DrawDoubleSidedGUI()
+        /// <summary>
+        /// Draws the Double Sided GUI.
+        /// </summary>
+        protected void DrawDoubleSidedGUI()
         {
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
                 using (CreateOverrideScopeFor(doubleSidedEnable))
                     materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
+
+            // This follow double sided option
+            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                using (CreateOverrideScopeFor(doubleSidedNormalMode))
+                    materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                EditorGUI.indentLevel--;
+            }
         }
 
-        void DrawSurfaceGUI()
+        /// <summary>
+        /// Draws the Surface GUI.
+        /// </summary>
+        protected void DrawSurfaceGUI()
         {
-            // TODO: does not work with multi-selection
-            bool showBlendModePopup = refractionModel == null
-                || refractionModel.floatValue == 0
-                || HDRenderQueue.k_RenderQueue_PreRefraction.Contains(materials[0].renderQueue);
-
             SurfaceTypePopup();
 
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(renderQueue))
                 {
-                    if (!zTest.hasMixedValue && materials[0].GetTransparentZTest() != CompareFunction.Disabled)
+                    if (!zTest.hasMixedValue && materials.All(m => m.GetTransparentZTest() != CompareFunction.Disabled))
                     {
                         ShowAfterPostProcessZTestInfoBox();
                     }
@@ -499,19 +577,21 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new EditorGUI.DisabledScope(true))
                         EditorGUILayout.LabelField(Styles.blendModeText, Styles.notSupportedInMultiEdition);
                 }
-                else if (blendMode != null && showBlendModePopup)
+                else if (blendMode != null)
                     BlendModePopup();
 
-                EditorGUI.indentLevel++;
-                if (renderQueueHasMultipleDifferentValue)
+                if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
+                    EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                    {
+                        using (new EditorGUI.DisabledScope(true))
+                            EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
+                    }
+                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null)
+                        using (CreateOverrideScopeFor(enableBlendModePreserveSpecularLighting))
+                            materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
+                    EditorGUI.indentLevel--;
                 }
-                else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
-                    using (CreateOverrideScopeFor(enableBlendModePreserveSpecularLighting))
-                        materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
-                EditorGUI.indentLevel--;
 
                 if (transparentSortPriority != null)
                 {
@@ -520,10 +600,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.BeginChangeCheck();
                         materialEditor.ShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText);
                         if (EditorGUI.EndChangeCheck())
-                        {
                             transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
-                            renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.GetTypeByRenderQueueValue(renderQueue), offset: (int)transparentSortPriority.floatValue);
-                        }
                     }
                 }
 
@@ -531,17 +608,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (CreateOverrideScopeFor(enableFogOnTransparent))
                         materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
 
-                if (transparentBackfaceEnable != null)
+                bool shaderHasBackThenFrontPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentBackfaceStr) != -1);
+                if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     using (CreateOverrideScopeFor(transparentBackfaceEnable))
                         materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
                 if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
                 {
-                    if (transparentDepthPrepassEnable != null)
+                    bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
+                    if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
                         using (CreateOverrideScopeFor(transparentDepthPrepassEnable))
                             materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                    if (transparentDepthPostpassEnable != null)
+                    bool shaderHasDepthPostPass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPostpassStr) != -1);
+                    if (shaderHasDepthPostPass && transparentDepthPostpassEnable != null)
                         using (CreateOverrideScopeFor(transparentDepthPostpassEnable))
                             materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
@@ -594,15 +674,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
-            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
-                using (CreateOverrideScopeFor(rayTracing))
-                    materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
-
-
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool receiveDecal = material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) > 0.0f;
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
@@ -624,19 +699,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
                     surfaceType.floatValue = (float)newMode;
-                    HDRenderQueue.RenderQueueType targetQueueType;
-                    switch (newMode)
-                    {
-                        case SurfaceType.Opaque:
-                            targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                            break;
-                        case SurfaceType.Transparent:
-                            targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
-                            break;
-                        default:
-                            throw new ArgumentException("Unknown SurfaceType");
-                    }
-                    renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
                 }
             }
             EditorGUI.showMixedValue = false;
@@ -763,17 +825,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
-        void DrawLitSurfaceOptions()
+        /// <summary>
+        /// Draws the Lit Surface Options GUI.
+        /// </summary>
+        protected void DrawLitSurfaceOptions()
         {
-            // This follow double sided option
-            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
-            {
-                EditorGUI.indentLevel++;
-                using (CreateOverrideScopeFor(doubleSidedNormalMode))
-                    materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
-                EditorGUI.indentLevel--;
-            }
-
             if (materialID != null)
             {
                 using (CreateOverrideScopeFor(materialID))
@@ -785,6 +841,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (CreateOverrideScopeFor(transmissionEnable))
                         materialEditor.ShaderProperty(transmissionEnable, Styles.transmissionEnableText);
                     EditorGUI.indentLevel--;
+                }
+            }
+
+            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
+            {
+                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
+                if (rayTracing.floatValue == 1.0f)
+                {
+                    EditorGUILayout.HelpBox(Styles.rayTracingTextInfo.text, MessageType.Info, true);
                 }
             }
 
@@ -821,7 +887,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (displacementMode != null)
+            if ((m_Features & Features.ShowDepthOffsetOnly) != 0 && depthOffsetEnable != null)
+            {
+                // We only display Depth offset option when it's enabled in the ShaderGraph, otherwise the default value for depth offset is 0 does not make sense.
+                if (!AreMaterialsShaderGraphs() || (AreMaterialsShaderGraphs() && GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f == true))
+                    materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+            }
+            else if (displacementMode != null)
             {
                 EditorGUI.BeginChangeCheck();
                 FilterDisplacementMode();
@@ -879,7 +951,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     if (EditorGUI.EndChangeCheck())
                         using (CreateOverrideScopeFor(invPrimScale, forceMode: true))
-                            invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+                            invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue);
+                    // Precompute
                     using (CreateOverrideScopeFor(depthOffsetEnable))
                         materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
@@ -887,7 +960,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public void UpdateDisplacement(int layerIndex)
+        internal void UpdateDisplacement(int layerIndex)
         {
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
             if (displaceMode == DisplacementMode.Pixel)

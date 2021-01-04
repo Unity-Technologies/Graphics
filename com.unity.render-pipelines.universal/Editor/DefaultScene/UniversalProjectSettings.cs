@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.Universal
             set
             {
                 instance.m_LastMaterialVersion = value;
-                Save();
             }
         }
 
@@ -54,7 +53,7 @@ namespace UnityEditor.Rendering.Universal
             return s_Instance;
         }
 
-        static void Save()
+        internal static void Save()
         {
             if (s_Instance == null)
             {

@@ -1,17 +1,16 @@
 # Graph Inspector
 
 ## Description
-The **Graph Inspector** is used to edit settings of selectable graph elements as well as graph-wide settings for the [Shader Graph Asset](Shader-Graph-Asset.md). You can edit their attributes and default values.  
 
-To inspect something in the graph, the user must select it. These settings are available in **Node Settings** tab of the **Graph Inspector**.
+The **Graph Inspector** lets you interact with any selectable graph elements and graph-wide settings for a [Shader Graph Asset](Shader-Graph-Asset.md). You can use the **Graph Inspector** to edit attributes and default values.
 
-The **Graph Inspector** displays the **Graph Settings** tab by default when a Shader Graph is opened.
+When you open a Shader Graph, the **Graph Inspector** displays the **[Graph Settings](Graph-Settings-Menu.md)** tab by default. Graph-wide settings for that specific Shader Graph appear in this tab.
 
-The **Node Settings** tab will display the attributes belonging to selected items that the user can edit. Multiple elements can be selected and edited at once.
+Select a node in the graph to display settings available for that node in the **Graph Inspector**. Settings available for that node appear in the **Node Settings** tab of the Graph Inspector. For example, if you select a Property node either in the graph or the [Blackboard](Blackboard.md), the **Node Settings** tab displays attributes of the Property that you can edit.
 
 ![](images/InternalInspectorBlackboardProperty.png) 
 
-Graph elements that can be inspected:
+Graph elements that currently work with the Graph Inspector:
 
 - [Properties](https://docs.unity3d.com/Manual/SL-Properties.html)
 
@@ -34,8 +33,8 @@ Graph elements that can be inspected:
     ![](images/Inspector-PerNodePrecision.png)
 
 
-Graph elements that cannot (currently) be inspected:
+Graph elements that currently do not work with the Graph Inspector:
+
 - Edges
 - [Sticky Notes](Sticky-Notes.md)
 - Groups
-

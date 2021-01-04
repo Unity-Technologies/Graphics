@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
 
-        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) {}
 
         protected virtual bool allowTextures { get { return shaderGraph == null; }}
 
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if( shaderGraph == null)
+            if (shaderGraph == null)
             {
                 yield return slotExpressions.First(o => o.name == "smoothness");
 
@@ -230,12 +230,12 @@ namespace UnityEditor.VFX
 
                     case MaterialType.Translucent:
                     case MaterialType.SimpleLitTranslucent:
-                        {
-                            yield return slotExpressions.First(o => o.name == "thickness");
-                            uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
-                            yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
-                            break;
-                        }
+                    {
+                        yield return slotExpressions.First(o => o.name == "thickness");
+                        uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+                        yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
+                        break;
+                    }
 
                     default: break;
                 }
@@ -407,6 +407,7 @@ namespace UnityEditor.VFX
                 {
                     yield return "onlyAmbientLighting";
                     yield return "preserveSpecularLighting";
+                    yield return "excludeFromTAA";
                 }
             }
         }
@@ -428,18 +429,7 @@ namespace UnityEditor.VFX
                 var forwardDefines = new VFXShaderWriter();
                 forwardDefines.WriteLine("#define _ENABLE_FOG_ON_TRANSPARENT");
                 forwardDefines.WriteLine("#define _DISABLE_DECALS");
-                switch (blendMode)
-                {
-                    case BlendMode.Alpha:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ALPHA");
-                        break;
-                    case BlendMode.Additive:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ADD");
-                        break;
-                    case BlendMode.AlphaPremultiplied:
-                        forwardDefines.WriteLine("#define _BLENDMODE_PRE_MULTIPLY");
-                        break;
-                }
+
                 if (!isBlendModeOpaque)
                 {
                     if (preserveSpecularLighting)

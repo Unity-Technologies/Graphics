@@ -11,8 +11,8 @@ Replaces values in input **In** equal to input **From** to the value of input **
 | In      | Input | Vector 3 | None | Input value |
 | From      | Input | Vector 3 | Color | Color to replace |
 | To      | Input | Vector 3 | Color | Color to replace with |
-| Range      | Input | Vector 1 | None | Replace colors within this range from input **From** |
-| Fuzziness      | Input | Vector 1 | None | Soften edges around selection |
+| Range      | Input | Float    | None | Replace colors within this range from input **From** |
+| Fuzziness      | Input | Float    | None | Soften edges around selection |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

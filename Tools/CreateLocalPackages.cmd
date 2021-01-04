@@ -1,4 +1,4 @@
-set version=10.0.0
+set version=11.0.0
 call CreateOneLocalPackage.bat com.unity.render-pipelines.core %version%
 call CreateOneLocalPackage.bat com.unity.render-pipelines.high-definition %version%
 call CreateOneLocalPackage.bat com.unity.render-pipelines.high-definition-config %version%

@@ -7,361 +7,215 @@ This script generates Yamato job definition files based on configuration/metafil
    - reduced code duplication and possibility define constants in a single place
 - Cons:
    - the higher consistency among files and the reduced code duplication makes introducing exceptions more difficult
+   - learning curve
 
 # Structure
 - *.yamato/config/* - directory containing configurations (metafiles) for the jobs to be generated, this is where most of the changes to Yamato jobs should be introduced (Input)
 - *.yamato/*  - directory containing all the generated job definition files (.yml) (Output)
-- *.yamato/ruamel/build.py* - main script, which reads the metafiles and dumps the generated ymls into files
+- *.yamato/ruamel/build.py* - main script, which creates the actual yml files
 - *.yamato/ruamel/jobs/* - directory containing all Python modules for the jobs to be generated, which are organized into subdirectories by domains
 
 # Running the script
 Script must be run again each time new changes are introduced in the metafiles.
 - Install ruamel by `pip install ruamel.yaml` (or `pip3`)
-- Run script inside *ruamel/* directory by `python build.py` (or `python3`)
+- Run script by `python [.yamato/ruamel/]build.py` (or `python3`)
 
-# Example use cases
-The majority of changes are introduced within metafiles (*.yamato/config/\*.metafile*, for details check metafile descriptions below). After introducing changes, the script must be rerun (to clean up current jobs, and fetch the updated metafiles to recreate the jobs)
+# Introducing changes
+Each time a metafile or a python file is edited, `python build.py` must be run to regenerate the ymls.
 
-### ABV related changes (_abv.metafile)
-- Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
-- Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
-- Add job to trunk verification: add the dependency under trunk_verification.dependencies
+### Adding new dependencies to a job
+- Go to the corresponding (project) metafile, and add dependencies to the wanted section, usually specified by  `[job_specific_title].dependencies`. See examples in `_abv.metafile` or any project metafiles. There are 3 ways to specify a dependency, examples below:
+```
+# add dependencies for testplatforms of a specific job configuration
+[project: Universal] # optional: if not specified then uses the project this metafile corresponds to
+platform: Win
+api: Vulkan
+build_config: mono
+color_space: Linear
+test_platforms: # refer by testplatform name
+  - playmode
+  - playmode_XR
+  - ...
 
-### Project related changes (project_name.metafile)
-- Adding a new job to All_{project_name}: add the new job under all.dependencies (this job can also be from a different project) 
-- Adding a new platform/api for the project: extend the list under platforms as indicated
-- Creating a new project: create a new metafile same way as is done for existing projects. All ymls get created once the script runs
-- Use different platform than what is specified in the shared metafile: override the platform as described in the metafile description under platforms section
+# add dependency for the project PR job
+- project: Universal
+  pr: true
 
-### Package related changes (_packages.metafile)
-- Adding a new package: extend packages list with new package details. The new package jobs get automatically created once the script runs (pack, publish, test, test_dependencies). The package is also automatically included in test_all and publish_all jobs.
+# add dependency for the Nightly project job
+- project: Universal
+  nightly: true
+```
 
+### Adding/removing testplatforms for projects
+- Removing: delete the relevant lines in the metafile(s). If any other job had this deleted job as a dependency, the `build.py` will log it as error.
+- Adding (see below sections for more detailed testplatform setup): 
+  - add the testplatform configuration to project metafile `test_platforms` section same way as existing ones
+  - make sure to add the new dependencies to relevant CI jobs: either PR job (`pr.dependencies`) or Nightly job (`nightly.dependencies`) sections in project metafile. PR job runs on every PR and should include necessary coverage. Nightly job should include all other configurations.
+
+### Adding a new project
+- For projects within the repository, add a new project metafile, and fill it in accordingly. See existing ones for reference. Running `build.py` will pick up the file and create `.ymls` for you.
+
+### Introducing a completely new platform
+- Add the platform with to `_shared.metafile#platforms` similarly to the rest
+- Add any utr flags specific to this platform in `_shared.metafile#test_platforms`
+- Add a new cmd file under `ruamel/jobs/projects/commands/[platformname].py` (use `platformname_api` if apis require different commandsets) and fill it in similarly to other cmd files
+- Import and map this cmd file in `ruamel/jobs/projects/commands/cmd_mapper.py`
+- Add the platform to `_editor.metafile` `platforms` and `unity_downloader_components` sections. Right now, also add it to `ruamel/editor_pinning/update_revisions.py` script (update list of platforms, as well the correct `-o` flag to be used by unity-downloader-cli) --- this is temporary, and it will soon be moved to use the metafile as well.
 
 ### Changes when branching out
 - When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
-  - In *__shared.metafile* :
-    - Change `editors` section to contain the correct editor versions
-    - Change `target_editor` to the target editor version for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
-    - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
-  - In *__abv.metafile* :
-    - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
-    - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
+  - In *__shared.metafile* change all references: `editors`, `target_editor` (e.g. trunk), `target_branch` (e.g. master), `target_branch_editor_ci` (editor pinning branch)
+  - In *__editor.metafile* change all references: `editor_tracks` (used by editor pinning), `trunk_track` (used by editor pinning), `green_revision_jobs`  
+  - In *_packages.metafile* change reference: `publish_all_track`
+  - Rename `_green_job_revisions_[track].metafile` and `_latest_editor_versions_[track].metafile` to use the correct track
+  - Additional measures: run editor pinning update job and green revisions job manually (see below how), to ensure everything works as expected and to update the files accordingly.
+  - Change Yamato API link to correct branch and jobname in `store_green_revisions.py`
 
-### Other changes to metafiles
-- All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
+### Test platforms and UTR flags:
+Test platforms setup:
+- There are 3 base test platforms: standalone (build), playmode, editmode. Their corresponding basic UTR flags are found in `config/_shared.metafile`
+- Create a custom test platform (when needed) in project metafile by specifying the base with `type`, and rename it to what you need. Then configure any additional UTR flags you need
+- You can exclude this testplatform for certain APIs, by referencing its name under `platform.apis -> exclude_test_platforms`
 
-### Changes within Python
-- Creating a new job: create a new job file under a domain/, same way as existing jobs are defined. Call this job inside build.py wherever needed. Any new file paths, job ids etc specific to this project should be added to shared/namer.py, and called via this (not hardcoded)
-- Changing constants, variables, paths, ids, etc: all changes should be introduced in either shared/namer.py or shared/constants.py
-- Extending the YAMLJob building block class: if new functionality is needed, e.g. a new section under any job file is needed, define it as a function under shared/yml_job.py class.
-- Changing to using split test/build for Standalone: under jobs/projects/commands/_cmd_mapper.py change the reference to which set of commands to use. For instance, to switch from Linux to Linux split, change under linux section all linux.cmd_* to linux_split.cmd_*. This simply uses the different set of commands, and the project job definition will automatically create split test/build if split commandset is used, and vice versa.
+UTR flags setup:
+- The base flags for each of the 3 testplatforms are found in `config/_shared.metafile#test_platforms` under `utr_flags`
+- To add additional flags for your testplatform, add an `utr_flags` section (same structure as in shared metafile) under the testplatform in your project metafile. For split _build_ jobs, use `utr_flags_build`
+- UTR flags specified by `[all]` are applied for all platform/api cases, but the list `[platform_api, platform_api, ...]` can be used specific cases.
+- Last flag overwrites preceding one, file priority being that project metafile overwrites shared metafile.
+- It is also possible to call UTR multiple times within the same job, see below for _Repeated UTR calls_
 
-#### Python structure explanation for projects
-- Project jobs are defined by 3 job definition files: **standalone** (contains standalone_build job if split commandset is used), **standalone_build** (build job for standalone tests), **not_standalone** (editmode, playmode, playmode_xr)
-- Because all jobs follow the same structure no matter which platform/api is used, with only the commands (and the agent) being different, then commands are obtained from files under jobs/projects/commands/{platform}.py by the job definition class. 
-    - Each of these files has commands specific to its platform. If commands differ also per api, like for OSX, then {platform}_{api}.py format is used. 
-    - Each of these files contains functions for 3 commandsets (for standalone, standalone_build, not_standalone), which are then used according to which job is being created. 
-    - The mapping of which commands to use for which platform is done under _cmd_mapper.py. This also makes it easy to switch the set of commands for a specific platform, such as to switch to new split built/test, without completely losing the old solution.
+Example:
+  ```
+test_platforms:
+  - type: Standalone
+    name: Standalone_new
+    utr_flags:
+      - [all]: --timeout=1200
+      - [OSX_Metal]: --timeout=2400
+      - [all]: --reruncount=2
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
+    utr_flags_build: # settings for build job
+      - [all]: --timeout=4000
+      - [iPhone_Metal]: --timeout=5000
+platforms:
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+  ```
+
+#### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. Use `utr_flags_build` section only for split build jobs.
+- If this `utr_repeat` section is not specified, then normal flow applies (utr is called once).
+- The `apply` section corresponds to list of platforms/apis for which this repeated block applies.
+```
+test_platforms:
+  - type: Standalone
+    name: Standalone_new
+    utr_flags:
+      - [all]: --timeout=1000
+      - [iPhone_Metal]: --timeout=2400
+    utr_flags_build:
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+    utr_repeat:
+      - apply: [iPhone_Metal] 
+        utr_flags:
+        - [iPhone_Metal]: --player-load-path=playersLow
+        utr_flags_build:
+        - [all]: --testfilter=Low
+        - [iPhone_Metal]: --player-save-path=playersLow
+      - apply: [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-load-path=../../playersMedium
+        utr_flags_build:
+        - [all]: --testfilter=Medium
+        - [Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-save-path=../../playersMedium
+  ```
+
+# General setup
+
+## Variables
+Some jobs benefit from Yamato variables, which can be edited in Yamato UI. 
+- `CUSTOM_REVISION`: used by all custom revision jobs, specifies against which unity revision to run the job
+- `TEST_FILTER`: used by project jobs (incl _All [project>] CI_), and applies for all standalone build/playmode/editmode jobs, for which the testfilter is not hardcoded in the metafile. Default value is `.*` (run all tests). To check if a testfilter is hardcoded or the variable is used, simply check if the `utr` command in the job yml references the variable or not.
+
+
+## Python quickstart:
+- Each platform has its own commands file under `ruamel/jobs/projects/commands/{platform}.py`, where you can edit the command block. These command files are mapped in `ruamel/jobs/projects/commands/cmd_mapper.py`
+- Each file under `ruamel/jobs/[domain]/[job].py` corresponds to one type of Yamato job. For projects there are 3 types: standalone, standalone build, and not_standalone (editmode/playmode). Each domain also has its own `yml_[domain].py` which stores the looping logic over configurations and jobs for this domain (eg looping over editors/platforms etc.), and then writes the ymls to files (this file essentially contains all the for-loops as in the previous liquid yml system)
+- `ruamel/jobs/shared` contains all shared scripts, constants etc.
+
+
+## Editor priming vs editor pinning
+- Editor priming:
+    - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
+    - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
+- Editor pinning:
+    - Updates editor revisions (`_latest_editor_versions_[track].metafile`) on a nightly basis. Green ABV requirement is toggleable, and is currently turned off (i.e. updates happen no matter ABV state) 
+    - There are 3 types of revisions retrieved from _unity-downloader-cli_: `staging` corresponds to `--fast`, `latest_public` corresponds to `--published-only`, and `latest_internal` corresponds to no flags. Currently trunk uses `latest_internal`, rest use `staging` 
+    - Workflow in short:
+        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these to ci branch
+        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. 
+    - Workflow in details is on figure below. Some things have changed since that figure was created: (1) we now use a single track per branch, not double. (2) ABV dependency is turned off
+    ![Editor pinning flow](editor_pinning.png)
+
+- Running editor pinning locally:
+  - Make sure you have the latest version of unity-downloader-cli
+  - Update job: `python .yamato\ruamel\editor_pinning\update_revisions.py --target-branch [localbranch] --local`
+    - _--local_ flag specifies that no git pull/push/commit gets executed
+    - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
+    - This job updates `_latest_editor_versions.metafile` locally, and also runs `build.py` again to regenerate all ymls with the updated revisions. You can either keep all of the latest revisions, or only the ones you want, and rerun ymls. Once ready, merge like normal PR (i.e. no need to run the merge_revisions job)
+  - Merge job: `python .yamato\ruamel\editor_pinning\merge_revisions.py --target-branch [targetbranch] --local --revision [git sha] --track [editortrack]` 
+    - _--local_ flag skips checkout/pull of the target branch (but still makes commit on the currently checkout branch, if there is something to commit)
+    - _--target-branch_ the target branch into which the revisions get merged to from the ci branch (after jobs passed on ci branch, when CI context used). But due to the local flag, this branch won't get checked out/pulled.
+    - _--revision_ the git SHA of the updated revisions commit (the one made on the ci branch by update job). The job runs `git diff HEAD..[revision] -- [path]`, i.e. diff between the current checked out branch vs that SHA (revision). (The _path_ corresponds to yml files or the latest editor versions metafile, but this is already setup within the job). Therefore the merge job only cares about these two paths, and will not merge other changes. This works, because in general, if merge job gets triggered, then CI branch is 1 commit ahead of target branch (which is the updated revisions commit).
+    - _--track_ specifies which editor track the merge job runs for (i.e which editor file it aims to merge)
+    - In general there is no need to run this file locally. It is only handy when wanting to test the script for syntax errors/functionality etc.
+
+## Storing green revisions for jobs
+This job runs nightly (7am) and uses the `_latest_editor_versions_[track].metafile` together with the most recent nightly. For every job in `_editor.metafile#green_revision_jobs`, if it was successful in the nightly job, it updates the corresponding revision section in `_green_job_revisions_[track].metafile`.
+- Run it locally by `python .yamato/ruamel/editor_pinning/store_green_revisions.py --target-branch [any branch] --track trunk  --apikey [apikey] --local`
+    - _--local_ flag specifies that no git pull/push/commit gets executed
+    - _--target-branch_ would usually correspond to CI branch, but when running locally, just set it to the one you have checked out locally
+    - _--track_ specifies the track to use (required to match job names, editor versions file, green revisions file, and nightly)
+
+## Current workflow setup
+- There are project spefic CI jobs:
+    - `[project] PR Job` is triggered on PRs (according to which files were changes), and contains necessary coverage for this project
+    - `Nightly [project]` is runs nightly and contains the PR job + all other jobs for this project
+- General `_Nightly ABV` contains all project nightlies + some additional jobs 
 
 # FAQ
-
-- How is Nightly ABV set up (all_project_ci_nightly)? Nightly contains the normal ABV (all_project_ci), plus any additional jobs specified in the _abv.metafile under nightly extra dependencies.
 - What are smoke tests? Blank Unity projects containing all SRP packages (and default packages) to make sure all packages work with each other
 - Why does OpenGLCore not have standalone? Because the GPU is simulated and this job is too resource heavy for these machines
+- How to UTR flags work? UTR flag order is preserved while parsing in metafiles, and shared metafile is parsed before project metafile. Thus, if shared metafile has `[all]: --timeout=1200, [Win_DX11, Win_DX12]: --timeout=3000` and project metafile has `[Win_DX11]: --timeout=5000`, this will result in DX11 having 5000, DX12 having 3000, and everything else 1200. Note that flags end up alphabetically sorted in the final ymls.
 
-# Configuration files (metafiles)
 
-### __shared.metafile: contains configurations shared across all Yamato jobs (.i.e the central configuration file).
+# Configuration file examples (metafiles)
+
+### _shared.metafile: specifying editors
 ```
-# main branch for ci triggers etc
-target_branch: master 
-
-# target editor version used for this branch 
-target_editor: trunk
-
-# editors applied for all yml files (overridable) (list)
+# editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  - version: trunk
-    rerun_strategy: always
-    cmd: -u trunk # used only by editor job
-  - ...
-
-# test platforms with their corresponding command args (dict)
-test_platforms:   
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
-
-# specifies platform details for each platform used within project jobs (dict)
-project_platforms:
-  Win:
-    name: Win
-    os: windows
-    apis: # specifies apis with their corresponding command args
-      DX11: -force-d3d11
-      DX12: -force-d3d12
-      Vulkan: -force-vulkan
-    components:
-      - editor
-      - il2cpp
-    exclude_test_platforms: # mark test platforms not to be used for this platform
-      - playmode_XR
-      - ...
-    agent_default: # default agent used for each testplatform, if not overridden
-      type: Unity::VM::GPU
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_standalone_build: # override default agent for Standalone build
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.xlarge
-    agent_editmode: # override default agent for editmode
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_playmode: # override default agent for playmode
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_playmode_xr: # override default agent for playmode XR
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-  ...
-
-# agents used by package, template etc jobs (dict)
-non_project_agents:
-  cds_ops_ubuntu_small:
-    type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
-    flavor: b1.small  
-  package_ci_ubuntu_large:
-    type: Unity::VM
-    image: package-ci/ubuntu:stable
-    flavor: b1.large
-  sdet_win_large_gpu:
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-  ...
-```
-
-
-
-
-
-### _abv.metafile: contains configurations for ABV jobs
-```
-abv: # all_project_ci (ABV) job configuration 
-  trigger_editors: # editor(s) for which to create a PR trigger
-    - fast-trunk
-  projects: # projects to include in ABV by calling All_{project} jobs
-    - name: Universal
-    - name: Universal_Stereo
-    - ...
-
-nightly: # all_project_ci_nightly job configuration
-  allowed_editors: # editor(s) for which to create nightly jobs
-    - trunk
-  extra_dependencies: # project jobs to run in addition to ABV
-    - project: Universal # use this format to run a specific job
-      platform: Android
-      api: OpenGLES3
-      test_platforms:
-        - Standalone
-    - project: HDRP_Hybrid # use this format to run an All_{project} job
-      all: true  
-    - ...  
-
-smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # (used for editmode)
-  agent_gpu: sdet_win_large_gpu 
-  test_platforms: # test platforms to create smoke tests for
-    - Standalone
-    - playmode
-    - editmode
-
-trunk_verification: # jobs to include in trunk verification job
-  dependencies:
-    - project: Universal
-      platform: Win
-      api: DX11
-      test_platforms:
-        - playmode
-        - editmode
-    - ...
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
-```
-
-### _editor.metafile: configuration for editor priming jobs
-
-```
-# all platforms for editor priming jobs
-platforms:
-  - os: macos
-    components:
-      - editor
-      - il2cpp
-  - os: android
-    components:
-      - editor
-      - il2cpp
-      - android
-  - os: windows
-    components:
-      - editor
-      - il2cpp
-  - os: linux
-    components:
-      - editor
-      - il2cpp
-  - os: ios
-    components:
-      - editor
-      - iOS
-agent: cds_ops_ubuntu_small # agent for editor priming, refers to __shared.metafile
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
-    cmd: -u trunk
-```
-
-
-### _packages.metafile: package jobs configuration
-```
-# packages to create pack/test/publish jobs for
-packages:
-  - name: Core
-    id: core
-    packagename: com.unity.render-pipelines.core
-    dependencies:
-      - core
-  - name: Lightweight
-    id: lwrp
-    packagename: com.unity.render-pipelines.lightweight
-    dependencies:
-      - core
-      - shadergraph
-      - universal
-      - lwrp
-  - ...
-
-# platforms for test jobs (agents refer to __shared.metafile)
-platforms:
-    - name: Win
-      os: windows
-      components:
-      - editor
-      - il2cpp
-      agent_default: win_large_package_ci
-      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      editorpath: .\.Editor
-    - name: OSX
-      os: macos
-      components:
-      - editor
-      - il2cpp
-      agent_default: osx_mac_buildfarm
-      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
-
-# agents specific for pack/publish/publish_all jobs
-agent_pack: package_ci_win_large 
-agent_publish: package_ci_win_large
-agent_publish_all: package_ci_ubuntu_large
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-
-```
-
-### _preview_publish.metafile: preview publish job configurations
-```
-# publishing variables
-publishing: # these are currently commented out and dont work though
-  auto_publish: true # if true, publish_all_preview gets daily recurrent trigger
-  auto_version: tru # if true, auto_version gets branch trigger
-
-# platform dependencies for package pack and publish jobs
-platforms:
-  - os: OSX
-  - os: Win
-
-# package dependencies
-packages:
-  - name: core
-    path: com.unity.render-pipelines.core
-    type: package
-    publish_source: true # if true, publish and promote jobs are created
-    standalone: true
-  - ...
-
-# agents for specific jobs,referring to __shared.metafile
-agent_publish: package_ci_win_large
-agent_promote: package_ci_win_large
-agent_auto_version: package_ci_ubuntu_large
-
-# override editors from __shared.metafile file
-override_editors:
-  - version: trunk
-```
-
-### _templates.metafile: template jobs configuration (highly similar for packages configuration)
-```
-# templates to create jobs for
-templates:
-  - name: HDRP Template
-    id: hdrp_template
-    packagename: com.unity.template-hd
-    dependencies:
-      - core
-      - shadergraph
-      - vfx
-      - config
-      - hdrp
-    hascodependencies: 1
-  - ...
-
-# platforms to run template tests on
-platforms:
-    - name: Win
-      os: windows
-      components:
-      - editor
-      - il2cpp
-      agent_default: win_large_package_ci # refers to __shared.metafile
-      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      editorpath: .\.Editor
-    - name: OSX
-      os: macos
-      components:
-      - editor
-      - il2cpp
-      agent_default: osx_mac_buildfarm # refers to __shared.metafile
-      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
-
-# agents for specific jobs
-agent_pack: package_ci_win_large
-agent_test:  package_ci_win_large
-agent_all_ci: package_ci_win_large
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
+  - track: trunk # unity track: trunk, 2020.2, ....
+    name: trunk # name used in job ids, useful if editor pinning is not used and e.g. 2019.4 and fast-2019.4 are used instead
+    rerun_strategy: on-new-revision
+    editor_pinning: True  # use editor pinning for this track
+    editor_pinning_use_abv: False # green ABV is not required for editor pinning
+    nightly: True  # add recurrent trigger for the _Nightly job
+    weekly: True  # add recurrent trigger for the _Weekly job 
+    abv_pr: True  # trigger ABV on PRs 
+    fast: # use this if editor pinning is turned off and editor should be used with --fast flag
 ```
 
 
 ### {project_name}.metafile: project jobs configuration
+If the project is just a high-level job only consisting of dependencies, then `project.folder`, `test_platforms`, and `platforms` can be left out (i.e. you only need to specify `project.name` and `all.dependencies`).
 ```
 # project details
 project:
@@ -371,81 +225,34 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  ... # see above
 
 # platforms to use (platform details obtained from __shared.metafile)
 # platforms can be overridden by using the same structure from shared
 platforms:
-  - name: OSX 
-    apis:
-      - Metal
-      - OpenGLCore
-  - name: Linux
-    apis: 
-      - Vulkan
-      - OpenGLCore
-  - name: Android
-    apis: 
-      - Vulkan
-      - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
-  # OR override __shared.metafile platform(example for Win):
-  # - name: Win
-  #  os: windows
-  #  apis:
-  #    DX12: -force-d3d12
-  #  agent_default:
-  #    type: Unity::VM::GPU
-  #    image: sdet/gamecode_win10:stable
-  #    flavor: b1.large
-  #    model: rtx2080
-  #  components:
-  #    - editor
-  #    - il2cpp
-  #  exclude_test_platforms:
-  #    - playmode_XR
-
-
-# which jobs to run under All_{project_name} job
-# this is the same structure as in abv nightly extra dependencies
-all: 
+      - name: DX11
+        exclude_test_platforms: # exclude testplatforms for this specific api by referencing their name
+          - name: editmode
+      - name: DX12
+      - name: Vulkan
+    build_configs: # specify build configs for this platform by their name in shared.metafile
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
+    color_spaces: # specify color spaces 
+      - Linear
+      - Gamma
+  - name: OSX
+    ...
+....
+# see above sections on how to add dependencies
+pr: # jobs to run under PR job
   dependencies:
-    - platform: Win
-      api: DX11
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        - playmode_XR
-    - platform: OSX
-      api: Metal
-      test_platforms:
-        - Standalone
-        - playmode 
-    - project: HDRP_DXR # use this if there is a dependency to another project
-      platform: Win
-      api: DX12
-      test_platforms:
-        - playmode
-    - project: HDRP_DXR # use this if there is a dependency to another project
-      all: true
     - ...  
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
-
+nightly: # jobs to run nightly
+  dependencies:
+    - ...
 ```
 
 

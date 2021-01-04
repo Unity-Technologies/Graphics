@@ -1,3 +1,5 @@
+#ifndef SHADOW_MOMENTS_INCLUDED
+#define SHADOW_MOMENTS_INCLUDED
 // Library header containing various useful functions for doing moment based shadow maps.
 // Supported flavors are VSM, EVSM and MSM
 
@@ -38,7 +40,7 @@ float ShadowMoments_WarpDepth_PosOnly(float depth, float exponent)
 }
 
 // This uses exp2 instead of exp (as it has a native hw instruction), as such, the exponent
-// expects a log2(e) factor baked in. 
+// expects a log2(e) factor baked in.
 float ShadowMoments_WarpDepth_PosOnlyBaseTwo(float depth, float exponent)
 {
     // Rescale depth into [-1;1]
@@ -131,3 +133,4 @@ float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
 
     return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0 - lightLeakBias) );
 }
+#endif

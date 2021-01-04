@@ -49,6 +49,11 @@ namespace UnityEditor.VFX.Test
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
 
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", "position");
+            spawnerInit.AddChild(blockAttribute);
+
             slotCount.value = spawnCountValue;
 
             spawnerContext.AddChild(blockConstantRate);
@@ -72,6 +77,31 @@ namespace UnityEditor.VFX.Test
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(vfxComponent.transform);
         }
+
+        [UnityTest]
+        public IEnumerator Sanitize_VFXSpawnerCustomCallback_Namespace()
+        {
+            string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpawnerCustomCallbackBuiltin.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicSpawner>().Count());
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            Assert.AreEqual(4, basicSpawner.GetNbChildren());
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SpawnOverDistance")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SetSpawnTime")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("LoopAndDelay")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("IncrementStripIndexOnStart")));
+
+            foreach (var sanitizeSpawn in basicSpawner.children)
+            {
+                Assert.IsFalse(sanitizeSpawn.inputSlots.Any(o => !o.HasLink()));
+                Assert.IsNotNull(sanitizeSpawn.GetSettingValue("m_customScript"));
+                Assert.IsNotNull((sanitizeSpawn as VFXSpawnerCustomWrapper).customBehavior);
+            }
+
+            yield return null;
+        }
+
 
         static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
 
@@ -155,7 +185,116 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
-        [Retry(3)]
+        static List<int> s_receivedEvent;
+        static void OnEventReceived(VFXOutputEventArgs evt)
+        {
+            s_receivedEvent.Add(evt.nameId);
+        }
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Spawner_And_Output_Event()
+        {
+            yield return new EnterPlayMode();
+
+            //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
+            var spawnCountValue = 1.0f; //We running these test at 10FPS
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var eventName = "wxcvbn";
+            outputEvent.SetSettingValue("eventName", eventName);
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            graph.AddChild(outputEvent);
+            outputEvent.LinkFrom(basicSpawner);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            s_receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived;
+
+            int maxFrame = 64;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            var outputEventNames = new List<string>();
+            vfxComponent.GetOutputEventNames(outputEventNames);
+            Assert.AreEqual(1u, outputEventNames.Count);
+            var outputEventName = outputEventNames[0];
+            Assert.AreEqual(outputEventName, eventName);
+
+            //Checking invalid event (waiting for the first event)
+            Assert.AreEqual(0u, s_receivedEvent.Count);
+
+            //Checking on valid event while there is an event
+            maxFrame = 64; s_receivedEvent.Clear();
+            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            Assert.IsTrue(s_receivedEvent.Count > 0);
+            Assert.AreEqual(Shader.PropertyToID(eventName), s_receivedEvent.FirstOrDefault());
+
+            s_receivedEvent.Clear();
+
+            yield return new ExitPlayMode();
+        }
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Spawner_And_Output_Event_Expected_Count()
+        {
+            yield return new EnterPlayMode();
+
+            //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
+            var spawnCountValue = 1.0f; //We running these test at 10FPS
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            graph.AddChild(outputEvent);
+            outputEvent.LinkFrom(basicSpawner);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            s_receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived;
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            vfxComponent.Reinit();
+            float deltaTime = 0.1f;
+            uint count = 32;
+            vfxComponent.Simulate(deltaTime, count);
+            Assert.AreEqual(0u, s_receivedEvent.Count); //The simulate is asynchronous
+
+            float simulateTime = deltaTime * count;
+            uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
+
+            maxFrame = 64; s_receivedEvent.Clear();
+            cameraObj.SetActive(false);
+            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.AreEqual(expectedEventCount, (uint)s_receivedEvent.Count);
+            yield return null;
+
+            yield return new ExitPlayMode();
+        }
+
+
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner()
         {
@@ -232,6 +371,7 @@ namespace UnityEditor.VFX.Test
 
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
@@ -271,6 +411,47 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        //Cover fix from 1268360 : Simple usage of exact fixed time step, it should not throw any error from the renderer
+        [UnityTest]
+        public IEnumerator Create_Spawner_Check_No_Incorrect_Thread_Count([ValueSource("s_CheckTimeMode")] VFXTimeModeTest timeMode)
+        {
+            yield return new EnterPlayMode();
+
+            var spawnCountValue = 651.0f;
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+            graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var previousCaptureFrameRate = Time.captureFramerate;
+            var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            var previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 0.1f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 0.5f;
+            Time.captureDeltaTime = 1.0f;
+
+            int maxFrame = 128;
+            while (vfxComponent.culled && --maxFrame > 0)
+                yield return null;
+
+            //Wait a few frame to verify if we are getting any warning from the rendering
+            for (int i = 0; i < 5; ++i)
+                yield return null;
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+
+            Time.captureFramerate = previousCaptureFrameRate;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
+
+            yield return new ExitPlayMode();
+        }
+
+
         //Fix case 1217876
         static VFXTimeModeTest[] s_Change_Fixed_Time_Step_To_A_Large_Value_Then_Back_To_Default = new[]
         {
@@ -289,6 +470,7 @@ namespace UnityEditor.VFX.Test
             CreateAssetAndComponent(3615.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;

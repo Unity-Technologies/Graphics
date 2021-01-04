@@ -59,6 +59,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocityZ        = new VFXAttribute("angularVelocityZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         [Tooltip("The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.")]
         public static readonly VFXAttribute TexIndex                = new VFXAttribute("texIndex", VFXValueType.Float);
+        [Tooltip("The current index of the mesh. This attribute is used with multi mesh outputs.")]
+        public static readonly VFXAttribute MeshIndex               = new VFXAttribute("meshIndex", VFXValueType.Uint32);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
         public static readonly VFXAttribute PivotX                  = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         [Tooltip("The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.")]
@@ -91,12 +93,14 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute StripIndex              = new VFXAttribute("stripIndex", VFXValueType.Uint32);
         [Tooltip("Outputs the total particle count within the current strip. This attribute is available in systems using the 'Particle Strip' data type.")]
         public static readonly VFXAttribute ParticleCountInStrip    = new VFXAttribute("particleCountInStrip", VFXValueType.Uint32);
+        [Tooltip("Outputs the spawn index of the particle within its strip. This attribute is available in systems using the 'Particle Strip' data type.")]
+        public static readonly VFXAttribute SpawnIndexInStrip       = new VFXAttribute("spawnIndexInStrip", VFXValueType.Uint32);
 
         // Internal as we dont want it to appear in the graph
-        internal static readonly VFXAttribute StripAlive                     = new VFXAttribute("stripAlive", VFXValue.Constant(true)); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
+        internal static readonly VFXAttribute StripAlive            = new VFXAttribute("stripAlive", VFXValue.Constant(true)); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex, ParticleCountInStrip };
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime, ParticleIndexInStrip, SpawnIndex, StripIndex, ParticleCountInStrip, SpawnIndexInStrip };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex, ParticleCountInStrip };
 

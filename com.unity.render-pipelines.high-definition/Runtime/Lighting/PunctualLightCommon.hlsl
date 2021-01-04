@@ -27,16 +27,22 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
     {
         L = -light.forward;
 
+        float dist = -dot(lightToSample, L);
+        float distSq = dist * dist;
+        distances.y = distSq;
         if (light.rangeAttenuationBias == 1.0) // Light uses range attenuation
         {
-            float dist    = -dot(lightToSample, L);
-            float distSq  = dist * dist;
             float distRcp = rcp(dist);
-            distances.xyz = float3(dist, distSq, distRcp);
+            distances.x = dist;
+            distances.z = distRcp;
             ModifyDistancesForFillLighting(distances, light.size.x);
         }
         else // Light is directionnal
-            distances.xyz = 1; // No distance or angle attenuation
+        {
+            // Note we maintain distances.y as otherwise the windowing function will give wrong results.
+            // There won't be attenuation as the light attenuation scale and biases are set such that attenuation is prevented.
+            distances.xz = 1; // No distance or angle attenuation
+        }
     }
     else
     {

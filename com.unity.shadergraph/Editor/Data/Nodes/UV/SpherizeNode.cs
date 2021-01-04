@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Spherize";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Spherize", BindingFlags.Static | BindingFlags.NonPublic);
@@ -26,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
             return
-                @"
+@"
 {
     $precision2 delta = UV - Center;
     $precision delta2 = dot(delta.xy, delta.xy);

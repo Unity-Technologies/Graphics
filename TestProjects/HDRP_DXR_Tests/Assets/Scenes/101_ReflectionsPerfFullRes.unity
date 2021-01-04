@@ -199,7 +199,7 @@ PrefabInstance:
     - target: {fileID: 8401416846860372386, guid: 441ff2a39ae01f14284390b460d6372e,
         type: 3}
       propertyPath: m_Version
-      value: 10
+      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 441ff2a39ae01f14284390b460d6372e, type: 3}
@@ -302,6 +302,11 @@ PrefabInstance:
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: waitFrames
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderGraphCompatible
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

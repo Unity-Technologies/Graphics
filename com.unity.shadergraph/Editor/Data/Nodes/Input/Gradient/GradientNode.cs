@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if(!generationMode.IsPreview())
+            if (!generationMode.IsPreview())
                 return;
 
             base.CollectShaderProperties(properties, generationMode);

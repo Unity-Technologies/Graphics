@@ -6,7 +6,7 @@ Shader "Custom/UniversalPipeline/CustomParticleData"
 	}
 	SubShader
 	{
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" }
+        Tags { "RenderType" = "Opaque" "UniversalMaterialType" = "Lit" "IgnoreProjectors" = "True" }
 		LOD 100
 
 		Pass
@@ -71,17 +71,6 @@ Shader "Custom/UniversalPipeline/CustomParticleData"
 
     		Blend Off
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedList, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -130,6 +119,7 @@ Shader "Custom/UniversalPipeline/CustomParticleData"
 
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.alpha = 1.0;
+                surfaceData.occlusion = 1.0;
 
                 InputData inputData = (InputData)0;
                 inputData.normalWS = half3(0, 1, 0); // need some default to avoid division by 0.

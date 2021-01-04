@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     class SerializedScalableSettingTests
     {
-        class ValueDeclaration: ScriptableObject
+        class ValueDeclaration : ScriptableObject
         {
             public IntScalableSetting intValue = new IntScalableSetting(new[] { 1, 2, 3 }, ScalableSettingSchemaId.With3Levels);
         }

@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
         const string kInputSlotName = "In";
@@ -135,13 +134,13 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue));
             else if (generationMode == GenerationMode.ForReals)
                 sb.AppendLine("{0} {1} = {2}.{3}{4}{5}{6};",
-                        outputSlotType,
-                        outputName,
-                        inputValue,
-                        s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture));
+                    outputSlotType,
+                    outputName,
+                    inputValue,
+                    s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture),
+                    s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture),
+                    s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture),
+                    s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture));
             else
                 sb.AppendLine("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);", outputSlotType, outputName, GetVariableNameForNode(), inputValue);
         }
@@ -163,7 +162,7 @@ namespace UnityEditor.ShaderGraph
             base.CollectPreviewMaterialProperties(properties);
             // Encode swizzle values into an integer
             var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Float)
             {
                 name = GetVariableNameForNode(),
                 floatValue = value

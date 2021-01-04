@@ -1,8 +1,8 @@
 # Anti-aliasing in the High Definition Render Pipeline
 
-[Aliasing](Glossary.html#Aliasing) is a side effect that happens when a digital sampler samples real-world information and attempts to digitize it. For example, when you sample audio or video, aliasing means that the shape of the digital signal does not match the shape of the original signal.
+[Aliasing](Glossary.md#Aliasing) is a side effect that happens when a digital sampler samples real-world information and attempts to digitize it. For example, when you sample audio or video, aliasing means that the shape of the digital signal does not match the shape of the original signal.
 
-This is most obvious if you compare the original and digital signals for an audio source at its highest frequencies, or a visual source in its smallest details. Regular signal processing uses the [Nyquist rate](Glossary.html#NyquistRate) to avoid aliasing, however it is not practical for image rendering because it is very resource intensive.
+This is most obvious if you compare the original and digital signals for an audio source at its highest frequencies, or a visual source in its smallest details. Regular signal processing uses the [Nyquist rate](Glossary.md#NyquistRate) to avoid aliasing, however it is not practical for image rendering because it is very resource intensive.
 
 ![](Images/MSAA1.png)
 
@@ -34,7 +34,7 @@ To select FXAA for a Camera:
 
 ## Temporal anti-aliasing (TAA)
 
-TAA uses frames from a history buffer to smooth edges more effectively than FXAA. It is better at smoothing edges in motion, but you must enable motion vectors for this. For information on how to set up motion vectors in HDRP, see [motion vectors](Motion-Vectors.html). Because TAA is temporal, it often creates ghosting artifacts in extreme situations, such as when a GameObject moves quickly in front of a surface that contrasts with it.
+TAA uses frames from a history buffer to smooth edges more effectively than FXAA. It is better at smoothing edges in motion, but you must enable motion vectors for this. For information on how to set up motion vectors in HDRP, see [motion vectors](Motion-Vectors.md). Because TAA is temporal, it often creates ghosting artifacts in extreme situations, such as when a GameObject moves quickly in front of a surface that contrasts with it.
 
 Note: Enabling TAA helps to improve the quality of some effects like Ambient Occlusion or Volumetrics.
 
@@ -58,11 +58,11 @@ To select SMAA for a Camera:
 
 ## Multi-sample anti-aliasing (MSAA)
 
-MSAA samples multiple locations within every pixel and combines these samples to produce the final pixel. This is better at solving aliasing issues than the other techniques, but it is much more resource intensive. Crucially, MSAA solves [spatial aliasing](Glossary.html#SpatialAliasing) issues. MSAA is a hardware anti-aliasing method that you can use in tandem with other methods, which are post-processing effects. The exception to this is [temporal anti-aliasing](#TAA) because it uses [motion vectors](Motion-Vectors.html), which MSAA does not support.
+MSAA samples multiple locations within every pixel and combines these samples to produce the final pixel. This is better at solving aliasing issues than the other techniques, but it is much more resource intensive. Crucially, MSAA solves [spatial aliasing](Glossary.md#SpatialAliasing) issues. MSAA is a hardware anti-aliasing method that you can use in tandem with other methods, which are post-processing effects. The exception to this is [temporal anti-aliasing](#TAA) because it uses [motion vectors](Motion-Vectors.md), which MSAA does not support.
 
 To enable MSAA in your HDRP project:
 
-1. Open your [HDRP Asset](HDRP-Asset.html).
+1. Open your [HDRP Asset](HDRP-Asset.md).
 2. In the Rendering section, set the Lit Shader Mode to either Both or Forward Only. HDRP only supports MSAA for forward rendering.
 3. Use the Multisample Anti-aliasing Quality drop-down to define how many samples HDRP computes per pixel when it evaluates MSAA. Select None to disable MSAA support
 
@@ -70,19 +70,20 @@ When you use MSAA, be aware of the following:
 
 - Increasing the sample count makes the MSAA effect more resource intensive.
 - HDRP does not disable the following features when you enable MSAA, but instead uses non-MSAA depth which can cause issues on edges:
-  1. [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.html).
+  1. [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md).
 - MSAA does not work with the following features. HDRP disables these features when you enable MSAA:
-  1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.html).
+  1. [Screen space reflection (SSR)](Override-Screen-Space-Reflection.md).
   2. Screen space shadows.
   3. [Temporal Anti-aliasing](#TAA).
   4. Distortion.
   5. Normal Buffer patch up by Decals.
 - MSAA does not affect the following features. HDRP does not disable these effects, it just does not process MSAA for them:
-  1. [Post-processing](Post-Processing-Main.html).
-  3. [Subsurface scattering](Subsurface-Scattering.html).
+  1. [Post-processing](Post-Processing-Main.md).
+  3. [Subsurface scattering](Subsurface-Scattering.md).
   3. Low Resolution Transparency.
+- Ray tracing does not support MSAA. If you use ray tracing in your project, you are unable to use MSAA.
 
-When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.html). You can do this either globally or on individual Cameras. To enable MSAA globally, go to Project Settings > Frame Settings > HDRP Default Settings. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.html).
+When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.md). You can do this either globally or on individual Cameras. To enable MSAA globally, go to Project Settings > Frame Settings > HDRP Default Settings. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.md).
 
 Increasing the MSAA Sample Count produces smoother anti-aliasing, at the cost of performance. Here are some visual examples showing the effect of the different MSAA Sample Counts:
 

@@ -2,34 +2,90 @@ project:
   name: VFX_URP
   folder: VisualEffectGraph_URP
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+  - type: playmode
+#  - type: editmode
+expression_trigger: 
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
 platforms:
   - name: Win
     apis:
-      - DX11
-#      - DX12
-      - Vulkan
+      - name: DX11
+      # - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX 
     apis:
-      - Metal
-      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis: 
-      - Vulkan
-      - OpenGLCore
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 #  - name: Android
 #    apis: 
-#      - Vulkan
-#      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
-all:
+#      - name: Vulkan
+#      - name: OpenGLES3
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
+nightly:
+  dependencies:
+    - project: VFX_URP
+      pr: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
         - playmode

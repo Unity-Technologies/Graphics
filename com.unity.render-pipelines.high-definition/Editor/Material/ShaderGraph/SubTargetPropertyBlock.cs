@@ -52,22 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case bool b: elem = new LockableBaseField<Toggle, bool>(new Toggle { value = b, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
                 case int i: elem = new LockableBaseField<IntegerField, int>(new IntegerField { value = i, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
                 case float f: elem = new LockableBaseField<FloatField, float>(new FloatField { value = f, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
-                case SurfaceType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case RenderQueueType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case BlendMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case CompareFunction e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case TransparentCullMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case DoubleSidedMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case NormalDropOffSpace e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case HDLitData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case DistortionMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case ScreenSpaceRefraction.RefractionModel e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case SpecularOcclusionMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case FabricData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case EyeData.MaterialType e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case StackLit.BaseParametrization e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case StackLit.DualSpecularLobeParametrization e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
-                case OpaqueCullMode e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case Enum e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
@@ -117,6 +102,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             foldout.style.paddingLeft = context.globalIndentLevel * 15;
 
             context.Add(foldout);
+        }
+
+        protected void AddHelpBox(string message, MessageType type)
+        {
+            // We don't use UIElement HelpBox because it's width is not dynamic.
+            int indentLevel = context.globalIndentLevel;
+            var imgui = new IMGUIContainer(() =>
+            {
+                float indentPadding = indentLevel * 15;
+                var rect = EditorGUILayout.GetControlRect(false, 42);
+                rect.x += indentPadding;
+                rect.width -= indentPadding;
+                EditorGUI.HelpBox(rect, message, type);
+            });
+
+            context.Add(imgui);
         }
 
         public void CreatePropertyGUIWithHeader()
@@ -178,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             style.marginRight = 0;
             m_ContainedField.style.flexGrow = 1;
         }
-        
+
         public void InitLockPosition()
         {
             //HACK to move the lock into the parent container
@@ -187,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lineContainer = lineContainer.hierarchy.parent;
             if (lineContainer == null)
                 lineContainer = this;
-            
+
             lineContainer.Add(m_LockArea);
             m_LockArea.style.position = Position.Absolute;
             m_LockArea.style.left = 0;
@@ -225,7 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class LockArea : Image
     {
         public new static readonly string ussClassName = "unity-lock-area";
-        
+
         bool m_Locked;
         Action<bool> m_Callback;
 
@@ -249,9 +250,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpdateDisplay()
             => style.opacity = m_Locked ? 1f : 0.25f;
-        
+
         public bool locked => m_Locked;
-        
+
         public void Toggle()
         {
             m_Locked ^= true;

@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                fixed (AOVRequest* pThis = &this)
-                    return pThis;
+                fixed(AOVRequest* pThis = &this)
+                return pThis;
             }
         }
 
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
                     break;
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.SSAO);
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
                     break;
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);
@@ -178,4 +178,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

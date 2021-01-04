@@ -28,29 +28,41 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Available graphic formats for the cube and planar reflection probes.
+    /// </summary>
+    [System.Serializable]
+    public enum ReflectionAndPlanarProbeFormat
+    {
+        /// <summary>Faster sampling and rendering but at the cost of precision.</summary>
+        R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>Better precision, but uses twice as much memory compared to R11G11B10.</summary>
+        R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+    }
+
+    /// <summary>
     /// Possible values for the texture 2D size used for planar reflection probes.
     /// </summary>
     [Serializable]
     public enum PlanarReflectionAtlasResolution
     {
         /// <summary>Size 64</summary>
-        PlanarReflectionResolution64 = 64,
+        Resolution64 = 64,
         /// <summary>Size 128</summary>
-        PlanarReflectionResolution128 = 128,
+        Resolution128 = 128,
         /// <summary>Size 256</summary>
-        PlanarReflectionResolution256 = 256,
+        Resolution256 = 256,
         /// <summary>Size 512</summary>
-        PlanarReflectionResolution512 = 512,
+        Resolution512 = 512,
         /// <summary>Size 1024</summary>
-        PlanarReflectionResolution1024 = 1024,
+        Resolution1024 = 1024,
         /// <summary>Size 2048</summary>
-        PlanarReflectionResolution2048 = 2048,
+        Resolution2048 = 2048,
         /// <summary>Size 4096</summary>
-        PlanarReflectionResolution4096 = 4096,
+        Resolution4096 = 4096,
         /// <summary>Size 8192</summary>
-        PlanarReflectionResolution8192 = 8192,
+        Resolution8192 = 8192,
         /// <summary>Size 16384</summary>
-        PlanarReflectionResolution16384 = 16384
+        Resolution16384 = 16384
     }
 
     /// <summary>
@@ -102,6 +114,36 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Possible values for one element of the density volume atlas.
+    /// </summary>
+    [Serializable]
+    public enum DensityVolumeResolution
+    {
+        /// <summary>3D volume of 32x32x32 voxels.</summary>
+        Resolution32 = 32,
+        /// <summary>3D volume of 64x64x64 voxels.</summary>
+        Resolution64 = 64,
+        /// <summary>3D volume of 128x128x128 voxels.</summary>
+        Resolution128 = 128,
+        /// <summary>3D volume of 256x256x256 voxels.</summary>
+        Resolution256 = 256,
+    }
+
+    /// <summary>
+    /// Possible values for the probe volume memory budget (determines the size of the textures used).
+    /// </summary>
+    [Serializable]
+    public enum ProbeVolumeTextureMemoryBudget
+    {
+        /// <summary>Low Budget</summary>
+        MemoryBudgetLow = 512,
+        /// <summary>Medium Budget</summary>
+        MemoryBudgetMedium = 1024,
+        /// <summary>High Budget</summary>
+        MemoryBudgetHigh = 2048,
+    }
+
+    /// <summary>
     /// Global Light Loop Settings.
     /// </summary>
     [Serializable]
@@ -121,9 +163,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cookieTexArraySize = 1,
 #pragma warning restore 618
 
-            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.PlanarReflectionResolution1024,
+            planarReflectionAtlasSize = PlanarReflectionAtlasResolution.Resolution1024,
             reflectionProbeCacheSize = 64,
             reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
+            reflectionProbeFormat = ReflectionAndPlanarProbeFormat.R11G11B10,
 
             skyReflectionSize = SkyResolution.SkyResolution256,
             skyLightingOverrideLayerMask = 0,
@@ -134,6 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
+            maxLightsPerClusterCell = 8,
+            maxDensityVolumeSize = DensityVolumeResolution.Resolution32,
+            maxDensityVolumesOnScreen = 64, // 8MB texture atlas allocated by default
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -141,8 +187,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public CookieAtlasResolution cookieAtlasSize;
         /// <summary>Cookie atlas graphics format.</summary>
         public CookieAtlasGraphicsFormat cookieFormat;
+#if UNITY_2020_1_OR_NEWER
+#else
         /// <summary>Cookie atlas resolution for point lights.</summary>
         public CubeCookieResolution pointCookieSize;
+#endif
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
         // We keep this property for the migration code (we need to know how many cookies we could have before).
@@ -158,6 +207,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubeReflectionResolution reflectionCubemapSize;
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
+        /// <summary>Reflection probes resolution.</summary>
+        public ReflectionAndPlanarProbeFormat reflectionProbeFormat;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;
@@ -178,5 +229,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxDecalsOnScreen;
         /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
         public int maxPlanarReflectionOnScreen;
+        /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
+        public int maxLightsPerClusterCell;
+
+        /// <summary>Maximum size of one density volume texture.</summary>
+        public DensityVolumeResolution maxDensityVolumeSize;
+        /// <summary>Maximum number of density volumes at the same time on screen.</summary>
+        public int maxDensityVolumesOnScreen;
     }
 }

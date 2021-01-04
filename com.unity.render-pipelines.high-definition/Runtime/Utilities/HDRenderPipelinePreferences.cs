@@ -32,32 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_MatcapScale == value) return;
                 s_MatcapScale = value;
-                EditorPrefs.SetFloat(Keys.matcapViewMixAlbedo, s_MatcapScale);
-            }
-        }
-
-
-        static bool s_LightColorNormalization = false;
-        public static bool lightColorNormalization
-        {
-            get => s_LightColorNormalization;
-            set
-            {
-                if (s_LightColorNormalization == value) return;
-                s_LightColorNormalization = value;
-                EditorPrefs.SetBool(Keys.lightColorNormalization, s_LightColorNormalization);
-            }
-        }
-
-        static bool s_MaterialEmissionColorNormalization = false;
-        public static bool materialEmissionColorNormalization
-        {
-            get => s_MaterialEmissionColorNormalization;
-            set
-            {
-                if (s_MaterialEmissionColorNormalization == value) return;
-                s_MaterialEmissionColorNormalization = value;
-                EditorPrefs.SetBool(Keys.materialEmissionColorNormalization, s_MaterialEmissionColorNormalization);
+                EditorPrefs.SetFloat(Keys.matcapViewScale, s_MatcapScale);
             }
         }
 
@@ -67,8 +42,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
             internal const string matcapViewMixAlbedo = "HDRP.SceneView.MatcapMixAlbedo";
             internal const string matcapViewScale = "HDRP.SceneView.MatcapViewScale";
-            internal const string lightColorNormalization = "HDRP.UI.LightColorNormalization";
-            internal const string materialEmissionColorNormalization = "HDRP.UI.MaterialEmissionNormalization";
             internal const string showLockedProperties = "HDRP.MaterialVariants.ShowLockedProperties";
         }
 
@@ -83,12 +56,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         Load();
 
                     matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
-                    if(matcapViewMixAlbedo)
+                    if (matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
 
                     EditorGUI.BeginChangeCheck();
                     bool showLocked = EditorGUILayout.Toggle("Show Material Locked Properties", EditorPrefs.GetBool(Keys.showLockedProperties, true));
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                     {
                         EditorPrefs.SetBool(Keys.showLockedProperties, showLocked);
                     }
@@ -113,8 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
             s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
-            s_LightColorNormalization = EditorPrefs.GetBool(Keys.lightColorNormalization, false);
-            s_MaterialEmissionColorNormalization = EditorPrefs.GetBool(Keys.materialEmissionColorNormalization, false);
 
             m_Loaded = true;
         }

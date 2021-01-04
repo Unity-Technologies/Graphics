@@ -4,7 +4,7 @@ The **Alpha Clipping** option controls whether your Material acts as a [Cutout S
 
 Enable **Alpha Clipping** to create a transparent effect with hard edges between the opaque and transparent areas. HDRP achieves this effect by not rendering pixels with alpha values below the value you specify in the **Threshold** field. For example, a **Threshold** of 0.1 means that HDRP doesn't render alpha values below 0.1.
 
-If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Cutoff effect:
+If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Clipping effect:
 
 | Property                 | Description                                                  |
 | ------------------------ | ------------------------------------------------------------ |
@@ -13,7 +13,7 @@ If you enable this feature, HDRP exposes the following properties for you to use
 | **- Shadow Threshold**   | Set the alpha value limit that HDRP uses to determine whether it should render shadows for a pixel. |
 | **Alpha to Mask**        | Enable the checkbox to turn on alpha-to-coverage. When MSAA is used, alpha-to-coverage modifies multisample coverage mask proportionally to the pixel Shader result alpha value. This is typically used for anti-aliasing vegetation and other alpha-tested shaders.  |
 
-If you set your [Surface Type](Surface-Type.html) to **Transparent**, HDRP exposes the **Transparent Depth Prepass** and **Transparent Depth Postpass** properties. HDRP allows you to set individual thresholds for these two passes.
+If you set your [Surface Type](Surface-Type.md) to **Transparent**, HDRP exposes the **Transparent Depth Prepass** and **Transparent Depth Postpass** properties. HDRP allows you to set individual thresholds for these two passes.
 
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |

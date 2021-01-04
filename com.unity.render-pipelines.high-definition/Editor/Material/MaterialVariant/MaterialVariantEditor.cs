@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+
 using UnityEditor.Rendering;
 using UnityEditorInternal;
 using UnityEngine;
@@ -12,7 +12,7 @@ using UnityEditor.IMGUI.Controls;
 namespace Unity.Assets.MaterialVariant.Editor
 {
     [CustomEditor(typeof(MaterialVariantImporter))]
-    public class MaterialVariantEditor : ScriptedImporterEditor
+    public class MaterialVariantEditor : UnityEditor.AssetImporters.ScriptedImporterEditor
     {
         private UnityEditor.Editor targetEditor = null;
 
@@ -27,7 +27,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         protected override void InitializeExtraDataInstance(Object extraTarget, int targetIndex)
             => LoadMaterialVariant((MaterialVariant)extraTarget, ((AssetImporter)targets[targetIndex]).assetPath);
-        
+
         void LoadMaterialVariant(MaterialVariant variantTarget, string assetPath)
         {
             var asset = MaterialVariantImporter.GetMaterialVariantFromAssetPath(assetPath);
@@ -232,7 +232,6 @@ namespace Unity.Assets.MaterialVariant.Editor
                 m_ParentVariantType = (ParentVariantType)EditorGUILayout.EnumPopup(Styles.parentVariantType, m_ParentVariantType);
                 EditorGUIUtility.labelWidth = oldWidth;
                 EditorGUILayout.EndHorizontal();
-                
             }
             else
             {
@@ -279,7 +278,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.DrawRect(labelRect, Color.white);
             }
 
-            if(isBlocked || matVariant.IsPropertyBlockedInCurrent(propertyName))
+            if (isBlocked || matVariant.IsPropertyBlockedInCurrent(propertyName))
             {
                 labelRect.xMin = 8;
                 labelRect.width = 32;

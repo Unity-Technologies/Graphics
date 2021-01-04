@@ -4,6 +4,34 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-10-21
+
+### Fixed
+- Fixed the default background color for previews to use the original color.
+
+### Fixed
+- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+
+## [10.2.0] - 2020-10-19
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.1.0] - 2020-10-12
+
+### Added
+- Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
+- Added the support of input system V2
+
+### Fixed
+- Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
+- Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed issue that caused `UNITY_REVERSED_Z` and `UNITY_UV_STARTS_AT_TOP` being defined in platforms that don't support it.
+
+### Changed
+- LookDev menu item entry is now disabled if the current pipeline does not support it.
+
 ## [10.0.0] - 2019-06-10
 
 ### Added
@@ -44,6 +72,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed division by zero in `V_SmithJointGGX` function.
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fix a compil error on OpenGL ES2 in directional lightmap sampling shader code
+- Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
+- Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
+- Fixed a null ref in the volume component list when there is no volume components in the project.
+- Fixed issue with volume manager trying to access a null volume.
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -54,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 - Updated macros to be compatible with the new shader preprocessor.
 - Updated shaders to be compatible with Microsoft's DXC.
+- Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
 
 ## [7.1.1] - 2019-09-05
 

@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionLine : PositionBase
     {
-        public override string name { get { return "Position (Line)"; } }
+        public override string name { get { return string.Format(base.name, "Line"); } }
 
         public class InputProperties
         {
@@ -29,14 +29,40 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                VFXExpression line_start = null;
+                VFXExpression line_end = null;
+                foreach (var param in base.parameters)
+                {
+                    if (param.name == "line_start")
+                        line_start = param.exp;
+                    if (param.name == "line_end")
+                        line_end = param.exp;
+
+                    yield return param;
+                }
+                var line_direction = VFXOperatorUtility.SafeNormalize(line_end - line_start);
+                yield return new VFXNamedExpression(line_direction, "line_direction");
+            }
+        }
+
+        protected override bool needDirectionWrite => true;
+
         public override string source
         {
             get
             {
+                string outSource;
                 if (spawnMode == SpawnMode.Custom)
-                    return @"position += lerp(line_start, line_end, LineSequencer);";
+                    outSource = string.Format(composePositionFormatString, "lerp(line_start, line_end, LineSequencer)");
                 else
-                    return @"position += lerp(line_start, line_end, RAND);";
+                    outSource = string.Format(composePositionFormatString, "lerp(line_start, line_end, RAND)");
+                outSource += "\n";
+                outSource += string.Format(composeDirectionFormatString, "line_direction");
+                return outSource;
             }
         }
     }

@@ -4,7 +4,7 @@ The Universal Render Pipeline (URP) replaces the Lightweight Render Pipeline (LW
 Unity upgrades some things automatically, and you must make some manual changes. Follow the steps in this guide to transition from using LWRP to using URP.
 
 ## Before upgrading
-### Update Assembly Definition Asssets
+### Update Assembly Definition Assets
 URP uses GUIDs instead of Assembly Definition string names. If you are using Assembly Definition Assets (ASMDefs) in your Project, you should ensure that **Use GUIDs** is enabled on each of them. 
 
 Unity upgrades any existing string references to LWRP automatically as part of the upgrade process, but it is best practice to use GUIDs on your Assembly Definition Assets for future proofing.
@@ -59,7 +59,7 @@ In the .cs files in your Project, find and replace references to the LWRP namesp
 
 ## Upgrading post-processing effects
 
-URP supports both [Post Processing Version 2 (PPV2) and its own integrated post-processing solution](integration-with-post-processing.md). If you have the Post Processing Version 2 package installed in your Project and you want to use URP's integrated post-processing solution, you need to delete the Post Processing Version 2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
+URP version 7.x supports both [Post Processing Stack v2 (PPv2) and its own integrated post-processing solution](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@7.4/manual/integration-with-post-processing.html). If you have the Post Processing Version 2 package installed in your Project and you want to use URP's integrated post-processing solution, you need to delete the Post Processing Stack v2 package before you install URP into your Project. When you have installed URP, you can then recreate your post-processing effects.
 
 Upgrading post-processing effects from LWRP to URP is a manual process. You must manually recreate each Post-Processing Profile in your Project, using URP's post-processing implementation.
 

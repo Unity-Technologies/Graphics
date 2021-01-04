@@ -1,15 +1,15 @@
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Experimental.AssetImporters;
+
 using UnityEditorInternal;
 using UnityEngine;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
-    [ScriptedImporter(1, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
-    public class MaterialVariantImporter : ScriptedImporter
+    [UnityEditor.AssetImporters.ScriptedImporter(1, ".matVariant", 5)] // importQueueOffset must be higher than ShaderGraphImporter value
+    public class MaterialVariantImporter : UnityEditor.AssetImporters.ScriptedImporter
     {
-        protected Material GetMaterialFromRoot(AssetImportContext ctx, string rootGUID)
+        protected Material GetMaterialFromRoot(UnityEditor.AssetImporters.AssetImportContext ctx, string rootGUID)
         {
             // As only a write of a file trigger the OnImportAsset we need to add
             // all member of the hierarchy as a dependency so we can detect changes
@@ -83,7 +83,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             return material;
         }
 
-        public override void OnImportAsset(AssetImportContext ctx)
+        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
         {
             var assets = InternalEditorUtility.LoadSerializedFileAndForget(ctx.assetPath);
             if (assets != null && assets.Length == 1)

@@ -39,9 +39,30 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_ReadAttributeInSpawner.unity
     guid: a6e75e236a616124d9604762b5402ac7
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_OutputEvent.unity
+    guid: fa108e309b0697045b8474742e8d9a0a
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/013_MeshStripping.unity
+    guid: b87edfbe03e2426478130a56dc42a592
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_ScreenSpaceSize.unity
+    guid: 61def4e00f202154a972b59fa6fb735e
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
+    guid: 42a36d7781122534f9ce00fa769bdd5c
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1
     path: Assets/GraphicsTests/Shadergraph/SampleScene/101_ShadergraphSampleScene.unity
     guid: dfaa61332743bf64a9a813e7bcfad2d6
+  - enabled: 1
+    path: Assets/GraphicsTests/Shadergraph/Shadow/102_ShadergraphShadow.unity
+    guid: b5fab92e71d9dd747b87a111d703bd95
+  - enabled: 1
+    path: Assets/GraphicsTests/101_SampleReflectionProbe.unity
+    guid: 5deffb7e83065d64198f1662d741f9ef
+  - enabled: 1
+    path: Assets/GraphicsTests/102_RenderDepth.unity
+    guid: bbb228de8c5a7dd4ba58363e4b3c8669
   m_configObjects: {}

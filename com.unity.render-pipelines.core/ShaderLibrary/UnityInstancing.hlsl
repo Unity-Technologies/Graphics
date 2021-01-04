@@ -47,6 +47,10 @@
     #define UNITY_ANY_INSTANCING_ENABLED 0
 #endif
 
+#if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
+#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
+#endif
+
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
     // These platforms have constant buffers disabled normally, but not here (see CBUFFER_START/CBUFFER_END in HLSLSupport.cginc).
     #define UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(name)  cbuffer name {
@@ -324,6 +328,7 @@
     UNITY_INSTANCING_BUFFER_START(PerDraw2)
         #ifdef UNITY_USE_LIGHTMAPST_ARRAY
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapSTArray)
+            UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapIndexArray)
             #define unity_LightmapST UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_LightmapSTArray)
         #endif
         #ifdef UNITY_USE_DYNAMICLIGHTMAPST_ARRAY
