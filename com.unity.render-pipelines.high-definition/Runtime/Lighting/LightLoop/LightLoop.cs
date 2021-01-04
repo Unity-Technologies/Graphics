@@ -778,12 +778,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 xyBoundsBuffer = null;
                 CoreUtils.SafeRelease(wBoundsBuffer);
                 wBoundsBuffer = null;
+                CoreUtils.SafeRelease(zBinBuffer);
+                zBinBuffer = null;
                 CoreUtils.SafeRelease(coarseTileBuffer);
                 coarseTileBuffer = null;
                 CoreUtils.SafeRelease(fineTileBuffer);
                 fineTileBuffer = null;
-                CoreUtils.SafeRelease(zBinBuffer);
-                zBinBuffer = null;
+                CoreUtils.SafeRelease(tileFeatureFlagsBuffer);
+                tileFeatureFlagsBuffer = null;
+                CoreUtils.SafeRelease(tileListBuffer);
+                tileListBuffer = null;
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
                 dispatchIndirectBuffer = null;
             }
@@ -1265,6 +1269,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
             CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
+
+            CoreUtils.SafeRelease(m_ScreenSpaceShadowsLightData);
+            m_ScreenSpaceShadowsLightData = null;
         }
 
         void LightLoopNewRender()
