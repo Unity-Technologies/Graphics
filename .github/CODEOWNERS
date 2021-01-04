@@ -17,7 +17,6 @@
 /katana-ci/ @unity/gfx-sdets
 /Tools/ @unity/gfx-sdets
 /com.unity.testframework.graphics/ @unity/gfx-sdets
-/.github/ @unity/gfx-sdets
 
 # LWRP (Legacy)
 /com.unity.render-pipelines.lightweight/ @unity/universal-rp-team
