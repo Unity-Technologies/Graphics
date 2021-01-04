@@ -86,7 +86,7 @@ float3 ColorGrade(float3 colorLutSpace)
     #endif
 
     colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
-    
+
     #if defined(TONEMAPPING_ACES)
     colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
     #else

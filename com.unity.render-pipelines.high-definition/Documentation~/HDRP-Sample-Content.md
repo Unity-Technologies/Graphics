@@ -30,5 +30,8 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ![Material Samples](Images/MaterialSamples.png)
 
-This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Node](Master-Node-Fabric.md), [Hair Master Node](Master-Node-Hair.md), and [Decal Master Node](Master-Node-Decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
-The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Node](Master-Node-Fabric.md), [Hair Master Node](Master-Node-Hair.md), [Eye Shader](eye-shader.md) and [Decal Master Node](Master-Node-Decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
+
+The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+
+In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.

@@ -143,7 +143,7 @@ Shader "Hidden/HDRP/Deferred"
                 // Alias
                 float3 diffuseLighting = lightLoopOutput.diffuseLighting;
                 float3 specularLighting = lightLoopOutput.specularLighting;
- 
+
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();
 

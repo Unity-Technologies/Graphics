@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }
-                    else if( parameter.valueFilter == VFXValueFilter.Enum)
+                    else if (parameter.valueFilter == VFXValueFilter.Enum)
                     {
                         paramInfo.enumValues = parameter.enumValues.ToList();
                     }

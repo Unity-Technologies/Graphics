@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
                 {
                     m_LegacyProbe = GetComponent<ReflectionProbe>();
                 }

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
             return
-                @"
+@"
 {
     $precision midpoint = pow(0.5, 2.2);
     Out =  (In - midpoint) * Contrast + midpoint;

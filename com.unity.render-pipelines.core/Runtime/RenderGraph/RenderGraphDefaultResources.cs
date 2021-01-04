@@ -57,7 +57,5 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
             whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
         }
-
     }
 }
-

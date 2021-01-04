@@ -9,7 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_EditUVTooltip = "Modify the UV positions only";
 
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
-        static readonly GUIContent[] k_SizeSubContent = new[] {
+        static readonly GUIContent[] k_SizeSubContent = new[]
+        {
             EditorGUIUtility.TrTextContent("Width", "Sets the width of the projection plan."),
             EditorGUIUtility.TrTextContent("Height", "Sets the height of the projection plan.")
         };

@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
 
             var changedGraphGuids = importedAssets
                 .Where(x => x.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
-                    || x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
+                || x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .ToList();
             foreach (var window in windows)
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             // moved or imported subgraphs or HLSL files should notify open shadergraphs that they need to handle them
             var changedFiles = movedAssets.Concat(importedAssets).Concat(deletedAssets)
                 .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
-                || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
+                    || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
                 .ToList();

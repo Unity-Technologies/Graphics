@@ -1,17 +1,26 @@
 using System;
+using System.IO;
+using System.ComponentModel;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.Rendering;
+using UnityEditorInternal;
+
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-
     static class Renderer2DMenus
     {
+        const int k_MenuPriority = 50;
+
         static void Create2DRendererData(Action<Renderer2DData> onCreatedCallback)
         {
             var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
@@ -26,10 +35,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<Renderer2DData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
-                onCreated(instance);
+                onCreated?.Invoke(instance);
             }
         }
 
@@ -46,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     view.MoveToView(go.transform);
             }
         }
-
 
         // This is from GOCreationCommands
         internal static void Place(GameObject go, GameObject parent)
@@ -78,11 +87,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Selection.activeGameObject = go;
         }
 
-        static void CreateLight(MenuCommand menuCommand, string name, Light2D.LightType type)
+        static void CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
-            GameObject go = ObjectFactory.CreateGameObject(name, typeof(Light2D));
+            GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
             light2D.lightType = type;
+
+            if (shapePath != null && shapePath.Length > 0)
+                light2D.shapePath = shapePath;
 
             var parent = menuCommand.context as GameObject;
             Place(go, parent);
@@ -99,64 +111,85 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", false, -100)]
-        static void CreateFreeformLight2D(MenuCommand menuCommand)
+        [MenuItem("GameObject/Light/Freeform Light 2D/Square", false, k_MenuPriority)]
+        static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Freeform Light 2D", Light2D.LightType.Freeform);
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateSquare());
         }
 
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", true, -100)]
-        static bool CreateFreeformLight2DValidation()
+        [MenuItem("GameObject/Light/Freeform Light 2D/Circle", false, k_MenuPriority)]
+        static void CreateCircleFreeformLight2D(MenuCommand menuCommand)
         {
-            return CreateLightValidation();
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateCircle());
         }
 
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Isometric Diamond", false, k_MenuPriority)]
+        static void CreateIsometricDiamondFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateIsometricDiamond());
+        }
+
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Flat Top", false, k_MenuPriority)]
+        static void CreateHexagonFlatTopFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonFlatTop());
+        }
+
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Pointed Top", false, k_MenuPriority)]
+        static void CreateHexagonPointedTopFreeformLight2D(MenuCommand menuCommand)
+        {
+            CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonPointedTop());
+        }
+
+        [MenuItem("GameObject/Light/Sprite Light 2D", false, k_MenuPriority)]
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Sprite Light 2D", Light2D.LightType.Sprite);
-        }
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, -100)]
-        static bool CreateSpriteLight2DValidation()
-        {
-            return CreateLightValidation();
+            CreateLight(menuCommand, Light2D.LightType.Sprite);
         }
 
-        [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", false, -100)]
-        static void CreateParametricLight2D(MenuCommand menuCommand)
-        {
-            CreateLight(menuCommand, "Parametric Light 2D", Light2D.LightType.Parametric);
-        }
-        [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", true, -100)]
-        static bool CreateParametricLight2DValidation()
-        {
-            return CreateLightValidation();
-        }
-
-        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Spot Light 2D", false, k_MenuPriority)]
         static void CreatePointLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Point Light 2D", Light2D.LightType.Point);
+            CreateLight(menuCommand, Light2D.LightType.Point);
         }
 
-        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", true, -100)]
-        static bool CreatePointLight2DValidation()
-        {
-            return CreateLightValidation();
-        }
-
-        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", false, -100)]
+        [MenuItem("GameObject/Light/Global Light 2D", false, k_MenuPriority)]
         static void CreateGlobalLight2D(MenuCommand menuCommand)
         {
-            CreateLight(menuCommand, "Global Light 2D", Light2D.LightType.Global);
+            CreateLight(menuCommand, Light2D.LightType.Global);
         }
-        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, -100)]
-        static bool CreateGlobalLight2DValidation()
+
+        [MenuItem("GameObject/Light/Freeform Light 2D/Isometric Diamond", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Square", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Circle", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Flat Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Pointed Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Sprite Light 2D", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Spot Light 2D", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Global Light 2D", true, k_MenuPriority)]
+        static bool CreateLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        internal class CreateUniversalPipelineAsset : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                //Create asset
+                AssetDatabase.CreateAsset(UniversalRenderPipelineAsset.Create(UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer)), pathName);
+            }
+        }
+
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        static void CreateUniversalPipeline()
+        {
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
+                "UniversalRenderPipelineAsset.asset", null, null);
+        }
+
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

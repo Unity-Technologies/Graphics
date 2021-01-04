@@ -17,15 +17,14 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector3MaterialSlot(
-                    kOutputSlotId,
-                    kOutputSlotName,
-                    kOutputSlotName,
-                    SlotType.Output,
-                    Vector4.zero));
+                kOutputSlotId,
+                kOutputSlotName,
+                kOutputSlotName,
+                SlotType.Output,
+                Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 

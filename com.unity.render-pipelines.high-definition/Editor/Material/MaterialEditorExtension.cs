@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void InitExpandableState(this MaterialEditor editor)
         {
             string key = GetKey(editor);
-            if(!EditorPrefs.HasKey(key))
+            if (!EditorPrefs.HasKey(key))
             {
                 EditorPrefs.SetInt(key, (int)defaultExpandedState);
             }

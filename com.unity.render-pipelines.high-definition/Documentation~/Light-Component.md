@@ -191,9 +191,9 @@ Use this section to adjust the Shadows cast by this Light.
 
 Unity exposes extra properties in this section depending on the **Mode** you set in the [General](#GeneralProperties) section. Unity also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.md).
 
-&#8226; For more information on shadow filtering in HDRP, see [Shadow Filtering](Shadows-in-HDRP.md#ShadowFiltering).
+&#8226; For more information on shadow filtering in HDRP, see [Shadow Filtering](Shadows-in-HDRP.md#shadow-filtering).
 
-&#8226; For a list of the available filter quality presets in HDRP, see the [Filtering Qualities table](HDRP-Asset.md#FilteringQualities).
+&#8226; For a list of the available filter quality presets in HDRP, see the [Filtering Qualities table](HDRP-Asset.md#filtering-qualities).
 
 #### Properties
 
@@ -219,7 +219,7 @@ This section is only available in Realtime or Mixed light **Mode**.
 | **Blur Passes**            | Use the slider to set the number of blur passes HDRP performs on this shadow map. Increasing this value softens shadows, but impacts performance. This property only appears if you select **Rectangle** from the **Type** drop-down and enable [more options](More-Options.md) for this section. |
 | **Dimmer**                 | Dims the shadows this Light casts so they become more faded and transparent.<br />This property only appears when you enable [more options](More-Options.md) for this section. |
 | **Tint**                   | Specifies whether HDRP should tint the shadows this Light casts. This option affects dynamic shadows, [Contact Shadows](Override-Contact-Shadows.md), and [ShadowMask](Lighting-Mode-Shadowmask.md). It does not affect baked shadows. You can use this behavior to change the color and transparency of shadows.<br />This property only appears when you enable the [more options](More-Options.md) for this section. |
-| **Penumbra Tint**          | Specifies whether the tint should only affect the shadow's penumbra. If you enable this property, HDRP only applies the color tint to the shadow's penumbra. If you disable this property, HDRP applies the color tint to the entire shadow including the penumbra. To change the color HDRP tints the shadow to, see the above **Tint** property.<br />This property only appears when you enable the [more options](More-Options.mdMore-Options.md) for this section. |
+| **Penumbra Tint**          | Specifies whether the tint should only affect the shadow's penumbra. If you enable this property, HDRP only applies the color tint to the shadow's penumbra. If you disable this property, HDRP applies the color tint to the entire shadow including the penumbra. To change the color HDRP tints the shadow to, see the above **Tint** property.<br />This property only appears when you enable the [more options](More-Options.md) for this section. |
 | **Fade Distance**          | The distance, in meters, between the Camera and the Light at which shadows fade out. This property is available for **Spot** and **Point** Lights.<br />This property only appears when you enable [more options](More-Options.md) for this section. |
 | **Link Light Layer**       | Enable the checkbox to use the same [Light Layer](Light-Layers.md) for shadows and lighting. If you enable this feature, then HDRP uses the Light Layer from the **Light Layer** drop-down in the **General** section for shadowing. If you disable this feature, then HDRP uses the **Light Layer** drop-down in this section for shadowing.<br /> This property only appears if you enable [more options](More-Options.md) for this section.To access this property, enable **Light Layers** in your [HDRP Asset](HDRP-Asset.md). |
 | **Light Layer**            | Use the drop-down to set the Light Layer HDRP uses for shadowing. This Light therefore only casts shadows for GameObjects that use a matching Light Layer. For more information about using Light Layers for shadowing, see [Shadow Light Layers](Light-Layers.md#ShadowLightLayers).<br /> This property only appears if you enable [more options](More-Options.md) for this section.To access this property, disable the **Link Light Layer** checkbox. |
@@ -247,7 +247,7 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Shadow Softness**            | Defines the behavior of area light shadows. Higher softness values mimic a larger emission radius while lower values mimic a [punctual light](Glossary.md#PunctualLights). High values increase shadow blur depending on the distance between the pixel receiving the shadow and the shadow caster. |
+| **Shadow Softness**            | Defines the behavior of area light shadows. Higher softness values mimic a larger emission radius while lower values mimic a [punctual light](Glossary.md#PunctualLight). High values increase shadow blur depending on the distance between the pixel receiving the shadow and the shadow caster. |
 | **Blocker Sample Count**       | The number of samples HDRP uses to evaluate the distance between the pixel receiving the shadow and the shadow caster. Higher values give better accuracy. |
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |

@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Backplate Type parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public BackplateTypeParameter(BackplateType value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     /// <summary>

@@ -108,18 +108,19 @@ namespace UnityEditor.VFX
         {
             if (version < 6)
             {
-                if (model.children.FirstOrDefault(b => b is Block.Orient) == null) // If no orient block, add one
+                Block.Orient orientBlock = model.children.OfType<Block.Orient>().FirstOrDefault();
+                if (orientBlock == null) // If no orient block, add one
                 {
                     Debug.Log("Sanitize Graph: Add Orient block to quad strip output");
 
-                    Block.Orient orientBlock = CreateInstance<Block.Orient>();
+                    orientBlock = CreateInstance<Block.Orient>();
                     if (useCustomZAxis)
                     {
                         orientBlock.SetSettingValue("mode", Block.Orient.Mode.CustomZ);
 
                         var axisZNode = CreateInstance<VFXAttributeParameter>();
                         axisZNode.SetSettingValue("attribute", "axisZ");
-                        axisZNode.position = model.position + new Vector2(-225,150); 
+                        axisZNode.position = model.position + new Vector2(-225, 150);
                         model.GetGraph().AddChild(axisZNode);
 
                         axisZNode.GetOutputSlot(0).Link(orientBlock.GetInputSlot(0));
@@ -128,6 +129,15 @@ namespace UnityEditor.VFX
                         orientBlock.SetSettingValue("mode", Block.Orient.Mode.FaceCameraPosition);
 
                     model.AddChild(orientBlock, 0);
+                }
+                else
+                {
+                    if ((Block.Orient.Mode)orientBlock.GetSettingValue("mode") == Block.Orient.Mode.FaceCameraPlane)
+                    {
+                        Debug.Log("Sanitize Graph: Change Orient block mode in quad strip output from \"Face Camera Plane\" to \"Face Camera Position\"");
+                        orientBlock.SetSettingValue("mode", Block.Orient.Mode.FaceCameraPosition);
+                    }
+                    // Other invalid modes (Along Velocity and FixedAxis) will fail and require manual fixing
                 }
             }
         }

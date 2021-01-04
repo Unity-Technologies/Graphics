@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
 
         static Dictionary<ScriptableObject, bool>[] NewPrioritizedHashSet()
         {
-            Dictionary<ScriptableObject,bool>[] result = new Dictionary<ScriptableObject, bool>[(int)Priorities.Count];
+            Dictionary<ScriptableObject, bool>[] result = new Dictionary<ScriptableObject, bool>[(int)Priorities.Count];
 
             for (int i = 0; i < (int)Priorities.Count; ++i)
             {
@@ -94,10 +94,10 @@ namespace UnityEditor.VFX.UI
             return Priorities.Default;
         }
 
-        Dictionary<ScriptableObject,bool>[] modifiedModels = NewPrioritizedHashSet();
-        Dictionary<ScriptableObject,bool>[] otherModifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] modifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] otherModifiedModels = NewPrioritizedHashSet();
 
-        public void OnObjectModified(VFXObject obj,bool uiChange)
+        public void OnObjectModified(VFXObject obj, bool uiChange)
         {
             // uiChange == false is stronger : if we have a uiChange and there was a nonUIChange before we keep the non uichange.
             if (!uiChange)
@@ -106,10 +106,9 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if ( !modifiedModels[(int)GetPriority(obj)].ContainsKey(obj))
+                if (!modifiedModels[(int)GetPriority(obj)].ContainsKey(obj))
                     modifiedModels[(int)GetPriority(obj)][obj] = true;
             }
-
         }
 
         Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
@@ -209,7 +208,7 @@ namespace UnityEditor.VFX.UI
                             {
                                 action();
                             }
-                            catch(Exception e)
+                            catch (Exception e)
                             {
                                 Debug.LogException(e);
                             }
@@ -218,7 +217,7 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                     Profiler.EndSample();
-                    if(!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
+                    if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
                         model.RefreshErrors(m_Graph);
                     }

@@ -19,7 +19,7 @@ Shader "Hidden/HDRP/DebugExposure"
     // Contains the scene color post-processed (tonemapped etc.)
     TEXTURE2D_X(_DebugFullScreenTexture);
 
-    // Tonemap related 
+    // Tonemap related
     TEXTURE3D(_LogLut3D);
     SAMPLER(sampler_LogLut3D);
 
@@ -66,11 +66,11 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float3 Tonemap(float3 colorLinear)
     {
-        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL) 
+        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL)
         {
             colorLinear = NeutralTonemap(colorLinear);
         }
-        if (_TonemapType == TONEMAPPINGMODE_ACES) 
+        if (_TonemapType == TONEMAPPINGMODE_ACES)
         {
             // Note: input is actually ACEScg (AP1 w/ linear encoding)
             float3 aces = ACEScg_to_ACES(colorLinear);
@@ -239,7 +239,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
         if (uv.y > frameHeight) return false;
 
-        // ---- Draw General frame ---- 
+        // ---- Draw General frame ----
         if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
         {
             outColor = 0.0;
@@ -265,7 +265,7 @@ Shader "Hidden/HDRP/DebugExposure"
     }
 
     float2 GetMinMaxLabelRange(float currEV)
-    {        
+    {
         if (_CenterAroundTargetExposure > 0)
         {
             int maxAtBothSide = min(0.5f * (ParamExposureLimitMax - ParamExposureLimitMin), 10);
@@ -317,7 +317,7 @@ Shader "Hidden/HDRP/DebugExposure"
             else
             {
                 binIndex = centerBin;
-                
+
                 locWithinBin = (higherMidPoint - coordOnX);
             }
         }
@@ -403,7 +403,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 if (isEdgeOfBin) outColor.rgb = 0;
             }
 
-            // ---- Draw labels ---- 
+            // ---- Draw labels ----
 
             // Number of labels
             int labelCount = 12;
@@ -431,7 +431,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, targetEVInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
                 DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
             }
-            // TODO: Add bar? 
+            // TODO: Add bar?
             //else
             //{
             //    if (_CenterAroundTargetExposure > 0)
@@ -712,7 +712,7 @@ Shader "Hidden/HDRP/DebugExposure"
         float binLocMax = 1.0f - safeBand;
         if (DrawEmptyFrame(uv, float3(0.125, 0.125, 0.125), 0.4, histFrameHeight, heightLabelBar, outputColor))
         {
-            // Draw labels	
+            // Draw labels
             const int labelCount = 12;
             int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
             int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
@@ -728,7 +728,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 DrawInteger(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, labelLoc, outputColor.rgb);
             }
             float remappedX = (((float)unormCoord.x / _ScreenSize.x) - binLocMin) / (binLocMax - binLocMin);
-            // Draw bins	
+            // Draw bins
             uint bin = saturate(remappedX) * 255;
             float4 val = _FullImageHistogram[bin];
             val /= float4(maxValue, maxValue, maxValue, maxLuma);
@@ -802,7 +802,7 @@ Shader "Hidden/HDRP/DebugExposure"
             Blend Off
             Cull Off
             HLSLPROGRAM
-                #pragma fragment FragImageHistogram	
+                #pragma fragment FragImageHistogram
             ENDHLSL
         }
 

@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Vector4 vectorProperty;
             TexturePropertyDescription textureProperty;
 
-           
+
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(k_ShaderPath);
             if (shader == null)
                 return;
@@ -290,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetTexture(outPropName + "_MAP", textureProperty.texture);
                 material.SetColor(outPropName, Color.white);
             }
-            else if(description.TryGetProperty(inPropName, out Vector4 color))
+            else if (description.TryGetProperty(inPropName, out Vector4 color))
             {
                 material.SetColor(outPropName, color);
             }
@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetTexture(outPropName + "_MAP", textureProperty.texture);
                 material.SetFloat(outPropName, 1.0f);
             }
-            else if(description.TryGetProperty(inPropName, out float floatProperty))
+            else if (description.TryGetProperty(inPropName, out float floatProperty))
             {
                 material.SetFloat(outPropName, floatProperty);
             }

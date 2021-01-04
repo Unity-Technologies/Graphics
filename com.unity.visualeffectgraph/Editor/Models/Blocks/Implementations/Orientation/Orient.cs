@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.Block
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
-            if (name == "mode")
+            if (name == "mode" && canTestStrips)
             {
                 if (hasStrips)
                 {
@@ -78,14 +78,8 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private bool hasStrips
-        {
-            get
-            {
-                var parent = GetParent() as VFXAbstractParticleOutput;
-                return parent && parent.HasStrips();
-            }
-        }
+        private bool canTestStrips => flattenedParent as VFXAbstractParticleOutput; // Cannot check strip in subblock context or not child of a context
+        private bool hasStrips => ((VFXAbstractParticleOutput)flattenedParent).HasStrips(); // direct cast as canTestStrips is supposed to have been called priorly
 
         public override string name { get { return "Orient : " + ObjectNames.NicifyVariableName(mode.ToString()); } }
 
@@ -153,7 +147,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var exp in base.parameters)
                     yield return exp;
 
-                if (hasStrips && mode != Mode.Advanced)
+                if (canTestStrips && hasStrips && mode != Mode.Advanced)
                     yield return new VFXNamedExpression(new VFXExpressionStripTangent(), "stripTangent");
             }
         }
@@ -165,8 +159,8 @@ namespace UnityEditor.VFX.Block
                 switch (mode)
                 {
                     case Mode.FaceCameraPlane:
-                        if (hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient mode (FaceCameraPlane) is only available for strips");
 
                         return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
@@ -181,7 +175,7 @@ axisZ = normalize(axisZ);
 ";
 
                     case Mode.FaceCameraPosition:
-                        if (hasStrips)
+                        if (canTestStrips && hasStrips)
                         {
                             return @"
 axisX = stripTangent;
@@ -202,7 +196,7 @@ axisZ = cross(axisX, axisY);
                         }
                         else
                             return @"
-if (IsPerspectiveProjection()) 
+if (IsPerspectiveProjection())
 {
     axisZ = normalize(position - GetViewVFXPosition());
     axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
@@ -223,7 +217,7 @@ else // Face plane for ortho
 ";
 
                     case Mode.LookAtPosition:
-                        if (hasStrips)
+                        if (canTestStrips && hasStrips)
                             return @"
 axisX = stripTangent;
 axisZ = -normalize(position - Position);
@@ -238,7 +232,7 @@ axisY = cross(axisZ,axisX);
 ";
 
                     case Mode.LookAtLine:
-                        if (hasStrips)
+                        if (canTestStrips && hasStrips)
                             return @"
 float3 lineDir = normalize(Line_end - Line_start);
 float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
@@ -271,8 +265,8 @@ axisY = cross(axisZ,axisX);
                     }
 
                     case Mode.FixedAxis:
-                        if (hasStrips)
-                            throw new NotImplementedException("This orient mode is not available for strips");
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient (FixedAxis) mode is not available for strips");
 
                         return @"
 axisY = Up;
@@ -282,8 +276,8 @@ axisZ = cross(axisX,axisY);
 ";
 
                     case Mode.AlongVelocity:
-                        if (hasStrips)
-                            throw new NotImplementedException("This orient mode is not available for strips");
+                        if (canTestStrips && hasStrips)
+                            throw new NotImplementedException("This orient mode (AlongVelocity) is not available for strips");
 
                         return @"
 axisY = normalize(velocity);
@@ -293,8 +287,8 @@ axisZ = cross(axisX,axisY);
 ";
 
                     case Mode.CustomZ:
-                        if (!hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                        if (canTestStrips && !hasStrips)
+                            throw new NotImplementedException("This orient mode (CustomZ) is only available for strips");
 
                         return
 @"axisX = stripTangent;
@@ -304,8 +298,8 @@ axisZ = cross(axisX, axisY);
 ";
 
                     case Mode.CustomY:
-                        if (!hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                        if (canTestStrips && !hasStrips)
+                            throw new NotImplementedException("This orient mode (CustomY) is only available for strips");
 
                         return
 @"axisX = stripTangent;
@@ -337,6 +331,9 @@ axisY = cross(axisZ, axisX);
 
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            if (!canTestStrips)
+                return;
+
             bool hasInvalidMode = false;
             if (hasStrips)
                 hasInvalidMode =

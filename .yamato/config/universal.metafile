@@ -38,70 +38,195 @@ test_platforms:
   - type: editmode
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests"
+expression_trigger: 
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX
     apis:
-      - Metal
-      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
-      - Vulkan
-      - OpenGLCore
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Android
     apis:
-      - Vulkan
-      - OpenGLES3
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
   - name: iPhone
     apis:
-      - Metal
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-- name: il2cpp_apiNet4
-  scripting_backend: IL2CPP
-  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - Standalone_cache
-        - editmode
-        - playmode_cache
         - playmode_XR
+        - editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
     - platform: OSX
       api: Metal
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         # - Standalone_cache
         - playmode_cache
     - platform: OSX
       api: OpenGLCore
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
     - project: Universal_Stereo
-      all: true
+      pr: true
     - project: Universal_Hybrid
-      all: true
+      pr: true
+    - project: VFX_URP
+      pr: true
+    - project: ShaderGraph
+      pr: true
+nightly:
+  dependencies:
+    - project: Universal
+      pr: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: Universal_Hybrid
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - playmode_XR
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - playmode_XR
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache

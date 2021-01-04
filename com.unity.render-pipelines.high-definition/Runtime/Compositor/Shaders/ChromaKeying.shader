@@ -36,39 +36,39 @@ Shader "Hidden/Shader/ChromaKeying"
 
     // List of properties to control your post process effect
     float3 _KeyColor;
-	float4 _KeyParams;
+    float4 _KeyParams;
     TEXTURE2D_X(_InputTexture);
 
-	// RGB <-> YCgCo color space conversion
-	float3 RGB2YCgCo(float3 rgb)
-	{
-		float3x3 m = {
-			 0.25, 0.5,  0.25,
-			-0.25, 0.5, -0.25,
-			 0.50, 0.0, -0.50
-		};
-		return mul(m, rgb);
-	}
+    // RGB <-> YCgCo color space conversion
+    float3 RGB2YCgCo(float3 rgb)
+    {
+        float3x3 m = {
+             0.25, 0.5,  0.25,
+            -0.25, 0.5, -0.25,
+             0.50, 0.0, -0.50
+        };
+        return mul(m, rgb);
+    }
 
-	float3 YCgCo2RGB(float3 ycgco)
-	{
-		return float3(
-			ycgco.x - ycgco.y + ycgco.z,
-			ycgco.x + ycgco.y,
-			ycgco.x - ycgco.y - ycgco.z
-			);
-	}
+    float3 YCgCo2RGB(float3 ycgco)
+    {
+        return float3(
+            ycgco.x - ycgco.y + ycgco.z,
+            ycgco.x + ycgco.y,
+            ycgco.x - ycgco.y - ycgco.z
+            );
+    }
 
-	// Adapted from https://github.com/keijiro/ProcAmp
-	// Main difference is that we do the chroma keying in linear space (not gamma)
-	float ChromaKeyAt(float3 keyColorYCoCg, float2 uv)
-	{
-		float3 rgb = LOAD_TEXTURE2D_X_LOD(_InputTexture, uv, 0).xyz;
-		float3 inputColor = LinearToSRGB(rgb);
+    // Adapted from https://github.com/keijiro/ProcAmp
+    // Main difference is that we do the chroma keying in linear space (not gamma)
+    float ChromaKeyAt(float3 keyColorYCoCg, float2 uv)
+    {
+        float3 rgb = LOAD_TEXTURE2D_X_LOD(_InputTexture, uv, 0).xyz;
+        float3 inputColor = LinearToSRGB(rgb);
 
-		float d = distance(RGB2YCgCo(inputColor).yz, keyColorYCoCg.yz) * 10 ;
-		return smoothstep(_KeyParams.x, _KeyParams.x + _KeyParams.y, d);
-	}
+        float d = distance(RGB2YCgCo(inputColor).yz, keyColorYCoCg.yz) * 10 ;
+        return smoothstep(_KeyParams.x, _KeyParams.x + _KeyParams.y, d);
+    }
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
@@ -76,29 +76,29 @@ Shader "Hidden/Shader/ChromaKeying"
 
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float3 outColor = LOAD_TEXTURE2D_X_LOD(_InputTexture, positionSS, 0).xyz;
-		float3 keyColorYCoCg = RGB2YCgCo(_KeyColor);
+        float3 keyColorYCoCg = RGB2YCgCo(_KeyColor);
 
-		// Calculate keys for surrounding four points and get the minima of them.
-		// This works like a blur and dilate filter.
-		float4 duv = _ScreenSize.zwzw * float4(-0.5, -0.5, 0.5, 0.5);
-		float alpha = ChromaKeyAt(keyColorYCoCg, positionSS + duv.xy);
-		alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.zy));
-		alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.xw));
-		alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.zw));
+        // Calculate keys for surrounding four points and get the minima of them.
+        // This works like a blur and dilate filter.
+        float4 duv = _ScreenSize.zwzw * float4(-0.5, -0.5, 0.5, 0.5);
+        float alpha = ChromaKeyAt(keyColorYCoCg, positionSS + duv.xy);
+        alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.zy));
+        alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.xw));
+        alpha = min(alpha, ChromaKeyAt(keyColorYCoCg, positionSS + duv.zw));
 
-		if (_KeyParams.z > 0)
-		{
-			// Spill removal
-			// What the following lines do is flattening the CgCo chroma values
-			// so that dot(ycgco, _KeyCgCo) == 0.5. This shifts colors toward
-			// the anticolor of the key color.
-			outColor = RGB2YCgCo(LinearToSRGB(outColor));
-			float sub = dot(keyColorYCoCg.yz, outColor.yz) / dot(keyColorYCoCg.yz, keyColorYCoCg.yz);
-			outColor.yz -= keyColorYCoCg.yz * (sub + 0.5) * _KeyParams.z;
-			outColor = SRGBToLinear(YCgCo2RGB(outColor));
-		}
+        if (_KeyParams.z > 0)
+        {
+            // Spill removal
+            // What the following lines do is flattening the CgCo chroma values
+            // so that dot(ycgco, _KeyCgCo) == 0.5. This shifts colors toward
+            // the anticolor of the key color.
+            outColor = RGB2YCgCo(LinearToSRGB(outColor));
+            float sub = dot(keyColorYCoCg.yz, outColor.yz) / dot(keyColorYCoCg.yz, keyColorYCoCg.yz);
+            outColor.yz -= keyColorYCoCg.yz * (sub + 0.5) * _KeyParams.z;
+            outColor = SRGBToLinear(YCgCo2RGB(outColor));
+        }
 
-		return float4(outColor, alpha);
+        return float4(outColor, alpha);
     }
 
     ENDHLSL

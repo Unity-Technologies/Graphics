@@ -26,9 +26,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
             => (
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
             );
 
         internal static void AddStyleSheets(VisualElement element, string baseSkinPath)
@@ -47,9 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
         static readonly Action<SerializedProperty, GUIContent> k_DefaultDrawer = (p, l) => EditorGUILayout.PropertyField(p, l);
-
 
 
         internal static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
@@ -95,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var isPathRooted = Path.IsPathRooted(path);
             return isPathRooted && path.StartsWith(Application.dataPath)
-                   || !isPathRooted && path.StartsWith("Assets");
+                || !isPathRooted && path.StartsWith("Assets");
         }
 
         // Copy texture from cache
@@ -231,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
         {
             if (HDRenderPipeline.defaultAsset == null)
-                return ;
+                return;
 
             EditorGUI.BeginProperty(rect, label, property);
 
@@ -242,7 +240,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.EndProperty();
         }
-
 
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
@@ -332,7 +329,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static bool IsTargetAlive(this SerializedProperty property)
             => property != null && property.serializedObject.targetObject != null &&
-               !property.serializedObject.targetObject.Equals(null);
+            !property.serializedObject.targetObject.Equals(null);
 
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
@@ -383,7 +380,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetEnumValue<T>(this SerializedProperty property, T value)
             where T : Enum
-            // intValue actually is the value underlying beside the enum
+        // intValue actually is the value underlying beside the enum
             => SetEnumValue_Internal(property, value);
 
         /// <summary>
@@ -547,13 +544,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static T GetEnumValue_Internal<T>(SerializedProperty property)
-            // intValue actually is the value underlying beside the enum
+        // intValue actually is the value underlying beside the enum
             => (T)(object)property.intValue;
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void SetEnumValue_Internal<T>(SerializedProperty property, T value)
-            // intValue actually is the value underlying beside the enum
+        // intValue actually is the value underlying beside the enum
             => property.intValue = (int)(object)value;
     }
 }

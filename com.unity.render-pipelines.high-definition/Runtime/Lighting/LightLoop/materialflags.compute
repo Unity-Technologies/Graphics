@@ -19,7 +19,7 @@
 #define USE_MATERIAL_FEATURE_FLAGS
 
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
-#define NR_THREADS              PLATFORM_LANE_COUNT  
+#define NR_THREADS              PLATFORM_LANE_COUNT
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -58,7 +58,7 @@ void MaterialFlagsGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     {
         int idx = i * NR_THREADS + threadID;
         uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
-        
+
         // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
         uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uCrd));
         if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) > 0)

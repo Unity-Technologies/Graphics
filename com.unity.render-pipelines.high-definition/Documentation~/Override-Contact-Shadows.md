@@ -3,7 +3,7 @@ The Contact Shadows [Volume Override](Volume-Components.md) specifies properties
 
 
 ## Enabling Contact Shadows
-[!include[](snippets/Volume-Override-Enable.md)]
+[!include[](snippets/Volume-Override-Enable-Override.md)]
 
 For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Shadows > Use Contact Shadows**.

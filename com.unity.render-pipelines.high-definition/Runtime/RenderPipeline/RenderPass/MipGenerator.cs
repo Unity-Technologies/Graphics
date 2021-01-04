@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
             for (int i = 1; i < info.mipLevelCount; i++)
             {
-                if (mip1AlreadyComputed && i == 1) continue; 
+                if (mip1AlreadyComputed && i == 1) continue;
 
                 Vector2Int dstSize   = info.mipLevelSizes[i];
                 Vector2Int dstOffset = info.mipLevelOffsets[i];
@@ -86,8 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DstOffset[2] = 0;
                 m_DstOffset[3] = 0;
 
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
-                cmd.SetComputeIntParams(   cs,         HDShaderIDs._DstOffset,         m_DstOffset);
+                cmd.SetComputeIntParams(cs,         HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
+                cmd.SetComputeIntParams(cs,         HDShaderIDs._DstOffset,         m_DstOffset);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain,     texture);
 
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
@@ -137,16 +137,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TempDownsamplePyramid[rtIndex] == null)
             {
                 m_TempDownsamplePyramid[rtIndex] = RTHandles.Alloc(
-                Vector2.one * 0.5f,
-                sourceIsArray ? TextureXR.slices : 1,
-                dimension: source.dimension,
-                filterMode: FilterMode.Bilinear,
-                colorFormat: destination.graphicsFormat,
-                enableRandomWrite: false,
-                useMipMap: false,
-                enableMSAA: false,
-                useDynamicScale: true,
-                name: "Temporary Downsampled Pyramid"
+                    Vector2.one * 0.5f,
+                    sourceIsArray ? TextureXR.slices : 1,
+                    dimension: source.dimension,
+                    filterMode: FilterMode.Bilinear,
+                    colorFormat: destination.graphicsFormat,
+                    enableRandomWrite: false,
+                    useMipMap: false,
+                    enableMSAA: false,
+                    useDynamicScale: true,
+                    name: "Temporary Downsampled Pyramid"
                 );
 
                 cmd.SetRenderTarget(m_TempDownsamplePyramid[rtIndex]);

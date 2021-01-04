@@ -14,4 +14,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/003-VirtualTexturing.unity
     guid: 897c2870240f77a46a18884a0446b797
+  - enabled: 1
+    path: Assets/Scenes/003-VirtualTexturing-Forward.unity
+    guid: 32f9dd5fabc57284bb43468761c84f36
+  - enabled: 1
+    path: Assets/Scenes/003-VirtualTexturing-NoMV.unity
+    guid: d02e9097c7ef6374e8b5888b1d8ac25c
+  - enabled: 1
+    path: Assets/Scenes/003-VirtualTexturing-NoMV-Forward.unity
+    guid: 500813a390ad4074cba926bf26eef57a
   m_configObjects: {}
