@@ -23,7 +23,7 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -53,7 +53,7 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -84,7 +84,7 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -118,7 +118,7 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 

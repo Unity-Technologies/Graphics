@@ -47,7 +47,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -115,7 +115,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -176,7 +176,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trun
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -238,7 +238,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -310,7 +310,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
@@ -375,7 +375,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/BoatAttack && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
