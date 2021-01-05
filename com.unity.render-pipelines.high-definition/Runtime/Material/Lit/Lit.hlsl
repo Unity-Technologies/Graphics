@@ -207,6 +207,12 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return sourceAO;
 }
 
+#define HAS_PAYLOAD_WITH_UNINIT_GI
+float GetUninitializedGIPayload(SurfaceData surfaceData)
+{
+    return surfaceData.ambientOcclusion;
+}
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
