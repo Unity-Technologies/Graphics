@@ -9,9 +9,9 @@ editor_version_names:
 editor_versions:
   2021_1_latest_internal:
     android:
-      revision: 9f7c487dd2da
-      updated_at: '2020-12-20 23:15:00.460217'
-      version: 2021.1.0b1
+      revision: 1e651ea6a5c1
+      updated_at: '2021-01-05 23:32:46.218216'
+      version: 2021.1.0b2
     ios:
       revision: 9f7c487dd2da
       updated_at: '2020-12-20 23:15:00.460217'
@@ -25,9 +25,9 @@ editor_versions:
       updated_at: '2020-12-20 23:15:00.460217'
       version: 2021.1.0b1
     windows:
-      revision: 9f7c487dd2da
-      updated_at: '2020-12-20 23:15:00.460217'
-      version: 2021.1.0b1
+      revision: 1e651ea6a5c1
+      updated_at: '2021-01-05 23:32:46.218216'
+      version: 2021.1.0b2
   2021_1_latest_public:
     android:
       revision: 9f7c487dd2da
@@ -51,22 +51,22 @@ editor_versions:
       version: 2021.1.0b1
   2021_1_staging:
     android:
-      revision: ab57e0c75c98bfd253bf51fe6d5caee37027182f
-      updated_at: '2020-12-29 23:40:20.598855'
+      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
+      updated_at: '2021-01-05 23:32:46.218216'
       version: ''
     ios:
-      revision: ab57e0c75c98bfd253bf51fe6d5caee37027182f
-      updated_at: '2020-12-29 23:40:20.598855'
+      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
+      updated_at: '2021-01-05 23:32:46.218216'
       version: ''
     linux:
-      revision: ab57e0c75c98bfd253bf51fe6d5caee37027182f
-      updated_at: '2020-12-29 23:40:20.598855'
+      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
+      updated_at: '2021-01-05 23:32:46.218216'
       version: ''
     macos:
-      revision: ab57e0c75c98bfd253bf51fe6d5caee37027182f
-      updated_at: '2020-12-29 23:40:20.598855'
+      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
+      updated_at: '2021-01-05 23:32:46.218216'
       version: ''
     windows:
-      revision: ab57e0c75c98bfd253bf51fe6d5caee37027182f
-      updated_at: '2020-12-29 23:40:20.598855'
+      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
+      updated_at: '2021-01-05 23:32:46.218216'
       version: ''
