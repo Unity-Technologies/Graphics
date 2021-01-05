@@ -1324,6 +1324,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
         };
+
+        public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
+        {
+            displayName = "Multi Bounce Indirect",
+            referenceName = "MULTI_BOUNCE_INDIRECT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
     }
     #endregion
 }

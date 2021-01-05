@@ -364,7 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);
 
-            LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
+            LightingShaderGraphGUI.SetupLightingKeywordsAndPass(material);
         }
 
         internal override void MigrateTo(ShaderGraphVersion version)

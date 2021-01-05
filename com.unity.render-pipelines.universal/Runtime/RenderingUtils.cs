@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 // TODO: For now disabling SSBO until figure out Vulkan binding issues.
-                // When enabling this also enable it in shader side in Input.hlsl
+                // When enabling this also enable USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA in shader side in Input.hlsl
                 return false;
 
                 // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.

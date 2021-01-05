@@ -17,7 +17,7 @@ The Render Pipeline Debug window.
 
 ## Using the Render Pipeline Debug window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (command+Backspace on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
@@ -31,7 +31,7 @@ To change the current active item:
 
 To change the current tab:
 
-- **Keyboard**: Use the Page up and Page down keys.
+- **Keyboard**: Use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS).
 - **Xbox controller**: Use the Left Bumper and Right Bumper.
 - **PlayStation controller**: Use the L1 button and R1 button.
 

@@ -14,11 +14,11 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit),
-            new UnlitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
-            new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity)
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: SurfaceOptionUIBlock.Features.Unlit),
+            new UnlitSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input),
+            new TransparencyUIBlock(MaterialUIBlock.ExpandableBit.Transparency),
+            new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity)
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -30,10 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupUnlitMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupUnlitKeywordsAndPass(material);
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        public static void SetupUnlitMaterialKeywordsAndPass(Material material)
+        public static void SetupUnlitKeywordsAndPass(Material material)
         {
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();

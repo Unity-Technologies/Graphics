@@ -71,7 +71,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
         light.shadowAttenuation = 1.0;
     else
     {
-        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, shadowMask, punctualLightData.occlusionProbeInfo);
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo);
     }
     return light;
 }
