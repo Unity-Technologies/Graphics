@@ -20,17 +20,18 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
+      -  brew install rsync
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  rsync -e ssh -av $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=2400 --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=2400 --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                  exit $UTR_RESULT
     artifacts:
         logs:
@@ -50,17 +51,18 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
+      -  brew install rsync
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  rsync -e ssh -av $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                  exit $UTR_RESULT
     artifacts:
         logs:
@@ -81,17 +83,18 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
+      -  brew install rsync
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  rsync -e ssh -av $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=2400 --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=2400 --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                  exit $UTR_RESULT
     artifacts:
         logs:
@@ -115,17 +118,18 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
+      -  brew install rsync
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR/. bokken@$BOKKEN_DEVICE_IP:~/Graphics/
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  rsync -e ssh -av $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/UniversalHybridTest && ~/Graphics/TestProjects/UniversalHybridTest/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/UniversalHybridTest/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results/ TestProjects/UniversalHybridTest/test-results/
                  exit $UTR_RESULT
     artifacts:
         logs:
