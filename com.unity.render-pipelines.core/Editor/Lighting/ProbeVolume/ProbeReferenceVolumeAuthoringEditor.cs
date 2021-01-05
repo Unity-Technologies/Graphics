@@ -57,95 +57,103 @@ namespace UnityEngine.Rendering
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-
-            var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-            bool foundInconsistency = false;
-            if (probeReferenceVolumes.Length > 1)
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
             {
-                foreach (var o1 in probeReferenceVolumes)
+                serializedObject.Update();
+
+                var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+                bool foundInconsistency = false;
+                if (probeReferenceVolumes.Length > 1)
                 {
-                    foreach (var o2 in probeReferenceVolumes)
+                    foreach (var o1 in probeReferenceVolumes)
                     {
-                        if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
+                        foreach (var o2 in probeReferenceVolumes)
                         {
-                            EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
-                                + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                            foundInconsistency = true;
+                            if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
+                            {
+                                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
+                                    + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                                foundInconsistency = true;
+                            }
+                            if (foundInconsistency) break;
                         }
-                        if (foundInconsistency) break;
                     }
                 }
+
+                EditorGUI.BeginChangeCheck();
+
+                // The layout system breaks alignment when mixing inspector fields with custom layout'd
+                // fields, do the layout manually instead
+                int buttonWidth = 60;
+                float indentOffset = EditorGUI.indentLevel * 15f;
+                var lineRect = EditorGUILayout.GetControlRect();
+                var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
+                var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - buttonWidth, lineRect.height);
+                var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
+
+                GUIContent guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+                EditorGUI.PrefixLabel(labelRect, guiContent);
+
+                using (var scope = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
+
+                    m_Profile.objectReferenceValue = (ProbeReferenceVolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(ProbeReferenceVolumeProfile), false);
+
+                    EditorGUI.EndProperty();
+                }
+
+                if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), EditorStyles.miniButton))
+                {
+                    // By default, try to put assets in a folder next to the currently active
+                    // scene file. If the user isn't a scene, put them in root instead.
+                    var targetName = actualTarget.name;
+                    var scene = actualTarget.gameObject.scene;
+                    var asset = ProbeReferenceVolumeAuthoring.CreateReferenceVolumeProfile(scene, targetName);
+                    m_Profile.objectReferenceValue = asset;
+                }
+
+                m_VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, m_VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
+
+                DebugVisualizationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DebugVisualizationGroupEnabled, "Debug Visualization");
+                if (DebugVisualizationGroupEnabled)
+                {
+                    m_DrawCells.boolValue = EditorGUILayout.Toggle("Draw Cells", m_DrawCells.boolValue);
+                    m_DrawBricks.boolValue = EditorGUILayout.Toggle("Draw Bricks", m_DrawBricks.boolValue);
+                    m_DrawProbes.boolValue = EditorGUILayout.Toggle("Draw Probes", m_DrawProbes.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
+                    m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
+                    EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
+                    m_Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", m_Exposure.floatValue);
+                    EditorGUI.EndDisabledGroup();
+                    EditorGUI.EndDisabledGroup();
+                    m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+
+                DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
+                if (DilationGroupEnabled)
+                {
+                    m_Dilate.boolValue = EditorGUILayout.Toggle("Dilate", m_Dilate.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
+                    m_MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", m_MaxDilationSamples.intValue);
+                    m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", m_MaxDilationSampleDistance.floatValue);
+                    DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
+                    m_GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", m_GreedyDilation.boolValue);
+                    EditorGUI.EndDisabledGroup();
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Constrain();
+                    serializedObject.ApplyModifiedProperties();
+                }
             }
-
-            EditorGUI.BeginChangeCheck();
-
-            // The layout system breaks alignment when mixing inspector fields with custom layout'd
-            // fields, do the layout manually instead
-            int buttonWidth = 60;
-            float indentOffset = EditorGUI.indentLevel * 15f;
-            var lineRect = EditorGUILayout.GetControlRect();
-            var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
-            var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - buttonWidth, lineRect.height);
-            var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
-
-            GUIContent guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
-            EditorGUI.PrefixLabel(labelRect, guiContent);
-
-            using (var scope = new EditorGUI.ChangeCheckScope())
+            else
             {
-                EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
-
-                m_Profile.objectReferenceValue = (ProbeReferenceVolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(ProbeReferenceVolumeProfile), false);
-
-                EditorGUI.EndProperty();
-            }
-
-            if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), EditorStyles.miniButton))
-            {
-                // By default, try to put assets in a folder next to the currently active
-                // scene file. If the user isn't a scene, put them in root instead.
-                var targetName = actualTarget.name;
-                var scene = actualTarget.gameObject.scene;
-                var asset = ProbeReferenceVolumeAuthoring.CreateReferenceVolumeProfile(scene, targetName);
-                m_Profile.objectReferenceValue = asset;
-            }
-
-            m_VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, m_VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
-
-            DebugVisualizationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DebugVisualizationGroupEnabled, "Debug Visualization");
-            if (DebugVisualizationGroupEnabled)
-            {
-                m_DrawCells.boolValue = EditorGUILayout.Toggle("Draw Cells", m_DrawCells.boolValue);
-                m_DrawBricks.boolValue = EditorGUILayout.Toggle("Draw Bricks", m_DrawBricks.boolValue);
-                m_DrawProbes.boolValue = EditorGUILayout.Toggle("Draw Probes", m_DrawProbes.boolValue);
-                EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
-                m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
-                EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
-                m_Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", m_Exposure.floatValue);
-                EditorGUI.EndDisabledGroup();
-                EditorGUI.EndDisabledGroup();
-                m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-
-            DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
-            if (DilationGroupEnabled)
-            {
-                m_Dilate.boolValue = EditorGUILayout.Toggle("Dilate", m_Dilate.boolValue);
-                EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
-                m_MaxDilationSamples.intValue = EditorGUILayout.IntField("Max Dilation Samples", m_MaxDilationSamples.intValue);
-                m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Max Dilation Sample Distance", m_MaxDilationSampleDistance.floatValue);
-                DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
-                m_GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", m_GreedyDilation.boolValue);
-                EditorGUI.EndDisabledGroup();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                Constrain();
-                serializedObject.ApplyModifiedProperties();
+                EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
             }
         }
 

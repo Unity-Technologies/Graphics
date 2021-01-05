@@ -30,11 +30,19 @@ namespace UnityEditor.Rendering
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            {
+                serializedObject.Update();
 
-            ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
+                ProbeVolumeUI.Inspector.Draw(m_SerializedProbeVolume, this);
 
-            m_SerializedProbeVolume.Apply();
+                m_SerializedProbeVolume.Apply();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+            }
         }
 
         [DrawGizmo(GizmoType.InSelectionHierarchy)]
