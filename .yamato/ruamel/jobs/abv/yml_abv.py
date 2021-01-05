@@ -9,7 +9,7 @@ def create_abv_ymls(metafile):
     yml = {}
     
     for editor in metafile["editors"]:
-        job = ABV_AllProjectCiJob(editor, metafile["abv"]["projects"],metafile["target_branch"])
+        job = ABV_AllProjectCiJob(editor, metafile["abv"]["projects"],metafile["target_branch"], metafile["abv"]["expression_trigger"])
         yml[job.job_id] = job.yml
 
         if editor.get("nightly"):

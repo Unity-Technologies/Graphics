@@ -54,6 +54,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = pathIntersection.pixelCoord;
 
+    // For path tracing, we want the front-facing test to be performed on the actual geometric normal
+    float3 geomNormal;
+    GetCurrentIntersectionGeometricNormal(attributeData, geomNormal);
+    fragInput.isFrontFace = dot(WorldRayDirection(), geomNormal) < 0.0;
+
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -75,7 +80,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #ifndef SHADER_UNLIT
 
-    // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
+    // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
+    // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
+    bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
+
+    // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
 
     // Get current path throughput

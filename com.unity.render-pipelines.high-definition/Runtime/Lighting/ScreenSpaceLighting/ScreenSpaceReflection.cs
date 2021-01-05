@@ -177,26 +177,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_DenoiserRadius.value = value; }
         }
+
+        /// <summary>
+        /// Controls if the denoising should affect pefectly smooth surfaces
+        /// </summary>
+        public bool affectSmoothSurfaces
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_AffectSmoothSurfaces.value;
+                else
+                    return GetLightingQualitySettings().RTRSmoothDenoising[(int)quality.value];
+            }
+            set { m_AffectSmoothSurfaces.value = value; }
+        }
+
         /// <summary>
         /// Controls which version of the effect should be used.
         /// </summary>
         public RayTracingModeParameter mode = new RayTracingModeParameter(RayTracingMode.Quality);
-
-        // Performance
-        /// <summary>
-        /// Controls the size of the upscale radius.
-        /// </summary>
-        public int upscaleRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_UpscaleRadius.value;
-                else
-                    return GetLightingQualitySettings().RTRUpScaleRadius[(int)quality.value];
-            }
-            set { m_UpscaleRadius.value = value; }
-        }
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -255,10 +255,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the clamp of intensity.")]
         private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
-        [SerializeField, FormerlySerializedAs("upscaleRadius")]
-        [Tooltip("Upscale Radius")]
-        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 6);
-
         [SerializeField, FormerlySerializedAs("fullResolution")]
         [Tooltip("Full Resolution")]
         private BoolParameter m_FullResolution = new BoolParameter(false);
@@ -270,5 +266,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("denoiserRadius")]
         [Tooltip("Controls the radius of the ray traced reflection denoiser.")]
         private ClampedIntParameter m_DenoiserRadius = new ClampedIntParameter(8, 1, 32);
+
+        [SerializeField]
+        [Tooltip("Denoiser affects smooth surfaces.")]
+        private BoolParameter m_AffectSmoothSurfaces = new BoolParameter(false);
     }
 }

@@ -1,11 +1,12 @@
 #pragma only_renderers d3d11
 
-#pragma kernel TemporalAccumulation
+#pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
+#pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION
 #pragma kernel CopyHistory
-#pragma kernel BilateralFilterH        BILATERAL_FILTER=BilateralFilterH
-#pragma kernel BilateralFilterV        BILATERAL_FILTER=BilateralFilterV     FINAL_PASS
-
-#pragma only_renderers d3d11
+#pragma kernel BilateralFilterH_FR      BILATERAL_FILTER=BilateralFilterH_FR
+#pragma kernel BilateralFilterV_FR      BILATERAL_FILTER=BilateralFilterV_FR    FINAL_PASS
+#pragma kernel BilateralFilterH_HR      BILATERAL_FILTER=BilateralFilterH_HR    HALF_RESOLUTION
+#pragma kernel BilateralFilterV_HR      BILATERAL_FILTER=BilateralFilterV_HR    FINAL_PASS  HALF_RESOLUTION
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -17,6 +18,8 @@
 #define BILATERAL_ROUGHNESS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+
 // Tile size of this compute
 #define REFLECTION_FILTER_TILE_SIZE 8
 
@@ -24,99 +27,164 @@
 
 // Thereshold at which we decide to reject the reflection history
 #define REFLECTION_HISTORY_REJECTION_THRESHOLD 0.75
+// Threshold at which we go from accumulation to clampiong
+#define SMOOTHNESS_ACCUMULATION_THRESHOLD 0.5
 
+// Input textures
 TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_HistoryBuffer);
-RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+TEXTURE2D_X(_HistoryDepthTexture);
 // Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
+// Current inverse resolution of the history buffer
+float2 _HistoryBufferSize;
+// Resolution at which the effect is rendered (Half the _Screensize if half res)
+float4 _CurrentEffectResolution;
+float _PixelSpreadAngleTangent;
+int _AffectSmoothSurfaces;
 int _SingleReflectionBounce;
 
+// Output texture
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+RW_TEXTURE2D_X(float, _SampleCountTextureRW);
+
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
-void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+    uint2 mainCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
 
-    // If the history is flagged as invalid, write the current value and leave right away
-    if (_HistoryValidity == 0.0)
+    // The source coordinate for the normal and depth depends if we are in half res or not
+    #ifdef HALF_RESOLUTION
+    uint2 geometryCoords = ComputeSourceCoordinates(mainCoord, _RaytracingFrameIndex);
+    #else
+    uint2 geometryCoords = mainCoord;
+    #endif
+
+    // Fetch the depth
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, geometryCoords).x;
+
+    // If the history is flagged as invalid or this is a a background pixel write the noisy value and leave right away
+    if (_HistoryValidity == 0.0 || depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord);
+        _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = 0;
         return;
     }
 
-    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
+    // Real the normal data for this pixel
+    NormalData normalData;
+    DecodeFromNormalBuffer(geometryCoords, normalData);
 
-    float2 closest = GetClosestFragmentCompute(posInputs.positionSS);
-
+    // Read the depth and velocity vectors
     float2 velocity;
-    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
-    float velocityLength = length(velocity);
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, geometryCoords), velocity);
 
-    float2 uv = posInputs.positionNDC;
-    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-    float4 historyRaw = Fetch4(_HistoryBuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    // Compute the current and history UV coordinates
+    float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
+    float2 historyCoordinate = ((float2)(mainCoord + 0.5f) - velocity * _CurrentEffectResolution.xy);
+    float2 historyUV = historyCoordinate * _HistoryBufferSize.xy;
+
+    // Fetch the current and history values and apply the exposition to it.
+    float3 color = Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+    float4 historyRaw = Fetch4(_HistoryBuffer, historyUV, 0.0, 1.0);
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 
-    // If the validity of the history is lower than a given threshold, we do not want to use it
-    if (historyRaw.w < REFLECTION_HISTORY_REJECTION_THRESHOLD)
+    if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
+        _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = 1;
         return;
     }
 
-    // Decode the normal data
-    NormalData normalData;
-    DecodeFromNormalBuffer(centerCoord, normalData);
-    // If this is close to a perfectly smooth surface, we do not want to use the history (it introduced unwanted ghosting)
-    if (_SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
+    float sampleCount = historyRaw.w;
+    float3 result;
+    if (normalData.perceptualRoughness > SMOOTHNESS_ACCUMULATION_THRESHOLD)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
-        return;
+        bool canBeReprojected = true;
+
+        // If the pixel was outside of the screen during the previous frame, invalidate the history
+        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0 || historyCoordinate.y >= _CurrentEffectResolution.y || historyCoordinate.y < 0)
+            canBeReprojected = false;
+
+    #ifdef HALF_RESOLUTION
+        float2 historyDepthUV = ((float2)(mainCoord * 2.0 + 0.5f) - velocity * _CurrentEffectResolution.xy * 2.0f) * _HistoryBufferSize.xy;
+    #else
+        float2 historyDepthUV = historyUV;
+    #endif
+
+        // Fetch the depth of the history pixel. If the history position was a background point, invalidate the history
+        float historyDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historyDepthUV, 0).r;
+        if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+            canBeReprojected = false;
+
+        // Compute the world space position
+        PositionInputs posInput = GetPositionInput(geometryCoords, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+        // Compute the world space position (from previous frame)
+        float3 historyPositionWS = ComputeWorldSpacePosition(posInput.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
+
+        // Is it too far from the current position?
+        if (length(historyPositionWS - posInput.positionWS) > 0.1)
+            canBeReprojected = false;
+
+        if (canBeReprojected && sampleCount != 0.0)
+        {
+            float accumulationFactor = sampleCount >= 8.0 ? 0.93 : (sampleCount / (sampleCount + 1.0));
+            result = (color * (1.0 - accumulationFactor) + history * accumulationFactor);
+            sampleCount = max(sampleCount + 1.0, 8.0);
+        }
+        else
+        {
+            result = color;
+            sampleCount = 1.0;
+        }
+    }
+    else
+    {
+        float3 topLeft = Fetch(_DenoiseInputTexture, currentUV, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+        float3 bottomRight = Fetch(_DenoiseInputTexture, currentUV, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+
+        float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+        color = clamp(color, 0.0, CLAMP_MAX);
+
+        float3 average = FastTonemap((corners + color) / 7.0);
+
+        topLeft = FastTonemap(topLeft);
+        bottomRight = FastTonemap(bottomRight);
+        color = FastTonemap(color);
+
+        float colorLuma = Luminance(color);
+        float averageLuma = Luminance(average);
+        float velocityLength = length(velocity);
+        float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+        float3 minimum = min(bottomRight, topLeft) - nudge;
+        float3 maximum = max(topLeft, bottomRight) + nudge;
+
+        history = FastTonemap(history);
+
+        // Clip history samples
+        history = DirectClipToAABB(history, minimum, maximum);
+
+        // Blend color & history
+        // Feedback weight from unbiased luminance diff (Timothy Lottes)
+        float historyLuma = Luminance(history);
+        float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+        float weight = 1.0 - diff;
+        const float feedbackMin = 0.96;
+        const float feedbackMax = 0.91;
+        float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
+
+        color = FastTonemapInvert(lerp(color, history, feedback));
+        result = clamp(color, 0.0, CLAMP_MAX);
     }
 
-    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-
-    float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
-
-    color = clamp(color, 0.0, CLAMP_MAX);
-
-    float3 average = FastTonemap((corners + color) / 7.0);
-
-    topLeft = FastTonemap(topLeft);
-    bottomRight = FastTonemap(bottomRight);
-    color = FastTonemap(color);
-
-    float colorLuma = Luminance(color);
-    float averageLuma = Luminance(average);
-    float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
-
-    float3 minimum = min(bottomRight, topLeft) - nudge;
-    float3 maximum = max(topLeft, bottomRight) + nudge;
-
-    history = FastTonemap(history);
-
-    // Clip history samples
-    history = DirectClipToAABB(history, minimum, maximum);
-
-    // Blend color & history
-    // Feedback weight from unbiased luminance diff (Timothy Lottes)
-    float historyLuma = Luminance(history);
-    float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
-    float weight = 1.0 - diff;
-    const float feedbackMin = 0.96;
-    const float feedbackMax = 0.91;
-    float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
-
-
-    color = FastTonemapInvert(lerp(color, history, feedback));
-    color = clamp(color, 0.0, CLAMP_MAX);
-
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
+    _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = sampleCount;
 }
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
@@ -127,13 +195,15 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-    float4 currentColor = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float4 currentColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
     // We need to apply a step function on the blend factor to evaluate the validity of the history (if it is stricly higher than 0.0 then its valid)
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(currentColor.xyz, currentColor.w > 0.0 ? 1.0 : 0.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(currentColor.xyz, _SampleCountTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x);
 }
 
 int _DenoiserFilterRadius;
 TEXTURE2D(_ReflectionFilterMapping);
+
+#define BILATERAL_FILTER_SIGMA 0.9
 
 // Separated bilateral filter (two passes, each with 2*Radius taps)
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
@@ -151,8 +221,13 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const uint2 passIncr = uint2(0, 1);
     #endif
 
+    #if HALF_RESOLUTION
+    uint2 geometrCoords = ComputeSourceCoordinates(centerCoord, _RaytracingFrameIndex);
+    #else
+    uint2 geometrCoords = centerCoord;
+    #endif
     // Tap the central pixel coordinates
-    const BilateralData center = TapBilateralData(centerCoord);
+    const BilateralData center = TapBilateralData(geometrCoords);
 
     // Compute the effective radius we should be using for the filtering
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
@@ -163,7 +238,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #else
     const float radius = _DenoiserFilterRadius * radiusScale.y;
     #endif
-    const float sigma = 0.5 * radius;
+    const float sigma =  radius * BILATERAL_FILTER_SIGMA;
     const int effectiveRadius = min(sigma * 2.0, radius);
 
     // Store the intermediate result
@@ -183,8 +258,13 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
             if (tapCoord.x >= _ScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _ScreenSize.y || tapCoord.y < 0)
                 continue;
 
+            #if HALF_RESOLUTION
+            uint2 tapGeometryCoords = ComputeSourceCoordinates(tapCoord, _RaytracingFrameIndex);
+            #else
+            uint2 tapGeometryCoords = tapCoord;
+            #endif
             // Compute the weight (skip computation for the center)
-            const BilateralData tapData = TapBilateralData(tapCoord);
+            const BilateralData tapData = TapBilateralData(tapGeometryCoords);
             float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
             w = _RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(tapData.roughness) ? 0.0 : w;
             colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;

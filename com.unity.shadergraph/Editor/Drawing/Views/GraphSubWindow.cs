@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Interfaces;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, IResizable
+    class GraphSubWindow : GraphElement, ISGResizable
     {
         Dragger m_Dragger;
 
@@ -18,6 +19,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             verticalOffset = 8,
             horizontalOffset = 8,
         };
+
+        // Used to cache the window docking layout between resizing operations as it interferes with window resizing operations
+        private IStyle cachedWindowDockingStyle;
+
         WindowDockingLayout windowDockingLayout { get; set; }
 
         protected VisualElement m_MainContainer;
@@ -97,7 +102,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         public override VisualElement contentContainer => m_ContentContainer;
 
-        readonly bool m_Scrollable = false;
+        private bool m_IsScrollable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowScrollable
+        {
+            get => m_IsScrollable;
+            set
+            {
+                if (m_IsScrollable != value)
+                {
+                    m_ScrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+                    m_IsScrollable = value;
+                    HandleScrollingBehavior(m_IsScrollable);
+                }
+            }
+        }
 
         void HandleScrollingBehavior(bool scrollable)
         {
@@ -155,9 +175,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             style.overflow = Overflow.Hidden;
             focusable = false;
 
-            m_Scrollable = true;
-            HandleScrollingBehavior(m_Scrollable);
-
             name = elementName;
             title = windowTitle;
 
@@ -209,7 +226,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         void BuildManipulators()
         {
             m_Dragger = new Dragger { clampToParentEdges = true };
-            RegisterCallback<MouseUpEvent>(OnMoved);
+            RegisterCallback<MouseUpEvent>(OnMoveEnd);
             this.AddManipulator(m_Dragger);
 
             var resizeElement = this.Q<ResizableElement>();
@@ -222,16 +239,32 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
-            windowDockingLayout.ApplyPosition(this);
+
+            // If the parent shader graph window is being resized smaller than this window on either axis
+            if (parentLayout.width < this.layout.width || parentLayout.height < this.layout.height)
+            {
+                // Don't adjust the sub window in this case as it causes flickering errors and looks broken
+            }
+            else
+            {
+                windowDockingLayout.ApplyPosition(this);
+            }
+
             SerializeLayout();
         }
 
         public void OnStartResize()
         {
+            cachedWindowDockingStyle = this.style;
         }
 
         public void OnResized()
         {
+            this.style.left = cachedWindowDockingStyle.left;
+            this.style.right = cachedWindowDockingStyle.right;
+            this.style.bottom = cachedWindowDockingStyle.bottom;
+            this.style.top = cachedWindowDockingStyle.top;
+
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
@@ -259,12 +292,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
         }
 
-        void OnMoved(MouseUpEvent upEvent)
+        void OnMoveEnd(MouseUpEvent upEvent)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();
+        }
+
+        public bool CanResizePastParentBounds()
+        {
+            return false;
         }
 
         void OnWindowResize(MouseUpEvent upEvent)
