@@ -260,7 +260,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             return target;
         }
 
-        internal static void DrawPropertyScopeContextMenuAndIcons(MaterialVariant matVariant, string propertyName, bool isOverride, bool isBlocked, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
+        internal static void DrawPropertyScopeContextMenuAndIcons(bool isOverride, bool isBlocked, bool isLocked, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
         {
             if (Event.current.rawType == EventType.ContextClick && labelRect.Contains(Event.current.mousePosition))
             {
@@ -277,13 +277,13 @@ namespace Unity.Assets.MaterialVariant.Editor
                 }
 
                 var blockGUIContent = new GUIContent("Lock in children");
-                if (matVariant.IsPropertyBlockedInAncestors(propertyName))
+                if (isBlocked)
                 {
                     menu.AddDisabledItem(blockGUIContent, true);
                 }
                 else
                 {
-                    menu.AddItem(blockGUIContent, matVariant.IsPropertyBlockedInCurrent(propertyName), blockFunction);
+                    menu.AddItem(blockGUIContent, isLocked, blockFunction);
                 }
 
                 menu.ShowAsContext();
@@ -295,7 +295,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.DrawRect(labelRect, Color.white);
             }
 
-            if (isBlocked || matVariant.IsPropertyBlockedInCurrent(propertyName))
+            if (isBlocked || isLocked)
             {
                 labelRect.xMin = 8;
                 labelRect.width = 32;

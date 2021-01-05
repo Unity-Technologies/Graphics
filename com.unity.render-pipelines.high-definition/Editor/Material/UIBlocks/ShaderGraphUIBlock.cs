@@ -189,8 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 MaterialProperty diffusionProfileAsset = FindProperty("_DiffusionProfileAsset");
                 MaterialProperty diffusionProfileHash = FindProperty("_DiffusionProfileHash");
-                using (CreateOverrideScopeFor(diffusionProfileAsset))
-                using (CreateOverrideScopeFor(diffusionProfileHash))
+                using (CreateOverrideScopeFor(diffusionProfileAsset, diffusionProfileHash))
                     DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset, diffusionProfileHash, 0);
             }
         }

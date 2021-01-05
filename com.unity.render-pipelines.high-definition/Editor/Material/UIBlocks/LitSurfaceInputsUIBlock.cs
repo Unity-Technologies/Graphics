@@ -399,8 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[m_LayerIndex].floatValue;
             float X, Y, Z, W;
 
-            using (CreateOverrideScopeFor(baseColorMap[m_LayerIndex]))
-            using (CreateOverrideScopeFor(baseColor[m_LayerIndex]))
+            using (CreateOverrideScopeFor(baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]))
                 materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
             bool hasMetallic = materials.All(m =>
@@ -483,8 +482,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // 2. to avoid the warning that ask to fix the object normal map texture (normalOS are just linear RGB texture
             if ((NormalMapSpace)normalMapSpace[m_LayerIndex].floatValue == NormalMapSpace.TangentSpace)
             {
-                using (CreateOverrideScopeFor(normalMap[m_LayerIndex]))
-                using (CreateOverrideScopeFor(normalScale[m_LayerIndex]))
+                using (CreateOverrideScopeFor(normalMap[m_LayerIndex], normalScale[m_LayerIndex]))
                     materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap[m_LayerIndex], normalScale[m_LayerIndex]);
                 using (CreateOverrideScopeFor(bentNormalMap[m_LayerIndex]))
                     materialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap[m_LayerIndex]);
@@ -649,8 +647,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdPipeline == null)
                 return;
 
-            using (CreateOverrideScopeFor(diffusionProfileAsset[m_LayerIndex]))
-            using (CreateOverrideScopeFor(diffusionProfileHash[m_LayerIndex]))
+            using (CreateOverrideScopeFor(diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex]))
                 DiffusionProfileMaterialUI.OnGUI(materialEditor, diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex], m_LayerIndex);
 
             if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials.All(m => m.GetSurfaceType() != SurfaceType.Transparent))
@@ -683,8 +680,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     // Allow the user to set the constant value of thickness if no thickness map is provided.
-                    using (CreateOverrideScopeFor(thicknessMap[m_LayerIndex]))
-                    using (CreateOverrideScopeFor(thickness[m_LayerIndex]))
+                    using (CreateOverrideScopeFor(thicknessMap[m_LayerIndex], thickness[m_LayerIndex]))
                         materialEditor.TexturePropertySingleLine(Styles.thicknessText, thicknessMap[m_LayerIndex], thickness[m_LayerIndex]);
                 }
             }
@@ -710,8 +706,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ShaderSpecularColorInputGUI()
         {
-            using (CreateOverrideScopeFor(specularColorMap))
-            using (CreateOverrideScopeFor(specularColor))
+            using (CreateOverrideScopeFor(specularColorMap, specularColor))
                 materialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
             EditorGUI.indentLevel++;
             using (CreateOverrideScopeFor(energyConservingSpecularColor))
@@ -721,8 +716,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ShaderIridescenceInputGUI()
         {
-            using (CreateOverrideScopeFor(iridescenceMaskMap))
-            using (CreateOverrideScopeFor(iridescenceMask))
+            using (CreateOverrideScopeFor(iridescenceMaskMap, iridescenceMask))
                 materialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
             if (iridescenceThicknessMap.textureValue != null)
@@ -744,16 +738,14 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                using (CreateOverrideScopeFor(iridescenceThicknessMap))
-                using (CreateOverrideScopeFor(iridescenceThickness))
+                using (CreateOverrideScopeFor(iridescenceThicknessMap, iridescenceThickness))
                     materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);
             }
         }
 
         void ShaderClearCoatInputGUI()
         {
-            using (CreateOverrideScopeFor(coatMaskMap))
-            using (CreateOverrideScopeFor(coatMask))
+            using (CreateOverrideScopeFor(coatMaskMap, coatMask))
                 materialEditor.TexturePropertySingleLine(Styles.coatMaskText, coatMaskMap, coatMask);
         }
 

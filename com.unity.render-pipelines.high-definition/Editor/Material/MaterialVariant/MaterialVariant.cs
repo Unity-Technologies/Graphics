@@ -28,13 +28,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             // parentAsset is either a Shader (for Shader or ShaderGraph) or a Material (for Material or MaterialVariant)
             // If a MaterialVariant, we're interested in it, not in the Material it generates
             if (parentAsset is Material)
-            {
-                var importer = AssetImporter.GetAtPath(parentPath);
-                if (importer is MaterialVariantImporter)
-                {
-                    parentAsset = MaterialVariantImporter.GetMaterialVariantFromAssetPath(parentPath);
-                }
-            }
+                return MaterialVariantImporter.GetMaterialVariantFromAssetPath(parentPath);
 
             return parentAsset;
         }
@@ -86,6 +80,11 @@ namespace Unity.Assets.MaterialVariant.Editor
             overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
         }
 
+        public void ResetOverrides(MaterialProperty[] properties)
+        {
+            overrides.RemoveAll(modification => properties.Any(property => IsSameProperty(modification, property.name)));
+        }
+
         public void ResetOverrideForNonMaterialProperty(string propertyName)
         {
             propertyName = $"::{propertyName}:";
@@ -133,6 +132,15 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             if (!blocks.Remove(propertyName))
                 blocks.Add(propertyName);
+        }
+
+        public void TogglePropertiesBlocked(MaterialProperty[] properties)
+        {
+            foreach (var prop in properties)
+            {
+                if (!blocks.Remove(prop.name))
+                    blocks.Add(prop.name);
+            }
         }
 
         public IEnumerable<MaterialPropertyModification> TrimOverridesList(IEnumerable<MaterialPropertyModification> overrides)

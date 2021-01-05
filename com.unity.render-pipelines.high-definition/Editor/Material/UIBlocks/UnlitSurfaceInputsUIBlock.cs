@@ -56,12 +56,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawSurfaceInputsGUI()
         {
+            using (CreateOverrideScopeFor(colorMap, color))
+                materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
             using (CreateOverrideScopeFor(colorMap))
-            {
-                using (CreateOverrideScopeFor(color))
-                    materialEditor.TexturePropertySingleLine(Styles.colorText, colorMap, color);
                 materialEditor.TextureScaleOffsetProperty(colorMap);
-            }
         }
     }
 }

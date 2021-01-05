@@ -2,12 +2,13 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Unity.Assets.MaterialVariant.Editor
 {
     public struct MaterialPropertyScope : IDisposable
     {
-        MaterialProperty m_MaterialProperty;
+        MaterialProperty[] m_MaterialProperties;
         MaterialVariant[] m_Variants;
         bool m_Force;
 
@@ -25,9 +26,9 @@ namespace Unity.Assets.MaterialVariant.Editor
         /// The force registration is for MaterialProperty that are changed at inspector frame without change from the user.
         /// In this case, we skip the UI part (contextual menu and left bar displayed when there is an override).
         /// </param>
-        public MaterialPropertyScope(MaterialProperty materialProperty, MaterialVariant[] variants, bool force = false)
+        public MaterialPropertyScope(MaterialProperty[] materialProperties, MaterialVariant[] variants, bool force = false)
         {
-            m_MaterialProperty = materialProperty;
+            m_MaterialProperties = materialProperties;
             m_Variants = variants;
             m_Force = force;
 
@@ -41,8 +42,11 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (m_Force || m_Variants == null)
                 return;
 
-            var name = m_MaterialProperty.name;
-            m_IsBlocked = m_Variants.Any(o => o.IsPropertyBlockedInAncestors(name));
+            foreach (var materialProperty in m_MaterialProperties)
+            {
+                var name = materialProperty.name;
+                m_IsBlocked |= m_Variants.Any(o => o.IsPropertyBlockedInAncestors(name));
+            }
 
             if (m_IsBlocked)
                 EditorGUI.BeginDisabledGroup(true);
@@ -60,12 +64,16 @@ namespace Unity.Assets.MaterialVariant.Editor
             {
                 if (m_IsBlocked)
                 {
-
                     EditorGUI.EndDisabledGroup();
                 }
 
                 {
-                    bool isOverride = !m_IsBlocked && m_Variants[0].IsOverriddenProperty(m_MaterialProperty);
+                    bool isOverride = !m_IsBlocked;
+                    foreach (var materialProperty in m_MaterialProperties)
+                        isOverride &= m_Variants.Any(o => o.IsOverriddenProperty(materialProperty));
+                    bool isLocked = false;
+                    foreach (var materialProperty in m_MaterialProperties)
+                        isLocked |= m_Variants.Any(o => o.IsPropertyBlockedInCurrent(materialProperty.name));
 
                     Rect r = GUILayoutUtility.GetLastRect();
                     float endY = r.yMax;
@@ -74,11 +82,11 @@ namespace Unity.Assets.MaterialVariant.Editor
                     r.yMax = endY - 2;
                     r.width = EditorGUIUtility.labelWidth;
 
-                    MaterialVariant matVariant = m_Variants[0];
-                    MaterialProperty matProperty = m_MaterialProperty;
-                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, m_MaterialProperty.name, isOverride, m_IsBlocked, r,
-                    () => matVariant.ResetOverride(matProperty),
-                    () => matVariant.TogglePropertyBlocked(matProperty.name));
+                    MaterialVariant[] matVariants = m_Variants;
+                    MaterialProperty[] matProperties = m_MaterialProperties;
+                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
+                        () => Array.ForEach(matVariants, variant => variant.ResetOverrides(matProperties)),
+                        () => Array.ForEach(matVariants, variant => variant.TogglePropertiesBlocked(matProperties)));
                 }
             }
 
@@ -94,7 +102,10 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         void ApplyChangesToMaterialVariants()
         {
-            System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModifications(m_MaterialProperty);
+            IEnumerable<MaterialPropertyModification> changes = new MaterialPropertyModification[0];
+            foreach (var materialProperty in m_MaterialProperties)
+                changes = changes.Concat(MaterialPropertyModification.CreateMaterialPropertyModifications(materialProperty));
+
             foreach (var variant in m_Variants)
                 variant?.TrimPreviousOverridesAndAdd(changes);
         }
@@ -102,7 +113,7 @@ namespace Unity.Assets.MaterialVariant.Editor
         public DelayedOverrideRegisterer ProduceDelayedRegisterer()
         {
             if (m_HaveDelayedRegisterer)
-                throw new Exception($"A delayed registerer already exists for this MaterialPropertyScope for {m_MaterialProperty.displayName}. You should only use one at the end of all operations on this property.");
+                throw new Exception($"A delayed registerer already exists for this MaterialPropertyScope for {m_MaterialProperties[0].displayName}. You should only use one at the end of all operations on this property.");
 
             m_HaveDelayedRegisterer = true;
 
@@ -182,7 +193,8 @@ namespace Unity.Assets.MaterialVariant.Editor
                 EditorGUI.EndDisabledGroup();
 
             {
-                bool isOverride = !m_IsBlocked && m_Variants[0].IsOverriddenPropertyForNonMaterialProperty(k_SerializedPropertyName);
+                bool isOverride = !m_IsBlocked && m_Variants.Any(o => o.IsOverriddenPropertyForNonMaterialProperty(k_SerializedPropertyName));
+                bool isLocked = m_Variants.Any(o => o.IsPropertyBlockedInCurrent(k_SerializedPropertyName));
 
                 Rect r = GUILayoutUtility.GetLastRect();
                 float endY = r.yMax;
@@ -191,10 +203,10 @@ namespace Unity.Assets.MaterialVariant.Editor
                 r.yMax = endY - 2;
                 r.width = EditorGUIUtility.labelWidth;
 
-                MaterialVariant matVariant = m_Variants[0];
-                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(matVariant, k_SerializedPropertyName, isOverride, m_IsBlocked, r,
-                    () => matVariant.ResetOverrideForNonMaterialProperty(k_SerializedPropertyName),
-                    () => matVariant.TogglePropertyBlocked(k_SerializedPropertyName));
+                MaterialVariant[] matVariants = m_Variants;
+                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
+                    () => Array.ForEach(matVariants, variant => variant.ResetOverrideForNonMaterialProperty(k_SerializedPropertyName)),
+                    () => Array.ForEach(matVariants, variant => variant.TogglePropertyBlocked(k_SerializedPropertyName)));
             }
 
             bool hasChanged = !m_IsBlocked && EditorGUI.EndChangeCheck();
@@ -204,6 +216,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 ApplyChangesToMaterialVariants();
             }
         }
+
         void ApplyChangesToMaterialVariants()
         {
             System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(k_SerializedPropertyName, m_ValueGetter());
@@ -277,5 +290,4 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
     }
-
 }

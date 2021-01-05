@@ -159,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var newMaterial = GetMaterialFromRoot(context, materialVariant.rootGUID);
             if (newMaterial != null)
             {
+                material.shader = newMaterial.shader;
                 material.CopyPropertiesFromMaterial(newMaterial);
                 EditorUtility.SetDirty(material);
 

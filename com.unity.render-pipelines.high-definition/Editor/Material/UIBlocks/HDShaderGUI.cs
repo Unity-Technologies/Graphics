@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -88,7 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnClosed(Material material)
         {
-            ;
+            // TODO Material variant
+            // This callback is called when the shader is changed through the inspector
         }
 
         /// <summary>

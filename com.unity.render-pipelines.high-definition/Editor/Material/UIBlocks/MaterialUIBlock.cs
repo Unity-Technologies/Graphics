@@ -136,7 +136,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property, bool forceMode = false)
-            => new MaterialPropertyScope(property, variants, forceMode);
+            => new MaterialPropertyScope(new MaterialProperty[] { property }, variants, forceMode);
+
+        protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty[] properties, bool forceMode = false)
+            => new MaterialPropertyScope(properties, variants, forceMode);
+
+        protected MaterialPropertyScope CreateOverrideScopeFor(params MaterialProperty[] properties)
+            => new MaterialPropertyScope(properties, variants, false);
 
         protected MaterialRenderQueueScope CreateRenderQueueOverrideScope(Func<int> valueGetter)
             => new MaterialRenderQueueScope(variants, valueGetter);

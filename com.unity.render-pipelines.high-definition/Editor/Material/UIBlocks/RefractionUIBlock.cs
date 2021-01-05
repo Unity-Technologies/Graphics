@@ -99,8 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             if (thicknessMap[0].textureValue == null)
                             {
-                                using (CreateOverrideScopeFor(thicknessMap[0]))
-                                using (CreateOverrideScopeFor(thickness[0]))
+                                using (CreateOverrideScopeFor(thicknessMap[0], thickness[0]))
                                     materialEditor.TexturePropertySingleLine(Styles.refractionThicknessText, thicknessMap[0], thickness[0]);
                             }
                             else
@@ -123,8 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         if (transmittanceColorMap != null)
                         {
-                            using (CreateOverrideScopeFor(transmittanceColorMap))
-                            using (CreateOverrideScopeFor(transmittanceColor))
+                            using (CreateOverrideScopeFor(transmittanceColorMap, transmittanceColor))
                                 materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
                             ++EditorGUI.indentLevel;
                             using (CreateOverrideScopeFor(atDistance))
@@ -147,8 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                         if (transmittanceColorMap != null)
                         {
-                            using (CreateOverrideScopeFor(transmittanceColorMap))
-                            using (CreateOverrideScopeFor(transmittanceColor))
+                            using (CreateOverrideScopeFor(transmittanceColorMap, transmittanceColor))
                                 materialEditor.TexturePropertySingleLine(Styles.transmittanceColorText, transmittanceColorMap, transmittanceColor);
                         }
                     }
