@@ -1,8 +1,8 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-using System;
+using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -78,7 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!m_Initialized)
             {
-                if (Count == 0 || this[0].GetType() != typeof(VariantHierarchyUIBlock))
+                if (Count == 0 || this[0].GetType() != typeof(VariantHierarchyUIBlock) && materialEditor.targets.Length == 1 &&
+                    MaterialVariant.GetMaterialVariantFromObject(materialEditor.target) != null)
                     Insert(0, new VariantHierarchyUIBlock());
                 foreach (var uiBlock in this)
                     uiBlock.Initialize(materialEditor, properties, this);

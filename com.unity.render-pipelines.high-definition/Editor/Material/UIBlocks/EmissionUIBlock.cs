@@ -304,8 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DoEmissiveTextureProperty(MaterialProperty color)
         {
-            using (CreateOverrideScopeFor(emissiveColorMap))
-            using (CreateOverrideScopeFor(color))
+            using (CreateOverrideScopeFor(emissiveColorMap, color))
                 materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
 
             if (materials.All(m => m.GetTexture(kEmissiveColorMap)))

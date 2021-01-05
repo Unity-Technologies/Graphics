@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             this.materialEditor = materialEditor;
             this.parent = parent;
             materials = materialEditor.targets.Select(target => target as Material).ToArray();
-            variants = MaterialVariantEditor.GetMaterialVariantsFor(materialEditor);
+            variants = MaterialVariant.GetMaterialVariantsFor(materialEditor);
 
             // We should always register the key used to keep collapsable state
             materialEditor.InitExpandableState();

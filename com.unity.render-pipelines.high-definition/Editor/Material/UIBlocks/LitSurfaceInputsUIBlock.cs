@@ -421,8 +421,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (hasMetallic)
                 {
-                    using (CreateOverrideScopeFor(metallicRemapMin[m_LayerIndex]))
-                    using (CreateOverrideScopeFor(metallicRemapMax[m_LayerIndex]))
+                    using (CreateOverrideScopeFor(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex]))
                     {
                         float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
                         float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
@@ -436,8 +435,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                using (CreateOverrideScopeFor(smoothnessRemapMin[m_LayerIndex]))
-                using (CreateOverrideScopeFor(smoothnessRemapMax[m_LayerIndex]))
+                using (CreateOverrideScopeFor(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex]))
                 {
                     float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
                     float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
@@ -450,8 +448,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                using (CreateOverrideScopeFor(aoRemapMin[m_LayerIndex]))
-                using (CreateOverrideScopeFor(aoRemapMax[m_LayerIndex]))
+                using (CreateOverrideScopeFor(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex]))
                 {
                     float aoMin = aoRemapMin[m_LayerIndex].floatValue;
                     float aoMax = aoRemapMax[m_LayerIndex].floatValue;

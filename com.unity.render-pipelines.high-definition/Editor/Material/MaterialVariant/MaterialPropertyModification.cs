@@ -85,6 +85,58 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
+        public static void RevertModification(MaterialProperty property, string rootGUID)
+        {
+            Object parent = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(rootGUID));
+            if (parent is Material material)
+            {
+                int nameId = Shader.PropertyToID(property.name);
+                if (material.HasProperty(nameId))
+                {
+                    switch (property.type)
+                    {
+                        case MaterialProperty.PropType.Float:
+                        case MaterialProperty.PropType.Range:
+                            property.floatValue = material.GetFloat(nameId);
+                            break;
+                        case MaterialProperty.PropType.Vector:
+                            property.vectorValue = material.GetVector(nameId);
+                            break;
+                        case MaterialProperty.PropType.Color:
+                            property.colorValue = material.GetColor(nameId);
+                            break;
+                        case MaterialProperty.PropType.Texture:
+                            property.textureValue = material.GetTexture(nameId);
+                            Vector2 scale = material.GetTextureScale(nameId), offset = material.GetTextureOffset(nameId);
+                            property.textureScaleAndOffset = new Vector4(scale.x, scale.y, offset.x, offset.y);
+                            break;
+                    }
+                }
+            }
+            else if (parent is Shader shader)
+            {
+                int nameId = shader.FindPropertyIndex(property.name);
+                switch (property.type)
+                {
+                    case MaterialProperty.PropType.Float:
+                    case MaterialProperty.PropType.Range:
+                        property.floatValue = shader.GetPropertyDefaultFloatValue(nameId);
+                        break;
+                    case MaterialProperty.PropType.Vector:
+                        property.vectorValue = shader.GetPropertyDefaultVectorValue(nameId);
+                        break;
+                    case MaterialProperty.PropType.Color:
+                        property.colorValue = shader.GetPropertyDefaultVectorValue(nameId);
+                        break;
+                    case MaterialProperty.PropType.Texture:
+                        var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(shader)) as ShaderImporter;
+                        property.textureValue = importer.GetDefaultTexture(property.name);
+                        property.textureScaleAndOffset = new Vector4(1, 1, 0, 0);
+                        break;
+                }
+            }
+        }
+
         public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterialProperty<T>(string key, T value)
             where T : struct
         {

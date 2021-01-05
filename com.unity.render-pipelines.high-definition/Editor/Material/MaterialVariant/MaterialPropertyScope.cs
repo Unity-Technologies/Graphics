@@ -16,6 +16,8 @@ namespace Unity.Assets.MaterialVariant.Editor
         bool m_IsBlocked;
         float m_StartY;
 
+        static bool insidePropertyScope = false;
+
         /// <summary>
         /// MaterialPropertyScope are used to handle MaterialPropertyModification in material instances.
         /// This will do the registration of any new override but also this will do the UI (contextual menu and left bar displayed when there is an override).
@@ -28,6 +30,10 @@ namespace Unity.Assets.MaterialVariant.Editor
         /// </param>
         public MaterialPropertyScope(MaterialProperty[] materialProperties, MaterialVariant[] variants, bool force = false)
         {
+            if (insidePropertyScope == true)
+                throw new InvalidOperationException("Nested MaterialPropertyScopes are not allowed");
+            insidePropertyScope = true;
+
             m_MaterialProperties = materialProperties;
             m_Variants = variants;
             m_Force = force;
@@ -56,6 +62,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         void IDisposable.Dispose()
         {
+            insidePropertyScope = false;
             if (m_Variants == null)
                 return;
 
@@ -68,9 +75,10 @@ namespace Unity.Assets.MaterialVariant.Editor
                 }
 
                 {
-                    bool isOverride = !m_IsBlocked;
-                    foreach (var materialProperty in m_MaterialProperties)
-                        isOverride &= m_Variants.Any(o => o.IsOverriddenProperty(materialProperty));
+                    bool isOverride = false;
+                    if (!m_IsBlocked)
+                        foreach (var materialProperty in m_MaterialProperties)
+                            isOverride |= m_Variants.Any(o => o.IsOverriddenProperty(materialProperty));
                     bool isLocked = false;
                     foreach (var materialProperty in m_MaterialProperties)
                         isLocked |= m_Variants.Any(o => o.IsPropertyBlockedInCurrent(materialProperty.name));
@@ -84,7 +92,7 @@ namespace Unity.Assets.MaterialVariant.Editor
 
                     MaterialVariant[] matVariants = m_Variants;
                     MaterialProperty[] matProperties = m_MaterialProperties;
-                    MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
+                    DrawContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
                         () => Array.ForEach(matVariants, variant => variant.ResetOverrides(matProperties)),
                         () => Array.ForEach(matVariants, variant => variant.TogglePropertiesBlocked(matProperties)));
                 }
@@ -95,13 +103,14 @@ namespace Unity.Assets.MaterialVariant.Editor
                 hasChanged = EditorGUI.EndChangeCheck(); //Stop registering change
 
             if (hasChanged && !m_HaveDelayedRegisterer)
-            {
                 ApplyChangesToMaterialVariants();
-            }
         }
 
         void ApplyChangesToMaterialVariants()
         {
+            if (GUIUtility.hotControl == 0)
+                Debug.Log("update children");
+
             IEnumerable<MaterialPropertyModification> changes = new MaterialPropertyModification[0];
             foreach (var materialProperty in m_MaterialProperties)
                 changes = changes.Concat(MaterialPropertyModification.CreateMaterialPropertyModifications(materialProperty));
@@ -140,6 +149,51 @@ namespace Unity.Assets.MaterialVariant.Editor
                     m_RegisterFunction();
                     m_AlreadyRegistered = true;
                 }
+            }
+        }
+
+        internal static void DrawContextMenuAndIcons(bool isOverride, bool isBlocked, bool isLocked, Rect labelRect, GenericMenu.MenuFunction resetFunction, GenericMenu.MenuFunction blockFunction)
+        {
+            if (Event.current.rawType == EventType.ContextClick && labelRect.Contains(Event.current.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+
+                var resetGUIContent = new GUIContent("Reset Override");
+                if (isOverride)
+                {
+                    menu.AddItem(resetGUIContent, false, resetFunction);
+                }
+                else
+                {
+                    menu.AddDisabledItem(resetGUIContent);
+                }
+
+                var blockGUIContent = new GUIContent("Lock in children");
+                if (isBlocked)
+                {
+                    menu.AddDisabledItem(blockGUIContent, true);
+                }
+                else
+                {
+                    menu.AddItem(blockGUIContent, isLocked, blockFunction);
+                }
+
+                menu.ShowAsContext();
+            }
+
+            if (isOverride)
+            {
+                labelRect.width = 3;
+                EditorGUI.DrawRect(labelRect, Color.white);
+            }
+
+            if (isBlocked || isLocked)
+            {
+                labelRect.xMin = 8;
+                labelRect.width = 32;
+                EditorGUI.BeginDisabledGroup(isBlocked);
+                GUI.Label(labelRect, EditorGUIUtility.IconContent("AssemblyLock"));
+                EditorGUI.EndDisabledGroup();
             }
         }
     }
@@ -204,7 +258,7 @@ namespace Unity.Assets.MaterialVariant.Editor
                 r.width = EditorGUIUtility.labelWidth;
 
                 MaterialVariant[] matVariants = m_Variants;
-                MaterialVariantEditor.DrawPropertyScopeContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
+                MaterialPropertyScope.DrawContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
                     () => Array.ForEach(matVariants, variant => variant.ResetOverrideForNonMaterialProperty(k_SerializedPropertyName)),
                     () => Array.ForEach(matVariants, variant => variant.TogglePropertyBlocked(k_SerializedPropertyName)));
             }

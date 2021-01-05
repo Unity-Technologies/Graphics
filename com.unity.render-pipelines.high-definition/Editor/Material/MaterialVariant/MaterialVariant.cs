@@ -28,7 +28,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             // parentAsset is either a Shader (for Shader or ShaderGraph) or a Material (for Material or MaterialVariant)
             // If a MaterialVariant, we're interested in it, not in the Material it generates
             if (parentAsset is Material)
-                return MaterialVariantImporter.GetMaterialVariantFromAssetPath(parentPath);
+                return GetMaterialVariantFromAssetPath(parentPath) ?? parentAsset;
 
             return parentAsset;
         }
@@ -77,12 +77,20 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         public void ResetOverride(MaterialProperty property)
         {
+            Undo.RecordObject(this, $"'Reset Override'");
+            MaterialPropertyModification.RevertModification(property, rootGUID);
             overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
         }
 
         public void ResetOverrides(MaterialProperty[] properties)
         {
-            overrides.RemoveAll(modification => properties.Any(property => IsSameProperty(modification, property.name)));
+            Undo.RecordObject(this, $"'Reset Override'");
+
+            foreach (var property in properties)
+            {
+                MaterialPropertyModification.RevertModification(property, rootGUID);
+                overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
+            }
         }
 
         public void ResetOverrideForNonMaterialProperty(string propertyName)
@@ -154,6 +162,59 @@ namespace Unity.Assets.MaterialVariant.Editor
 
         #endregion
 
+        #region MaterialVariant Editor
+        static Dictionary<UnityEditor.Editor, MaterialVariant[]> registeredVariants = new Dictionary<UnityEditor.Editor, MaterialVariant[]>();
+
+        public static MaterialVariant[] GetMaterialVariantsFor(MaterialEditor editor)
+        {
+            if (registeredVariants.TryGetValue(editor, out var variants))
+                return variants;
+
+            var deletedEntries = new List<UnityEditor.Editor>();
+            foreach (var entry in registeredVariants)
+            {
+                if (entry.Key == null)
+                    deletedEntries.Add(entry.Key);
+            }
+            foreach (var key in deletedEntries)
+                registeredVariants.Remove(key);
+
+            int i = 0;
+            variants = new MaterialVariant[editor.targets.Length];
+            foreach (var target in editor.targets)
+            {
+                var variant = MaterialVariant.GetMaterialVariantFromObject(target);
+                if (variant == null)
+                    return null;
+                variants[i++] = variant;
+            }
+
+            registeredVariants.Add(editor, variants);
+            return variants;
+        }
+
+        #endregion
+
+        #region MaterialVariant Deserialization
+        // Caution: GetMaterialVariantFromAssetPath can't be call inside OnImportAsset() as ctx.AddObjectToAsset("Variant", matVariant) is not define yet
+        public static MaterialVariant GetMaterialVariantFromAssetPath(string assetPath)
+        {
+            return AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<MaterialVariant>().FirstOrDefault();
+        }
+
+        public static MaterialVariant GetMaterialVariantFromGUID(string GUID)
+        {
+            return GetMaterialVariantFromAssetPath(AssetDatabase.GUIDToAssetPath(GUID));
+        }
+
+        public static MaterialVariant GetMaterialVariantFromObject(Object obj)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(obj));
+            return System.Array.Find(assets, o => o.GetType() == typeof(MaterialVariant)) as MaterialVariant;
+        }
+
+        #endregion
+
         #region MaterialVariant Create Menu
         private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Material Variant";
         private const int MATERIAL_VARIANT_MENU_PRIORITY = 302; // right after material
@@ -163,12 +224,6 @@ namespace Unity.Assets.MaterialVariant.Editor
             // We allow to create a MaterialVariant without parent (for parenting later)
             // DefaultAsset identify the null case
             return EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader));
-        }
-
-        [MenuItem(MATERIAL_VARIANT_MENU_PATH, true)]
-        private static bool ValidateMaterialVariantMenu()
-        {
-            return IsValidRoot(Selection.activeObject);
         }
 
         class DoCreateNewMaterialVariant : UnityEditor.ProjectWindowCallback.EndNameEditAction
@@ -189,6 +244,12 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
+        [MenuItem(MATERIAL_VARIANT_MENU_PATH, true)]
+        static bool ValidateMaterialVariantMenu()
+        {
+            return IsValidRoot(Selection.activeObject);
+        }
+
         [MenuItem(MATERIAL_VARIANT_MENU_PATH, false, MATERIAL_VARIANT_MENU_PRIORITY)]
         static void CreateMaterialVariantMenu()
         {
@@ -196,28 +257,16 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (!IsValidRoot(target))
                 return;
 
-            if (target is UnityEditor.DefaultAsset)
-            {
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                    0,
-                    ScriptableObject.CreateInstance<DoCreateNewMaterialVariant>(),
-                    "New Material Variant.mat",
-                    null,
-                    "");
-            }
-            else
-            {
-                string sourcePath = AssetDatabase.GetAssetPath(target);
-                string variantPath = Path.Combine(Path.GetDirectoryName(sourcePath),
-                    Path.GetFileNameWithoutExtension(sourcePath) + " Variant.mat");
+            string sourcePath = AssetDatabase.GetAssetPath(target);
+            string variantPath = Path.Combine(Path.GetDirectoryName(sourcePath),
+                Path.GetFileNameWithoutExtension(sourcePath) + " Variant.mat");
 
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
-                    0,
-                    ScriptableObject.CreateInstance<DoCreateNewMaterialVariant>(),
-                    variantPath,
-                    null,
-                    sourcePath);
-            }
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                0,
+                ScriptableObject.CreateInstance<DoCreateNewMaterialVariant>(),
+                variantPath,
+                null,
+                sourcePath);
         }
 
         #endregion

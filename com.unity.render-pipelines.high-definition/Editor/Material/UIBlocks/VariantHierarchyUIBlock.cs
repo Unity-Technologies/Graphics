@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_MatVariant != null)
                 return;
 
-            m_MatVariant = MaterialVariantImporter.GetMaterialVariantFromObject(materialEditor.target);
+            m_MatVariant = MaterialVariant.GetMaterialVariantFromObject(materialEditor.target);
             if (m_MatVariant == null)
                 m_Parent = materials[0].shader;
             else
