@@ -111,19 +111,20 @@ namespace UnityEditor
                 float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(angleRect, LightAnchorStyles.angleSubContent, angles);
+                const float eps = 1e-4f;
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (angles[0] != m_Yaw)
+                    if (Mathf.Abs(angles[0] - m_Yaw) < eps)
                     {
                         m_Yaw = angles[0];
                         yawChanged = true;
                     }
-                    if (angles[1] != m_Pitch)
+                    if (Mathf.Abs(angles[1] - m_Pitch) < eps)
                     {
                         m_Pitch = angles[1];
                         pitchChanged = true;
                     }
-                    if (angles[2] != m_Roll)
+                    if (Mathf.Abs(angles[2] - m_Roll) < eps)
                     {
                         m_Roll = angles[2];
                         rollChanged = true;
@@ -158,7 +159,6 @@ namespace UnityEditor
                     {
                         bool rectFound = false;
                         Rect rect = new Rect();
-                        const float eps = 1e-4f;
                         if (GUILayout.Button(LightAnchorStyles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 135;
@@ -308,15 +308,14 @@ namespace UnityEditor
                         if (distanceChanged)
                             manipulator.distance = m_Distance;
 
-                        //if (!IsCacheInvalid(manipulator))
-                        {
-                            //if (targets.Length > 1)
-                                manipulator.UpdateTransform(camera, manipulator.anchorPosition);
-                            //else
-                            //    manipulator.UpdateTransform(camera, anchor);
-                            EditorUtility.SetDirty(manipulator);
-                            EditorUtility.SetDirty(manipulator.transform);
-                        }
+                        if (targets.Length > 1)
+                            manipulator.UpdateTransform(camera, manipulator.anchorPosition);
+                        else
+                            manipulator.UpdateTransform(camera, anchor);
+                        IsCacheInvalid(manipulator);
+
+                        EditorUtility.SetDirty(manipulator);
+                        EditorUtility.SetDirty(manipulator.transform);
                     }
                 }
             }
