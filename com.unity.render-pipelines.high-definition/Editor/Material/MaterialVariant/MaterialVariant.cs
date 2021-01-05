@@ -147,13 +147,14 @@ namespace Unity.Assets.MaterialVariant.Editor
         #endregion
 
         #region MaterialVariant Create Menu
-        private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Variants/Material Variant";
+        private const string MATERIAL_VARIANT_MENU_PATH = "Assets/Create/Material Variant";
+        private const int MATERIAL_VARIANT_MENU_PRIORITY = 302; // right after material
 
         private static bool IsValidRoot(Object root)
         {
             // We allow to create a MaterialVariant without parent (for parenting later)
             // DefaultAsset identify the null case
-            return (root is UnityEditor.DefaultAsset) || (EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader)));
+            return EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader));
         }
 
         [MenuItem(MATERIAL_VARIANT_MENU_PATH, true)]
@@ -171,8 +172,8 @@ namespace Unity.Assets.MaterialVariant.Editor
 
                 var matVariant = CreateInstance<MaterialVariant>();
                 matVariant.rootGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
+                matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
                 matVariant.name = Path.GetFileName(pathName);
-                //matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
 
                 AssetDatabase.CreateAsset(material, pathName);
                 AssetDatabase.AddObjectToAsset(matVariant, pathName);
@@ -180,7 +181,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             }
         }
 
-        [MenuItem(MATERIAL_VARIANT_MENU_PATH, false)]
+        [MenuItem(MATERIAL_VARIANT_MENU_PATH, false, MATERIAL_VARIANT_MENU_PRIORITY)]
         static void CreateMaterialVariantMenu()
         {
             var target = Selection.activeObject;

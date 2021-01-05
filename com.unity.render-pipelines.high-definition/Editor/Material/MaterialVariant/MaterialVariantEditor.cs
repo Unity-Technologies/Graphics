@@ -55,7 +55,12 @@ namespace Unity.Assets.MaterialVariant.Editor
             int i = 0;
             variants = new MaterialVariant[editor.targets.Length];
             foreach (var target in editor.targets)
-                variants[i++] = MaterialVariantImporter.GetMaterialVariantFromObject(target);
+            {
+                var variant = MaterialVariantImporter.GetMaterialVariantFromObject(target);
+                if (variant == null)
+                    return null;
+                variants[i++] = variant;
+            }
 
             registeredVariants.Add(editor, variants);
             return variants;

@@ -9,6 +9,9 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using Unity.Assets.MaterialVariant.Editor;
+using UnityEditor.AssetImporters;
+using Object = UnityEngine.Object;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -145,13 +148,89 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
 
-            // subasset not found
             if (!materialVariant)
             {
                 materialVariant = ScriptableObject.CreateInstance<MaterialVariant>();
+                materialVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material.shader));
                 materialVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                AssetDatabase.AddObjectToAsset(materialVariant, context.assetPath);
+                AssetDatabase.AddObjectToAsset(materialVariant, material); // This allows finding it in "GetMaterialVariantFromAssetPath"
             }
+
+            var newMaterial = GetMaterialFromRoot(context, materialVariant.rootGUID);
+            if (newMaterial != null)
+            {
+                material.CopyPropertiesFromMaterial(newMaterial);
+                EditorUtility.SetDirty(material);
+
+                // Apply local modification
+                MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, materialVariant.overrides);
+
+                // We need to update keyword now that everything is override properly
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        protected Material GetMaterialFromRoot(AssetImportContext ctx, string rootGUID)
+        {
+            // As only a write of a file trigger the OnImportAsset we need to add
+            // all member of the hierarchy as a dependency so we can detect changes
+            // (Change of shader graph write a file, change of Material change a file, change of a MaterialVariant write a file)
+            // If we were only adding dependency on the Parent we will not catch the change of a GrandParent as it will only
+            // trigger OnImportAsset for the Parent but not propagate it for child (as it don't write on disk)
+            string rootPath = AssetDatabase.GUIDToAssetPath(rootGUID);
+
+            // If rootPath is empty it mean that the parent have been deleted. In this case return null
+            if (rootPath == "")
+                return null;
+
+            Object subAsset = AssetDatabase.LoadAssetAtPath<Object>(rootPath);
+            if (subAsset == null)
+                return null;
+
+            ctx.DependsOnSourceAsset(rootGUID);
+
+            Material material = null;
+            if (subAsset is Shader)
+            {
+                Shader rootShader = subAsset as Shader;
+                material = new Material(rootShader);
+            }
+            else if (subAsset is Material)
+            {
+                Material rootMaterial = subAsset as Material;
+                material = new Material(rootMaterial);
+            }
+
+            /*
+            Material material = null;
+
+            if (subAsset is MaterialVariant)
+            {
+                MaterialVariant rootMatVariant = subAsset as MaterialVariant;
+                material = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
+
+                // Propagate the null
+                if (material == null)
+                {
+                    return null;
+                }
+
+                // Apply root modification
+                MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, rootMatVariant.overrides);
+            }
+            else if (subAsset is Shader)
+            {
+                Shader rootShader = subAsset as Shader;
+                material = new Material(rootShader);
+            }
+            else if (subAsset is Material)
+            {
+                Material rootMaterial = subAsset as Material;
+                material = new Material(rootMaterial);
+            }
+            */
+
+            return material;
         }
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)

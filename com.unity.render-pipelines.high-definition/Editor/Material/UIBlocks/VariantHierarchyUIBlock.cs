@@ -32,10 +32,15 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void LoadMaterialProperties()
         {
+            if (m_MatVariant != null)
+                return;
+
             m_MatVariant = MaterialVariantImporter.GetMaterialVariantFromObject(materialEditor.target);
             if (m_MatVariant == null)
-                return;
-            m_Parent = m_MatVariant.GetParent();
+                m_Parent = materials[0].shader;
+            else
+                m_Parent = m_MatVariant.GetParent();
+
             m_ParentTarget = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(m_Parent));
             // if m_ParentTarget is null this will setup Material by default
             m_ParentVariantType = m_ParentTarget is Shader ? ParentVariantType.Shader : ParentVariantType.Material;
@@ -46,6 +51,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void OnGUI()
         {
+            if (materials.Length != 1) // No multiediting of hierarchy
+                return;
+
             using (var header = new MaterialHeaderScope(Styles.materialVariantHierarchyText, (uint)1, materialEditor))
             {
                 if (header.expanded)
