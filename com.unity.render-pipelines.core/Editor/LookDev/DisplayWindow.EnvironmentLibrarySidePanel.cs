@@ -244,6 +244,10 @@ namespace UnityEditor.Rendering.LookDev
 
         Image GetSelectedThumbnail()
         {
+            // case where nothing selected
+            if (m_EnvironmentList.selectedIndex == -1)
+                return null;
+
             int firstVisibleIndex = FirstVisibleIndex(m_EnvironmentList);
             Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
             var container = m_EnvironmentList.Q("unity-content-container");

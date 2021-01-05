@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering.LookDev
 
         public Environment target => environment;
         
-        public EnvironmentElement(bool withPreview, Action OnChangeCallback = null, Func<Image> OnUndoRedoResyncDeportedLatlong = null)
+        public EnvironmentElement(bool withPreview, Action OnChangeCallback, Func<Image> OnUndoRedoResyncDeportedLatlong)
         {
             this.OnChangeCallback = OnChangeCallback;
             this.OnUndoRedoResyncDeportedLatlong = OnUndoRedoResyncDeportedLatlong;
@@ -508,17 +508,13 @@ namespace UnityEditor.Rendering.LookDev
                 //if environment GUID have changed, be sure loaded cubemap too
                 if (lastUndoIsACubemapGUID)
                     environment.RefreshCubemap();
-
-                //sync back thumbnail target
-                if (OnUndoRedoResyncDeportedLatlong != null)
-                    latlong = OnUndoRedoResyncDeportedLatlong();
-
-                //update inspector again
-                Bind(environment);
                 
+                //update inspector again with sync again of thumbnail target
+                Bind(environment, OnUndoRedoResyncDeportedLatlong?.Invoke());
+                    
                 //as thumbnail is stored in the Environment asset, it got updated already
 
-                //update scene again
+                //update scene
                 OnChangeCallback?.Invoke();
             }
         }
