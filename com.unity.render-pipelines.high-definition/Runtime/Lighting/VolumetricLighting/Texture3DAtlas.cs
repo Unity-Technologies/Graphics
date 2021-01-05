@@ -124,64 +124,74 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateAtlas(CommandBuffer cmd)
         {
-            foreach (DensityVolume v in m_volumes)
+            if (m_updateAtlas)
             {
-                if (v.parameters.volumeShader != null)
+                m_updateAtlas = false;
+
+                if (m_volumes.Count > 0)
                 {
-                    cmd.SetComputeTextureParam(v.parameters.volumeShader, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
-                    cmd.DispatchCompute(v.parameters.volumeShader, 0, 4, 4, 4);
+                    int textureSliceSize = m_atlasSize * m_atlasSize * m_atlasSize;
+                    int totalTextureSize = textureSliceSize * m_numTexturesInAtlas;
+
+                    Color[] colorData = new Color[totalTextureSize];
+                    m_atlas = RTHandles.Alloc(m_atlasSize,
+                                              m_atlasSize,
+                                              m_atlasSize * m_numTexturesInAtlas,
+                                                dimension: TextureDimension.Tex3D,
+                                                //colorFormat: Experimental.Rendering.GraphicsFormat.R8_UInt,
+                                                colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
+                                                enableRandomWrite: true,
+                                                useMipMap: true,
+                                                name: "DensityVolumeAtlas");
+                    var isCopied = new bool[m_numTexturesInAtlas];
+
+                    //Iterate through all the textures and append their texture data to the texture array
+                    //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
+                    foreach (DensityVolume v in m_volumes)
+                    {
+                        if (v.parameters.volumeShader != null ||
+                            v.parameters.textureIndex == -1 ||
+                            isCopied[v.parameters.textureIndex])
+                            continue;
+
+                        isCopied[v.parameters.textureIndex] = true;
+                        Texture3D tex = v.parameters.volumeMask;
+                        Color[] texData = tex.GetPixels();
+                        Array.Copy(texData, 0, colorData, textureSliceSize * v.parameters.textureIndex, texData.Length);
+                    }
+
+                    // TODO (Apoorva): Re-enable texture blitting
+                    // m_atlas.SetPixels(colorData);
+                    // m_atlas.Apply();
+                }
+                else
+                {
+                    m_atlas = null;
                 }
             }
 
-            if (!m_updateAtlas)
+            if (m_atlas != null)
             {
-                return;
-            }
-
-            if (m_volumes.Count > 0)
-            {
-                int textureSliceSize = m_atlasSize * m_atlasSize * m_atlasSize;
-                int totalTextureSize = textureSliceSize * m_numTexturesInAtlas;
-
-                Color [] colorData = new Color[totalTextureSize];
-                m_atlas = RTHandles.Alloc(m_atlasSize,
-                                          m_atlasSize,
-                                          m_atlasSize * m_numTexturesInAtlas,
-                                            dimension: TextureDimension.Tex3D,
-                                            //colorFormat: Experimental.Rendering.GraphicsFormat.R8_UInt,
-                                            colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
-                                            enableRandomWrite: true,
-                                            useMipMap:         true,
-                                            name: "DensityVolumeAtlas");
-                var isCopied = new bool[m_numTexturesInAtlas];
-
-                //Iterate through all the textures and append their texture data to the texture array
-                //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
                 foreach (DensityVolume v in m_volumes)
                 {
-                    if (v.parameters.volumeShader != null ||
-                        v.parameters.textureIndex == -1 ||
-                        isCopied[v.parameters.textureIndex])
-                        continue;
-
-                    isCopied[v.parameters.textureIndex] = true;
-                    Texture3D tex = v.parameters.volumeMask;
-                    Color [] texData = tex.GetPixels();
-                    Array.Copy(texData, 0, colorData, textureSliceSize * v.parameters.textureIndex, texData.Length);
+                    if (v.parameters.volumeShader != null)
+                    {
+                        var cs = v.parameters.volumeShader;
+                        cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
+                        var mtx =
+                            Matrix4x4.Rotate(Quaternion.Euler(45f, 0, 0))
+                            * Matrix4x4.Rotate(Quaternion.Euler(0, 100f * Time.time, 0))
+                            * Matrix4x4.Translate(new Vector3(-16f, -16f, -16f));
+                        cmd.SetComputeMatrixParam(cs, HDShaderIDs._Params, mtx);
+                        //cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, Vector4.one);
+                        cmd.DispatchCompute(v.parameters.volumeShader, 0, 4, 4, 4);
+                    }
                 }
+            }
 
-                // TODO (Apoorva): Re-enable texture blitting
-                // m_atlas.SetPixels(colorData);
-                // m_atlas.Apply();
-            }
-            else
-            {
-                m_atlas = null;
-            }
 
             NotifyAtlasUpdated();
 
-            m_updateAtlas = false;
         }
 
         public RTHandle GetAtlas()
