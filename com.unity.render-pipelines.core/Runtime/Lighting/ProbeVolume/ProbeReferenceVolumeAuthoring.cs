@@ -391,15 +391,12 @@ namespace UnityEngine.Rendering
 
         private void CheckInit()
         {
-            // TODO: Where to put these resources? 
-            /* 
             if (debugMesh == null || debugMaterial == null)
             {
                 // Load debug mesh, material
-                debugMesh = HDRenderPipeline.defaultAsset.renderPipelineEditorResources.assets.debugProbeMesh;
-                debugMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.shaders.instancedProbeShader) { enableInstancing = true };
+                debugMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Packages/com.unity.render-pipelines.core/Editor/Resources/DebugProbe.fbx");
+                debugMaterial = new Material(Shader.Find("Hidden/InstancedProbeShader")) { enableInstancing = true };
             }
-            */
         }
 
 #if UNITY_EDITOR

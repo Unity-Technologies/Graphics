@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/InstancedProbeShader"
+Shader "Hidden/InstancedProbeShader"
 {
     Properties
     {
