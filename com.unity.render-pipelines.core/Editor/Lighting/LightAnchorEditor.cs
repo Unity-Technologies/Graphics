@@ -43,7 +43,7 @@ namespace UnityEditor
 
             if (camera == null)
             {
-                Debug.LogError("At least one camera must be tagged as MainCamera");
+                Debug.LogError("Light Anchor: At least one camera must be tagged as MainCamera");
                 return;
             }
 
@@ -308,12 +308,15 @@ namespace UnityEditor
                         if (distanceChanged)
                             manipulator.distance = m_Distance;
 
-                        if (targets.Length > 1)
-                            manipulator.UpdateTransform(camera, manipulator.anchorPosition);
-                        else
-                            manipulator.UpdateTransform(camera, anchor);
-                        EditorUtility.SetDirty(manipulator);
-                        EditorUtility.SetDirty(manipulator.transform);
+                        //if (!IsCacheInvalid(manipulator))
+                        {
+                            //if (targets.Length > 1)
+                                manipulator.UpdateTransform(camera, manipulator.anchorPosition);
+                            //else
+                            //    manipulator.UpdateTransform(camera, anchor);
+                            EditorUtility.SetDirty(manipulator);
+                            EditorUtility.SetDirty(manipulator.transform);
+                        }
                     }
                 }
             }
@@ -417,7 +420,7 @@ namespace UnityEditor
         bool IsCacheInvalid(LightAnchor manipulator)
         {
             var camera = Camera.main;
-            Assert.IsNotNull(camera, "Main Camera is NULL");
+            Assert.IsNotNull(camera, "Light Anchor: Main Camera is NULL");
             var cameraTransform = camera.transform;
             var manipulatorTransform = manipulator.transform;
             var camToLight = manipulatorTransform.position - cameraTransform.position;
@@ -607,8 +610,8 @@ namespace UnityEditor
         static public GUIContent upDirectionProperty = new GUIContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
         static public GUIContent[] angleSubContent = new[]
         {
-            EditorGUIUtility.TrTextContent("Yaw"),
-            EditorGUIUtility.TrTextContent("Pitch"),
+            EditorGUIUtility.TrTextContent("Orbit"),
+            EditorGUIUtility.TrTextContent("Elevation"),
             EditorGUIUtility.TrTextContent("Roll")
         };
         static public Color totalTransparentColor = new Color(0, 0, 0, 0);
