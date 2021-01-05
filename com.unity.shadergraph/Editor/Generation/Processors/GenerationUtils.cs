@@ -102,7 +102,8 @@ namespace UnityEditor.ShaderGraph
 
                         //check for a semantic, build string if valid
                         string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
-                        structBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
+                        string modifier = subscript.ToInterpolationModifierString();
+                        structBuilder.AppendLine($"{modifier} {subscript.type} {subscript.name}{semantic};");
 
                         //if in permutation, add permutation endif
                         if (!string.IsNullOrEmpty(keywordIfDefs))

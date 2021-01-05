@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
         public string preprocessor { get; }
         public StructFieldOptions subscriptOptions { get; }
 
+        public InterpolationModifier interpolationModifier { get; }
+
         public FieldDescriptor(string tag, string name, string define)
         {
             this.tag = tag;
@@ -23,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public FieldDescriptor(string tag, string name, string define, ShaderValueType type,
-                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, InterpolationModifier interpolationModifier = InterpolationModifier.Linear)
         {
             this.tag = tag;
             this.name = name;
@@ -33,10 +35,11 @@ namespace UnityEditor.ShaderGraph
             this.semantic = semantic;
             this.preprocessor = preprocessor;
             this.subscriptOptions = subscriptOptions;
+            this.interpolationModifier = interpolationModifier;
         }
 
         public FieldDescriptor(string tag, string name, string define, string type,
-                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, InterpolationModifier interpolationModifier = InterpolationModifier.Linear)
         {
             this.tag = tag;
             this.name = name;
@@ -46,6 +49,7 @@ namespace UnityEditor.ShaderGraph
             this.semantic = semantic;
             this.preprocessor = preprocessor;
             this.subscriptOptions = subscriptOptions;
+            this.interpolationModifier = interpolationModifier;
         }
     }
 }

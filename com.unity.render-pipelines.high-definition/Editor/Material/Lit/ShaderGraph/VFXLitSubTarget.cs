@@ -176,7 +176,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
                         continue;
 
-                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}"));
+                    // TODO: NoInterpolation only for non-strips.
+                    var interpolationModifier = InterpolationModifier.NoInterpolation;
+
+                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, interpolationModifier));
                 }
             }
 
