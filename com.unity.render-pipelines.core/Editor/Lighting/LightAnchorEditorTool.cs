@@ -50,7 +50,7 @@ namespace UnityEditor
 
         void OnEnable()
         {
-            m_IconContent = new GUIContent(Resources.Load<Texture2D>("LightAnchor_Icon"));
+            m_IconContent = new GUIContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/", "LightAnchor_Icon", ".png", false));
         }
 
         void DoTargetGUI(UnityObject target)
