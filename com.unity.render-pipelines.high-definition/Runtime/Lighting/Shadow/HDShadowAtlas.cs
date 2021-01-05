@@ -249,7 +249,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 bool mixedInDynamicAtlas = false;
-#if MIXED_CACHED_SHADOW
+// custom-begin:
+// #if MIXED_CACHED_SHADOW
                 if (shadowRequest.isMixedCached)
                 {
                     mixedInDynamicAtlas = !renderingOnAShadowCache;
@@ -259,7 +260,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     shadowDrawSettings.objectsFilter = ShadowObjectsFilter.AllObjects;
                 }
-#endif
+// #endif
+// custom-end
 
                 cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
                 cmd.SetViewport(renderingOnAShadowCache ? shadowRequest.cachedAtlasViewport : shadowRequest.dynamicAtlasViewport);
