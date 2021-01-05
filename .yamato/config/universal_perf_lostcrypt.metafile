@@ -25,7 +25,7 @@ project:
     - 'unity-config project set project-update false --project-path .'
   variables:
     LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-    LOST_CRYPT_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+    LOST_CRYPT_REVISION: a3a788fc9f0499bdff2ea03a130590cd8d61a5bc
 
 test_platforms:
   - type: Standalone
