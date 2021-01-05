@@ -39,10 +39,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
+        public void Setup(RenderTargetIdentifier source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;
-            this.destination = destination;
+            this.destination = new RenderTargetHandle(destination);
             m_DownsamplingMethod = downsampling;
         }
 
