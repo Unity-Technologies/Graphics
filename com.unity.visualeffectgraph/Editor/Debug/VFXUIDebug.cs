@@ -819,7 +819,7 @@ namespace UnityEditor.VFX.UI
                 var maxAliveButton = new Button();
                 maxAliveButton.name = "debug-system-stat-entry";
                 maxAliveButton.text = "0";
-                maxAliveButton.SetEnabled(AssetDatabase.IsOpenForEdit(m_Graph.visualEffectResource.asset, StatusQueryOptions.UseCachedIfPossible));
+                maxAliveButton.SetEnabled(m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveButton.clickable.clickedWithEventInfo += setCapacity;
                 maxAlive = maxAliveButton;
             }

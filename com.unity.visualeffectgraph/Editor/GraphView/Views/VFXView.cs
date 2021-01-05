@@ -919,6 +919,11 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
+        public bool IsAssetEditable()
+        {
+            return controller.model.IsAssetEditable();
+        }
+
         void NewControllerSet()
         {
             m_Blackboard.controller = controller;
@@ -932,7 +937,7 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
 
-                m_LockedElement.style.display = AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible) ? DisplayStyle.None : DisplayStyle.Flex;
+                m_LockedElement.style.display = IsAssetEditable() ? DisplayStyle.None : DisplayStyle.Flex;
             }
             else
             {
@@ -946,7 +951,7 @@ namespace UnityEditor.VFX.UI
 
         public void OnFocus()
         {
-            if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+            if (controller != null && controller.model.asset != null && !IsAssetEditable())
             {
                 if (m_LockedElement.style.display != DisplayStyle.Flex)
                 {
