@@ -146,6 +146,7 @@ namespace UnityEngine
 
             yaw = extractedYaw;
             pitch = extractedPitch;
+            roll = transform.rotation.eulerAngles.z;
             distance = extractedDistance;
         }
 
