@@ -67,8 +67,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var attributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Current);
             var sourceAttributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Source);
 
-            // Call VFX Generator to process blocks etc.
-            GenerateVFXProcessBlocks(context, contextData, out var blockFunctionDescriptor, out var blockCallFunctionDescriptor);
+            // Defer to VFX to generate various misc. code-gen that ShaderGraph currently can't handle.
+            // We use the AdditionalCommand descriptors for ShaderGraph generation to splice these in.
+            // ( i.e. VFX Graph Block Function declaration + calling, Property Mapping, etc. )
+            GenerateVFXAdditionalCommands(
+                context, contextData,
+                out var loadAttributeDescriptor,
+                out var blockFunctionDescriptor,
+                out var blockCallFunctionDescriptor
+            );
 
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection vfxPasses = new PassCollection();
@@ -80,7 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.structs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
-                    HDStructs.VaryingsMeshToPS,
+                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, contextData),
+                    //HDStructs.VaryingsMeshToPS,
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
@@ -90,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.pragmas = new PragmaCollection
                 {
                     passDescriptor.pragmas,
-                    Pragma.DebugSymbolsD3D,
+                    // Pragma.DebugSymbolsD3D,
                     Pragma.MultiCompileInstancing
                 };
 
@@ -101,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
-                    GenerateVFLoadAttribute(context),
+                    loadAttributeDescriptor,
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor
                 };
@@ -138,6 +146,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
+        // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
+        // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
+        // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
+        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXContextCompiledData contextData)
+        {
+            var fields = interpolator.fields.ToList();
+
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            int normalSemanticIndex = 0;
+
+            // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
+            // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
+
+                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+                        continue;
+
+                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}"));
+                }
+            }
+
+            interpolator.fields = fields.ToArray();
+            return interpolator;
+        }
+
         enum VFXAttributeType
         {
             Current,
@@ -150,16 +194,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             "SourceAttributes"
         };
 
-        static AdditionalCommandDescriptor GenerateVFLoadAttribute(VFXContext context) => new AdditionalCommandDescriptor(
-            "VFXLoadAttribute",
-            VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString()
-        );
-
-        static void GenerateVFXProcessBlocks(VFXContext context,
-            VFXContextCompiledData contextData,
+        static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,
+            out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor)
         {
+            loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
+
             VFXCodeGenerator.BuildContextBlocks(context, contextData, out var blockFunction, out var blockCallFunction);
 
             blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
@@ -253,6 +294,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static void CollectVFXShaderProperties(PropertyCollector collector, VFXContextCompiledData contextData)
         {
             // See: VFXShaderWriter.WriteCBuffer
+            // TODO: It may just be better to replace this with another AdditionalCommand and let VFX do it, since it also handles padding.
             var mapper = contextData.uniformMapper;
             var uniformValues = mapper.uniforms
                 .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions

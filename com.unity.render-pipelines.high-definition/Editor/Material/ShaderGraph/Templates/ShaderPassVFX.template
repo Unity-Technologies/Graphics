@@ -233,6 +233,8 @@
 
         output.positionCS = csPos;
 
+        $splice(VFXInterpolantGenerationVS)
+
         return output;
     }
 

@@ -620,7 +620,7 @@ namespace UnityEditor.VFX
             // Prepare the target for VFX generation.
             var target = graph.activeTargets.FirstOrDefault();
 
-            if (target is IVFXCompatibleTarget vfxTarget &&
+            if (!(target is IVFXCompatibleTarget vfxTarget) ||
                 !vfxTarget.TryConfigureVFX(context, contextData))
             {
                 return null;
