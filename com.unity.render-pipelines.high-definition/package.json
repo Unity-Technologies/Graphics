@@ -6,6 +6,9 @@
     "unityRelease": "14f1",
     "displayName": "High Definition RP",
     "dependencies": {
+        "com.unity.modules.video": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.render-pipelines.core": "7.5.2",
         "com.unity.shadergraph": "7.5.2",
         "com.unity.visualeffectgraph": "7.5.2",
