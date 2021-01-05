@@ -211,10 +211,13 @@
 
         uint index = input.instanceID;
 
+        // Load Attributes
         $splice(VFXLoadAttribute)
 
+        // Process Blocks
         $splice(VFXProcessBlocks)
 
+        // Instance to Particle
         float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
         float3 inputVertexPosition = input.positionOS;
@@ -233,7 +236,8 @@
 
         output.positionCS = csPos;
 
-        $splice(VFXInterpolantGenerationVS)
+        // Interpolants Generation
+        $splice(VFXInterpolantsGeneration)
 
         return output;
     }

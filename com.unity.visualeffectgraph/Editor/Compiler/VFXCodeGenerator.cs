@@ -390,6 +390,45 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
+        internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
+            out string interpolatorsGeneration)
+        {
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            var additionalInterpolantsGeneration = new VFXShaderWriter();
+            var additionalInterpolantsPreparation = new VFXShaderWriter();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
+                    var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                    additionalInterpolantsGeneration.EnterScope();
+                    {
+                        if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
+                        {
+                            additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
+                            additionalInterpolantsGeneration.WriteLine();
+                        }
+                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalInterpolantsGeneration.WriteLine();
+                    }
+                    additionalInterpolantsGeneration.ExitScope();
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "output." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                    additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
+                }
+            }
+
+            interpolatorsGeneration = additionalInterpolantsGeneration.ToString();
+        }
+
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             if (!context.SetupCompilation())

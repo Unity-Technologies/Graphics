@@ -74,7 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context, contextData,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
-                out var blockCallFunctionDescriptor
+                out var blockCallFunctionDescriptor,
+                out var interpolantsGenerationDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -111,7 +112,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     loadAttributeDescriptor,
                     blockFunctionDescriptor,
-                    blockCallFunctionDescriptor
+                    blockCallFunctionDescriptor,
+                    interpolantsGenerationDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -197,14 +199,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
-            out AdditionalCommandDescriptor blockCallFunctionDescriptor)
+            out AdditionalCommandDescriptor blockCallFunctionDescriptor,
+            out AdditionalCommandDescriptor interpolantsGenerationDescriptor)
         {
+            // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
 
+            // Graph Blocks
             VFXCodeGenerator.BuildContextBlocks(context, contextData, out var blockFunction, out var blockCallFunction);
 
             blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
+
+            // Interpolator
+            VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
+
+            interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
