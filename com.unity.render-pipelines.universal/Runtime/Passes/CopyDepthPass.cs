@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyDepthPass : ScriptableRenderPass
     {
-        private RenderTargetHandle source { get; set; }
+        private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
         internal int MssaSamples { get; set; }
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Targt</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
+        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination)
         {
             this.source = source;
             this.destination = destination;
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
+                cmd.SetGlobalTexture("_CameraDepthAttachment", source);
 
 
 #if ENABLE_VR && ENABLE_XR_MODULE
