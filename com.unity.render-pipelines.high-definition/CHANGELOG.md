@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
+- Fixed an issue with half res ssgi upscale.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -43,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the upscale radius from the RTR.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+- Changed the convergence time of ssgi to 16 frames and the preset value
 
 ## [10.3.0] - 2020-12-01
 
