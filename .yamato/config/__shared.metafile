@@ -112,7 +112,6 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --reruncount=2
@@ -137,7 +136,6 @@ test_platforms:
   - type: editmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
