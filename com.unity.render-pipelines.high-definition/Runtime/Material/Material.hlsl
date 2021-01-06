@@ -34,9 +34,9 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
         opacity = 0;
     #ifndef _ALPHATEST_ON
     else
-        // We hardcode opacity to 1 to avoid issues in forward when alpha might be coming from the texture source, but we don't want to keep it in case alpha is preserved. 
+        // We hardcode opacity to 1 to avoid issues in forward when alpha might be coming from the texture source, but we don't want to keep it in case alpha is preserved.
         opacity = 1;
-    #endif    
+    #endif
     return float4(diffuseLighting + specularLighting, opacity);
 #else
 

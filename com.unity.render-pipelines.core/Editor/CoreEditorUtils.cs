@@ -460,7 +460,7 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-         => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
+            => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
 
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
@@ -596,12 +596,14 @@ namespace UnityEditor.Rendering
 
         static readonly GUIContent[][] k_DrawVector6_Label =
         {
-            new[] {
+            new[]
+            {
                 new GUIContent(" X"),
                 new GUIContent(" Y"),
                 new GUIContent(" Z"),
             },
-            new[] {
+            new[]
+            {
                 new GUIContent("-X"),
                 new GUIContent("-Y"),
                 new GUIContent("-Z"),
@@ -624,13 +626,13 @@ namespace UnityEditor.Rendering
         public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[] colors = null, SerializedProperty multiplicator = null, bool allowIntersection = true)
         {
             if (colors != null && (colors.Length != 6))
-                    throw new System.ArgumentException("Colors must be a 6 element array. [+X, +Y, +X, -X, -Y, -Z]");
+                throw new System.ArgumentException("Colors must be a 6 element array. [+X, +Y, +X, -X, -Y, -Z]");
 
             GUILayout.BeginVertical();
 
             const int interline = 2;
             const int fixAlignSubVector3Labels = -1;
-            Rect wholeArea = EditorGUILayout.GetControlRect(true, 2*EditorGUIUtility.singleLineHeight + interline);
+            Rect wholeArea = EditorGUILayout.GetControlRect(true, 2 * EditorGUIUtility.singleLineHeight + interline);
             Rect firstLineRect = wholeArea;
             firstLineRect.height = EditorGUIUtility.singleLineHeight;
             Rect secondLineRect = firstLineRect;
@@ -679,7 +681,7 @@ namespace UnityEditor.Rendering
         {
             float[] multifloat = multiplicator == null
                 ? new float[] { value.vector3Value.x, value.vector3Value.y, value.vector3Value.z }
-                : new float[] { value.vector3Value.x * multiplicator.vector3Value.x, value.vector3Value.y * multiplicator.vector3Value.y, value.vector3Value.z * multiplicator.vector3Value.z };
+            : new float[] { value.vector3Value.x * multiplicator.vector3Value.x, value.vector3Value.y * multiplicator.vector3Value.y, value.vector3Value.z * multiplicator.vector3Value.z };
 
             float fieldWidth = rect.width / 3f;
             const int subLabelWidth = 13;
@@ -754,7 +756,7 @@ namespace UnityEditor.Rendering
         {
             float[] multifloat = multiplicator == null
                 ? new float[] { value.vector3Value.x, value.vector3Value.y, value.vector3Value.z }
-                : new float[] { value.vector3Value.x * multiplicator.vector3Value.x, value.vector3Value.y * multiplicator.vector3Value.y, value.vector3Value.z * multiplicator.vector3Value.z };
+            : new float[] { value.vector3Value.x * multiplicator.vector3Value.x, value.vector3Value.y * multiplicator.vector3Value.y, value.vector3Value.z * multiplicator.vector3Value.z };
 
             float fieldWidth = rect.width / 3f;
             EditorGUI.showMixedValue = value.hasMultipleDifferentValues;
@@ -764,15 +766,15 @@ namespace UnityEditor.Rendering
             {
                 value.vector3Value = multiplicator == null
                     ? new Vector3(
-                        Mathf.Clamp(multifloat[0], min.x, max.x),
-                        Mathf.Clamp(multifloat[1], min.y, max.y),
-                        Mathf.Clamp(multifloat[2], min.z, max.z)
-                        )
+                    Mathf.Clamp(multifloat[0], min.x, max.x),
+                    Mathf.Clamp(multifloat[1], min.y, max.y),
+                    Mathf.Clamp(multifloat[2], min.z, max.z)
+                    )
                     : new Vector3(
-                        Mathf.Clamp((multiplicator.vector3Value.x < -0.00001 || 0.00001 < multiplicator.vector3Value.x) ? multifloat[0] / multiplicator.vector3Value.x : 0f, min.x, max.x),
-                        Mathf.Clamp((multiplicator.vector3Value.y < -0.00001 || 0.00001 < multiplicator.vector3Value.y) ? multifloat[1] / multiplicator.vector3Value.y : 0f, min.y, max.y),
-                        Mathf.Clamp((multiplicator.vector3Value.z < -0.00001 || 0.00001 < multiplicator.vector3Value.z) ? multifloat[2] / multiplicator.vector3Value.z : 0f, min.z, max.z)
-                        );
+                    Mathf.Clamp((multiplicator.vector3Value.x < -0.00001 || 0.00001 < multiplicator.vector3Value.x) ? multifloat[0] / multiplicator.vector3Value.x : 0f, min.x, max.x),
+                    Mathf.Clamp((multiplicator.vector3Value.y < -0.00001 || 0.00001 < multiplicator.vector3Value.y) ? multifloat[1] / multiplicator.vector3Value.y : 0f, min.y, max.y),
+                    Mathf.Clamp((multiplicator.vector3Value.z < -0.00001 || 0.00001 < multiplicator.vector3Value.z) ? multifloat[2] / multiplicator.vector3Value.z : 0f, min.z, max.z)
+                    );
             }
             EditorGUI.showMixedValue = false;
 
@@ -932,7 +934,6 @@ namespace UnityEditor.Rendering
                 }
             }
         }
-
 
         #region IconAndSkin
 

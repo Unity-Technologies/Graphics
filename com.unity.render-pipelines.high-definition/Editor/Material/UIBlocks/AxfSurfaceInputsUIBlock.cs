@@ -12,10 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     // We don't reuse the other surface option ui block, AxF is too different
     class AxfSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Config
-        {
-            public static bool s_ShowAdvanced = true;
-        }
         public class Styles
         {
             public const string header = "Advanced Surface Inputs";
@@ -51,6 +47,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT", "First angular dimension indirection for flake slice number");
 
+            public static GUIContent    CarPaintFixedColorThetaHForIndirectLightText = new GUIContent("BRDFColor ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the BRDF color table: "
+                + "The value is an angle from 0 to PI/2."
+                + "eg this will select a hue column in the BRDF color table for indirect reflection probes and raytraced indirect light");
+
+            public static GUIContent    CarPaintFixedFlakesThetaHForIndirectLightText = new GUIContent("Flakes ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the flakes: "
+                + "A value between 0 and 1 selects an angle from 0 to PI/2. "
+                + "This allows one to control visibility of flakes lit from indirect lighting more precisely when lit by reflection probes and raytraced indirect light");
             public static GUIContent    CarPaintIORText = new GUIContent("Clearcoat IOR");
 
             public static GUIContent    CarPaintCTDiffuseText = new GUIContent("Diffuse coeff");
@@ -67,50 +70,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatNormalMapTilingText = new GUIContent("Clearcoat Normal Tiling and Offset");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
-
         }
 
         static readonly string[]    AxfBrdfTypeNames = Enum.GetNames(typeof(AxfBrdfType));
-
-        enum    SvbrdfDiffuseType
-        {
-            LAMBERT = 0,
-            OREN_NAYAR = 1,
-        }
         static readonly string[]    SvbrdfDiffuseTypeNames = Enum.GetNames(typeof(SvbrdfDiffuseType));
-
-        enum    SvbrdfSpecularType
-        {
-            WARD = 0,
-            BLINN_PHONG = 1,
-            COOK_TORRANCE = 2,
-            GGX = 3,
-            PHONG = 4,
-        }
         static readonly string[]    SvbrdfSpecularTypeNames = Enum.GetNames(typeof(SvbrdfSpecularType));
-
-        enum    SvbrdfSpecularVariantWard   // Ward variants
-        {
-            GEISLERMORODER,     // 2010 (albedo-conservative, should always be preferred!)
-            DUER,               // 2006
-            WARD,               // 1992 (original paper)
-        }
         static readonly string[]    SvbrdfSpecularVariantWardNames = Enum.GetNames(typeof(SvbrdfSpecularVariantWard));
-        enum    SvbrdfSpecularVariantBlinn  // Blinn-Phong variants
-        {
-            ASHIKHMIN_SHIRLEY,  // 2000
-            BLINN,              // 1977 (original paper)
-            VRAY,
-            LEWIS,              // 1993
-        }
         static readonly string[]    SvbrdfSpecularVariantBlinnNames = Enum.GetNames(typeof(SvbrdfSpecularVariantBlinn));
-
-        enum    SvbrdfFresnelVariant
-        {
-            NO_FRESNEL,         // No fresnel
-            FRESNEL,            // Full fresnel (1818)
-            SCHLICK,            // Schlick's Approximation (1994)
-        }
         static readonly string[]    SvbrdfFresnelVariantNames = Enum.GetNames(typeof(SvbrdfFresnelVariant));
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,6 +168,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_CarPaint2_FlakeNumThetaIText = "_CarPaint2_FlakeNumThetaI";
         MaterialProperty  m_CarPaint2_FlakeNumThetaI;
 
+        static string               m_CarPaint2_FixedColorThetaHForIndirectLightText = "_CarPaint2_FixedColorThetaHForIndirectLight";
+        MaterialProperty  m_CarPaint2_FixedColorThetaHForIndirectLight;
+        static string               m_CarPaint2_FixedFlakesThetaHForIndirectLightText = "_CarPaint2_FixedFlakesThetaHForIndirectLight";
+        MaterialProperty  m_CarPaint2_FixedFlakesThetaHForIndirectLight;
+
         static string               m_CarPaint2_ClearcoatIORText = "_CarPaint2_ClearcoatIOR";
         MaterialProperty  m_CarPaint2_ClearcoatIOR;
 
@@ -225,9 +196,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
         MaterialProperty  m_ClearcoatIORMap = null;
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
-        public AxfSurfaceInputsUIBlock(Expandable expandableBit)
+        public AxfSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
@@ -250,7 +221,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AxF_BRDFType = FindProperty(m_AxF_BRDFTypeText);
 
             m_Flags = FindProperty(m_FlagsText);
-
             //////////////////////////////////////////////////////////////////////////
             // SVBRDF
             m_SVBRDF_BRDFType = FindProperty(m_SVBRDF_BRDFTypeText);
@@ -288,6 +258,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CarPaint2_FlakeMaxThetaI = FindProperty(m_CarPaint2_FlakeMaxThetaIText);
             m_CarPaint2_FlakeNumThetaF = FindProperty(m_CarPaint2_FlakeNumThetaFText);
             m_CarPaint2_FlakeNumThetaI = FindProperty(m_CarPaint2_FlakeNumThetaIText);
+            m_CarPaint2_FixedColorThetaHForIndirectLight = FindProperty(m_CarPaint2_FixedColorThetaHForIndirectLightText);
+            m_CarPaint2_FixedFlakesThetaHForIndirectLight = FindProperty(m_CarPaint2_FixedFlakesThetaHForIndirectLightText);
 
             m_CarPaint2_ClearcoatIOR = FindProperty(m_CarPaint2_ClearcoatIORText);
 
@@ -316,21 +288,21 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public static uint GenFlags(bool anisotropy = false, bool clearcoat = false, bool clearcoatRefraction = false, bool useHeightMap = false, bool brdfColorDiagonalClamp = false,
-                                    bool honorMinRoughness = false)
+            bool honorMinRoughness = false)
         {
             uint flags = 0;
-            flags |= anisotropy ? (uint) AxF.FeatureFlags.AxfAnisotropy : 0U;
-            flags |= clearcoat ? (uint) AxF.FeatureFlags.AxfClearCoat : 0U;
-            flags |= clearcoatRefraction ? (uint) AxF.FeatureFlags.AxfClearCoatRefraction : 0U;
-            flags |= useHeightMap ? (uint) AxF.FeatureFlags.AxfUseHeightMap : 0U;
-            flags |= brdfColorDiagonalClamp ? (uint) AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
-            flags |= honorMinRoughness ? (uint) AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
+            flags |= anisotropy ? (uint)AxF.FeatureFlags.AxfAnisotropy : 0U;
+            flags |= clearcoat ? (uint)AxF.FeatureFlags.AxfClearCoat : 0U;
+            flags |= clearcoatRefraction ? (uint)AxF.FeatureFlags.AxfClearCoatRefraction : 0U;
+            flags |= useHeightMap ? (uint)AxF.FeatureFlags.AxfUseHeightMap : 0U;
+            flags |= brdfColorDiagonalClamp ? (uint)AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
+            flags |= honorMinRoughness ? (uint)AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
             return flags;
         }
 
         public static void ExtractFlags(uint flags,
-                                        out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
-                                        out bool honorMinRoughness)
+            out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+            out bool honorMinRoughness)
         {
             anisotropy             = (flags & (uint)AxF.FeatureFlags.AxfAnisotropy) != 0;
             clearcoat              = (flags & (uint)AxF.FeatureFlags.AxfClearCoat) != 0;
@@ -343,7 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void DrawRightJustifiedHeader(string header)
         {
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("", GUILayout.Width(EditorGUIUtility.labelWidth-5));
+            GUILayout.Label("", GUILayout.Width(EditorGUIUtility.labelWidth - 5));
             GUILayout.Label(header, EditorStyles.boldLabel);
             //EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
             EditorGUILayout.EndHorizontal();
@@ -358,8 +330,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Extract flag:
             uint flags = (uint)m_Flags.floatValue;
             ExtractFlags(flags,
-                         out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
-                         out bool honorMinRoughness);
+                out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+                out bool honorMinRoughness);
 
             switch (AxF_BRDFType)
             {
@@ -465,7 +437,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     m_SVBRDF_BRDFType.floatValue = (float)BRDFType;
                     m_SVBRDF_BRDFVariants.floatValue = (float)BRDFVariants;
-
                     --EditorGUI.indentLevel;
                     break;
                 }
@@ -499,6 +470,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
 
                     materialEditor.TexturePropertySingleLine(Styles.thetaFI_sliceLUTMapText, m_CarPaint2_FlakeThetaFISliceLUTMap);
+
+                    materialEditor.ShaderProperty(m_CarPaint2_FixedColorThetaHForIndirectLight, Styles.CarPaintFixedColorThetaHForIndirectLightText);
+                    materialEditor.ShaderProperty(m_CarPaint2_FixedFlakesThetaHForIndirectLight, Styles.CarPaintFixedFlakesThetaHForIndirectLightText);
 
                     //m_CarPaint2_FlakeMaxThetaI = FindProperty(m_CarPaint2_FlakeMaxThetaIText);
                     //m_CarPaint2_FlakeNumThetaF = FindProperty(m_CarPaint2_FlakeNumThetaFText);
@@ -540,7 +514,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Finally write back flags:
             flags = GenFlags(anisotropy, clearcoat, clearcoatRefraction, useHeightMap, brdfColorDiagonalClamp,
-                             honorMinRoughness);
+                honorMinRoughness);
             m_Flags.floatValue = (float)flags;
         }//DrawAxfSurfaceOptionsGUI
     }

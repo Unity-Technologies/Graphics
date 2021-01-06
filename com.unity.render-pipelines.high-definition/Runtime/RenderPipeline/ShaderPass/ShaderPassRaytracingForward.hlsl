@@ -7,7 +7,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-	// The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -33,7 +33,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
-    
+
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
@@ -205,7 +205,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
     rayIntersection.color = bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor;
 #endif
-    
+
     // Apply fog attenuation
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);
 }

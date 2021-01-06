@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Boolean field.
         /// </summary>
-        public class BoolField : Field<bool> { }
+        public class BoolField : Field<bool> {}
         /// <summary>
         /// Boolean field with history.
         /// </summary>

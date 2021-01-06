@@ -42,10 +42,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent sortingCriteria = new GUIContent("Sorting", "Sorting settings used to render objects in a certain order.");
             public static GUIContent shaderPass = new GUIContent("Shader Pass", "Sets which pass will be used to render the materials. If the pass does not exists, the material will not be rendered.");
 
-		    //Depth Settings
-		    public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth state of the objects rendered.");
-		    public static GUIContent depthWrite = new GUIContent("Write Depth", "Chose to write depth to the screen.");
-		    public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
+            //Depth Settings
+            public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth state of the objects rendered.");
+            public static GUIContent depthWrite = new GUIContent("Write Depth", "Chose to write depth to the screen.");
+            public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
 
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_FilterFoldout;
         SerializedProperty      m_RendererFoldout;
         SerializedProperty      m_PassFoldout;
-		SerializedProperty      m_TargetDepthBuffer;
+        SerializedProperty      m_TargetDepthBuffer;
 
         // Filter
         SerializedProperty      m_RenderQueue;
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FilterFoldout = customPass.FindPropertyRelative("filterFoldout");
             m_RendererFoldout = customPass.FindPropertyRelative("rendererFoldout");
             m_PassFoldout = customPass.FindPropertyRelative("passFoldout");
-			m_TargetDepthBuffer = customPass.FindPropertyRelative("targetDepthBuffer");
+            m_TargetDepthBuffer = customPass.FindPropertyRelative("targetDepthBuffer");
 
             // Filter props
             m_RenderQueue = customPass.FindPropertyRelative("renderQueueType");
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
             m_ShaderPassesList.drawElementCallback =
-            (Rect rect, int index, bool isActive, bool isFocused) =>
+                (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
                 var propRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
@@ -194,7 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (HDRenderPipeline.currentAsset == null || !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                 return false;
-            
+
             if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)
                 return false;
 
@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                // There is still a bug with SerializedReference and PropertyField so we can't use it yet
                 // EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
                 m_RenderQueue.intValue = (int)(CustomPass.RenderQueueType)EditorGUI.EnumPopup(rect, Styles.renderQueueFilter, (CustomPass.RenderQueueType)m_RenderQueue.intValue);
                 EditorGUI.EndProperty();
@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                // There is still a bug with SerializedReference and PropertyField so we can't use it yet
                 // EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
                 m_ShaderPass.intValue = (int)(DrawRenderersCustomPass.ShaderPass)EditorGUI.EnumPopup(rect, Styles.shaderPass, (DrawRenderersCustomPass.ShaderPass)m_ShaderPass.intValue);
                 EditorGUI.EndProperty();

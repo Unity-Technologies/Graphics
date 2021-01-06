@@ -48,6 +48,11 @@ namespace UnityEditor.Rendering.Universal
             UpdateEditorList();
         }
 
+        private void OnDisable()
+        {
+            ClearEditorsList();
+        }
+
         public override void OnInspectorGUI()
         {
             if (m_RendererFeatures == null)
@@ -142,7 +147,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature,renderFeatureProperty, m_FalseBool,pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
@@ -288,11 +293,21 @@ namespace UnityEditor.Rendering.Universal
 
         private void UpdateEditorList()
         {
-            m_Editors.Clear();
+            ClearEditorsList();
             for (int i = 0; i < m_RendererFeatures.arraySize; i++)
             {
                 m_Editors.Add(CreateEditor(m_RendererFeatures.GetArrayElementAtIndex(i).objectReferenceValue));
             }
+        }
+
+        //To avoid leaking memory we destroy editors when we clear editors list
+        private void ClearEditorsList()
+        {
+            for (int i = m_Editors.Count - 1; i >= 0; --i)
+            {
+                DestroyImmediate(m_Editors[i]);
+            }
+            m_Editors.Clear();
         }
 
         private void ForceSave()

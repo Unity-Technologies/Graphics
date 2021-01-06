@@ -36,8 +36,8 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Serializable]
-    public sealed class MotionBlurModeParameter : VolumeParameter<MotionBlurMode> { public MotionBlurModeParameter(MotionBlurMode value, bool overrideState = false) : base(value, overrideState) { } }
+    public sealed class MotionBlurModeParameter : VolumeParameter<MotionBlurMode> { public MotionBlurModeParameter(MotionBlurMode value, bool overrideState = false) : base(value, overrideState) {} }
 
     [Serializable]
-    public sealed class MotionBlurQualityParameter : VolumeParameter<MotionBlurQuality> { public MotionBlurQualityParameter(MotionBlurQuality value, bool overrideState = false) : base(value, overrideState) { } }
+    public sealed class MotionBlurQualityParameter : VolumeParameter<MotionBlurQuality> { public MotionBlurQualityParameter(MotionBlurQuality value, bool overrideState = false) : base(value, overrideState) {} }
 }

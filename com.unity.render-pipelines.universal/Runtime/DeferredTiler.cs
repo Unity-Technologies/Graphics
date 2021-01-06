@@ -158,7 +158,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             return (i + j * m_TileXCount) * m_TileHeaderSize;
         }
 
-
         public void Setup(int tileDataCapacity)
         {
             if (tileDataCapacity <= 0)
@@ -258,8 +257,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // - depth range of the light shape intersecting the tile-frustums is output in the tile list header section
         // - light indices written out are indexing visible_lights, rather than the array of PrePunctualLights.
         unsafe public void CullFinalLights(ref NativeArray<PrePunctualLight> punctualLights,
-                                           ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
-                                           int istart, int iend, int jstart, int jend)
+            ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
+            int istart, int iend, int jstart, int jend)
         {
             // Interestingly, 2-3% faster when using unsafe arrays.
             PrePunctualLight* _punctualLights = (PrePunctualLight*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(punctualLights);
@@ -269,21 +268,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightCount == 0)
             {
                 for (int j = jstart; j < jend; ++j)
-                for (int i = istart; i < iend; ++i)
-                {
-                    int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = 0;
-                    _tileHeaders[headerOffset + 1] = 0;
-                    _tileHeaders[headerOffset + 2] = 0;
-                    _tileHeaders[headerOffset + 3] = 0;
-                }
+                    for (int i = istart; i < iend; ++i)
+                    {
+                        int headerOffset = GetTileHeaderOffset(i, j);
+                        _tileHeaders[headerOffset + 0] = 0;
+                        _tileHeaders[headerOffset + 1] = 0;
+                        _tileHeaders[headerOffset + 2] = 0;
+                        _tileHeaders[headerOffset + 3] = 0;
+                    }
                 return;
             }
 
             // Store culled lights in temporary buffer. Additionally store depth range of each light for a given tile too.
             // the depth range is a 32bit mask, but packed into a 16bits value since the range of the light is continuous
             // (only need to store first bit enabled, and count of enabled bits).
-            ushort* tiles = stackalloc ushort[lightCount*2];
+            ushort* tiles = stackalloc ushort[lightCount * 2];
             float2* depthRanges = stackalloc float2[lightCount];
 
             int maxLightPerTile = 0; // for stats
@@ -419,8 +418,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // TODO: finer culling for spot lights
         unsafe public void CullIntermediateLights(ref NativeArray<PrePunctualLight> punctualLights,
-                                                  ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
-                                                  int istart, int iend, int jstart, int jend)
+            ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
+            int istart, int iend, int jstart, int jend)
         {
             // Interestingly, 2-3% faster when using unsafe arrays.
             PrePunctualLight* _punctualLights = (PrePunctualLight*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(punctualLights);
@@ -430,12 +429,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (lightCount == 0)
             {
                 for (int j = jstart; j < jend; ++j)
-                for (int i = istart; i < iend; ++i)
-                {
-                    int headerOffset = GetTileHeaderOffset(i, j);
-                    _tileHeaders[headerOffset + 0] = 0;
-                    _tileHeaders[headerOffset + 1] = 0;
-                }
+                    for (int i = istart; i < iend; ++i)
+                    {
+                        int headerOffset = GetTileHeaderOffset(i, j);
+                        _tileHeaders[headerOffset + 0] = 0;
+                        _tileHeaders[headerOffset + 1] = 0;
+                    }
                 return;
             }
 
@@ -534,9 +533,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             float A = dot(rayDirection, rayDirection); // always >= 0
             float B = dot(raySource - centre, rayDirection);
             float C = dot(raySource, raySource)
-                    + dot(centre, centre)
-                    - (radius * radius)
-                    - 2 * dot(raySource, centre);
+                + dot(centre, centre)
+                - (radius * radius)
+                - 2 * dot(raySource, centre);
             float discriminant = (B * B) - A * C;
             if (discriminant > 0)
             {
@@ -560,7 +559,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // Simplified clipping code, only deals with 4 clipping planes.
             // zNear and zFar clipping planes are ignored as presumably the light is already visible to the camera frustum.
-            
+
             float radiusSq = radius * radius;
             int insideCount = 0;
             ClipResult res;
@@ -596,7 +595,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float3 p = posVS - plane.xyz * d;
                 float rSq = radiusSq - d * d;
                 if (SignedSq(DistanceToPlane(sidePlaneA, p)) >= -rSq
-                 && SignedSq(DistanceToPlane(sidePlaneB, p)) >= -rSq)
+                    && SignedSq(DistanceToPlane(sidePlaneB, p)) >= -rSq)
                     return ClipResult.In;
             }
             else // consider as good as completely inside

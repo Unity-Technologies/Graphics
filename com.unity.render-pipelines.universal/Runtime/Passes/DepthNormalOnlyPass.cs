@@ -1,15 +1,20 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
-        internal RenderTextureDescriptor normalDescriptor { get; private set; }
-        internal RenderTextureDescriptor depthDescriptor { get; private set; }
+        private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthNormals");
+
+        internal RenderTextureDescriptor normalDescriptor { get; set; }
+        internal RenderTextureDescriptor depthDescriptor { get; set; }
+        internal bool allocateDepth { get; set; } = true;
+        internal bool allocateNormal { get; set; } = true;
+        internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
-        private ShaderTagId m_ShaderTagId = new ShaderTagId("DepthNormals");
         private FilteringSettings m_FilteringSettings;
 
         // Constants
@@ -30,6 +35,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
         {
+            // Find compatible render-target format for storing normals.
+            // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
+            // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
+            GraphicsFormat normalsFormat;
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
+                normalsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
+            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
+                normalsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
+            else
+                normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
+
             this.depthHandle = depthHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
@@ -37,21 +53,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.RGHalf;
+            baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
+
+            this.allocateDepth = true;
+            this.allocateNormal = true;
+            this.shaderTagId = k_ShaderTagId;
         }
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
-            cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
+            if (this.allocateNormal)
+                cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
+            if (this.allocateDepth)
+                cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
             ConfigureTarget(
                 new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
                 new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-                );
+            );
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -67,14 +89,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.Clear();
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -90,8 +111,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (depthHandle != RenderTargetHandle.CameraTarget)
             {
-                cmd.ReleaseTemporaryRT(normalHandle.id);
-                cmd.ReleaseTemporaryRT(depthHandle.id);
+                if (this.allocateNormal)
+                    cmd.ReleaseTemporaryRT(normalHandle.id);
+                if (this.allocateDepth)
+                    cmd.ReleaseTemporaryRT(depthHandle.id);
                 normalHandle = RenderTargetHandle.CameraTarget;
                 depthHandle = RenderTargetHandle.CameraTarget;
             }

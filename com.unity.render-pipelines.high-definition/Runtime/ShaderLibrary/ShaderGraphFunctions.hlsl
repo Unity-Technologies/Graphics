@@ -16,7 +16,7 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 {
 #if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     // We always remove the pre-exposure when we sample the scene color
-	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
+    return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
 }

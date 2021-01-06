@@ -29,7 +29,7 @@ Shader "Hidden/HDRP/TemporalAA"
         // Tier definitions
         // ---------------------------------------------------
         //  TODO: YCoCg gives better result in terms of ghosting reduction, but it also seems to let through
-        //  some additional aliasing that is undesirable in some occasions. Would like to investigate better. 
+        //  some additional aliasing that is undesirable in some occasions. Would like to investigate better.
 #ifdef LOW_QUALITY
     #define YCOCG 0
     #define HISTORY_SAMPLING_METHOD BILINEAR
@@ -57,7 +57,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
 
 #elif defined(HIGH_QUALITY) // TODO: We can do better in term of quality here (e.g. subpixel changes etc) and can be optimized a bit more
-    #define YCOCG 1     
+    #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
@@ -70,7 +70,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
 
 #elif defined(POST_DOF)
-    #define YCOCG 1     
+    #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BILINEAR
     #define WIDE_NEIGHBOURHOOD 0
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
@@ -167,7 +167,7 @@ Shader "Hidden/HDRP/TemporalAA"
             history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
 
-            // --------------- Gather neigbourhood data --------------- 
+            // --------------- Gather neigbourhood data ---------------
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
             color = clamp(color, 0, CLAMP_MAX);
             color = ConvertToWorkingSpace(color);
@@ -183,7 +183,7 @@ Shader "Hidden/HDRP/TemporalAA"
             if (offScreen)
                 history = filteredColor;
 
-            // --------------- Get neighbourhood information and clamp history --------------- 
+            // --------------- Get neighbourhood information and clamp history ---------------
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
 
@@ -289,7 +289,7 @@ Shader "Hidden/HDRP/TemporalAA"
         {
             Stencil
             {
-                ReadMask [_StencilMask]    
+                ReadMask [_StencilMask]
                 Ref     [_StencilRef]
                 Comp Equal
                 Pass Keep

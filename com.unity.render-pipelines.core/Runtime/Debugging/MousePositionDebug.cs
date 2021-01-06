@@ -1,7 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-    using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 #endif
 
 using UnityEditor;
@@ -140,12 +140,12 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-       /// <summary>
-       /// Get the mouse position in the scene or game view.
-       /// </summary>
-       /// <param name="ScreenHeight">Window height.</param>
-       /// <param name="sceneView">Get position in the scene view?</param>
-       /// <returns>Coordinates of the mouse in the specified window.</returns>
+        /// <summary>
+        /// Get the mouse position in the scene or game view.
+        /// </summary>
+        /// <param name="ScreenHeight">Window height.</param>
+        /// <param name="sceneView">Get position in the scene view?</param>
+        /// <returns>Coordinates of the mouse in the specified window.</returns>
         public Vector2 GetMousePosition(float ScreenHeight, bool sceneView)
         {
 #if UNITY_EDITOR

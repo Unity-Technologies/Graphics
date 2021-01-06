@@ -50,12 +50,12 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject.ApplyModifiedProperties();
         }
 
-        internal bool GetEditorOnlyData(EditorOnlyData mask) => (editorOnlyData.intValue & (int) mask) == (int) mask;
+        internal bool GetEditorOnlyData(EditorOnlyData mask) => (editorOnlyData.intValue & (int)mask) == (int)mask;
 
         internal void SetEditorOnlyData(EditorOnlyData mask, bool value)
         {
             if (value)
-                editorOnlyData.intValue |= (int) mask;
+                editorOnlyData.intValue |= (int)mask;
             else
                 editorOnlyData.intValue &= ~(int)mask;
         }

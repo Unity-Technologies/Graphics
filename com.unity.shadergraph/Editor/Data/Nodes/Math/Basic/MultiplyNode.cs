@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEngine;
 using System.Linq;
 using UnityEditor.Graphing.Util;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,7 +17,6 @@ namespace UnityEditor.ShaderGraph
             name = "Multiply";
             UpdateNodeAfterDeserialization();
         }
-
 
         const int Input1SlotId = 0;
         const int Input2SlotId = 1;
@@ -69,41 +69,38 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1} A, {2} B, out {3} Out)",
+                    GetFunctionHeader(),
+                    FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0}({1} A, {2} B, out {3} Out)",
-                        GetFunctionHeader(),
-                        FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
+                    switch (m_MultiplyType)
                     {
-                        switch (m_MultiplyType)
-                        {
-                            case MultiplyType.Vector:
-                                s.AppendLine("Out = A * B;");
-                                break;
-                            default:
-                                s.AppendLine("Out = mul(A, B);");
-                                break;
-                        }
+                        case MultiplyType.Vector:
+                            s.AppendLine("Out = A * B;");
+                            break;
+                        default:
+                            s.AppendLine("Out = mul(A, B);");
+                            break;
                     }
-                });
+                }
+            });
         }
 
         // Internal validation
         // -------------------------------------------------
 
-        public override void EvaluateDynamicMaterialSlots()
+        public override void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
-
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicValueMaterialSlot>.Get();
 
             // iterate the input slots
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                GetInputSlots(tempSlots);
-                foreach (var inputSlot in tempSlots)
+                foreach (var inputSlot in inputSlots)
                 {
                     inputSlot.hasError = false;
 
@@ -187,9 +184,7 @@ namespace UnityEditor.ShaderGraph
                         break;
                 }
 
-                tempSlots.Clear();
-                GetInputSlots(tempSlots);
-                bool inputError = tempSlots.Any(x => x.hasError);
+                bool inputError = inputSlots.Any(x => x.hasError);
                 if (inputError)
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
@@ -199,9 +194,7 @@ namespace UnityEditor.ShaderGraph
                 // their slotType will either be the default output slotType
                 // or the above dynanic slotType for dynamic nodes
                 // or error if there is an input error
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                foreach (var outputSlot in tempSlots)
+                foreach (var outputSlot in outputSlots)
                 {
                     outputSlot.hasError = false;
 
@@ -239,9 +232,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                if(tempSlots.Any(x => x.hasError))
+                if (outputSlots.Any(x => x.hasError))
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;

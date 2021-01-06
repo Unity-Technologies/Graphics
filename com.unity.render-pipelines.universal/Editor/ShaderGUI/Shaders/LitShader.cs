@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 EditorGUI.BeginChangeCheck();
                 materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
                 materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                 {
                     MaterialChanged(material);
                 }

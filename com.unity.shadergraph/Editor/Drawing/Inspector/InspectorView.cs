@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,9 +24,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected override string UxmlName => "GraphInspector";
         protected override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
-        private TabbedView m_GraphInspectorView;
+        TabbedView m_GraphInspectorView;
+        TabbedView m_NodeSettingsTab;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
+
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -80,13 +82,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             // By default at startup, show graph settings
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
+
+            isWindowScrollable = true;
         }
 
         public void InitializeGraphSettings()
         {
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
         }
-
 
         // If any of the selected items are no longer selected, inspector requires an update
         public bool DoesInspectorNeedUpdate()
@@ -103,11 +106,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             try
             {
-                //m_GraphInspectorView.Activate(m_NodeSettingsTab);
                 foreach (var selectable in selection)
                 {
-                    if(selectable is IInspectable inspectable)
+                    if (selectable is IInspectable inspectable)
+                    {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
+                        // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
+                        // Node Settings tab so we can make the assumption they want to see that tab
+                        m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
+                    }
                 }
             }
             catch (Exception e)
@@ -140,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
-            if(graphEditorView == null)
+            if (graphEditorView == null)
                 return;
 
             contentContainer.Clear();
@@ -177,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {
                     var propertyDrawerInstance = propertyDrawerToUse ??
-                                                 (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
+                        (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
                     // Assign the inspector update delegate so any property drawer can trigger an inspector update if it needs it
                     propertyDrawerInstance.inspectorUpdateDelegate = propertyChangeCallback;
                     // Supply any required data to this particular kind of property drawer
@@ -223,4 +230,3 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
     }
 }
-

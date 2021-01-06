@@ -37,7 +37,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -63,12 +62,12 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D_ARRAY({1}, {2}, {3}, {4});"
-                    , GetVariableNameForSlot(OutputSlotRGBAId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                    , uvName
-                    , indexName);
+            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D_ARRAY({1}.tex, {2}.samplerstate, {3}, {4});"
+                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
+                , uvName
+                , indexName);
 
             sb.AppendLine(result);
 

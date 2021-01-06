@@ -125,12 +125,12 @@ namespace UnityEditor.Rendering.LookDev
 #if UNITY_2020_1_OR_NEWER
             m_EnvironmentList.onItemsChosen += objCollection =>
             {
-                foreach(var obj in objCollection)
-                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
+                foreach (var obj in objCollection)
+                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary ? [(int)obj]);
             };
 #else
             m_EnvironmentList.onItemChosen += obj =>
-                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
+                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary ? [(int)obj]);
 #endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.LookDev
             listContainer.AddToClassList("list-environment");
             listContainer.Add(m_EnvironmentList);
             listContainer.Add(m_EnvironmentListToolbar);
-            
+
             m_LibraryField = new ObjectField("Library")
             {
                 tooltip = "The currently used library"
@@ -217,10 +217,10 @@ namespace UnityEditor.Rendering.LookDev
             environmentListCreationToolbar.Add(m_LibraryField);
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryCreator.CreateAndAssignTo(m_LibraryField))
-            {
-                text = "New",
-                tooltip = "Create a new EnvironmentLibrary"
-            });
+                {
+                    text = "New",
+                    tooltip = "Create a new EnvironmentLibrary"
+                });
 
             m_EnvironmentContainer.Add(listContainer);
             m_EnvironmentContainer.Add(m_NoEnvironmentList);
@@ -286,8 +286,8 @@ namespace UnityEditor.Rendering.LookDev
                         .Q(className: "unity-scroll-view__vertical-scroller")
                         .Q("unity-dragger")
                         .style.visibility = itemMax == 0
-                            ? Visibility.Hidden
-                            : Visibility.Visible;
+                        ? Visibility.Hidden
+                        : Visibility.Visible;
                     m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
                     m_NoEnvironmentList.style.display = DisplayStyle.None;
                 }
@@ -305,7 +305,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
         {
-            Environment environment = LookDev.currentContext.environmentLibrary?[context.draggedIndex];
+            Environment environment = LookDev.currentContext.environmentLibrary ? [context.draggedIndex];
             if (environment == null)
                 return;
 
@@ -435,7 +435,7 @@ namespace UnityEditor.Rendering.LookDev
 
             RefreshLibraryDisplay();
         }
-        
+
         void OnFocus()
         {
             //OnFocus is called before OnEnable that open backend if not already opened, so only sync if backend is open
@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             if (LookDev.currentContext.environmentLibrary != null)
                 LookDev.currentContext.FullReimportEnvironmentLibrary();
-            
+
             ((IEnvironmentDisplayer)this).Repaint();
         }
     }

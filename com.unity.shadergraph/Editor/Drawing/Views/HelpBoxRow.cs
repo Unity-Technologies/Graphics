@@ -50,8 +50,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction)
         {
             string depString = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
-                               $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
-                               $"documentation for more information.";
+                $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
+                $"documentation for more information.";
             Button upgradeButton = new Button(upgradeAction) { text = "Update" , tooltip = depString};
             if (!ShaderGraphPreferences.allowDeprecatedBehaviors)
             {

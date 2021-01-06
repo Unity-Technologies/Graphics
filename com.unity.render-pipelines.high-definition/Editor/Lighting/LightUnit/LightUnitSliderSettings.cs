@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
     struct LightUnitSliderUIDescriptor
     {
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
-            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+                                           string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
             : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
         {}
 
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
-            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+                                           string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
             this.valueRanges = valueRanges;
             this.belowRangeTooltip = belowRangeTooltip;
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
     struct LightUnitSliderUIRange
     {
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value)
-            // If no preset value provided, then by default it is the average of the value range.
+        // If no preset value provided, then by default it is the average of the value range.
             : this(icon, tooltip, value, 0.5f * (value.x + value.y))
         {}
 
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.
-            content = new GUIContent( EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
+            content = new GUIContent(EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
             value = new Vector2(-1, value),
             presetValue = -1
         };
@@ -75,10 +75,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Lux
         public static LightUnitSliderUIDescriptor LuxDescriptor = new LightUnitSliderUIDescriptor(
-        LightUnitValueRanges.LuxValueTable,
-        LightUnitSliderDistributions.LuxDistribution,
-        LightUnitTooltips.k_SunCaution,
-           "Lux"
+            LightUnitValueRanges.LuxValueTable,
+            LightUnitSliderDistributions.LuxDistribution,
+            LightUnitTooltips.k_SunCaution,
+            "Lux"
         );
 
         // Lumen
@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,  LightUnitTooltips.k_PunctualExterior,   new Vector2(3000, 40000), 10000),
                 new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,  LightUnitTooltips.k_PunctualInterior,   new Vector2(300,  3000),  1000),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight,LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300),   100),
+                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight, LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300),   100),
                 new LightUnitSliderUIRange(LightUnitIcon.Candlelight,    LightUnitTooltips.k_PunctualCandle,     new Vector2(0,    15),    12.5f),
             };
 
@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitIcon
         {
             static string GetLightUnitIconPath() => HDUtils.GetHDRenderPipelinePath() +
-                                                    "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
+            "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
 
             // Note: We do not use the editor resource loading mechanism for light unit icons because we need to skin the icon correctly for the editor theme.
             // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?

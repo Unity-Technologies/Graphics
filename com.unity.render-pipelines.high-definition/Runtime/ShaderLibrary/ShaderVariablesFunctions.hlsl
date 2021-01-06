@@ -10,7 +10,7 @@
 
 // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
 uint GetMeshRenderingLightLayer()
-{ 
+{
     return _EnableLightLayers ? (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT : DEFAULT_LIGHT_LAYERS;
 }
 
@@ -136,7 +136,7 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
     tangentToWorld[0] = tangentToWorld[0] * renormFactor;
     tangentToWorld[1] = tangentToWorld[1] * renormFactor;
-    tangentToWorld[2] = tangentToWorld[2] * renormFactor;		// normalizes the interpolated vertex normal
+    tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
 }

@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal
         {
             return k_Version;
         }
+
         public override int GetPostprocessOrder()
         {
             return k_Order;
@@ -23,15 +24,15 @@ namespace UnityEditor.Rendering.Universal
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
             if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
                 return;
-           
+
             if (IsAutodeskInteractiveMaterial(description))
             {
                 float floatProperty;
                 Vector4 vectorProperty;
                 TexturePropertyDescription textureProperty;
 
-                bool isMasked = description.TryGetProperty("mask_threshold",out floatProperty);
-                bool isTransparent = description.TryGetProperty("opacity",out floatProperty);
+                bool isMasked = description.TryGetProperty("mask_threshold", out floatProperty);
+                bool isTransparent = description.TryGetProperty("opacity", out floatProperty);
 
                 Shader shader;
                 if (isMasked)

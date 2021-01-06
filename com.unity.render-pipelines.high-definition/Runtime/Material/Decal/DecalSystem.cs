@@ -444,7 +444,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitializeMaterialValues();
             }
 
-
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
             {
                 Vector4 min = new Vector4();
@@ -497,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float angleEnd = data.endAngleFade / 180.0f;
                     var range = Mathf.Max(0.0001f, angleEnd - angleStart);
                     m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
-                    m_CachedAngleFade[index].y = - 0.25f / range;
+                    m_CachedAngleFade[index].y = -0.25f / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
@@ -919,13 +918,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-		void SetupMipStreamingSettings(Texture texture, bool allMips)
-		{
-			if (texture)
-			{
-				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
-				{
-					Texture2D tex2D = (texture as Texture2D);
+        void SetupMipStreamingSettings(Texture texture, bool allMips)
+        {
+            if (texture)
+            {
+                if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
+                {
+                    Texture2D tex2D = (texture as Texture2D);
                     if (tex2D)
                     {
                         if (allMips)
@@ -933,9 +932,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             tex2D.ClearRequestedMipmapLevel();
                     }
-				}
-			}
-		}
+                }
+            }
+        }
 
         void SetupMipStreamingSettings(Material material, bool allMips)
         {
@@ -1116,7 +1115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateDecalDatasWithAtlasInfo();
         }
 
-
         public void CreateDrawData()
         {
             m_DecalDatasCount = 0;
@@ -1150,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var decalSet in m_DecalSetsRenderList)
                 decalSet.CreateDrawData();
-            }
+        }
 
         public void Cleanup()
         {

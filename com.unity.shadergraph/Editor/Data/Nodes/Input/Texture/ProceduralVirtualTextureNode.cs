@@ -104,4 +104,3 @@ namespace UnityEditor.ShaderGraph
     }
 #endif // PROCEDURAL_VT_IN_GRAPH
 }
-

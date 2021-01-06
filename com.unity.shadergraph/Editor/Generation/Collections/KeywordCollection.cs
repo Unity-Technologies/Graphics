@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public KeywordCollection Add(KeywordCollection keywords)
         {
-            foreach(KeywordCollection.Item item in keywords)
+            foreach (KeywordCollection.Item item in keywords)
             {
                 m_Items.Add(item);
             }
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
         public KeywordCollection Add(KeywordDescriptor descriptor, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(descriptor, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

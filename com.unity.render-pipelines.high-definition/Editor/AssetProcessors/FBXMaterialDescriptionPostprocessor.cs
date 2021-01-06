@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.renderQueue = -1;
             }
 
-            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture != null)
             {
                 Color diffuseColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 if (description.TryGetProperty("DiffuseFactor", out floatProperty))
@@ -150,8 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.RealtimeEmissive;
                 }
             }
-            else if ( description.TryGetProperty("EmissiveColor", out vectorProperty) && vectorProperty.magnitude > vectorProperty.w
-                || description.HasAnimationCurve("EmissiveColor.x"))
+            else if (description.TryGetProperty("EmissiveColor", out vectorProperty) && vectorProperty.magnitude > vectorProperty.w
+                     || description.HasAnimationCurve("EmissiveColor.x"))
             {
                 if (description.TryGetProperty("EmissiveFactor", out floatProperty))
                     vectorProperty *= floatProperty;

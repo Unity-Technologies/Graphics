@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor NormalWS      = new BlockFieldDescriptor(SurfaceDescription.name, "NormalWS", "Normal (World Space)", "SURFACEDESCRIPTION_NORMALWS",
                 new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
-            public static BlockFieldDescriptor Metallic      = new BlockFieldDescriptor(SurfaceDescription.name, "Metallic", "SURFACEDESCRIPTION_METALLIC", 
+            public static BlockFieldDescriptor Metallic      = new BlockFieldDescriptor(SurfaceDescription.name, "Metallic", "SURFACEDESCRIPTION_METALLIC",
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Specular      = new BlockFieldDescriptor(SurfaceDescription.name, "Specular", "Specular Color", "SURFACEDESCRIPTION_SPECULAR",
                 new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);

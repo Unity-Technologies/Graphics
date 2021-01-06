@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Offset of sub volume defining fading.</summary>
         public Vector3 boxBlendOffset => (boxBlendDistanceNegative - boxBlendDistancePositive) * 0.5f;
         /// <summary>Size of sub volume defining fading.</summary>
-        public Vector3 boxBlendSize => -(boxBlendDistancePositive + boxBlendDistanceNegative);
+        public Vector3 boxBlendSize => - (boxBlendDistancePositive + boxBlendDistanceNegative);
         /// <summary>
         /// Position of fade sub volume maxOffset point relative to InfluenceVolume max corner.
         /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis.
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Offset of sub volume defining fading relative to normal orientation.</summary>
         public Vector3 boxBlendNormalOffset => (boxBlendNormalDistanceNegative - boxBlendNormalDistancePositive) * 0.5f;
         /// <summary>Size of sub volume defining fading relative to normal orientation.</summary>
-        public Vector3 boxBlendNormalSize => -(boxBlendNormalDistancePositive + boxBlendNormalDistanceNegative);
+        public Vector3 boxBlendNormalSize => - (boxBlendNormalDistancePositive + boxBlendNormalDistanceNegative);
         /// <summary>
         /// Position of normal fade sub volume maxOffset point relative to InfluenceVolume max corner.
         /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis (on origin for this axis).
@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal Matrix4x4 GetInfluenceToWorld(Transform transform)
-             => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+            => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
         internal EnvShapeType envShape
         {
@@ -205,14 +205,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         Vector3 GetExtents(InfluenceShape shape)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    default:
-                    case InfluenceShape.Box:
-                        return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
-                    case InfluenceShape.Sphere:
-                        return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
+                default:
+                case InfluenceShape.Box:
+                    return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
+                case InfluenceShape.Sphere:
+                    return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
             }
         }
 

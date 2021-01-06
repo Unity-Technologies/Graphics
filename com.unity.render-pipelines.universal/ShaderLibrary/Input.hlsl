@@ -3,9 +3,12 @@
 
 #define MAX_VISIBLE_LIGHTS_UBO  32
 #define MAX_VISIBLE_LIGHTS_SSBO 256
+
+// Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16

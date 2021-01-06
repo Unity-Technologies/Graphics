@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
             }
             return false;
         }
+
         protected void FindMaterialProperties(MaterialProperty[] props)
         {
             enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);
@@ -129,7 +130,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             bool enablePerPixelNormalChanged = false;
-            
+
             // Since Instanced Per-pixel normal is actually dependent on instancing enabled or not, it is not
             // important to check it in the GUI.  The shader will make sure it is enabled/disabled properly.s
             if (enableInstancedPerPixelNormal != null)
@@ -245,7 +246,7 @@ namespace UnityEditor.Rendering.Universal
                     min = maskMapRemapMin.y; max = maskMapRemapMax.y;
                     EditorGUILayout.MinMaxSlider(s_Styles.ao, ref min, ref max, 0, 1);
                     maskMapRemapMin.y = min; maskMapRemapMax.y = max;
-                    
+
                     if (heightBlend)
                     {
                         EditorGUILayout.LabelField(styles.height);
@@ -268,7 +269,7 @@ namespace UnityEditor.Rendering.Universal
                         }
                         --EditorGUI.indentLevel;
                     }
-                    
+
                     min = maskMapRemapMin.w; max = maskMapRemapMax.w;
                     EditorGUILayout.MinMaxSlider(s_Styles.smoothness, ref min, ref max, 0, 1);
                     maskMapRemapMin.w = min; maskMapRemapMax.w = max;
@@ -289,7 +290,7 @@ namespace UnityEditor.Rendering.Universal
                     // In the case of height (Z), we are trying to set min to no lower than zero value unless
                     // max goes negative.  Zero is a good sensible value for the minimum.  For AO (Y), we
                     // don't need this extra protection step because the UI blocks us from going negative
-                    // anyway.  In both cases, pushing the slider below the min value will lock them together, 
+                    // anyway.  In both cases, pushing the slider below the min value will lock them together,
                     // but min will be "left behind" if you go back up.
                     maskMapRemapMin.y = Mathf.Min(maskMapRemapMin.y, maskMapRemapMax.y);
                     maskMapRemapMin.z = Mathf.Min(Mathf.Max(0, maskMapRemapMin.z), maskMapRemapMax.z);

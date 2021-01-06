@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader == null)
                 return;
-            
+
 
             material.shader = shader;
 
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_Surface", 0.0f);
             }
 
-            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture != null)
             {
                 Color diffuseColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 if (description.TryGetProperty("DiffuseFactor", out floatProperty))
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.Universal
 
             RemapColorCurves(description, clips, "EmissiveColor", "_EmissionColor");
         }
-        
+
         static void RemapTransparencyCurves(MaterialDescription description, AnimationClip[] clips)
         {
             // For some reason, Opacity is never animated, we have to use TransparencyFactor and TransparentColor

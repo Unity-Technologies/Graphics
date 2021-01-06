@@ -1,11 +1,11 @@
 // Part of this code has been given by Christoph Peter in the Demo code of the "Improved Moment Shadow Maps for Translucent Occluders, Soft Shadows and Single Scattering" paper
 //
-// To the extent possible under law, the author(s) have dedicated all copyright and 
-// related and neighboring rights to this software to the public domain worldwide. 
+// To the extent possible under law, the author(s) have dedicated all copyright and
+// related and neighboring rights to this software to the public domain worldwide.
 // This software is distributed without any warranty.
 //
-// You should have received a copy of the CC0 Public Domain Dedication along with 
-// this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+// You should have received a copy of the CC0 Public Domain Dedication along with
+// this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 // Link: http://jcgt.org/published/0006/01/03/
 
 // Given that the default texture2d type matches a float4, we beed to manually declare this texture for the improved moment shadow algorithm
@@ -72,7 +72,7 @@ void Compute4MomentAverageBlockerDepth(out float OutAverageBlockerDepth, out flo
     // Backward substitution to solve L^T*c3=c2
     c[1]-=L21*c[2];
     c[0]-=dot(c.yz,b.xy);
-    // Solve the quadratic equation c[0]+c[1]*z+c[2]*z^2 to obtain solutions 
+    // Solve the quadratic equation c[0]+c[1]*z+c[2]*z^2 to obtain solutions
     // z[1] and z[2]
     z.yz=GetRoots(c);
     // Compute weights of the Dirac-deltas at the roots
@@ -98,7 +98,7 @@ void EstimatePenumbraSize(out float2 OutKernelSize,out float OutDepthBias, float
 
 float4 ComputeRectangleAverage_uint4(float2 LeftTop,float2 RightBottom, float4 TextureSize, float2 FixedPrecision)
 {
-    // The summed area table is essentially off by one because the top left texel 
+    // The summed area table is essentially off by one because the top left texel
     // already holds the integral over the top left texel. Compensate for that.
     LeftTop-=TextureSize.zw;
     RightBottom-=TextureSize.zw;
@@ -111,8 +111,8 @@ float4 ComputeRectangleAverage_uint4(float2 LeftTop,float2 RightBottom, float4 T
     int2 iRightBottom=int2(RightBottomPixelFloor);
     float2 LeftTopFactor=float2(1.0f,1.0f)-(LeftTopPixel-LeftTopPixelFloor);
     float2 RightBottomFactor=RightBottomPixel-RightBottomPixelFloor;
-    // Sample the summed area table at all relevant locations. The first two indices 
-    // determine whether we are at the left top or right bottom of the rectangle, 
+    // Sample the summed area table at all relevant locations. The first two indices
+    // determine whether we are at the left top or right bottom of the rectangle,
     // the latter two determine the pixel offset.
     int x, y;
     uint4 Samples[2][2][2][2];
@@ -196,7 +196,7 @@ void Compute4MomentUnboundedShadowIntensity(out float OutShadowIntensity,
     // Backward substitution to solve L^T*c3=c2
     c[1]-=L21*c[2];
     c[0]-=dot(c.yz,b.xy);
-    // Solve the quadratic equation c[0]+c[1]*z+c[2]*z^2 to obtain solutions 
+    // Solve the quadratic equation c[0]+c[1]*z+c[2]*z^2 to obtain solutions
     // z[1] and z[2]
     float InvC2=1.0f/c[2];
     float p=c[1]*InvC2;
@@ -226,7 +226,7 @@ float3x2 ComputeDirectionalLightSoftShadowParameters(float4x4 ViewToProjectionSp
         dot(float4(ViewToProjectionSpace._43,-ViewToProjectionSpace._43,-ViewToProjectionSpace._33,ViewToProjectionSpace._33),float4(ViewToProjectionSpace._33,ViewToProjectionSpace._43,ViewToProjectionSpace._34,ViewToProjectionSpace._44))/
             (ViewToProjectionSpace._33*(ViewToProjectionSpace._33-ViewToProjectionSpace._43))
     );
-    // Compute a factor that turns a depth difference into a kernel size as texture 
+    // Compute a factor that turns a depth difference into a kernel size as texture
     // coordinate
     float3x2 OutLightParameter;
     OutLightParameter._11=0.5f*tan(0.5f*LightSourceAngle)*FrustumExtents.z/FrustumExtents.x;
@@ -287,8 +287,8 @@ float SampleShadow_IMS(HDShadowData sd, float3 tcs, float depthBias, float kerne
 
     // Compute the integral in the target rectangle
     float4 averageOptimizedMoment = ComputeIntegerRectangleAverage_uint4(searchRegion, _CascadeShadowAtlasSize.xy, fixedPrecision.y);
-    
-    // Convert the moment to canonical 
+
+    // Convert the moment to canonical
     Convert4MomentOptimizedToCanonical(averageOptimizedMoment, averageOptimizedMoment, MOMENT_BIAS);
 
     // Compute the average depth and the shadow intensity
@@ -304,7 +304,7 @@ float SampleShadow_IMS(HDShadowData sd, float3 tcs, float depthBias, float kerne
 
     // Estimate the size of the penumbra for this pixel
     float2 penumbraKernelSize = float2(0.0, 0.0);
-    float estimatedDepthBias = 0.0f; 
+    float estimatedDepthBias = 0.0f;
     EstimatePenumbraSize(penumbraKernelSize, estimatedDepthBias, averageBlockerDepth, pixelShadowmapDepth, lightParameters, kernelSizeParameter, maxDepthBias);
 
     // Estimate the region of the filter with the penumbra estimation
@@ -321,7 +321,7 @@ float SampleShadow_IMS(HDShadowData sd, float3 tcs, float depthBias, float kerne
     // Compute the shadow intensity
     float shadowIntensity = 0.0f;
     Compute4MomentUnboundedShadowIntensity(shadowIntensity, biasedMoment, pixelShadowmapDepth, estimatedDepthBias);
-    
+
     // Inverse it and we are done
     return 1.0 - shadowIntensity;
 }

@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
                     bool disallowedByAnyTargets = false;
                     bool disallowedByAllTargets = true;
                     IEnumerable<Target> targets = node.owner.activeTargets;
-                    if(node.owner.isSubGraph)
+                    if (node.owner.isSubGraph)
                     {
                         targets = node.owner.allPotentialTargets;
                     }

@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             currentScreenSize.Set(currentTexWidth, currentTexHeight, 1.0f / currentTexWidth, 1.0f / currentTexHeight);
             cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCurrentScreenSize, currentScreenSize);
             cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraFarPlane, planarTextureFilteringParameters.captureFarPlane);
-            
+
             // Input textures
             cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, HDShaderIDs._DepthTextureOblique, sourceDepth);
 
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraPositon, planarTextureFilteringParameters.captureCameraPosition);
                 cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraIVP_NO, planarTextureFilteringParameters.captureCameraIVP_NonOblique);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraFOV, planarTextureFilteringParameters.captureFOV * Mathf.PI / 180.0f);
-                
+
                 // Set output textures
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionFilteringKernel, HDShaderIDs._FilteredPlanarReflectionBuffer, m_PlanarReflectionFilterTex1);
 

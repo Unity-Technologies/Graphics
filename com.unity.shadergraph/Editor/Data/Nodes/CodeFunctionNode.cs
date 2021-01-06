@@ -259,14 +259,14 @@ namespace UnityEditor.ShaderGraph
                     s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
-                            ConvertTypeToSlotValueType(par),
-                            attribute.slotId,
-                            name,
-                            par.Name,
-                            par.IsOut ? SlotType.Output : SlotType.Input,
-                            attribute.defaultValue ?? Vector4.zero,
-                            shaderStageCapability: attribute.stageCapability,
-                            hidden: attribute.hidden);
+                        ConvertTypeToSlotValueType(par),
+                        attribute.slotId,
+                        name,
+                        par.Name,
+                        par.IsOut ? SlotType.Output : SlotType.Input,
+                        attribute.defaultValue ?? Vector4.zero,
+                        shaderStageCapability: attribute.stageCapability,
+                        hidden: attribute.hidden);
                 else
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.stageCapability, attribute.hidden);
                 slots.Add(s);
@@ -444,12 +444,12 @@ namespace UnityEditor.ShaderGraph
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-                {
-                    s.AppendLine(GetFunctionHeader());
-                    var functionBody = GetFunctionBody(GetFunctionToConvert());
-                    var lines = functionBody.Trim('\r', '\n', '\t', ' ');
-                    s.AppendLines(lines);
-                });
+            {
+                s.AppendLine(GetFunctionHeader());
+                var functionBody = GetFunctionBody(GetFunctionToConvert());
+                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
+                s.AppendLines(lines);
+            });
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)

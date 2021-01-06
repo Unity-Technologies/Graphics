@@ -703,7 +703,7 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttributes attributes,bool notify)
+        public void UpdateAttributes(VFXPropertyAttributes attributes, bool notify)
         {
             if (notify)
             {
@@ -711,7 +711,7 @@ namespace UnityEditor.VFX
                 {
                     m_Property.attributes = attributes;
                     Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
-                }         
+                }
             }
             else // fast path without comparison
                 m_Property.attributes = attributes;
