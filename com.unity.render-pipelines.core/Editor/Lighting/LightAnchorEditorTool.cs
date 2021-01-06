@@ -39,13 +39,10 @@ namespace UnityEditor
         /// <param name="window">The window that is displaying the custom editor tool.</param>
         public override void OnToolGUI(EditorWindow window)
         {
-            foreach (var target in targets)
-            {
-                if (target == null)
-                    continue;
+            if (target == null)
+                return;
 
-                DoTargetGUI(target);
-            }
+            DoTargetGUI(target);
         }
 
         void OnEnable()

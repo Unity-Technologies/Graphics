@@ -10,7 +10,6 @@ namespace UnityEditor
     /// <summary>
     /// LightAnchorEditor represent the inspector for the LightAnchor
     /// </summary>
-    [CanEditMultipleObjects]
     [CustomEditor(typeof(LightAnchor))]
     public class LightAnchorEditor : Editor
     {
@@ -29,7 +28,7 @@ namespace UnityEditor
         VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
 
-        LightAnchor firstManipulator
+        LightAnchor manipulator
         {
             get { return target as LightAnchor; }
         }
@@ -47,19 +46,15 @@ namespace UnityEditor
                 return;
             }
 
-            foreach (var curTarget in targets)
+            if (IsCacheInvalid(manipulator))
             {
-                LightAnchor manipulator = curTarget as LightAnchor;
-                if (IsCacheInvalid(manipulator))
-                {
-                    manipulator.SynchronizeOnTransform(camera);
-                    UpdateCache();
-                }
+                manipulator.SynchronizeOnTransform(camera);
+                UpdateCache();
             }
 
             // anchor is cached for it cannot be changed from the inspector,
             // we have a dedicated editor tool to move the anchor
-            var anchor = firstManipulator.anchorPosition;
+            var anchor = manipulator.anchorPosition;
 
             bool yawChanged = false;
             bool pitchChanged = false;
@@ -95,7 +90,7 @@ namespace UnityEditor
                     }
                     pitchChanged = oldValue != m_Pitch;
                     {
-                        Light light = firstManipulator.GetComponent<Light>();
+                        Light light = manipulator.GetComponent<Light>();
 
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
@@ -132,18 +127,18 @@ namespace UnityEditor
                 }
                 EditorGUILayout.Space();
 
-                oldValue = firstManipulator.distance;
-                m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, firstManipulator.distance);
+                oldValue = manipulator.distance;
+                m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, manipulator.distance);
                 distanceChanged = oldValue != m_Distance;
 
                 var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, firstManipulator.frameSpace);
-                upChanged = firstManipulator.frameSpace != newSpace;
-                firstManipulator.frameSpace = newSpace;
+                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
+                upChanged = manipulator.frameSpace != newSpace;
+                manipulator.frameSpace = newSpace;
 
                 if (upChanged)
                 {
-                    firstManipulator.SynchronizeOnTransform(camera);
+                    manipulator.SynchronizeOnTransform(camera);
                     UpdateCache();
                 }
                 frameChanged = yawChanged || pitchChanged || rollChanged || distanceChanged;
@@ -287,36 +282,29 @@ namespace UnityEditor
 
                 if (frameChanged)
                 {
-                    foreach (var curTarget in targets)
+                    LightAnchor manipulator = target as LightAnchor;
+
+                    if (upChanged)
                     {
-                        LightAnchor manipulator = curTarget as LightAnchor;
-
-                        if (upChanged)
-                        {
-                            manipulator.SynchronizeOnTransform(camera);
-                        }
-                        manipulator.frameSpace = firstManipulator.frameSpace;
-
-                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator }, "Reset Light Anchor Manipulator");
-                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Light Anchor Transform");
-                        if (yawChanged)
-                            manipulator.yaw = m_Yaw;
-                        if (pitchChanged)
-                            manipulator.pitch = m_Pitch;
-                        if (rollChanged)
-                            manipulator.roll = m_Roll;
-                        if (distanceChanged)
-                            manipulator.distance = m_Distance;
-
-                        if (targets.Length > 1)
-                            manipulator.UpdateTransform(camera, manipulator.anchorPosition);
-                        else
-                            manipulator.UpdateTransform(camera, anchor);
-                        IsCacheInvalid(manipulator);
-
-                        EditorUtility.SetDirty(manipulator);
-                        EditorUtility.SetDirty(manipulator.transform);
+                        manipulator.SynchronizeOnTransform(camera);
                     }
+
+                    Undo.RecordObjects(new UnityEngine.Object[] { manipulator }, "Reset Light Anchor Manipulator");
+                    Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Light Anchor Transform");
+                    if (yawChanged)
+                        manipulator.yaw = m_Yaw;
+                    if (pitchChanged)
+                        manipulator.pitch = m_Pitch;
+                    if (rollChanged)
+                        manipulator.roll = m_Roll;
+                    if (distanceChanged)
+                        manipulator.distance = m_Distance;
+
+                    manipulator.UpdateTransform(camera, anchor);
+                    IsCacheInvalid(manipulator);
+
+                    EditorUtility.SetDirty(manipulator);
+                    EditorUtility.SetDirty(manipulator.transform);
                 }
             }
         }
@@ -407,12 +395,12 @@ namespace UnityEditor
 
         void UpdateCache()
         {
-            if (firstManipulator != null)
+            if (manipulator != null)
             {
-                m_Yaw = firstManipulator.yaw;
-                m_Pitch = firstManipulator.pitch;
-                m_Roll = firstManipulator.roll;
-                m_Distance = firstManipulator.distance;
+                m_Yaw = manipulator.yaw;
+                m_Pitch = manipulator.pitch;
+                m_Roll = manipulator.roll;
+                m_Distance = manipulator.distance;
             }
         }
 
