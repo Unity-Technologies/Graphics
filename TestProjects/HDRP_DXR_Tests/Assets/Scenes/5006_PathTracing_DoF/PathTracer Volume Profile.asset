@@ -66,6 +66,9 @@ MonoBehaviour:
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_PhysicallyBased:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-100086013113312165
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -90,7 +93,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 128
     min: 1
     max: 4096
   minimumDepth:

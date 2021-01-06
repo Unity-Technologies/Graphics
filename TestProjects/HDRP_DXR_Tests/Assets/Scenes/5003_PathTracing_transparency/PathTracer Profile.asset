@@ -17,6 +17,9 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 1
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
@@ -91,6 +94,27 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
+  enableDistortion:
+    m_OverrideState: 0
+    m_Value: 0
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
+  flowmap:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  upperHemisphereOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  scrollSpeed:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
@@ -164,7 +188,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 128
     min: 1
     max: 4096
   minimumDepth:

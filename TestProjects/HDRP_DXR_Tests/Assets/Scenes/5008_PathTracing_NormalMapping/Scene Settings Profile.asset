@@ -24,7 +24,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 128
     min: 1
     max: 4096
   minimumDepth:
@@ -56,16 +56,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  maxNumLightsPercell:
-    m_OverrideState: 0
-    m_Value: 10
-    min: 0
-    max: 24
   cameraClusterRange:
     m_OverrideState: 1
     m_Value: 50
     min: 0.001
-    max: 50
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,6 +94,9 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 3
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1

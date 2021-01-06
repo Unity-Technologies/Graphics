@@ -107,21 +107,8 @@ public class HDRP_GraphicTestRunner
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
-            if (settings.ImageComparisonSettings.UseBackBuffer)
-            {
-                var format = testCase.ReferenceImage != null ? testCase.ReferenceImage.format : TextureFormat.ARGB32;
-
-                Texture2D actual = new Texture2D( settings.ImageComparisonSettings.TargetWidth , settings.ImageComparisonSettings.TargetHeight,  format, false); // new texture to fill sized to the screen
-                actual.ReadPixels(new Rect(0, 0, settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight ), 0, 0, false); // grab screen pixels
-                Debug.Log("I'm here !");
-                ImageAssert.AreEqual(testCase.ReferenceImage, actual, settings.ImageComparisonSettings);
-                UnityEngine.Object.Destroy(actual);
-            }
-            else
-            {
-                // Standard Test
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
-            }
+            // Standard Test
+            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
 
             // For some reason, tests on mac os have started failing with render graph enabled by default.
             // Some tests have 400+ gcalloc in them. Unfortunately it's not reproductible outside of command line so it's impossible to debug.

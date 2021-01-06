@@ -17,6 +17,9 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 3
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
@@ -124,6 +127,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -165,12 +171,6 @@ MonoBehaviour:
   maximumHeight:
     m_OverrideState: 1
     m_Value: 5
-  albedo:
-    m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
     m_Value: 10
@@ -178,11 +178,12 @@ MonoBehaviour:
   enableVolumetricFog:
     m_OverrideState: 0
     m_Value: 0
-  anisotropy:
+  albedo:
     m_OverrideState: 0
-    m_Value: 0
-    min: -1
-    max: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
   globalLightProbeDimmer:
     m_OverrideState: 0
     m_Value: 1
@@ -192,12 +193,43 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 64
     min: 0.1
+  denoisingMode:
+    m_OverrideState: 0
+    m_Value: 2
+  anisotropy:
+    m_OverrideState: 0
+    m_Value: 0
+    min: -1
+    max: 1
   sliceDistributionUniformity:
     m_OverrideState: 0
     m_Value: 0.75
     min: 0
     max: 1
-  filter:
+  m_FogControlMode:
+    m_OverrideState: 0
+    m_Value: 0
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 50
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 512
+  m_VolumetricFogBudget:
+    m_OverrideState: 0
+    m_Value: 0.33
+    min: 0
+    max: 1
+  m_ResolutionDepthRatio:
+    m_OverrideState: 0
+    m_Value: 0.666
+    min: 0
+    max: 1
+  directionalLightsOnly:
     m_OverrideState: 0
     m_Value: 0
 --- !u!114 &6147682987234908343
@@ -224,7 +256,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 128
     min: 1
     max: 4096
   minimumDepth:
