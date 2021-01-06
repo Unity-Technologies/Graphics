@@ -47,6 +47,8 @@ class VFXManagerEditor : Editor
 
         serializedObject.Update();
 
+        GUI.enabled = AssetDatabase.IsOpenForEdit(target, StatusQueryOptions.UseCachedIfPossible);
+
         EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder.SRPAssetTypeStr);
 
         foreach (var property in m_TimeProperties)
