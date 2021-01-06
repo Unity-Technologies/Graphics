@@ -8,14 +8,13 @@ namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
-    using ReferenceVolume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal class ProbePlacement
     {
-        static protected ReferenceVolume ToVolume(Bounds bounds)
+        static protected ProbeReferenceVolume.Volume ToVolume(Bounds bounds)
         {
-            ReferenceVolume v = new ReferenceVolume();
+            ProbeReferenceVolume.Volume v = new ProbeReferenceVolume.Volume();
             v.corner = bounds.center - bounds.size * 0.5f;
             v.X = new Vector3(bounds.size.x, 0, 0);
             v.Y = new Vector3(0, bounds.size.y, 0);
@@ -31,7 +30,7 @@ namespace UnityEngine.Rendering
                 sceneRefs[origin] += 1;
         }
 
-        static protected int RenderersToVolumes(ref Renderer[] renderers, ref ReferenceVolume cellVolume, ref List<ReferenceVolume> volumes, ref Dictionary<Scene, int> sceneRefs)
+        static protected int RenderersToVolumes(ref Renderer[] renderers, ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             int num = 0;
 
@@ -43,7 +42,7 @@ namespace UnityEngine.Rendering
                 if (!r.enabled || !r.gameObject.activeSelf || !contributeGI)
                     continue;
 
-                ReferenceVolume v = ToVolume(r.bounds);
+                ProbeReferenceVolume.Volume v = ToVolume(r.bounds);
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref v))
                 {
@@ -58,25 +57,25 @@ namespace UnityEngine.Rendering
             return num;
         }
 
-        static protected int NavPathsToVolumes(ref ReferenceVolume cellVolume, ref List<ReferenceVolume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int NavPathsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int ImportanceVolumesToVolumes(ref ReferenceVolume cellVolume, ref List<ReferenceVolume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int ImportanceVolumesToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int LightsToVolumes(ref ReferenceVolume cellVolume, ref List<ReferenceVolume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int LightsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
         {
             // TODO
             return 0;
         }
 
-        static protected int ProbeVolumesToVolumes(ref ProbeVolume[] probeVolumes, ref ReferenceVolume cellVolume, ref List<ReferenceVolume> volumes, ref Dictionary<Scene, int> sceneRefs)
+        static protected int ProbeVolumesToVolumes(ref ProbeVolume[] probeVolumes, ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             int num = 0;
 
@@ -85,7 +84,7 @@ namespace UnityEngine.Rendering
                 if (!pv.enabled || !pv.gameObject.activeSelf)
                     continue;
 
-                ReferenceVolume indicatorVolume = new ReferenceVolume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
                 {
@@ -98,18 +97,18 @@ namespace UnityEngine.Rendering
             return num;
         }
 
-        static protected void CullVolumes(ref List<ReferenceVolume> cullees, ref List<ReferenceVolume> cullers, ref List<ReferenceVolume> result)
+        static protected void CullVolumes(ref List<ProbeReferenceVolume.Volume> cullees, ref List<ProbeReferenceVolume.Volume> cullers, ref List<ProbeReferenceVolume.Volume> result)
         {
-            foreach (ReferenceVolume v in cullers)
+            foreach (ProbeReferenceVolume.Volume v in cullers)
             {
-                ReferenceVolume lv = v;
+                ProbeReferenceVolume.Volume lv = v;
 
-                foreach (ReferenceVolume c in cullees)
+                foreach (ProbeReferenceVolume.Volume c in cullees)
                 {
                     if (result.Contains(c))
                         continue;
 
-                    ReferenceVolume lc = c;
+                    ProbeReferenceVolume.Volume lc = c;
 
                     if (ProbeVolumePositioning.OBBIntersect(ref lv, ref lc))
                         result.Add(c);
@@ -119,9 +118,9 @@ namespace UnityEngine.Rendering
 
         static public void CreateInfluenceVolumes(Vector3Int cellPos,
             Renderer[] renderers, ProbeVolume[] probeVolumes,
-            ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<ReferenceVolume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
+            ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
         {
-            ReferenceVolume cellVolume = new ReferenceVolume();
+            ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
             cellVolume.corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
             cellVolume.X = new Vector3(settings.cellSize, 0, 0);
             cellVolume.Y = new Vector3(0, settings.cellSize, 0);
@@ -132,27 +131,27 @@ namespace UnityEngine.Rendering
             sceneRefs = new Dictionary<Scene, int>();
 
             // Extract all influencers inside the cell
-            List<ReferenceVolume> influenceVolumes = new List<ReferenceVolume>();
+            List<ProbeReferenceVolume.Volume> influenceVolumes = new List<ProbeReferenceVolume.Volume>();
             RenderersToVolumes(ref renderers, ref cellVolume, ref influenceVolumes, ref sceneRefs);
             NavPathsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
             ImportanceVolumesToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
             LightsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
 
             // Extract all ProbeVolumes inside the cell
-            List<ReferenceVolume> indicatorVolumes = new List<ReferenceVolume>();
+            List<ProbeReferenceVolume.Volume> indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
             ProbeVolumesToVolumes(ref probeVolumes, ref cellVolume, ref indicatorVolumes, ref sceneRefs);
 
             // Cull all influencers against ProbeVolumes
-            culledVolumes = new List<ReferenceVolume>();
+            culledVolumes = new List<ProbeReferenceVolume.Volume>();
             CullVolumes(ref influenceVolumes, ref indicatorVolumes, ref culledVolumes);
         }
 
-        public static void SubdivisionAlgorithm(ReferenceVolume cellVolume, List<ReferenceVolume> probeVolumes, List<ReferenceVolume> influenceVolumes, RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
+        public static void SubdivisionAlgorithm(ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> probeVolumes, List<ProbeReferenceVolume.Volume> influenceVolumes, RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
         {
             Flags f = new Flags();
             for (int i = 0; i < inBricks.Count; i++)
             {
-                ReferenceVolume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(ref refTrans, inBricks[i]);
+                ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(ref refTrans, inBricks[i]);
 
                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
                 if (ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume))
@@ -161,7 +160,7 @@ namespace UnityEngine.Rendering
 
                     // Transform into refvol space
                     brickVolume.Transform(refTrans.refSpaceToWS.inverse);
-                    ReferenceVolume cellVolumeTrans = new ReferenceVolume(cellVolume);
+                    ProbeReferenceVolume.Volume cellVolumeTrans = new ProbeReferenceVolume.Volume(cellVolume);
                     cellVolumeTrans.Transform(refTrans.refSpaceToWS.inverse);
 
                     // Discard parent brick if it extends outside of the cell, to prevent duplicates
@@ -184,11 +183,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static bool ShouldKeepBrick(List<ReferenceVolume> volumes, ReferenceVolume brick)
+        internal static bool ShouldKeepBrick(List<ProbeReferenceVolume.Volume> volumes, ProbeReferenceVolume.Volume brick)
         {
-            foreach (ReferenceVolume v in volumes)
+            foreach (ProbeReferenceVolume.Volume v in volumes)
             {
-                ReferenceVolume vol = v;
+                ProbeReferenceVolume.Volume vol = v;
                 if (ProbeVolumePositioning.OBBIntersect(ref vol, ref brick))
                     return true;
             }
@@ -196,11 +195,11 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        public static void Subdivide(Vector3Int cellPosGridSpace, ProbeReferenceVolume refVol, float cellSize, Vector3 translation, Quaternion rotation, List<ReferenceVolume> influencerVolumes,
+        public static void Subdivide(Vector3Int cellPosGridSpace, ProbeReferenceVolume refVol, float cellSize, Vector3 translation, Quaternion rotation, List<ProbeReferenceVolume.Volume> influencerVolumes,
             ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
         {
             //TODO: This per-cell volume is calculated 2 times during probe placement. We should calculate it once and reuse it.
-            ReferenceVolume cellVolume = new ReferenceVolume();
+            ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
             cellVolume.corner = new Vector3(cellPosGridSpace.x * cellSize, cellPosGridSpace.y * cellSize, cellPosGridSpace.z * cellSize);
             cellVolume.X = new Vector3(cellSize, 0, 0);
             cellVolume.Y = new Vector3(0, cellSize, 0);
@@ -208,7 +207,7 @@ namespace UnityEngine.Rendering
             cellVolume.Transform(Matrix4x4.TRS(translation, rotation, Vector3.one));
 
             // TODO move out
-            var indicatorVolumes = new List<ReferenceVolume>();
+            var indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
             foreach (ProbeVolume pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
                 if (!pv.enabled)
@@ -225,7 +224,7 @@ namespace UnityEngine.Rendering
 
             // get a list of bricks for this volume
             int numProbes;
-            refVol.CreateBricks(new List<ReferenceVolume>() { cellVolume }, subdivDel, bricks, out numProbes);
+            refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, subdivDel, bricks, out numProbes);
 
             positions = new Vector3[numProbes];
             refVol.ConvertBricks(bricks, positions);

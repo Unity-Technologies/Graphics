@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
-    using ReferenceVolume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal static class ProbeVolumePositioning
@@ -47,7 +46,7 @@ namespace UnityEngine.Rendering
                 if (!r.enabled || !contributeGI)
                     continue;
 
-                ReferenceVolume v = new ReferenceVolume();
+                ProbeReferenceVolume.Volume v = new ProbeReferenceVolume.Volume();
                 v.corner = r.bounds.center - r.bounds.size * 0.5f;
                 v.X = new Vector3(r.bounds.size.x, 0, 0);
                 v.Y = new Vector3(0, r.bounds.size.y, 0);
@@ -61,12 +60,12 @@ namespace UnityEngine.Rendering
         }
 
         // TODO: Take refvol translation and rotation into account
-        public static ReferenceVolume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
+        public static ProbeReferenceVolume.Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
             float scaledSize = Mathf.Pow(3, brick.size);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
-            ReferenceVolume bounds;
+            ProbeReferenceVolume.Volume bounds;
             bounds.corner = scaledPos;
             bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
@@ -75,13 +74,13 @@ namespace UnityEngine.Rendering
             return bounds;
         }
 
-        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref ReferenceVolume volume)
+        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref ProbeReferenceVolume.Volume volume)
         {
             var transformed = CalculateBrickVolume(ref refTrans, brick);
             return OBBIntersect(ref transformed, ref volume);
         }
 
-        public static bool OBBIntersect(ref ReferenceVolume a, ref ReferenceVolume b)
+        public static bool OBBIntersect(ref ProbeReferenceVolume.Volume a, ref ProbeReferenceVolume.Volume b)
         {
             m_Axes[0] = a.X.normalized;
             m_Axes[1] = a.Y.normalized;
@@ -104,7 +103,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        private static Vector2 ProjectOBB(ref ReferenceVolume a, Vector3 axis)
+        private static Vector2 ProjectOBB(ref ProbeReferenceVolume.Volume a, Vector3 axis)
         {
             float min = Vector3.Dot(axis, a.corner);
             float max = min;
