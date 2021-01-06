@@ -241,15 +241,14 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
+                return m_ComponentBoard.GetAttachedComponent();
             }
 
             set
             {
-                if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
-                    ShowComponentBoard();
-                if (m_ComponentBoard != null)
-                    m_ComponentBoard.Attach(value);
+                if (m_ComponentBoard.parent == null)
+                    ToggleComponentBoard();
+                m_ComponentBoard.Attach(value);
             }
         }
 
@@ -526,11 +525,13 @@ namespace UnityEditor.VFX.UI
                 Add(m_Blackboard);
             toggleBlackboard.value = blackboardVisible;
 
-            /*
+            m_ComponentBoard = new VFXComponentBoard(this);
+#if _ENABLE_RESTORE_BOARD_VISIBILITY
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
-            toggleComponentBoard.value = componentBoardVisible;*/
+            toggleComponentBoard.value = componentBoardVisible;
+#endif
 
             Add(m_LockedElement);
             Add(m_Toolbar);
@@ -747,24 +748,21 @@ namespace UnityEditor.VFX.UI
                 m_Blackboard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
             }
-
-            m_Blackboard.PlaceBehind(m_LockedElement);
         }
 
-        void ShowComponentBoard()
+        void ToggleComponentBoard()
         {
-            if (m_ComponentBoard == null)
+            if (m_ComponentBoard.parent == null)
             {
-                m_ComponentBoard = new VFXComponentBoard(this);
-                m_ComponentBoard.controller = controller;
+                Insert(childCount - 1, m_ComponentBoard);
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
+                m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
             }
-            Insert(childCount - 1, m_ComponentBoard);
-
-            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
-            m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
-            m_ToggleComponentBoard.SetValueWithoutNotify(true);
-
-            m_ComponentBoard.PlaceBehind(m_LockedElement);
+            else
+            {
+                m_ComponentBoard.RemoveFromHierarchy();
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, false);
+            }
         }
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
@@ -790,36 +788,21 @@ namespace UnityEditor.VFX.UI
         void OnFirstResize(GeometryChangedEvent e)
         {
             m_FirstResize = true;
-            if (m_ComponentBoard != null)
-                m_ComponentBoard.ValidatePosition();
-            if (m_Blackboard != null)
-                m_Blackboard.ValidatePosition();
-
+            m_ComponentBoard.ValidatePosition();
+            m_Blackboard.ValidatePosition();
             UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         Toggle m_ToggleComponentBoard;
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
-            if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
-            {
-                ShowComponentBoard();
-            }
-            else
-            {
-                m_ComponentBoard.RemoveFromHierarchy();
-                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, false);
-                m_ToggleComponentBoard.SetValueWithoutNotify(false);
-            }
+            ToggleComponentBoard();
         }
 
         void Delete(string cmd, AskUser askUser)
         {
             var selection = this.selection.ToArray();
-
-
             var parametersToRemove = Enumerable.Empty<VFXParameterController>();
-
             foreach (var category in selection.OfType<VFXBlackboardCategory>())
             {
                 parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
@@ -838,17 +821,13 @@ namespace UnityEditor.VFX.UI
                 UpdateUIBounds();
                 if (e.controller is VFXContextController && e.target is VFXContextUI)
                 {
-                    if (m_ComponentBoard != null)
-                    {
-                        m_ComponentBoard.UpdateEventList();
-                    }
+                    m_ComponentBoard.UpdateEventList();
                     UpdateSystemNames();
                 }
             }
         }
 
         bool m_InControllerChanged;
-
         void ControllerChanged(int change)
         {
             if (change == VFXViewController.Change.assetName)
@@ -928,17 +907,23 @@ namespace UnityEditor.VFX.UI
         void NewControllerSet()
         {
             m_Blackboard.controller = controller;
+            m_ComponentBoard.controller = controller;
 
-            if (m_ComponentBoard != null)
-            {
-                m_ComponentBoard.controller = controller;
-            }
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
 
-                m_LockedElement.style.display = IsAssetEditable() ? DisplayStyle.None : DisplayStyle.Flex;
+                if (IsAssetEditable())
+                {
+                    m_LockedElement.style.display = DisplayStyle.None;
+                    m_Blackboard.UnlockUI();
+                }
+                else
+                {
+                    m_LockedElement.style.display = DisplayStyle.Flex;
+                    m_Blackboard.LockUI();
+                }
             }
             else
             {
@@ -959,8 +944,8 @@ namespace UnityEditor.VFX.UI
                     m_LockedElement.style.display = DisplayStyle.Flex;
                     this.RemoveManipulator(m_SelectionDragger);
                     this.RemoveManipulator(m_RectangleSelector);
-                    m_LockedElement.Focus();
                 }
+                m_Blackboard.LockUI();
             }
             else
             {
@@ -970,7 +955,14 @@ namespace UnityEditor.VFX.UI
                     this.AddManipulator(m_SelectionDragger);
                     this.AddManipulator(m_RectangleSelector);
                 }
+                m_Blackboard.UnlockUI();
             }
+
+            //Insure m_Blackboard & m_ComponentBoard are in front in any order creation case
+            if (m_Blackboard.parent != null)
+                m_LockedElement.PlaceBehind(m_Blackboard);
+            if (m_ComponentBoard.parent != null)
+                m_LockedElement.PlaceBehind(m_ComponentBoard);
         }
 
         public void FrameNewController()
@@ -1837,8 +1829,6 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXBlackboard m_Blackboard;
-
-
         VFXComponentBoard m_ComponentBoard;
 
         public VFXBlackboard blackboard
