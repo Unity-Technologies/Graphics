@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
+using UnityEditor.Rendering.MaterialVariants;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
-
-using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

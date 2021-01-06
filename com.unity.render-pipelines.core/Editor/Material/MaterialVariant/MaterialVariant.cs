@@ -1,13 +1,10 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph; //We store locks in HDMetaData as metadata are accessible without deserializing the whole graph.
-
-namespace Unity.Assets.MaterialVariant.Editor
+namespace UnityEditor.Rendering.MaterialVariants
 {
     public class MaterialVariant : ScriptableObject
     {
@@ -113,12 +110,15 @@ namespace Unity.Assets.MaterialVariant.Editor
             if (parent is MaterialVariant matVariant)
                 return matVariant.IsPropertyBlocked(propertyName);
 
+            /* TODO This is intended to check for locks at the ShaderGraph level, but wasn't working, so I'm commenting it out
+             * We'd need to find a way to store those locks that doesn't depend on the specific RP anyway
             if (parent is Shader shader)
             {
                 List<string> locks = HDMetaDataHelper.GetLocksFromMetaData(shader);
                 if (locks != null)
                     return locks.Any(l => l == propertyName);
             }
+            */
 
             return false;
         }
@@ -231,7 +231,7 @@ namespace Unity.Assets.MaterialVariant.Editor
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 if (resourceFile == "")
-                    resourceFile = AssetDatabase.GetAssetPath(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.defaultPS);
+                    resourceFile = AssetDatabase.GetAssetPath(GraphicsSettings.renderPipelineAsset.defaultShader);
 
                 Material material;
                 Object parentAsset = AssetDatabase.LoadAssetAtPath<Object>(resourceFile);

@@ -1,7 +1,7 @@
 using System;
-using Unity.Assets.MaterialVariant.Editor;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using UnityEditor.Rendering.MaterialVariants;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using Unity.Assets.MaterialVariant.Editor;
+using UnityEditor.Rendering.MaterialVariants;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     public abstract class SRPShaderGUI : ShaderGUI
     {

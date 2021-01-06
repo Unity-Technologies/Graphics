@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Unity.Assets.MaterialVariant.Editor
+namespace UnityEditor.Rendering.MaterialVariants
 {
     public struct MaterialPropertyScope : IDisposable
     {

@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
-namespace Unity.Assets.MaterialVariant.Editor
+namespace UnityEditor.Rendering.MaterialVariants
 {
     // Defines a single modified property.
     [System.Serializable]

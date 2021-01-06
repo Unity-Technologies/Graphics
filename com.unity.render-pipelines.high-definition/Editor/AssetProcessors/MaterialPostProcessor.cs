@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
+using UnityEditor.Rendering.MaterialVariants;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using Unity.Assets.MaterialVariant.Editor;
 using UnityEditor.AssetImporters;
 using Object = UnityEngine.Object;
-using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {

@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
-using Unity.Assets.MaterialVariant.Editor;
+using UnityEditor.Rendering.MaterialVariants;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
