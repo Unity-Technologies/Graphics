@@ -5,6 +5,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
+  expression_trigger: 
+    expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"]'
   build_configs:
     - mono
     - il2cpp
