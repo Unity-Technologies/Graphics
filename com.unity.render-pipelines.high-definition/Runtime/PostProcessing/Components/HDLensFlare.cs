@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -7,13 +8,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Lens Flare effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/HD Lens Flare")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-LensFlare" + Documentation.endURL)]
-    public sealed class LensFlare : VolumeComponent, IPostProcessComponent
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-HDLensFlare" + Documentation.endURL)]
+    public sealed class HDLensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
         /// </summary>
-		public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
