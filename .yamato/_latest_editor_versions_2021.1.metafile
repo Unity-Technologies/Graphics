@@ -13,17 +13,17 @@ editor_versions:
       updated_at: '2021-01-05 23:32:46.218216'
       version: 2021.1.0b2
     ios:
-      revision: 9f7c487dd2da
-      updated_at: '2020-12-20 23:15:00.460217'
-      version: 2021.1.0b1
+      revision: 1e651ea6a5c1
+      updated_at: '2021-01-06 23:47:40.834518'
+      version: 2021.1.0b2
     linux:
-      revision: 9f7c487dd2da
-      updated_at: '2020-12-20 23:15:00.460217'
-      version: 2021.1.0b1
+      revision: 1e651ea6a5c1
+      updated_at: '2021-01-06 23:47:40.834518'
+      version: 2021.1.0b2
     macos:
-      revision: 9f7c487dd2da
-      updated_at: '2020-12-20 23:15:00.460217'
-      version: 2021.1.0b1
+      revision: 1e651ea6a5c1
+      updated_at: '2021-01-06 23:47:40.834518'
+      version: 2021.1.0b2
     windows:
       revision: 1e651ea6a5c1
       updated_at: '2021-01-05 23:32:46.218216'
