@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                uiBlocks.OnGUI(materialEditor, props);
+                uiBlocks.OnGUI(materialEditor, props, this);
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
         }

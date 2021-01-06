@@ -48,11 +48,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="materialEditor"></param>
         /// <param name="properties"></param>
-        public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+        public void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties, SRPShaderGUI shaderGUI)
         {
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
-            Initialize(materialEditor, properties);
+            Initialize(materialEditor, properties, shaderGUI);
             foreach (var uiBlock in this)
             {
                 try
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="materialEditor">Material editor instance.</param>
         /// <param name="properties">The list of properties in the inspected material(s).</param>
-        public void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
+        public void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, SRPShaderGUI shaderGUI)
         {
             if (!m_Initialized)
             {
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     MaterialVariant.GetMaterialVariantFromObject(materialEditor.target) != null)
                     Insert(0, new VariantHierarchyUIBlock());
                 foreach (var uiBlock in this)
-                    uiBlock.Initialize(materialEditor, properties, this);
+                    uiBlock.Initialize(materialEditor, properties, this, shaderGUI);
 
                 m_Materials = materialEditor.targets.Select(target => target as Material).ToArray();
                 m_Initialized = true;

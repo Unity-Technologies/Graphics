@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (var i = 0; i < properties.Length; i++)
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0
-                    || (!EditorPrefs.GetBool(HDRenderPipelinePreferences.Keys.showLockedProperties, true) && variants.Any(o => o.IsPropertyBlockedInAncestors(properties[i].name)))
+                    || (!EditorPrefs.GetBool(HDRenderPipelinePreferences.Keys.showLockedProperties, true) && shaderGUI.IsPropertyBlockedInAncestorsForAnyVariant(properties[i]))
                 )
                     continue;
 

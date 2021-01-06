@@ -4,7 +4,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using Unity.Assets.MaterialVariant.Editor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Use this class to build your custom Shader GUI for HDRP.
     /// You can use a class that inherits from HDShaderGUI in the Shader Graph Custom EditorGUI field.
     /// </summary>
-    public abstract class HDShaderGUI : ShaderGUI
+    public abstract class HDShaderGUI : SRPShaderGUI
     {
         internal protected bool m_FirstFrame = true;
 
@@ -74,6 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties in the inspected material(s).</param>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
+            base.OnGUI(materialEditor, props);
+
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
             {
                 EditorGUILayout.HelpBox("Editing HDRP materials is only supported when an HDRP asset assigned in the graphic settings", MessageType.Warning);

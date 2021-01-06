@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                uiBlocks.OnGUI(materialEditor, props);
+                uiBlocks.OnGUI(materialEditor, props, this);
 
                 // Apply material keywords and pass:
                 if (changed.changed)

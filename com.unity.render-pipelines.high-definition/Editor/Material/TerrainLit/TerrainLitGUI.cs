@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             FindMaterialProperties(props);
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                uiBlocks.Initialize(materialEditor, props);
+                uiBlocks.Initialize(materialEditor, props, this);
                 uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
                 uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 

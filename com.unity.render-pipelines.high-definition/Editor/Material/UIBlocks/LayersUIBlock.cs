@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawLayerGUI(int layerIndex)
         {
-            layerUIBlocks[layerIndex].OnGUI(materialEditor, properties);
+            layerUIBlocks[layerIndex].OnGUI(materialEditor, properties, shaderGUI);
         }
     }
 }

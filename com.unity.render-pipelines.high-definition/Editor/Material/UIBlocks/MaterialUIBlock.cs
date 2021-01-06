@@ -18,10 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition
         protected Material[]            materials;
         /// <summary>The list of available properties in the selected materials.</summary>
         protected MaterialProperty[]    properties;
-        protected MaterialVariant[]     variants;
 
         /// <summary>Parent of the UI block.</summary>
         protected MaterialUIBlockList   parent;
+
+        /// <summary>Parent Shader GUI</summary>
+        protected SRPShaderGUI          shaderGUI;
 
         /// <summary>Bit index used to store a foldout state in the editor preferences.</summary>
         [Flags]
@@ -136,27 +138,27 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property, bool forceMode = false)
-            => new MaterialPropertyScope(new MaterialProperty[] { property }, variants, forceMode);
+            => shaderGUI.CreateOverrideScopeFor(property, forceMode);
 
         protected MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty[] properties, bool forceMode = false)
-            => new MaterialPropertyScope(properties, variants, forceMode);
+            => shaderGUI.CreateOverrideScopeFor(properties, forceMode);
 
         protected MaterialPropertyScope CreateOverrideScopeFor(params MaterialProperty[] properties)
-            => new MaterialPropertyScope(properties, variants, false);
+            => shaderGUI.CreateOverrideScopeFor(properties);
 
         protected MaterialRenderQueueScope CreateRenderQueueOverrideScope(Func<int> valueGetter)
-            => new MaterialRenderQueueScope(variants, valueGetter);
+            => shaderGUI.CreateRenderQueueOverrideScope(valueGetter);
 
         protected MaterialNonDrawnPropertyScope<T> CreateNonDrawnOverrideScope<T>(string propertyName, T value)
             where T : struct
-            => new MaterialNonDrawnPropertyScope<T>(propertyName, value, variants);
+            => shaderGUI.CreateNonDrawnOverrideScope(propertyName, value);
 
-        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
+        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent, SRPShaderGUI shaderGUI)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
             materials = materialEditor.targets.Select(target => target as Material).ToArray();
-            variants = MaterialVariant.GetMaterialVariantsFor(materialEditor);
+            this.shaderGUI = shaderGUI;
 
             // We should always register the key used to keep collapsable state
             materialEditor.InitExpandableState();

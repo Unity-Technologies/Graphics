@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (header.expanded)
                 {
-                    m_TransparencyBlocks.OnGUI(materialEditor, properties);
+                    m_TransparencyBlocks.OnGUI(materialEditor, properties, shaderGUI);
                 }
             }
         }
