@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Needed only because of custom pass. See comment at ResolveMSAAColor.
         TextureHandle m_NonMSAAColorBuffer;
 
+        // Used when the user wants to override the internal rendering format for the AOVs.
+        internal bool m_ShouldOverrideColorBufferFormat = false;
+        GraphicsFormat m_AOVGraphicsFormat = GraphicsFormat.None;
+
         void ExecuteWithRenderGraph(RenderRequest           renderRequest,
             AOVRequestData          aovRequest,
             List<RTHandle>          aovBuffers,
@@ -40,6 +44,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 || camera.cameraType == CameraType.SceneView;
 #endif
 
+            // Set the default color buffer format for full screen debug rendering
+            GraphicsFormat fullScreenDebugFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            if (aovRequest.isValid && aovRequest.overrideRenderFormat)
+            {
+                // If we are going to output AOVs, then override the debug format from the user-provided buffers
+                aovRequest.OverrideBufferFormatForAOVs(ref fullScreenDebugFormat, aovBuffers);
+
+                // Also override the internal rendering format (this would affect all calls to GetColorBufferFormat)
+                m_ShouldOverrideColorBufferFormat = true;
+                m_AOVGraphicsFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+                aovRequest.OverrideBufferFormatForAOVs(ref m_AOVGraphicsFormat, aovBuffers);
+            }
+            else
+            {
+                m_ShouldOverrideColorBufferFormat = false;
+            }
+
             TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
             TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
             m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
@@ -62,14 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult = new ShadowResult();
             BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
 
-            // Set the default color buffer format for full screen debug rendering
-            GraphicsFormat fullScreenDebugFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            if (aovRequest.isValid)
-            {
-                // If we are going to output AOVs, then override the debug format from the user-provided buffers
-                aovRequest.OverrideBufferFormatForAOVs(ref fullScreenDebugFormat, aovBuffers);
-            }
-
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
             {
                 // Stop Single Pass is after post process.
@@ -82,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, aovRequest, aovBuffers);
+                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&

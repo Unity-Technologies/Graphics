@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float GetTime()       { return m_Time;       }
 
         GraphicsFormat GetColorBufferFormat()
-            => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+            => m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
 
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;

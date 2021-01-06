@@ -511,16 +511,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, AOVRequestData aovRequest,
-            List<RTHandle> aovBuffers)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
             GraphicsFormat rtFormat = GetColorBufferFormat();
-            if (aovRequest.isValid)
-            {
-                aovRequest.OverrideBufferFormatForAOVs(ref rtFormat, aovBuffers);
-            }
 
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)

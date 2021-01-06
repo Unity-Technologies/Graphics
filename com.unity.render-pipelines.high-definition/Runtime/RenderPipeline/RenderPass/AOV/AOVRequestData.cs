@@ -63,6 +63,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Whether this frame pass is valid.</summary>
         public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
 
+        /// <summary>Whether internal rendering should be done at the same format as the user allocated AOV output buffer.</summary>
+        public bool overrideRenderFormat => m_Settings.overrideRenderFormat;
+
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
         /// <param name="bufferAllocator">Buffer allocators to use.</param>
