@@ -23,7 +23,7 @@ Universal_Linux_OpenGLCore_playmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -45,7 +45,7 @@ Universal_Linux_OpenGLCore_editmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -68,7 +68,7 @@ Universal_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -94,7 +94,7 @@ Universal_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=.
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
