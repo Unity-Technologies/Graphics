@@ -145,7 +145,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Add dependency on shadergraph
                 var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                 context.DependsOnSourceAsset(shaderPath);
-                HDShaderUtils.ResetMaterialKeywords(material);
             }
 
             if (materialVariant)

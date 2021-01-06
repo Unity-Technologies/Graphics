@@ -16,10 +16,11 @@ namespace UnityEditor.Rendering.HighDefinition
             Shader = 1
         }
 
-        ParentVariantType m_ParentVariantType;
+        ParentVariantType m_ParentVariantType = ParentVariantType.Material;
         MaterialVariant m_MatVariant;
         Object m_Parent; // This can be Material, Shader or MaterialVariant
         Object m_ParentTarget; // This is the target object Material or Shader
+        string m_ParentGUID = "";
 
         static class Styles
         {
@@ -32,18 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void LoadMaterialProperties()
         {
-            if (m_MatVariant != null)
-                return;
-
-            m_MatVariant = MaterialVariant.GetMaterialVariantFromObject(materialEditor.target);
             if (m_MatVariant == null)
-                m_Parent = materials[0].shader;
-            else
-                m_Parent = m_MatVariant.GetParent();
-
-            m_ParentTarget = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(m_Parent));
-            // if m_ParentTarget is null this will setup Material by default
-            m_ParentVariantType = m_ParentTarget is Shader ? ParentVariantType.Shader : ParentVariantType.Material;
+                m_MatVariant = MaterialVariant.GetMaterialVariantFromObject(materialEditor.target);
         }
 
         /// <summary>
@@ -63,6 +54,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void DrawLineageGUI()
         {
+            if (m_MatVariant.rootGUID != m_ParentGUID)
+            {
+                m_Parent = m_MatVariant.GetParent();
+                m_ParentGUID = m_MatVariant.rootGUID;
+                m_ParentTarget = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(m_Parent));
+                if (m_ParentTarget != null)
+                    m_ParentVariantType = m_ParentTarget is Shader ? ParentVariantType.Shader : ParentVariantType.Material;
+            }
+
             GUILayout.BeginVertical();
 
             Object parent = m_Parent;
@@ -119,12 +119,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // to see if anything have change
             if (selectedTarget != m_ParentTarget)
             {
+                Undo.RecordObject(m_MatVariant, "Change Parent");
                 m_MatVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selectedTarget));
-
-                // Now re-update the other field
-                m_Parent = m_MatVariant.GetParent();
-                m_ParentTarget = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(m_Parent));
-                // m_ParentVariantType is already on the good type
             }
         }
 
@@ -137,18 +133,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.BeginHorizontal();
 
                 Type type = m_ParentVariantType == ParentVariantType.Shader ? typeof(Shader) : typeof(Material);
-                // If m_ParentTarget is null we favor Material
-                if (m_ParentTarget is Material && m_ParentVariantType != ParentVariantType.Material)
-                    target = EditorGUILayout.ObjectField(label, null, type, false);
-                else if (m_ParentTarget is Shader && m_ParentVariantType != ParentVariantType.Shader)
-                    target = EditorGUILayout.ObjectField(label, null, type, false);
-                else
-                    target = EditorGUILayout.ObjectField(label, asset, type, false);
+                target = EditorGUILayout.ObjectField(label, asset, type, false);
 
                 var oldWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = 45;
+                EditorGUI.BeginChangeCheck();
                 m_ParentVariantType = (ParentVariantType)EditorGUILayout.EnumPopup(Styles.parentVariantType, m_ParentVariantType);
+                if (EditorGUI.EndChangeCheck())
+                    target = null;
                 EditorGUIUtility.labelWidth = oldWidth;
+
                 EditorGUILayout.EndHorizontal();
             }
             else

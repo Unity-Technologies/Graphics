@@ -3,8 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEditorInternal;
 
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph; //We store locks in HDMetaData as metadata are accessible without deserializing the whole graph.
 
 namespace Unity.Assets.MaterialVariant.Editor
@@ -223,15 +223,23 @@ namespace Unity.Assets.MaterialVariant.Editor
         {
             // We allow to create a MaterialVariant without parent (for parenting later)
             // DefaultAsset identify the null case
-            return EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader));
+            return (root is UnityEditor.DefaultAsset) || (EditorUtility.IsPersistent(root) && ((root is Material) || (root is Shader)));
         }
 
         class DoCreateNewMaterialVariant : UnityEditor.ProjectWindowCallback.EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                Material og = AssetDatabase.LoadAssetAtPath(resourceFile, typeof(Material)) as Material;
-                Material material = new Material(og);
+                if (resourceFile == "")
+                    resourceFile = AssetDatabase.GetAssetPath(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.defaultPS);
+
+                Material material;
+                Object parentAsset = AssetDatabase.LoadAssetAtPath<Object>(resourceFile);
+                if (parentAsset is Material)
+                    material = new Material(parentAsset as Material);
+                else if (parentAsset is Shader)
+                    material = new Material(parentAsset as Shader);
+                else return;
 
                 var matVariant = CreateInstance<MaterialVariant>();
                 matVariant.rootGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
@@ -254,12 +262,19 @@ namespace Unity.Assets.MaterialVariant.Editor
         static void CreateMaterialVariantMenu()
         {
             var target = Selection.activeObject;
-            if (!IsValidRoot(target))
-                return;
 
-            string sourcePath = AssetDatabase.GetAssetPath(target);
-            string variantPath = Path.Combine(Path.GetDirectoryName(sourcePath),
-                Path.GetFileNameWithoutExtension(sourcePath) + " Variant.mat");
+            string sourcePath, variantPath;
+            if (target is UnityEditor.DefaultAsset)
+            {
+                sourcePath = "";
+                variantPath = "New Material Variant.mat";
+            }
+            else
+            {
+                sourcePath = AssetDatabase.GetAssetPath(target);
+                variantPath = Path.Combine(Path.GetDirectoryName(sourcePath),
+                    Path.GetFileNameWithoutExtension(sourcePath) + " Variant.mat");
+            }
 
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
