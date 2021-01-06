@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering
 
         internal void QueueAssetLoading()
         {
-            if (volumeAsset == null)
+            if (volumeAsset == null || m_Profile == null)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -155,14 +155,19 @@ namespace UnityEngine.Rendering
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
-#if UNITY_EDITOR
         private void Start()
         {
+#if UNITY_EDITOR
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 
             CheckInit();
+#else   // In player we load on start
+            QueueAssetLoading();
+#endif
         }
+
+#if UNITY_EDITOR
 
         private void OnValidate()
         {
