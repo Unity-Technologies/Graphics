@@ -36,7 +36,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static class Keys
+        static bool s_ShowLockedProperties;
+        public static bool showLockedProperties
+        {
+            get => s_ShowLockedProperties;
+            set
+            {
+                if (s_ShowLockedProperties == value) return;
+                s_ShowLockedProperties = value;
+                EditorPrefs.SetBool(Keys.showLockedProperties, s_ShowLockedProperties);
+            }
+        }
+
+        static class Keys
         {
             internal const string sceneViewAntialiasing = "HDRP.SceneView.Antialiasing";
             internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
@@ -59,12 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
 
-                    EditorGUI.BeginChangeCheck();
-                    bool showLocked = EditorGUILayout.Toggle("Show Material Locked Properties", EditorPrefs.GetBool(Keys.showLockedProperties, true));
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        EditorPrefs.SetBool(Keys.showLockedProperties, showLocked);
-                    }
+                    showLockedProperties = EditorGUILayout.Toggle("Show Material Locked Properties", EditorPrefs.GetBool(Keys.showLockedProperties, true));
 
                     // Disable this until we have a good solution to handle the normalized color picking
                     // EditorGUILayout.LabelField("Color Normalization");
@@ -86,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
             s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
+            s_ShowLockedProperties = EditorPrefs.GetBool(Keys.showLockedProperties, true);
 
             m_Loaded = true;
         }

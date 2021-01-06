@@ -10,7 +10,6 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using UnityEditor.AssetImporters;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -118,20 +117,27 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        // TODO: remove this function when the C++ PR lands
         void OnPreprocessAsset()
         {
-            if (!context.assetPath.ToLowerInvariant().EndsWith(".mat"))
-                return;
+            if (context.assetPath.ToLowerInvariant().EndsWith(".mat"))
+                OnPreprocessMaterial();
+        }
 
+        void OnPreprocessMaterial()
+        {
             Material material = null;
+            AssetVersion assetVersion = null;
             MaterialVariant materialVariant = null;
             var assets = AssetDatabase.LoadAllAssetsAtPath(context.assetPath);
             foreach (var subAsset in assets)
             {
                 if (subAsset == null)
                     continue;
-                if (subAsset.GetType() == typeof(Material))
+                else if (subAsset.GetType() == typeof(Material))
                     material = subAsset as Material;
+                else if (subAsset.GetType() == typeof(AssetVersion))
+                    assetVersion = subAsset as AssetVersion;
                 else if (subAsset.GetType() == typeof(MaterialVariant))
                     materialVariant = subAsset as MaterialVariant;
             }
@@ -139,12 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material == null)
                 return;
 
-            if (material.shader != null && material.shader.IsShaderGraph())
-            {
-                // Add dependency on shadergraph
-                var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
-                context.DependsOnSourceAsset(shaderPath);
-            }
+            UpgradeMaterial(material, assetVersion, context.assetPath);
 
             if (materialVariant)
             {
@@ -153,14 +154,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     material.shader = newMaterial.shader;
                     material.CopyPropertiesFromMaterial(newMaterial);
-                    EditorUtility.SetDirty(material);
 
                     // Apply local modification
                     MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, materialVariant.overrides);
 
-                    // We need to update keyword now that everything is override properly
+                    // We need to update keyword now that everything is overridden properly
                     HDShaderUtils.ResetMaterialKeywords(material);
                 }
+            }
+
+            if (material.shader != null && material.shader.IsShaderGraph())
+            {
+                // Add dependency on shadergraph
+                var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                context.DependsOnSourceAsset(shaderPath);
             }
         }
 
@@ -172,53 +179,36 @@ namespace UnityEditor.Rendering.HighDefinition
             if (rootPath == "")
                 return null;
 
-            Object subAsset = AssetDatabase.LoadAssetAtPath<Object>(rootPath);
-            if (subAsset == null)
-                return null;
-
             ctx.DependsOnSourceAsset(rootGUID);
 
-            Material material = null;
-            if (subAsset is Shader)
-            {
-                Shader rootShader = subAsset as Shader;
-                material = new Material(rootShader);
-            }
-            else if (subAsset is Material)
-            {
-                Material rootMaterial = subAsset as Material;
-                material = new Material(rootMaterial);
-            }
-
-            return material;
-        }
-
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            foreach (var asset in importedAssets)
-            {
-                if (!asset.ToLowerInvariant().EndsWith(".mat"))
-                    continue;
-
-                PostProcessMaterial(asset);
-            }
-        }
-
-        static Material PostProcessMaterial(string asset)
-        {
-            Material material = null;
-            AssetVersion assetVersion = null;
-            var assets = AssetDatabase.LoadAllAssetsAtPath(asset);
+            Material rootMaterial = null;
+            var assets = AssetDatabase.LoadAllAssetsAtPath(rootPath);
             foreach (var subAsset in assets)
             {
                 if (subAsset == null)
                     continue;
-                if (subAsset.GetType() == typeof(AssetVersion))
-                    assetVersion = subAsset as AssetVersion;
                 else if (subAsset.GetType() == typeof(Material))
-                    material = subAsset as Material;
+                    rootMaterial = subAsset as Material; // Don't return yet in case there is a MaterialVariant after
+                else if (subAsset.GetType() == typeof(MaterialVariant))
+                {
+                    MaterialVariant rootMatVariant = subAsset as MaterialVariant;
+                    rootMaterial = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
+
+                    // Apply root modification
+                    if (rootMaterial != null)
+                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(rootMaterial, rootMatVariant.overrides);
+
+                    return rootMaterial;
+                }
+                else if (subAsset.GetType() == typeof(Shader))
+                    return new Material(subAsset as Shader);
             }
 
+            return rootMaterial ? new Material(rootMaterial) : null;
+        }
+
+        static void UpgradeMaterial(Material material, AssetVersion assetVersion, string asset)
+        {
             if (HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
             {
                 HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
@@ -268,7 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     s_NeedsSavingAssets = true;
                 }
             }
-            return material;
         }
 
         // Note: It is not possible to separate migration step by kind of shader

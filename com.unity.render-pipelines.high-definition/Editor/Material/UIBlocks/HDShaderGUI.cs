@@ -85,12 +85,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override void OnClosed(Material material)
-        {
-            // TODO Material variant
-            // This callback is called when the shader is changed through the inspector
-        }
-
         /// <summary>
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>

@@ -30,6 +30,14 @@ namespace UnityEditor.Rendering.MaterialVariants
             return parentAsset;
         }
 
+        public void SetParent(Object asset)
+        {
+            Undo.RecordObject(this, "Change Parent");
+            rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+            overrides.Clear();
+            blocks.Clear();
+        }
+
         #region MaterialVariant Overrides Management
         public void TrimPreviousOverridesAndAdd(IEnumerable<MaterialPropertyModification> modifications)
         {
@@ -244,7 +252,6 @@ namespace UnityEditor.Rendering.MaterialVariants
                 var matVariant = CreateInstance<MaterialVariant>();
                 matVariant.rootGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
                 matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                matVariant.name = Path.GetFileName(pathName);
 
                 AssetDatabase.CreateAsset(material, pathName);
                 AssetDatabase.AddObjectToAsset(matVariant, pathName);

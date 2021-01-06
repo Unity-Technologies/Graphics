@@ -31,7 +31,10 @@ namespace UnityEditor.Rendering.MaterialVariants
         public MaterialPropertyScope(MaterialProperty[] materialProperties, MaterialVariant[] variants, bool force = false)
         {
             if (insidePropertyScope == true)
+            {
+                insidePropertyScope = false;
                 throw new InvalidOperationException("Nested MaterialPropertyScopes are not allowed");
+            }
             insidePropertyScope = true;
 
             m_MaterialProperties = materialProperties;
@@ -108,13 +111,11 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         void ApplyChangesToMaterialVariants()
         {
-            if (GUIUtility.hotControl == 0)
-                Debug.Log("update children");
-
             IEnumerable<MaterialPropertyModification> changes = new MaterialPropertyModification[0];
             foreach (var materialProperty in m_MaterialProperties)
                 changes = changes.Concat(MaterialPropertyModification.CreateMaterialPropertyModifications(materialProperty));
 
+            Undo.RecordObjects(m_Variants, "");
             foreach (var variant in m_Variants)
                 variant?.TrimPreviousOverridesAndAdd(changes);
         }
