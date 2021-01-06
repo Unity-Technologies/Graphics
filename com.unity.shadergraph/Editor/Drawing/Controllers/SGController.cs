@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -34,7 +34,6 @@ namespace UnityEditor.ShaderGraph
 
     abstract class SGController
     {
-
     }
 
     abstract class SGController<T> : SGController
