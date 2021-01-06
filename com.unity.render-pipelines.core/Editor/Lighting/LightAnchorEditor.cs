@@ -114,17 +114,17 @@ namespace UnityEditor
                 const float eps = 1e-4f;
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (Mathf.Abs(angles[0] - m_Yaw) < eps)
+                    if (Mathf.Abs(angles[0] - m_Yaw) > eps)
                     {
                         m_Yaw = angles[0];
                         yawChanged = true;
                     }
-                    if (Mathf.Abs(angles[1] - m_Pitch) < eps)
+                    if (Mathf.Abs(angles[1] - m_Pitch) > eps)
                     {
                         m_Pitch = angles[1];
                         pitchChanged = true;
                     }
-                    if (Mathf.Abs(angles[2] - m_Roll) < eps)
+                    if (Mathf.Abs(angles[2] - m_Roll) > eps)
                     {
                         m_Roll = angles[2];
                         rollChanged = true;
