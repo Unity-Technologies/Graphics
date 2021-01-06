@@ -46,16 +46,26 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public DisplacableRectHandles(Color baseTint)
+        /// <summary>The baseColor used to draw the rect.</summary>
+        public Color baseColor
         {
-            baseTint.a = 1f;
-            m_MonochromeHandleColor = baseTint;
-            baseTint.a = 0.7f;
-            m_WireframeColor = baseTint;
-            baseTint.a = 0.2f;
-            m_WireframeColorBehind = baseTint;
+            get { return m_MonochromeHandleColor; }
+            set
+            {
+                value.a = 1f;
+                m_MonochromeHandleColor = value;
+                value.a = 0.7f;
+                m_WireframeColor = value;
+                value.a = 0.2f;
+                m_WireframeColorBehind = value;
+            }
         }
 
+        public DisplacableRectHandles(Color baseTint)
+        {
+            baseColor = baseTint;
+        }
+        
         /// <summary>Draw the rect.</summary>
         public void DrawRect(bool dottedLine = false, float sickness = .0f, float screenSpaceSize = 5f)
         {

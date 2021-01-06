@@ -26,15 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_AffectTransparentContent = EditorGUIUtility.TrTextContent("Affects Transparent", "When enabled, HDRP draws this projector's decal on top of transparent surfaces.");
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
 
-        public static readonly Color k_GizmoColorBase = Color.white;
-        public static readonly Color[] k_BaseHandlesColor = new Color[]
-        {
-            Color.white,
-            Color.white,
-            Color.white,
-            Color.white,
-            Color.white,
-            Color.white
-        };
+        public static readonly Color k_GizmoColorBase = new Color(1, 1, 1, 8f/255);
     }
 }

@@ -1,13 +1,12 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShortcutManagement;
 using static UnityEditorInternal.EditMode;
 using UnityEditor.IMGUI.Controls;
 using System;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Linq.Expressions;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -17,7 +16,45 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
+        
+        static object s_ColorPref;
+        static Func<Color> GetColorPref;
+        static Color fullColor
+        {
+            get
+            {
+                Color c = s_LastColor;
+                c.a = 1;
+                return c;
+            }
+        }
+        static Color s_LastColor;
+        static void UpdateColorsInHandlesIfRequired()
+        {
+            Color c = GetColorPref();
+            if (c != s_LastColor)
+            {
+                if (s_BoxHandle != null && !s_BoxHandle.Equals(null))
+                    s_BoxHandle = null;
 
+                if (s_UVHandles != null && !s_UVHandles.Equals(null))
+                    s_UVHandles.baseColor = c;
+
+                s_LastColor = c;
+            }
+        }
+
+        static DecalProjectorEditor()
+        {
+            Type prefColorType = typeof(Editor).Assembly.GetType("UnityEditor.PrefColor");
+            s_ColorPref = Activator.CreateInstance(prefColorType, new object[] { "HDRP/Decal", k_GizmoColorBase.r, k_GizmoColorBase.g, k_GizmoColorBase.b, k_GizmoColorBase.a });
+            ParameterExpression colorParameter = Expression.Parameter(prefColorType, "color");
+            PropertyInfo colorInfo = prefColorType.GetProperty("Color");
+            MemberExpression colorProperty = Expression.Property(Expression.Constant(s_ColorPref, prefColorType), colorInfo);
+            Expression<Func<Color>> colorLambda = Expression.Lambda<Func<Color>>(colorProperty);
+            GetColorPref = colorLambda.Compile();
+        }
+        
         MaterialEditor m_MaterialEditor = null;
         SerializedProperty m_MaterialProperty;
         SerializedProperty m_DrawDistanceProperty;
@@ -81,14 +118,25 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (s_BoxHandle == null || s_BoxHandle.Equals(null))
                 {
-                    s_BoxHandle = new HierarchicalBox(k_GizmoColorBase, k_BaseHandlesColor);
+                    Color c = fullColor;
+                    s_BoxHandle = new HierarchicalBox(s_LastColor, new []{ c, c, c, c, c, c });
+                    s_BoxHandle.SetBaseColorWithoutIntensityChange(s_LastColor);
                     s_BoxHandle.monoHandle = false;
                 }
                 return s_BoxHandle;
             }
         }
 
-        static DisplacableRectHandles m_UVHandles = new DisplacableRectHandles(Color.white);
+        static DisplacableRectHandles s_UVHandles;
+        static DisplacableRectHandles UVHandles
+        {
+            get
+            {
+                if (s_UVHandles == null || s_UVHandles.Equals(null))
+                    s_UVHandles = new DisplacableRectHandles(s_LastColor);
+                return s_UVHandles;
+            }
+        }
 
         static readonly BoxBoundsHandle s_AreaLightHandle =
             new BoxBoundsHandle { axes = PrimitiveBoundsHandle.Axes.X | PrimitiveBoundsHandle.Axes.Y };
@@ -242,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV)
             {
-                using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector3 centerStart = decalProjector.offset;
                     boxHandle.center = centerStart;
@@ -293,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (editMode == k_EditUVAndPivot)
             {
                 // Pivot
-                using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
                 {
                     EditorGUI.BeginChangeCheck();
                     Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.offset.z, decalProjector.transform.rotation);
@@ -315,17 +363,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         );
                     Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y);
 
-                    m_UVHandles.center = UVCenter;
-                    m_UVHandles.size = UVSize;
+                    UVHandles.center = UVCenter;
+                    UVHandles.size = UVSize;
                     
                     EditorGUI.BeginChangeCheck();
-                    m_UVHandles.DrawHandle();
+                    UVHandles.DrawHandle();
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(decalProjector, "Decal Projector Change");
 
                         Vector2 limit = new Vector2(Mathf.Abs(decalProjector.size.x * k_LimitInv), Mathf.Abs(decalProjector.size.y * k_LimitInv));
-                        Vector2 uvScale = m_UVHandles.size;
+                        Vector2 uvScale = UVHandles.size;
                         for (int channel = 0; channel < 2; channel++)
                         {
                             if (Mathf.Abs(uvScale[channel]) > limit[channel])
@@ -334,11 +382,11 @@ namespace UnityEditor.Rendering.HighDefinition
                                 uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
                         }
                         decalProjector.uvScale = uvScale;
-
-                        var newUVStart = m_UVHandles.center - .5f * m_UVHandles.size;
+                        
+                        var newUVStart = UVHandles.center - .5f * UVHandles.size;
                         decalProjector.uvBias = -new Vector2(
-                           m_UVHandles.size.x < k_LimitInv && m_UVHandles.size.x > -k_LimitInv ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / m_UVHandles.size.x,
-                           m_UVHandles.size.y < k_LimitInv && m_UVHandles.size.y > -k_LimitInv ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / m_UVHandles.size.y
+                           UVHandles.size.x < k_LimitInv && UVHandles.size.x > -k_LimitInv ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / UVHandles.size.x,
+                           UVHandles.size.y < k_LimitInv && UVHandles.size.y > -k_LimitInv ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / UVHandles.size.y
                         );
                     }
                 }
@@ -348,10 +396,12 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
         {
+            UpdateColorsInHandlesIfRequired();
+
             const float k_DotLength = 5f;
 
             //draw them scale independent
-            using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
+            using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
                 boxHandle.center = decalProjector.offset;
                 boxHandle.size = decalProjector.size;
@@ -381,14 +431,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit ? 0f : decalProjector.size.y / decalProjector.uvScale.y
                         );
                     Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y) - (Vector2)decalProjector.size * .5f;
+                    
+                    UVHandles.center = UVCenter;
+                    UVHandles.size = UVSize;
+                    UVHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
 
-                    m_UVHandles.center = UVCenter;
-                    m_UVHandles.size = UVSize;
-                    m_UVHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
-
-                    m_UVHandles.center = default;
-                    m_UVHandles.size = decalProjector.size;
-                    m_UVHandles.DrawRect(dottedLine: false, sickness: 3f);
+                    UVHandles.center = default;
+                    UVHandles.size = decalProjector.size;
+                    UVHandles.DrawRect(dottedLine: false, sickness: 3f);
                 }
             }
         }
