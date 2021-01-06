@@ -747,6 +747,8 @@ namespace UnityEditor.VFX.UI
                 m_Blackboard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
             }
+
+            m_Blackboard.PlaceBehind(m_LockedElement);
         }
 
         void ShowComponentBoard()
@@ -754,16 +756,15 @@ namespace UnityEditor.VFX.UI
             if (m_ComponentBoard == null)
             {
                 m_ComponentBoard = new VFXComponentBoard(this);
-
                 m_ComponentBoard.controller = controller;
             }
             Insert(childCount - 1, m_ComponentBoard);
 
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
-
             m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
-
             m_ToggleComponentBoard.SetValueWithoutNotify(true);
+
+            m_ComponentBoard.PlaceBehind(m_LockedElement);
         }
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
