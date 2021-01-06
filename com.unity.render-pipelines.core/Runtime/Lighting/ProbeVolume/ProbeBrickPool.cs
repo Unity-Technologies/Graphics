@@ -4,7 +4,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering
 {
-    public class ProbeBrickPool
+    internal class ProbeBrickPool
     {
         public struct BrickChunkAlloc
         {

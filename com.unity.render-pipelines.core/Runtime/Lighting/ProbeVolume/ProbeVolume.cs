@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering
         }
     } // class ProbeVolumeArtistParameters
 
+    /// <summary>
+    /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Volume")]
     public class ProbeVolume : MonoBehaviour

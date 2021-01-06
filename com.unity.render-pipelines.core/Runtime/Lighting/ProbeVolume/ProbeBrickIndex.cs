@@ -8,7 +8,7 @@ using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
 
 namespace UnityEngine.Rendering
 {
-    public class ProbeBrickIndex
+    internal class ProbeBrickIndex
     {
         // a few constants
         internal const int kMaxSubdivisionLevels = 15; // 4 bits

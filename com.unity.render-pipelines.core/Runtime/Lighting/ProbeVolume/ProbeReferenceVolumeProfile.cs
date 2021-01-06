@@ -8,8 +8,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class ProbeReferenceVolumeProfile : ScriptableObject
     {
-        // TODO: Better documentation, the one here is not really doc!
-
+        /// <summary>
+        /// The default dimensions for APV's index data structure.
+        /// </summary>
         public static Vector3Int s_DefaultIndexDimensions = new Vector3Int(1024, 64, 1024);
 
         /// <summary>

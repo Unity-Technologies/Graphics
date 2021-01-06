@@ -1,6 +1,6 @@
 namespace UnityEditor.Rendering
 {
-    class SerializedProbeVolume
+    internal class SerializedProbeVolume
     {
         internal SerializedProperty probeVolumeParams;
 

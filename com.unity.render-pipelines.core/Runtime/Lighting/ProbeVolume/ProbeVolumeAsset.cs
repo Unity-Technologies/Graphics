@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
-    public class ProbeVolumeAsset : ScriptableObject
+    internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
         internal enum AssetVersion
@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering
         [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] public int Version { get => m_Version; }
 
-        [SerializeField] public List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
+        [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
         [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
 

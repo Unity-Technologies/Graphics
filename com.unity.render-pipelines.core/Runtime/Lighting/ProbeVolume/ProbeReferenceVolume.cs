@@ -33,13 +33,16 @@ namespace UnityEngine.Rendering
         SphericalHarmonicsL2 = 2,
     }
 
+    /// <summary>
+    /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
+    /// </summary>
     public class ProbeReferenceVolume
     {
         public static int s_ProbeIndexPoolAllocationSize = 1024;
 
 
         [System.Serializable]
-        public struct Cell
+        internal struct Cell
         {
             public int index;
             public Vector3Int position;
@@ -49,12 +52,12 @@ namespace UnityEngine.Rendering
             public float[] validity;
         }
 
-        public struct Volume
+        internal struct Volume
         {
-            public Vector3 corner;
-            public Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
-            public Vector3 Y;
-            public Vector3 Z;
+            internal Vector3 corner;
+            internal Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
+            internal Vector3 Y;
+            internal Vector3 Z;
 
             public Volume(Matrix4x4 trs)
             {
@@ -113,7 +116,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public struct BrickFlags
+        internal struct BrickFlags
         {
             uint flags;
 
@@ -121,7 +124,7 @@ namespace UnityEngine.Rendering
             public bool subdivide { get { return (flags & 2) != 0; } set { flags = (flags & (~2u)) | (value ? 2u : 0); } }
         }
 
-        public struct RefVolTransform
+        internal struct RefVolTransform
         {
             public Matrix4x4 refSpaceToWS;
             public Vector3 posWS;
@@ -129,16 +132,34 @@ namespace UnityEngine.Rendering
             public float scale;
         }
 
+        /// <summary>
+        /// The resources that are bound to the runtime shaders for sampling Adaptive Probe Volume data.
+        /// </summary>
         public struct RuntimeResources
         {
+            /// <summary>
+            /// Index data to fetch the correct location in the Texture3D.
+            /// </summary>
             public ComputeBuffer index;
+            /// <summary>
+            /// Texture containing Spherical Harmonics L0 band data.
+            /// </summary>
             public Texture3D L0;
+            /// <summary>
+            /// Texture containing the first channel of Spherical Harmonics L1 band data.
+            /// </summary>
             public Texture3D L1_R;
+            /// <summary>
+            /// Texture containing the second channel of Spherical Harmonics L1 band data.
+            /// </summary>
             public Texture3D L1_G;
+            /// <summary>
+            /// Texture containing the third channel of Spherical Harmonics L1 band data.
+            /// </summary>
             public Texture3D L1_B;
         }
 
-        public struct RegId
+        internal struct RegId
         {
             internal int id;
 
@@ -175,7 +196,7 @@ namespace UnityEngine.Rendering
         private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
-        public Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+        internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         private Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
 
         private bool m_BricksLoaded = false;
@@ -196,6 +217,9 @@ namespace UnityEngine.Rendering
 
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
+        /// <summary>
+        /// Get the instance of the probe reference volume (singleton).
+        /// </summary>
         public static ProbeReferenceVolume instance
         {
             get
@@ -204,14 +228,14 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
+        internal void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
         {
             m_PendingIndexDimChange = indexDimensions;
             m_NeedsIndexDimChange = true;
             m_NeedLoadAsset = true;
         }
 
-        public void AddPendingAssetLoading(ProbeVolumeAsset asset)
+        internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeLoaded.ContainsKey(key))
@@ -222,7 +246,7 @@ namespace UnityEngine.Rendering
             m_NeedLoadAsset = true;
         }
 
-        public void AddPendingAssetRemoval(ProbeVolumeAsset asset)
+        internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
             if (m_PendingAssetsToBeUnloaded.ContainsKey(key))
@@ -335,6 +359,9 @@ namespace UnityEngine.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
+        /// <summary>
+        /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
+        /// </summary>
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
@@ -342,6 +369,12 @@ namespace UnityEngine.Rendering
             PerformPendingLoading();
         }
 
+        /// <summary>
+        /// Initialize the reference volume.
+        /// </summary>
+        /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
+        /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
+        /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
         public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Initialize Reference Volume");
@@ -374,6 +407,10 @@ namespace UnityEngine.Rendering
             m_NormalBias = 0f;
         }
 
+        /// <summary>
+        /// Get the resources that are bound to the runtime shaders for sampling Adaptive Probe Volume data.
+        /// </summary>
+        /// <returns>The resources to bind to runtime shaders.</returns>
         public RuntimeResources GetRuntimeResources()
         {
             RuntimeResources rr = new RuntimeResources();
@@ -382,7 +419,7 @@ namespace UnityEngine.Rendering
             return rr;
         }
 
-        public void SetTRS(Vector3 position, Quaternion rotation, float minBrickSize)
+        internal void SetTRS(Vector3 position, Quaternion rotation, float minBrickSize)
         {
             m_Transform.posWS = position;
             m_Transform.rot = rotation;
@@ -390,21 +427,25 @@ namespace UnityEngine.Rendering
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
-        public void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
-        public void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
+        internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
+        internal void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
 
         internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
         internal float MinBrickSize() { return m_Transform.scale; }
         internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
-        public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
-        public RefVolTransform GetTransform() { return m_Transform; }
+        internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
+        internal RefVolTransform GetTransform() { return m_Transform; }
 
+        /// <summary>
+        /// Returns whether any brick data has been loaded.
+        /// </summary>
+        /// <returns></returns>
         public bool DataHasBeenLoaded() { return m_BricksLoaded; }
 
-        public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
+        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
-        public void Clear()
+        internal void Clear()
         {
             if (m_ProbeReferenceVolumeInit)
             {
@@ -415,7 +456,7 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
-        public void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
+        internal void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
             Profiler.BeginSample("CreateBricks");
             // generate bricks for all areas covered by the passed in volumes, potentially subdividing them based on the subdivider's decisions
@@ -534,7 +575,7 @@ namespace UnityEngine.Rendering
 #endif
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        public void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
+        internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
             Profiler.BeginSample("ConvertBricks");
             Matrix4x4 m = GetRefSpaceToWS();
@@ -568,7 +609,7 @@ namespace UnityEngine.Rendering
         }
 
         // Runtime API starts here
-        public RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        internal RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -622,7 +663,7 @@ namespace UnityEngine.Rendering
             return id;
         }
 
-        public void ReleaseBricks(RegId id)
+        internal void ReleaseBricks(RegId id)
         {
             List<Chunk> ch_list;
             if (!m_Registry.TryGetValue(id, out ch_list))
@@ -687,6 +728,9 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
+        /// <summary>
+        /// Cleanup loaded data.
+        /// </summary>
         public void Cleanup()
         {
             m_BricksLoaded = false;
