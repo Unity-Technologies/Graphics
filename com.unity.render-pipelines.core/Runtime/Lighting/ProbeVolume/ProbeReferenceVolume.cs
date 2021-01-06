@@ -165,8 +165,8 @@ namespace UnityEngine.Rendering
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
-            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
-            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public static bool operator==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
+            public static bool operator!=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
             public override bool Equals(object obj)
             {
                 if ((obj == null) || !this.GetType().Equals(obj.GetType()))

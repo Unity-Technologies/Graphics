@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
     class ProbeVolumeAssetEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
-        { }
+        {}
     }
 #endif
 }
