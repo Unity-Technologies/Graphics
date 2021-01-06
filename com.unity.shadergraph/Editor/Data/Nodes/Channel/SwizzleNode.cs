@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEditor.Rendering;
 
@@ -42,14 +39,23 @@ namespace UnityEditor.ShaderGraph
                     return;
                 _maskInput = value;
                 UpdateNodeAfterDeserialization();
-                if (owner != null)
-                owner.ValidateGraph();
                 Dirty(ModificationScope.Topological);
             }
         }
 
+        public string converted_mask;
+
         public bool ValidateMaskInput(int InputValueSize)
         {
+            _maskInput = _maskInput.ToLower();
+
+            Dictionary<char, char> mask_map = new Dictionary<char, char>
+                {
+                    {'r', 'x' },
+                    {'g', 'y' },
+                    {'b', 'z' },
+                    {'a', 'w' },
+                };
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
             char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
@@ -67,9 +73,24 @@ namespace UnityEditor.ShaderGraph
                     MaskInputIsValid = false;
                 }
             }
-            if (MaskChars.Length == 0 || MaskChars.Length > 4)
+            if (MaskChars.Length <= 0 || MaskChars.Length > 4)
             {
                 MaskInputIsValid = false;
+            }
+            //Convert "rgba" input to "xyzw" to avoid mismathcing
+            if (MaskInputIsValid)
+            {
+                char[] rgba = { 'r', 'g', 'b', 'a' };
+
+                for (int i = 0; i < MaskChars.Length; i++)
+                {
+                    if (rgba.Contains(MaskChars[i]))
+                    {
+                        MaskChars[i] = mask_map[MaskChars[i]];
+
+                    }
+                }
+                converted_mask = new string(MaskChars);
             }
             return MaskInputIsValid;
         }
@@ -112,8 +133,8 @@ namespace UnityEditor.ShaderGraph
                 string outputValue = "";
                 for (int i = 0; i < 4; i++)
                 {
-                    if (i < _maskInput.Length)
-                        outputValue += _maskInput[i];
+                    if (i < converted_mask.Length)
+                        outputValue += converted_mask[i];
                 }
                 sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, outputValue);
             }
@@ -146,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IEnumerable<int> allowedNodeVersions => new List<int>{1};
+        public override IEnumerable<int> allowedNodeVersions => new List<int> { 1 };
 
         class LegacySwizzleChannelData
         {

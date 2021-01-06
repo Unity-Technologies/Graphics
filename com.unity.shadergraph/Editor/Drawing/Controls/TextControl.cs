@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -67,7 +68,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 }
                 this.MarkDirtyRepaint();
             });
-
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                //Validate graph to update downstream input slot 
+                if (m_Node.GetType() == typeof(SwizzleNode))
+                    m_Node.owner.ValidateGraph();
+                m_Node.Dirty(ModificationScope.Topological);
+                this.MarkDirtyRepaint();
+            });
             container.Add(field);
             Add(container);
         }
