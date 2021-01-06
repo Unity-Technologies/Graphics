@@ -202,6 +202,7 @@ namespace UnityEngine
             float axisLength = Mathf.Min(distance * 0.5f, k_AxisLength);
             const float alpha = 0.2f;
 
+#if UNITY_EDITOR
             Handles.color = Color.grey;
             Handles.DrawDottedLine(anchorPosition, anchorPosition + proj, 2);
             Handles.DrawDottedLine(anchorPosition + proj, transform.position, 2);
@@ -221,6 +222,7 @@ namespace UnityEngine
             Quaternion yawRot = Quaternion.AngleAxis(yaw, axes.up * k_AxisLength);
             Handles.DrawSolidArc(anchor, yawRot * axes.right, yawRot * axes.forward, pitch, arcRadius);
             Handles.DrawLine(anchorPosition, anchorPosition + (yawRot * axes.forward) * axisLength);
+#endif
         }
 
         // arguments are passed in world space
