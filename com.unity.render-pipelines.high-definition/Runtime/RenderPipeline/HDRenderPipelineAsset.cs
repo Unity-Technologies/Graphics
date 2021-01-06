@@ -177,8 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        //TODOJENNY - move to Default Settings
-
         [System.NonSerialized]
         string[] m_DecalLayerNames = null;
         /// <summary>

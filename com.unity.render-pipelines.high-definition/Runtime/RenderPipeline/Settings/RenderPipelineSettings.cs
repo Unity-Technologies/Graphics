@@ -355,38 +355,38 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool m_ObsoleteincreaseSssSampleCount;
 
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName0;
+        internal string m_ObsoleteLightLayerName0;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName1;
+        internal string m_ObsoleteLightLayerName1;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName2;
+        internal string m_ObsoleteLightLayerName2;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName3;
+        internal string m_ObsoleteLightLayerName3;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName4;
+        internal string m_ObsoleteLightLayerName4;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName5;
+        internal string m_ObsoleteLightLayerName5;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName6;
+        internal string m_ObsoleteLightLayerName6;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletelightLayerName7;
+        internal string m_ObsoleteLightLayerName7;
 
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName0;
+        internal string m_ObsoleteDecalLayerName0;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName1;
+        internal string m_ObsoleteDecalLayerName1;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName2;
+        internal string m_ObsoleteDecalLayerName2;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName3;
+        internal string m_ObsoleteDecalLayerName3;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName4;
+        internal string m_ObsoleteDecalLayerName4;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName5;
+        internal string m_ObsoleteDecalLayerName5;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName6;
+        internal string m_ObsoleteDecalLayerName6;
         [Obsolete("Moved to HDDefault Settings")]
-        internal string m_ObsoletedecalLayerName7;
+        internal string m_ObsoleteDecalLayerName7;
     #pragma warning restore 618
     }
 }

@@ -168,23 +168,23 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated.afterPostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses);
             assetCreated.beforeTAACustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTAACustomPostProcesses);
 
-            assetCreated.lightLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName0;
-            assetCreated.lightLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName1;
-            assetCreated.lightLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName2;
-            assetCreated.lightLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName3;
-            assetCreated.lightLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName4;
-            assetCreated.lightLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName5;
-            assetCreated.lightLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName6;
-            assetCreated.lightLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName7;
+            assetCreated.lightLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0;
+            assetCreated.lightLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1;
+            assetCreated.lightLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2;
+            assetCreated.lightLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3;
+            assetCreated.lightLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4;
+            assetCreated.lightLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5;
+            assetCreated.lightLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6;
+            assetCreated.lightLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7;
 
-            assetCreated.decalLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName0;
-            assetCreated.decalLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName1;
-            assetCreated.decalLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName2;
-            assetCreated.decalLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName3;
-            assetCreated.decalLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName4;
-            assetCreated.decalLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName5;
-            assetCreated.decalLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName6;
-            assetCreated.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName7;
+            assetCreated.decalLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0;
+            assetCreated.decalLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1;
+            assetCreated.decalLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2;
+            assetCreated.decalLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3;
+            assetCreated.decalLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4;
+            assetCreated.decalLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5;
+            assetCreated.decalLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6;
+            assetCreated.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7;
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;

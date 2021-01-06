@@ -323,7 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isGUIenabled = GUI.enabled;
 
             var hdrpAsset = GetHDRPAssetFor(owner);
-            if (hdrpAsset != null) //TODOJENNY? remove if when currentPlatformRenderPipelineSettings is in default
+            if (hdrpAsset != null)
             {
                 RenderPipelineSettings hdrpSettings = hdrpAsset.currentPlatformRenderPipelineSettings;
                 FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);

@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings = src;
                 var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
                 var assetCreator = ScriptableObject.CreateInstance<HDDefaultSettingsCreator>();
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/New HDDefaultSettings.asset", icon, null);
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset", icon, null);
             }
         }
 
@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void CreateHDDefaultSettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDDefaultSettingsCreator>(), "New HDDefaultSettings.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDDefaultSettingsCreator>(), $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDDefaultSettings.asset", icon, null);
         }
     }
 }
