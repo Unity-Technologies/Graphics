@@ -137,10 +137,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
         float3 voxelScattering = _HeightFogBaseScattering.xyz * heightMultiplier;
         float  voxelExtinction = _HeightFogBaseExtinction     * heightMultiplier;
 
+        EntityLookupParameters params = InitializeDensityVolumeLookup(tile, uint2(zBin0, zBin1));
+
         uint i = 0;
 
         DensityVolumeData volumeData;
-        while (TryLoadDensityVolumeData(i, tile, uint2(zBin0, zBin1), volumeData))
+        while (TryLoadDensityVolumeData(i, params, volumeData))
         {
             const float3x3 obbFrame   = float3x3(volumeData.right, volumeData.up, cross(volumeData.up, volumeData.right));
             const float3   obbExtents = float3(volumeData.extentX, volumeData.extentY, volumeData.extentZ);

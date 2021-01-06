@@ -191,16 +191,26 @@ uint BitFieldFromBitRange(int minBit, int maxBit)
     return mask;
 }
 
-// Internal. Do not call directly.
-uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category, out uint entityIndex)
+// Internal. Do not access directly.
+struct EntityLookupParameters
 {
-    entityIndex = UINT16_MAX;
+    uint dwordIndex;           // Wave-uniform
+    uint dwordCount;           // Wave-uniform
+    int2 zBinEntityIndexRange; // Wave-varying
+    uint tileBufferIndex;      // Wave-uniform (deferred CS) or wave-varying (others)
+    uint inputDword;           // Wave-uniform
+};
 
-    bool found = false;
+// Internal. Do not call directly.
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
+{
+    EntityLookupParameters params;
+    ZERO_INITIALIZE(EntityLookupParameters, params);
 
-    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[category];
+    params.dwordIndex = 0;
+    params.dwordCount = s_BoundedEntityDwordCountPerCategory[category];
 
-    if (dwordCount > 0)
+    if (params.dwordCount > 0)
     {
         const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
         const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
@@ -210,39 +220,58 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
         // Recall that entities are sorted by the z-coordinate.
         // So we can take the smallest index from the first bin and the largest index from the last bin.
         // To see why there's -1, see the discussion in 'zbin.compute'.
-        const int2 zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
+        params.zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
 
-        const uint tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
+        params.tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
 
-        uint j = 0; // Dumb, just to test
+        // Fetch the first DWORD.
+        const uint tileDword = TILE_BUFFER[params.tileBufferIndex];
+        const uint zbinDword = BitFieldFromBitRange(params.zBinEntityIndexRange.x,
+                                                    params.zBinEntityIndexRange.y);
 
-        for (uint d = 0; (d < dwordCount) && (!found); d++)
-        {
-            const uint tileDword = TILE_BUFFER[tileBufferIndex + d];
-            const uint zbinDword = BitFieldFromBitRange(zBinEntityIndexRange.x - ((int)d * 32),
-                                                        zBinEntityIndexRange.y - ((int)d * 32));
+        params.inputDword = tileDword & zbinDword; // Intersect the ranges
 
-            uint inputDword = tileDword & zbinDword; // Intersect the ranges
+    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        params.inputDword = WaveActiveBitOr(params.inputDword); // Scalarize (make wave-uniform)
+    #endif
+    }
 
-        #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-            inputDword = WaveActiveBitOr(inputDword); // Scalarize (make wave-uniform)
-        #endif
+    return params;
+}
 
-            while ((inputDword != 0) && (!found))
-            {
-                const uint b = firstbitlow(inputDword);
+// Internal. Do not call directly.
+uint TryFindEntityIndex(uint i, inout EntityLookupParameters params, out uint entityIndex)
+{
+    bool found = false;
 
-                if (i == j)
-                {
-                    entityIndex = d * 32 + b;
-                    found       = true;
-                }
+    entityIndex = UINT16_MAX;
 
-                j++;
+    // DWORD fetch loop.
+    while ((params.inputDword == 0) && ((params.dwordIndex + 1) < params.dwordCount))
+    {
+        params.dwordIndex++;
 
-                inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
-            }
-        }
+        const uint tileDword   = TILE_BUFFER[params.tileBufferIndex + params.dwordIndex];
+        const uint indexOffset = params.dwordIndex * 32;
+        const uint zbinDword   = BitFieldFromBitRange(params.zBinEntityIndexRange.x - (int)indexOffset,
+                                                      params.zBinEntityIndexRange.y - (int)indexOffset);
+
+        params.inputDword = tileDword & zbinDword; // Intersect the ranges
+
+    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        params.inputDword = WaveActiveBitOr(params.inputDword); // Scalarize (make wave-uniform)
+    #endif
+    }
+
+    // DWORD bit scan.
+    if (params.inputDword != 0)
+    {
+        const uint b = firstbitlow(params.inputDword);
+
+        params.inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
+
+        entityIndex = params.dwordIndex * 32 + b;
+        found       = true;
     }
 
     return found;
@@ -250,208 +279,194 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
 
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-// Internal. Do not call directly.
-uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category, out uint entityIndex)
+// Internal. Do not access directly.
+struct EntityLookupParameters
 {
-    entityIndex = UINT16_MAX;
+    uint entityCount;
+};
 
-    bool b = false;
-    uint n;
+// Internal. Do not call directly.
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
+{
+    EntityLookupParameters params;
 
     switch (category)
     {
         case BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT:
-            n = _PunctualLightCount;
+            params.entityCount = _PunctualLightCount;
             break;
         case BOUNDEDENTITYCATEGORY_AREA_LIGHT:
-            n = _AreaLightCount;
+            params.entityCount = _AreaLightCount;
             break;
         case BOUNDEDENTITYCATEGORY_REFLECTION_PROBE:
-            n = _ReflectionProbeCount;
+            params.entityCount = _ReflectionProbeCount;
             break;
         case BOUNDEDENTITYCATEGORY_DECAL:
-            n = _DecalCount;
+            params.entityCount = _DecalCount;
             break;
         case BOUNDEDENTITYCATEGORY_DENSITY_VOLUME:
-            n = _DensityVolumeCount;
+            params.entityCount = _DensityVolumeCount;
             break;
         default:
-            n = 0;
+            params.entityCount = 0;
             break;
     }
 
-    if (i < n)
+    return params;
+}
+
+// Internal. Do not call directly.
+uint TryFindEntityIndex(uint i, inout EntityLookupParameters params, out uint entityIndex)
+{
+    bool found = false;
+
+    entityIndex = UINT16_MAX;
+
+    if (i < params.entityCount)
     {
         entityIndex = i;
-        b           = true;
+        found       = true;
     }
 
-    return b;
+    return found;
 }
 
 #endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-// Internal. Do not call directly.
-uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out uint entityIndex)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializePunctualLightLookup(uint tile, uint zBin)
 {
-    uint2 zBinRange = uint2(zBin, zBin);
-
-    return TryFindEntityIndex(i, tile, zBinRange, category, entityIndex);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
 }
 
-bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializePunctualLightLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
+}
+
+bool TryLoadPunctualLightData(uint i, inout EntityLookupParameters params, out LightData data)
 {
     bool success = false;
     // Need to zero-init to quiet the warning.
     ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
+    if (TryFindEntityIndex(i, params, entityIndex))
     {
-        success = true;
         data    = _PunctualLightData[entityIndex];
+        success = true;
     }
 
     return success;
 }
 
-bool TryLoadPunctualLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeAreaLightLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_AREA_LIGHT);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeAreaLightLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT);
+}
+
+bool TryLoadAreaLightData(uint i, inout EntityLookupParameters params, out LightData data)
 {
     bool success = false;
     // Need to zero-init to quiet the warning.
     ZERO_INITIALIZE(LightData, data);
 
     uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
+    if (TryFindEntityIndex(i, params, entityIndex))
     {
-        success = true;
-        data    = _PunctualLightData[entityIndex];
-    }
-
-    return success;
-}
-
-bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data)
-{
-    bool success = false;
-    // Need to zero-init to quiet the warning.
-    ZERO_INITIALIZE(LightData, data);
-
-    uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
-    {
-        success = true;
         data    = _AreaLightData[entityIndex];
-    }
-
-    return success;
-}
-
-bool TryLoadAreaLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
-{
-    bool success = false;
-    // Need to zero-init to quiet the warning.
-    ZERO_INITIALIZE(LightData, data);
-
-    uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
-    {
         success = true;
-        data    = _AreaLightData[entityIndex];
     }
 
     return success;
 }
 
-bool TryLoadReflectionProbeData(inout uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+}
+
+bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out EnvLightData data, out uint entityIndex)
 {
     bool success = false;
     // Need to zero-init to quiet the warning.
     ZERO_INITIALIZE(EnvLightData, data);
 
-    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
+    if (TryFindEntityIndex(i, params, entityIndex))
     {
-        success = true;
         data    = _ReflectionProbeData[entityIndex];
+        success = true;
     }
 
     return success;
 }
 
-bool TryLoadReflectionProbeData(inout uint i, uint tile, uint2 zBinRange, out EnvLightData data, out uint entityIndex)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDecalLookup(uint tile, uint zBin)
 {
-    bool success = false;
-    // Need to zero-init to quiet the warning.
-    ZERO_INITIALIZE(EnvLightData, data);
-
-    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
-    {
-        success = true;
-        data    = _ReflectionProbeData[entityIndex];
-    }
-
-    return success;
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DECAL);
 }
 
-bool TryLoadDecalData(inout uint i, uint tile, uint zBin, out DecalData data)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDecalLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL);
+}
+
+bool TryLoadDecalData(uint i, inout EntityLookupParameters params, out DecalData data)
 {
     bool success = false;
     // Need to zero-init to quiet the warning.
     ZERO_INITIALIZE(DecalData, data);
 
     uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
+    if (TryFindEntityIndex(i, params, entityIndex))
     {
-        success = true;
         data    = _DecalData[entityIndex];
+        success = true;
     }
 
     return success;
 }
 
-bool TryLoadDecalData(inout uint i, uint tile, uint2 zBinRange, out DecalData data)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint zBin)
 {
-    bool success = false;
-    // Need to zero-init to quiet the warning.
-    ZERO_INITIALIZE(DecalData, data);
-
-    uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
-    {
-        success = true;
-        data    = _DecalData[entityIndex];
-    }
-
-    return success;
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
 }
 
-bool TryLoadDensityVolumeData(inout uint i, uint tile, uint zBin, out DensityVolumeData data)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
+}
+
+bool TryLoadDensityVolumeData(uint i, inout EntityLookupParameters params, out DensityVolumeData data)
 {
     bool success = false;
     // Need to zero-init to quiet the compiler warning.
     ZERO_INITIALIZE(DensityVolumeData, data);
 
     uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
+    if (TryFindEntityIndex(i, params, entityIndex))
     {
-        success = true;
         data    = _DensityVolumeData[entityIndex];
-    }
-
-    return success;
-}
-
-bool TryLoadDensityVolumeData(inout uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
-{
-    bool success = false;
-    // Need to zero-init to quiet the compiler warning.
-    ZERO_INITIALIZE(DensityVolumeData, data);
-
-    uint entityIndex;
-    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
-    {
         success = true;
-        data    = _DensityVolumeData[entityIndex];
     }
 
     return success;

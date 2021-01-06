@@ -215,12 +215,15 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
             }
         }
 
-        uint i = 0;
         uint zBin = ComputeZBinIndex(posInput.linearDepth);
         uint tile = ComputeTileIndex(posInput.positionSS);
 
+        EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
+
+        uint i = 0;
+
         LightData lightData;
-        while (TryLoadPunctualLightData(i, tile, zBin, lightData))
+        while (TryLoadPunctualLightData(i, params, lightData))
         {
             if (lightData.contactShadowMask != 0 && lightData.isRayTracedContactShadow == 0.0)
             {

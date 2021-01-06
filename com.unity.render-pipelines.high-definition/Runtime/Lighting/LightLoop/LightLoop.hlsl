@@ -234,10 +234,12 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
+        EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
+
         i = 0;
 
         LightData lightData;
-        while (TryLoadPunctualLightData(i, tile, zBin, lightData))
+        while (TryLoadPunctualLightData(i, params, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
@@ -282,11 +284,13 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         uint envLightWeightsAndIndices[MAX_REFLECTION_PROBES_PER_PIXEL];
         ZERO_INITIALIZE_ARRAY(uint, envLightWeightsAndIndices, MAX_REFLECTION_PROBES_PER_PIXEL);
 
+        EntityLookupParameters params = InitializeReflectionProbeLookup(tile, zBin);
+
         i = 0;
 
         EnvLightData envLightData;
         uint         envLightIndex;
-        while (TryLoadReflectionProbeData(i, tile, zBin, envLightData, envLightIndex))
+        while (TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
         {
             uint weight         = 1048575 - envLightData.logVolume; // Small volume -> high weight
             uint indexAndWeight = (weight << 12) | envLightIndex;
@@ -399,10 +403,12 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 #if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
+        EntityLookupParameters params = InitializeAreaLightLookup(tile, zBin);
+
         i = 0;
 
         LightData lightData;
-        while (TryLoadAreaLightData(i, tile, zBin, lightData))
+        while (TryLoadAreaLightData(i, params, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {

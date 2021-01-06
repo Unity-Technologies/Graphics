@@ -218,9 +218,12 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 if (_SelectedEntityCategory < BOUNDEDENTITYCATEGORY_COUNT)
                 {
+                    EntityLookupParameters params = InitializeEntityLookup(tile, uint2(zBin, zBin), (uint)_SelectedEntityCategory);
+
                     uint i = 0;
+
                     uint unused;
-                    while (TryFindEntityIndex(i, tile, zBin, (uint)_SelectedEntityCategory, unused))
+                    while (TryFindEntityIndex(i, params, unused))
                     {
                         entityCount++;
                         i++;

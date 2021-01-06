@@ -192,10 +192,12 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 
     uint decalLayerMask = GetMeshRenderingDecalLayer();
 
+    EntityLookupParameters params = InitializeDecalLookup(tile, zBin);
+
     uint i = 0;
 
     DecalData decalData;
-    while (TryLoadDecalData(i, tile, zBin, decalData))
+    while (TryLoadDecalData(i, params, decalData))
     {
         if ((decalData.decalLayerMask & decalLayerMask) != 0)
         {

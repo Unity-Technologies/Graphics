@@ -15,7 +15,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
@@ -75,22 +74,28 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
 
-        uint unused;
+        EntityLookupParameters params;
 
-        uint ip = 0;
-        if (TryFindEntityIndex(ip, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unused))
+        params = InitializePunctualLightLookup(tile, zBin);
+
+        LightData lightData;
+        if (TryLoadPunctualLightData(0, params, lightData))
         {
             featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
         }
 
-        uint ia = 0;
-        if (TryFindEntityIndex(ia, tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, unused))
+        params = InitializeAreaLightLookup(tile, zBin);
+
+        if (TryLoadAreaLightData(0, params, lightData))
         {
             featureFlags |= LIGHTFEATUREFLAGS_AREA;
         }
 
-        uint ir = 0;
-        if (TryFindEntityIndex(ir, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, unused))
+        params = InitializeReflectionProbeLookup(tile, zBin);
+
+        EnvLightData envLightData;
+        uint         envLightIndex;
+        if (TryLoadReflectionProbeData(0, params, envLightData, envLightIndex))
         {
             featureFlags |= LIGHTFEATUREFLAGS_ENV;
         }

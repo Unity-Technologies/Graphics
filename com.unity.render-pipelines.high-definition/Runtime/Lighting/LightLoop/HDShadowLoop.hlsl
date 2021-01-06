@@ -62,10 +62,12 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
+        EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
+
         i = 0;
 
         LightData lightData;
-        while (TryLoadPunctualLightData(i, tile, zBin, lightData))
+        while (TryLoadPunctualLightData(i, params, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, renderLayer) &&
                 lightData.shadowIndex >= 0 &&
@@ -104,10 +106,12 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
+        EntityLookupParameters params = InitializeAreaLightLookup(tile, zBin);
+
         i = 0;
 
         LightData lightData;
-        while (TryLoadAreaLightData(i, tile, zBin, lightData))
+        while (TryLoadAreaLightData(i, params, lightData))
         {
             if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
             {

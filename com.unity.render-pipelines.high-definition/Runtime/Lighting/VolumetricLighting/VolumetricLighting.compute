@@ -253,10 +253,12 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
+        EntityLookupParameters params = InitializePunctualLightLookup(tile, zBinRange);
+
         uint i = 0;
 
         LightData light;
-        while (TryLoadPunctualLightData(i, tile, zBinRange, light))
+        while (TryLoadPunctualLightData(i, params, light))
         {
             // Prep the light so that it works with non-volumetrics-aware code.
             light.contactShadowMask  = 0;
