@@ -5,6 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class Texture3DAtlas
     {
+        public static readonly int _ZOffset = Shader.PropertyToID("_ZOffset");
+        public int NumTexturesInAtlas = 0;
+
         private List<DensityVolume> m_volumes = new List<DensityVolume>();
 
         private RTHandle m_atlas;
@@ -12,7 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool m_updateAtlas = false;
         private int m_atlasSize = 0;
-        private int m_numTexturesInAtlas = 0;
 
         public delegate void AtlasUpdated();
         public AtlasUpdated OnAtlasUpdated = null;
@@ -99,8 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (addTexture)
             {
-                volume.parameters.textureIndex = m_numTexturesInAtlas;
-                m_numTexturesInAtlas++;
+                volume.parameters.textureIndex = NumTexturesInAtlas;
+                NumTexturesInAtlas++;
                 m_updateAtlas = true;
             }
             m_volumes.Add(volume);
@@ -119,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_volumes.Clear();
             m_updateAtlas = true;
-            m_numTexturesInAtlas = 0;
+            NumTexturesInAtlas = 0;
         }
 
         public void UpdateAtlas(CommandBuffer cmd)
@@ -131,19 +133,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_volumes.Count > 0)
                 {
                     int textureSliceSize = m_atlasSize * m_atlasSize * m_atlasSize;
-                    int totalTextureSize = textureSliceSize * m_numTexturesInAtlas;
+                    int totalTextureSize = textureSliceSize * NumTexturesInAtlas;
 
-                    Color[] colorData = new Color[totalTextureSize];
                     m_atlas = RTHandles.Alloc(m_atlasSize,
                                               m_atlasSize,
-                                              m_atlasSize * m_numTexturesInAtlas,
+                                              m_atlasSize * NumTexturesInAtlas,
                                                 dimension: TextureDimension.Tex3D,
                                                 //colorFormat: Experimental.Rendering.GraphicsFormat.R8_UInt,
                                                 colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
                                                 enableRandomWrite: true,
                                                 useMipMap: true,
                                                 name: "DensityVolumeAtlas");
-                    var isCopied = new bool[m_numTexturesInAtlas];
+                    var isCopied = new bool[NumTexturesInAtlas];
+                    var oldRt = RenderTexture.active;
 
                     //Iterate through all the textures and append their texture data to the texture array
                     //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
@@ -155,14 +157,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         isCopied[v.parameters.textureIndex] = true;
-                        Texture3D tex = v.parameters.volumeMask;
-                        Color[] texData = tex.GetPixels();
-                        Array.Copy(texData, 0, colorData, textureSliceSize * v.parameters.textureIndex, texData.Length);
+                        for (int i = 0; i < m_atlasSize; i++)
+                        {
+                            Graphics.Blit(v.parameters.volumeMask, m_atlas.rt, Vector2.one, Vector2.zero, i, m_atlasSize * v.parameters.textureIndex + i);
+                        }
                     }
 
-                    // TODO (Apoorva): Re-enable texture blitting
-                    // m_atlas.SetPixels(colorData);
-                    // m_atlas.Apply();
+                    RenderTexture.active = oldRt;
                 }
                 else
                 {
@@ -183,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             * Matrix4x4.Rotate(Quaternion.Euler(0, 100f * Time.time, 0))
                             * Matrix4x4.Translate(new Vector3(-16f, -16f, -16f));
                         cmd.SetComputeMatrixParam(cs, HDShaderIDs._Params, mtx);
-                        //cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, Vector4.one);
+                        cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
                         cmd.DispatchCompute(v.parameters.volumeShader, 0, 4, 4, 4);
                     }
                 }

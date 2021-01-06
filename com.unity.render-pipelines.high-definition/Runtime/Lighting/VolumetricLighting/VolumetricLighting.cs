@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VolumeMaskDimensions = Vector4.zero;
             if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
             {
-                cb._VolumeMaskDimensions.x = (float)volumeAtlas.rt.width / volumeAtlas.rt.depth; // 1 / number of textures
+                cb._VolumeMaskDimensions.x = 1.0f / DensityVolumeManager.manager.volumeAtlas.NumTexturesInAtlas; // 1 / number of textures
                 cb._VolumeMaskDimensions.y = volumeAtlas.rt.width;
                 cb._VolumeMaskDimensions.z = volumeAtlas.rt.depth;
                 cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.rt.width, 2); // Max LoD

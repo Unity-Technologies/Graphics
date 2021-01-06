@@ -40,11 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes.Add(volume);
 
             volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.volumeMask != null)
-            {
-                volumeAtlas.AddVolume(volume);
-            }
+            volumeAtlas.AddVolume(volume);
         }
 
         public void DeRegisterVolume(DensityVolume volume)
