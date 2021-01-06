@@ -70,6 +70,15 @@ MonoBehaviour:
     Reason: Memory allocation test failed, 5 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 21d198bbbf9143d40b227ad2fe71706f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'linux: inconclusive / out of memory on yamato'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: b8090c44833d0a842bcd90e27dc43b6b, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -127,7 +136,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -136,7 +145,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
