@@ -244,10 +244,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
                 {
-                    Vector3 centerStart = new Vector3(
-                        -decalProjector.offset.x,
-                        -decalProjector.offset.y,
-                        decalProjector.size.z * .5f - decalProjector.offset.z);
+                    Vector3 centerStart = decalProjector.offset;
                     boxHandle.center = centerStart;
                     boxHandle.size = decalProjector.size;
 
@@ -299,24 +296,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, decalProjector.offset.z, decalProjector.transform.rotation);
+                    Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.offset.z, decalProjector.transform.rotation);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        decalProjector.offset -= Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
+                        decalProjector.offset += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                         decalProjector.transform.position = newPosition;
                     }
                 }
 
                 // UV
-                Vector3 drawingSpaceOriginRotated = Quaternion.Inverse(decalProjector.transform.rotation) * decalProjector.transform.position - new Vector3(decalProjector.size.x * 0.5f, decalProjector.size.y * 0.5f, 0) + decalProjector.offset;
-                using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.offset - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector2 UVSize = new Vector2(
                         decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
                         decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit ? 0f : decalProjector.size.y / decalProjector.uvScale.y
                         );
-                    Vector2 UVStart = -new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y);
-                    Vector2 UVCenter = UVStart + UVSize * 0.5f +  (Vector2)drawingSpaceOriginRotated;
+                    Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y);
 
                     m_UVHandles.center = UVCenter;
                     m_UVHandles.size = UVSize;
@@ -336,8 +331,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                 uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
                         }
                         decalProjector.uvScale = uvScale;
-                        
-                        var newUVStart = m_UVHandles.center - .5f * m_UVHandles.size - (Vector2)drawingSpaceOriginRotated;
+
+                        var newUVStart = m_UVHandles.center - .5f * m_UVHandles.size;
                         decalProjector.uvBias = -new Vector2(
                            m_UVHandles.size.x < k_LimitInv && m_UVHandles.size.x > -k_LimitInv ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / m_UVHandles.size.x,
                            m_UVHandles.size.y < k_LimitInv && m_UVHandles.size.y > -k_LimitInv ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / m_UVHandles.size.y
@@ -355,17 +350,14 @@ namespace UnityEditor.Rendering.HighDefinition
             //draw them scale independent
             using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                boxHandle.center = new Vector3(
-                    -decalProjector.offset.x,
-                    -decalProjector.offset.y,
-                    decalProjector.size.z * .5f - decalProjector.offset.z);
+                boxHandle.center = decalProjector.offset;
                 boxHandle.size = decalProjector.size;
                 bool isVolumeEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
                 bool isPivotEditMode = editMode == k_EditUVAndPivot;
                 boxHandle.DrawHull(isVolumeEditMode);
 
                 Vector3 pivot = Vector3.zero;
-                Vector3 projectedPivot = new Vector3(0, 0, -decalProjector.offset.z);
+                Vector3 projectedPivot = new Vector3(0, 0, decalProjector.offset.z - .5f * decalProjector.size.z);
 
                 if (isPivotEditMode)
                 {
@@ -379,7 +371,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 //draw UV and bolder edges
-                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * decalProjector.offset, decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(decalProjector.offset.x, decalProjector.offset.y, decalProjector.offset.z - .5f * decalProjector.size.z), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector2 UVSize = new Vector2(
                         decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
