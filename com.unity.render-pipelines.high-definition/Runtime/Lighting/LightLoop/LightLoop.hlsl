@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-#ifdef PROBE_VOLUMES
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #else
 // Required to have access to the indirectDiffuseMode enum in forward pass where we don't include BuiltinUtilities

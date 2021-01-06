@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
-#ifdef PROBE_VOLUMES
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     StructuredBuffer<OrientedBBox> _ProbeVolumeBounds;
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 

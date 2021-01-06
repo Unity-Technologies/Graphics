@@ -169,7 +169,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Global Illumination
-            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumes) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
             return false;

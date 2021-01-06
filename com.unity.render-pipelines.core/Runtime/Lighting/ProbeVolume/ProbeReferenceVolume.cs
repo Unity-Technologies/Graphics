@@ -21,6 +21,18 @@ namespace UnityEngine.Rendering
         MemoryBudgetHigh = 2048,
     }
 
+    /// <summary>
+    /// Number of Spherical Harmonics bands that are used with Probe Volumes
+    /// </summary>
+    [Serializable]
+    public enum ProbeVolumeSHBands
+    {
+        /// <summary>Up to the L1 band of Spherical Harmonics</summary>
+        SphericalHarmonicsL1 = 1,
+        /// <summary>Up to the L2 band of Spherical Harmonics</summary>
+        SphericalHarmonicsL2 = 2,
+    }
+
     public class ProbeReferenceVolume
     {
         public static int s_ProbeIndexPoolAllocationSize = 1024;
