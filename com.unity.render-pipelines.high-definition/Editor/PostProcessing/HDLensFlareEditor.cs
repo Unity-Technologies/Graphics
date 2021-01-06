@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Threshold;
         SerializedDataParameter m_Intensity;
+        HDLensFlareEditorTool m_Tool;
 
         public override void OnEnable()
         {
@@ -18,18 +19,24 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Enable = Unpack(o.Find(x => x.enable));
             m_Threshold = Unpack(o.Find(x => x.threshold));
             m_Intensity = Unpack(o.Find(x => x.intensity));
+
+            m_Tool = new HDLensFlareEditorTool();
         }
 
         public override void OnInspectorGUI()
         {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Lens Flare Editor", "")))
+                {
+                    ////var o = new PropertyFetcher<HDLensFlare>(serializedObject);
+                    ////m_Tool.target = o;
+                    //EditorTools.ToolManager.SetActiveTool<HDLensFlareEditorTool>();
+                }
+            }
             PropertyField(m_Enable, new GUIContent("Enable"));
             PropertyField(m_Threshold, new GUIContent("Threshold"));
             PropertyField(m_Intensity, new GUIContent("Intensity"));
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Lens Flare Editor", "")))
-            {
-                
-            }
         }
     }
 }
-

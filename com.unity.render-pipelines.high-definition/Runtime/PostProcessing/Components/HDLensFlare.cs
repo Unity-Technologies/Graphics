@@ -4,6 +4,15 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum HDLensFlareType
+    {
+        DataDriven,
+        FullScreen
+    }
+
+    [Serializable]
+    public sealed class HDLensFlareTypeParameter : VolumeParameter<HDLensFlareType> { };
+
     /// <summary>
     /// A volume component that holds settings for the Lens Flare effect.
     /// </summary>
@@ -15,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
         /// </summary>
         public BoolParameter enable = new BoolParameter(false);
+
+        public HDLensFlareTypeParameter type = new HDLensFlareTypeParameter();
 
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
