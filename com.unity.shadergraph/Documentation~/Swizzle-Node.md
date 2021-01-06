@@ -2,9 +2,9 @@
 
 ## Description
 
-Creates a new vector using the same elements as the input vector (the dimension of the output vector depends on the input mask length). The channels of the output vector are the same as the input vector but re-ordered according to the input mask value on the node. This is called swizzling.
+Reorders the elements of the input vector as you specify in the input mask. The length of the input mask determines the dimensions of the output vector.
 
-The dimension of the output vector depends on the length of input mask value. Input mask value that contains channel(s) not exist in the input vector will be flagged as "Invalid Mask".
+The error "Invalid Mask" indicates an input mask value which includes one or more channels that do not exist in the input vector.
 
 
 ## Ports
