@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+
+- Added pivot point manipulation for Decals (inspector and edit mode).
+- Added UV manipulation for Decals (edit mode).
+- Added color and intensity customization for Decals.
+
 ### Changed
+
 - Removed the material pass probe volumes evaluation mode. 
 
 ### Fixed
