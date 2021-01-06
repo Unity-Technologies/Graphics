@@ -454,6 +454,11 @@ namespace UnityEditor.VFX.UI
             m_CurrentMode = Modes.None;
         }
 
+        public Modes GetDebugMode()
+        {
+            return m_CurrentMode;
+        }
+
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard, bool force = false)
         {
             if (mode == m_CurrentMode && !force)
