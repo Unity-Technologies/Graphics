@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph.Drawing
 {
     abstract class SGViewModel
     {

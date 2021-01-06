@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
+namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardViewModel : SGViewModel
     {

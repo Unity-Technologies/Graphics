@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
 
         List<Manipulator> m_Manipulators = new List<Manipulator>();
-
         public ResizableElement() : this("uxml/Resizable")
         {
             pickingMode = PickingMode.Ignore;
@@ -27,16 +26,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             tpl.CloneTree(this);
 
-            foreach (Resizer value in System.Enum.GetValues(typeof(Resizer)))
+            foreach (Resizer direction in new[] {Resizer.Top, Resizer.Bottom, Resizer.Left, Resizer.Right})
             {
-                VisualElement resizer = this.Q(value.ToString().ToLower() + "-resize");
+                VisualElement resizer = this.Q(direction.ToString().ToLower() + "-resize");
                 if (resizer != null)
                 {
-                    var manipulator = new ElementResizer(this, value);
+                    var manipulator = new ElementResizer(this, direction);
                     resizer.AddManipulator(manipulator);
                     m_Manipulators.Add(manipulator);
                 }
-                m_Resizers[value] = resizer;
+                m_Resizers[direction] = resizer;
             }
 
             foreach (Resizer vertical in new[] {Resizer.Top, Resizer.Bottom})
@@ -53,8 +52,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
         }
 
+        public void SetResizeRules(Resizer allowedResizeDirections)
+        {
+            foreach (var manipulator in m_Manipulators)
+            {
+                if (manipulator == null)
+                    return;
+                var resizeElement = manipulator as ElementResizer;
+                // If resizer direction is not in list of allowed directions, disable the callbacks on it
+                if ((resizeElement.direction & allowedResizeDirections) == 0)
+                {
+                    resizeElement.isEnabled = false;
+                }
+                else if ((resizeElement.direction & allowedResizeDirections) != 0)
+                {
+                    resizeElement.isEnabled = true;
+                }
+            }
+        }
+
         public enum Resizer
         {
+            None =          0,
             Top =           1 << 0,
             Bottom =        1 << 1,
             Left =          1 << 2,

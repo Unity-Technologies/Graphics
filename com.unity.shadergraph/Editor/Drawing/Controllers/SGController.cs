@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Drawing
 {
     struct SGControllerChangedEvent
     {

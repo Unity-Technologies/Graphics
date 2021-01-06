@@ -1,6 +1,6 @@
 ﻿using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Drawing
 {
     interface ISGControlledElement
     {

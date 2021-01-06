@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 
-namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
+namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardController : SGViewController<BlackboardViewModel>
     {
