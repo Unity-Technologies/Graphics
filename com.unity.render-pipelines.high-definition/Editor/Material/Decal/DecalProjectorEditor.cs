@@ -299,6 +299,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.offset.z, decalProjector.transform.rotation);
                     if (EditorGUI.EndChangeCheck())
                     {
+                        Undo.RecordObjects(new UnityEngine.Object[] { decalProjector, decalProjector.transform }, "Decal Projector Change");
+
                         decalProjector.offset += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                         decalProjector.transform.position = newPosition;
                     }
@@ -320,6 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_UVHandles.DrawHandle();
                     if (EditorGUI.EndChangeCheck())
                     {
+                        Undo.RecordObject(decalProjector, "Decal Projector Change");
 
                         Vector2 limit = new Vector2(Mathf.Abs(decalProjector.size.x * k_LimitInv), Mathf.Abs(decalProjector.size.y * k_LimitInv));
                         Vector2 uvScale = m_UVHandles.size;
