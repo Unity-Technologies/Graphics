@@ -452,6 +452,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
                 }
 
+                EditorGUILayout.PropertyField(m_Offset, k_Offset);
+
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
                 bool decalLayerEnabled = false;
@@ -502,16 +504,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else if (showAffectTransparency)
                     EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
-
-                EditorGUI.BeginChangeCheck();
-                Vector3 previousOffset = m_Offset.vector3Value;
-                EditorGUILayout.PropertyField(m_Offset);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObjects(targets.SelectMany(t => new[] { t, (t as DecalProjector).transform }).ToArray(), "Decal Projector Offset Change");
-                    foreach (DecalProjector projector in targets)
-                        projector.transform.position += projector.transform.rotation * (m_Offset.vector3Value - previousOffset);
-                }
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
