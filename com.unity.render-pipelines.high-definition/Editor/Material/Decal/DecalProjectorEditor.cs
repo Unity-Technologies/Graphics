@@ -129,39 +129,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (DecalProjectorEditor editor in s_Instances)
             {
-                Debug.Log("Check Start");
                 if (selectionTargets.Length != editor.targets.Length)
-                {
-                    Debug.Log("Length missmatch");
                     continue;
-                }
                 bool allOk = true;
                 foreach (DecalProjector selectionTarget in selectionTargets)
                     if (!Array.Find(editor.targets, t => t == selectionTarget))
                     {
-                        Debug.Log("Missing " + selectionTarget);
                         allOk = false;
                         break;
                     }
                 if (!allOk)
                     continue;
-                Debug.Log("All good");
                 return editor;
             }
             return null;
         }
-
-        static DecalProjectorEditor()
-        {
-            Type TransformHandleIdsType = Type.GetType("UnityEditor.Handles.TransformHandleIds, UnityEditor");
-            var transformTranslationXHash = Expression.Variable(typeof(int), "TransformTranslationXHash");
-            var transformTranslationYHash = Expression.Variable(typeof(int), "TransformTranslationYHash");
-            var transformTranslationXYHash = Expression.Variable(typeof(int), "TransformTranslationXYHash");
-            Type transformHandleParamType = Type.GetType("UnityEditor.Handles.TransformHandleParam, UnityEditor");
-            //var transformHandleParam = Expression.Variable(transformHandleParamType, "TransformHandleParam");
-
-        }
-
 
         private void OnEnable()
         {
@@ -262,8 +244,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
                 {
-                    bool needToRefreshDecalProjector = false;
-
                     Vector3 centerStart = new Vector3(
                         -decalProjector.offset.x,
                         -decalProjector.offset.y,
@@ -278,8 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     boxHandle.DrawHandle();
                     if (EditorGUI.EndChangeCheck())
                     {
-                        needToRefreshDecalProjector = true;
-
                         // Adjust decal transform if handle changed.
                         Undo.RecordObjects(new UnityEngine.Object[] { decalProjector, decalProjector.transform }, "Decal Projector Change");
 
@@ -308,32 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);
                         }
-                    }
-
-                    // Automatically recenter our transform component if necessary.
-                    // In order to correctly handle world-space snapping, we only perform this recentering when the user is no longer interacting with the gizmo.
-                    //if (GUIUtility.hotControl == 0 && decalProjector.offset != Vector3.zero)
-                    //{
-                    //    needToRefreshDecalProjector = true;
-
-                    //    // Both the DecalProjectorComponent, and the transform will be modified.
-                    //    // The undo system will automatically group all RecordObject() calls here into a single action.
-                    //    Undo.RecordObject(decalProjector.transform, "Decal Projector Change");
-
-                    //    // Re-center the transform to the center of the decal projector bounds,
-                    //    // while maintaining the world-space coordinates of the decal projector boundings vertices.
-                    //    // Center of the decal projector is not the same of the HierarchicalBox as we want it to be on the z face as lights
-                    //    decalProjector.transform.Translate(decalProjector.offset + new Vector3(0f, 0f, handle.size.z * -0.5f), Space.Self);
-
-                    //    decalProjector.offset = new Vector3(0f, 0f, handle.size.z * 0.5f);
-                    //    if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
-                    //    {
-                    //        PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);
-                    //    }
-                    //}
-
-                    if (needToRefreshDecalProjector)
-                    {
+                        
                         // Smoothly update the decal image projected
                         DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
                     }
@@ -355,9 +308,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // UV
-                //using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (new Vector3(decalProjector.size.x * 0.5f, decalProjector.size.y * 0.5f, 0) + decalProjector.offset), decalProjector.transform.rotation, Vector3.one)))
-                //Vector3 drawingSpaceOrigin = decalProjector.transform.position - decalProjector.transform.rotation * (new Vector3(decalProjector.size.x * 0.5f, decalProjector.size.y * 0.5f, 0) + decalProjector.offset);
-                //float drawingSpaceZRotated = (Quaternion.Inverse(decalProjector.transform.rotation) * decalProjector.transform.position).z + decalProjector.offset.z;
                 Vector3 drawingSpaceOriginRotated = Quaternion.Inverse(decalProjector.transform.rotation) * decalProjector.transform.position - new Vector3(decalProjector.size.x * 0.5f, decalProjector.size.y * 0.5f, 0) + decalProjector.offset;
                 using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
                 {
@@ -370,19 +320,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     m_UVHandles.center = UVCenter;
                     m_UVHandles.size = UVSize;
-
-                    string debugBefore = m_UVHandles.debug;
-
+                    
                     EditorGUI.BeginChangeCheck();
                     m_UVHandles.DrawHandle();
                     if (EditorGUI.EndChangeCheck())
                     {
-                        Debug.Log($"Rect changed {debugBefore} -> {m_UVHandles.debug}");
 
                         Vector2 limit = new Vector2(Mathf.Abs(decalProjector.size.x * k_LimitInv), Mathf.Abs(decalProjector.size.y * k_LimitInv));
-                        Debug.Log($"Limit:({limit.x},{limit.y})");
                         Vector2 uvScale = m_UVHandles.size;
-                        Debug.Log($"local uvScale before:({uvScale.x},{uvScale.y})");
                         for (int channel = 0; channel < 2; channel++)
                         {
                             if (Mathf.Abs(uvScale[channel]) > limit[channel])
@@ -390,27 +335,17 @@ namespace UnityEditor.Rendering.HighDefinition
                             else
                                 uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
                         }
-                        Debug.Log($"local uvScale after:({uvScale.x},{uvScale.y})");
-
-                        Vector2 debugUvScale = decalProjector.uvScale;
-                        Vector2 debugUvBias = decalProjector.uvBias;
-
                         decalProjector.uvScale = uvScale;
-                        Debug.Log($"uvScale ({debugUvScale.x},{debugUvScale.y})->({decalProjector.uvScale.x},{decalProjector.uvScale.y})");
                         
                         var newUVStart = m_UVHandles.center - .5f * m_UVHandles.size - (Vector2)drawingSpaceOriginRotated;
                         decalProjector.uvBias = -new Vector2(
                            m_UVHandles.size.x < k_LimitInv && m_UVHandles.size.x > -k_LimitInv ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / m_UVHandles.size.x,
                            m_UVHandles.size.y < k_LimitInv && m_UVHandles.size.y > -k_LimitInv ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / m_UVHandles.size.y
                         );
-                        Debug.Log($"uvBias {D(debugUvBias)}->{D(decalProjector.uvBias)}   UVCenter:{D(UVCenter)}   UVSize:{D(UVSize)}   UVStart:{D(UVStart)}   newUVStart:{D(newUVStart)}");
                     }
                 }
             }
         }
-
-        static string D(Vector2 a) => $"({a.x},{a.y})";
-
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
@@ -428,7 +363,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isVolumeEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
                 bool isPivotEditMode = editMode == k_EditUVAndPivot;
                 boxHandle.DrawHull(isVolumeEditMode);
-                
+
                 Vector3 pivot = Vector3.zero;
                 Vector3 projectedPivot = new Vector3(0, 0, -decalProjector.offset.z);
 
@@ -455,14 +390,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_UVHandles.center = UVCenter;
                     m_UVHandles.size = UVSize;
                     m_UVHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
-                    
+
                     m_UVHandles.center = default;
                     m_UVHandles.size = decalProjector.size;
                     m_UVHandles.DrawRect(dottedLine: false, sickness: 3f);
                 }
             }
         }
-        
+
         static Func<Bounds> GetBoundsGetter(DecalProjector decalProjector)
         {
             return () =>
@@ -626,7 +561,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        
+
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
         static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
         {
@@ -648,7 +583,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ChangeEditMode(k_EditShapePreservingUV, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
-        
+
         [Shortcut("HDRP/Decal: Handle changing pivot position and UVs", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
         static void EnterEditModePivotPreservingUV(ShortcutArguments args)
         {
