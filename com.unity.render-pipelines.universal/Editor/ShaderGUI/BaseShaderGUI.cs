@@ -2,10 +2,11 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering;
 
 namespace UnityEditor
 {
-    public abstract class BaseShaderGUI : ShaderGUI
+    public abstract class BaseShaderGUI : SRPShaderGUI
     {
         #region EnumsAndClasses
 
@@ -161,6 +162,8 @@ namespace UnityEditor
             if (materialEditorIn == null)
                 throw new ArgumentNullException("materialEditorIn");
 
+            base.OnGUI(materialEditorIn, properties);
+
             FindProperties(properties); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             materialEditor = materialEditorIn;
             Material material = materialEditor.target as Material;
@@ -305,7 +308,8 @@ namespace UnityEditor
         {
             if (baseMapProp != null && baseColorProp != null) // Draw the baseMap, most shader will have at least a baseMap
             {
-                materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
+                using(CreateOverrideScopeFor(baseMapProp, baseColorProp))
+                    materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
                 // TODO Temporary fix for lightmapping, to be replaced with attribute tag.
                 if (material.HasProperty("_MainTex"))
                 {
