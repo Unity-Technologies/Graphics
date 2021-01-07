@@ -14,8 +14,10 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyDepthPass : ScriptableRenderPass
     {
-        private RenderTargetIdentifier source { get; set; }
-        private RenderTargetHandle destination { get; set; }
+        static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
@@ -31,12 +33,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Configure the pass with the source and destination to execute on.
         /// </summary>
         /// <param name="source">Source Render Target</param>
-        /// <param name="destination">Destination Render Targt</param>
-        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination)
+        /// <param name="destination">Destination Render Target</param>
+        public void Setup(RTHandle source, RTHandle destination, bool AllocateRT)
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = !destination.HasInternalRenderTargetId();
+            this.AllocateRT = AllocateRT;
             this.MssaSamples = -1;
         }
 
@@ -47,10 +49,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -118,7 +120,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.Identifier() == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -140,7 +142,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.z = bias
                     // scaleBias.w = unused
                     // In game view final target acts as back buffer were target is not flipped
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
+                    bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination == k_CameraTarget;
                     bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
@@ -163,8 +165,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
 
             if (this.AllocateRT)
-                cmd.ReleaseTemporaryRT(destination.id);
-            destination = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination.name));
+            destination = k_CameraTarget;
         }
     }
 }
