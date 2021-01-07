@@ -127,9 +127,9 @@ You define the render pass in the `using` scope around the `AddRenderPass` funct
 
 The `builder` variable is an instance of `RenderGraphBuilder`. This is the entry point to build the information relating to the render pass. There are several important parts to this:
 
-- Declaring resource usage: This is one of the most important aspects of the RenderGraph API. Here you explicitly declare whether the render pass needs read and/or write access to the resources. This allows the render graph to have an overall view of the whole rendering frame and thus determine the best use of GPU memory and synchronization points between various render passes.
-- Declaring the rendering function: This is the function in which you call graphics commands. It receives the pass data you define for the render pass as a parameter as well as the render graph context. You set the rendering function for a render pass via `SetRenderFunc` and the function runs after the graph compiles.
-- Creating transient resources: Transient, or internal, resources are resources you create for the duration of this render pass only. You create them in the builder rather than the render graph itself to reflect their lifetime. Creating transient resources uses the same parameters as the equivalent function in the RenderGraph APIs. This is particularly useful when a pass uses temporary buffers that should not be accessible outside of the pass. Outside the pass where you declare a transient resource, the handle to the resource becomes invalid and Unity throws errors if you try to use it.
+- **Declaring resource usage**: This is one of the most important aspects of the RenderGraph API. Here you explicitly declare whether the render pass needs read and/or write access to the resources. This allows the render graph to have an overall view of the whole rendering frame and thus determine the best use of GPU memory and synchronization points between various render passes.
+- **Declaring the rendering function**: This is the function in which you call graphics commands. It receives the pass data you define for the render pass as a parameter as well as the render graph context. You set the rendering function for a render pass via `SetRenderFunc` and the function runs after the graph compiles.
+- **Creating transient resources**: Transient, or internal, resources are resources you create for the duration of this render pass only. You create them in the builder rather than the render graph itself to reflect their lifetime. Creating transient resources uses the same parameters as the equivalent function in the RenderGraph APIs. This is particularly useful when a pass uses temporary buffers that should not be accessible outside of the pass. Outside the pass where you declare a transient resource, the handle to the resource becomes invalid and Unity throws errors if you try to use it.
 
 The `passData` variable is an instance of the type you provide when you declare the pass. This is where you set the data that the rendering code can access. Note that the render graph does not use the contents of `passData` right away, but later in the frame, after it registers all the passes and the render graph compiles and executes. This means that any reference the `passData` stores must be constant across the whole frame. Otherwise, if you change the content before the render pass executes, it does not contain the correct content during the render pass. For this reason, it is best practice to only store value types in the `passData` unless you are certain that a reference stays constant until the pass finishes execution.
 
@@ -152,7 +152,7 @@ For an overview of the `RenderGraphBuilder` APIs, see the below table. For more 
 
 #### Rendering Code
 
-Rendering CodeAfter you complete the setup, you can declare the function to use for rendering via the `SetRenderFunc` method on the `RenderGraphBuilder`. The function you assign must use the following signature:
+After you complete the setup, you can declare the function to use for rendering via the `SetRenderFunc` method on the `RenderGraphBuilder`. The function you assign must use the following signature:
 
 ```c#
 delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
