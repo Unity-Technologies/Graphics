@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
+- Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
 
 ## [10.3.0] - 2020-12-01
 
