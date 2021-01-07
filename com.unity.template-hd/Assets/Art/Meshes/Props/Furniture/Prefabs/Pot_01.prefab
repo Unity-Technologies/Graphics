@@ -22,6 +22,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0
       objectReference: {fileID: 0}
@@ -34,6 +38,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -44,14 +52,6 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -75,7 +75,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4460821098145677584, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 4294967295
+      value: 126
       objectReference: {fileID: 0}
     - target: {fileID: 5644297768499525317, guid: 6ab1bb6455af87b4eb54f8d4c9523975, type: 3}
       propertyPath: m_ReceiveGI
