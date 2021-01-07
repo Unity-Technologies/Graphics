@@ -64,7 +64,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
         private Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
-        Label m_NameLabelField;
 
         Label m_NameLabelField;
 
