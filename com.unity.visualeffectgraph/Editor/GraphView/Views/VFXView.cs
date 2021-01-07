@@ -944,6 +944,7 @@ namespace UnityEditor.VFX.UI
                     m_LockedElement.style.display = DisplayStyle.Flex;
                     this.RemoveManipulator(m_SelectionDragger);
                     this.RemoveManipulator(m_RectangleSelector);
+                    m_LockedElement.Focus();
                 }
                 m_Blackboard.LockUI();
             }
