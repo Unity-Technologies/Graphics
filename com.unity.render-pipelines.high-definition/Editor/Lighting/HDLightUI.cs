@@ -75,6 +75,14 @@ namespace UnityEditor.Rendering.HighDefinition
             k_AdditionalPropertiesState.UnregisterEditor(editor);
         }
 
+        internal static void ShowAdditionalProperties(bool value)
+        {
+            if (value)
+                k_AdditionalPropertiesState.ShowAll();
+            else
+                k_AdditionalPropertiesState.HideAll();
+        }
+
         static HDLightUI()
         {
             Inspector = CED.Group(

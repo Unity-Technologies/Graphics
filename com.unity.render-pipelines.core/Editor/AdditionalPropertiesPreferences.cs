@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 
 namespace UnityEditor.Rendering
@@ -14,27 +17,45 @@ namespace UnityEditor.Rendering
             public static readonly int[] additionalPropertiesValues = { 1, 0 };
         }
 
-        static Type[]   s_VolumeComponentEditorTypes;
-        static bool     s_ShowAllAdditionalProperties = false;
+        static List<Type>           s_VolumeComponentEditorTypes;
+        static List<(Type, Type)>   s_IAdditionalPropertiesBoolFlagsHandlerTypes; // (EditorType, ObjectType)
+        static bool                 s_ShowAllAdditionalProperties = false;
+        static Scene                s_DummyScene;
 
         static AdditionalPropertiesPreferences()
         {
             s_ShowAllAdditionalProperties = EditorPrefs.GetBool(Keys.showAllAdditionalProperties);
+            s_DummyScene = EditorSceneManager.NewPreviewScene();
         }
 
-        static void Load()
-        {
-            LoadVolumeComponentEditorTypes();
-        }
-
-        static void LoadVolumeComponentEditorTypes()
+        static void InitializeIfNeeded()
         {
             if (s_VolumeComponentEditorTypes == null)
             {
                 s_VolumeComponentEditorTypes = TypeCache.GetTypesDerivedFrom<VolumeComponentEditor>()
                     .Where(
                         t => !t.IsAbstract
-                    ).ToArray();
+                    ).ToList();
+            }
+
+            if (s_IAdditionalPropertiesBoolFlagsHandlerTypes == null)
+            {
+                s_IAdditionalPropertiesBoolFlagsHandlerTypes = new List<(Type, Type)>();
+
+                var typeList = TypeCache.GetTypesDerivedFrom<IAdditionalPropertiesBoolFlagsHandler>()
+                    .Where(
+                        t => !t.IsAbstract && typeof(Editor).IsAssignableFrom(t)
+                    );
+
+                foreach (var editorType in typeList)
+                {
+                    var customEditorAttributes = editorType.GetCustomAttributes(typeof(CustomEditorForRenderPipelineAttribute), true);
+                    if (customEditorAttributes.Length != 0)
+                    {
+                        Type objectType = (Type)typeof(CustomEditor).GetField("m_InspectedType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(customEditorAttributes[0]);
+                        s_IAdditionalPropertiesBoolFlagsHandlerTypes.Add((editorType, objectType));
+                    }
+                }
             }
         }
 
@@ -75,7 +96,10 @@ namespace UnityEditor.Rendering
 
         static void ShowAllAdditionalProperties(bool value)
         {
-            LoadVolumeComponentEditorTypes();
+            // The way we do this here is to gather all types of either VolumeComponentEditor or IAdditionalPropertiesBoolFlagsHandler (for regular components)
+            // then we instantiate those classes in order to be able to call the relevant function to update the "ShowAdditionalProperties" flags.
+            // The instance on which we call is not important because in the end it will only change a global editor preference.
+            InitializeIfNeeded();
 
             // Volume components
             foreach (var editorType in s_VolumeComponentEditorTypes)
@@ -85,8 +109,27 @@ namespace UnityEditor.Rendering
                 editor.SetAdditionalPropertiesPreference(value);
             }
 
-            // Regular components
 
+            // Regular components
+            // The code here is a bit messy because to instantiate an editor we need to have a valid reference to an object.
+            // So we need to create a dummy game object and add the relevant component to it in order to instantiate the corresponding editor.
+            // We also need to move it to a dummy preview scene in order not to dirty the main scene.
+            var dummyGameObject = new GameObject("DummyAdditionalProperties");
+            dummyGameObject.hideFlags = HideFlags.HideAndDontSave;
+            SceneManager.MoveGameObjectToScene(dummyGameObject, s_DummyScene);
+
+            foreach (var editorTypes in s_IAdditionalPropertiesBoolFlagsHandlerTypes)
+            {
+                var instance = dummyGameObject.AddComponent(editorTypes.Item2);
+                var editor = Editor.CreateEditor(instance, editorTypes.Item1) as IAdditionalPropertiesBoolFlagsHandler;
+                editor.ShowAdditionalProperties(value);
+
+                UnityEngine.Object.DestroyImmediate((Editor)editor);
+            }
+
+            UnityEngine.Object.DestroyImmediate(dummyGameObject);
+
+            // Force repaint in case some editors are already open.
             InternalEditorUtility.RepaintAllViews();
         }
     }

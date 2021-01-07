@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
-    sealed partial class HDLightEditor : LightEditor
+    sealed partial class HDLightEditor : LightEditor, IAdditionalPropertiesBoolFlagsHandler
     {
         public SerializedHDLight m_SerializedHDLight;
 
@@ -50,6 +50,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed -= OnUndoRedo;
             HDLightUI.UnregisterEditor(this);
+        }
+
+        public void ShowAdditionalProperties(bool value)
+        {
+            HDLightUI.ShowAdditionalProperties(value);
         }
 
         void OnUndoRedo()

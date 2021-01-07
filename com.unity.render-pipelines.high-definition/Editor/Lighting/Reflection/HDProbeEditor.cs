@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool showChromeGizmo { get; set; }
     }
 
-    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor, IDefaultFrameSettingsType
+    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor, IDefaultFrameSettingsType, IAdditionalPropertiesBoolFlagsHandler
         where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         where TSerialized : SerializedHDProbe
     {
@@ -84,6 +84,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             HDProbeUI.UnregisterEditor(this);
+        }
+
+        public void ShowAdditionalProperties(bool value)
+        {
+            HDProbeUI.ShowAdditionalProperties(value);
         }
 
         protected virtual void Draw(TSerialized serialized, Editor owner)

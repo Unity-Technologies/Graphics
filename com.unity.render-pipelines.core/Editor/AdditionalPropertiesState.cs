@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering
         /// <summary> Utility to set all states to true </summary>
         public void ShowAll()
         {
-            m_State.rawValue = ~(-1);
+            m_State.rawValue = 0xFFFFFFFF;
         }
 
         /// <summary> Utility to set all states to false </summary>
