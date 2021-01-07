@@ -793,7 +793,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(vertexColorMode, Styles.vertexColorModeText);
 
             bool mainLayerModeInfluenceEnable;
-            using (CreateOverrideScopeFor(vertexColorMode))
+            using (CreateOverrideScopeFor(useMainLayerInfluence))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;

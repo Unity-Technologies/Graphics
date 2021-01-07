@@ -132,29 +132,27 @@ namespace UnityEditor.Rendering.HighDefinition
             var assets = AssetDatabase.LoadAllAssetsAtPath(context.assetPath);
             foreach (var subAsset in assets)
             {
-                if (subAsset == null)
-                    continue;
-                else if (subAsset.GetType() == typeof(Material))
+                if (subAsset is Material)
                     material = subAsset as Material;
-                else if (subAsset.GetType() == typeof(AssetVersion))
+                else if (subAsset is AssetVersion)
                     assetVersion = subAsset as AssetVersion;
-                else if (subAsset.GetType() == typeof(MaterialVariant))
+                else if (subAsset is MaterialVariant)
                     materialVariant = subAsset as MaterialVariant;
             }
 
-            if (HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            UpgradeMaterial(material, assetVersion, context.assetPath);
+
+            if (materialVariant && materialVariant.Import(context, material))
+                HDShaderUtils.ResetMaterialKeywords(material);
+
+            if (material.shader.IsShaderGraph())
             {
-                UpgradeMaterial(material, assetVersion, context.assetPath);
-
-                if (materialVariant && materialVariant.Import(context, material))
-                    HDShaderUtils.ResetMaterialKeywords(material);
-
-                if (material.shader.IsShaderGraph())
-                {
-                    // Add dependency on shadergraph
-                    var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
-                    context.DependsOnSourceAsset(shaderPath);
-                }
+                // Add dependency on shadergraph
+                var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                context.DependsOnSourceAsset(shaderPath);
             }
         }
 

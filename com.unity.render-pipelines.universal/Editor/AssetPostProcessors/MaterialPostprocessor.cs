@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Rendering.MaterialVariants;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -117,72 +118,86 @@ namespace UnityEditor.Rendering.Universal
             s_NeedsSavingAssets = false;
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        // TODO: remove this function when the C++ PR lands
+        void OnPreprocessAsset()
+        {
+            if (context.assetPath.ToLowerInvariant().EndsWith(".mat"))
+                OnPreprocessMaterial();
+        }
+
+        void OnPreprocessMaterial()
+        {
+            Material material = null;
+            AssetVersion assetVersion = null;
+            MaterialVariant materialVariant = null;
+            var assets = AssetDatabase.LoadAllAssetsAtPath(context.assetPath);
+            foreach (var subAsset in assets)
+            {
+                if (subAsset is Material)
+                    material = subAsset as Material;
+                else if (subAsset is AssetVersion)
+                    assetVersion = subAsset as AssetVersion;
+                else if (subAsset is MaterialVariant)
+                    materialVariant = subAsset as MaterialVariant;
+            }
+
+            if (!ShaderUtils.IsLWShader(material.shader))
+                return;
+
+            UpgradeMaterial(material, assetVersion, context.assetPath);
+
+            if (materialVariant && materialVariant.Import(context, material))
+            {
+                // TODO: reset keywords
+            }
+        }
+
+        static void UpgradeMaterial(Material material, AssetVersion assetVersion, string asset)
         {
             var upgradeLog = "UniversalRP Material log:";
             var upgradeCount = 0;
 
-            foreach (var asset in importedAssets)
+            ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
+            var wasUpgraded = false;
+
+            var debug = "\n" + material.name;
+
+            if (!assetVersion)
             {
-                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                if (!ShaderUtils.IsLWShader(material.shader))
-                    continue;
-
-                ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
-                var wasUpgraded = false;
-
-                var debug = "\n" + material.name;
-
-                AssetVersion assetVersion = null;
-                var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
-                foreach (var subAsset in allAssets)
+                wasUpgraded = true;
+                assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                if (s_CreatedAssets.Contains(asset))
                 {
-                    if (subAsset is AssetVersion sub)
-                    {
-                        assetVersion = sub;
-                    }
+                    assetVersion.version = k_Upgraders.Length;
+                    s_CreatedAssets.Remove(asset);
+                    InitializeLatest(material, id);
+                    debug += " initialized.";
+                }
+                else
+                {
+                    assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
+                    debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
                 }
 
-                if (!assetVersion)
-                {
-                    wasUpgraded = true;
-                    assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
-                    if (s_CreatedAssets.Contains(asset))
-                    {
-                        assetVersion.version = k_Upgraders.Length;
-                        s_CreatedAssets.Remove(asset);
-                        InitializeLatest(material, id);
-                        debug += " initialized.";
-                    }
-                    else
-                    {
-                        assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
-                        debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
-                    }
+                assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+                AssetDatabase.AddObjectToAsset(assetVersion, asset);
+            }
 
-                    assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                    AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                }
+            while (assetVersion.version < k_Upgraders.Length)
+            {
+                k_Upgraders[assetVersion.version](material, id);
+                debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
+                assetVersion.version++;
+                wasUpgraded = true;
+            }
 
-                while (assetVersion.version < k_Upgraders.Length)
-                {
-                    k_Upgraders[assetVersion.version](material, id);
-                    debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
-                    assetVersion.version++;
-                    wasUpgraded = true;
-                }
-
-                if (wasUpgraded)
-                {
-                    upgradeLog += debug;
-                    upgradeCount++;
-                    EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
-                }
+            if (wasUpgraded)
+            {
+                upgradeLog += debug;
+                upgradeCount++;
+                EditorUtility.SetDirty(assetVersion);
+                s_ImportedAssetThatNeedSaving.Add(asset);
+                s_NeedsSavingAssets = true;
             }
         }
 
