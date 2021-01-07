@@ -2,7 +2,7 @@
 
 A Renderer Feature is an asset that lets you add extra Render passes to a URP Renderer and configure their behavior.
 
-URP contains the pre-built Renderer Feature called **Render Objects**.
+URP contains the pre-built Renderer Feature called [Render Objects](#render-objects-renderer-feature).
 
 For information on how to add a Renderer Feature to a Renderer, see the page [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
@@ -11,6 +11,8 @@ For information on how to add a Renderer Feature to a Renderer, see the page [Ho
 The Render Objects Renderer Feature contains the following properties.
 
 ![Render Objects Renderer Feature Inspector view](Images/urp-assets/urp-renderer-feature-render-objects.png)
+
+See also: [How to use the Render Objects Renderer Feature](renderer-features/how-to-custom-effect-render-objects.md).
 
 | Property | Description |
 |:-|:-|

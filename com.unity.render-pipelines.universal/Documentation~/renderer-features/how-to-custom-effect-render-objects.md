@@ -2,9 +2,9 @@
 
 This example shows how to use the Render Objects Renderer Feature to create a custom rendering effect.
 
-## The final effect in this example
+## Example overview
 
-The effect that this example shows is:
+This example shows how to implement the following effect:
 
 * There is a character in the Scene.
 
@@ -18,13 +18,13 @@ The effect that this example shows is:
 
 This example requires the following:
 
-* The project has the URP package installed.
+* A Unity project with the URP package installed.
 
 * The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
 
-## Example Scene and GameObjects<a name="example-objects"></a>
+## Create example Scene and GameObjects<a name="example-objects"></a>
 
-To follow the steps in this example, create a new Scene. Add the following GameObjects:
+To follow the steps in this example, create a new Scene with the following GameObjects.
 
 1. Create a Cube. Set its Scale values so that it looks like a wall.
 
@@ -48,9 +48,11 @@ Now you have the objects necessary to follow the steps in this example.
 
 This section assumes that you created a Scene as described in section [Example Scene and GameObjects](#example-objects).
 
-### Implementing a Renderer Feature to draw the character behind objects
+The example implementation uses two Render Objects Renderer Features. One to draw parts of the character that are behind other objects, and another one to draw the parts of the character in front of other objects.
 
-The following steps let you create the example effect using the Render Objects Renderer Feature.
+### Create a Renderer Feature to draw the character behind objects
+
+Create a Renderer Feature to draw the character behind objects.
 
 1. Select a URP Renderer.
 
@@ -60,9 +62,9 @@ The following steps let you create the example effect using the Render Objects R
 
     ![Add Render Object Renderer Feature](../Images/renderer-features/rendobj-add-rend-obj.png)
 
-    Call the new Renderer Feature **DrawCharacterBehind**. The purpose of this Renderer Feature is to draw the character when it's behind other objects in the Scene.
+    Call the new Renderer Feature **DrawCharacterBehind**.
 
-3. Renderer Features in this example use Layers to filter the objects to render. Create a new Layer and call it **Character**.
+3. This example uses Layers to filter the objects to render. Create a new Layer and call it **Character**.
 
     ![Create new Layer called Character](../Images/renderer-features/rendobj-new-layer-character.png)
 
@@ -70,11 +72,9 @@ The following steps let you create the example effect using the Render Objects R
 
 5. In **Overrides** > **Material**, select the `CharacterBehindObjects` Material.
 
-    Now this Renderer Feature overrides the Material of a GameObject with the selected Material.
+    The Renderer Feature overrides the Material of a GameObject with the selected Material.
 
-    ![Layer Mask, Material Override](../Images/renderer-features/rendobj-change-layer-override-material.png)    
-    
-    TODO: maybe split the list here.
+    ![Layer Mask, Material Override](../Images/renderer-features/rendobj-change-layer-override-material.png)
 
 6. The intended behavior is that the Renderer Feature renders the character with the `CharacterBehindObjects` Material only when the character is behind other objects.
 
@@ -88,7 +88,7 @@ With such settings, Unity renders the character with the `CharacterBehindObjects
 
 The following section shows how to avoid the self see-through effect.
 
-### Implementing an extra Renderer Feature to avoid the self see-through effect
+### Create an extra Renderer Feature to avoid the self see-through effect
 
 The settings in the previous section result in the self see-through effect for the following reason:
 
@@ -122,8 +122,8 @@ The following steps show how to avoid such behavior and ensure that Unity draws 
 
     ![Clear Write Depth](../Images/renderer-features/rendobj-render-objects-no-write-depth.png)
 
-Now the example is complete. When the character goes behind objects, Unity draws the character silhouette with the `CharacterBehindObjects` Material.
+The example is complete. When the character goes behind objects, Unity draws the character silhouette with the `CharacterBehindObjects` Material.
 
 ![Character goes behind objects](../Images/renderer-features/charecter-goes-behind-object.gif)
 
-
+To see another use case of the Render Objects Renderer Feature, refer to the **Object Occlusion** Scene in the [Universal Rendering Examples](https://github.com/Unity-Technologies/UniversalRenderingExamples) project.
