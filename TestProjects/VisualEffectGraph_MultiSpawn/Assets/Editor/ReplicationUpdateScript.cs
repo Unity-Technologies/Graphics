@@ -36,7 +36,7 @@ namespace Test
                 foreach (var spawn in graph.children.OfType<VFXBasicSpawner>())
                 {
                     if (!spawn.inputFlowSlot[0].link.Any())
-                        continue; //If there isn't any event plugged, we can skip this : OnPlay doesn't replicate to OnPlay_1, OnPlay_2, ...
+                        continue; //If there isn't any event plugged, we should skip this : OnPlay doesn't replicate to OnPlay_1, OnPlay_2, ...
                     spawn.SetSettingValue("replicationCount", (uint)32);
                 }
 
