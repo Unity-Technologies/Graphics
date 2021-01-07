@@ -3,14 +3,29 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.MaterialVariants
 {
     public class MaterialVariant : ScriptableObject
     {
         public string rootGUID;
-        public List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
-        public List<string> blocks = new List<string>();
+
+        [SerializeField]
+        private List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
+        [SerializeField]
+        private List<string> blocks = new List<string>();
+
+        private Material m_Material = null;
+        public Material material
+        {
+            get
+            {
+                if (m_Material == null)
+                    m_Material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GetAssetPath(this));
+                return m_Material;
+            }
+        }
 
         public Object GetParent()
         {
@@ -78,13 +93,6 @@ namespace UnityEditor.Rendering.MaterialVariants
         {
             propertyName = $"::{propertyName}:";
             return overrides.Any(modification => modification.propertyPath.StartsWith(propertyName));
-        }
-
-        public void ResetOverride(MaterialProperty property)
-        {
-            Undo.RecordObject(this, $"'Reset Override'");
-            MaterialPropertyModification.RevertModification(property, rootGUID);
-            overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
         }
 
         public void ResetOverrides(MaterialProperty[] properties)
@@ -203,7 +211,60 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         #endregion
 
-        #region MaterialVariant Deserialization
+        #region MaterialVariant Import
+
+        public bool Import(AssetImportContext context, Material material)
+        {
+            var newMaterial = GetMaterialFromRoot(context, rootGUID);
+            if (newMaterial != null)
+            {
+                material.shader = newMaterial.shader;
+                material.CopyPropertiesFromMaterial(newMaterial);
+
+                // Apply local modification
+                MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, overrides);
+
+                return true;
+            }
+            return false;
+        }
+
+        Material GetMaterialFromRoot(AssetImportContext ctx, string rootGUID)
+        {
+            string rootPath = AssetDatabase.GUIDToAssetPath(rootGUID);
+
+            // If rootPath is empty it mean that the parent have been deleted. In this case return null
+            if (rootPath == "")
+                return null;
+
+            ctx.DependsOnSourceAsset(rootGUID);
+
+            Material rootMaterial = null;
+            var assets = AssetDatabase.LoadAllAssetsAtPath(rootPath);
+            foreach (var subAsset in assets)
+            {
+                if (subAsset == null)
+                    continue;
+                else if (subAsset.GetType() == typeof(Material))
+                    rootMaterial = subAsset as Material; // Don't return yet in case there is a MaterialVariant after
+                else if (subAsset.GetType() == typeof(MaterialVariant))
+                {
+                    MaterialVariant rootMatVariant = subAsset as MaterialVariant;
+                    rootMaterial = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
+
+                    // Apply root modification
+                    if (rootMaterial != null)
+                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(rootMaterial, rootMatVariant.overrides);
+
+                    return rootMaterial;
+                }
+                else if (subAsset.GetType() == typeof(Shader))
+                    return new Material(subAsset as Shader);
+            }
+
+            return rootMaterial ? new Material(rootMaterial) : null;
+        }
+
         // Caution: GetMaterialVariantFromAssetPath can't be call inside OnImportAsset() as ctx.AddObjectToAsset("Variant", matVariant) is not define yet
         public static MaterialVariant GetMaterialVariantFromAssetPath(string assetPath)
         {

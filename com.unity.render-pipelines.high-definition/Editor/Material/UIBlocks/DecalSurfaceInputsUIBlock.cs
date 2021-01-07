@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering.MaterialVariants;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -218,89 +217,138 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool allMaskMap = materials.All(m => m.GetTexture(kMaskMap));
 
-            materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAffectAlbedo) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
+            using (CreateOverrideScopeFor(baseColorMap, baseColor))
+                materialEditor.TexturePropertySingleLine((materials[0].GetFloat(kAffectAlbedo) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
 
-            materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+            using (CreateOverrideScopeFor(normalMap))
+                materialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+
             if (materials.All(m => m.GetTexture(kNormalMap)))
             {
                 EditorGUI.indentLevel++;
 
-                EditorGUI.BeginChangeCheck();
-                var normalBlendSrcValue = (int)normalBlendSrc.floatValue;
-                normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
-                if (EditorGUI.EndChangeCheck())
-                    normalBlendSrc.floatValue = normalBlendSrcValue;
+                using (CreateOverrideScopeFor(normalBlendSrc))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var normalBlendSrcValue = (int)normalBlendSrc.floatValue;
+                    normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                    if (EditorGUI.EndChangeCheck())
+                        normalBlendSrc.floatValue = normalBlendSrcValue;
+                }
 
                 EditorGUI.indentLevel--;
             }
 
-            materialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
+            using (CreateOverrideScopeFor(maskMap))
+                materialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
+
             EditorGUI.indentLevel++;
             if (allMaskMap)
             {
                 if (perChannelMask)
                 {
-                    float MetalRemapMinValue = metallicRemapMin.floatValue;
-                    float MetalRemapMaxValue = metallicRemapMax.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref MetalRemapMinValue, ref MetalRemapMaxValue, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
+                    using (CreateOverrideScopeFor(metallicRemapMin, metallicRemapMax))
                     {
-                        metallicRemapMin.floatValue = MetalRemapMinValue;
-                        metallicRemapMax.floatValue = MetalRemapMaxValue;
+                        float MetalRemapMinValue = metallicRemapMin.floatValue;
+                        float MetalRemapMaxValue = metallicRemapMax.floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref MetalRemapMinValue, ref MetalRemapMaxValue, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            metallicRemapMin.floatValue = MetalRemapMinValue;
+                            metallicRemapMax.floatValue = MetalRemapMaxValue;
+                        }
                     }
 
-                    float AORemapMinValue = AORemapMin.floatValue;
-                    float AORemapMaxValue = AORemapMax.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
+                    using (CreateOverrideScopeFor(AORemapMin, AORemapMax))
                     {
-                        AORemapMin.floatValue = AORemapMinValue;
-                        AORemapMax.floatValue = AORemapMaxValue;
+                        float AORemapMinValue = AORemapMin.floatValue;
+                        float AORemapMaxValue = AORemapMax.floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            AORemapMin.floatValue = AORemapMinValue;
+                            AORemapMax.floatValue = AORemapMaxValue;
+                        }
                     }
                 }
 
-                float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
-                float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
+                using (CreateOverrideScopeFor(smoothnessRemapMin, smoothnessRemapMax))
                 {
-                    smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
-                    smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
+                    float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
+                    float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
+                        smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
+                    }
                 }
             }
             else
             {
                 if (perChannelMask)
                 {
-                    materialEditor.ShaderProperty(metallic, Styles.metallicText);
-                    materialEditor.ShaderProperty(AO, Styles.aoText);
+                    using (CreateOverrideScopeFor(metallic))
+                        materialEditor.ShaderProperty(metallic, Styles.metallicText);
+                    using (CreateOverrideScopeFor(AO))
+                        materialEditor.ShaderProperty(AO, Styles.aoText);
                 }
-                materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
+                using (CreateOverrideScopeFor(smoothness))
+                    materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
             }
 
-            EditorGUI.BeginChangeCheck();
-            var maskBlendSrcValue = (int)maskBlendSrc.floatValue;
-            maskBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, maskBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
-            if (EditorGUI.EndChangeCheck())
-                maskBlendSrc.floatValue = maskBlendSrcValue;
+            using (CreateOverrideScopeFor(maskBlendSrc))
+            {
+                EditorGUI.BeginChangeCheck();
+                var maskBlendSrcValue = (int)maskBlendSrc.floatValue;
+                maskBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, maskBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                if (EditorGUI.EndChangeCheck())
+                    maskBlendSrc.floatValue = maskBlendSrcValue;
+            }
 
             EditorGUI.indentLevel--;
 
-            materialEditor.ShaderProperty(maskMapBlueScale, allMaskMap ? Styles.maskMapBlueScaleText : Styles.opacityBlueScaleText);
+            using (CreateOverrideScopeFor(maskMapBlueScale))
+                materialEditor.ShaderProperty(maskMapBlueScale, allMaskMap ? Styles.maskMapBlueScaleText : Styles.opacityBlueScaleText);
 
 
-            materialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
-            //if (affectEmission.floatValue == 1.0f) // Always show emissive part
-            using (var scope = new EditorGUI.ChangeCheckScope())
-            {
+            using (CreateOverrideScopeFor(decalBlend))
+                materialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+
+            using (CreateOverrideScopeFor(useEmissiveIntensity))
                 materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
 
-                if (useEmissiveIntensity.floatValue == 1.0f)
+            MaterialPropertyScope.DelayedOverrideRegisterer emissiveColorRegisterer;
+            if (useEmissiveIntensity.floatValue == 0.0f)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                using (var scope = CreateOverrideScopeFor(emissiveColorMap, emissiveColorHDR, emissiveColor))
                 {
+                    emissiveColorRegisterer = scope.ProduceDelayedRegisterer();
+                    materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    emissiveColor.colorValue = emissiveColorHDR.colorValue;
+                    emissiveColorRegisterer.RegisterNow();
+                }
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+
+                using (CreateOverrideScopeFor(emissiveColorMap, emissiveColorLDR))
                     materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
+
+                using (var scope = CreateOverrideScopeFor(emissiveColor, emissiveIntensity, emissiveIntensityUnit))
+                {
+                    emissiveColorRegisterer = scope.ProduceDelayedRegisterer();
+
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
@@ -313,34 +361,26 @@ namespace UnityEditor.Rendering.HighDefinition
                             evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
                             emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                         }
+
                         emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
                     }
                 }
-                else
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
-                }
 
-                materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
-
-                // If anything change, update the emission value
-                if (scope.changed)
+                if (EditorGUI.EndChangeCheck())
                 {
-                    if (useEmissiveIntensity.floatValue == 1.0f)
+                    materialEditor.serializedObject.ApplyModifiedProperties();
+                    foreach (Material target in materials)
                     {
-                        materialEditor.serializedObject.ApplyModifiedProperties();
-                        foreach (Material target in materials)
-                        {
-                            target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
-                        }
-                        materialEditor.serializedObject.Update();
+                        target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
                     }
-                    else
-                    {
-                        emissiveColor.colorValue = emissiveColorHDR.colorValue;
-                    }
+                    materialEditor.serializedObject.Update();
+
+                    emissiveColorRegisterer.RegisterNow();
                 }
             }
+
+            using (CreateOverrideScopeFor(emissiveExposureWeight))
+                materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
         }
     }
 }

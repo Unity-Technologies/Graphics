@@ -81,23 +81,29 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (affectsAlbedo != null)
-                materialEditor.ShaderProperty(affectsAlbedo, Styles.affectAlbedoText);
+                using (CreateOverrideScopeFor(affectsAlbedo))
+                    materialEditor.ShaderProperty(affectsAlbedo, Styles.affectAlbedoText);
             if (affectsNormal != null)
-                materialEditor.ShaderProperty(affectsNormal, Styles.affectNormalText);
+                using (CreateOverrideScopeFor(affectsNormal))
+                    materialEditor.ShaderProperty(affectsNormal, Styles.affectNormalText);
 
             using (new EditorGUI.DisabledScope(!perChannelMask))
             {
                 if (affectsMetal != null)
-                    materialEditor.ShaderProperty(affectsMetal, Styles.affectMetalText);
+                    using (CreateOverrideScopeFor(affectsMetal))
+                        materialEditor.ShaderProperty(affectsMetal, Styles.affectMetalText);
                 if (affectsAO != null)
-                    materialEditor.ShaderProperty(affectsAO, Styles.affectAmbientOcclusionText);
+                    using (CreateOverrideScopeFor(affectsAO))
+                        materialEditor.ShaderProperty(affectsAO, Styles.affectAmbientOcclusionText);
             }
 
             if (affectsSmoothness != null)
-                materialEditor.ShaderProperty(affectsSmoothness, Styles.affectSmoothnessText);
+                using (CreateOverrideScopeFor(affectsSmoothness))
+                    materialEditor.ShaderProperty(affectsSmoothness, Styles.affectSmoothnessText);
 
             if (affectsEmission != null)
-                materialEditor.ShaderProperty(affectsEmission, Styles.affectEmissionText);
+                using (CreateOverrideScopeFor(affectsEmission))
+                    materialEditor.ShaderProperty(affectsEmission, Styles.affectEmissionText);
 
             if (!perChannelMask && (affectsMetal != null || affectsAO != null))
             {

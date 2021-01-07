@@ -180,7 +180,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
                 Color emissiveColorLDRLinear = new Color(Mathf.GammaToLinearSpace(emissiveColorLDR.r), Mathf.GammaToLinearSpace(emissiveColorLDR.g), Mathf.GammaToLinearSpace(emissiveColorLDR.b));
                 Color emissiveColor = emissiveColorLDRLinear * material.GetFloat(kEmissiveIntensity);
-                //using (CreateNonDrawnOverrideScope(kEmissiveColor, emissiveColor))
                 material.SetColor(kEmissiveColor, emissiveColor);
             }
         }

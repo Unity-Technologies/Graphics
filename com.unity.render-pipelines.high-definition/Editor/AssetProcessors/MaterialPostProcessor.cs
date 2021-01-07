@@ -142,121 +142,69 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialVariant = subAsset as MaterialVariant;
             }
 
-            if (material == null)
-                return;
-
-            UpgradeMaterial(material, assetVersion, context.assetPath);
-
-            if (materialVariant)
+            if (HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
             {
-                var newMaterial = GetMaterialFromRoot(context, materialVariant.rootGUID);
-                if (newMaterial != null)
-                {
-                    material.shader = newMaterial.shader;
-                    material.CopyPropertiesFromMaterial(newMaterial);
+                UpgradeMaterial(material, assetVersion, context.assetPath);
 
-                    // Apply local modification
-                    MaterialPropertyModification.ApplyPropertyModificationsToMaterial(material, materialVariant.overrides);
-
-                    // We need to update keyword now that everything is overridden properly
+                if (materialVariant && materialVariant.Import(context, material))
                     HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
 
-            if (material.shader != null && material.shader.IsShaderGraph())
-            {
-                // Add dependency on shadergraph
-                var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
-                context.DependsOnSourceAsset(shaderPath);
-            }
-        }
-
-        protected Material GetMaterialFromRoot(AssetImportContext ctx, string rootGUID)
-        {
-            string rootPath = AssetDatabase.GUIDToAssetPath(rootGUID);
-
-            // If rootPath is empty it mean that the parent have been deleted. In this case return null
-            if (rootPath == "")
-                return null;
-
-            ctx.DependsOnSourceAsset(rootGUID);
-
-            Material rootMaterial = null;
-            var assets = AssetDatabase.LoadAllAssetsAtPath(rootPath);
-            foreach (var subAsset in assets)
-            {
-                if (subAsset == null)
-                    continue;
-                else if (subAsset.GetType() == typeof(Material))
-                    rootMaterial = subAsset as Material; // Don't return yet in case there is a MaterialVariant after
-                else if (subAsset.GetType() == typeof(MaterialVariant))
+                if (material.shader.IsShaderGraph())
                 {
-                    MaterialVariant rootMatVariant = subAsset as MaterialVariant;
-                    rootMaterial = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
-
-                    // Apply root modification
-                    if (rootMaterial != null)
-                        MaterialPropertyModification.ApplyPropertyModificationsToMaterial(rootMaterial, rootMatVariant.overrides);
-
-                    return rootMaterial;
+                    // Add dependency on shadergraph
+                    var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                    context.DependsOnSourceAsset(shaderPath);
                 }
-                else if (subAsset.GetType() == typeof(Shader))
-                    return new Material(subAsset as Shader);
             }
-
-            return rootMaterial ? new Material(rootMaterial) : null;
         }
 
         static void UpgradeMaterial(Material material, AssetVersion assetVersion, string asset)
         {
-            if (HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+            HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
+            var latestVersion = k_Migrations.Length;
+            var wasUpgraded = false;
+
+            //subasset not found
+            if (!assetVersion)
             {
-                HDShaderUtils.ShaderID id = HDShaderUtils.GetShaderEnumFromShader(material.shader);
-                var latestVersion = k_Migrations.Length;
-                var wasUpgraded = false;
-
-                //subasset not found
-                if (!assetVersion)
+                wasUpgraded = true;
+                assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+                if (s_CreatedAssets.Contains(asset))
                 {
-                    wasUpgraded = true;
-                    assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
-                    assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                    if (s_CreatedAssets.Contains(asset))
-                    {
-                        //just created
-                        assetVersion.version = latestVersion;
-                        s_CreatedAssets.Remove(asset);
+                    //just created
+                    assetVersion.version = latestVersion;
+                    s_CreatedAssets.Remove(asset);
 
-                        //[TODO: remove comment once fixed]
-                        //due to FB 1175514, this not work. It is being fixed though.
-                        //delayed call of the following work in some case and cause infinite loop in other cases.
-                        AssetDatabase.AddObjectToAsset(assetVersion, asset);
+                    //[TODO: remove comment once fixed]
+                    //due to FB 1175514, this not work. It is being fixed though.
+                    //delayed call of the following work in some case and cause infinite loop in other cases.
+                    AssetDatabase.AddObjectToAsset(assetVersion, asset);
 
-                        // Init material in case it's used before an inspector window is opened
-                        HDShaderUtils.ResetMaterialKeywords(material);
-                    }
-                    else
-                    {
-                        //asset exist prior migration
-                        assetVersion.version = 0;
-                        AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                    }
+                    // Init material in case it's used before an inspector window is opened
+                    HDShaderUtils.ResetMaterialKeywords(material);
                 }
-
-                //upgrade
-                while (assetVersion.version < latestVersion)
+                else
                 {
-                    k_Migrations[assetVersion.version](material, id);
-                    assetVersion.version++;
-                    wasUpgraded = true;
+                    //asset exist prior migration
+                    assetVersion.version = 0;
+                    AssetDatabase.AddObjectToAsset(assetVersion, asset);
                 }
+            }
 
-                if (wasUpgraded)
-                {
-                    EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
-                }
+            //upgrade
+            while (assetVersion.version < latestVersion)
+            {
+                k_Migrations[assetVersion.version](material, id);
+                assetVersion.version++;
+                wasUpgraded = true;
+            }
+
+            if (wasUpgraded)
+            {
+                EditorUtility.SetDirty(assetVersion);
+                s_ImportedAssetThatNeedSaving.Add(asset);
+                s_NeedsSavingAssets = true;
             }
         }
 
@@ -320,7 +268,6 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        #endregion
         static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
         {
             // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
@@ -719,6 +666,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetFloat(kMetallicRemapMax, metallicScale);
             }
         }
+
+        #endregion
 
         #region Serialization_API
         //Methods in this region interact on the serialized material

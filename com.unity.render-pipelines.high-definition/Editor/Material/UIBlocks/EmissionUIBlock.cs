@@ -131,128 +131,68 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
-        void UpdateEmissionUnit(float newUnitFloat)
-        {
-            foreach (Material target in materials)
-            {
-                if (target.HasProperty(kEmissiveIntensityUnit) && target.HasProperty(kEmissiveIntensity))
-                {
-                    using (CreateNonDrawnOverrideScope(kEmissiveIntensityUnit, newUnitFloat))
-                        target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
-                }
-            }
-            materialEditor.serializedObject.Update();
-        }
-
         void DrawEmissionGUI()
         {
-            EditorGUI.BeginChangeCheck();
             using (CreateOverrideScopeFor(useEmissiveIntensity))
                 materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
-            bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
             if (useEmissiveIntensity.floatValue == 0)
             {
-                EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColor);
-                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                    using (CreateOverrideScopeFor(emissiveColor, forceMode: true))
-                        emissiveColor.colorValue = emissiveColor.colorValue;
                 EditorGUILayout.HelpBox(Styles.emissiveIntensityFromHDRColorText.text, MessageType.Info, true);
             }
             else
             {
-                float newUnitFloat;
-                float newIntensity = emissiveIntensity.floatValue;
                 bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
                 bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
-                bool intensityChanged = false;
-                bool unitChanged = false;
-                MaterialPropertyScope.DelayedOverrideRegisterer emissiveIntensityUnitDelayedRegisterer;
-                MaterialPropertyScope.DelayedOverrideRegisterer emissiveIntensityDelayedRegisterer = default;
                 EditorGUI.BeginChangeCheck();
+                DoEmissiveTextureProperty(emissiveColorLDR);
+
+                MaterialPropertyScope.DelayedOverrideRegisterer emissiveColorRegisterer;
+                using (var scope = CreateOverrideScopeFor(emissiveColor, emissiveIntensity, emissiveIntensityUnit))
                 {
-                    DoEmissiveTextureProperty(emissiveColorLDR);
+                    emissiveColorRegisterer = scope.ProduceDelayedRegisterer();
 
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
-                        EditorGUI.showMixedValue = intensityIsMixed;
 
-                        if (unit == EmissiveIntensityUnit.Nits)
+                        if (unitIsMixed)
                         {
-                            using (var change = new EditorGUI.ChangeCheckScope())
-                            {
-                                using (var scope = CreateOverrideScopeFor(emissiveIntensity))
-                                {
-                                    materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                    emissiveIntensityDelayedRegisterer = scope.ProduceDelayedRegisterer();
-                                }
-                                intensityChanged = change.changed;
-                                if (intensityChanged)
-                                    newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
-                            }
+                            EditorGUI.showMixedValue = true;
+                            using (new EditorGUI.DisabledScope(true))
+                                materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
                         }
                         else
                         {
-                            float value = emissiveIntensity.floatValue;
-                            if (!intensityIsMixed)
+                            EditorGUI.showMixedValue = intensityIsMixed;
+
+                            if (!intensityIsMixed && unit == EmissiveIntensityUnit.EV100)
                             {
                                 float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
                                 evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
+                                evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
                                 emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                                emissiveIntensityDelayedRegisterer.RegisterNow();
                             }
                             else
                             {
-                                using (var change = new EditorGUI.ChangeCheckScope())
-                                {
-                                    using (var scope = CreateOverrideScopeFor(emissiveIntensity))
-                                    {
-                                        newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
-                                        emissiveIntensityDelayedRegisterer = scope.ProduceDelayedRegisterer();
-                                    }
-                                    intensityChanged = change.changed;
-                                }
+                                EditorGUI.BeginChangeCheck();
+                                materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                                if (EditorGUI.EndChangeCheck())
+                                    emissiveIntensity.floatValue = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
                             }
                         }
-                        EditorGUI.showMixedValue = false;
 
                         EditorGUI.showMixedValue = emissiveIntensityUnit.hasMixedValue;
-                        using (var change = new EditorGUI.ChangeCheckScope())
-                        {
-                            using (var scope = CreateOverrideScopeFor(emissiveIntensityUnit))
-                            {
-                                newUnitFloat = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
-                                emissiveIntensityUnitDelayedRegisterer = scope.ProduceDelayedRegisterer();
-                            }
-                            unitChanged = change.changed;
-                        }
-                        EditorGUI.showMixedValue = false;
+                        emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
                     }
                 }
-                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
+                EditorGUI.showMixedValue = false;
+
+                if (EditorGUI.EndChangeCheck())
                 {
-                    if (unitChanged)
-                    {
-                        if (unitIsMixed)
-                            UpdateEmissionUnit(newUnitFloat);
-                        else
-                        {
-                            emissiveIntensityUnit.floatValue = newUnitFloat;
-                            emissiveIntensityUnitDelayedRegisterer.RegisterNow();
-                        }
-                    }
-
-                    // We don't allow changes on intensity if units are mixed
-                    if (intensityChanged && !unitIsMixed)
-                    {
-                        emissiveIntensity.floatValue = newIntensity;
-                        emissiveIntensityDelayedRegisterer.RegisterNow();
-                    }
-
                     UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+                    emissiveColorRegisterer.RegisterNow();
                 }
             }
 

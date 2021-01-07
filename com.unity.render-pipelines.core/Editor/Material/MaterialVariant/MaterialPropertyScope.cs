@@ -12,11 +12,13 @@ namespace UnityEditor.Rendering.MaterialVariants
         MaterialVariant[] m_Variants;
         bool m_Force;
 
-        bool m_HaveDelayedRegisterer;
+        DelayedOverrideRegisterer m_Registerer;
         bool m_IsBlocked;
         float m_StartY;
 
         static bool insidePropertyScope = false;
+
+        static GUIContent iconLock = new GUIContent(EditorGUIUtility.IconContent("AssemblyLock").image, "Property is locked by the parent");
 
         /// <summary>
         /// MaterialPropertyScope are used to handle MaterialPropertyModification in material instances.
@@ -41,7 +43,7 @@ namespace UnityEditor.Rendering.MaterialVariants
             m_Variants = variants;
             m_Force = force;
 
-            m_HaveDelayedRegisterer = false;
+            m_Registerer = null;
             m_IsBlocked = false;
 
             // Get the current Y coordinate before drawing the property
@@ -105,12 +107,20 @@ namespace UnityEditor.Rendering.MaterialVariants
             if (!hasChanged && !m_IsBlocked)
                 hasChanged = EditorGUI.EndChangeCheck(); //Stop registering change
 
-            if (hasChanged && !m_HaveDelayedRegisterer)
-                ApplyChangesToMaterialVariants();
+            if (hasChanged)
+            {
+                if (m_Registerer != null)
+                    m_Registerer.SetAllowRegister(true);
+                else
+                    ApplyChangesToMaterialVariants();
+            }
         }
 
         void ApplyChangesToMaterialVariants()
         {
+            if (m_Variants == null)
+                return;
+
             IEnumerable<MaterialPropertyModification> changes = new MaterialPropertyModification[0];
             foreach (var materialProperty in m_MaterialProperties)
                 changes = changes.Concat(MaterialPropertyModification.CreateMaterialPropertyModifications(materialProperty));
@@ -122,30 +132,36 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         public DelayedOverrideRegisterer ProduceDelayedRegisterer()
         {
-            if (m_HaveDelayedRegisterer)
+            if (m_Registerer != null)
                 throw new Exception($"A delayed registerer already exists for this MaterialPropertyScope for {m_MaterialProperties[0].displayName}. You should only use one at the end of all operations on this property.");
 
-            m_HaveDelayedRegisterer = true;
-
-            return new DelayedOverrideRegisterer(ApplyChangesToMaterialVariants);
+            m_Registerer = new DelayedOverrideRegisterer(ApplyChangesToMaterialVariants);
+            return m_Registerer;
         }
 
-        public struct DelayedOverrideRegisterer
+        public class DelayedOverrideRegisterer
         {
             internal delegate void RegisterFunction();
 
             RegisterFunction m_RegisterFunction;
             bool m_AlreadyRegistered;
+            bool m_AllowRegister;
 
             internal DelayedOverrideRegisterer(RegisterFunction registerFunction)
             {
                 m_RegisterFunction = registerFunction;
                 m_AlreadyRegistered = false;
+                m_AllowRegister = false;
+            }
+
+            internal void SetAllowRegister(bool allow)
+            {
+                m_AllowRegister = allow;
             }
 
             public void RegisterNow()
             {
-                if (!m_AlreadyRegistered)
+                if (!m_AlreadyRegistered && m_AllowRegister)
                 {
                     m_RegisterFunction();
                     m_AlreadyRegistered = true;
@@ -194,6 +210,7 @@ namespace UnityEditor.Rendering.MaterialVariants
                 labelRect.width = 32;
                 EditorGUI.BeginDisabledGroup(isBlocked);
                 GUI.Label(labelRect, EditorGUIUtility.IconContent("AssemblyLock"));
+                GUI.Label(labelRect, iconLock);
                 EditorGUI.EndDisabledGroup();
             }
         }
@@ -336,13 +353,12 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         void IDisposable.Dispose()
         {
-            //Registering change
-            if (m_Variants != null)
-            {
-                System.Collections.Generic.IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(m_PropertyName, m_Value);
-                foreach (var variant in m_Variants)
-                    variant?.TrimPreviousOverridesAndAdd(changes);
-            }
+            if (m_Variants == null)
+                return;
+
+            IEnumerable<MaterialPropertyModification> changes = MaterialPropertyModification.CreateMaterialPropertyModificationsForNonMaterialProperty(m_PropertyName, m_Value);
+            foreach (var variant in m_Variants)
+                variant?.TrimPreviousOverridesAndAdd(changes);
         }
     }
 }
