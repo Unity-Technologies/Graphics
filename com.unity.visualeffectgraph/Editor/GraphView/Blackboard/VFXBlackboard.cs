@@ -121,7 +121,10 @@ namespace  UnityEditor.VFX.UI
             m_LockedElement.style.top = new StyleLength(0f);
             m_LockedElement.style.bottom = new StyleLength(0f);
             m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_LockedElement.style.fontSize = new StyleLength(54f);
+            var fontSize = 54f;
+            m_LockedElement.style.fontSize = new StyleLength(fontSize);
+            m_LockedElement.style.paddingBottom = fontSize / 2f;
+            m_LockedElement.style.paddingTop = fontSize / 2f;
             m_LockedElement.style.display = DisplayStyle.None;
             m_LockedElement.focusable = true;
             m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
