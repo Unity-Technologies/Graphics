@@ -35,9 +35,11 @@ namespace UnityEditor.Rendering.MaterialVariants
                 insidePropertyScope = false;
                 throw new InvalidOperationException("Nested MaterialPropertyScopes are not allowed");
             }
+
+            IEnumerable<MaterialProperty> validProperties =  materialProperties.Where(p => p != null);
             insidePropertyScope = true;
 
-            m_MaterialProperties = materialProperties;
+            m_MaterialProperties =validProperties.ToArray();
             m_Variants = variants;
             m_Force = force;
 
