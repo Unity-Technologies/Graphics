@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with half res ssgi upscale.
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed timing issues with accumulation motion blur
+- Fixed register spilling on  FXC in light list shaders.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

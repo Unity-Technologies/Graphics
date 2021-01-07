@@ -216,8 +216,7 @@ groupshared uint  gs_NdcAaBbMaxPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
 
-/// -------------- tmp
-
+// ----------- Use LDS for the vertex ring buffer as otherwise on FXC we create register spilling
 
 groupshared float gs_VertexRingBufferX[MAX_CLIP_VERTS * THREADS_PER_GROUP];
 groupshared float gs_VertexRingBufferY[MAX_CLIP_VERTS * THREADS_PER_GROUP];
@@ -241,7 +240,7 @@ void WriteToRingBuffer(uint threadIdx, uint entry, float4 value)
     gs_VertexRingBufferZ[threadIdx * MAX_CLIP_VERTS + entry] = value.z;
     gs_VertexRingBufferW[threadIdx * MAX_CLIP_VERTS + entry] = value.w;
 }
-///////////////////////////
+/////////////////////////////////////////////////////////
 
 
 // Returns 'true' if it manages to cull the face.
