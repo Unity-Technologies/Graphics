@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTargetHandle outputTex;
+            RTHandle outputTex;
             RenderTextureDescriptor desc;
 
             if (m_PassIndex == 0 && m_DeferredLights.HasTileDepthRangeExtraPass())
@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 outputTex = m_DeferredLights.TileDepthInfoTexture;
                 desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
             }
-            cmd.GetTemporaryRT(outputTex.id, desc, FilterMode.Point);
-            base.ConfigureTarget(outputTex.Identifier());
+            cmd.GetTemporaryRT(Shader.PropertyToID(outputTex.name), desc, FilterMode.Point);
+            base.ConfigureTarget(outputTex);
         }
 
         /// <inheritdoc/>
@@ -59,8 +59,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_DeferredLights.TileDepthInfoTexture.id);
-            m_DeferredLights.TileDepthInfoTexture = RenderTargetHandle.CameraTarget;
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DeferredLights.TileDepthInfoTexture.name));
+            m_DeferredLights.TileDepthInfoTexture = RTHandles.Alloc(RenderTargetHandle.CameraTarget.Identifier(), m_DeferredLights.TileDepthInfoTexture.name);
         }
     }
 }

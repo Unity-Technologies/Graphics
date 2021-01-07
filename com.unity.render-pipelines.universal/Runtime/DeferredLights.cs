@@ -359,11 +359,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle DepthAttachment { get; set; }
         //
-        internal RenderTargetHandle DepthCopyTexture { get; set; }
+        internal RTHandle DepthCopyTexture { get; set; }
         // Intermediate depth info texture.
-        internal RenderTargetHandle DepthInfoTexture { get; set; }
+        internal RTHandle DepthInfoTexture { get; set; }
         // Per-tile depth info texture.
-        internal RenderTargetHandle TileDepthInfoTexture { get; set; }
+        internal RTHandle TileDepthInfoTexture { get; set; }
 
         internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
         internal GraphicsFormat[] GbufferFormats { get; set; }
@@ -741,9 +741,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
-            RenderTargetHandle depthCopyTexture,
-            RenderTargetHandle depthInfoTexture,
-            RenderTargetHandle tileDepthInfoTexture,
+            RTHandle depthCopyTexture,
+            RTHandle depthInfoTexture,
+            RTHandle tileDepthInfoTexture,
             RenderTargetHandle depthAttachment,
             RenderTargetHandle[] gbufferHandles)
         {
@@ -768,9 +768,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.GbufferAttachments[this.GBufferShadowMask] = gbufferHandles[(int)GBufferHandles.ShadowMask];
             this.DepthAttachment = depthAttachment;
 
-            this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
-            this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
-            this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
+            this.DepthCopyTextureIdentifier = this.DepthCopyTexture;
+            this.DepthInfoTextureIdentifier = this.DepthInfoTexture;
+            this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture;
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
             {
                 this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
@@ -1480,7 +1480,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
                 cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-                cmd.SetGlobalTexture(this.TileDepthInfoTexture.id, this.TileDepthInfoTextureIdentifier);
+                cmd.SetGlobalTexture(Shader.PropertyToID(DepthInfoTexture.name), this.TileDepthInfoTextureIdentifier);
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {
