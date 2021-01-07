@@ -14,10 +14,8 @@ namespace Test
         [MenuItem("Edit/Visual Effects//Modify Replication Count (test)", priority = 321)]
         public static void ModifyReplicationCOunt()
         {
-            //Retrieve VisualEffectASset
             var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
-            foreach (var guid in vfxAssetsGuid)
+            foreach (var guid in AssetDatabase.FindAssets("t:VisualEffectAsset"))
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 if (assetPath.Contains("ReplicateUpdateScript_Data"))
@@ -46,7 +44,7 @@ namespace Test
                     init.SetSettingValue("capacity", (uint)128); //capacity is actually stored in VFXParticleData but this context supports a bridge.
                 }
 
-                //Change the bounding box value (which is store in a slot)
+                //Change the bounding box value (which is stored in a slot value)
                 foreach (var init in graph.children.OfType<VFXBasicInitialize>())
                 {
                     var boundingBoxSlot = init.inputSlots.First(o => o.name == "bounds");
