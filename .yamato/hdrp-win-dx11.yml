@@ -55,7 +55,7 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -191,7 +191,7 @@ HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
