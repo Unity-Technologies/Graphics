@@ -61,9 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public DisplacableRectHandles(Color baseTint)
+        public DisplacableRectHandles(Color baseColor)
         {
-            baseColor = baseTint;
+            this.baseColor = baseColor;
         }
         
         /// <summary>Draw the rect.</summary>

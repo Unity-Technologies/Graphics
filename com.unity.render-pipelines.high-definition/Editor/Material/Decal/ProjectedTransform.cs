@@ -154,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static ProjectedTransform()
         {
+            //We need to know if grid snaping is active or not in Editor. Sadly this is internal so we must grab it by reflection.
             Type gridSnappingType = typeof(Handles).Assembly.GetType("UnityEditor.GridSnapping");
             PropertyInfo activePropertyInfo = gridSnappingType.GetProperty("active", BindingFlags.Public | BindingFlags.Static);
             MethodCallExpression activePropertyGetCall = Expression.Call(null, activePropertyInfo.GetGetMethod());

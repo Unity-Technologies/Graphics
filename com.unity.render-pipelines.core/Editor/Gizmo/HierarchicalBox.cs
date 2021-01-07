@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering
             set
             {
                 value.a = 8f / 255;
-                SetBaseColorWithoutIntensityChange(value);
+                SetBaseColor(value);
             }
         }
 
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
         /// Instead of <see cref="baseColor">baseColor</see> set, this will not force the opacity and keep what is provided for the filled faces.
         /// </summary>
         /// <param name="color">The color to use</param>
-        public void SetBaseColorWithoutIntensityChange(Color color)
+        public void SetBaseColor(Color color)
         {
             m_MonochromeFillColor = color;
             material.color = m_MonochromeFillColor;

@@ -46,6 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static DecalProjectorEditor()
         {
+            // PrefColor is the type to use to have a Color that is customizable inside the Preference/Colors panel.
+            // Sadly it is internal so we must create it and grab color from it by reflection.
             Type prefColorType = typeof(Editor).Assembly.GetType("UnityEditor.PrefColor");
             s_ColorPref = Activator.CreateInstance(prefColorType, new object[] { "HDRP/Decal", k_GizmoColorBase.r, k_GizmoColorBase.g, k_GizmoColorBase.b, k_GizmoColorBase.a });
             ParameterExpression colorParameter = Expression.Parameter(prefColorType, "color");
@@ -120,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     Color c = fullColor;
                     s_BoxHandle = new HierarchicalBox(s_LastColor, new []{ c, c, c, c, c, c });
-                    s_BoxHandle.SetBaseColorWithoutIntensityChange(s_LastColor);
+                    s_BoxHandle.SetBaseColor(s_LastColor);
                     s_BoxHandle.monoHandle = false;
                 }
                 return s_BoxHandle;
