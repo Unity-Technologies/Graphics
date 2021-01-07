@@ -687,8 +687,6 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
-            var depthCopyTexture = new RenderTargetHandle(Shader.PropertyToID(m_DepthTexture.name));
-            depthCopyTexture.Init(Shader.PropertyToID(m_DepthTexture.name));
             // the last slice is the lighting buffer created in DeferredRenderer.cs
             m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraColorAttachment;
 
@@ -697,13 +695,16 @@ namespace UnityEngine.Rendering.Universal
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
                 hasDepthPrepass,
                 hasNormalPrepass,
-                depthCopyTexture,
-                new RenderTargetHandle(Shader.PropertyToID(m_DepthInfoTexture.name)),
-                new RenderTargetHandle(Shader.PropertyToID(m_TileDepthInfoTexture.name)),
+                m_DepthTexture,
+                m_DepthInfoTexture,
+                m_TileDepthInfoTexture,
                 m_ActiveCameraDepthAttachment, m_GBufferHandles
             );
 
             EnqueuePass(m_GBufferPass);
+
+            var depthCopyTexture = new RenderTargetHandle(Shader.PropertyToID(m_DepthTexture.name));
+            depthCopyTexture.Init(Shader.PropertyToID(m_DepthTexture.name));
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
             m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, depthCopyTexture);

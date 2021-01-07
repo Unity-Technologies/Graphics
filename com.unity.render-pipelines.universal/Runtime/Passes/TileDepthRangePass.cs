@@ -20,7 +20,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTargetHandle outputTex;
+            int outputTexId;
+            RTHandle outputTex;
             RenderTextureDescriptor desc;
 
             if (m_PassIndex == 0 && m_DeferredLights.HasTileDepthRangeExtraPass())
@@ -30,6 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int depthInfoHeight = (m_DeferredLights.RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
 
                 outputTex = m_DeferredLights.DepthInfoTexture;
+                outputTexId = URPShaderIDs._DepthInfoTexture;
                 desc = new RenderTextureDescriptor(depthInfoWidth, depthInfoHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
             }
             else
@@ -38,10 +40,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).TileYCount;
 
                 outputTex = m_DeferredLights.TileDepthInfoTexture;
+                outputTexId = URPShaderIDs._TileDepthInfoTexture;
                 desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
             }
-            cmd.GetTemporaryRT(outputTex.id, desc, FilterMode.Point);
-            base.ConfigureTarget(outputTex.Identifier());
+            cmd.GetTemporaryRT(outputTexId, desc, FilterMode.Point);
+            base.ConfigureTarget(outputTex);
         }
 
         /// <inheritdoc/>
@@ -59,8 +62,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_DeferredLights.TileDepthInfoTexture.id);
-            m_DeferredLights.TileDepthInfoTexture = RenderTargetHandle.CameraTarget;
+            cmd.ReleaseTemporaryRT(URPShaderIDs._TileDepthInfoTexture);
+            m_DeferredLights.TileDepthInfoTexture = RTHandles.Alloc(RenderTargetHandle.CameraTarget.Identifier());
         }
     }
 }
