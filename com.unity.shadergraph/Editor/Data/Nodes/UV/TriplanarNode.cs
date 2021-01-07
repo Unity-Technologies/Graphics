@@ -25,14 +25,11 @@ namespace UnityEditor.ShaderGraph
         const string kBlendInputName = "Blend";
 
         public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
 
         public TriplanarNode()
         {
             name = "Triplanar";
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
 

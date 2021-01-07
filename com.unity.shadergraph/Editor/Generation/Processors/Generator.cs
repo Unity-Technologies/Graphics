@@ -154,6 +154,11 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }
+
+                    foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
+                    {
+                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
+                    }
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");

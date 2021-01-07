@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
 
     // Attribute used to register VFX type to library
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    class VFXInfoAttribute : Attribute
+    class VFXInfoAttribute : ExcludeFromPresetAttribute
     {
         public VFXInfoAttribute()
         {

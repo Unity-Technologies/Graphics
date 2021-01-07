@@ -104,94 +104,117 @@ nightly_shadergraph_-_trunk:
       updated_at: '2020-12-09 23:30:57.365726'
       version: ''
 shadergraph_pr_job_-_trunk:
-  updated_at: '2020-12-14 07:39:14.846805'
+  updated_at: '2021-01-07 07:33:02.843535'
   last_green_revisions:
     android:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     ios:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     linux:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     macos:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     windows:
-      revision: ed1e382e88f9005d540a6121306a6e048c1847c9
-      updated_at: '2020-12-09 23:30:57.365726'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2020-12-14 07:39:14.846805'
+  updated_at: '2021-01-07 07:33:02.843535'
   last_green_revisions:
     android:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     ios:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     linux:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     macos:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     windows:
-      revision: ed1e382e88f9005d540a6121306a6e048c1847c9
-      updated_at: '2020-12-09 23:30:57.365726'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
-  updated_at: '2020-12-14 07:39:14.846805'
+  updated_at: '2021-01-07 07:33:02.843535'
   last_green_revisions:
     android:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     ios:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     linux:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     macos:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     windows:
-      revision: ed1e382e88f9005d540a6121306a6e048c1847c9
-      updated_at: '2020-12-09 23:30:57.365726'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
 nightly_vfx_urp_-_trunk:
-  updated_at: '2020-12-14 07:39:14.846805'
+  updated_at: '2021-01-07 07:33:02.843535'
   last_green_revisions:
     android:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     ios:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     linux:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     macos:
-      revision: 0bc2480b1b38b79716fe2ab0af8235e077f348fc
-      updated_at: '2020-12-13 23:55:49.726027'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
     windows:
-      revision: ed1e382e88f9005d540a6121306a6e048c1847c9
-      updated_at: '2020-12-09 23:30:57.365726'
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
+      version: ''
+nightly_vfx_hdrp_-_trunk:
+  updated_at: '2021-01-07 07:33:02.843535'
+  last_green_revisions:
+    android:
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
+      version: ''
+    ios:
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
+      version: ''
+    linux:
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
+      version: ''
+    macos:
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
+      version: ''
+    windows:
+      revision: 43809e7e5830c2c2178545e7a062908dd30cbd6c
+      updated_at: '2021-01-06 08:53:00.814445'
       version: ''
