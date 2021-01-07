@@ -69,6 +69,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public struct LitProperties
         {
+            public SRPShaderGUI shaderGUI;
+
             // Surface Option Props
             public MaterialProperty workflowMode;
 
@@ -95,8 +97,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty clearCoatMask;
             public MaterialProperty clearCoatSmoothness;
 
-            public LitProperties(MaterialProperty[] properties)
+            public LitProperties(MaterialProperty[] properties, SRPShaderGUI shaderGUI)
             {
+                this.shaderGUI = shaderGUI;
+
                 // Surface Option Props
                 workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
                 // Surface Input Props
@@ -133,8 +137,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (properties.occlusionMap != null)
             {
-                materialEditor.TexturePropertySingleLine(Styles.occlusionText, properties.occlusionMap,
-                    properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null);
+                MaterialProperty extraProperty = properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null;
+
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.occlusionMap, extraProperty))
+                {
+                    materialEditor.TexturePropertySingleLine(Styles.occlusionText, properties.occlusionMap, extraProperty);
+                }
             }
 
             // Check that we have all the required properties for clear coat,
@@ -159,8 +167,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         private static void DoHeightmapArea(LitProperties properties, MaterialEditor materialEditor)
         {
-            materialEditor.TexturePropertySingleLine(Styles.heightMapText, properties.parallaxMapProp,
-                properties.parallaxMapProp.textureValue != null ? properties.parallaxScaleProp : null);
+            MaterialProperty extraProperty = properties.parallaxMapProp.textureValue != null ? properties.parallaxScaleProp : null;
+
+            using(properties.shaderGUI.CreateOverrideScopeFor(properties.parallaxMapProp, extraProperty))
+            {
+                materialEditor.TexturePropertySingleLine(Styles.heightMapText, properties.parallaxMapProp, extraProperty);
+            }
         }
 
         private static bool ClearCoatEnabled(Material material)
@@ -183,38 +195,50 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 coatEnabled = !coatEnabled;
             }
 
-            EditorGUI.BeginDisabledGroup(!coatEnabled);
+            using(new EditorGUI.DisabledGroupScope(!coatEnabled))
             {
-                materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.clearCoatMap, properties.clearCoatMask))
+                {
+                    materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
+                }
 
                 EditorGUI.indentLevel += 2;
 
                 // Texture and HDR color controls
-                materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.clearCoatSmoothness))
+                {
+                    materialEditor.ShaderProperty(properties.clearCoatSmoothness, Styles.clearCoatSmoothnessText);
+                }
 
                 EditorGUI.indentLevel -= 2;
             }
-            EditorGUI.EndDisabledGroup();
         }
 
         public static void DoMetallicSpecularArea(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
             string[] smoothnessChannelNames;
-            bool hasGlossMap = false;
             if (properties.workflowMode == null ||
                 (WorkflowMode)properties.workflowMode.floatValue == WorkflowMode.Metallic)
             {
-                hasGlossMap = properties.metallicGlossMap.textureValue != null;
+                bool hasGlossMap = properties.metallicGlossMap.textureValue != null;
+                MaterialProperty extraProperty = hasGlossMap ? null : properties.metallic;
                 smoothnessChannelNames = Styles.metallicSmoothnessChannelNames;
-                materialEditor.TexturePropertySingleLine(Styles.metallicMapText, properties.metallicGlossMap,
-                    hasGlossMap ? null : properties.metallic);
+
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.metallicGlossMap, extraProperty))
+                {
+                    materialEditor.TexturePropertySingleLine(Styles.metallicMapText, properties.metallicGlossMap, extraProperty);
+                }
             }
             else
             {
-                hasGlossMap = properties.specGlossMap.textureValue != null;
+                bool hasGlossMap = properties.specGlossMap.textureValue != null;
+                MaterialProperty extraProperty = hasGlossMap ? null : properties.specColor;
                 smoothnessChannelNames = Styles.specularSmoothnessChannelNames;
-                BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap,
-                    hasGlossMap ? null : properties.specColor);
+
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.specGlossMap, extraProperty))
+                {
+                    BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, extraProperty);
+                }
             }
             EditorGUI.indentLevel++;
             DoSmoothness(properties, material, smoothnessChannelNames);
@@ -223,35 +247,42 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static void DoSmoothness(LitProperties properties, Material material, string[] smoothnessChannelNames)
         {
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
-            var smoothness = EditorGUILayout.Slider(Styles.smoothnessText, properties.smoothness.floatValue, 0f, 1f);
-            if (EditorGUI.EndChangeCheck())
-                properties.smoothness.floatValue = smoothness;
-            EditorGUI.showMixedValue = false;
+            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") == BaseShaderGUI.SurfaceType.Opaque);
 
-            if (properties.smoothnessMapChannel != null) // smoothness channel
+            using(new EditorGUI.IndentLevelScope())
             {
-                EditorGUI.indentLevel++;
-                EditorGUI.BeginDisabledGroup(!opaque);
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
-                var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
-                if (opaque)
-                    smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource,
-                        smoothnessChannelNames);
-                else
-                    EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
-                if (EditorGUI.EndChangeCheck())
-                    properties.smoothnessMapChannel.floatValue = smoothnessSource;
-                EditorGUI.showMixedValue = false;
-                EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
+                using(properties.shaderGUI.CreateOverrideScopeFor(properties.smoothness))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
+                    var smoothness = EditorGUILayout.Slider(Styles.smoothnessText, properties.smoothness.floatValue, 0f, 1f);
+                    if (EditorGUI.EndChangeCheck())
+                        properties.smoothness.floatValue = smoothness;
+                    EditorGUI.showMixedValue = false;
+                }
+
+                if (properties.smoothnessMapChannel != null) // smoothness channel
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUI.BeginDisabledGroup(!opaque);
+                    using(properties.shaderGUI.CreateOverrideScopeFor(properties.smoothnessMapChannel))
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
+                        var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
+                        if (opaque)
+                            smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource,
+                                smoothnessChannelNames);
+                        else
+                            EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
+                        if (EditorGUI.EndChangeCheck())
+                            properties.smoothnessMapChannel.floatValue = smoothnessSource;
+                        EditorGUI.showMixedValue = false;
+                    }
+                    EditorGUI.EndDisabledGroup();
+                    EditorGUI.indentLevel--;
+                }
             }
-            EditorGUI.indentLevel--;
         }
 
         public static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)
@@ -269,8 +300,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // (MaterialProperty value might come from renderer material property block)
             var hasGlossMap = false;
             var isSpecularWorkFlow = false;
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
+            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") == BaseShaderGUI.SurfaceType.Opaque);
             if (material.HasProperty("_WorkflowMode"))
             {
                 isSpecularWorkFlow = (WorkflowMode)material.GetFloat("_WorkflowMode") == WorkflowMode.Specular;
