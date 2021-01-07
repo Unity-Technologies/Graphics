@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
+  m_Name: TestCaseFilters
+  m_EditorClassIdentifier: 
+  filters:
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e94f1768c0fea4843a93cf691ba136fd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3666dc8006745714997c368c4375f316, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0ab35aa39f371ab4c8d53b46c225d0a5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1f55baf6eaf625e4fab7fa2e4228a3d0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0bd00ddb543475c41bdd787c636d904f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9f38d7cbc64ad534485db5107427e269, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c163eeeb7af1c194590ab367fb84a376, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 94394be5b934f2543b05529545e764f9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: a8836a288e8e4ae49abdf5d23fedb3c8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7c5e1446f931c184aaa07d7dd2f03616, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: Mock HMD Loader
+    StereoModes: 0
+    Reason: PathTracing is not working with XR
