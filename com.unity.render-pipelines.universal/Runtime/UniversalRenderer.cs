@@ -546,13 +546,10 @@ namespace UnityEngine.Rendering.Universal
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
-                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget : afterPostProcessColor;
+                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID("_AfterPostProcessTexture");
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    bool destinationIsInternalRT = destination == RenderTargetHandle.CameraTarget ||
-                                                   destination.HasInternalRenderTargetId();
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), applyFinalPostProcessing, doSRGBConvertion, destinationIsInternalRT);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), applyFinalPostProcessing, resolvePostProcessingToCameraTarget);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -607,7 +604,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 bool destinationIsInternalRT = afterPostProcessColor == RenderTargetHandle.CameraTarget ||
                                                afterPostProcessColor.HasInternalRenderTargetId();
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), false, false, destinationIsInternalRT);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor.id, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), false, false);
                 EnqueuePass(postProcessPass);
             }
 

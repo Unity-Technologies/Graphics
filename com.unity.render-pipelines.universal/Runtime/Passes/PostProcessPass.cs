@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
-        RenderTargetHandle m_Destination;
+        int m_DestinationId;
         RTHandle m_Depth;
         RTHandle m_InternalLut;
 
@@ -138,25 +138,25 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RenderTargetHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool destinationIsInternalRT)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in int destinationId, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
             m_Source = source;
-            m_Destination = destination;
-            m_DestinationIsInternalRT = destinationIsInternalRT;
+            m_DestinationId = destinationId;
+            m_DestinationIsInternalRT = resolvePostProcessingToCameraTarget;
             m_Depth = depth;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            m_EnableSRGBConversionIfNeeded = resolvePostProcessingToCameraTarget;
         }
 
         public void SetupFinalPass(in RTHandle source)
         {
             m_Source = source;
-            m_Destination = RenderTargetHandle.CameraTarget;
+            m_DestinationId = RenderTargetHandle.CameraTarget.id;
             m_DestinationIsInternalRT = true;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var desc = GetCompatibleDescriptor();
             desc.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
+            cmd.GetTemporaryRT(m_DestinationId, desc, FilterMode.Point);
         }
 
         /// <inheritdoc/>
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DestinationIsInternalRT)
                 return;
 
-            cmd.ReleaseTemporaryRT(m_Destination.id);
+            cmd.ReleaseTemporaryRT(m_DestinationId);
         }
 
         public void ResetHistory()
@@ -435,17 +435,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
 
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
-                if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
+                if (m_DestinationId == RenderTargetHandle.CameraTarget.id && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
-                cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                cameraTarget = (m_DestinationId == RenderTargetHandle.CameraTarget.id) ? cameraTarget : m_DestinationId;
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
+                bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || (m_DestinationId == cameraTargetHandle.id || m_HasFinalPass == true);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if (m_Destination == RenderTargetHandle.CameraTarget)
+                    if (m_DestinationId == RenderTargetHandle.CameraTarget.id)
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);

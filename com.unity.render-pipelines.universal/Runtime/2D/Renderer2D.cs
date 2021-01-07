@@ -214,24 +214,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
-                RenderTargetHandle postProcessDestHandle =
-                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
+                bool destinationIsInternalRT = lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass;
 
-                bool destinationIsInternalRT = postProcessDestHandle == RenderTargetHandle.CameraTarget ||
-                                               postProcessDestHandle.HasInternalRenderTargetId();
+                int postProcessDestId = destinationIsInternalRT ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID("_AfterPostProcessTexture");
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
                     colorTargetRT,
-                    postProcessDestHandle,
+                    postProcessDestId,
                     depthTargetRT,
                     colorGradingLut,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget,
                     destinationIsInternalRT);
 
                 EnqueuePass(postProcessPass);
-                colorTargetHandle = postProcessDestHandle;
+                colorTargetHandle = new RenderTargetHandle(postProcessDestId);
+                colorTargetHandle.Init(postProcessDestId);
             }
 
             if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
