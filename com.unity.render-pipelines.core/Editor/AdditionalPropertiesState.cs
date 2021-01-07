@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering
             if (!m_AnimFloats.TryGetValue(mask, out anim))
             {
                 anim = new AnimFloat(0, RepaintAll);
-                anim.speed = CoreEditorStyles.additionalPropertiesHightLightSpeed;
+                anim.speed = CoreEditorConstants.additionalPropertiesHightLightSpeed;
                 m_AnimFloats.Add(mask, anim);
             }
 

@@ -2,6 +2,12 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    public static class CoreEditorConstants
+    {
+        /// <summary>Speed of additional properties highlight.</summary>
+        public static readonly float additionalPropertiesHightLightSpeed = 0.3f;
+    }
+
     /// <summary>Class containing style definition</summary>
     public static class CoreEditorStyles
     {
@@ -30,8 +36,6 @@ namespace UnityEditor.Rendering
 
         /// <summary>Style of a additional properties highlighted background.</summary>
         public static readonly GUIStyle additionalPropertiesHighlightStyle;
-        /// <summary>Speed of additional properties highlight.</summary>
-        public static readonly float additionalPropertiesHightLightSpeed = 0.3f;
 
         /// <summary>Regular background color.</summary>
         public static Color backgroundColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundColor : m_LightThemeBackgroundColor; } }

@@ -109,7 +109,6 @@ namespace UnityEditor.Rendering
         /// Checks if the editor currently has the "Additional Properties" feature toggled on.
         /// </summary>
 
-        // TODO MAKE OBSOLETE
         public bool showAdditionalProperties
         {
             get => m_ShowAdditionalProperties.value;
@@ -121,7 +120,7 @@ namespace UnityEditor.Rendering
                     m_AdditionalPropertiesAnimation.target = 0.0f;
                 }
 
-                m_ShowAdditionalProperties.value = value;
+                SetAdditionalPropertiesPreference(value);
             }
         }
 
@@ -205,6 +204,17 @@ namespace UnityEditor.Rendering
             m_Inspector.Repaint();
         }
 
+        internal void InitAdditionalPropertiesPreference()
+        {
+            string key = $"UI_Show_Additional_Properties_{GetType()}";
+            m_ShowAdditionalProperties = new EditorPrefBool(key);
+        }
+
+        internal void SetAdditionalPropertiesPreference(bool value)
+        {
+            m_ShowAdditionalProperties.value = value;
+        }
+
         internal void Init(VolumeComponent target, Editor inspector)
         {
             this.target = target;
@@ -212,10 +222,10 @@ namespace UnityEditor.Rendering
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
 
-            string key = $"UI_Show_Additional_Properties_{target.GetType()}";
-            m_ShowAdditionalProperties = new EditorPrefBool(key);
+            InitAdditionalPropertiesPreference();
+
             m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint);
-            m_AdditionalPropertiesAnimation.speed = CoreEditorStyles.additionalPropertiesHightLightSpeed;
+            m_AdditionalPropertiesAnimation.speed = CoreEditorConstants.additionalPropertiesHightLightSpeed;
 
             OnEnable();
         }
