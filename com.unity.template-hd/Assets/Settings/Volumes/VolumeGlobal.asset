@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-9066738744827368819
+--- !u!114 &-5508525507662718623
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15,11 +15,11 @@ MonoBehaviour:
   active: 1
   m_AdvancedMode: 0
   quality:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 3
   enable:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.2
@@ -42,20 +42,20 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   layerMask:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
   mode:
     m_OverrideState: 1
-    m_Value: 1
-  sampleCount:
-    m_OverrideState: 0
     m_Value: 2
+  sampleCount:
+    m_OverrideState: 1
+    m_Value: 4
     min: 1
     max: 32
   bounceCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
     min: 1
     max: 31
@@ -65,7 +65,7 @@ MonoBehaviour:
     min: 0.01
   m_ClampValue:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 3
     min: 0.001
     max: 10
   m_FullResolution:
@@ -77,19 +77,53 @@ MonoBehaviour:
     min: 2
     max: 4
   m_Denoise:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_HalfResolutionDenoiser:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   m_DenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.66
+    m_OverrideState: 1
+    m_Value: 1
     min: 0.001
     max: 1
   m_SecondDenoiserPass:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
+--- !u!114 &-5005136912200358210
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d877a03bef431a847adca8ab343db3e1, type: 3}
+  m_Name: RayTracingSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.001
+    min: 0
+    max: 0.1
+  extendShadowCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  extendCameraCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0.01
+  directionalShadowFallbackIntensity:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+    max: 1
 --- !u!114 &-3969488579639410846
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -356,7 +390,8 @@ MonoBehaviour:
   - {fileID: 4566301752631259820}
   - {fileID: 1380372997769115811}
   - {fileID: 3025156689704236023}
-  - {fileID: -9066738744827368819}
+  - {fileID: -5508525507662718623}
+  - {fileID: -5005136912200358210}
 --- !u!114 &747098994415714109
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -725,13 +760,13 @@ MonoBehaviour:
     m_Value: 3
   enabled:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   usedAlgorithm:
     m_OverrideState: 1
     m_Value: 0
   rayTracing:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   reflectSky:
     m_OverrideState: 0
     m_Value: 1
@@ -759,13 +794,13 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   sampleCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
     min: 1
     max: 32
   bounceCount:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 2
     min: 1
     max: 31
   m_MinSmoothness:

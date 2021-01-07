@@ -164,8 +164,16 @@ void RayGenIntegration()
     finalColor *= 1.0 / realSampleCount;
 
     // Expose and clamp the final color
+#if 1
+    // Convert to ycocg space
+    finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
+    // Expose and clamp the final color
+    finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+    finalColor = HsvToRgb(finalColor) * GetInverseCurrentExposureMultiplier();
+#else
+    // Expose and clamp the final color
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
-
+#endif
     // We also need to compute the fade factor for this sample
     float weightValue = _RaytracingReflectionSmoothnessFadeStart == _RaytracingReflectionMinSmoothness ? 1.0 : saturate((perceptualSmoothness - _RaytracingReflectionMinSmoothness) / (_RaytracingReflectionSmoothnessFadeStart -_RaytracingReflectionMinSmoothness));
 
