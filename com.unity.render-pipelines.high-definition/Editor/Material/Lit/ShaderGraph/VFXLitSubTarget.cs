@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, contextData),
-                    //HDStructs.VaryingsMeshToPS,
+                    GenerateFragInputs(context, contextData),
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
@@ -147,6 +147,56 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.vertexID,
             }
         };
+
+        public static StructDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
+        {
+            var fields = new List<FieldDescriptor>();
+
+            // Default
+            // Note: These are all already defined in HDStructFields, but marked as "Optional".
+            //       For now just be explicit here that we NEED everything to define the struct.
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionSS", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionRWS", "", ShaderValueType.Float3));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "tangentToWorld", "", ShaderValueType.Matrix3));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord0", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord1", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord2", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord3", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "color", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "primitiveID", "", ShaderValueType.Uint));
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean));
+
+            // VFX Material Properties
+            // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));                                                              // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
+
+                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+                        continue;
+
+                    fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, filteredNamedExpression.name, "", shaderValueType));
+                }
+            }
+
+            var fragInputs = new StructDescriptor
+            {
+                name = HDStructFields.FragInputs.name,
+                fields = fields.ToArray()
+            };
+
+            return fragInputs;
+        }
 
         // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
         // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
