@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_Size;
         SerializedProperty[] m_SizeValues;
         SerializedProperty m_Offset;
-        SerializedProperty m_OffsetZ;
+        SerializedProperty[] m_OffsetValues;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -223,7 +223,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Size.FindPropertyRelative("z"),
             };
             m_Offset = serializedObject.FindProperty("m_Offset");
-            m_OffsetZ = m_Offset.FindPropertyRelative("z");
+            m_OffsetValues = new[]
+            {
+                m_Offset.FindPropertyRelative("x"),
+                m_Offset.FindPropertyRelative("y"),
+                m_Offset.FindPropertyRelative("z"),
+            };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
@@ -456,6 +461,13 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        void UpdateSize(int axe, float newSize, float oldSize)
+        {
+            m_SizeValues[axe].floatValue = newSize;
+            if (oldSize > Mathf.Epsilon)
+                m_OffsetValues[axe].floatValue *= newSize / oldSize;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -485,18 +497,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    m_SizeValues[0].floatValue = Mathf.Max(0, size[0]);
-                    m_SizeValues[1].floatValue = Mathf.Max(0, size[1]);
+                    for (int i=0; i <2; ++i) 
+                        UpdateSize(i, Mathf.Max(0, size[i]), m_SizeValues[i].floatValue);
                 }
                 EditorGUI.EndProperty();
                 EditorGUI.EndProperty();
 
                 EditorGUI.BeginChangeCheck();
+                float oldSizeZ = m_SizeValues[2].floatValue;
                 EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    m_SizeValues[2].floatValue = Mathf.Max(0, m_SizeValues[2].floatValue);
-                    m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
+                    UpdateSize(2, Mathf.Max(0, m_SizeValues[2].floatValue), oldSizeZ);
                 }
 
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
