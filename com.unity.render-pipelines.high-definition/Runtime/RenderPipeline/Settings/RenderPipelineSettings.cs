@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
-                probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+                probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
             };
             return settings;
         }
@@ -316,13 +316,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         [SerializeField] internal bool supportProbeVolume;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
         /// <summary>Support ray tracing mode.</summary>
         public SupportedRayTracingMode supportedRayTracingMode;
 
-        /// <summary>Global Probe Volume settings.</summary>
-        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
         /// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>

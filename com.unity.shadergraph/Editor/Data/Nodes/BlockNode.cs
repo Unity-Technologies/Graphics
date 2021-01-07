@@ -84,6 +84,9 @@ namespace UnityEditor.ShaderGraph
                 case TangentControl tangentControl:
                     AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability));
                     break;
+                case VertexColorControl vertexColorControl:
+                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability));
+                    break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
                     AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
