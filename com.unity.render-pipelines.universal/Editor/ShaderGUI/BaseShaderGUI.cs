@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering;
+using UnityEditor.Rendering.MaterialVariants;
 
 namespace UnityEditor
 {
@@ -40,6 +41,9 @@ namespace UnityEditor
         protected class Styles
         {
             // Catergories
+            public static readonly GUIContent MaterialVariantHierarchy =
+                new GUIContent(HierarchyUI.Styles.materialVariantHierarchyText, "");
+
             public static readonly GUIContent SurfaceOptions =
                 new GUIContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
 
@@ -124,7 +128,11 @@ namespace UnityEditor
 
         protected string headerStateKey { get { return m_HeaderStateKey; } }
 
+        protected HierarchyUI m_MaterialVariantHierarchyUI;
+
         // Header foldout states
+
+        SavedBool m_MaterialVariantHierarchyFoldout;
 
         SavedBool m_SurfaceOptionsFoldout;
 
@@ -166,7 +174,10 @@ namespace UnityEditor
 
             FindProperties(properties); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             materialEditor = materialEditorIn;
+
             Material material = materialEditor.target as Material;
+            if (m_MaterialVariantHierarchyUI == null && materialEditor.targets.Length == 1 && MaterialVariant.GetMaterialVariantFromObject(material) != null)
+                m_MaterialVariantHierarchyUI = new HierarchyUI(material);
 
             // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
             // material to a universal shader.
@@ -183,6 +194,7 @@ namespace UnityEditor
         {
             // Foldout states
             m_HeaderStateKey = k_KeyPrefix + material.shader.name; // Create key string for editor prefs
+            m_MaterialVariantHierarchyFoldout = new SavedBool($"{m_HeaderStateKey}.MaterialVariantHierarchyFoldout", true);
             m_SurfaceOptionsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceOptionsFoldout", true);
             m_SurfaceInputsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceInputsFoldout", true);
             m_AdvancedFoldout = new SavedBool($"{m_HeaderStateKey}.AdvancedFoldout", false);
@@ -197,6 +209,17 @@ namespace UnityEditor
                 throw new ArgumentNullException("material");
 
             EditorGUI.BeginChangeCheck();
+
+            if (m_MaterialVariantHierarchyUI != null)
+            {
+                m_MaterialVariantHierarchyFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_MaterialVariantHierarchyFoldout.value, Styles.MaterialVariantHierarchy);
+                if (m_MaterialVariantHierarchyFoldout.value)
+                {
+                    m_MaterialVariantHierarchyUI.OnGUI();
+                    EditorGUILayout.Space();
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+            }
 
             m_SurfaceOptionsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceOptionsFoldout.value, Styles.SurfaceOptions);
             if (m_SurfaceOptionsFoldout.value)

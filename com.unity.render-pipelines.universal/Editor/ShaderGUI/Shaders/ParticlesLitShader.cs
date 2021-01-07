@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
-            litProperties = new LitGUI.LitProperties(properties);
+            litProperties = new LitGUI.LitProperties(properties, this);
             particleProps = new ParticleGUI.ParticleProperties(properties);
         }
 
