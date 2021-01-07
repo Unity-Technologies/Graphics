@@ -48,7 +48,7 @@ PR_URP_Performance_LostCrypt_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: a3a788fc9f0499bdff2ea03a130590cd8d61a5bc
+        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
 Nightly_URP_Performance_LostCrypt_trunk:
     name: Nightly URP_Performance_LostCrypt - trunk
     dependencies:
@@ -58,7 +58,7 @@ Nightly_URP_Performance_LostCrypt_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: a3a788fc9f0499bdff2ea03a130590cd8d61a5bc
+        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
 PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt PR Job - CUSTOM-REVISION
     dependencies:
@@ -101,7 +101,7 @@ PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: a3a788fc9f0499bdff2ea03a130590cd8d61a5bc
+        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
 Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: Nightly URP_Performance_LostCrypt - CUSTOM-REVISION
     dependencies:
@@ -112,4 +112,4 @@ Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: a3a788fc9f0499bdff2ea03a130590cd8d61a5bc
+        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
