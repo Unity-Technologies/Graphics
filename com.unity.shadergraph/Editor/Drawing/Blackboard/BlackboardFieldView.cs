@@ -1,16 +1,14 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
     class BlackboardFieldView : BlackboardField, IInspectable
     {
@@ -63,9 +61,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
+        // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
         private Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Label m_NameLabelField;
 
         Label m_NameLabelField;
 
@@ -100,10 +99,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public BlackboardFieldView(GraphData graph,
-                                    ShaderInput input,
-                                    Texture icon,
-                                    string text,
-                                    string typeText) : base(icon, text, typeText)
+                                   ShaderInput input,
+                                   Texture icon,
+                                   string text,
+                                   string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
@@ -112,7 +111,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
             UpdateRightClickMenu();
-
             var nameTextField = this.Q("textField") as TextField;
             var textinput = nameTextField.Q(TextField.textInputUssName);
             // When a display name is changed through the BlackboardPill, this callback handle it

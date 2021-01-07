@@ -49,6 +49,8 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Property = value;
+                // Set callback association for display name updates
+                m_Property.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 AddOutputSlot();
                 Dirty(ModificationScope.Topological);
             }

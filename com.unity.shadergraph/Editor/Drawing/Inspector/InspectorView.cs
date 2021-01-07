@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public override string UxmlName => "GraphInspector";
         public override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
-        private TabbedView m_GraphInspectorView;
+        TabbedView m_GraphInspectorView;
+        TabbedView m_NodeSettingsTab;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 

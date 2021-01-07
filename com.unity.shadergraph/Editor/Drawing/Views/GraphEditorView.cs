@@ -9,13 +9,13 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
             m_Graph.UpdateActiveBlocks(activeBlocks);
 
-            //graph settings need to be initilaized after the target setup
+            // Graph settings need to be initialized after the target setup
             m_InspectorView.InitializeGraphSettings();
         }
 
@@ -1280,11 +1280,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         void SerializeMasterPreviewLayout(GeometryChangedEvent evt)
-        {
-            UpdateSerializedWindowLayout();
-        }
-
-        void SerializeBlackboardLayout(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
         }

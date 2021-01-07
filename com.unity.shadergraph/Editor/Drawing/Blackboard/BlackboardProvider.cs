@@ -6,9 +6,8 @@ using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
     class BlackboardProvider
     {
@@ -293,13 +292,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.AddRange(blackboard.selection);
             }
 
-            foreach (var inputGuid in m_Graph.removedInputs)
+            foreach (var shaderInput in m_Graph.removedInputs)
             {
                 BlackboardRow row;
-                if (m_InputRows.TryGetValue(inputGuid, out row))
+                if (m_InputRows.TryGetValue(shaderInput, out row))
                 {
                     row.RemoveFromHierarchy();
-                    m_InputRows.Remove(inputGuid);
+                    m_InputRows.Remove(shaderInput);
                 }
             }
 
@@ -403,12 +402,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 }
                 default:
+
                     throw new ArgumentOutOfRangeException();
             }
 
             field.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            // These callbacks are used for the property dragging scroll behavior
+            field.RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
+            field.RegisterCallback<DragExitedEvent>(evt => blackboard.HideScrollBoundaryRegions());
 
             // These callbacks are used for the property dragging scroll behavior
             field.RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
