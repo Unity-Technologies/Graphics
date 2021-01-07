@@ -32,19 +32,12 @@ namespace UnityEngine.Rendering
             internal const string volumeGizmoColor = "CoreRP.Volume.GizmoColor";
         }
 
-        [SettingsProvider]
-        static SettingsProvider PreferenceGUI()
+        public static void PreferenceGUI()
         {
-            return new SettingsProvider("Preferences/Core Render Pipeline", SettingsScope.User)
-            {
-                guiHandler = searchContext =>
-                {
-                    if (!m_Loaded)
-                        Load();
+            if (!m_Loaded)
+                Load();
 
-                    volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
-                }
-            };
+            volumeGizmoColor = EditorGUILayout.ColorField("Volume Gizmo Color", volumeGizmoColor);
         }
 
         static CoreRenderPipelinePreferences()

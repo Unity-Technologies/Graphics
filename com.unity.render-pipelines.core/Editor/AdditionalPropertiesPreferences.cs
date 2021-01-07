@@ -76,22 +76,14 @@ namespace UnityEditor.Rendering
             internal const string showAllAdditionalProperties = "General.ShowAllAdditionalProperties";
         }
 
-
-        [SettingsProvider]
-        static SettingsProvider AdditionalPropertiesGUI()
+        internal static void PreferenceGUI()
         {
-            return new SettingsProvider("Preferences/_General/Additional Properties", SettingsScope.User)
+            EditorGUI.BeginChangeCheck();
+            int newValue = EditorGUILayout.IntPopup(Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
+            if (EditorGUI.EndChangeCheck())
             {
-                guiHandler = searchContext =>
-                {
-                    EditorGUI.BeginChangeCheck();
-                    int newValue = EditorGUILayout.IntPopup(Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        showAllAdditionalProperties = newValue == 1 ? true : false;
-                    }
-                }
-            };
+                showAllAdditionalProperties = newValue == 1 ? true : false;
+            }
         }
 
         static void ShowAllAdditionalProperties(bool value)
