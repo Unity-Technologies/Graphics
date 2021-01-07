@@ -208,19 +208,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
+            var colorTargetRT = RTHandles.Alloc(colorTargetHandle.Identifier());
+            var depthTargetRT = RTHandles.Alloc(depthTargetHandle.Identifier());
+            var colorGradingLut = RTHandles.Alloc(colorGradingLutHandle.Identifier());
+
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 RenderTargetHandle postProcessDestHandle =
                     lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
 
+                bool destinationIsInternalRT = postProcessDestHandle == RenderTargetHandle.CameraTarget ||
+                                               postProcessDestHandle.HasInternalRenderTargetId();
+
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
-                    colorTargetHandle,
+                    colorTargetRT,
                     postProcessDestHandle,
-                    depthTargetHandle,
-                    colorGradingLutHandle,
+                    depthTargetRT,
+                    colorGradingLut,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
+                    postProcessDestHandle == RenderTargetHandle.CameraTarget,
+                    destinationIsInternalRT);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
@@ -231,12 +239,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(colorTargetRT);
                 EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(colorTargetHandle.Identifier()));
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetRT);
                 EnqueuePass(m_FinalBlitPass);
             }
         }

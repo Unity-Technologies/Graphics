@@ -21,10 +21,10 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
-        RenderTargetHandle m_Source;
+        RTHandle m_Source;
         RenderTargetHandle m_Destination;
-        RenderTargetHandle m_Depth;
-        RenderTargetHandle m_InternalLut;
+        RTHandle m_Depth;
+        RTHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -76,6 +76,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
 
+        // Do not allocate temporary RT
+        private bool m_DestinationIsInternalRT;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -120,13 +123,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RenderTargetHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool destinationIsInternalRT)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
             m_Source = source;
             m_Destination = destination;
+            m_DestinationIsInternalRT = destinationIsInternalRT;
             m_Depth = depth;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
@@ -134,10 +138,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
         }
 
-        public void SetupFinalPass(in RenderTargetHandle source)
+        public void SetupFinalPass(in RTHandle source)
         {
             m_Source = source;
             m_Destination = RenderTargetHandle.CameraTarget;
+            m_DestinationIsInternalRT = true;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
@@ -146,11 +151,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (m_Destination == RenderTargetHandle.CameraTarget)
-                return;
-
             // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
-            if (m_Destination.HasInternalRenderTargetId())
+            if (m_DestinationIsInternalRT)
                 return;
 
             var desc = GetCompatibleDescriptor();
@@ -161,11 +163,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            if (m_Destination == RenderTargetHandle.CameraTarget)
-                return;
-
             // Logic here matches the if check in OnCameraSetup
-            if (m_Destination.HasInternalRenderTargetId())
+            if (m_DestinationIsInternalRT)
                 return;
 
             cmd.ReleaseTemporaryRT(m_Destination.id);
@@ -294,7 +293,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = m_Source.id;
+            RenderTargetIdentifier source = m_Source;
             RenderTargetIdentifier destination = -1;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -309,7 +308,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     destination = URPShaderIDs._TempTarget;
                     tempTargetUsed = true;
                 }
-                else if (destination == m_Source.id && m_Descriptor.msaaSamples > 1)
+                else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
                 {
                     // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
                     cmd.GetTemporaryRT(URPShaderIDs._TempTarget2, GetCompatibleDescriptor(), FilterMode.Bilinear);
@@ -457,7 +456,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!finishPostProcessOnScreen)
                     {
                         cmd.SetGlobalTexture(URPShaderIDs._SourceTex, cameraTarget);
-                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source.id, 0, CubemapFace.Unknown, -1),
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                         scaleBias = new Vector4(1, 1, 0, 0);;
@@ -483,7 +482,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!finishPostProcessOnScreen)
                     {
                         cmd.SetGlobalTexture(URPShaderIDs._SourceTex, cameraTarget);
-                        cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
 
@@ -544,7 +543,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Intermediate targets
             RenderTargetIdentifier stencil; // We would only need stencil, no depth. But Unity doesn't support that.
             int tempDepthBits;
-            if (m_Depth == RenderTargetHandle.CameraTarget || m_Descriptor.msaaSamples > 1)
+            if (m_Depth == RenderTargetHandle.CameraTarget.Identifier() || m_Descriptor.msaaSamples > 1)
             {
                 // In case m_Depth is CameraTarget it may refer to the backbuffer and we can't use that as an attachment on all platforms
                 stencil = URPShaderIDs._EdgeTexture;
@@ -552,7 +551,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                stencil = m_Depth.Identifier();
+                stencil = m_Depth;
                 tempDepthBits = 0;
             }
             cmd.GetTemporaryRT(URPShaderIDs._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Point);
@@ -1109,7 +1108,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Source material setup
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-            cmd.SetGlobalTexture(URPShaderIDs._InternalLut, m_InternalLut.Identifier());
+            cmd.SetGlobalTexture(URPShaderIDs._InternalLut, m_InternalLut);
             material.SetVector(URPShaderIDs._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
             material.SetTexture(URPShaderIDs._UserLut, m_ColorLookup.texture.value);
             material.SetVector(URPShaderIDs._UserLut_Params, !m_ColorLookup.IsActive()
@@ -1193,7 +1192,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            cmd.SetGlobalTexture(URPShaderIDs._SourceTex, m_Source.Identifier());
+            cmd.SetGlobalTexture(URPShaderIDs._SourceTex, m_Source);
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 

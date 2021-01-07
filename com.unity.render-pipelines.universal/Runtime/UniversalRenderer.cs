@@ -562,7 +562,9 @@ namespace UnityEngine.Rendering.Universal
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    bool destinationIsInternalRT = destination == RenderTargetHandle.CameraTarget ||
+                                                   destination.HasInternalRenderTargetId();
+                    postProcessPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(m_ActiveCameraColorAttachment.Identifier()), destination, RTHandles.Alloc(m_ActiveCameraDepthAttachment.Identifier()), RTHandles.Alloc(colorGradingLut.Identifier()), applyFinalPostProcessing, doSRGBConvertion, destinationIsInternalRT);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -573,7 +575,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(new RenderTargetHandle(sourceForFinalPass));
+                    finalPostProcessPass.SetupFinalPass(RTHandles.Alloc(sourceForFinalPass));
                     EnqueuePass(finalPostProcessPass);
                 }
 
@@ -615,7 +617,9 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                bool destinationIsInternalRT = afterPostProcessColor == RenderTargetHandle.CameraTarget ||
+                                               afterPostProcessColor.HasInternalRenderTargetId();
+                postProcessPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(m_ActiveCameraColorAttachment.Identifier()), afterPostProcessColor, RTHandles.Alloc(m_ActiveCameraDepthAttachment.Identifier()), RTHandles.Alloc(colorGradingLut.Identifier()), false, false, destinationIsInternalRT);
                 EnqueuePass(postProcessPass);
             }
 
