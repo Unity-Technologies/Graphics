@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>Class containing constants</summary>
     public static class CoreEditorConstants
     {
         /// <summary>Speed of additional properties highlight.</summary>
