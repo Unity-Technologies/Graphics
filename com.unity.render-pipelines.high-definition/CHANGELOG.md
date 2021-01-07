@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed affects AO for deacl materials.
 - Fixed case where material keywords would not get setup before usage.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
+- Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
