@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.MaterialVariants;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -21,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public abstract class HDShaderGUI : SRPShaderGUI
     {
         internal protected bool m_FirstFrame = true;
+        HierarchyUI m_MaterialVariantHierarchyUI;
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
@@ -81,6 +83,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                if (m_FirstFrame)
+                {
+                    if (m_MaterialVariantHierarchyUI == null && materialEditor.targets.Length == 1 && MaterialVariant.GetMaterialVariantFromObject(materialEditor.target) != null)
+                        m_MaterialVariantHierarchyUI = new HierarchyUI(materialEditor.target);
+                }
+
+                if (m_MaterialVariantHierarchyUI != null)
+                {
+                    using (var header = new MaterialHeaderScope(HierarchyUI.Styles.materialVariantHierarchyText, (uint)1 << 31, materialEditor))
+                    {
+                        if (header.expanded)
+                            m_MaterialVariantHierarchyUI.OnGUI();
+                    }
+                }
+
                 OnMaterialGUI(materialEditor, props);
             }
         }

@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.MaterialVariants
             Shader = 1
         }
 
+        Material m_Material;
         MaterialVariant m_MatVariant;
 
         string m_ParentGUID = "";
@@ -28,6 +29,7 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         public HierarchyUI(Object materialEditorTarget)
         {
+            m_Material = materialEditorTarget as Material;
             m_MatVariant = MaterialVariant.GetMaterialVariantFromObject(materialEditorTarget);
         }
 
@@ -117,8 +119,14 @@ namespace UnityEditor.Rendering.MaterialVariants
 
                 if (valid)
                 {
-                    Undo.RecordObject(m_MatVariant, "Change Parent");
-                    m_MatVariant.rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(selectedParentTarget));
+                    m_MatVariant.SetParent(selectedParentTarget);
+                    Shader newShader = null;
+                    if (selectedParentTarget is Material material)
+                        newShader = material.shader;
+                    else if (selectedParentTarget is Shader shader)
+                        newShader = shader;
+                    if (newShader && newShader != m_Material.shader)
+                        m_Material.shader = newShader;
                 }
             }
         }
@@ -153,6 +161,5 @@ namespace UnityEditor.Rendering.MaterialVariants
             // We could use this to start a Horizontal and add inline icons and toggles to show overridden/locked
             return target;
         }
-
     }
 }
