@@ -41,20 +41,27 @@ namespace UnityEngine.Rendering
             internal const string volumeGizmoColor = "CoreRP.Volume.GizmoColor";
         }
 
-        public static void PreferenceGUI()
+        [SettingsProvider]
+        static SettingsProvider PreferenceGUI()
         {
-            if (!m_Loaded)
-                Load();
-
-            Rect r = EditorGUILayout.GetControlRect();
-            r.xMin = 10;
-            EditorGUIUtility.labelWidth = 251;
-            volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
-
-            if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
+            return new SettingsProvider("Preferences/Colors/SRP", SettingsScope.User)
             {
-                RevertColors();
-            }
+                guiHandler = searchContext =>
+                {
+                    if (!m_Loaded)
+                        Load();
+
+                    Rect r = EditorGUILayout.GetControlRect();
+                    r.xMin = 10;
+                    EditorGUIUtility.labelWidth = 251;
+                    volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
+
+                    if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
+                    {
+                        RevertColors();
+                    }
+                }
+            };
         }
 
         static void RevertColors()

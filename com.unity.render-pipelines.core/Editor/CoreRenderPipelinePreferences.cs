@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering
             {
                 guiHandler = searchContext =>
                 {
-                    UnityEngine.Rendering.CoreRenderPipelinePreferences.PreferenceGUI();
                     AdditionalPropertiesPreferences.PreferenceGUI();
                 }
             };
