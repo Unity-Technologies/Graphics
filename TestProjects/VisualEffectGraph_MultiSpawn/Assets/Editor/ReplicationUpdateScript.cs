@@ -32,7 +32,7 @@ namespace Test
             {
                 var graph = vfxAsset.GetResource().GetOrCreateGraph();
 
-                //Change the replication
+                //Change the replicationCount
                 foreach (var spawn in graph.children.OfType<VFXBasicSpawner>())
                 {
                     if (!spawn.inputFlowSlot[0].link.Any())
@@ -58,7 +58,7 @@ namespace Test
                     boundingBoxSlot.value = bounds;
                 }
 
-                //Actually, SetExpressionGraphDirty isn't needed if modifications has been done with a notification.
+                //Actually, SetExpressionGraphDirty isn't needed if modifications has been done with a notification (by default).
                 graph.SetExpressionGraphDirty();
                 graph.OnSaved();
             }
