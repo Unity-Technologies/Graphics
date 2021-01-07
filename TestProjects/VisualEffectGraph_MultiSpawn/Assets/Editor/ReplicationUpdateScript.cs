@@ -56,8 +56,6 @@ namespace Test
                     boundingBoxSlot.value = bounds;
                 }
 
-                //Actually, SetExpressionGraphDirty isn't needed if modifications has been done with a notification (by default).
-                graph.SetExpressionGraphDirty();
                 graph.OnSaved();
             }
 
