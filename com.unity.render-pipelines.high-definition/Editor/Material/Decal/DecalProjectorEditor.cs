@@ -311,10 +311,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                     {
                         // Adjust decal transform if handle changed.
-                        Undo.RecordObjects(new UnityEngine.Object[] { decalProjector, decalProjector.transform }, "Decal Projector Change");
+                        Undo.RecordObject(decalProjector, "Decal Projector Change");
 
                         decalProjector.size = boxHandle.size;
-                        decalProjector.transform.position += decalProjector.transform.rotation * (boxHandle.center - centerStart);
+                        decalProjector.offset += boxHandle.center - centerStart;
 
                         Vector3 boundsSizeCurrentOS = boxHandle.size;
                         Vector3 boundsMinCurrentOS = boxHandle.size * -0.5f + boxHandle.center;
