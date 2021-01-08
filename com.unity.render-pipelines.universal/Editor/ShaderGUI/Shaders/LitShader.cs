@@ -82,14 +82,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (litProperties.reflections != null && litProperties.highlights != null)
             {
                 EditorGUI.BeginChangeCheck();
-                using(CreateOverrideScopeFor(litProperties.highlights))
-                {
-                    materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
-                }
-                using(CreateOverrideScopeFor(litProperties.reflections))
-                {
-                    materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
-                }
+                ShaderProperty(materialEditor, litProperties.highlights, LitGUI.Styles.highlightsText);
+                ShaderProperty(materialEditor, litProperties.reflections, LitGUI.Styles.reflectionsText);
                 if (EditorGUI.EndChangeCheck())
                 {
                     MaterialChanged(material);
