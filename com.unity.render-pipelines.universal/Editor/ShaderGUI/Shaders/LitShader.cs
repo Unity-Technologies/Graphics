@@ -50,21 +50,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 throw new ArgumentNullException("material");
 
             // Detect any changes to the material
-            using(CreateOverrideScopeFor(litProperties.workflowMode))
-            {
-                // Use default labelWidth
-                EditorGUIUtility.labelWidth = 0f;
+            // Use default labelWidth
+            EditorGUIUtility.labelWidth = 0f;
 
-                EditorGUI.BeginChangeCheck();
-                if (litProperties.workflowMode != null)
-                {
-                    DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-                }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    foreach (var obj in blendModeProp.targets)
-                        MaterialChanged((Material)obj);
-                }
+            EditorGUI.BeginChangeCheck();
+            if (litProperties.workflowMode != null)
+            {
+                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var obj in blendModeProp.targets)
+                    MaterialChanged((Material)obj);
             }
 
             base.DrawSurfaceOptions(material);

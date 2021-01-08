@@ -45,24 +45,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             MaterialProperty detailAlbedoMapScale = properties.detailAlbedoMap.textureValue != null ? properties.detailAlbedoMapScale : null;
             MaterialProperty detailNormalMapScale = properties.detailNormalMap.textureValue != null ? properties.detailNormalMapScale : null;
 
-            using(shaderGUI.CreateOverrideScopeFor(properties.detailMask))
-            {
-                materialEditor.TexturePropertySingleLine(Styles.detailMaskText, properties.detailMask);
-            }
+            shaderGUI.TextureColorProps(materialEditor, Styles.detailMaskText, properties.detailMask);
+            shaderGUI.TextureColorProps(materialEditor, Styles.detailAlbedoMapText, properties.detailAlbedoMap, detailAlbedoMapScale);
 
-            using(shaderGUI.CreateOverrideScopeFor(properties.detailAlbedoMap, detailAlbedoMapScale))
-            {
-                materialEditor.TexturePropertySingleLine(Styles.detailAlbedoMapText, properties.detailAlbedoMap, detailAlbedoMapScale);
-            }
             if (properties.detailAlbedoMapScale.floatValue != 1.0f)
             {
                 EditorGUILayout.HelpBox(Styles.detailAlbedoMapScaleInfo.text, MessageType.Info, true);
             }
 
-            using(shaderGUI.CreateOverrideScopeFor(properties.detailNormalMap, detailNormalMapScale))
-            {
-                materialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, properties.detailNormalMap, detailNormalMapScale);
-            }
+            shaderGUI.TextureColorProps(materialEditor, Styles.detailNormalMapText, properties.detailNormalMap, detailNormalMapScale);
 
             using(shaderGUI.CreateOverrideScopeFor(properties.detailAlbedoMap))
             {

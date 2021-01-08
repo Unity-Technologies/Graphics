@@ -52,11 +52,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public override void DrawAdvancedOptions(Material material)
         {
-            SimpleLitGUI.Advanced(shadingModelProperties);
+            SimpleLitGUI.Advanced(shadingModelProperties, this);
             EditorGUI.BeginChangeCheck();
             {
                 materialEditor.ShaderProperty(particleProps.flipbookMode, ParticleGUI.Styles.flipbookMode);
-                ParticleGUI.FadingOptions(material, materialEditor, particleProps);
+                ParticleGUI.FadingOptions(material, materialEditor, this, particleProps);
                 ParticleGUI.DoVertexStreamsArea(material, m_RenderersUsingThisMaterial, true);
 
                 if (EditorGUI.EndChangeCheck())

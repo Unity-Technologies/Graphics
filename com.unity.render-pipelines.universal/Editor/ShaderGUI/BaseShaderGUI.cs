@@ -262,17 +262,11 @@ namespace UnityEditor
 
         public virtual void DrawSurfaceOptions(Material material)
         {
-            using(CreateOverrideScopeFor(surfaceTypeProp))
-            {
-                DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
-            }
+            DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
 
             if((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
             {
-                using(CreateOverrideScopeFor(blendModeProp))
-                {
-                    DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
-                }
+                DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
             }
 
             using(CreateOverrideScopeFor(cullingProp))
@@ -350,10 +344,7 @@ namespace UnityEditor
         {
             if (baseMapProp != null && baseColorProp != null) // Draw the baseMap, most shader will have at least a baseMap
             {
-                using(CreateOverrideScopeFor(baseMapProp, baseColorProp))
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
-                }
+                TextureColorProps(materialEditor, Styles.baseMap, baseMapProp, baseColorProp);
 
                 // TODO Temporary fix for lightmapping, to be replaced with attribute tag.
                 if (material.HasProperty("_MainTex"))
@@ -418,10 +409,7 @@ namespace UnityEditor
             {
                 MaterialProperty extraProperty = bumpMap.textureValue != null ? bumpMapScale : null;
 
-                using(CreateOverrideScopeFor(bumpMap, extraProperty))
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, extraProperty);
-                }
+                TextureColorProps(materialEditor, Styles.normalMapText, bumpMap, extraProperty);
 
                 if(bumpMapScale.floatValue != 1 &&
                    UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
@@ -433,7 +421,7 @@ namespace UnityEditor
             }
             else
             {
-                materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap);
+                TextureColorProps(materialEditor, Styles.normalMapText, bumpMap);
             }
         }
 
@@ -568,36 +556,39 @@ namespace UnityEditor
         ////////////////////////////////////
         #region HelperFunctions
 
-        public static void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
+        public void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
             MaterialProperty prop2, GUIContent prop2Label, MaterialEditor materialEditor, float labelWidth = 30f)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prop1.hasMixedValue || prop2.hasMixedValue;
-            Rect rect = EditorGUILayout.GetControlRect();
-            EditorGUI.PrefixLabel(rect, title);
-            var indent = EditorGUI.indentLevel;
-            var preLabelWidth = EditorGUIUtility.labelWidth;
-            EditorGUI.indentLevel = 0;
-            EditorGUIUtility.labelWidth = labelWidth;
-            Rect propRect1 = new Rect(rect.x + preLabelWidth, rect.y,
-                (rect.width - preLabelWidth) * 0.5f, EditorGUIUtility.singleLineHeight);
-            var prop1val = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
-
-            Rect propRect2 = new Rect(propRect1.x + propRect1.width, rect.y,
-                propRect1.width, EditorGUIUtility.singleLineHeight);
-            var prop2val = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
-
-            EditorGUI.indentLevel = indent;
-            EditorGUIUtility.labelWidth = preLabelWidth;
-
-            if (EditorGUI.EndChangeCheck())
+            using(CreateOverrideScopeFor(prop1, prop2))
             {
-                materialEditor.RegisterPropertyChangeUndo(title.text);
-                prop1.floatValue = prop1val;
-                prop2.floatValue = prop2val;
-            }
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = prop1.hasMixedValue || prop2.hasMixedValue;
+                Rect rect = EditorGUILayout.GetControlRect();
+                EditorGUI.PrefixLabel(rect, title);
+                var indent = EditorGUI.indentLevel;
+                var preLabelWidth = EditorGUIUtility.labelWidth;
+                EditorGUI.indentLevel = 0;
+                EditorGUIUtility.labelWidth = labelWidth;
+                Rect propRect1 = new Rect(rect.x + preLabelWidth, rect.y,
+                    (rect.width - preLabelWidth) * 0.5f, EditorGUIUtility.singleLineHeight);
+                var prop1val = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
 
-            EditorGUI.showMixedValue = false;
+                Rect propRect2 = new Rect(propRect1.x + propRect1.width, rect.y,
+                    propRect1.width, EditorGUIUtility.singleLineHeight);
+                var prop2val = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
+
+                EditorGUI.indentLevel = indent;
+                EditorGUIUtility.labelWidth = preLabelWidth;
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo(title.text);
+                    prop1.floatValue = prop1val;
+                    prop2.floatValue = prop2val;
+                }
+
+                EditorGUI.showMixedValue = false;
+            }
         }
 
         public void DoPopup(GUIContent label, MaterialProperty property, string[] options)
@@ -605,53 +596,42 @@ namespace UnityEditor
             DoPopup(label, property, options, materialEditor);
         }
 
-        public static void DoPopup(GUIContent label, MaterialProperty property, string[] options, MaterialEditor materialEditor)
+        public void DoPopup(GUIContent label, MaterialProperty property, string[] options, MaterialEditor materialEditor)
         {
             if (property == null)
                 throw new ArgumentNullException("property");
 
-            EditorGUI.showMixedValue = property.hasMixedValue;
-
-            var mode = property.floatValue;
-            EditorGUI.BeginChangeCheck();
-            mode = EditorGUILayout.Popup(label, (int)mode, options);
-            if (EditorGUI.EndChangeCheck())
+            using(CreateOverrideScopeFor(property))
             {
-                materialEditor.RegisterPropertyChangeUndo(label.text);
-                property.floatValue = mode;
-            }
+                EditorGUI.showMixedValue = property.hasMixedValue;
 
-            EditorGUI.showMixedValue = false;
+                var mode = property.floatValue;
+                EditorGUI.BeginChangeCheck();
+                mode = EditorGUILayout.Popup(label, (int)mode, options);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo(label.text);
+                    property.floatValue = mode;
+                }
+
+                EditorGUI.showMixedValue = false;
+            }
         }
 
         // Helper to show texture and color properties
-        public static Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp, bool hdr = false)
+        public Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp = null, bool hdr = false)
         {
-            Rect rect = EditorGUILayout.GetControlRect();
-            EditorGUI.showMixedValue = textureProp.hasMixedValue;
-            materialEditor.TexturePropertyMiniThumbnail(rect, textureProp, label.text, label.tooltip);
-            EditorGUI.showMixedValue = false;
-
-            if (colorProp != null)
+            using(CreateOverrideScopeFor(textureProp, colorProp))
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = colorProp.hasMixedValue;
-                int indentLevel = EditorGUI.indentLevel;
-                EditorGUI.indentLevel = 0;
-                Rect rectAfterLabel = new Rect(rect.x + EditorGUIUtility.labelWidth, rect.y,
-                    EditorGUIUtility.fieldWidth, EditorGUIUtility.singleLineHeight);
-                var col = EditorGUI.ColorField(rectAfterLabel, GUIContent.none, colorProp.colorValue, true,
-                    false, hdr);
-                EditorGUI.indentLevel = indentLevel;
-                if (EditorGUI.EndChangeCheck())
+                if(hdr)
                 {
-                    materialEditor.RegisterPropertyChangeUndo(colorProp.displayName);
-                    colorProp.colorValue = col;
+                    return materialEditor.TexturePropertyWithHDRColor(label, textureProp, colorProp, false);
                 }
-                EditorGUI.showMixedValue = false;
+                else
+                {
+                    return materialEditor.TexturePropertySingleLine(label, textureProp, colorProp);
+                }
             }
-
-            return rect;
         }
 
         // Copied from shaderGUI as it is a protected function in an abstract class, unavailable to others

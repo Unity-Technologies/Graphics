@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public override void DrawAdvancedOptions(Material material)
         {
-            SimpleLitGUI.Advanced(shadingModelProperties);
+            SimpleLitGUI.Advanced(shadingModelProperties, this);
             base.DrawAdvancedOptions(material);
         }
 

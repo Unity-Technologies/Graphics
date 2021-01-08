@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
+        public static void FadingOptions(Material material, MaterialEditor materialEditor, BaseShaderGUI shaderGUI, ParticleProperties properties)
         {
             // Z write doesn't work with fading
             bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                         }
 
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
+                        shaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
                             properties.softParticlesNearFadeDistance,
                             Styles.softParticlesNearFadeDistanceText,
                             properties.softParticlesFarFadeDistance,
@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Distance"),
+                        shaderGUI.TwoFloatSingleLine(new GUIContent("Distance"),
                             properties.cameraNearFadeDistance,
                             Styles.cameraNearFadeDistanceText,
                             properties.cameraFarFadeDistance,

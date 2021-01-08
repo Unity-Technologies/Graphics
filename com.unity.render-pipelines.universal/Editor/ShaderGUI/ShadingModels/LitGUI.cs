@@ -135,10 +135,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 MaterialProperty extraProperty = properties.occlusionMap.textureValue != null ? properties.occlusionStrength : null;
 
-                using(shaderGUI.CreateOverrideScopeFor(properties.occlusionMap, extraProperty))
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.occlusionText, properties.occlusionMap, extraProperty);
-                }
+                shaderGUI.TextureColorProps(materialEditor, Styles.occlusionText, properties.occlusionMap, extraProperty);
             }
 
             // Check that we have all the required properties for clear coat,
@@ -165,10 +162,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             MaterialProperty extraProperty = properties.parallaxMapProp.textureValue != null ? properties.parallaxScaleProp : null;
 
-            using(shaderGUI.CreateOverrideScopeFor(properties.parallaxMapProp, extraProperty))
-            {
-                materialEditor.TexturePropertySingleLine(Styles.heightMapText, properties.parallaxMapProp, extraProperty);
-            }
+            shaderGUI.TextureColorProps(materialEditor, Styles.heightMapText, properties.parallaxMapProp, extraProperty);
         }
 
         private static bool ClearCoatEnabled(Material material)
@@ -193,10 +187,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             using(new EditorGUI.DisabledGroupScope(!coatEnabled))
             {
-                using(shaderGUI.CreateOverrideScopeFor(properties.clearCoatMap, properties.clearCoatMask))
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
-                }
+                shaderGUI.TextureColorProps(materialEditor, Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
 
                 EditorGUI.indentLevel += 2;
 
@@ -220,10 +211,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 MaterialProperty extraProperty = hasGlossMap ? null : properties.metallic;
                 smoothnessChannelNames = Styles.metallicSmoothnessChannelNames;
 
-                using(shaderGUI.CreateOverrideScopeFor(properties.metallicGlossMap, extraProperty))
-                {
-                    materialEditor.TexturePropertySingleLine(Styles.metallicMapText, properties.metallicGlossMap, extraProperty);
-                }
+                shaderGUI.TextureColorProps(materialEditor, Styles.metallicMapText, properties.metallicGlossMap, extraProperty);
             }
             else
             {
@@ -231,10 +219,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 MaterialProperty extraProperty = hasGlossMap ? null : properties.specColor;
                 smoothnessChannelNames = Styles.specularSmoothnessChannelNames;
 
-                using(shaderGUI.CreateOverrideScopeFor(properties.specGlossMap, extraProperty))
-                {
-                    BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, extraProperty);
-                }
+                shaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, extraProperty);
             }
             EditorGUI.indentLevel++;
             DoSmoothness(properties, material, shaderGUI, smoothnessChannelNames);

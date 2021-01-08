@@ -59,60 +59,71 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static void Inputs(SimpleLitProperties properties, MaterialEditor materialEditor, BaseShaderGUI shaderGUI, Material material)
         {
-            DoSpecularArea(properties, materialEditor, material);
+            DoSpecularArea(properties, materialEditor, shaderGUI, material);
             shaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
         }
 
-        public static void Advanced(SimpleLitProperties properties)
+        public static void Advanced(SimpleLitProperties properties, BaseShaderGUI shaderGUI)
         {
             SpecularSource specularSource = (SpecularSource)properties.specHighlights.floatValue;
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.specHighlights.hasMixedValue;
-            bool enabled = EditorGUILayout.Toggle(Styles.highlightsText, specularSource == SpecularSource.SpecularTextureAndColor);
-            if (EditorGUI.EndChangeCheck())
-                properties.specHighlights.floatValue = enabled ? (float)SpecularSource.SpecularTextureAndColor : (float)SpecularSource.NoSpecular;
-            EditorGUI.showMixedValue = false;
+
+            using(shaderGUI.CreateOverrideScopeFor(properties.specHighlights))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = properties.specHighlights.hasMixedValue;
+                bool enabled = EditorGUILayout.Toggle(Styles.highlightsText, specularSource == SpecularSource.SpecularTextureAndColor);
+                if (EditorGUI.EndChangeCheck())
+                    properties.specHighlights.floatValue = enabled ? (float)SpecularSource.SpecularTextureAndColor : (float)SpecularSource.NoSpecular;
+                EditorGUI.showMixedValue = false;
+            }
         }
 
-        public static void DoSpecularArea(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void DoSpecularArea(SimpleLitProperties properties, MaterialEditor materialEditor, BaseShaderGUI shaderGUI, Material material)
         {
             SpecularSource specSource = (SpecularSource)properties.specHighlights.floatValue;
-            EditorGUI.BeginDisabledGroup(specSource == SpecularSource.NoSpecular);
-            BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, properties.specColor, true);
-            DoSmoothness(properties, material);
-            EditorGUI.EndDisabledGroup();
+            using(new EditorGUI.DisabledGroupScope(specSource == SpecularSource.NoSpecular))
+            {
+                shaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, properties.specColor, true);
+                DoSmoothness(properties, shaderGUI, material);
+            }
         }
 
-        public static void DoSmoothness(SimpleLitProperties properties, Material material)
+        public static void DoSmoothness(SimpleLitProperties properties, BaseShaderGUI shaderGUI, Material material)
         {
             var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
                 BaseShaderGUI.SurfaceType.Opaque);
             EditorGUI.indentLevel += 2;
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
-            var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
-            var smoothness = properties.smoothness.floatValue;
-            smoothness = EditorGUILayout.Slider(Styles.smoothnessText, smoothness, 0f, 1f);
-            if (EditorGUI.EndChangeCheck())
+            using(shaderGUI.CreateOverrideScopeFor(properties.smoothness))
             {
-                properties.smoothness.floatValue = smoothness;
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
+                var smoothness = properties.smoothness.floatValue;
+                smoothness = EditorGUILayout.Slider(Styles.smoothnessText, smoothness, 0f, 1f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    properties.smoothness.floatValue = smoothness;
+                }
+                EditorGUI.showMixedValue = false;
             }
-            EditorGUI.showMixedValue = false;
 
             EditorGUI.indentLevel++;
-            EditorGUI.BeginDisabledGroup(!opaque);
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
-            if (opaque)
-                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessMapChannel)));
-            else
-                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessMapChannel)));
-            if (EditorGUI.EndChangeCheck())
-                properties.smoothnessMapChannel.floatValue = smoothnessSource;
-            EditorGUI.showMixedValue = false;
+            using(shaderGUI.CreateOverrideScopeFor(properties.smoothnessMapChannel))
+            {
+                var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
+                EditorGUI.BeginDisabledGroup(!opaque);
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
+                if (opaque)
+                    smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessMapChannel)));
+                else
+                    EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessMapChannel)));
+                if (EditorGUI.EndChangeCheck())
+                    properties.smoothnessMapChannel.floatValue = smoothnessSource;
+                EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
+            }
             EditorGUI.indentLevel -= 3;
-            EditorGUI.EndDisabledGroup();
         }
 
         public static void SetMaterialKeywords(Material material)
