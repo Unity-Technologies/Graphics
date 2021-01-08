@@ -12,21 +12,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
-        private static RenderTargetHandle[] m_RenderTargets = null;
+        private static RTHandle[] m_RenderTargets = null;
         public static  uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
         {
             if (m_RenderTargets == null || m_RenderTargets.Length != maxTextureCount)
             {
-                m_RenderTargets = new RenderTargetHandle[maxTextureCount];
+                m_RenderTargets = new RTHandle[maxTextureCount];
                 ShadowRendering.maxTextureCount = maxTextureCount;
 
                 for (int i = 0; i < maxTextureCount; i++)
                 {
                     unsafe
                     {
-                        m_RenderTargets[i].id = Shader.PropertyToID($"ShadowTex_{i}");
+                        m_RenderTargets[i] = RTHandles.Alloc(Shader.PropertyToID($"ShadowTex_{i}"));
                     }
                 }
             }
@@ -34,18 +34,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
-            CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
+            CreateShadowRenderTexture(pass, Shader.PropertyToID($"ShadowTex_{shadowIndex}"), renderingData, cmdBuffer);
         }
 
         public static void PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
         {
             // Render the shadows for this light
-            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[shadowIndex].Identifier());
+            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[shadowIndex]);
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
         {
-            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[shadowIndex].Identifier());
+            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[shadowIndex]);
             cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
         }
@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1);
         }
 
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderTargetHandle rtHandle, RenderingData renderingData, CommandBuffer cmdBuffer)
+        private static void CreateShadowRenderTexture(IRenderPass2D pass, int rtId, RenderingData renderingData, CommandBuffer cmdBuffer)
         {
             var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
@@ -70,12 +70,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmdBuffer.GetTemporaryRT(rtHandle.id, descriptor, FilterMode.Bilinear);
+            cmdBuffer.GetTemporaryRT(rtId, descriptor, FilterMode.Bilinear);
         }
 
         public static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
         {
-            cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[shadowIndex].id);
+            cmdBuffer.ReleaseTemporaryRT(Shader.PropertyToID($"ShadowTex_{shadowIndex}"));
         }
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
