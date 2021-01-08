@@ -59,8 +59,8 @@ editor_versions:
       updated_at: '2021-01-07 23:44:56.428244'
       version: ''
     linux:
-      revision: 1e651ea6a5c1cba0f4d0c2dd98f2498758132cf4
-      updated_at: '2021-01-05 23:32:46.218216'
+      revision: 22d0af29c9e321eb8a45a9968b437ddb062ad0b1
+      updated_at: '2021-01-08 23:38:14.359133'
       version: ''
     macos:
       revision: 22d0af29c9e321eb8a45a9968b437ddb062ad0b1
