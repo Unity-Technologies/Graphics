@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthTexture,
                 m_DepthInfoTexture,
                 m_TileDepthInfoTexture,
-                new RenderTargetHandle(m_ActiveCameraDepthAttachment), m_GBufferHandles
+                m_ActiveCameraDepthAttachment, m_GBufferHandles
             );
 
             EnqueuePass(m_GBufferPass);
