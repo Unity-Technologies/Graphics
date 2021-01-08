@@ -22,7 +22,7 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
         renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
     }
 
-    public void Setup(RenderTargetIdentifier source, RTHandle destination, Rect viewport)
+    public void Setup(RTHandle source, RTHandle destination, Rect viewport)
     {
         m_Source = source;
         m_Destination = destination;

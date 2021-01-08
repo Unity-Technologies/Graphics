@@ -109,14 +109,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
             }
 
-            if (depthId != RenderTargetHandle.CameraTarget.id)
+            if (depthId != -1 /*RenderTargetHandle.CameraTarget.id*/)
             {
                 if (this.allocateNormal)
                     cmd.ReleaseTemporaryRT(normalId);
                 if (this.allocateDepth)
                     cmd.ReleaseTemporaryRT(depthId);
-                normalId = RenderTargetHandle.CameraTarget.id;
-                depthId = RenderTargetHandle.CameraTarget.id;
+                normalId = -1;  // RenderTargetHandle.CameraTarget.id;
+                depthId = -1;  // RenderTargetHandle.CameraTarget.id;
             }
         }
     }

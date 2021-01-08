@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
 
-                colorTargetHandle = m_CreateColorTexture ? m_ColorTextureHandle : RTHandles.Alloc(RenderTargetHandle.CameraTarget.Identifier());
+                colorTargetHandle = m_CreateColorTexture ? m_ColorTextureHandle : RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
                 depthTargetHandle = m_CreateDepthTexture ? m_DepthTextureHandle : colorTargetHandle;
 
                 if (m_CreateColorTexture)
@@ -218,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 bool destinationIsInternalRT = lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass;
 
-                int postProcessDestId = destinationIsInternalRT ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID(afterPostProcessColorHandle.name);
+                int postProcessDestId = destinationIsInternalRT ? -1 : Shader.PropertyToID(afterPostProcessColorHandle.name);
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
@@ -241,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 finalPostProcessPass.SetupFinalPass(colorTargetRT);
                 EnqueuePass(finalPostProcessPass);
             }
-            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget.Identifier())
+            else if (lastCameraInStack && colorTargetHandle != new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget))
             {
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetRT);
                 EnqueuePass(m_FinalBlitPass);
