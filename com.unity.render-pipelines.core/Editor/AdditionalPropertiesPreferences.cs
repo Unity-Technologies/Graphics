@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering
         }
 
         static List<Type>           s_VolumeComponentEditorTypes;
-        static List<(Type, Type)>   s_IAdditionalPropertiesBoolFlagsHandlerTypes; // (EditorType, ObjectType)
+        static List<(Type editorType, Type objectType)>   s_IAdditionalPropertiesBoolFlagsHandlerTypes; // (EditorType, ObjectType)
         static bool                 s_ShowAllAdditionalProperties = false;
         static Scene                s_DummyScene;
 
@@ -112,8 +112,8 @@ namespace UnityEditor.Rendering
 
             foreach (var editorTypes in s_IAdditionalPropertiesBoolFlagsHandlerTypes)
             {
-                var instance = dummyGameObject.AddComponent(editorTypes.Item2);
-                var editor = Editor.CreateEditor(instance, editorTypes.Item1) as IAdditionalPropertiesBoolFlagsHandler;
+                var instance = dummyGameObject.AddComponent(editorTypes.objectType);
+                var editor = Editor.CreateEditor(instance, editorTypes.editorType) as IAdditionalPropertiesBoolFlagsHandler;
                 editor.ShowAdditionalProperties(value);
 
                 UnityEngine.Object.DestroyImmediate((Editor)editor);
