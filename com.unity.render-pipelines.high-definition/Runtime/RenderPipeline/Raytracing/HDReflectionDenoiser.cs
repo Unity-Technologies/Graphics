@@ -46,8 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         ComputeShader m_ReflectionDenoiserCS;
         Texture2D m_ReflectionFilterMapping;
-        SharedRTManager m_SharedRTManager;
-        HDRenderPipeline m_RenderPipeline;
         int s_TemporalAccumulationKernel;
         int s_CopyHistoryKernel;
         int s_BilateralFilterHKernel;
@@ -57,12 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
         {
             m_ReflectionDenoiserCS = rpRTResources.reflectionDenoiserCS;
             m_ReflectionFilterMapping = rpRTResources.reflectionFilterMapping;
-            m_SharedRTManager = sharedRTManager;
-            m_RenderPipeline = renderPipeline;
 
             // Fetch all the kernels we shall be using
             s_TemporalAccumulationKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulation");
@@ -99,21 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
             reflDenoiserParams.reflectionDenoiserCS = m_ReflectionDenoiserCS;
 
             return reflDenoiserParams;
-        }
-
-        internal ReflectionDenoiserResources PrepareReflectionDenoiserResources(HDCamera hdCamera,
-            RTHandle noisyToOutputSignal, RTHandle historySignal,
-            RTHandle intermediateBuffer0, RTHandle intermediateBuffer1)
-        {
-            ReflectionDenoiserResources reflDenoiserResources = new ReflectionDenoiserResources();
-            reflDenoiserResources.historySignal = historySignal;
-            reflDenoiserResources.noisyToOutputSignal = noisyToOutputSignal;
-            reflDenoiserResources.intermediateBuffer0 = intermediateBuffer0;
-            reflDenoiserResources.intermediateBuffer1 = intermediateBuffer1;
-            reflDenoiserResources.depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            reflDenoiserResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            reflDenoiserResources.motionVectorBuffer = m_SharedRTManager.GetMotionVectorsBuffer();
-            return reflDenoiserResources;
         }
 
         public static void DenoiseBuffer(CommandBuffer cmd, ReflectionDenoiserParameters reflDenoiserParameters, ReflectionDenoiserResources reflDenoiserResources)
@@ -188,8 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture1" });
-                passData.historySignal = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(historyBuffer)));
-                passData.noisyToOutputSignal = builder.ReadTexture(builder.WriteTexture(lightingTexture));
+                passData.historySignal = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
+                passData.noisyToOutputSignal = builder.ReadWriteTexture(lightingTexture);
 
                 builder.SetRenderFunc(
                     (ReflectionDenoiserPassData data, RenderGraphContext ctx) =>

@@ -19,6 +19,40 @@ For more information about the future, see the [Shadow](Shadows-in-HDRP.md) sect
 Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they use the cubemap mode / dimension. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
 
 For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
+### Volume System API
+
+#### Nested Volume Component Parameters
+
+The volume system will now search for volume parameters declared inside nested classes.
+
+```cs
+public class ExampleComponent: VolumeComponent
+{
+    [Serializable]
+    public class NestedClass
+    {
+        public FloatParameter number = new FloatParameter(0.0f);
+    }
+
+    public NestedClass nested = new NestedClass();
+}
+```
+
+#### Volume Component Init Callback
+
+From HDRP 11.0, the Volume Components support an Init callback which can be used to initialize static resources, for example to have a default value on a texture parameter.
+It is executed only once at runtime and at every script reload inside the editor.
+```cs
+public class ExampleComponent : VolumeComponent
+{
+    static Texture s_DefaultTexture = null;
+    public TextureParameter texture = new TextureParameter(s_DefaultTexture);
+    static void Init()
+    {
+        s_DefaultTexture = //...
+    }
+}
+```
 
 ## Issues resolved
 

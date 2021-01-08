@@ -1,4 +1,4 @@
-# Screen Space Global Illumination (Preview)
+# Screen Space Global Illumination
 
 The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 

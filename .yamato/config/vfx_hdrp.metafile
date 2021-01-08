@@ -11,16 +11,38 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
   - type: editmode
+expression_trigger: 
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]'
 platforms:
   - name: Win
     apis:
       - name: DX11
-      # - name: DX12
+      - name: DX12
       - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
   - name: OSX 
     apis:
       - name: Metal
@@ -39,7 +61,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -47,6 +69,27 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
+        - playmode_XR
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+nightly:
+  dependencies:
+    - project: VFX_HDRP
+      pr: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
         - editmode
         - playmode
-        - playmode_XR
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode

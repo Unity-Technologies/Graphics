@@ -12,9 +12,9 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSampleAttributeMap(VFXExpression texture, VFXExpression x, VFXExpression y )
+        public VFXExpressionSampleAttributeMap(VFXExpression texture, VFXExpression x, VFXExpression y)
             : base(Flags.InvalidOnCPU, new VFXExpression[3] { texture, x, y })
-        { }
+        {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXExpression.GetVFXValueTypeFromType(typeof(T)); } }

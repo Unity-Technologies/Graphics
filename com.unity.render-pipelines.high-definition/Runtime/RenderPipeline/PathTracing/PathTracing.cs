@@ -296,43 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchRays(parameters.pathTracingShader, "RayGen", (uint)parameters.width, (uint)parameters.height, 1);
         }
 
-        void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture)
-        {
-            RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-            m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
-
-            // Check the validity of the state before moving on with the computation
-            if (!pathTracingShader || !m_PathTracingSettings.enable.value)
-                return;
-
-            if (hdCamera.viewCount > 1)
-            {
-                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
-                return;
-            }
-
-            CheckDirtiness(hdCamera);
-
-            var parameters = PreparePathTracingParameters(hdCamera);
-
-            if (!m_SubFrameManager.isRecording)
-            {
-                // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
-                m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
-            }
-
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                m_SubFrameManager.subFrameCount = 1;
-#endif
-
-            if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
-            {
-                RenderPathTracing(parameters, m_RadianceTexture, cmd);
-            }
-            RenderAccumulation(hdCamera, m_RadianceTexture, outputTexture, true, cmd);
-        }
-
         class RenderPathTracingData
         {
             public PathTracingParameters parameters;

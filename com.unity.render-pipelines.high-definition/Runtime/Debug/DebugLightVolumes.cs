@@ -4,15 +4,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class DebugLightVolumes
     {
-        // Render target that holds the light count in floating points
-        RTHandle m_LightCountBuffer = null;
-        // Render target that holds the color accumulated value
-        RTHandle m_ColorAccumulationBuffer = null;
-        // The output texture of the debug
-        RTHandle m_DebugLightVolumesTexture = null;
-        // Required depth texture given that we render multiple render targets
-        RTHandle m_DepthBuffer = null;
-
         // Material used to blit the output texture into the camera render target
         Material m_Blit;
         // Material used to render the light volumes
@@ -36,9 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MaxDebugLightCountShaderID = Shader.PropertyToID("_MaxDebugLightCount");
         public static readonly int _BorderRadiusShaderID = Shader.PropertyToID("_BorderRadius");
 
-        // Render target array for the prepass
-        RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[2];
-
         MaterialPropertyBlock m_MaterialProperty = new MaterialPropertyBlock();
 
         public DebugLightVolumes()
@@ -60,27 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_DebugLightVolumeMaterial);
-
-            CleanupNonRenderGraphResources();
-        }
-
-        public void InitializeNonRenderGraphResources()
-        {
-            m_LightCountBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeCount");
-            m_ColorAccumulationBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeColorAccumulation");
-            m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "LightVolumeDebugLightVolumesTexture");
-            m_DepthBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, name: "LightVolumeDepth");
-            // Fill the render target array
-            m_RTIDs[0] = m_LightCountBuffer;
-            m_RTIDs[1] = m_ColorAccumulationBuffer;
-        }
-
-        public void CleanupNonRenderGraphResources()
-        {
-            RTHandles.Release(m_DepthBuffer);
-            RTHandles.Release(m_DebugLightVolumesTexture);
-            RTHandles.Release(m_ColorAccumulationBuffer);
-            RTHandles.Release(m_LightCountBuffer);
         }
 
         public struct RenderLightVolumesParameters
@@ -115,15 +82,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        public static void RenderLightVolumes(CommandBuffer cmd,
+        public static void RenderLightVolumes(CommandBuffer                   cmd,
             in RenderLightVolumesParameters parameters,
-            RenderTargetIdentifier[] accumulationMRT,                                     // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
-            RTHandle lightCountBuffer,
-            RTHandle colorAccumulationBuffer,
-            RTHandle debugLightVolumesTexture,
-            RTHandle depthBuffer,
-            RTHandle destination,
-            MaterialPropertyBlock mpb)
+            RenderTargetIdentifier[]        accumulationMRT,                                                                         // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
+            RTHandle                        lightCountBuffer,
+            RTHandle                        colorAccumulationBuffer,
+            RTHandle                        debugLightVolumesTexture,
+            RTHandle                        depthBuffer,
+            RTHandle                        destination,
+            MaterialPropertyBlock           mpb)
         {
             if (parameters.lightOverlapEnabled)
             {
@@ -275,21 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                     }
                     break;
-            }
-        }
-
-        public void RenderLightVolumes(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, LightingDebugSettings lightDebugSettings, RTHandle finalRT)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayLightVolume)))
-            {
-                // Clear the buffers
-                CoreUtils.SetRenderTarget(cmd, m_ColorAccumulationBuffer, ClearFlag.Color, Color.black);
-                CoreUtils.SetRenderTarget(cmd, m_LightCountBuffer, ClearFlag.Color, Color.black);
-                CoreUtils.SetRenderTarget(cmd, m_DebugLightVolumesTexture, ClearFlag.Color, Color.black);
-
-                var parameters = PrepareLightVolumeParameters(hdCamera, lightDebugSettings, cullResults);
-
-                RenderLightVolumes(cmd, parameters, m_RTIDs, m_LightCountBuffer, m_ColorAccumulationBuffer, m_DebugLightVolumesTexture, m_DepthBuffer, finalRT, m_MaterialProperty);
             }
         }
     }

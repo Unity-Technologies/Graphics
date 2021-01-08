@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Operator
         }
 
         public override IEnumerable<Type> validTypes => new[]
-{
+        {
             typeof(bool),
             typeof(float),
             typeof(uint),
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.Operator
 
             Type outputType = GetOperandType();
             var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
-            var outputExpr = Activator.CreateInstance(type, new object[]{inputExpression[1], x, y });
+            var outputExpr = Activator.CreateInstance(type, new object[] {inputExpression[1], x, y });
 
             return new[] { (VFXExpression)outputExpr};
         }

@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -128,15 +129,20 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // by default, if this returns null, the system will allow creation of any previous version
+        public virtual IEnumerable<int> allowedNodeVersions => null;
+
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
         {
             get { return false; }
         }
 
+        [SerializeField]
+        internal PreviewMode m_PreviewMode = PreviewMode.Inherit;
         public virtual PreviewMode previewMode
         {
-            get { return PreviewMode.Preview2D; }
+            get { return m_PreviewMode; }
         }
 
         public virtual bool allowedInSubGraph
@@ -486,7 +492,7 @@ namespace UnityEditor.ShaderGraph
 
         protected const string k_validationErrorMessage = "Error found during node validation";
 
-        public virtual void EvaluateConcretePrecision()
+        public virtual void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
         {
             // If Node has a precision override use that
             if (precision != Precision.Inherit)
@@ -496,13 +502,10 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Get inputs
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                GetInputSlots(tempSlots);
-
                 // If no inputs were found use the precision of the Graph
                 // This can be removed when parameters are considered as true inputs
-                if (tempSlots.Count == 0)
+                if (inputSlots.Count == 0)
                 {
                     m_ConcretePrecision = owner.concretePrecision;
                     return;
@@ -511,7 +514,7 @@ namespace UnityEditor.ShaderGraph
                 // Otherwise compare precisions from inputs
                 var precisionsToCompare = new List<int>();
 
-                foreach (var inputSlot in tempSlots)
+                foreach (var inputSlot in inputSlots)
                 {
                     // If input port doesnt have an edge use the Graph's precision for that input
                     var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
@@ -537,7 +540,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void EvaluateDynamicMaterialSlots()
+        public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
@@ -546,10 +549,8 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                GetInputSlots(tempSlots);
-                foreach (var inputSlot in tempSlots)
+                foreach (var inputSlot in inputSlots)
                 {
                     inputSlot.hasError = false;
                     // if there is a connection
@@ -610,9 +611,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var skippedSlot in skippedDynamicMatrixSlots)
                     skippedSlot.SetConcreteType(dynamicMatrixType);
 
-                tempSlots.Clear();
-                GetInputSlots(tempSlots);
-                bool inputError = tempSlots.Any(x => x.hasError);
+                bool inputError = inputSlots.Any(x => x.hasError);
                 if (inputError)
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
@@ -623,9 +622,7 @@ namespace UnityEditor.ShaderGraph
                 // their slotType will either be the default output slotType
                 // or the above dynamic slotType for dynamic nodes
                 // or error if there is an input error
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                foreach (var outputSlot in tempSlots)
+                foreach (var outputSlot in outputSlots)
                 {
                     outputSlot.hasError = false;
 
@@ -647,10 +644,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                if (tempSlots.Any(x => x.hasError))
+                if (outputSlots.Any(x => x.hasError))
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;
@@ -669,8 +663,16 @@ namespace UnityEditor.ShaderGraph
         {
             hasError = false;
             owner?.ClearErrorsForNode(this);
-            EvaluateConcretePrecision();
-            EvaluateDynamicMaterialSlots();
+
+            using (var inputSlots = PooledList<MaterialSlot>.Get())
+            using (var outputSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(inputSlots);
+                GetOutputSlots(outputSlots);
+
+                EvaluateConcretePrecision(inputSlots);
+                EvaluateDynamicMaterialSlots(inputSlots, outputSlots);
+            }
         }
 
         public virtual void ValidateNode()

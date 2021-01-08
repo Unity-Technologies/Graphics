@@ -129,8 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.inoutputBuffer0 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer0));
-                passData.inoutputBuffer1 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer1));
+                passData.inoutputBuffer0 = builder.ReadWriteTexture(inoutputBuffer0);
+                passData.inoutputBuffer1 = builder.ReadWriteTexture(inoutputBuffer1);
 
                 builder.SetRenderFunc(
                     (ConvertSSGIPassData data, RenderGraphContext ctx) =>
