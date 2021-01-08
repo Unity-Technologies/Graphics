@@ -111,10 +111,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destinationId != RenderTargetHandle.CameraTarget.id)
+            if (destinationId != -1 /*RenderTargetHandle.CameraTarget.id*/)
             {
                 cmd.ReleaseTemporaryRT(destinationId);
-                destinationId = RenderTargetHandle.CameraTarget.id;
+                destinationId = -1;  // RenderTargetHandle.CameraTarget.id;
             }
         }
     }

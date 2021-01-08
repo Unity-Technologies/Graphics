@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     public sealed class Test106Renderer : ScriptableRenderer
     {
         RTHandle m_CameraColor;
-        RenderTargetHandle m_CameraDepth;
+        RTHandle m_CameraDepth;
 
         OutputColorsToMRTsRenderPass m_ColorsToMrtsPass;
         RTHandle[] m_ColorToMrtOutputs; // outputs of render pass "OutputColorsToMRTs"
@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
         public Test106Renderer(Test106RendererData data) : base(data)
         {
             m_CameraColor = RTHandles.Alloc(Shader.PropertyToID("_CameraColor"), "_CameraColor");
-            m_CameraDepth.Init(Shader.PropertyToID("_CameraDepth"));
+            m_CameraDepth = RTHandles.Alloc(Shader.PropertyToID("_CameraDepth"), "_CameraDepth");
 
             Material colorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
             m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(colorToMrtMaterial);
@@ -49,12 +49,12 @@ namespace UnityEngine.Rendering.Universal
             int height = renderingData.cameraData.cameraTargetDescriptor.height;
 
             cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraColor.name), width, height);
-            cmd.GetTemporaryRT(m_CameraDepth.id, width, height, 16);
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraDepth.name), width, height, 16);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            ConfigureCameraTarget(m_CameraColor, m_CameraDepth.Identifier());
+            ConfigureCameraTarget(m_CameraColor, m_CameraDepth);
 
 
             // 1) Render different colors to the MRT outputs (render a blue quad to output#0 and a red quad to output#1)
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
         public override void FinishRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraColor.name));
-            cmd.ReleaseTemporaryRT(m_CameraDepth.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraDepth.name));
         }
     }
 }

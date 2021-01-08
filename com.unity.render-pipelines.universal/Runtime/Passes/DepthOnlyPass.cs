@@ -88,11 +88,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (depthAttachmentId != RenderTargetHandle.CameraTarget.id)
+            if (depthAttachmentId != -1 /*RenderTargetHandle.CameraTarget.id*/)
             {
                 if (this.allocateDepth)
                     cmd.ReleaseTemporaryRT(depthAttachmentId);
-                depthAttachmentId = RenderTargetHandle.CameraTarget.id;
+                depthAttachmentId = -1;
             }
         }
     }

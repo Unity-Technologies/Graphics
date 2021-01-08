@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
 
             cmd.ReleaseTemporaryRT(URPShaderIDs._TileDepthInfoTexture);
-            m_DeferredLights.TileDepthInfoTexture = RTHandles.Alloc(RenderTargetHandle.CameraTarget.Identifier());
+            m_DeferredLights.TileDepthInfoTexture = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
         }
     }
 }

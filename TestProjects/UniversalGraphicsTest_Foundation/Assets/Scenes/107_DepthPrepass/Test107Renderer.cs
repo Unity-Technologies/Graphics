@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
         FinalBlitPass m_FinalBlitPass;
 
         RTHandle m_CameraColor;
-        RenderTargetHandle m_CameraDepth;
+        RTHandle m_CameraDepth;
 
         Material m_BlitMaterial;
 
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
             m_CameraColor = RTHandles.Alloc(Shader.PropertyToID("_CameraColor"), "_CameraColor");
-            m_CameraDepth.Init(Shader.PropertyToID("_CameraDepth"));
+            m_CameraDepth = RTHandles.Alloc(Shader.PropertyToID("_CameraDepth"), "_CameraDepth");
         }
 
         /// <inheritdoc />
@@ -40,15 +40,15 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(m_profilerTag);
 
             cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraColor.name), 1280, 720);
-            cmd.GetTemporaryRT(m_CameraDepth.id, 1280, 720, 16);
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraDepth.name), 1280, 720, 16);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            ConfigureCameraTarget(m_CameraColor, m_CameraDepth.Identifier());
+            ConfigureCameraTarget(m_CameraColor, m_CameraDepth);
 
             // 1) Depth pre-pass
-            m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraDepth.id);
+            m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, Shader.PropertyToID(m_CameraDepth.name));
             EnqueuePass(m_DepthPrepass);
 
             // 2) Forward opaque
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         public override void FinishRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraColor.name));
-            cmd.ReleaseTemporaryRT(m_CameraDepth.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraDepth.name));
         }
 
         protected override void Dispose(bool disposing)
