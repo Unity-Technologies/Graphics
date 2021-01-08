@@ -29,6 +29,8 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 ![](Images/Override-PhysicallyBasedSky4.png)
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]

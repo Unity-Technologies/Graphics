@@ -11,6 +11,8 @@ The **Visual Environment** override comes as default when you create a **Scene S
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override** and click on **Visual Environment**. You can now use the **Visual Environment** override to control the sky and fog for this Volume.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-VisualEnvironment1.png)
