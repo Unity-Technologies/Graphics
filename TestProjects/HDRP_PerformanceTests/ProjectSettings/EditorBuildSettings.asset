@@ -36,16 +36,16 @@ EditorBuildSettings:
     path: Assets/Scenes/Timings/0004_Shadows.unity
     guid: c1ac8cfa92b212b48830d54dec32303e
   - enabled: 1
-    path: Assets/Scenes/Memory/Volumetrics_Memory.unity
+    path: Assets/Scenes/Memory/0001_Volumetrics_Memory.unity
     guid: 3df1cdfc024dd214e83b457968ffb25a
   - enabled: 1
-    path: Assets/Scenes/Memory/Empty_Memory.unity
+    path: Assets/Scenes/Memory/0000_Empty_Memory.unity
     guid: b3849f30651a97c42a395c6284f372ba
   - enabled: 1
-    path: Assets/Scenes/Memory/Volumetrics_Memory.unity
+    path: Assets/Scenes/Memory/0001_Volumetrics_Memory.unity
     guid: 3df1cdfc024dd214e83b457968ffb25a
   - enabled: 1
-    path: Assets/Scenes/Memory/Empty_Memory.unity
+    path: Assets/Scenes/Memory/0000_Empty_Memory.unity
     guid: b3849f30651a97c42a395c6284f372ba
   - enabled: 1
     path: Assets/Scenes/Timings/0002_TransparentOverdraw.unity
