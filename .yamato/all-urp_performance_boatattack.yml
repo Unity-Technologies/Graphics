@@ -54,9 +54,6 @@ Nightly_URP_Performance_BoatAttack_trunk:
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
          rerun: on-new-revision
-    variables:
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
 PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
@@ -107,5 +104,3 @@ Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*

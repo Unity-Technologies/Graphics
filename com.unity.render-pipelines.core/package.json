@@ -6,7 +6,6 @@
   "unityRelease": "0a8",
   "displayName": "Core RP Library",
   "dependencies": {
-    "com.unity.ugui": "1.0.0",
-    "com.unity.modules.physics": "1.0.0"
+    "com.unity.ugui": "1.0.0"
   }
 }

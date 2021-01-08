@@ -24,11 +24,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected override string UxmlName => "GraphInspector";
         protected override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
-        TabbedView m_GraphInspectorView;
-        TabbedView m_NodeSettingsTab;
+        private TabbedView m_GraphInspectorView;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
-
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -82,8 +80,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             // By default at startup, show graph settings
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
-
-            isWindowScrollable = true;
         }
 
         public void InitializeGraphSettings()
@@ -106,15 +102,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             try
             {
+                //m_GraphInspectorView.Activate(m_NodeSettingsTab);
                 foreach (var selectable in selection)
                 {
                     if (selectable is IInspectable inspectable)
-                    {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
-                        // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
-                        // Node Settings tab so we can make the assumption they want to see that tab
-                        m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
-                    }
                 }
             }
             catch (Exception e)

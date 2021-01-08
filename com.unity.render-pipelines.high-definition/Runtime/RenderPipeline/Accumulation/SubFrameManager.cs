@@ -32,14 +32,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Shutter settings
         float m_ShutterInterval = 0.0f;
+        bool  m_Centered = true;
         float m_ShutterFullyOpen = 0.0f;
         float m_ShutterBeginsClosing = 1.0f;
 
         AnimationCurve m_ShutterCurve;
 
         // Internal state
-        float m_OriginalCaptureDeltaTime = 0;
+        float m_OriginalTimeScale = 0;
         float m_OriginalFixedDeltaTime = 0;
+        bool  m_IsRenderingTheFirstFrame = true;
 
         // Per-camera data cache
         Dictionary<int, CameraData> m_CameraCache = new Dictionary<int, CameraData>();
@@ -112,15 +114,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AccumulationSamples = (uint)samples;
             m_ShutterInterval = samples > 1 ? shutterInterval : 0;
             m_IsRecording = true;
+            m_IsRenderingTheFirstFrame = true;
 
             Clear();
 
-            m_OriginalCaptureDeltaTime = Time.captureDeltaTime;
-            Time.captureDeltaTime = m_OriginalCaptureDeltaTime / m_AccumulationSamples;
+            m_OriginalTimeScale = Time.timeScale;
 
-            // This is required for physics simulations
+            Time.timeScale = m_OriginalTimeScale * m_ShutterInterval / m_AccumulationSamples;
+
+            if (m_Centered)
+            {
+                Time.timeScale *= 0.5f;
+            }
+
             m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
-            Time.fixedDeltaTime = m_OriginalFixedDeltaTime / m_AccumulationSamples;
+            Time.fixedDeltaTime = Time.captureDeltaTime * Time.timeScale;
         }
 
         internal void BeginRecording(int samples, float shutterInterval, float shutterFullyOpen = 0.0f, float shutterBeginsClosing = 1.0f)
@@ -141,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EndRecording()
         {
             m_IsRecording = false;
-            Time.captureDeltaTime = m_OriginalCaptureDeltaTime;
+            Time.timeScale = m_OriginalTimeScale;
             Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
             m_ShutterCurve = null;
         }
@@ -157,18 +165,31 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Reset();
             }
+            else if (maxIteration == m_AccumulationSamples - 1)
+            {
+                Time.timeScale = m_OriginalTimeScale * (1.0f - m_ShutterInterval);
+                m_IsRenderingTheFirstFrame = false;
+            }
+            else
+            {
+                Time.timeScale = m_OriginalTimeScale * m_ShutterInterval / m_AccumulationSamples;
+            }
+
+            if (m_Centered && m_IsRenderingTheFirstFrame)
+            {
+                Time.timeScale *= 0.5f;
+            }
+            Time.fixedDeltaTime = Time.captureDeltaTime * Time.timeScale;
         }
 
         // Helper function to compute the weight of a frame for a specific point in time
         float ShutterProfile(float time)
         {
-            if (time > m_ShutterInterval)
+            // for the first frame we are missing the first half when doing centered mb
+            if (m_IsRenderingTheFirstFrame && m_Centered)
             {
-                return 0;
+                time = time * 0.5f + 0.5f;
             }
-
-            // Scale the subframe time so the m_ShutterInterval spans between 0 and 1
-            time = time / m_ShutterInterval;
 
             // In case we have a curve profile, use this and return
             if (m_ShutterCurve != null)

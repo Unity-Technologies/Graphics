@@ -231,6 +231,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderProbeVolumeDebugOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            if (!m_SupportProbeVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.None)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
+            {
+                passData.debugParameters = debugParameters;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
+                builder.SetRenderFunc(
+                    (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
+                    });
+            }
+        }
+
         class RenderShadowsDebugOverlayPassData
             : DebugOverlayPassData
         {
@@ -298,6 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSkyReflectionOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderRayCountOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, rayCountTexture);
             RenderLightLoopDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, lightLists, depthPyramidTexture);
+            RenderProbeVolumeDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderShadowsDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
         }

@@ -4,7 +4,7 @@
 
 The **Shader Graph Window** contains the workspace for creating shaders using the **Shader Graph** system. To open the **Shader Graph Window** you must first create a [Shader Graph Asset](index.md). For more information see the [Getting Started](Getting-Started.md) section.
 
-The **Shader Graph** window contains various individual elements such as the [Blackboard](Blackboard.md), [Graph Inspector](Internal-Inspector.md), and [Main Preview](Main-Preview.md). These elements can be moved inside the workspace. They will automatically anchor to the nearest corner when scaling the **Shader Graph Window**.
+The **Shader Graph** window contains various individual elements such as the [Blackboard](Blackboard.md), [Graph Inspector](Internal-Inspector.md), and [Main Preview](Master-Preview.md). These elements can be moved inside the workspace. They will automatically anchor to the nearest corner when scaling the **Shader Graph Window**.
 
 ## Title Bar
 
@@ -19,7 +19,7 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 | Color Mode        | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
 | Blackboard        | Toggles visibility of the [Blackboard](Blackboard.md). |
 | Graph Inspector   | Toggles visibility of the [Graph Inspector](Internal-Inspector.md). |
-| Main Preview    | Toggles visbility of the [Main Preview](Main-Preview.md). |
+| Master Preview    | Toggles visbility of the [Master Preview](Master-Preview.md). |
 
 ## Workspace
 

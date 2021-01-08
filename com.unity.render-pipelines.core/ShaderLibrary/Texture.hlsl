@@ -45,7 +45,7 @@ struct UnityTexture2D
     float4 Sample(UnitySamplerState s, float2 uv)                       { return SAMPLE_TEXTURE2D(tex, s.samplerstate, uv); }
     float4 SampleLevel(UnitySamplerState s, float2 uv, float lod)       { return SAMPLE_TEXTURE2D_LOD(tex, s.samplerstate, uv, lod); }
     float4 SampleBias(UnitySamplerState s, float2 uv, float bias)       { return SAMPLE_TEXTURE2D_BIAS(tex, s.samplerstate, uv, bias); }
-    float4 SampleGrad(UnitySamplerState s, float2 uv, float2 dpdx, float2 dpdy) { return SAMPLE_TEXTURE2D_GRAD(tex, s.samplerstate, uv, dpdx, dpdy); }
+    float4 SampleGrad(UnitySamplerState s, float2 uv, float dpdx, float dpdy) { return SAMPLE_TEXTURE2D_GRAD(tex, s.samplerstate, uv, dpdx, dpdy); }
 
 #ifndef SHADER_API_GLES
     float CalculateLevelOfDetail(UnitySamplerState s, float2 uv)        { return CALCULATE_TEXTURE2D_LOD(tex, s.samplerstate, uv); }
@@ -53,7 +53,7 @@ struct UnityTexture2D
     float4 Sample(SAMPLER(s), float2 uv)                                { return SAMPLE_TEXTURE2D(tex, s, uv); }
     float4 SampleLevel(SAMPLER(s), float2 uv, float lod)                { return SAMPLE_TEXTURE2D_LOD(tex, s, uv, lod); }
     float4 SampleBias(SAMPLER(s), float2 uv, float bias)                { return SAMPLE_TEXTURE2D_BIAS(tex, s, uv, bias); }
-    float4 SampleGrad(SAMPLER(s), float2 uv, float2 dpdx, float2 dpdy)  { return SAMPLE_TEXTURE2D_GRAD(tex, s, uv, dpdx, dpdy); }
+    float4 SampleGrad(SAMPLER(s), float2 uv, float dpdx, float dpdy)    { return SAMPLE_TEXTURE2D_GRAD(tex, s, uv, dpdx, dpdy); }
     float4 SampleCmpLevelZero(SAMPLER_CMP(s), float2 uv, float cmp)     { return SAMPLE_TEXTURE2D_SHADOW(tex, s, float3(uv, cmp)); }
     float4 Load(int3 pixel)                                             { return LOAD_TEXTURE2D_LOD(tex, pixel.xy, pixel.z); }
     float CalculateLevelOfDetail(SAMPLER(s), float2 uv)                 { return CALCULATE_TEXTURE2D_LOD(tex, s, uv); }
@@ -103,12 +103,12 @@ struct UnityTexture2DArray
     float4 Sample(UnitySamplerState s, float3 uv)                               { return SAMPLE_TEXTURE2D_ARRAY(tex, s.samplerstate, uv.xy, uv.z); }
     float4 SampleLevel(UnitySamplerState s, float3 uv, float lod)               { return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s.samplerstate, uv.xy, uv.z, lod); }
     float4 SampleBias(UnitySamplerState s, float3 uv, float bias)               { return SAMPLE_TEXTURE2D_ARRAY_BIAS(tex, s.samplerstate, uv.xy, uv.z, bias); }
-    float4 SampleGrad(UnitySamplerState s, float3 uv, float2 dpdx, float2 dpdy) { return SAMPLE_TEXTURE2D_ARRAY_GRAD(tex, s.samplerstate, uv.xy, uv.z, dpdx, dpdy); }
+    float4 SampleGrad(UnitySamplerState s, float3 uv, float dpdx, float dpdy)   { return SAMPLE_TEXTURE2D_ARRAY_GRAD(tex, s.samplerstate, uv.xy, uv.z, dpdx, dpdy); }
 
     float4 Sample(SAMPLER(s), float3 uv)                                        { return SAMPLE_TEXTURE2D_ARRAY(tex, s, uv.xy, uv.z); }
     float4 SampleLevel(SAMPLER(s), float3 uv, float lod)                        { return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s, uv.xy, uv.z, lod); }
     float4 SampleBias(SAMPLER(s), float3 uv, float bias)                        { return SAMPLE_TEXTURE2D_ARRAY_BIAS(tex, s, uv.xy, uv.z, bias); }
-    float4 SampleGrad(SAMPLER(s), float3 uv, float2 dpdx, float2 dpdy)          { return SAMPLE_TEXTURE2D_ARRAY_GRAD(tex, s, uv.xy, uv.z, dpdx, dpdy); }
+    float4 SampleGrad(SAMPLER(s), float3 uv, float dpdx, float dpdy)            { return SAMPLE_TEXTURE2D_ARRAY_GRAD(tex, s, uv.xy, uv.z, dpdx, dpdy); }
     float4 SampleCmpLevelZero(SAMPLER_CMP(s), float3 uv, float cmp)             { return SAMPLE_TEXTURE2D_ARRAY_SHADOW(tex, s, float3(uv.xy, cmp), uv.z); }
     float4 Load(int4 pixel)                                                     { return LOAD_TEXTURE2D_ARRAY(tex, pixel.xy, pixel.z); }
 #endif
