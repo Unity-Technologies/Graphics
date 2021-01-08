@@ -32,7 +32,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         PropertyInfo m_PropertyInfo;
         string m_Value;
         int m_UndoGroup = -1;
-
         public TextControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/TextControlView"));
@@ -43,18 +42,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var thisLabel = new Label(label);
             container.Add(thisLabel);
             m_Value = GetValue();
+            string value = null;
             var field = new TextField { value = m_Value };
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
             {
-                m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
-                string value = GetValue();
+                value = GetValue();
                 value = evt.newValue;
-                m_PropertyInfo.SetValue(m_Node, value, null);
-                field.SetValueWithoutNotify(value);
-                m_UndoGroup = -1;
-                this.MarkDirtyRepaint();
             });
 
             // Pressing escape while we are editing causes it to revert to the original value when we gained focus
@@ -70,7 +65,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             });
             field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
             {
-                //Validate graph to update downstream input slot 
+                //Only set node value when mouse clicked away
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
+                m_PropertyInfo.SetValue(m_Node, value, null);
+                m_UndoGroup = -1;
+                //Validate graph to update downstream input slot
                 if (m_Node.GetType() == typeof(SwizzleNode))
                     m_Node.owner.ValidateGraph();
                 m_Node.Dirty(ModificationScope.Topological);
