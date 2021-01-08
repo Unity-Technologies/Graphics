@@ -33,7 +33,8 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.ugui": "1.0.0"
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
       }
     },
     "com.unity.render-pipelines.high-definition": {
@@ -41,6 +42,9 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
+        "com.unity.modules.video": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.render-pipelines.core": "11.0.0",
         "com.unity.shadergraph": "11.0.0",
         "com.unity.visualeffectgraph": "11.0.0",

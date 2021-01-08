@@ -14,9 +14,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0002_TransparentOverdraw.unity
     guid: 4a1a7c6af1640f544a6f1deee28e7a35
-  - enabled: 0
-    path: Assets/Scenes/Timings/0003_TesselationShadow - Copy.unity
-    guid: aa5f3ffa18d49cc44b3b5b4ee321f51a
+  - enabled: 1
+    path: Assets/Scenes/Timings/0003_TesselationShadow.unity
+    guid: 0e384ccb83f959247ba023387248b3e5
+  - enabled: 1
+    path: Assets/Scenes/Timings/0004_Shadows.unity
+    guid: c1ac8cfa92b212b48830d54dec32303e
   - enabled: 1
     path: Assets/Scenes/Timings/0000_LitCube.unity
     guid: 1636e4e436416de46b753a839a511adb
@@ -26,9 +29,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0002_TransparentOverdraw.unity
     guid: 4a1a7c6af1640f544a6f1deee28e7a35
-  - enabled: 0
-    path: Assets/Scenes/Timings/0003_TesselationShadow - Copy.unity
-    guid: aa5f3ffa18d49cc44b3b5b4ee321f51a
+  - enabled: 1
+    path: Assets/Scenes/Timings/0003_TesselationShadow.unity
+    guid: 0e384ccb83f959247ba023387248b3e5
+  - enabled: 1
+    path: Assets/Scenes/Timings/0004_Shadows.unity
+    guid: c1ac8cfa92b212b48830d54dec32303e
+  - enabled: 1
+    path: Assets/Scenes/Memory/Volumetrics_Memory.unity
+    guid: 3df1cdfc024dd214e83b457968ffb25a
+  - enabled: 1
+    path: Assets/Scenes/Memory/Empty_Memory.unity
+    guid: b3849f30651a97c42a395c6284f372ba
   - enabled: 1
     path: Assets/Scenes/Memory/Volumetrics_Memory.unity
     guid: 3df1cdfc024dd214e83b457968ffb25a
