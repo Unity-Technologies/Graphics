@@ -407,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!pass.rendererData.lightBlendStyles[i].isDirty)
                     continue;
 
-                cmd.SetRenderTarget(pass.rendererData.lightBlendStyles[i].renderTargetHandle.Identifier());
+                cmd.SetRenderTarget(pass.rendererData.lightBlendStyles[i].renderTargetHandle);
                 cmd.ClearRenderTarget(false, true, Color.black);
                 pass.rendererData.lightBlendStyles[i].isDirty = false;
             }

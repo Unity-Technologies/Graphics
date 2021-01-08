@@ -118,6 +118,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         // Transient data
         internal bool isDirty { get; set; }
         internal bool hasRenderTarget { get; set; }
-        internal RenderTargetHandle renderTargetHandle;
+        internal RTHandle renderTargetHandle;
     }
 }
