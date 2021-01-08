@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
-        internal RenderTargetHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
-        internal RenderTargetHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
+        internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
+        internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
@@ -195,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
-                colorGradingLutPass.Setup(colorGradingLutHandle.id);
+                colorGradingLutPass.Setup(Shader.PropertyToID(colorGradingLutHandle.name));
                 EnqueuePass(colorGradingLutPass);
             }
 
@@ -212,13 +212,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var colorTargetRT = colorTargetHandle;
             var depthTargetRT = depthTargetHandle;
-            var colorGradingLut = RTHandles.Alloc(colorGradingLutHandle.Identifier());
+            var colorGradingLut = colorGradingLutHandle;
 
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 bool destinationIsInternalRT = lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass;
 
-                int postProcessDestId = destinationIsInternalRT ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID("_AfterPostProcessTexture");
+                int postProcessDestId = destinationIsInternalRT ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID(afterPostProcessColorHandle.name);
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,

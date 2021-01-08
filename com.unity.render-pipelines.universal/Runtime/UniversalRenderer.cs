@@ -94,8 +94,8 @@ namespace UnityEngine.Rendering.Universal
         internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
-        internal RenderTargetHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
-        internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
+        internal RTHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
+        internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
@@ -471,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (generateColorGradingLUT)
             {
-                colorGradingLutPass.Setup(colorGradingLut.id);
+                colorGradingLutPass.Setup(Shader.PropertyToID(colorGradingLut.name));
                 EnqueuePass(colorGradingLutPass);
             }
 
@@ -546,16 +546,16 @@ namespace UnityEngine.Rendering.Universal
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
-                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID("_AfterPostProcessTexture");
+                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget.id : Shader.PropertyToID(afterPostProcessColor.name);
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), applyFinalPostProcessing, resolvePostProcessingToCameraTarget);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, resolvePostProcessingToCameraTarget);
                     EnqueuePass(postProcessPass);
                 }
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
-                var sourceForFinalPass = (applyPostProcessing) ? RTHandles.Alloc(afterPostProcessColor.Identifier()) : m_ActiveCameraColorAttachment;
+                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor.id, m_ActiveCameraDepthAttachment, RTHandles.Alloc(colorGradingLut.Identifier()), false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, Shader.PropertyToID(afterPostProcessColor.name), m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 
