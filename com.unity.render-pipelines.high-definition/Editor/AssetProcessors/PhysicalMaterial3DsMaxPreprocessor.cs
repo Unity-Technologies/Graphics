@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 4;
-        static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PhysicalMaterial3DsMax/PhysicalMaterial3DsMax.ShaderGraph";
+        static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PhysicalMaterial3DsMax/PhysicalMaterial3DsMax.shadergraph";
 
         public override uint GetVersion()
         {
