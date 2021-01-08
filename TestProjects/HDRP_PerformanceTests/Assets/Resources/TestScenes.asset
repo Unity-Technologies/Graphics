@@ -55,6 +55,10 @@ MonoBehaviour:
       sceneLabels: Default
       scenePath: Assets/Scenes/Memory/0001_Volumetrics_Memory.unity
       enabled: 1
+    - scene: 0002_PlanarReflection_Memory
+      sceneLabels: Default
+      scenePath: Assets/Scenes/Memory/0002_PlanarReflection_Memory.unity
+      enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
       assetLabels: Default

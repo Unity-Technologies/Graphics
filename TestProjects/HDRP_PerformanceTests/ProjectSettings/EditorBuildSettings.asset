@@ -53,4 +53,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0002_TransparentOverdraw.unity
     guid: 4a1a7c6af1640f544a6f1deee28e7a35
+  - enabled: 1
+    path: Assets/Scenes/Memory/0002_PlanarReflection_Memory.unity
+    guid: ffce2903da1bf1e4a9c28929b5dfd5c3
+  - enabled: 1
+    path: Assets/Scenes/Timings/0005_PostProcessing.unity
+    guid: b636d9b99a5830a48b4d03bfda7dbf3b
   m_configObjects: {}
