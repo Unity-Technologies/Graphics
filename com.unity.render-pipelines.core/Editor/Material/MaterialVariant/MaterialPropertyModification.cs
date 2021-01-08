@@ -85,7 +85,39 @@ namespace UnityEditor.Rendering.MaterialVariants
             }
         }
 
-        public static void RevertModification(MaterialProperty property, string rootGUID)
+        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterialProperty<T>(string key, T value)
+            where T : struct
+        {
+            if (typeof(T) == typeof(int))
+                return new[] { new MaterialPropertyModification($"::{key}:{value.ToString()}", default, null) };
+            if (typeof(T) == typeof(float))
+                return new[] { new MaterialPropertyModification(key, (float)(object)value, null) };
+            if (typeof(T) == typeof(Color))
+            {
+                Color colValue = (Color)(object)value;
+                return new[]
+                {
+                    new MaterialPropertyModification($"{key}.r", colValue.r, null),
+                    new MaterialPropertyModification($"{key}.g", colValue.g, null),
+                    new MaterialPropertyModification($"{key}.b", colValue.b, null),
+                    new MaterialPropertyModification($"{key}.a", colValue.a, null),
+                };
+            }
+            if (typeof(T) == typeof(Vector4))
+            {
+                Vector4 vecValue = (Vector4)(object)value;
+                return new[]
+                {
+                    new MaterialPropertyModification($"{key}.x", vecValue.x, null),
+                    new MaterialPropertyModification($"{key}.y", vecValue.y, null),
+                    new MaterialPropertyModification($"{key}.z", vecValue.z, null),
+                    new MaterialPropertyModification($"{key}.w", vecValue.w, null)
+                };
+            }
+            return new MaterialPropertyModification[0];
+        }
+
+        public static void ResetOverridenProperty(MaterialProperty property, string rootGUID)
         {
             Object parent = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(rootGUID));
             if (parent is Material material)
@@ -137,36 +169,27 @@ namespace UnityEditor.Rendering.MaterialVariants
             }
         }
 
-        public static System.Collections.Generic.IEnumerable<MaterialPropertyModification> CreateMaterialPropertyModificationsForNonMaterialProperty<T>(string key, T value)
-            where T : struct
+        public static void SyncPropertyWithParent(Material material, MaterialProperty property, int nameId)
         {
-            if (typeof(T) == typeof(int))
-                return new[] { new MaterialPropertyModification($"::{key}:{value.ToString()}", default, null) };
-            if (typeof(T) == typeof(float))
-                return new[] { new MaterialPropertyModification(key, (float)(object)value, null) };
-            if (typeof(T) == typeof(Color))
+            switch (property.type)
             {
-                Color colValue = (Color)(object)value;
-                return new[]
-                {
-                    new MaterialPropertyModification($"{key}.r", colValue.r, null),
-                    new MaterialPropertyModification($"{key}.g", colValue.g, null),
-                    new MaterialPropertyModification($"{key}.b", colValue.b, null),
-                    new MaterialPropertyModification($"{key}.a", colValue.a, null),
-                };
+                case MaterialProperty.PropType.Float:
+                case MaterialProperty.PropType.Range:
+                    material.SetFloat(nameId, property.floatValue);
+                    break;
+                case MaterialProperty.PropType.Vector:
+                    material.SetVector(nameId, property.vectorValue);
+                    break;
+                case MaterialProperty.PropType.Color:
+                    material.SetColor(nameId, property.colorValue);
+                    break;
+                case MaterialProperty.PropType.Texture:
+                    var scaleAndOffset = property.textureScaleAndOffset;
+                    material.SetTexture(nameId, property.textureValue);
+                    material.SetTextureScale(nameId, new Vector2(scaleAndOffset.x, scaleAndOffset.y));
+                    material.SetTextureOffset(nameId, new Vector2(scaleAndOffset.z, scaleAndOffset.w));
+                    break;
             }
-            if (typeof(T) == typeof(Vector4))
-            {
-                Vector4 vecValue = (Vector4)(object)value;
-                return new[]
-                {
-                    new MaterialPropertyModification($"{key}.x", vecValue.x, null),
-                    new MaterialPropertyModification($"{key}.y", vecValue.y, null),
-                    new MaterialPropertyModification($"{key}.z", vecValue.z, null),
-                    new MaterialPropertyModification($"{key}.w", vecValue.w, null)
-                };
-            }
-            return new MaterialPropertyModification[0];
         }
 
         public static void ApplyPropertyModificationsToMaterial(Material material, System.Collections.Generic.IEnumerable<MaterialPropertyModification> propertyModifications)

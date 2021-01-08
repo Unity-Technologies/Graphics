@@ -35,9 +35,9 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         public void OnGUI()
         {
-            if (m_MatVariant.rootGUID != m_ParentGUID)
+            if (m_MatVariant.parentGUID != m_ParentGUID)
             {
-                m_ParentGUID = m_MatVariant.rootGUID;
+                m_ParentGUID = m_MatVariant.parentGUID;
 
                 m_Parent = m_MatVariant.GetParent();
                 m_ParentTarget = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(m_Parent));

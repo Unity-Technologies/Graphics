@@ -9,7 +9,18 @@ namespace UnityEditor.Rendering.MaterialVariants
 {
     public class MaterialVariant : ScriptableObject
     {
-        public string rootGUID;
+        [SerializeField]
+        private string m_ParentGUID;
+        public string parentGUID
+        {
+            get => m_ParentGUID;
+        }
+
+        private string m_GUID = null;
+        public string GUID
+        {
+            get => m_GUID;
+        }
 
         [SerializeField]
         private List<MaterialPropertyModification> overrides = new List<MaterialPropertyModification>();
@@ -29,7 +40,7 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         public Object GetParent()
         {
-            string parentPath = AssetDatabase.GUIDToAssetPath(rootGUID);
+            string parentPath = AssetDatabase.GUIDToAssetPath(m_ParentGUID);
 
             // If parent is deleted, just return null
             if (parentPath == null)
@@ -48,7 +59,7 @@ namespace UnityEditor.Rendering.MaterialVariants
         public void SetParent(Object asset)
         {
             Undo.RecordObject(this, "Change Parent");
-            rootGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+            m_ParentGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             overrides.Clear();
             blocks.Clear();
         }
@@ -97,12 +108,10 @@ namespace UnityEditor.Rendering.MaterialVariants
 
         public void ResetOverrides(MaterialProperty[] properties)
         {
-            Undo.RecordObject(this, $"'Reset Override'");
-
             foreach (var property in properties)
             {
-                MaterialPropertyModification.RevertModification(property, rootGUID);
                 overrides.RemoveAll(modification => IsSameProperty(modification, property.name));
+                MaterialPropertyModification.ResetOverridenProperty(property, m_ParentGUID);
             }
         }
 
@@ -209,13 +218,154 @@ namespace UnityEditor.Rendering.MaterialVariants
             return variants;
         }
 
+        public class HierarchyCache
+        {
+            public HashSet<MaterialVariant> children = new HashSet<MaterialVariant>();
+            public struct Node
+            {
+                public MaterialVariant variant;
+                public int nextSibling, parent;
+            }
+            public List<Node> sortedChildren = new List<Node>();
+            public int cacheHash;
+
+            public void Sort(string rootGUID)
+            {
+                sortedChildren.Clear();
+                AppendChildren(rootGUID, -1);
+            }
+
+            void AppendChildren(string GUID, int parent)
+            {
+                foreach (var child in children)
+                {
+                    if (child.parentGUID == GUID)
+                    {
+                        int i = sortedChildren.Count;
+                        sortedChildren.Add(default);
+                        AppendChildren(child.GUID, i);
+                        sortedChildren[i] = new Node()
+                        {
+                            variant = child,
+                            nextSibling = sortedChildren.Count,
+                            parent = parent
+                        };
+                    }
+                }
+            }
+        };
+
+        static HashSet<MaterialVariant> m_Variants = null;
+        static Dictionary<string, HierarchyCache> cachedHierarchy = new Dictionary<string, HierarchyCache>();
+        public static List<HierarchyCache.Node> GetChildren(string GUID)
+        {
+            if (m_Variants == null)
+                m_Variants = new HashSet<MaterialVariant>(Resources.FindObjectsOfTypeAll<MaterialVariant>());
+
+            bool validate = false, sort = false;
+            if (cachedHierarchy.TryGetValue(GUID, out var cache))
+            {
+                if (cache.cacheHash == MaterialVariantEditorManager.instance.cacheHash)
+                {
+                    //Debug.Log("fetched directly from cache");
+                    return cache.sortedChildren;
+                }
+
+                // Check if the hierarchy has changed
+                foreach (var node in cache.sortedChildren)
+                {
+                    if (node.variant == null ||
+                        (node.parent == -1 && node.variant.parentGUID != GUID) ||
+                        (node.parent != -1 && cache.sortedChildren[node.parent].variant.GUID != node.variant.parentGUID))
+                    {
+                        //Debug.Log("hierarchy has changed. Recomputing");
+                        cache.children.Clear();
+                        sort = true;
+                        break;
+                    }
+                }
+
+                // Don't return yet, check if new elements have been added to the hierarchy
+                validate = true;
+            }
+            else
+            {
+                //Debug.Log("Not found");
+                cache = new HierarchyCache();
+            }
+
+            var hierarchy = new HashSet<string>();
+            hierarchy.Add(GUID);
+
+            // Remove delete material variants
+            m_Variants.RemoveWhere(mv => mv == null);
+
+            IEnumerator<MaterialVariant> iterator = m_Variants.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                var variant = iterator.Current;
+                if (hierarchy.Contains(variant.parentGUID) && !hierarchy.Contains(variant.GUID))
+                {
+                    hierarchy.Add(variant.GUID);
+                    cache.children.Add(variant);
+                    iterator.Reset();
+                    sort = true;
+                }
+            }
+
+            if (sort)
+                cache.Sort(GUID);
+
+            if (!validate)
+                cachedHierarchy.Add(GUID, cache);
+            cache.cacheHash = MaterialVariantEditorManager.instance.cacheHash;
+            return cache.sortedChildren;
+        }
+
+        public static void UpdateHierarchy(string guid, MaterialProperty[] modifiedProperties)
+        {
+            var children = GetChildren(guid);
+
+            // Debug display
+            #if false
+            string temp = "root: " + guid;
+            for (int i = 0; i < children.Count; i++)
+            {
+                if (children[i].variant.parentGUID == guid)
+                    temp += "\n - " + children[i].variant.material.name;
+                else
+                    temp += " -> " + children[i].variant.material.name;
+            }
+            Debug.Log(temp);
+            #endif
+
+            foreach (var property in modifiedProperties)
+            {
+                int nameId = Shader.PropertyToID(property.name);
+                for (int i = 0; i < children.Count; i++)
+                {
+                    if (children[i].variant.IsOverriddenProperty(property))
+                        i = children[i].nextSibling - 1;
+                    else if (children[i].variant.material.HasProperty(nameId))
+                        MaterialPropertyModification.SyncPropertyWithParent(children[i].variant.material, property, nameId);
+                }
+            }
+        }
+
         #endregion
 
         #region MaterialVariant Import
 
         public bool Import(AssetImportContext context, Material material)
         {
-            var newMaterial = GetMaterialFromRoot(context, rootGUID);
+            if (m_Variants == null)
+                m_Variants = new HashSet<MaterialVariant>(Resources.FindObjectsOfTypeAll<MaterialVariant>());
+            m_Variants.Add(this);
+
+            m_Material = material;
+            m_GUID = AssetDatabase.AssetPathToGUID(context.assetPath);
+
+            var newMaterial = GetMaterialFromRoot(context, m_ParentGUID);
             if (newMaterial != null)
             {
                 material.shader = newMaterial.shader;
@@ -250,7 +400,7 @@ namespace UnityEditor.Rendering.MaterialVariants
                 else if (subAsset.GetType() == typeof(MaterialVariant))
                 {
                     MaterialVariant rootMatVariant = subAsset as MaterialVariant;
-                    rootMaterial = GetMaterialFromRoot(ctx, rootMatVariant.rootGUID);
+                    rootMaterial = GetMaterialFromRoot(ctx, rootMatVariant.m_ParentGUID);
 
                     // Apply root modification
                     if (rootMaterial != null)
@@ -311,7 +461,7 @@ namespace UnityEditor.Rendering.MaterialVariants
                 else return;
 
                 var matVariant = CreateInstance<MaterialVariant>();
-                matVariant.rootGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
+                matVariant.m_ParentGUID = AssetDatabase.AssetPathToGUID(resourceFile); // if resourceFile is "", it return "";
                 matVariant.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
 
                 AssetDatabase.CreateAsset(material, pathName);
@@ -350,6 +500,79 @@ namespace UnityEditor.Rendering.MaterialVariants
                 variantPath,
                 null,
                 sourcePath);
+        }
+
+        #endregion
+
+        #region MaterialVariant live editor
+
+        class MaterialVariantEditorManager : ScriptableSingleton<MaterialVariantEditorManager>
+        {
+            int hotControl = 1;
+            public int cacheHash = 1;
+
+            void OnEnable()
+            {
+                EditorApplication.update += Update;
+            }
+
+            void OnDisable()
+            {
+                EditorApplication.update -= Update;
+            }
+
+            void Update()
+            {
+                if (GUIUtility.hotControl == 0 && hotControl != 0)
+                    cacheHash++;
+                hotControl = GUIUtility.hotControl;
+            }
+        }
+
+        public static void RecordObjectsUndo(MaterialVariant[] variants, MaterialProperty[] properties)
+        {
+            var objects = new List<Object>(variants);
+            foreach (var variant in variants)
+            {
+                if (variant == null)
+                    continue;
+                var children = GetChildren(variant.GUID);
+                foreach (var property in properties)
+                {
+                    for (int i = 0; i < children.Count; i++)
+                    {
+                        if (children[i].variant.IsOverriddenProperty(property))
+                            i = children[i].nextSibling - 1;
+                        else
+                            objects.Add(children[i].variant.material);
+                    }
+                }
+            }
+            Undo.RecordObjects(objects.ToArray(), "");
+
+#if false
+            string temp = "Saved assets";
+            foreach (var o in objects)
+                temp += "\n" + (o as MaterialVariant).material.name;
+            Debug.Log(temp);
+#endif
+        }
+
+        public static void RecordObjectsUndo(string guid, MaterialProperty[] properties)
+        {
+            var objects = new List<Object>();
+            var children = GetChildren(guid);
+            foreach (var property in properties)
+            {
+                for (int i = 0; i < children.Count; i++)
+                {
+                    if (children[i].variant.IsOverriddenProperty(property))
+                        i = children[i].nextSibling - 1;
+                    else
+                        objects.Add(children[i].variant.material);
+                }
+            }
+            Undo.RecordObjects(objects.ToArray(), "");
         }
 
         #endregion

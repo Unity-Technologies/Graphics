@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.MaterialVariants
 {
@@ -10,6 +11,7 @@ namespace UnityEditor.Rendering.MaterialVariants
     {
         MaterialProperty[] m_MaterialProperties;
         MaterialVariant[] m_Variants;
+        Object[] m_Materials;
         bool m_Force;
 
         DelayedOverrideRegisterer m_Registerer;
@@ -41,8 +43,9 @@ namespace UnityEditor.Rendering.MaterialVariants
             IEnumerable<MaterialProperty> validProperties =  materialProperties.Where(p => p != null);
             insidePropertyScope = true;
 
-            m_MaterialProperties =validProperties.ToArray();
+            m_MaterialProperties = validProperties.ToArray();
             m_Variants = variants;
+            m_Materials = null;
             m_Force = force;
 
             m_Registerer = null;
@@ -52,7 +55,7 @@ namespace UnityEditor.Rendering.MaterialVariants
             // We define a new empty rect in order to grab the current height even if there was nothing drawn in the block (GetLastRect cause issue if it was first element of block)
             m_StartY = GUILayoutUtility.GetRect(0, 0).yMax;
 
-            if (m_Force || m_Variants == null)
+            if (m_Force)
                 return;
 
             foreach (var materialProperty in m_MaterialProperties)
@@ -67,11 +70,36 @@ namespace UnityEditor.Rendering.MaterialVariants
                 EditorGUI.BeginChangeCheck();
         }
 
+        public MaterialPropertyScope(MaterialProperty[] materialProperties, Object[] materials)
+        {
+            m_MaterialProperties = materialProperties;
+            m_Variants = null;
+            m_Materials = materials;
+            m_Force = false;
+
+            m_Registerer = null;
+            m_IsBlocked = false;
+            m_StartY = 0;
+
+            EditorGUI.BeginChangeCheck();
+        }
+
         void IDisposable.Dispose()
         {
             insidePropertyScope = false;
             if (m_Variants == null)
+            {
+                if (EditorGUI.EndChangeCheck())
+                {
+                    foreach (var material in m_Materials)
+                    {
+                        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material));
+                        MaterialVariant.RecordObjectsUndo(guid, m_MaterialProperties);
+                        MaterialVariant.UpdateHierarchy(guid, m_MaterialProperties);
+                    }
+                }
                 return;
+            }
 
             // force registration is for MaterialProperty that are changed at inspector frame without change from the user
             if (!m_Force)
@@ -100,7 +128,14 @@ namespace UnityEditor.Rendering.MaterialVariants
                     MaterialVariant[] matVariants = m_Variants;
                     MaterialProperty[] matProperties = m_MaterialProperties;
                     DrawContextMenuAndIcons(isOverride, m_IsBlocked, isLocked, r,
-                        () => Array.ForEach(matVariants, variant => variant.ResetOverrides(matProperties)),
+                        () => {
+                            MaterialVariant.RecordObjectsUndo(matVariants, matProperties);
+                            foreach (var variant in matVariants)
+                            {
+                                variant.ResetOverrides(matProperties);
+                                MaterialVariant.UpdateHierarchy(variant.GUID, matProperties);
+                            }
+                        },
                         () => Array.ForEach(matVariants, variant => variant.TogglePropertiesBlocked(matProperties)));
                 }
             }
@@ -127,9 +162,12 @@ namespace UnityEditor.Rendering.MaterialVariants
             foreach (var materialProperty in m_MaterialProperties)
                 changes = changes.Concat(MaterialPropertyModification.CreateMaterialPropertyModifications(materialProperty));
 
-            Undo.RecordObjects(m_Variants, "");
+            MaterialVariant.RecordObjectsUndo(m_Variants, m_MaterialProperties);
             foreach (var variant in m_Variants)
+            {
                 variant?.TrimPreviousOverridesAndAdd(changes);
+                MaterialVariant.UpdateHierarchy(variant.GUID, m_MaterialProperties);
+            }
         }
 
         public DelayedOverrideRegisterer ProduceDelayedRegisterer()

@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering
     public abstract class SRPShaderGUI : ShaderGUI
     {
         protected MaterialVariant[] variants;
+        protected UnityEngine.Object[] targets;
 
         /// <summary>
         /// Unity calls this function when you assign a new shader to the material.
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             variants = MaterialVariant.GetMaterialVariantsFor(materialEditor);
+            targets = materialEditor.targets;
         }
 
         public bool IsPropertyBlockedInAncestorsForAnyVariant(MaterialProperty property)
@@ -35,13 +37,18 @@ namespace UnityEditor.Rendering
         }
 
         public MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty property, bool forceMode = false)
-            => new MaterialPropertyScope(new MaterialProperty[] { property }, variants, forceMode);
-
-        public MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty[] properties, bool forceMode = false)
-            => new MaterialPropertyScope(properties, variants, forceMode);
+            => CreateOverrideScopeFor(new MaterialProperty[] { property }, forceMode);
 
         public MaterialPropertyScope CreateOverrideScopeFor(params MaterialProperty[] properties)
-            => new MaterialPropertyScope(properties, variants, false);
+            => CreateOverrideScopeFor(properties, false);
+
+        public MaterialPropertyScope CreateOverrideScopeFor(MaterialProperty[] properties, bool forceMode = false)
+        {
+            if (variants != null)
+                return new MaterialPropertyScope(properties, variants, forceMode);
+            else
+                return new MaterialPropertyScope(properties, targets);
+        }
 
         public MaterialRenderQueueScope CreateRenderQueueOverrideScope(Func<int> valueGetter)
             => new MaterialRenderQueueScope(variants, valueGetter);
