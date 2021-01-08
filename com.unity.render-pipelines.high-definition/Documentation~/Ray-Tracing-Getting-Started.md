@@ -78,9 +78,11 @@ To set up ray tracing manually, you need to:
 2. Select the Other Settings fold-out, and in the Rendering section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
 3. In the Graphics APIs for Windows section, click the plus (+) button and select Direct3d12.
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move Direct3d12 (Experimental) to the top of the list.
-5. Apply your changes.
+5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the <DX12> tag in the title bar like so:
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar like so:
+
+![](Images/RayTracingGettingStarted1.png)
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 
@@ -219,6 +221,7 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support MSAA.
 - For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+- Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 
 ## Unsupported features of path tracing
 

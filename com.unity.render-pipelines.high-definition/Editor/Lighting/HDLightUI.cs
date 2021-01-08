@@ -753,8 +753,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.settings.cookie != null && lightType == HDLightType.Directional)
                 {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.cookieSizeX);
-                    EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.cookieSizeY);
+                    EditorGUI.BeginChangeCheck();
+                    var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                    size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.shapeWidth.floatValue = size.x;
+                        serialized.shapeHeight.floatValue = size.y;
+                    }
                     EditorGUI.indentLevel--;
                 }
 

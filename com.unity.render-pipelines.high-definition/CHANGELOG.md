@@ -10,26 +10,80 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
+- Added a toggle to allow to include or exclude smooth surfaces from ray traced reflection denoising.
+- Added light unit slider for automatic and automatic histrogram exposure limits.
+- Added support for raytracing for AxF material
+- Added rasterized area light shadows for AxF material
+- Added View Bias for mesh decals.
+- Added a cloud system and the CloudLayer volume override.
+- Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
+- Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed ShaderGraph Decal material not showing exposed properties.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- Fixed couple samplers that had the wrong name in raytracing code
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
+- Fixed computation of geometric normal in path tracing (case 1293029).
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed the default background color for previews to use the original color.
+- Fixed an issue with half res ssgi upscale.
+- Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
+- Fixed timing issues with accumulation motion blur
+- Fixed an issue with the frame count management for the volumetric fog (case 1299251).
+- Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 - Removed the superior clamping value for the recursive rendering max ray length. 
 - Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
+- When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
+- Removed the upscale radius from the RTR.
+- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
+- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+- Changed the convergence time of ssgi to 16 frames and the preset value
 
 ## [10.3.0] - 2020-12-01
 
 ### Fixed
 - Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
 - Fixed Rendergraph issue with virtual texturing and debug mode while in forward.
+- Fixed wrong coat normal space in shader graph
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
+- Fixed NullPointerException when baking probes from the lighting window (case 1289680)
+- Fixed volumetric fog with XR single-pass rendering.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
+- Fixed AOV api in render graph (case 1296605)
+- Fixed a small discrepancy in the marker placement in light intensity sliders (case 1299750)
+- Fixed issue with VT resolve pass rendergraph errors when opaque and transparent are disabled in frame settings.
+- Fixed a bug in the sphere-aabb light cluster (case 1294767).
+- Fixed issue when submitting SRPContext during EndCameraRendering.
+- Fixed baked light being included into the ray tracing light cluster (case 1296203).
+- Fixed enums UI for the shadergraph nodes.
+- Fixed ShaderGraph stack blocks appearing when opening the settings in Hair and Eye ShaderGraphs.
+- Fixed white screen when undoing in the editor.
+- Fixed display of LOD Bias and maximum level in frame settings when using Quality Levels
+- Fixed an issue when trying to open a look dev env library when Look Dev is not supported.
+- Fixed shader graph not supporting indirectdxr multibounce (case 1294694).
+- Fixed the planar depth texture not being properly created and rendered to (case 1299617).
+- Fixed C# 8 compilation issue with turning on nullable checks (case 1300167)
+- Fixed affects AO for deacl materials.
+- Fixed case where material keywords would not get setup before usage.
 
 ### Changed
 - Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
 - Replaced last package version checker in Wizard to a link on Package Manager
+- Changed the message when the graphics device doesn't support ray tracing (case 1287355).
+- When a Custom Pass Volume is disabled, the custom pass Cleanup() function is called, it allows to release resources when the volume isn't used anymore.
+- Enable Reflector for Spotlight by default
 
 ## [10.2.1] - 2020-11-30
 
