@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (pass.rendererData.isNormalsRenderTargetValid)
                 {
-                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
+                    cmd.ReleaseTemporaryRT(URPShaderIDs._NormalMap);
                 }
 
                 pass.rendererData.isNormalsRenderTargetValid = true;
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
 
-                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(URPShaderIDs._NormalMap, descriptor, FilterMode.Bilinear);
             }
         }
 
@@ -118,8 +118,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
-            cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
-            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
+            cmd.ReleaseTemporaryRT(URPShaderIDs._NormalMap);
+            cmd.ReleaseTemporaryRT(URPShaderIDs._ShadowTex);
             cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id);
         }
 
@@ -430,7 +430,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (depthTarget != BuiltinRenderTextureType.None)
                 {
                     cmd.SetRenderTarget(
-                        pass.rendererData.normalsRenderTarget.Identifier(),
+                        pass.rendererData.normalsRenderTarget,
                         RenderBufferLoadAction.DontCare,
                         RenderBufferStoreAction.Store,
                         depthTarget,
@@ -438,7 +438,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RenderBufferStoreAction.Store);
                 }
                 else
-                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
                 cmd.ClearRenderTarget(false, true, k_NormalClearColor);
 
