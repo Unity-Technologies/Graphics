@@ -13,8 +13,9 @@ namespace UnityEditor.VFX
 {
     class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput, ISerializationCallbackReceiver
     {
+        //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
         [SerializeField, VFXSetting]
-        ShaderGraphVfxAsset shaderGraph;
+        protected ShaderGraphVfxAsset shaderGraph;
 
         [SerializeField]
         string shadergraphGUID;
