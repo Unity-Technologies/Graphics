@@ -67,6 +67,8 @@ public class GraphicsTests
         #endif
         
         CleanUp();
+
+        XRGraphicsAutomatedTests.running = false;
     }
 
     public void CleanUp()
