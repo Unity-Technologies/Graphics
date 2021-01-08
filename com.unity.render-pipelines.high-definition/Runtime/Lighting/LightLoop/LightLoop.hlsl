@@ -493,7 +493,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-#ifdef PROBE_VOLUMES
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     bool uninitializedGI = IsUninitializedGI(builtinData.bakeDiffuseLighting);
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
     // Even so, the bound resources might be invalid in some cases, so we still need to check on _EnableProbeVolumes.

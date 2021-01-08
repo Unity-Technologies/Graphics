@@ -77,8 +77,10 @@ namespace UnityEngine.Rendering
         }
 
         private const int probesPerBatch = 1023;
+#if UNITY_EDITOR
         private Mesh debugMesh;
         private Material debugMaterial;
+#endif
         private List<CellInstancedDebugProbes> cellDebugData = new List<CellInstancedDebugProbes>();
 
         public enum ProbeShadingMode
@@ -360,7 +362,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-#if UNITY_EDITOR
         public void DrawProbeGizmos()
         {
             if (m_DrawProbes)
@@ -392,8 +393,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-#endif
-
         private void CheckInit()
         {
             if (debugMesh == null || debugMaterial == null)
@@ -404,7 +403,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-#if UNITY_EDITOR
         public ProbeDilationSettings GetDilationSettings()
         {
             ProbeDilationSettings settings;
@@ -417,9 +415,6 @@ namespace UnityEngine.Rendering
 
             return settings;
         }
-
-#endif
-
 #endif
     }
 }

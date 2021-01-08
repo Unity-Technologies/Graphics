@@ -20,7 +20,6 @@ real3 EvaluateAmbientProbe(real3 normalWS)
 }
 
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-#define PROBE_VOLUMES
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 // y channel is reserved for potential payload information to carry alongside the unintialized flag.
