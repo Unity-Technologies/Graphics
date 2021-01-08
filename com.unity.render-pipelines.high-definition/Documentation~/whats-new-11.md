@@ -54,6 +54,16 @@ public class ExampleComponent : VolumeComponent
 }
 ```
 
+### Density Volume Improvements
+
+Density Volumes masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+
+The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the density volume resolution.
+
+There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
+
+Finally, the minimal value of the **Fog Distance** parameter was lowered to 0.05 instead of 1 and now allows thicker fog effects to be created.
+
 ### Cloud System
 
 ![](Images/HDRPFeatures-CloudLayer.png)
