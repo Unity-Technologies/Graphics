@@ -40,18 +40,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void DoDetailArea(LitProperties properties, MaterialEditor materialEditor)
+        public static void DoDetailArea(LitProperties properties, MaterialEditor materialEditor, BaseShaderGUI shaderGUI)
         {
-            materialEditor.TexturePropertySingleLine(Styles.detailMaskText, properties.detailMask);
-            materialEditor.TexturePropertySingleLine(Styles.detailAlbedoMapText, properties.detailAlbedoMap,
-                properties.detailAlbedoMap.textureValue != null ? properties.detailAlbedoMapScale : null);
+            MaterialProperty detailAlbedoMapScale = properties.detailAlbedoMap.textureValue != null ? properties.detailAlbedoMapScale : null;
+            MaterialProperty detailNormalMapScale = properties.detailNormalMap.textureValue != null ? properties.detailNormalMapScale : null;
+
+            using(shaderGUI.CreateOverrideScopeFor(properties.detailMask))
+            {
+                materialEditor.TexturePropertySingleLine(Styles.detailMaskText, properties.detailMask);
+            }
+
+            using(shaderGUI.CreateOverrideScopeFor(properties.detailAlbedoMap, detailAlbedoMapScale))
+            {
+                materialEditor.TexturePropertySingleLine(Styles.detailAlbedoMapText, properties.detailAlbedoMap, detailAlbedoMapScale);
+            }
             if (properties.detailAlbedoMapScale.floatValue != 1.0f)
             {
                 EditorGUILayout.HelpBox(Styles.detailAlbedoMapScaleInfo.text, MessageType.Info, true);
             }
-            materialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, properties.detailNormalMap,
-                properties.detailNormalMap.textureValue != null ? properties.detailNormalMapScale : null);
-            materialEditor.TextureScaleOffsetProperty(properties.detailAlbedoMap);
+
+            using(shaderGUI.CreateOverrideScopeFor(properties.detailNormalMap, detailNormalMapScale))
+            {
+                materialEditor.TexturePropertySingleLine(Styles.detailNormalMapText, properties.detailNormalMap, detailNormalMapScale);
+            }
+
+            using(shaderGUI.CreateOverrideScopeFor(properties.detailAlbedoMap))
+            {
+                materialEditor.TextureScaleOffsetProperty(properties.detailAlbedoMap);
+            }
         }
 
         public static void SetMaterialKeywords(Material material)

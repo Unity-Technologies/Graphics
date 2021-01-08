@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            BakedLitGUI.Inputs(shadingModelProperties, materialEditor);
+            BakedLitGUI.Inputs(shadingModelProperties, materialEditor, this);
             DrawTileOffset(materialEditor, baseMapProp);
         }
 

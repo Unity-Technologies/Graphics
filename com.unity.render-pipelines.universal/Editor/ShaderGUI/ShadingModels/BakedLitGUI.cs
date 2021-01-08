@@ -19,9 +19,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void Inputs(BakedLitProperties properties, MaterialEditor materialEditor)
+        public static void Inputs(BakedLitProperties properties, MaterialEditor materialEditor, BaseShaderGUI shaderGUI)
         {
-            BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
+            shaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
         }
     }
 }

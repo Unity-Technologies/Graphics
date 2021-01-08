@@ -57,10 +57,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void Inputs(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
+        public static void Inputs(SimpleLitProperties properties, MaterialEditor materialEditor, BaseShaderGUI shaderGUI, Material material)
         {
             DoSpecularArea(properties, materialEditor, material);
-            BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
+            shaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
         }
 
         public static void Advanced(SimpleLitProperties properties)

@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             m_DetailInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_DetailInputsFoldout.value, LitDetailGUI.Styles.detailInputs);
             if (m_DetailInputsFoldout.value)
             {
-                LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor);
+                LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor, this);
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
-            litProperties = new LitGUI.LitProperties(properties, this);
+            litProperties = new LitGUI.LitProperties(properties);
             litDetailProperties = new LitDetailGUI.LitProperties(properties);
         }
 
@@ -49,20 +49,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            // Use default labelWidth
-            EditorGUIUtility.labelWidth = 0f;
-
             // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
-            if (litProperties.workflowMode != null)
+            using(CreateOverrideScopeFor(litProperties.workflowMode))
             {
-                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
+                // Use default labelWidth
+                EditorGUIUtility.labelWidth = 0f;
+
+                EditorGUI.BeginChangeCheck();
+                if (litProperties.workflowMode != null)
+                {
+                    DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    foreach (var obj in blendModeProp.targets)
+                        MaterialChanged((Material)obj);
+                }
             }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+
             base.DrawSurfaceOptions(material);
         }
 
@@ -70,7 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            LitGUI.Inputs(litProperties, materialEditor, material);
+            LitGUI.Inputs(litProperties, materialEditor, this, material);
             DrawEmissionProperties(material, true);
             DrawTileOffset(materialEditor, baseMapProp);
         }
@@ -81,8 +85,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (litProperties.reflections != null && litProperties.highlights != null)
             {
                 EditorGUI.BeginChangeCheck();
-                materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
-                materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
+                using(CreateOverrideScopeFor(litProperties.highlights))
+                {
+                    materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
+                }
+                using(CreateOverrideScopeFor(litProperties.reflections))
+                {
+                    materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
+                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     MaterialChanged(material);

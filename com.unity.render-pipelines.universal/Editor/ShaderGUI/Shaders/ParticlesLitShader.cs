@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
-            litProperties = new LitGUI.LitProperties(properties, this);
+            litProperties = new LitGUI.LitProperties(properties);
             particleProps = new ParticleGUI.ParticleProperties(properties);
         }
 
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
-            LitGUI.Inputs(litProperties, materialEditor, material);
+            LitGUI.Inputs(litProperties, materialEditor, this, material);
             DrawEmissionProperties(material, true);
         }
 

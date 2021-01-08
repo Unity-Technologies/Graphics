@@ -262,42 +262,58 @@ namespace UnityEditor
 
         public virtual void DrawSurfaceOptions(Material material)
         {
-            DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
-            if ((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
-                DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = cullingProp.hasMixedValue;
-            var culling = (RenderFace)cullingProp.floatValue;
-            culling = (RenderFace)EditorGUILayout.EnumPopup(Styles.cullingText, culling);
-            if (EditorGUI.EndChangeCheck())
+            using(CreateOverrideScopeFor(surfaceTypeProp))
             {
-                materialEditor.RegisterPropertyChangeUndo(Styles.cullingText.text);
-                cullingProp.floatValue = (float)culling;
-                material.doubleSidedGI = (RenderFace)cullingProp.floatValue != RenderFace.Front;
+                DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
             }
 
-            EditorGUI.showMixedValue = false;
+            if((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
+            {
+                using(CreateOverrideScopeFor(blendModeProp))
+                {
+                    DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
+                }
+            }
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
-            var alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClipProp.floatValue == 1);
-            if (EditorGUI.EndChangeCheck())
-                alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
-            EditorGUI.showMixedValue = false;
+            using(CreateOverrideScopeFor(cullingProp))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = cullingProp.hasMixedValue;
+                var culling = (RenderFace)cullingProp.floatValue;
+                culling = (RenderFace)EditorGUILayout.EnumPopup(Styles.cullingText, culling);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo(Styles.cullingText.text);
+                    cullingProp.floatValue = (float)culling;
+                    material.doubleSidedGI = (RenderFace)cullingProp.floatValue != RenderFace.Front;
+                }
+                EditorGUI.showMixedValue = false;
+            }
+
+            using(CreateOverrideScopeFor(alphaClipProp))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
+                var alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClipProp.floatValue == 1);
+                if (EditorGUI.EndChangeCheck())
+                    alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
+                EditorGUI.showMixedValue = false;
+            }
 
             if (alphaClipProp.floatValue == 1)
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
             if (receiveShadowsProp != null)
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = receiveShadowsProp.hasMixedValue;
-                var receiveShadows =
-                    EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                    receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
-                EditorGUI.showMixedValue = false;
+                using(CreateOverrideScopeFor(receiveShadowsProp))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = receiveShadowsProp.hasMixedValue;
+                    var receiveShadows = EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                        receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
+                    EditorGUI.showMixedValue = false;
+                }
             }
         }
 
@@ -316,12 +332,15 @@ namespace UnityEditor
         {
             if (queueOffsetProp != null)
             {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = queueOffsetProp.hasMixedValue;
-                var queue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
-                if (EditorGUI.EndChangeCheck())
-                    queueOffsetProp.floatValue = queue;
-                EditorGUI.showMixedValue = false;
+                using(CreateOverrideScopeFor(queueOffsetProp))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.showMixedValue = queueOffsetProp.hasMixedValue;
+                    var queue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
+                    if (EditorGUI.EndChangeCheck())
+                        queueOffsetProp.floatValue = queue;
+                    EditorGUI.showMixedValue = false;
+                }
             }
         }
 
@@ -332,7 +351,10 @@ namespace UnityEditor
             if (baseMapProp != null && baseColorProp != null) // Draw the baseMap, most shader will have at least a baseMap
             {
                 using(CreateOverrideScopeFor(baseMapProp, baseColorProp))
+                {
                     materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
+                }
+
                 // TODO Temporary fix for lightmapping, to be replaced with attribute tag.
                 if (material.HasProperty("_MainTex"))
                 {
@@ -349,24 +371,26 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp.textureValue != null;
 
-            if (!keyword)
+            using(CreateOverrideScopeFor(emissionMapProp, emissionColorProp))
             {
-                materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
-                    false);
-            }
-            else
-            {
-                // Emission for GI?
-                emissive = materialEditor.EmissionEnabledProperty();
-
-                EditorGUI.BeginDisabledGroup(!emissive);
+                if (!keyword)
                 {
-                    // Texture and HDR color controls
-                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp,
-                        emissionColorProp,
+                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
                         false);
                 }
-                EditorGUI.EndDisabledGroup();
+                else
+                {
+                    // Emission for GI?
+                    emissive = materialEditor.EmissionEnabledProperty();
+
+                    using(new EditorGUI.DisabledGroupScope(!emissive))
+                    {
+                        // Texture and HDR color controls
+                        materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp,
+                            emissionColorProp,
+                            false);
+                    }
+                }
             }
 
             // If texture was assigned and color was black set color to white
@@ -388,17 +412,24 @@ namespace UnityEditor
             }
         }
 
-        public static void DrawNormalArea(MaterialEditor materialEditor, MaterialProperty bumpMap, MaterialProperty bumpMapScale = null)
+        public void DrawNormalArea(MaterialEditor materialEditor, MaterialProperty bumpMap, MaterialProperty bumpMapScale = null)
         {
             if (bumpMapScale != null)
             {
-                materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap,
-                    bumpMap.textureValue != null ? bumpMapScale : null);
-                if (bumpMapScale.floatValue != 1 &&
-                    UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
-                        EditorUserBuildSettings.activeBuildTarget))
+                MaterialProperty extraProperty = bumpMap.textureValue != null ? bumpMapScale : null;
+
+                using(CreateOverrideScopeFor(bumpMap, extraProperty))
+                {
+                    materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap, extraProperty);
+                }
+
+                if(bumpMapScale.floatValue != 1 &&
+                   UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
+                       EditorUserBuildSettings.activeBuildTarget))
+                {
                     if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNormalNow))
                         bumpMapScale.floatValue = 1;
+                }
             }
             else
             {
@@ -406,9 +437,12 @@ namespace UnityEditor
             }
         }
 
-        protected static void DrawTileOffset(MaterialEditor materialEditor, MaterialProperty textureProp)
+        protected void DrawTileOffset(MaterialEditor materialEditor, MaterialProperty textureProp)
         {
-            materialEditor.TextureScaleOffsetProperty(textureProp);
+            using(CreateOverrideScopeFor(textureProp))
+            {
+                materialEditor.TextureScaleOffsetProperty(textureProp);
+            }
         }
 
         #endregion
