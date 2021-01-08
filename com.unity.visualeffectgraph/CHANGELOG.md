@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
 - Prevent creation of subgraph containing only partial systems [Case 1284053](https://issuetracker.unity3d.com/product/unity/issues/guid/1284053/)
 - Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- VFXEventBinderBase throwing a null reference exception in runtime
 
 ## [10.2.0] - 2020-10-19
 ### Added
