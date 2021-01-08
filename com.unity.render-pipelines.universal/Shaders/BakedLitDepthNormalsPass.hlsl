@@ -59,17 +59,26 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
-
-    #if defined(_NORMALMAP)
-        half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-        half sgn = input.tangentWS.w;      // should be either +1 or -1
-        half3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+    #if defined(_GBUFFER_NORMALS_OCT)
+        float3 normalWS = normalize(input.normalWS);
+        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
+        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
+        return half4(packedNormalWS, 0.0);
     #else
-        half3 normalWS = input.normalWS;
+
+        #if defined(_NORMALMAP)
+            half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+            half sgn = input.tangentWS.w;      // should be either +1 or -1
+            half3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+            half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+        #else
+            half3 normalWS = input.normalWS;
+        #endif
+
+        return half4(NormalizeNormalPerPixel(normalWS), 0.0);
     #endif
 
-    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
 }
 
 #endif

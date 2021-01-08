@@ -260,7 +260,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         bool m_IssuedMessageAboutShadowSlicesTooMany = false;
-        bool m_IssuedMessageAboutShadowSlicesTooMany_Deferred = false;
 
         Vector4 m_MainLightShadowParams; // Shadow Fade parameters _MainLightShadowParams.zw are actually also used by AdditionalLights
 
