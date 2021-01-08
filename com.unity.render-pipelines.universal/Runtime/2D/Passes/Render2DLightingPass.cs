@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
             RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.SetRenderTarget(colorAttachment);
+            cmd.SetRenderTarget(colorAttachment, depthAttachment);
             cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
         }
