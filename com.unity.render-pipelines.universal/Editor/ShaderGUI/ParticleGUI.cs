@@ -169,12 +169,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     EditorGUI.showMixedValue = properties.softParticlesEnabled.hasMixedValue;
                     var enabled = properties.softParticlesEnabled.floatValue;
 
-                    EditorGUI.BeginChangeCheck();
-                    enabled = EditorGUILayout.Toggle(Styles.softParticlesEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
-                    if (EditorGUI.EndChangeCheck())
+                    using (shaderGUI.CreateOverrideScopeFor(properties.softParticlesEnabled))
                     {
-                        materialEditor.RegisterPropertyChangeUndo("Soft Particles Enabled");
-                        properties.softParticlesEnabled.floatValue = enabled;
+                        EditorGUI.BeginChangeCheck();
+                        enabled = EditorGUILayout.Toggle(Styles.softParticlesEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            materialEditor.RegisterPropertyChangeUndo("Soft Particles Enabled");
+                            properties.softParticlesEnabled.floatValue = enabled;
+                        }
                     }
 
                     if (enabled >= 0.5f)
@@ -204,12 +207,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     EditorGUI.showMixedValue = properties.cameraFadingEnabled.hasMixedValue;
                     var enabled = properties.cameraFadingEnabled.floatValue;
 
-                    EditorGUI.BeginChangeCheck();
-                    enabled = EditorGUILayout.Toggle(Styles.cameraFadingEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
-                    if (EditorGUI.EndChangeCheck())
+                    using (shaderGUI.CreateOverrideScopeFor(properties.cameraFadingEnabled))
                     {
-                        materialEditor.RegisterPropertyChangeUndo("Camera Fading Enabled");
-                        properties.cameraFadingEnabled.floatValue = enabled;
+                        EditorGUI.BeginChangeCheck();
+                        enabled = EditorGUILayout.Toggle(Styles.cameraFadingEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            materialEditor.RegisterPropertyChangeUndo("Camera Fading Enabled");
+                            properties.cameraFadingEnabled.floatValue = enabled;
+                        }
                     }
 
                     if (enabled >= 0.5f)
@@ -231,23 +237,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     EditorGUI.showMixedValue = properties.distortionEnabled.hasMixedValue;
                     var enabled = properties.distortionEnabled.floatValue;
 
-                    EditorGUI.BeginChangeCheck();
-                    enabled = EditorGUILayout.Toggle(Styles.distortionEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
-                    if (EditorGUI.EndChangeCheck())
+                    using (shaderGUI.CreateOverrideScopeFor(properties.distortionEnabled))
                     {
-                        materialEditor.RegisterPropertyChangeUndo("Distortion Enabled");
-                        properties.distortionEnabled.floatValue = enabled;
+                        EditorGUI.BeginChangeCheck();
+                        enabled = EditorGUILayout.Toggle(Styles.distortionEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            materialEditor.RegisterPropertyChangeUndo("Distortion Enabled");
+                            properties.distortionEnabled.floatValue = enabled;
+                        }
                     }
 
                     if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(properties.distortionStrength, Styles.distortionStrength);
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUI.showMixedValue = properties.distortionStrength.hasMixedValue;
-                        var blend = EditorGUILayout.Slider(Styles.distortionBlend, properties.distortionBlend.floatValue, 0f, 1f);
-                        if (EditorGUI.EndChangeCheck())
-                            properties.distortionBlend.floatValue = blend;
+
+                        shaderGUI.ShaderProperty(materialEditor, properties.distortionStrength, Styles.distortionStrength);
+
+                        using (shaderGUI.CreateOverrideScopeFor(properties.distortionBlend))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            EditorGUI.showMixedValue = properties.distortionBlend.hasMixedValue;
+                            var blend = EditorGUILayout.Slider(Styles.distortionBlend, properties.distortionBlend.floatValue, 0f, 1f);
+                            if (EditorGUI.EndChangeCheck())
+                                properties.distortionBlend.floatValue = blend;
+                        }
+
                         EditorGUI.indentLevel--;
                     }
                 }
