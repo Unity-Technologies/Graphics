@@ -55,6 +55,9 @@ MonoBehaviour:
     - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
       assetLabels: Default
       alias: 
+    - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
+      assetLabels: Default
+      alias: 
   buildTestSuite:
     scenes:
     - scene: 0002_TransparentOverdraw
