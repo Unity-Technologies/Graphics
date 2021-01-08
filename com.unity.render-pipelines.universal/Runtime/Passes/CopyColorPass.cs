@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyColorMaterial;
 
         private RenderTargetIdentifier source { get; set; }
-        private RenderTargetHandle destination { get; set; }
+        private int destinationId { get; set; }
 
         /// <summary>
         /// Create the CopyColorPass
@@ -39,10 +39,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetIdentifier source, RTHandle destination, Downsampling downsampling)
+        public void Setup(RenderTargetIdentifier source, int destinationId, Downsampling downsampling)
         {
             this.source = source;
-            this.destination = new RenderTargetHandle(destination);
+            this.destinationId = destinationId;
             m_DownsamplingMethod = downsampling;
         }
 
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 descriptor.height /= 4;
             }
 
-            cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            cmd.GetTemporaryRT(destinationId, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }
 
         /// <inheritdoc/>
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                RenderTargetIdentifier opaqueColorRT = destination.Identifier();
+                RenderTargetIdentifier opaqueColorRT = destinationId;
 
                 ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag,
                     clearColor);
@@ -111,10 +111,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destination != RenderTargetHandle.CameraTarget)
+            if (destinationId != RenderTargetHandle.CameraTarget.id)
             {
-                cmd.ReleaseTemporaryRT(destination.id);
-                destination = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(destinationId);
+                destinationId = RenderTargetHandle.CameraTarget.id;
             }
         }
     }

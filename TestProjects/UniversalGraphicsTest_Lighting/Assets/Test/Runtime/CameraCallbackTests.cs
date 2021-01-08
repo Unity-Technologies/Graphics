@@ -56,22 +56,22 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
 
         var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial);
-        copyBeforeOpaquePass.Setup(cameraColorTarget, beforeAll, downSamplingMethod);
+        copyBeforeOpaquePass.Setup(cameraColorTarget, Shader.PropertyToID(beforeAll.name), downSamplingMethod);
 
         var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial);
-        copyAfterOpaquePass.Setup(cameraColorTarget, afterOpaque, downSamplingMethod);
+        copyAfterOpaquePass.Setup(cameraColorTarget, Shader.PropertyToID(afterOpaque.name), downSamplingMethod);
 
         var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
-        copyAfterSkyboxPass.Setup(cameraColorTarget, afterSkybox, downSamplingMethod);
+        copyAfterSkyboxPass.Setup(cameraColorTarget, Shader.PropertyToID(afterSkybox.name), downSamplingMethod);
 
         var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
-        copyAfterSkyboxPass.Setup(cameraColorTarget, afterSkybox2, downSamplingMethod);
+        copyAfterSkyboxPass.Setup(cameraColorTarget, Shader.PropertyToID(afterSkybox2.name), downSamplingMethod);
 
         var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparents, m_SamplingMaterial);
-        copyAfterTransparents.Setup(cameraColorTarget, afterTransparent, downSamplingMethod);
+        copyAfterTransparents.Setup(cameraColorTarget, Shader.PropertyToID(afterTransparent.name), downSamplingMethod);
 
         var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRenderingPostProcessing, m_SamplingMaterial);
-        copyAfterEverything.Setup(Shader.PropertyToID(afterPost.name), afterAll, downSamplingMethod);
+        copyAfterEverything.Setup(Shader.PropertyToID(afterPost.name), Shader.PropertyToID(afterAll.name), downSamplingMethod);
 
         if (m_BlitRenderPassesToScreen == null)
             m_BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, cameraColorTarget);
