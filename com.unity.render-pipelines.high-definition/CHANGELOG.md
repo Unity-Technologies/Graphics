@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed an issue with half res ssgi upscale.
+- Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
