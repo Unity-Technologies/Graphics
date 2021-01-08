@@ -12,6 +12,7 @@ Version Updated
 - Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
 - Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
 - Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- VFXEventBinderBase throwing a null reference exception in runtime
 
 ## [7.5.2] - 2020-11-16
 ### Fixed
