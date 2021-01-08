@@ -24,21 +24,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     return $"{concreteShaderValueType}_{objectId}";
                 return m_Name;
             }
-            set
-            {
-                m_Name = value;
-                // Updates any views associated with this input so that display names stay up to date
-                m_displayNameUpdateTrigger?.Invoke(m_Name);
-            }
-        }
-
-        // This delegate and the associated callback can be bound to in order for any one that cares about display name changes to be notified
-        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
-        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
-        internal ChangeDisplayNameCallback displayNameUpdateTrigger
-        {
-            get => m_displayNameUpdateTrigger;
-            set => m_displayNameUpdateTrigger = value;
+            set => m_Name = value;
         }
 
         [SerializeField]

@@ -1,11 +1,14 @@
-using NUnit.Framework;
 using System.Collections;
 using System.Linq;
+using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class UniversalGraphicsTests
 {
@@ -13,14 +16,20 @@ public class UniversalGraphicsTests
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
-
     public const string universalPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("UniversalRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(universalPackagePath)]
+
+
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+#if ENABLE_VR
+        // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
+        if (XRGraphicsAutomatedTests.enabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
+            Assert.Ignore("Universal XR tests do not run on macOS.");
+#endif
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -30,15 +39,30 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
-        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+#if ENABLE_VR
+        if (XRGraphicsAutomatedTests.enabled)
+        {
+            if (settings.XRCompatible)
+            {
+                XRGraphicsAutomatedTests.running = true;
+            }
+            else
+            {
+                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+            }
+        }
+#endif
 
         Scene scene = SceneManager.GetActiveScene();
 
         yield return null;
 
-        if (settings.ImageComparisonSettings.UseBackBuffer && waitFrames < 1)
-            waitFrames = 1;
+        int waitFrames = settings.WaitFrames;
 
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
+        {
+            waitFrames = 1;
+        }
         for (int i = 0; i < waitFrames; i++)
             yield return new WaitForEndOfFrame();
 
@@ -49,7 +73,7 @@ public class UniversalGraphicsTests
         {
             for(int i = 0; i < firstSceneAdditionalFrames; i++)
             {
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
             wasFirstSceneRan = true;
         }
@@ -83,7 +107,7 @@ public class UniversalGraphicsTests
 
 #if ENABLE_VR
     [TearDown]
-    public void TearDownXR()
+    public void ResetSystemState()
     {
         XRGraphicsAutomatedTests.running = false;
     }

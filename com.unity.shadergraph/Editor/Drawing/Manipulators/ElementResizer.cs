@@ -8,13 +8,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class ElementResizer : Manipulator
     {
-        bool m_IsEnabled = true;
-        public bool isEnabled
-        {
-            get => m_IsEnabled;
-            set => m_IsEnabled = value;
-        }
-
         public readonly ResizableElement.Resizer direction;
 
         public readonly VisualElement resizedElement;
@@ -49,9 +42,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDown(MouseDownEvent e)
         {
-            if (!isEnabled)
-                return;
-
             if (e.button == 0 && e.clickCount == 1)
             {
                 VisualElement resizedTarget = resizedElement.parent;
@@ -86,9 +76,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseMove(MouseMoveEvent e)
         {
-            if (!isEnabled)
-                return;
-
             VisualElement resizedTarget = resizedElement.parent;
             VisualElement resizedBase = resizedTarget.parent;
 
@@ -102,8 +89,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (!m_DragStarted)
             {
-                if (resizedTarget is ISGResizable resizable)
-                    resizable.OnStartResize();
+                var resizable = (ISGResizable)resizedTarget;
+                resizable.OnStartResize();
                 m_DragStarted = true;
             }
 
@@ -219,16 +206,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseUp(MouseUpEvent e)
         {
-            if (!isEnabled)
-                return;
-
             if (e.button == 0)
             {
                 VisualElement resizedTarget = resizedElement.parent;
                 if (resizedTarget.style.width != m_StartSize.x || resizedTarget.style.height != m_StartSize.y)
                 {
                     if (resizedTarget is ISGResizable resizable)
+                    {
                         resizable.OnResized();
+                    }
                 }
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
                 target.ReleaseMouse();

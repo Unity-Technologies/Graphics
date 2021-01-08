@@ -6,22 +6,23 @@ using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 
-namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
+namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardProvider
     {
         readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         readonly Dictionary<ShaderInput, BlackboardRow> m_InputRows;
-        readonly SGBlackboardSection m_PropertySection;
-        readonly SGBlackboardSection m_KeywordSection;
+        readonly BlackboardSection m_PropertySection;
+        readonly BlackboardSection m_KeywordSection;
 
         public const int k_PropertySectionIndex = 0;
         public const int k_KeywordSectionIndex = 1;
         const string k_styleName = "Blackboard";
 
-        public SGBlackboard blackboard { get; private set; }
+        public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
@@ -36,32 +37,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        public BlackboardProvider(GraphData graph, GraphView associatedGraphView)
+        public BlackboardProvider(GraphData graph)
         {
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new SGBlackboard(associatedGraphView)
+            blackboard = new Blackboard()
             {
+                scrollable = true,
                 subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
 
-            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
-            blackboard.RegisterCallback<MouseUpEvent>(evt =>
-            {
-                m_PropertySection.OnDragActionCanceled();
-                m_KeywordSection.OnDragActionCanceled();
-            });
-
-            blackboard.RegisterCallback<DragExitedEvent>(evt =>
-            {
-                m_PropertySection.OnDragActionCanceled();
-                m_KeywordSection.OnDragActionCanceled();
-            });
-
+            var styleSheet = Resources.Load<StyleSheet>($"Styles/{k_styleName}");
+            blackboard.styleSheets.Add(styleSheet);
 
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
@@ -71,12 +62,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.hierarchy.Add(m_PathLabelTextField);
 
-            m_PropertySection = new SGBlackboardSection { title = "Properties" };
+            m_PropertySection = new BlackboardSection { title = "Properties" };
             foreach (var property in graph.properties)
                 AddInputRow(property);
             blackboard.Add(m_PropertySection);
 
-            m_KeywordSection = new SGBlackboardSection { title = "Keywords" };
+            m_KeywordSection = new BlackboardSection { title = "Keywords" };
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
@@ -181,7 +172,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             return string.Join("/", newStrings.ToArray());
         }
 
-        void MoveItemRequested(SGBlackboard blackboard, int newIndex, VisualElement visualElement)
+        void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
         {
             var input = visualElement.userData as ShaderInput;
             if (input == null)
@@ -201,7 +192,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        void AddItemRequested(SGBlackboard blackboard)
+        void AddItemRequested(Blackboard blackboard)
         {
             var gm = new GenericMenu();
             AddPropertyItems(gm);
@@ -266,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
+        void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
             var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
@@ -282,6 +273,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
+        void UpdateBlackboardView()
+        {
+            foreach (var item in blackboard.selection)
+            {
+                if (item is BlackboardFieldView blackboardFieldView)
+                {
+                    //update property pill
+                    blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
+                    // for some reason doesn't work from the inspector calls so need it here
+                    DirtyNodes();
+                }
+            }
+        }
+
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             var selection = new List<ISelectable>();
@@ -290,13 +295,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 selection.AddRange(blackboard.selection);
             }
 
-            foreach (var shaderInput in m_Graph.removedInputs)
+            foreach (var inputGuid in m_Graph.removedInputs)
             {
                 BlackboardRow row;
-                if (m_InputRows.TryGetValue(shaderInput, out row))
+                if (m_InputRows.TryGetValue(inputGuid, out row))
                 {
                     row.RemoveFromHierarchy();
-                    m_InputRows.Remove(shaderInput);
+                    m_InputRows.Remove(inputGuid);
                 }
             }
 
@@ -356,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     property.onBeforeVersionChange += (_) => m_Graph.owner.RegisterCompleteObjectUndo($"Change {property.displayName} Version");
                     void UpdateField()
@@ -385,7 +390,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
-                    field = new BlackboardFieldView(m_Graph, keyword, icon, keyword.displayName, typeText) { userData = keyword };
+                    field = new BlackboardFieldView(m_Graph, keyword, UpdateBlackboardView, icon, keyword.displayName, typeText) { userData = keyword };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
 
@@ -400,16 +405,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     break;
                 }
                 default:
-
                     throw new ArgumentOutOfRangeException();
             }
 
             field.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-            // These callbacks are used for the property dragging scroll behavior
-            field.RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
-            field.RegisterCallback<DragExitedEvent>(evt => blackboard.HideScrollBoundaryRegions());
 
             // Removing the expand button from the blackboard, its added by default
             var expandButton = row.Q<Button>("expandButton");
@@ -463,19 +464,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         public BlackboardRow GetBlackboardRow(ShaderInput input)
         {
-            if (m_InputRows.ContainsKey(input))
-                return m_InputRows[input];
-            else
-                return null;
-        }
-
-        // Clear any rows that are currently highlighted due to mouse hovering over PropertyNodeViews in the graph
-        public void ClearHighlightedRows()
-        {
-            foreach (var row in m_InputRows)
-            {
-                row.Value.RemoveFromClassList("hovered");
-            }
+            return m_InputRows[input];
         }
 
         void OnMouseHover(EventBase evt, ShaderInput input)
