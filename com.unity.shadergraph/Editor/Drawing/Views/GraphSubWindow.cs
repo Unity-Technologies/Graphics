@@ -255,13 +255,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             });
         }
 
-        protected void ShowWindow()
+        public void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
+            #if UNITY_2021_1_OR_NEWER
+            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
+            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Auto;
+            #else
+            this.m_ScrollView.showVertical = true;
+            this.m_ScrollView.showHorizontal = true;
+            #endif
+
             contentContainer.MarkDirtyRepaint();
         }
 
-        protected void HideWindow()
+        public void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
             #if UNITY_2021_1_OR_NEWER
@@ -272,7 +280,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             this.m_ScrollView.showHorizontal = false;
             #endif
 
-            contentContainer.Clear();
             contentContainer.MarkDirtyRepaint();
         }
 

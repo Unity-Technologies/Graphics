@@ -3,9 +3,32 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
+    class BlackboardGroupInfo
+    {
+        [SerializeField]
+        SerializableGuid m_Guid = new SerializableGuid();
+
+        internal Guid guid => m_Guid.guid;
+
+        [SerializeField]
+        string m_GroupName;
+
+        internal string GroupName
+        {
+            get => m_GroupName;
+            set => m_GroupName = value;
+        }
+
+        BlackboardGroupInfo()
+        {
+
+        }
+    }
+
     class SGBlackboard : GraphSubWindow, ISelection
     {
         VisualElement m_ScrollBoundaryTop;

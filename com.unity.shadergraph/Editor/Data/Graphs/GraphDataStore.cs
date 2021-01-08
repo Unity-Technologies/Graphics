@@ -1,15 +1,16 @@
-﻿using ActionType = UnityEditor.ShaderGraph.IGraphDataAction;
+﻿using UnityEditor.ShaderGraph;
+using ActionType = UnityEditor.ShaderGraph.IGraphDataAction;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Graphing
 {
     delegate T Reducer<T> (T state, ActionType action);
 
-    class GraphDataStore
+    class DataStore<T>
     {
-        Reducer<GraphData> m_Reducer;
-        public GraphData State { get; private set; }
+        Reducer<T> m_Reducer;
+        public T State { get; private set; }
 
-        public GraphDataStore(Reducer<GraphData> reducer, GraphData initialState)
+        public DataStore(Reducer<T> reducer, T initialState)
         {
             m_Reducer = reducer;
             State = initialState;

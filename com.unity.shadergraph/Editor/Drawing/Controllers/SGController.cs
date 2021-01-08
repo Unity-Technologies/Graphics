@@ -132,11 +132,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     // Using the Curiously Recurring Template Pattern here
     // Generic subclass that provides itself as argument for base class type
-    // Allows access to child class functionality in the parent
+    // Allows access to child class functionality in the parent, prevents the parent from growing into a monolithic base class over time
     abstract class SGViewController<T> : SGController<SGViewController<T>> where T : SGViewModel
     {
+        // NOTE: VFX Graph implements models at a base controller level but they also have a unified data model system that we lack which makes it possible, a note for future improvements
         // Holds application specific data
-        GraphData m_Model;
+        // TODO : Have a const reference to a data store instead of a raw GraphData reference, to allow for action dispatches
+		GraphData m_Model;
 
         // Holds data specific to the views this controller is responsible for
         T m_ViewModel;
@@ -144,15 +146,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_ViewModel = viewModel;
             m_Model = graphData;
-            m_ViewModel.ConstructFromModel(m_Model);
+            ApplyChanges();
         }
 
-        protected abstract void ModelChanged(GraphData graphData);
+        // This function is meant to be defined by child classes and lets them provide their own change identifiers, of which it then becomes the child class's responsibility to associate those change IDs with a certain IGraphDataAction
+        protected abstract void ChangeModel(int ChangeID);
+
+        protected virtual void ModelChanged(GraphData graphData)
+        {
+            // Lets all event handlers this controller owns/manages know that the model has changed
+            // Usually this is to update views and make them reconstruct themself from updated view-model
+            NotifyChange(AnyThing);
+        }
 
         public override void ApplyChanges()
         {
-            ModelChanged(Model);
+            // Reconstruct view-model first
             ViewModel.ConstructFromModel(Model);
+            // Notify event handlers of change
+            ModelChanged(Model);
+            // Let child controllers know about changes so they may update themselves in turn
             foreach (var controller in allChildren)
             {
                 controller.ApplyChanges();
@@ -160,6 +173,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public T ViewModel => m_ViewModel;
-        public GraphData Model => m_Model;
+        public GraphData Model
+        {
+            get { return m_Model; }
+            private set
+            {
+                if (m_Model != value)
+                {
+                    m_Model = value;
+                }
+            }
+        }
     }
 }
