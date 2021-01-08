@@ -13,7 +13,7 @@ def create_abv_ymls(metafile):
         yml[job.job_id] = job.yml
 
         if editor.get("nightly"):
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"],metafile["target_branch"])
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["nightly"], metafile["target_branch"])
             yml[job.job_id] = job.yml
         
         if editor.get("weekly"):

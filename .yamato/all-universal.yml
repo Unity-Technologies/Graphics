@@ -70,8 +70,6 @@ Nightly_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_XR_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_mono_Linear_trunk
@@ -142,8 +140,6 @@ Nightly_Universal_CUSTOM-REVISION:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
