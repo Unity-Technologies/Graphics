@@ -7,7 +7,7 @@ The Visual Effect Component creates an instance of a Visual Effect in the scene,
 
 ## How to create a Visual Effect
 
-In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect.
+In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect, then Click the **New** Button, next to the Asset Template property Field : after saving the new Visual Effect Graph asset, the visual effect graph window will open the newly created asset.
 
 You can also create a complete Game Object holding a Visual Effect Component by using the GameObject menu under the Category Visual Effects and Selecting Visual Effect.
 
@@ -23,7 +23,7 @@ The Visual Effect Inspector helps you configure every instance of a Visual Effec
 
 | Item               | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
-| Asset Template     | Object Field that references the Visual Effect Graph being used for this Instance. (Edit Button Opens the Graph and Connects this instance to the Target Game Object panel) |
+| Asset Template     | Object Field that references the Visual Effect Graph being used for this Instance. The New/Edit button enables creating an new visual effect graph asset or editing the current one. (Clicking the button opens the Visual Effect Graph asset and Connects this scene instance to the Target Game Object panel) |
 | Random Seed        | Integer Field that displays the current random seed used for this instance. (Reseed button enables computing a new random seed for this component) |
 | Reseed On Play     | Boolean setting that computes a new seed at random every time the Play Event is sent to the Visual Effect |
 | Initial Event Name | Enables overriding the Default Event name (string) sent to the component when it becomes enabled. (Default : *OnPlay* ) |

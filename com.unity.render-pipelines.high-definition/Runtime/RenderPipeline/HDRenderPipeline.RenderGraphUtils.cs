@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawTransparentRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
         }
 
-        static int SampleCountToPassIndex(MSAASamples samples)
+        internal static int SampleCountToPassIndex(MSAASamples samples)
         {
             switch (samples)
             {
