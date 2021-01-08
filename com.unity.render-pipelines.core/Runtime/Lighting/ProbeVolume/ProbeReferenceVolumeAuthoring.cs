@@ -415,6 +415,7 @@ namespace UnityEngine.Rendering
 
             return settings;
         }
+
 #endif
     }
 }

@@ -734,9 +734,13 @@ namespace UnityEngine.Rendering
         public void Cleanup()
         {
             m_BricksLoaded = false;
-            m_ProbeReferenceVolumeInit = false;
-            m_Index.Cleanup();
-            m_Pool.Cleanup();
+
+            if (m_ProbeReferenceVolumeInit)
+            {
+                m_ProbeReferenceVolumeInit = false;
+                m_Index.Cleanup();
+                m_Pool.Cleanup();
+            }
         }
     }
 }
