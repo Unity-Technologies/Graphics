@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the strength of the LensFlare filter.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
+        public MinIntParameter elementsCount = new MinIntParameter(3, 1);
+
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>

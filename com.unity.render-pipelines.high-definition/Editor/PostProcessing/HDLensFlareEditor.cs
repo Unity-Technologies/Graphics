@@ -8,19 +8,20 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class HDLensFlareEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_Type;
         SerializedDataParameter m_Threshold;
         SerializedDataParameter m_Intensity;
-        HDLensFlareEditorTool m_Tool;
+        SerializedDataParameter m_ElementsCount;
 
         public override void OnEnable()
         {
             var o = new PropertyFetcher<HDLensFlare>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
+            m_Type = Unpack(o.Find(x => x.type));
             m_Threshold = Unpack(o.Find(x => x.threshold));
             m_Intensity = Unpack(o.Find(x => x.intensity));
-
-            m_Tool = new HDLensFlareEditorTool();
+            m_ElementsCount = Unpack(o.Find(x => x.elementsCount));
         }
 
         public override void OnInspectorGUI()
@@ -29,14 +30,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("Lens Flare Editor", "")))
                 {
-                    ////var o = new PropertyFetcher<HDLensFlare>(serializedObject);
-                    ////m_Tool.target = o;
-                    //EditorTools.ToolManager.SetActiveTool<HDLensFlareEditorTool>();
+                    HDLensFlareEditorWindow.OpenWindow();
                 }
             }
             PropertyField(m_Enable, new GUIContent("Enable"));
+            PropertyField(m_Type, new GUIContent("Type"));
             PropertyField(m_Threshold, new GUIContent("Threshold"));
             PropertyField(m_Intensity, new GUIContent("Intensity"));
+            PropertyField(m_ElementsCount, new GUIContent("Elements Count"));
         }
     }
 }
