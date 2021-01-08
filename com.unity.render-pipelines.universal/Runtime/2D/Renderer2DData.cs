@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal float normalsRenderTargetScale { get; set; }
         internal RTHandle normalsRenderTarget;
         internal RTHandle shadowsRenderTarget;
-        internal RenderTargetHandle cameraSortingLayerRenderTarget;
+        internal int cameraSortingLayerRenderTargetId;
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }
