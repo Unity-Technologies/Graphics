@@ -1,12 +1,10 @@
-# HD Camera
+# HDRP Camera
 
-Cameras capture and display your world to the user. Customize and manipulate your Cameras to present your Unity Project however you like. You can use an unlimited number of Cameras in a Scene and set them to render in any order, at any position on the screen. 
-
-The High Definition Render Pipeline (HDRP) includes an HD Camera that uses the HDAdditionalCameraData component. If you use a script to interact with the Camera, some properties that are inside the HDAdditionalCameraData component are displayed inside the Camera component.
+The High Definition Render Pipeline (HDRP) adds extra properties and methods to Unity's [standard Camera](https://docs.unity3d.com/ScriptReference/Camera.html) to control HDRP features, such as [Frame Settings](Frame-Settings.md). Although HDRP displays these extra properties in the Camera component Inspector, HDRP stores them in the [HDAdditionalCameraData](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html) component. This means if you use a script to access properties or methods for the Camera, be aware that they may be inside the HDAdditionalCameraData component. For the full list of properties and methods HDRP stores in the HDAdditionalCameraData component, see the [scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html).
 
 ## Properties
 
-The HDRP Camera shares many properties with the [Standard Unity Camera](https://docs.unity3d.com/Manual/class-Camera.html).
+The HDRP Camera shares many properties with the Unity's [standard Camera](https://docs.unity3d.com/Manual/class-Camera.html).
 
 ### General
 
