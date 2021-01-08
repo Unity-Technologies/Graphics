@@ -12,6 +12,8 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --compilation-errors-as-warnings
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -57,7 +59,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -71,3 +73,7 @@ all:
       color_space: Linear
       test_platforms:
         - playmode 
+nightly:
+  dependencies:
+    - project: Universal_Hybrid
+      pr: true

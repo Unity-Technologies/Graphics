@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Rendering.Universal.Internal;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.TestTools;
 
 class EditorTests
@@ -43,7 +44,33 @@ class EditorTests
         {
             var asset = ScriptableObject.CreateInstance<ForwardRendererData>();
             ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
+            var renderer = asset.InternalCreateRenderer();
             LogAssert.NoUnexpectedReceived();
+            renderer.Dispose();
+            ScriptableObject.DestroyImmediate(asset);
+        }
+        // Makes sure the render pipeline is restored in case of a NullReference exception.
+        finally
+        {
+            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+        }
+    }
+
+    // When creating a new renderer 2d asset it should not log any errors or throw exceptions.
+    [Test]
+    public void CreateRenderer2DAssetWithoutErrors()
+    {
+        // Test without any render pipeline assigned to GraphicsSettings.
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        GraphicsSettings.renderPipelineAsset = null;
+
+        try
+        {
+            var asset = ScriptableObject.CreateInstance<Renderer2DData>();
+            ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
+            var renderer = asset.InternalCreateRenderer();
+            LogAssert.NoUnexpectedReceived();
+            renderer.Dispose();
             ScriptableObject.DestroyImmediate(asset);
         }
         // Makes sure the render pipeline is restored in case of a NullReference exception.
