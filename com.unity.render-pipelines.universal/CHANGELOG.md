@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Always use "High" quality normals, which normalizes the normal in pixel shader. "Low" quality normals looked too much like a bug.
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
+- Converted XR automated tests to use MockHMD.
 
 ### Fixed
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
@@ -76,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 - Fixed the default background color for previews to use the original color.
 - MSAA post-filter only clear stencil buffer instead of depth and stencil buffers.
+- Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 
 ## [10.2.0] - 2020-10-19
 
