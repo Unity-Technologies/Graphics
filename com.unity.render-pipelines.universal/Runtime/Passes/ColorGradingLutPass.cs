@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly GraphicsFormat m_HdrLutFormat;
         readonly GraphicsFormat m_LdrLutFormat;
 
-        RenderTargetHandle m_InternalLut;
+        int m_InternalLutId;
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
@@ -53,9 +53,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.useNativeRenderPass = false;
         }
 
-        public void Setup(in RenderTargetHandle internalLut)
+        public void Setup(in int internalLut)
         {
-            m_InternalLut = internalLut;
+            m_InternalLutId = internalLut;
         }
 
         /// <inheritdoc/>
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var material = hdr ? m_LutBuilderHdr : m_LutBuilderLdr;
                 var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
                 desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
-                cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(m_InternalLutId, desc, FilterMode.Bilinear);
 
                 // Prepare data
                 var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(whiteBalance.temperature.value, whiteBalance.tint.value);
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 // Render the lut
-                cmd.Blit(null, m_InternalLut.id, material);
+                cmd.Blit(null, m_InternalLutId, material);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_InternalLut.id);
+            cmd.ReleaseTemporaryRT(m_InternalLutId);
         }
 
         public void Cleanup()
