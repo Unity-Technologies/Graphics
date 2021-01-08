@@ -34,6 +34,10 @@ MonoBehaviour:
       sceneLabels: Simple
       scenePath: Assets/Scenes/Timings/0004_Shadows.unity
       enabled: 1
+    - scene: 0005_PostProcessing
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Timings/0005_PostProcessing.unity
+      enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
@@ -43,13 +47,13 @@ MonoBehaviour:
       alias: 
   memoryTestSuite:
     scenes:
-    - scene: Volumetrics_Memory
+    - scene: 0000_Empty_Memory
       sceneLabels: Default
-      scenePath: Assets/Scenes/Memory/Volumetrics_Memory.unity
+      scenePath: Assets/Scenes/Memory/0000_Empty_Memory.unity
       enabled: 1
-    - scene: Empty_Memory
+    - scene: 0001_Volumetrics_Memory
       sceneLabels: Default
-      scenePath: Assets/Scenes/Memory/Empty_Memory.unity
+      scenePath: Assets/Scenes/Memory/0001_Volumetrics_Memory.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
