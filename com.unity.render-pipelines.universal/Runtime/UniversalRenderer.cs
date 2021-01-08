@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
                     if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, new RenderTargetHandle(Shader.PropertyToID(m_DepthTexture.name)));
+                        m_DepthPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_DepthTexture.name));
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
