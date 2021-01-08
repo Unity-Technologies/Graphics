@@ -7,35 +7,38 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    guid: 1636e4e436416de46b753a839a511adb
   - enabled: 1
     path: Assets/Scenes/0001_1000_LitCube.unity
-    guid: 28e288c67dfeebc4ca736cf19a048aec
+    guid: dfbee8d044c2ecc459074b35bd859216
   - enabled: 1
     path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    guid: 4a1a7c6af1640f544a6f1deee28e7a35
   - enabled: 1
     path: Assets/Scenes/0003_TesselationShadow.unity
-    guid: 0e384ccb83f959247ba023387248b3e5
+    guid: aa5f3ffa18d49cc44b3b5b4ee321f51a
   - enabled: 1
     path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    guid: 1636e4e436416de46b753a839a511adb
   - enabled: 1
     path: Assets/Scenes/0001_1000_LitCube.unity
-    guid: 28e288c67dfeebc4ca736cf19a048aec
+    guid: dfbee8d044c2ecc459074b35bd859216
   - enabled: 1
     path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    guid: 4a1a7c6af1640f544a6f1deee28e7a35
   - enabled: 1
     path: Assets/Scenes/0003_TesselationShadow.unity
-    guid: 0e384ccb83f959247ba023387248b3e5
+    guid: aa5f3ffa18d49cc44b3b5b4ee321f51a
   - enabled: 1
-    path: Assets/Scenes/0000_LitCube.unity
-    guid: 7fe3f9e94b4355641ba1534c54d5c356
+    path: Assets/Scenes/Memory/Volumetrics_Memory.unity
+    guid: 3df1cdfc024dd214e83b457968ffb25a
+  - enabled: 1
+    path: Assets/Scenes/Memory/Empty_Memory.unity
+    guid: b3849f30651a97c42a395c6284f372ba
   - enabled: 1
     path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    guid: 4a1a7c6af1640f544a6f1deee28e7a35
   - enabled: 1
     path: Assets/Scenes/0002_TransparentOverdraw.unity
-    guid: f2681721199474a41bfc8d4ddc3d9aeb
+    guid: 4a1a7c6af1640f544a6f1deee28e7a35
   m_configObjects: {}
