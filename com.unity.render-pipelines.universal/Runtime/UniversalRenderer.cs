@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
                 && createDepthTexture;
             if (requiresDepthCopyPass)
             {
-                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture, true);
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, Shader.PropertyToID(m_DepthTexture.name));
 
                 if (this.actualRenderingMode == RenderingMode.Deferred)
                     m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
@@ -594,7 +594,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!depthTargetResolved && cameraData.xr.copyDepth)
                 {
-                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RTHandles.Alloc(cameraData.xr.renderTarget), false);
+                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, cameraData);
                     EnqueuePass(m_XRCopyDepthPass);
                 }
 #endif
@@ -611,7 +611,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
-                m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget, false);
+                m_FinalDepthCopyPass.Setup(m_DepthTexture, -1);
                 m_FinalDepthCopyPass.MssaSamples = 0;
                 EnqueuePass(m_FinalDepthCopyPass);
             }
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture, true);
+            m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, Shader.PropertyToID(m_DepthTexture.name));
             EnqueuePass(m_GBufferCopyDepthPass);
 
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
