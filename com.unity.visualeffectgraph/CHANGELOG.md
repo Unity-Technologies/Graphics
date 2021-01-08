@@ -5,9 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- VFXEventBinderBase throwing a null reference exception in runtime
 
 ## [11.0.0] - 2020-10-21
 ### Added
@@ -26,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
 - Fix [Case 1290493](https://fogbugz.unity3d.com/f/cases/1290493/#BugEvent.1072735759)
 - Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
+
 
 ## [10.2.0] - 2020-10-19
 ### Added
