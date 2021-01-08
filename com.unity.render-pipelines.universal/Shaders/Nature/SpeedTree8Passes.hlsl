@@ -432,7 +432,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, occlusion);
 
 #else
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
@@ -524,7 +524,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     AlphaDiscard(alpha - 0.3333, 0.0);
 
     float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS.xyz);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    return half4(normalWS, 0.0);
 }
 
 #endif
