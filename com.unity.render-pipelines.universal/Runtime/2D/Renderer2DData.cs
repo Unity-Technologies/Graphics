@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+                m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(Shader.PropertyToID($"_ShapeLightTexture{i}"), $"_ShapeLightTexture{i}");
             }
 
             normalsRenderTarget.Init("_NormalMap");
