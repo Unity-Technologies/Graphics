@@ -253,18 +253,16 @@ namespace UnityEditor.Rendering
             }
 
             if (contextAction != null)
-                GUI.DrawTexture(menuRect, menuIcon);
+            {
+                if (GUI.Button(menuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
+            }
 
             var e = Event.current;
 
             if (e.type == EventType.MouseDown)
             {
-                if (contextAction != null && menuRect.Contains(e.mousePosition))
-                {
-                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
-                    e.Use();
-                }
-                else if (backgroundRect.Contains(e.mousePosition))
+                if (backgroundRect.Contains(e.mousePosition))
                 {
                     if (e.button != 0 && contextAction != null)
                         contextAction(e.mousePosition);
