@@ -27,7 +27,7 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
     job.add_var_upm_registry()
     job.add_var_custom_revision(editor["track"])
     job.add_commands(cmd)
-    job.add_artifacts_test_results()
+    job.add_artifacts_test_results()  
 
     if test_platform_name.lower()=='standalone':
         job.add_artifacts_project_logs(project.get("folder_standalone", project["folder"]))
@@ -43,8 +43,9 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
 
     if project["name"] == "URP_Performance_BoatAttack":
         job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-        job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
+        job.add_var_custom('BOAT_ATTACK_REVISION', 'd07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c')
 
+    job.add_var_custom('UTR_VERSION', dss("current"))
     job.add_var_custom('TEST_FILTER', '.*')
 
     return job

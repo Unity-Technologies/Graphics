@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using System.Linq;
 
 // Include material common properties names
@@ -20,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent planarSpaceText = new GUIContent("Planar Space");
 
             public static GUIContent materialTilingOffsetText = new GUIContent("Main Tiling (XY scales) and Offset (ZW)", "The XY scales the texture coordinates while the ZW are additive offsets");
+
+            public static GUIContent rayTracingTexFilteringScaleText = new GUIContent("Texture Filtering In Raytracing", "Texture filtering works differently in raytracing. To help with aliasing you can adjust this from 0 (no filtering) to 1 (maximum filtering)");
         }
         static readonly string[]    MappingModeNames = Enum.GetNames(typeof(AxFMappingMode));
 
@@ -35,6 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static string m_MaterialTilingOffsetText = "_Material_SO";
         MaterialProperty m_MaterialTilingOffset = null;
 
+        static string m_RayTracingTexFilteringScaleText = "_RayTracingTexFilteringScale";
+        MaterialProperty m_RayTracingTexFilteringScale = null;
+
         ExpandableBit  m_ExpandableBit;
 
         public AxfMainSurfaceInputsUIBlock(ExpandableBit expandableBit)
@@ -49,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PlanarSpace = FindProperty(m_PlanarSpaceText);
 
             m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
+            m_RayTracingTexFilteringScale = FindProperty(m_RayTracingTexFilteringScaleText);
         }
 
         public override void OnGUI()
@@ -84,6 +91,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
+
+            // We only display the ray tracing option if the asset supports it
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                materialEditor.ShaderProperty(m_RayTracingTexFilteringScale, Styles.rayTracingTexFilteringScaleText);
+            }
         }
     }
 }
