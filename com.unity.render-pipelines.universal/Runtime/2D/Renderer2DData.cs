@@ -133,8 +133,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(Shader.PropertyToID($"_ShapeLightTexture{i}"), $"_ShapeLightTexture{i}");
             }
 
-            normalsRenderTarget.Init("_NormalMap");
-            shadowsRenderTarget.Init("_ShadowTex");
+            normalsRenderTarget = RTHandles.Alloc(Shader.PropertyToID("_NormalMap"), "_NormalMap");
+            shadowsRenderTarget = RTHandles.Alloc(Shader.PropertyToID("_ShadowTex"), "_ShadowTex");
 
             const int totalMaterials = 256;
             if (shadowMaterials == null || shadowMaterials.Length == 0)
@@ -150,8 +150,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool isNormalsRenderTargetValid { get; set; }
         internal float normalsRenderTargetScale { get; set; }
-        internal RenderTargetHandle normalsRenderTarget;
-        internal RenderTargetHandle shadowsRenderTarget;
+        internal RTHandle normalsRenderTarget;
+        internal RTHandle shadowsRenderTarget;
         internal RenderTargetHandle cameraSortingLayerRenderTarget;
 
         // this shouldn've been in RenderingData along with other cull results

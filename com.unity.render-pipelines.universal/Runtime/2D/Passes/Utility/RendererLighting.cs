@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (pass.rendererData.isNormalsRenderTargetValid)
                 {
-                    cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
+                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name));
                 }
 
                 pass.rendererData.isNormalsRenderTargetValid = true;
@@ -103,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
 
-                cmd.GetTemporaryRT(pass.rendererData.normalsRenderTarget.id, descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name), descriptor, FilterMode.Bilinear);
             }
         }
 
@@ -168,8 +168,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
-            cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
-            cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name));
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.shadowsRenderTarget.name));
             cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id);
         }
 
@@ -499,7 +499,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (depthTarget != BuiltinRenderTextureType.None)
                 {
                     cmd.SetRenderTarget(
-                        pass.rendererData.normalsRenderTarget.Identifier(),
+                        pass.rendererData.normalsRenderTarget,
                         RenderBufferLoadAction.DontCare,
                         storeAction,
                         depthTarget,
@@ -507,7 +507,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RenderBufferStoreAction.Store);
                 }
                 else
-                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, storeAction);
+                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, storeAction);
 
                 cmd.ClearRenderTarget(false, true, k_NormalClearColor);
 
