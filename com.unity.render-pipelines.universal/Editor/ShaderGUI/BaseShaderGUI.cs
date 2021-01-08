@@ -563,14 +563,6 @@ namespace UnityEditor
             }
         }
 
-        public void ShaderProperty(MaterialEditor materialEditor, MaterialProperty materialProperty, GUIContent label, int labelIndent)
-        {
-            using (CreateOverrideScopeFor(materialProperty))
-            {
-                materialEditor.ShaderProperty(materialProperty, label, labelIndent);
-            }
-        }
-
         public void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
             MaterialProperty prop2, GUIContent prop2Label, MaterialEditor materialEditor, float labelWidth = 30f)
         {
