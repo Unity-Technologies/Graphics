@@ -504,6 +504,7 @@ namespace UnityEditor.Rendering
             var menu = new GenericMenu();
 
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }
