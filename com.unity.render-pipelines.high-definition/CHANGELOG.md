@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed timing issues with accumulation motion blur
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 - Fixed issue with shadow mask and area lights.
+- Fixed an issue with the capture callback (now includes post processing results).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
