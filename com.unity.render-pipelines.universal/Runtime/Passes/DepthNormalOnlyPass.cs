@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool allocateNormal { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
-        private RenderTargetHandle depthHandle { get; set; }
-        private RenderTargetHandle normalHandle { get; set; }
+        private int depthId { get; set; }
+        private int normalId { get; set; }
         private FilteringSettings m_FilteringSettings;
 
         // Constants
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, int depthId, int normalId)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -46,13 +46,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
-            this.depthHandle = depthHandle;
+            this.depthId = depthId;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
             depthDescriptor = baseDescriptor;
 
-            this.normalHandle = normalHandle;
+            this.normalId = normalId;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.msaaSamples = 1;
@@ -67,12 +67,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (this.allocateNormal)
-                cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(normalId, normalDescriptor, FilterMode.Point);
             if (this.allocateDepth)
-                cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(depthId, depthDescriptor, FilterMode.Point);
             ConfigureTarget(
-                new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                new RenderTargetIdentifier(normalId, 0, CubemapFace.Unknown, -1),
+                new RenderTargetIdentifier(depthId, 0, CubemapFace.Unknown, -1)
             );
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -109,14 +109,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 throw new ArgumentNullException("cmd");
             }
 
-            if (depthHandle != RenderTargetHandle.CameraTarget)
+            if (depthId != RenderTargetHandle.CameraTarget.id)
             {
                 if (this.allocateNormal)
-                    cmd.ReleaseTemporaryRT(normalHandle.id);
+                    cmd.ReleaseTemporaryRT(normalId);
                 if (this.allocateDepth)
-                    cmd.ReleaseTemporaryRT(depthHandle.id);
-                normalHandle = RenderTargetHandle.CameraTarget;
-                depthHandle = RenderTargetHandle.CameraTarget;
+                    cmd.ReleaseTemporaryRT(depthId);
+                normalId = RenderTargetHandle.CameraTarget.id;
+                depthId = RenderTargetHandle.CameraTarget.id;
             }
         }
     }

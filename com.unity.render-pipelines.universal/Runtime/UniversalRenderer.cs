@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, new RenderTargetHandle(Shader.PropertyToID(m_ActiveCameraDepthAttachment.name)), new RenderTargetHandle(Shader.PropertyToID(m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].name)));
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_ActiveCameraDepthAttachment.name), Shader.PropertyToID(m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].name));
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, new RenderTargetHandle(Shader.PropertyToID(m_DepthTexture.name)), new RenderTargetHandle(Shader.PropertyToID(m_NormalsTexture.name)));
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_DepthTexture.name), Shader.PropertyToID(m_NormalsTexture.name));
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);
