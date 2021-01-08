@@ -134,10 +134,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._HistoryNormalTexture, tfResources.historyNormalTexture);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._VelocityBuffer, tfResources.velocityBuffer);
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._CameraMotionVectorsTexture, tfResources.motionVectorBuffer);
+            cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._StencilTexture, tfResources.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
 
             // Bind the constants
             cmd.SetComputeFloatParam(tfParameters.temporalFilterCS, HDShaderIDs._HistoryValidity, tfParameters.historyValidity);
             cmd.SetComputeFloatParam(tfParameters.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, tfParameters.pixelSpreadTangent);
+            cmd.SetComputeIntParam(tfParameters.temporalFilterCS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
 
             // Bind the output buffer
             cmd.SetComputeTextureParam(tfParameters.temporalFilterCS, tfParameters.validateHistoryKernel, HDShaderIDs._ValidationBufferRW, tfResources.validationBuffer);
@@ -274,10 +276,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._HistoryNormalTexture, tfaResources.historyNormalTexture);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._CameraMotionVectorsTexture, tfaResources.motionVectorBuffer);
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._VelocityBuffer, tfaResources.velocityBuffer);
+            cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._StencilTexture, tfaResources.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
 
             // Bind the constants
             cmd.SetComputeFloatParam(tfaParams.temporalFilterCS, HDShaderIDs._HistoryValidity, tfaParams.historyValidity);
             cmd.SetComputeFloatParam(tfaParams.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, tfaParams.pixelSpreadTangent);
+            cmd.SetComputeIntParam(tfaParams.temporalFilterCS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
 
             // Bind the output buffer
             cmd.SetComputeTextureParam(tfaParams.temporalFilterCS, tfaParams.validateHistoryKernel, HDShaderIDs._ValidationBufferRW, tfaResources.validationBuffer);
