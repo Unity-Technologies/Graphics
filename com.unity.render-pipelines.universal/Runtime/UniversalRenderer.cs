@@ -550,18 +550,18 @@ namespace UnityEngine.Rendering.Universal
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
-                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor.Identifier() : m_ActiveCameraColorAttachment;
+                var sourceForFinalPass = (applyPostProcessing) ? RTHandles.Alloc(afterPostProcessColor.Identifier()) : m_ActiveCameraColorAttachment;
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(RTHandles.Alloc(sourceForFinalPass));
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass);
                     EnqueuePass(finalPostProcessPass);
                 }
 
                 if (renderingData.cameraData.captureActions != null)
                 {
-                    m_CapturePass.Setup(new RenderTargetHandle(sourceForFinalPass));
+                    m_CapturePass.Setup(sourceForFinalPass);
                     EnqueuePass(m_CapturePass);
                 }
 
@@ -578,7 +578,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, RTHandles.Alloc(sourceForFinalPass));
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
 
