@@ -49,5 +49,29 @@ namespace UnityEditor.Rendering
         public MaterialNonDrawnPropertyScope<T> CreateNonDrawnOverrideScope<T>(string propertyName, T value)
             where T : struct
             => new MaterialNonDrawnPropertyScope<T>(propertyName, value, variants);
+
+        public void ShaderProperty(MaterialEditor materialEditor, MaterialProperty materialProperty, GUIContent label, int indent = 0)
+        {
+            using (CreateOverrideScopeFor(materialProperty))
+            {
+                materialEditor.ShaderProperty(materialProperty, label, indent);
+            }
+        }
+
+        public void MinMaxSliderProperty(GUIContent label, MaterialProperty min, MaterialProperty max, float minLimit, float maxLimit)
+        {
+            using (CreateOverrideScopeFor(min, max))
+            {
+                float minValue = min.floatValue;
+                float maxValue = max.floatValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(label, ref minValue, ref maxValue, minLimit, maxLimit);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    min.floatValue = minValue;
+                    max.floatValue = maxValue;
+                }
+            }
+        }
     }
 }

@@ -410,56 +410,17 @@ namespace UnityEditor.Rendering.HighDefinition
             if (maskMap[m_LayerIndex].textureValue == null)
             {
                 if (hasMetallic)
-                {
-                    using (CreateOverrideScopeFor(metallic[m_LayerIndex]))
-                        materialEditor.ShaderProperty(metallic[m_LayerIndex], Styles.metallicText);
-                }
-                using (CreateOverrideScopeFor(smoothness[m_LayerIndex]))
-                    materialEditor.ShaderProperty(smoothness[m_LayerIndex], Styles.smoothnessText);
+                    shaderGUI.ShaderProperty(materialEditor, metallic[m_LayerIndex], Styles.metallicText);
+
+                shaderGUI.ShaderProperty(materialEditor, smoothness[m_LayerIndex], Styles.smoothnessText);
             }
             else
             {
                 if (hasMetallic)
-                {
-                    using (CreateOverrideScopeFor(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex]))
-                    {
-                        float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
-                        float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref metallicMin, ref metallicMax, 0.0f, 1.0f);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            metallicRemapMin[m_LayerIndex].floatValue = metallicMin;
-                            metallicRemapMax[m_LayerIndex].floatValue = metallicMax;
-                        }
-                    }
-                }
+                    shaderGUI.MinMaxSliderProperty(Styles.metallicRemappingText, metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f);
 
-                using (CreateOverrideScopeFor(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex]))
-                {
-                    float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
-                    float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        smoothnessRemapMin[m_LayerIndex].floatValue = remapMin;
-                        smoothnessRemapMax[m_LayerIndex].floatValue = remapMax;
-                    }
-                }
-
-                using (CreateOverrideScopeFor(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex]))
-                {
-                    float aoMin = aoRemapMin[m_LayerIndex].floatValue;
-                    float aoMax = aoRemapMax[m_LayerIndex].floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        aoRemapMin[m_LayerIndex].floatValue = aoMin;
-                        aoRemapMax[m_LayerIndex].floatValue = aoMax;
-                    }
-                }
+                shaderGUI.MinMaxSliderProperty(Styles.smoothnessRemappingText, smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f);
+                shaderGUI.MinMaxSliderProperty(Styles.aoRemappingText, aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f);
             }
 
             using (CreateOverrideScopeFor(maskMap[m_LayerIndex]))

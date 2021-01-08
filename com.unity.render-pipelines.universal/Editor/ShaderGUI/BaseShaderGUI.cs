@@ -264,12 +264,12 @@ namespace UnityEditor
         {
             DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
 
-            if((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
+            if ((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
             {
                 DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
             }
 
-            using(CreateOverrideScopeFor(cullingProp))
+            using (CreateOverrideScopeFor(cullingProp))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = cullingProp.hasMixedValue;
@@ -284,7 +284,7 @@ namespace UnityEditor
                 EditorGUI.showMixedValue = false;
             }
 
-            using(CreateOverrideScopeFor(alphaClipProp))
+            using (CreateOverrideScopeFor(alphaClipProp))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
@@ -299,7 +299,7 @@ namespace UnityEditor
 
             if (receiveShadowsProp != null)
             {
-                using(CreateOverrideScopeFor(receiveShadowsProp))
+                using (CreateOverrideScopeFor(receiveShadowsProp))
                 {
                     EditorGUI.BeginChangeCheck();
                     EditorGUI.showMixedValue = receiveShadowsProp.hasMixedValue;
@@ -326,7 +326,7 @@ namespace UnityEditor
         {
             if (queueOffsetProp != null)
             {
-                using(CreateOverrideScopeFor(queueOffsetProp))
+                using (CreateOverrideScopeFor(queueOffsetProp))
                 {
                     EditorGUI.BeginChangeCheck();
                     EditorGUI.showMixedValue = queueOffsetProp.hasMixedValue;
@@ -362,7 +362,7 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp.textureValue != null;
 
-            using(CreateOverrideScopeFor(emissionMapProp, emissionColorProp))
+            using (CreateOverrideScopeFor(emissionMapProp, emissionColorProp))
             {
                 if (!keyword)
                 {
@@ -374,7 +374,7 @@ namespace UnityEditor
                     // Emission for GI?
                     emissive = materialEditor.EmissionEnabledProperty();
 
-                    using(new EditorGUI.DisabledGroupScope(!emissive))
+                    using (new EditorGUI.DisabledGroupScope(!emissive))
                     {
                         // Texture and HDR color controls
                         materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp,
@@ -411,9 +411,9 @@ namespace UnityEditor
 
                 TextureColorProps(materialEditor, Styles.normalMapText, bumpMap, extraProperty);
 
-                if(bumpMapScale.floatValue != 1 &&
-                   UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
-                       EditorUserBuildSettings.activeBuildTarget))
+                if (bumpMapScale.floatValue != 1 &&
+                    UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
+                        EditorUserBuildSettings.activeBuildTarget))
                 {
                     if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNormalNow))
                         bumpMapScale.floatValue = 1;
@@ -427,7 +427,7 @@ namespace UnityEditor
 
         protected void DrawTileOffset(MaterialEditor materialEditor, MaterialProperty textureProp)
         {
-            using(CreateOverrideScopeFor(textureProp))
+            using (CreateOverrideScopeFor(textureProp))
             {
                 materialEditor.TextureScaleOffsetProperty(textureProp);
             }
@@ -555,18 +555,11 @@ namespace UnityEditor
         // Helper Functions               //
         ////////////////////////////////////
         #region HelperFunctions
-        public void ShaderProperty(MaterialEditor materialEditor, MaterialProperty materialProperty, GUIContent label, int indent = 0)
-        {
-            using (CreateOverrideScopeFor(materialProperty))
-            {
-                materialEditor.ShaderProperty(materialProperty, label, indent);
-            }
-        }
 
         public void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
             MaterialProperty prop2, GUIContent prop2Label, MaterialEditor materialEditor, float labelWidth = 30f)
         {
-            using(CreateOverrideScopeFor(prop1, prop2))
+            using (CreateOverrideScopeFor(prop1, prop2))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = prop1.hasMixedValue || prop2.hasMixedValue;
@@ -608,7 +601,7 @@ namespace UnityEditor
             if (property == null)
                 throw new ArgumentNullException("property");
 
-            using(CreateOverrideScopeFor(property))
+            using (CreateOverrideScopeFor(property))
             {
                 EditorGUI.showMixedValue = property.hasMixedValue;
 
@@ -628,9 +621,9 @@ namespace UnityEditor
         // Helper to show texture and color properties
         public Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp = null, bool hdr = false)
         {
-            using(CreateOverrideScopeFor(textureProp, colorProp))
+            using (CreateOverrideScopeFor(textureProp, colorProp))
             {
-                if(hdr)
+                if (hdr)
                 {
                     return materialEditor.TexturePropertyWithHDRColor(label, textureProp, colorProp, false);
                 }

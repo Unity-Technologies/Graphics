@@ -247,57 +247,21 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (perChannelMask)
                 {
-                    using (CreateOverrideScopeFor(metallicRemapMin, metallicRemapMax))
-                    {
-                        float MetalRemapMinValue = metallicRemapMin.floatValue;
-                        float MetalRemapMaxValue = metallicRemapMax.floatValue;
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref MetalRemapMinValue, ref MetalRemapMaxValue, 0.0f, 1.0f);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            metallicRemapMin.floatValue = MetalRemapMinValue;
-                            metallicRemapMax.floatValue = MetalRemapMaxValue;
-                        }
-                    }
-
-                    using (CreateOverrideScopeFor(AORemapMin, AORemapMax))
-                    {
-                        float AORemapMinValue = AORemapMin.floatValue;
-                        float AORemapMaxValue = AORemapMax.floatValue;
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            AORemapMin.floatValue = AORemapMinValue;
-                            AORemapMax.floatValue = AORemapMaxValue;
-                        }
-                    }
+                    shaderGUI.MinMaxSliderProperty(Styles.metallicRemappingText, metallicRemapMin, metallicRemapMax, 0.0f, 1.0f);
+                    shaderGUI.MinMaxSliderProperty(Styles.aoRemappingText, AORemapMin, AORemapMax, 0.0f, 1.0f);
                 }
 
-                using (CreateOverrideScopeFor(smoothnessRemapMin, smoothnessRemapMax))
-                {
-                    float smoothnessRemapMinValue = smoothnessRemapMin.floatValue;
-                    float smoothnessRemapMaxValue = smoothnessRemapMax.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref smoothnessRemapMinValue, ref smoothnessRemapMaxValue, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        smoothnessRemapMin.floatValue = smoothnessRemapMinValue;
-                        smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
-                    }
-                }
+                shaderGUI.MinMaxSliderProperty(Styles.smoothnessRemappingText, smoothnessRemapMin, smoothnessRemapMax, 0.0f, 1.0f);
             }
             else
             {
                 if (perChannelMask)
                 {
-                    using (CreateOverrideScopeFor(metallic))
-                        materialEditor.ShaderProperty(metallic, Styles.metallicText);
-                    using (CreateOverrideScopeFor(AO))
-                        materialEditor.ShaderProperty(AO, Styles.aoText);
+                    shaderGUI.ShaderProperty(materialEditor, metallic, Styles.metallicText);
+                    shaderGUI.ShaderProperty(materialEditor, AO, Styles.aoText);
                 }
-                using (CreateOverrideScopeFor(smoothness))
-                    materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
+
+                shaderGUI.ShaderProperty(materialEditor, smoothness, Styles.smoothnessText);
             }
 
             using (CreateOverrideScopeFor(maskBlendSrc))
