@@ -189,15 +189,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 shaderGUI.TextureColorProps(materialEditor, Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
 
-                EditorGUI.indentLevel += 2;
-
                 // Texture and HDR color controls
-                using(shaderGUI.CreateOverrideScopeFor(properties.clearCoatSmoothness))
-                {
-                    materialEditor.ShaderProperty(properties.clearCoatSmoothness, Styles.clearCoatSmoothnessText);
-                }
-
-                EditorGUI.indentLevel -= 2;
+                shaderGUI.ShaderProperty(materialEditor, properties.clearCoatSmoothness, Styles.clearCoatSmoothnessText, 2);
             }
         }
 

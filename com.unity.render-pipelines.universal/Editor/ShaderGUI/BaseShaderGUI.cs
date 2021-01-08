@@ -295,7 +295,7 @@ namespace UnityEditor
             }
 
             if (alphaClipProp.floatValue == 1)
-                materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
+                ShaderProperty(materialEditor, alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
             if (receiveShadowsProp != null)
             {
@@ -555,11 +555,11 @@ namespace UnityEditor
         // Helper Functions               //
         ////////////////////////////////////
         #region HelperFunctions
-        public void ShaderProperty(MaterialEditor materialEditor, MaterialProperty materialProperty, GUIContent label)
+        public void ShaderProperty(MaterialEditor materialEditor, MaterialProperty materialProperty, GUIContent label, int indent = 0)
         {
             using(CreateOverrideScopeFor(materialProperty))
             {
-                materialEditor.ShaderProperty(materialProperty, label);
+                materialEditor.ShaderProperty(materialProperty, label, indent);
             }
         }
 
