@@ -39,9 +39,13 @@ MonoBehaviour:
       alias: 
   memoryTestSuite:
     scenes:
-    - scene: 0000_LitCube
-      sceneLabels: Simple
-      scenePath: Assets/Scenes/0000_LitCube.unity
+    - scene: Volumetrics_Memory
+      sceneLabels: Default
+      scenePath: Assets/Scenes/Memory/Volumetrics_Memory.unity
+      enabled: 1
+    - scene: Empty_Memory
+      sceneLabels: Default
+      scenePath: Assets/Scenes/Memory/Empty_Memory.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
