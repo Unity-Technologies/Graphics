@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -724,6 +725,14 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal float GetPixelSpreadAngle(float fov, int width, int height)
         {
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
+
+        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
+        {
+            HDTemporalFilter temporalFilter = GetTemporalFilter();
+            float historyValidity = EvaluateHistoryValidity(hdCamera);
+            HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
+            return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
         }
     }
 }

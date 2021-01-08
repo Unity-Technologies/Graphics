@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 
 ## [11.0.0] - 2020-10-21
 
