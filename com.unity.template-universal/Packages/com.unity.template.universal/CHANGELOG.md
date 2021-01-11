@@ -6,11 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.3] - 2021-01-11
 ### changed
-- Update HDRP package to 7.5.3
+- Update SRP package to 7.5.3
 
 ## [7.5.2] - 2020-11-16
 ### changed
-- Update HDRP package to 7.5.2
+- Update SRP package to 7.5.2
 
 ## [7.5.1] - 2020-09-02
 ### changed
