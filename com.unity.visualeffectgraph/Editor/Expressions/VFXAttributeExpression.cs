@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
         [Tooltip("Outputs the spawn index of the particle within its strip. This attribute is available in systems using the 'Particle Strip' data type.")]
         public static readonly VFXAttribute SpawnIndexInStrip       = new VFXAttribute("spawnIndexInStrip", VFXValueType.Uint32);
         [Tooltip("Outputs the number of particles spawned. This value is relative in the Spawn Context.")]
-        public static readonly VFXAttribute SpawnCount              = new VFXAttribute("spawnCount", VFXValueType.Float);
+        public static readonly VFXAttribute SpawnCount              = new VFXAttribute("spawnCount", VFXValue.Constant(1.0f));
 
         // Internal as we dont want it to appear in the graph
         internal static readonly VFXAttribute StripAlive            = new VFXAttribute("stripAlive", VFXValue.Constant(true)); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
