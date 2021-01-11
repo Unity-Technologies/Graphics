@@ -6,13 +6,13 @@ test_platforms:
   - type: playmode
   - type: playmode
     name: playmode_cache
-    extra_utr_flags:
-    - --extra-editor-arg="-adb2"
-    - --extra-editor-arg="-enableCacheServer"
-    - --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
-    - --extra-editor-arg="-cacheServerNamespacePrefix SRP"
-    - --extra-editor-arg="-cacheServerEnableDownload true"
-    - --extra-editor-arg="-cacheServerEnableUpload true"
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
   - type: playmode
     name: playmode_XR
     utr_flags:
