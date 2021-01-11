@@ -3510,6 +3510,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_InstancesLight.RemoveAt(index);
             }
         }
+
+        public static List<Light> GetLightInstances()
+        {
+            return s_InstancesLight;
+        }
         // custom-end
     }
 }
