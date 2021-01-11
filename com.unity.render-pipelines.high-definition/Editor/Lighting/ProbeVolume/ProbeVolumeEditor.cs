@@ -13,9 +13,13 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;
+        internal const EditMode.SceneViewEditMode k_EditPaint = EditMode.SceneViewEditMode.GridPainting;
 
         static Dictionary<ProbeVolume, HierarchicalBox> shapeBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
         internal static Dictionary<ProbeVolume, HierarchicalBox> blendBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
+
+        internal static Color brushColor = Color.red;
+        internal static float brushSize = 1f;
 
         SerializedProbeVolume m_SerializedProbeVolume;
 
@@ -157,6 +161,9 @@ namespace UnityEditor.Rendering.HighDefinition
                             probeVolume.transform.position += delta; ;
                         }
                     }
+                    break;
+                case k_EditPaint:
+                    
                     break;
             }
         }

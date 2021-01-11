@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            EditMode.DoInspectorToolbar(new[] { ProbeVolumeEditor.k_EditShape, ProbeVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
+            EditMode.DoInspectorToolbar(new[] { ProbeVolumeEditor.k_EditShape, ProbeVolumeEditor.k_EditBlend, ProbeVolumeEditor.k_EditPaint }, Styles.s_Toolbar_Contents, () =>
                 {
                     var bounds = new Bounds();
                     foreach (Component targetObject in owner.targets)
@@ -125,6 +125,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 owner);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+            if (EditMode.editMode == ProbeVolumeEditor.k_EditPaint)
+            {
+                EditorGUILayout.Space();
+                ProbeVolumeEditor.brushColor = EditorGUILayout.ColorField("Brush Color", ProbeVolumeEditor.brushColor);
+                ProbeVolumeEditor.brushSize = EditorGUILayout.FloatField("Brush Size", ProbeVolumeEditor.brushSize);
+                if (ProbeVolumeEditor.brushSize < float.Epsilon)
+                    ProbeVolumeEditor.brushSize = float.Epsilon;
+                EditorGUILayout.Space();
+            }
         }
 
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)

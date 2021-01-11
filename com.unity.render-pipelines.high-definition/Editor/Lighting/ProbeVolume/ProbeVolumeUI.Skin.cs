@@ -19,7 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
                 EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),
-                EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)")
+                EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)"),
+                EditorGUIUtility.IconContent("Grid.PaintTool", "|Paint the volume. (SHIFT+3)")
             };
 
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");

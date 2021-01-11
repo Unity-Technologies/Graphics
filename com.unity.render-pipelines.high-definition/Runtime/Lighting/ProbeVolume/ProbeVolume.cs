@@ -723,6 +723,63 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        void LateUpdate()
+        {
+            if (probeVolumeAsset == null)
+                return;
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                var count = probeVolumeAsset.resolutionX * probeVolumeAsset.resolutionY * probeVolumeAsset.resolutionZ;
+                for (int i = 0; i < count; i++)
+                {
+                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, new SphericalHarmonicsL1
+                    {
+                        shAr = new Vector4(0f, 0f, 0f, 1f),
+                        shAg = new Vector4(0f, 0f, 0f, 0f),
+                        shAb = new Vector4(0f, 0f, 0f, 0f)
+                    }, i);
+                }
+
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                dataUpdated = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                var count = probeVolumeAsset.resolutionX * probeVolumeAsset.resolutionY * probeVolumeAsset.resolutionZ;
+                for (int i = 0; i < count; i++)
+                {
+                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, new SphericalHarmonicsL1
+                    {
+                        shAr = new Vector4(0f, 0f, 0f, 0f),
+                        shAg = new Vector4(0f, 0f, 0f, 1f),
+                        shAb = new Vector4(0f, 0f, 0f, 0f)
+                    }, i);
+                }
+
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                dataUpdated = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                var count = probeVolumeAsset.resolutionX * probeVolumeAsset.resolutionY * probeVolumeAsset.resolutionZ;
+                for (int i = 0; i < count; i++)
+                {
+                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, new SphericalHarmonicsL1
+                    {
+                        shAr = new Vector4(0f, 0f, 0f, 0f),
+                        shAg = new Vector4(0f, 0f, 0f, 0f),
+                        shAb = new Vector4(0f, 0f, 0f, 1f)
+                    }, i);
+                }
+
+                UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+                dataUpdated = true;
+            }
+        }
+
 #if UNITY_EDITOR
         protected void Update()
         {
