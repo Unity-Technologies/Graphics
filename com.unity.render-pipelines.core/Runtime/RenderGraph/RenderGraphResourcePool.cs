@@ -127,7 +127,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         static protected bool ShouldReleaseResource(int lastUsedFrameIndex, int currentFrameIndex)
         {
-            return lastUsedFrameIndex + kStaleResourceLifetime < currentFrameIndex;
+            // We need to have a delay of a few frames before releasing resources for good.
+            // Indeed, when having multiple off-screen cameras, they are rendered in a separate SRP render call and thus with a different frame index than main camera
+            // This causes texture to be deallocated/reallocated every frame if the two cameras don't need the same buffers.
+            return (lastUsedFrameIndex + kStaleResourceLifetime) < currentFrameIndex;
         }
     }
 }
