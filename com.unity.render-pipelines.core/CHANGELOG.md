@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
+## Added
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+
+
 ## [10.2.0] - 2020-10-19
 
 Version Updated

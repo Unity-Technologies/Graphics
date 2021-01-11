@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed StackLit ShaderGraph surface option property block to only display energy conserving specular color option for the specular parametrization (case 1257050)
 - Fixed missing BeginCameraRendering call for custom render mode of a Camera.
 - Fixed LayerMask editor for volume parameters.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
