@@ -104,7 +104,7 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     int   textureSize   = (int)textureDepth;
     int   mipSize       = textureSize >> (int)ceil(lod);
     float halfTexelSize = 0.5f * rcp(mipSize);
-    // TODO (Apoorva): Uncomment this
+    // TODO (Apoorva): Uncomment this after mips work
     //voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
 
     // Reminder: still no filtering across the the wrap in Z.

@@ -139,7 +139,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                               m_atlasSize,
                                               m_atlasSize * NumTexturesInAtlas,
                                                 dimension: TextureDimension.Tex3D,
-                                                //colorFormat: Experimental.Rendering.GraphicsFormat.R8_UInt,
                                                 colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
                                                 enableRandomWrite: true,
                                                 useMipMap: true,
