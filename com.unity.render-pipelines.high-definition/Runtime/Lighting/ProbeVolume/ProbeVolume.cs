@@ -594,6 +594,31 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
+        // custom-begin:
+        [System.NonSerialized] private static List<ProbeVolume> s_Instances = new List<ProbeVolume>();
+
+        private void InstanceAdd()
+        {
+            Debug.Assert(s_Instances.IndexOf(this) == -1);
+            s_Instances.Add(this);
+        }
+
+        private void InstanceRemove()
+        {
+            int index = s_Instances.IndexOf(this);
+            if (index != -1)
+            {
+                s_Instances.RemoveAt(index);
+            }
+        }
+
+        public static List<ProbeVolume> GetInstances()
+        {
+            return s_Instances;
+        }
+        // custom-end
+
+
         internal int GetID()
         {
             return GetInstanceID();
@@ -696,10 +721,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
 #endif
+
+            // custom-begin:
+            InstanceAdd();
+            // custom-end
         }
 
         protected void OnDisable()
         {
+            // custom-begin:
+            InstanceRemove();
+            // custom-end
+
             ProbeVolumeManager.manager.DeRegisterVolume(this);
 #if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
