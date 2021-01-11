@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3894660acfd5ce44c84950bfe0b1a6dc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - sprite: {instanceID: 0}
+  - albedo: {instanceID: 0}
+  - normal: {instanceID: 0}
+  - decalBaseMaterial: {fileID: 2100000, guid: 801db2d997a562b4ea333aa4593ce0f0, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

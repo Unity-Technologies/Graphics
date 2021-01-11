@@ -6,7 +6,6 @@
   "unityRelease": "0a10",
   "displayName": "Universal RP",
   "dependencies": {
-    "com.unity.mathematics": "1.1.0",
     "com.unity.render-pipelines.core": "11.0.0",
     "com.unity.shadergraph": "11.0.0"
   },
