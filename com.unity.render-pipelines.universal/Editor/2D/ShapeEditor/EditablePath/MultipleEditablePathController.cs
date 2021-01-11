@@ -9,7 +9,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         private IEditablePathController m_Controller = new EditablePathController();
         private List<IEditablePath> m_Paths = new List<IEditablePath>();
         private float m_ClosestDistance = float.MaxValue;
-        private IEditablePath m_ClosestPath;
 
         public IEditablePath editablePath
         {
