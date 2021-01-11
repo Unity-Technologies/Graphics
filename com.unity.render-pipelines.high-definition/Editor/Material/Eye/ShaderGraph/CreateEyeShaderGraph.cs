@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.IrisNormalTS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.IOR,
