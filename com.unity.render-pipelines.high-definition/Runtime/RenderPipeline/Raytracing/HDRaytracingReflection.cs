@@ -16,8 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RaytracingReflectionsHalfResKernel;
         int m_RaytracingReflectionsTransparentFullResKernel;
         int m_RaytracingReflectionsTransparentHalfResKernel;
-        int m_ReflectionIntegrationUpscaleFullResKernel;
-        int m_ReflectionIntegrationUpscaleHalfResKernel;
+        int m_ReflectionAdjustWeightKernel;
+        int m_ReflectionRescaleAndAdjustWeightKernel;
+        int m_ReflectionUpscaleKernel;
 
         void InitRayTracedReflections()
         {
@@ -29,8 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingReflectionsHalfResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsHalfRes");
             m_RaytracingReflectionsTransparentFullResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsTransparentFullRes");
             m_RaytracingReflectionsTransparentHalfResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsTransparentHalfRes");
-            m_ReflectionIntegrationUpscaleFullResKernel = reflectionBilateralFilterCS.FindKernel("ReflectionIntegrationUpscaleFullRes");
-            m_ReflectionIntegrationUpscaleHalfResKernel = reflectionBilateralFilterCS.FindKernel("ReflectionIntegrationUpscaleHalfRes");
+            m_ReflectionAdjustWeightKernel = reflectionBilateralFilterCS.FindKernel("ReflectionAdjustWeight");
+            m_ReflectionUpscaleKernel = reflectionBilateralFilterCS.FindKernel("ReflectionUpscale");
         }
 
         static RTHandle ReflectionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -40,6 +41,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private void PropagateRayTracedReflectionsHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced);
+        }
+
+        #region Direction Generation
+
         struct RTReflectionDirGenParameters
         {
             // Camera parameters
@@ -48,13 +63,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
 
             // Generation parameters
-            public bool fullResolution;
             public float minSmoothness;
 
             // Additional resources
-            public BlueNoise.DitheredTextureSet ditheredTextureSet;
-            public int dirGenKernel;
             public ComputeShader directionGenCS;
+            public int dirGenKernel;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
             public ShaderVariablesRaytracing shaderVariablesRayTracingCB;
         }
 
@@ -63,24 +77,19 @@ namespace UnityEngine.Rendering.HighDefinition
             RTReflectionDirGenParameters rtrDirGenParams = new RTReflectionDirGenParameters();
 
             // Set the camera parameters
-            rtrDirGenParams.texWidth = hdCamera.actualWidth;
-            rtrDirGenParams.texHeight = hdCamera.actualHeight;
+            rtrDirGenParams.texWidth = settings.fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
+            rtrDirGenParams.texHeight = settings.fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
             rtrDirGenParams.viewCount = hdCamera.viewCount;
 
             // Set the generation parameters
-            rtrDirGenParams.fullResolution = settings.fullResolution;
             rtrDirGenParams.minSmoothness = settings.minSmoothness;
 
             // Grab the right kernel
             rtrDirGenParams.directionGenCS = m_Asset.renderPipelineRayTracingResources.reflectionRaytracingCS;
             if (settings.fullResolution)
-            {
                 rtrDirGenParams.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
-            }
             else
-            {
                 rtrDirGenParams.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentHalfResKernel : m_RaytracingReflectionsHalfResKernel;
-            }
 
             // Grab the additional parameters
             BlueNoise blueNoise = GetBlueNoiseManager();
@@ -124,23 +133,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the output buffers
             cmd.SetComputeTextureParam(rtrDirGenParams.directionGenCS, rtrDirGenParams.dirGenKernel, HDShaderIDs._RaytracingDirectionBuffer, rtrDirGenResources.outputBuffer);
 
-            int numTilesXHR, numTilesYHR;
-            if (rtrDirGenParams.fullResolution)
-            {
-                // Evaluate the dispatch parameters
-                numTilesXHR = (rtrDirGenParams.texWidth + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-                numTilesYHR = (rtrDirGenParams.texHeight + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-            }
-            else
-            {
-                // Evaluate the dispatch parameters
-                numTilesXHR = (rtrDirGenParams.texWidth / 2 + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-                numTilesYHR = (rtrDirGenParams.texHeight / 2 + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-            }
-
+            // Evaluate the dispatch parameters
+            int numTilesX = (rtrDirGenParams.texWidth + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
+            int numTilesY = (rtrDirGenParams.texHeight + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
             // Compute the directions
-            cmd.DispatchCompute(rtrDirGenParams.directionGenCS, rtrDirGenParams.dirGenKernel, numTilesXHR, numTilesYHR, rtrDirGenParams.viewCount);
+            cmd.DispatchCompute(rtrDirGenParams.directionGenCS, rtrDirGenParams.dirGenKernel, numTilesX, numTilesY, rtrDirGenParams.viewCount);
         }
+
+        #endregion
+
+        #region Deferred Lighting
 
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
         {
@@ -194,77 +196,134 @@ namespace UnityEngine.Rendering.HighDefinition
             return deferredParameters;
         }
 
-        struct RTReflectionUpscaleParameters
+        #endregion
+
+        #region AdjustWeight
+
+        struct RTRAdjustWeightParameters
         {
             // Camera parameters
             public int texWidth;
             public int texHeight;
             public int viewCount;
 
-            // Denoising parameters
-            public int upscaleRadius;
-            public bool denoise;
-            public int denoiserRadius;
-
-            // Kernels
-            public int upscaleKernel;
+            public float minSmoothness;
+            public float smoothnessFadeStart;
 
             // Other parameters
-            public Texture2DArray blueNoiseTexture;
             public ComputeShader reflectionFilterCS;
+            public int adjustWeightKernel;
+            public ShaderVariablesRaytracing shaderVariablesRayTracingCB;
         }
 
-        RTReflectionUpscaleParameters PrepareRTReflectionUpscaleParameters(HDCamera hdCamera, ScreenSpaceReflection settings)
+        RTRAdjustWeightParameters PrepareRTRAdjustWeightParameters(HDCamera hdCamera, ScreenSpaceReflection settings)
         {
-            RTReflectionUpscaleParameters rtrUpscaleParams = new RTReflectionUpscaleParameters();
+            RTRAdjustWeightParameters parameters = new RTRAdjustWeightParameters();
             // Camera parameters
-            rtrUpscaleParams.texWidth = hdCamera.actualWidth;
-            rtrUpscaleParams.texHeight = hdCamera.actualHeight;
-            rtrUpscaleParams.viewCount = hdCamera.viewCount;
+            parameters.texWidth = settings.fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
+            parameters.texHeight = settings.fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
+            parameters.viewCount = hdCamera.viewCount;
 
-            // De-noising parameters
-            rtrUpscaleParams.upscaleRadius = settings.upscaleRadius;
-            rtrUpscaleParams.denoise = settings.denoise;
-            rtrUpscaleParams.denoiserRadius = settings.denoiserRadius;
-
-            // Kernels
-            rtrUpscaleParams.upscaleKernel = settings.fullResolution ? m_ReflectionIntegrationUpscaleFullResKernel : m_ReflectionIntegrationUpscaleHalfResKernel;
+            // Requires parameters
+            parameters.minSmoothness = settings.minSmoothness;
+            parameters.smoothnessFadeStart = settings.smoothnessFadeStart;
 
             // Other parameters
-            rtrUpscaleParams.blueNoiseTexture = GetBlueNoiseManager().textureArray16RGB;
-            rtrUpscaleParams.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
-            return rtrUpscaleParams;
+            parameters.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            parameters.adjustWeightKernel = settings.fullResolution ? m_ReflectionAdjustWeightKernel : m_ReflectionRescaleAndAdjustWeightKernel;
+            parameters.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
+            return parameters;
         }
 
-        struct RTReflectionUpscaleResources
+        struct RTRAdjustWeightResources
         {
             public RTHandle depthStencilBuffer;
             public RTHandle normalBuffer;
             public RTHandle lightingTexture;
-            public RTHandle hitPointTexture;
+            public RTHandle directionTexture;
             public RTHandle outputTexture;
             public RenderTargetIdentifier clearCoatMaskTexture;
         }
 
-        static void UpscaleRTReflections(CommandBuffer cmd, RTReflectionUpscaleParameters rtrUpscaleParameters, RTReflectionUpscaleResources rtrUpscaleResources)
+        static void AdjustWeightRTReflections(CommandBuffer cmd, RTRAdjustWeightParameters parameters, RTRAdjustWeightResources resources)
         {
-            // Inject all the parameters for the compute
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._SsrLightingTextureRW, rtrUpscaleResources.lightingTexture);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._SsrHitPointTexture, rtrUpscaleResources.hitPointTexture);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._DepthTexture, rtrUpscaleResources.depthStencilBuffer);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._NormalBufferTexture, rtrUpscaleResources.normalBuffer);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._BlueNoiseTexture, rtrUpscaleParameters.blueNoiseTexture);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._RaytracingReflectionTexture, rtrUpscaleResources.outputTexture);
-            cmd.SetComputeIntParam(rtrUpscaleParameters.reflectionFilterCS, HDShaderIDs._SpatialFilterRadius, rtrUpscaleParameters.upscaleRadius);
-            cmd.SetComputeIntParam(rtrUpscaleParameters.reflectionFilterCS, HDShaderIDs._RaytracingDenoiseRadius, rtrUpscaleParameters.denoise ? rtrUpscaleParameters.denoiserRadius : 0);
-            cmd.SetComputeTextureParam(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, HDShaderIDs._SsrClearCoatMaskTexture, rtrUpscaleResources.clearCoatMaskTexture);
+            // Bind all the required scalars to the CB
+            parameters.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = parameters.minSmoothness;
+            parameters.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = parameters.smoothnessFadeStart;
+            ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
+            // Source input textures
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._DepthTexture, resources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._SsrClearCoatMaskTexture, resources.clearCoatMaskTexture);
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._NormalBufferTexture, resources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._DirectionPDFTexture, resources.directionTexture);
+
+            // Lighting textures
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._SsrLightingTextureRW, resources.lightingTexture);
+
+            // Output texture
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._RaytracingReflectionTexture, resources.outputTexture);
 
             // Compute the texture
-            int numTilesXHR = (rtrUpscaleParameters.texWidth + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-            int numTilesYHR = (rtrUpscaleParameters.texHeight + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
-            cmd.DispatchCompute(rtrUpscaleParameters.reflectionFilterCS, rtrUpscaleParameters.upscaleKernel, numTilesXHR, numTilesYHR, rtrUpscaleParameters.viewCount);
+            int numTilesXHR = (parameters.texWidth + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
+            int numTilesYHR = (parameters.texHeight + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
+            cmd.DispatchCompute(parameters.reflectionFilterCS, parameters.adjustWeightKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
+        #endregion
+
+        #region Upscale
+        struct RTRUpscaleParameters
+        {
+            // Camera parameters
+            public int texWidth;
+            public int texHeight;
+            public int viewCount;
+
+            // Other parameters
+            public ComputeShader reflectionFilterCS;
+            public int upscaleKernel;
+        }
+
+        RTRUpscaleParameters PrepareRTRUpscaleParameters(HDCamera hdCamera, ScreenSpaceReflection settings)
+        {
+            RTRUpscaleParameters parameters = new RTRUpscaleParameters();
+            // Camera parameters
+            parameters.texWidth = hdCamera.actualWidth;
+            parameters.texHeight = hdCamera.actualHeight;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Other parameters
+            parameters.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            parameters.upscaleKernel = m_ReflectionUpscaleKernel;
+            return parameters;
+        }
+
+        struct RTRUpscaleResources
+        {
+            public RTHandle depthStencilBuffer;
+            public RTHandle lightingTexture;
+            public RTHandle outputTexture;
+        }
+
+        static void UpscaleRTR(CommandBuffer cmd, RTRUpscaleParameters parameters, RTRUpscaleResources resources)
+        {
+            // Input textures
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.upscaleKernel, HDShaderIDs._DepthTexture, resources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.upscaleKernel, HDShaderIDs._SsrLightingTextureRW, resources.lightingTexture);
+
+            // Output texture
+            cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.upscaleKernel, HDShaderIDs._RaytracingReflectionTexture, resources.outputTexture);
+
+            // Compute the texture
+            int numTilesXHR = (parameters.texWidth + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
+            int numTilesYHR = (parameters.texHeight + (rtReflectionsComputeTileSize - 1)) / rtReflectionsComputeTileSize;
+            cmd.DispatchCompute(parameters.reflectionFilterCS, parameters.upscaleKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
+        }
+
+        #endregion
+
+        #region Quality RTR
         struct RTRQualityRenderingParameters
         {
             // Camera parameters
@@ -279,6 +338,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int sampleCount;
             public int bounceCount;
             public bool transparent;
+            public float minSmoothness;
+            public float smoothnessFadeStart;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -305,6 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
             rtrQualityRenderingParameters.sampleCount = settings.sampleCount.value;
             rtrQualityRenderingParameters.bounceCount = settings.bounceCount.value;
             rtrQualityRenderingParameters.transparent = transparent;
+            rtrQualityRenderingParameters.minSmoothness = settings.minSmoothness;
+            rtrQualityRenderingParameters.smoothnessFadeStart = settings.smoothnessFadeStart;
 
             // Other parameters
             rtrQualityRenderingParameters.accelerationStructure = RequestAccelerationStructure();
@@ -350,6 +413,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the number of bounces for reflections
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = rtrQRenderingParameters.bounceCount;
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 0;
+            // Bind all the required scalars to the CB
+            rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = rtrQRenderingParameters.minSmoothness;
+            rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = rtrQRenderingParameters.smoothnessFadeStart;
             ConstantBuffer.PushGlobal(cmd, rtrQRenderingParameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Inject the ray-tracing sampling data
@@ -383,5 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Disable multi-bounce
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
         }
+
+        #endregion
     }
 }
