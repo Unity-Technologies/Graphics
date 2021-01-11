@@ -82,10 +82,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Edit->Render Pipeline->Generate Shader Includes
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
         // Also uncomment in the HDRP package all ".../Experimental/Probe Volume" menu
-
+        // custom-begin:
+        // Note: If using hybrid renderer, this project script define must be added:
+        // PROBEVOLUME_CONVERSION
+        // custom-end
         /// <summary>The probe volume evaluation mode.</summary>
         /// <seealso cref = "ProbeVolumesEvaluationModes " />
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.LightLoop,
         /// <summary>Probe volume supports additive blending.</summary>
         ProbeVolumesAdditiveBlending = 1,
         /// <summary>The probe volume filtering mode.</summary>
@@ -93,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
         /// <summary>The probe volume encoding method.</summary>
         /// /// <seealso cref="ProbeVolumesEncodingModes"/>
-        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL2,
 
         /// <summary>Support for area lights.</summary>
         AreaLights = 1,
