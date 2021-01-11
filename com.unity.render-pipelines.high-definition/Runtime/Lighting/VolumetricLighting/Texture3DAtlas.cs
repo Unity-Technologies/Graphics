@@ -132,18 +132,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_volumes.Count > 0)
                 {
-                    int textureSliceSize = m_atlasSize * m_atlasSize * m_atlasSize;
-                    int totalTextureSize = textureSliceSize * NumTexturesInAtlas;
-
+                    // Ensure that number of textures is at least one to avoid a zero-sized atlas
+                    var clampedNumTextures = Math.Max(1, NumTexturesInAtlas);
                     m_atlas = RTHandles.Alloc(m_atlasSize,
                                               m_atlasSize,
-                                              m_atlasSize * NumTexturesInAtlas,
+                                              m_atlasSize * clampedNumTextures,
                                                 dimension: TextureDimension.Tex3D,
                                                 colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
                                                 enableRandomWrite: true,
                                                 useMipMap: true,
                                                 name: "DensityVolumeAtlas");
-                    var isCopied = new bool[NumTexturesInAtlas];
+                    var isCopied = new bool[clampedNumTextures];
                     var oldRt = RenderTexture.active;
 
                     //Iterate through all the textures and append their texture data to the texture array
