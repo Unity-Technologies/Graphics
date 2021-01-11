@@ -30,6 +30,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
 - Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
 
 ## [10.3.0] - 2020-11-03
