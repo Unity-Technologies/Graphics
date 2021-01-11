@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static PositionHandleParam paramXY = PositionHandleParam.defaultHandleXY;
         static PositionHandleParam paramZ = PositionHandleParam.defaultHandleZ;
         static PositionHandleIds ids = PositionHandleIds.@default;
-        
+
         static int[] s_DoPositionHandle_Internal_NextIndex = { 1, 2, 0 };
         static int[] s_DoPositionHandle_Internal_PrevIndex = { 2, 0, 1 };
         static Vector3[] verts = { Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero };
@@ -174,82 +174,80 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one)))
             //{
-                var isHot = ids.Has(GUIUtility.hotControl);
-                var planeSize = isHot ? paramXY.planeSize + paramXY.planeOffset : paramXY.planeSize;
-                var planarSize = Mathf.Max(planeSize[0], planeSize[s_DoPositionHandle_Internal_NextIndex[0]]);
-                Vector3 sliderRotatedWorldPos = Quaternion.Inverse(rotation) * position;
-                var size1D = HandleUtility.GetHandleSize(sliderRotatedWorldPos);
-                var size2D = HandleUtility.GetHandleSize(sliderRotatedWorldPos - new Vector3(0, 0, zProjectionDistance)) * planarSize * .5f;
-                Vector3 depthSlider = sliderRotatedWorldPos;
+            var isHot = ids.Has(GUIUtility.hotControl);
+            var planeSize = isHot ? paramXY.planeSize + paramXY.planeOffset : paramXY.planeSize;
+            var planarSize = Mathf.Max(planeSize[0], planeSize[s_DoPositionHandle_Internal_NextIndex[0]]);
+            Vector3 sliderRotatedWorldPos = Quaternion.Inverse(rotation) * position;
+            var size1D = HandleUtility.GetHandleSize(sliderRotatedWorldPos);
+            var size2D = HandleUtility.GetHandleSize(sliderRotatedWorldPos - new Vector3(0, 0, zProjectionDistance)) * planarSize * .5f;
+            Vector3 depthSlider = sliderRotatedWorldPos;
 
+            EditorGUI.BeginChangeCheck();
+            {
+                // dot offset = transform position seen as a sphere
                 EditorGUI.BeginChangeCheck();
-                {
-                    // dot offset = transform position seen as a sphere
-                    EditorGUI.BeginChangeCheck();
-                    depthSlider = Handles.Slider(depthSlider, Vector3.forward, size1D * .1f, Handles.SphereHandleCap, -1);
-                    if (EditorGUI.EndChangeCheck())
-                        sliderRotatedWorldPos.z = depthSlider.z;
-
-                    // 2D slider: square xy-axis
-                    Vector3 sliderFaceProjected = sliderRotatedWorldPos - new Vector3(0, 0, zProjectionDistance);
-                    sliderFaceProjected.x += size2D;
-                    sliderFaceProjected.y += size2D;
-                    using (new Handles.DrawingScope(Handles.zAxisColor))
-                    {
-                        verts[0] = sliderFaceProjected + (Vector3.right + Vector3.up) * size2D;
-                        verts[1] = sliderFaceProjected + (-Vector3.right + Vector3.up) * size2D;
-                        verts[2] = sliderFaceProjected + (-Vector3.right - Vector3.up) * size2D;
-                        verts[3] = sliderFaceProjected + (Vector3.right - Vector3.up) * size2D;
-                        float faceOpacity = 0.8f;
-                        if (GUIUtility.hotControl == ids.xy)
-                            Handles.color = Handles.selectedColor;
-                        else if (IsHovering(ids.xy, Event.current))
-                            faceOpacity = 0.4f;
-                        else
-                            faceOpacity = 0.1f;
-                        Color faceColor = new Color(Handles.zAxisColor.r, Handles.zAxisColor.g, Handles.zAxisColor.b, Handles.zAxisColor.a * faceOpacity);
-                        Handles.DrawSolidRectangleWithOutline(verts, faceColor, Color.clear);
-                        EditorGUI.BeginChangeCheck();
-                        sliderFaceProjected = Handles.Slider2D(ids.xy, sliderFaceProjected, Vector3.forward, Vector3.right, Vector3.up, size2D, Handles.RectangleHandleCap, s_IsGridSnappingActive() ? Vector2.zero : new Vector2(EditorSnapSettings.move[0], EditorSnapSettings.move[1]), false);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            sliderRotatedWorldPos.x = sliderFaceProjected.x;
-                            sliderRotatedWorldPos.y = sliderFaceProjected.y;
-                        }
-                    }
-                    sliderFaceProjected.x -= size2D;
-                    sliderFaceProjected.y -= size2D;
-
-                    // 2D slider: x-axis
-                    EditorGUI.BeginChangeCheck();
-                    using (new Handles.DrawingScope(Handles.xAxisColor))
-                        sliderFaceProjected = Handles.Slider(sliderFaceProjected, Vector3.right);
-                    if (EditorGUI.EndChangeCheck())
-                        sliderRotatedWorldPos.x = sliderFaceProjected.x;
-
-                    // 2D slider: y-axis
-                    EditorGUI.BeginChangeCheck();
-                    using (new Handles.DrawingScope(Handles.yAxisColor))
-                        sliderFaceProjected = Handles.Slider(sliderFaceProjected, Vector3.up);
-                    if (EditorGUI.EndChangeCheck())
-                        sliderRotatedWorldPos.y = sliderFaceProjected.y;
-
-                    // depth: z-axis
-                    EditorGUI.BeginChangeCheck();
-                    using (new Handles.DrawingScope(Handles.zAxisColor))
-                        depthSlider = Handles.Slider(depthSlider, Vector3.forward);
-                    if (EditorGUI.EndChangeCheck())
-                        sliderRotatedWorldPos.z = depthSlider.z;
-                }
+                depthSlider = Handles.Slider(depthSlider, Vector3.forward, size1D * .1f, Handles.SphereHandleCap, -1);
                 if (EditorGUI.EndChangeCheck())
-                {
-                    position = rotation * sliderRotatedWorldPos;
-                }
+                    sliderRotatedWorldPos.z = depthSlider.z;
 
-                return position;
+                // 2D slider: square xy-axis
+                Vector3 sliderFaceProjected = sliderRotatedWorldPos - new Vector3(0, 0, zProjectionDistance);
+                sliderFaceProjected.x += size2D;
+                sliderFaceProjected.y += size2D;
+                using (new Handles.DrawingScope(Handles.zAxisColor))
+                {
+                    verts[0] = sliderFaceProjected + (Vector3.right + Vector3.up) * size2D;
+                    verts[1] = sliderFaceProjected + (-Vector3.right + Vector3.up) * size2D;
+                    verts[2] = sliderFaceProjected + (-Vector3.right - Vector3.up) * size2D;
+                    verts[3] = sliderFaceProjected + (Vector3.right - Vector3.up) * size2D;
+                    float faceOpacity = 0.8f;
+                    if (GUIUtility.hotControl == ids.xy)
+                        Handles.color = Handles.selectedColor;
+                    else if (IsHovering(ids.xy, Event.current))
+                        faceOpacity = 0.4f;
+                    else
+                        faceOpacity = 0.1f;
+                    Color faceColor = new Color(Handles.zAxisColor.r, Handles.zAxisColor.g, Handles.zAxisColor.b, Handles.zAxisColor.a * faceOpacity);
+                    Handles.DrawSolidRectangleWithOutline(verts, faceColor, Color.clear);
+                    EditorGUI.BeginChangeCheck();
+                    sliderFaceProjected = Handles.Slider2D(ids.xy, sliderFaceProjected, Vector3.forward, Vector3.right, Vector3.up, size2D, Handles.RectangleHandleCap, s_IsGridSnappingActive() ? Vector2.zero : new Vector2(EditorSnapSettings.move[0], EditorSnapSettings.move[1]), false);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        sliderRotatedWorldPos.x = sliderFaceProjected.x;
+                        sliderRotatedWorldPos.y = sliderFaceProjected.y;
+                    }
+                }
+                sliderFaceProjected.x -= size2D;
+                sliderFaceProjected.y -= size2D;
+
+                // 2D slider: x-axis
+                EditorGUI.BeginChangeCheck();
+                using (new Handles.DrawingScope(Handles.xAxisColor))
+                    sliderFaceProjected = Handles.Slider(sliderFaceProjected, Vector3.right);
+                if (EditorGUI.EndChangeCheck())
+                    sliderRotatedWorldPos.x = sliderFaceProjected.x;
+
+                // 2D slider: y-axis
+                EditorGUI.BeginChangeCheck();
+                using (new Handles.DrawingScope(Handles.yAxisColor))
+                    sliderFaceProjected = Handles.Slider(sliderFaceProjected, Vector3.up);
+                if (EditorGUI.EndChangeCheck())
+                    sliderRotatedWorldPos.y = sliderFaceProjected.y;
+
+                // depth: z-axis
+                EditorGUI.BeginChangeCheck();
+                using (new Handles.DrawingScope(Handles.zAxisColor))
+                    depthSlider = Handles.Slider(depthSlider, Vector3.forward);
+                if (EditorGUI.EndChangeCheck())
+                    sliderRotatedWorldPos.z = depthSlider.z;
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                position = rotation * sliderRotatedWorldPos;
+            }
+
+            return position;
             //}
         }
-
-
     }
 }

@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_HandleSizeCoef = 0.05f;
 
         enum NamedEdge { Right, Top, Left, Bottom, None }
-        
+
         int[] m_ControlIDs = new int[4] { 0, 0, 0, 0 };
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             this.baseColor = baseColor;
         }
-        
+
         /// <summary>Draw the rect.</summary>
         public void DrawRect(bool dottedLine = false, float sickness = .0f, float screenSpaceSize = 5f)
         {
@@ -276,7 +276,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-
 
         internal string debug => $"center:({center.x},{center.y}) size:({size.x},{size.y})";
     }

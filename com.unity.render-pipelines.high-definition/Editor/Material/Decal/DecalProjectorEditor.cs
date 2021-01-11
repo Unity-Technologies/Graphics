@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
-        
+
         static object s_ColorPref;
         static Func<Color> GetColorPref;
         static Color fullColor
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Expression<Func<Color>> colorLambda = Expression.Lambda<Func<Color>>(colorProperty);
             GetColorPref = colorLambda.Compile();
         }
-        
+
         MaterialEditor m_MaterialEditor = null;
         SerializedProperty m_MaterialProperty;
         SerializedProperty m_DrawDistanceProperty;
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (s_BoxHandle == null || s_BoxHandle.Equals(null))
                 {
                     Color c = fullColor;
-                    s_BoxHandle = new HierarchicalBox(s_LastColor, new []{ c, c, c, c, c, c });
+                    s_BoxHandle = new HierarchicalBox(s_LastColor, new[] { c, c, c, c, c, c });
                     s_BoxHandle.SetBaseColor(s_LastColor);
                     s_BoxHandle.monoHandle = false;
                 }
@@ -338,13 +338,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);
                         }
-                        
+
                         // Smoothly update the decal image projected
                         DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
                     }
                 }
             }
-
             else if (editMode == k_EditUVAndPivot)
             {
                 // Pivot
@@ -365,14 +364,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.offset - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector2 UVSize = new Vector2(
-                        decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
-                        decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit ? 0f : decalProjector.size.y / decalProjector.uvScale.y
-                        );
+                        (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
+                        (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / decalProjector.uvScale.y
+                    );
                     Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y);
 
                     UVHandles.center = UVCenter;
                     UVHandles.size = UVSize;
-                    
+
                     EditorGUI.BeginChangeCheck();
                     UVHandles.DrawHandle();
                     if (EditorGUI.EndChangeCheck())
@@ -389,11 +388,11 @@ namespace UnityEditor.Rendering.HighDefinition
                                 uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
                         }
                         decalProjector.uvScale = uvScale;
-                        
+
                         var newUVStart = UVHandles.center - .5f * UVHandles.size;
                         decalProjector.uvBias = -new Vector2(
-                           UVHandles.size.x < k_LimitInv && UVHandles.size.x > -k_LimitInv ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / UVHandles.size.x,
-                           UVHandles.size.y < k_LimitInv && UVHandles.size.y > -k_LimitInv ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / UVHandles.size.y
+                            (UVHandles.size.x < k_LimitInv) && (UVHandles.size.x > -k_LimitInv) ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / UVHandles.size.x, //parenthesis to force format tool
+                            (UVHandles.size.y < k_LimitInv) && (UVHandles.size.y > -k_LimitInv) ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / UVHandles.size.y  //parenthesis to force format tool
                         );
                     }
                 }
@@ -434,11 +433,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(decalProjector.offset.x, decalProjector.offset.y, decalProjector.offset.z - .5f * decalProjector.size.z), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector2 UVSize = new Vector2(
-                        decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
-                        decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit ? 0f : decalProjector.size.y / decalProjector.uvScale.y
-                        );
+                        (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
+                        (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / decalProjector.uvScale.y
+                    );
                     Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y) - (Vector2)decalProjector.size * .5f;
-                    
+
                     UVHandles.center = UVCenter;
                     UVHandles.size = UVSize;
                     UVHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
@@ -497,7 +496,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    for (int i=0; i <2; ++i) 
+                    for (int i = 0; i < 2; ++i)
                         UpdateSize(i, Mathf.Max(0, size[i]), m_SizeValues[i].floatValue);
                 }
                 EditorGUI.EndProperty();
@@ -680,5 +679,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-
-
