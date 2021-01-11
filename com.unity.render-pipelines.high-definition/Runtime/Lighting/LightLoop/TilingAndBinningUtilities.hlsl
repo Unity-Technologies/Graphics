@@ -207,6 +207,10 @@ uint ComputeTileIndex(uint2 pixelCoord)
 // Internal. Do not call directly.
 uint ComputeTileBufferIndex(uint tile, uint category, uint eye, uint2 tileBufferDims)
 {
+    // Avoid indexing out of bounds (and crashing).
+    // Defensive programming to protect us from incorrect caller code.
+    tile = min(tile, tileBufferDims.x * tileBufferDims.y - 1);
+
     // TODO: could be optimized/precomputed.
     uint dwordOffset   = s_BoundedEntityDwordOffsetPerCategory[category]; // Previous categories
     uint dwordCount    = s_BoundedEntityDwordCountPerCategory[category];  // Current category
