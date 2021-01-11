@@ -712,9 +712,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     tempPreviewProperties.Clear();
                     tempEdges.Clear();
-                    owner.GetEdges(s.slotReference, tempEdges);
-                    if (tempEdges.Any())
-                        continue;
+                    if (owner != null)
+                    {
+                        owner.GetEdges(s.slotReference, tempEdges);
+                        if (tempEdges.Any())
+                            continue;
+                    }
 
                     s.GetPreviewProperties(tempPreviewProperties, GetVariableNameForSlot(s.id));
                     for (int i = 0; i < tempPreviewProperties.Count; i++)
