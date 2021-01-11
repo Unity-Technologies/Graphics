@@ -601,8 +601,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //handling of prefab overrides in a parent label
             GUIContent parentLabel =  s_Styles.lightIntensity;
-            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
+            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             {
                 EditorGUI.LabelField(labelRect, parentLabel);
             }
