@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
 
         protected static int s_CurrentFrameIndex;
+        const int kStaleResourceLifetime = 10;
 
         // Release the GPU resource itself
         protected abstract void ReleaseInternalResource(Type res);
@@ -122,6 +123,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int index = 0;
             foreach (var element in allocationList)
                 logger.LogLine("[{0}]\t[{1:#.##} MB]\t{2}", index++, element.size / 1024.0f, element.name);
+        }
+
+        static protected bool ShouldReleaseResource(int lastUsedFrameIndex, int currentFrameIndex)
+        {
+            return lastUsedFrameIndex + kStaleResourceLifetime < currentFrameIndex;
         }
     }
 }
