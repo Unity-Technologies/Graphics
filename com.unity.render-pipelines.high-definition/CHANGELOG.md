@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with shadow mask and area lights.
 - Fixed an issue with the capture callback (now includes post processing results).
 - Fixed decal draw order for ShaderGraph decal materials.
+- Fixed label style in pbr sky editor.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
