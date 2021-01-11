@@ -50,6 +50,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             {
                 value = GetValue();
                 value = evt.newValue;
+                if (m_Node.GetType() != typeof(SwizzleNode))
+                {
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
+                    m_PropertyInfo.SetValue(m_Node, value, null);
+                    m_UndoGroup = -1;
+                }
             });
 
             // Pressing escape while we are editing causes it to revert to the original value when we gained focus
@@ -65,14 +71,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             });
             field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
             {
-                //Only set node value when mouse clicked away
-                m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
-                m_PropertyInfo.SetValue(m_Node, value, null);
-                m_UndoGroup = -1;
-                //Validate graph to update downstream input slot
-                if (m_Node.GetType() == typeof(SwizzleNode))
+                if (m_Node.GetType() == typeof(SwizzleNode)) {
+                    //Only set node value when mouse clicked away
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
+                    m_PropertyInfo.SetValue(m_Node, value, null);
+                    m_UndoGroup = -1;
+                    //Validate graph to update downstream input slot
                     m_Node.owner.ValidateGraph();
-                m_Node.Dirty(ModificationScope.Topological);
+                    m_Node.Dirty(ModificationScope.Topological);
+                }
                 this.MarkDirtyRepaint();
             });
             container.Add(field);
