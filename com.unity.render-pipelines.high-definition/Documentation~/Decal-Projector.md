@@ -26,6 +26,8 @@ The decal Projector also includes three gizmos. The first two add handles on eve
 |![](Images/DecalProjector4.png)|**Crop**|Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal. The Pivot remains still.|
 |![](Images/DecalProjector5.png)|**Pivot / UV**|Move the pivot without moving the projection box. This alter the transform position.<br />Also, set the UV used on the projected texture.|
 
+The color of the gizmos can be set up in the Preference window inside Color panel.
+
 ## Using the Inspector
 
 Using the Inspector allows you to change all of the Decal Projector properties, and lets you use numerical values for **Size**, **Tiling**, and **Offset**, which allows for greater precision than the click-and-drag gizmo method.
