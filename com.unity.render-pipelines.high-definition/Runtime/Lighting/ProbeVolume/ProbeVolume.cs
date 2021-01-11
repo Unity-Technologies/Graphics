@@ -8,6 +8,10 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
 
+// custom-begin:
+[assembly: InternalsVisibleTo("Bonfire.Editor")]
+// custom-end
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     internal enum ProbeSpacingMode
