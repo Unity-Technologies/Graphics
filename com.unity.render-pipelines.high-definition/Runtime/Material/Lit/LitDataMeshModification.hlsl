@@ -65,7 +65,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     bool4 frustumCullEdgesMainView = CullFullTriangleAndEdgesFrustum(p0, p1, p2, frustumEps, _FrustumPlanes, 5); // Do not test the far plane
 #else
     // During the scene picking pass, we have no access to camera frustum planes
-    bool3 frustumCullEdgesMainView = false;
+    bool4 frustumCullEdgesMainView = false;
 #endif
 
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
