@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowSliceData
+    public struct ShadowSliceData
     {
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
@@ -23,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShadowUtils
+    public static class ShadowUtils
     {
         private static readonly RenderTextureFormat m_ShadowmapFormat;
         private static readonly bool m_ForceShadowPointSampling;

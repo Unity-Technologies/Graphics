@@ -3,12 +3,10 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR

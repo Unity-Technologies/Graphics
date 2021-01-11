@@ -10,17 +10,6 @@ using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
-    public class LightweightRenderPipeline
-    {
-        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
-        {
-        }
-    }
-}
-
 namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
@@ -160,8 +149,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.UpdateRenderScale(asset.renderScale);
 #endif
-            // For compatibility reasons we also match old LightweightPipeline tag.
-            Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
+            Shader.globalRenderPipeline = "UniversalPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
 

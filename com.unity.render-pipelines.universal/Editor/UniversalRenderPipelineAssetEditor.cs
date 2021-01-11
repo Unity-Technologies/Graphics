@@ -7,7 +7,7 @@ using UnityEditorInternal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(UniversalRenderPipelineAsset))]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRenderPipelineAssetEditor : Editor
+    public class UniversalRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
