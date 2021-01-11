@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string converted_mask;
+        public string convertedMask;
 
         public bool ValidateMaskInput(int InputValueSize)
         {
@@ -87,10 +87,9 @@ namespace UnityEditor.ShaderGraph
                     if (rgba.Contains(MaskChars[i]))
                     {
                         MaskChars[i] = mask_map[MaskChars[i]];
-
                     }
                 }
-                converted_mask = new string(MaskChars);
+                convertedMask = new string(MaskChars);
             }
             return MaskInputIsValid;
         }
@@ -133,8 +132,8 @@ namespace UnityEditor.ShaderGraph
                 string outputValue = "";
                 for (int i = 0; i < 4; i++)
                 {
-                    if (i < converted_mask.Length)
-                        outputValue += converted_mask[i];
+                    if (i < convertedMask.Length)
+                        outputValue += convertedMask[i];
                 }
                 sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, outputValue);
             }
