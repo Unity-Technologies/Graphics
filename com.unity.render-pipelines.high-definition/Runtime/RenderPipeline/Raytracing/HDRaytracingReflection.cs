@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
 
             // Other parameters
-            parameters.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
+            parameters.reflectionFilterCS = HDDefaultSettings.instance.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
             parameters.upscaleKernel = m_ReflectionUpscaleKernel;
             return parameters;
         }

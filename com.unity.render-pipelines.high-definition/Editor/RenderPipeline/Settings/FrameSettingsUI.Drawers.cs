@@ -252,6 +252,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
                 area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
             }
+
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
                 frameSettingType != FrameSettingsRenderType.RealtimeReflection));
 
@@ -269,13 +270,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
 
-            area.AmmendInfo(FrameSettingsField.LODBias,
-                overridedDefaultValue: hdrpSettings.lodBias[serialized.lodBiasQualityLevel.intValue],
-                customGetter: () => serialized.lodBias.floatValue,
-                customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
-                labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
-                hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
+            if (hdrpAsset != null)
+            {
+                area.AmmendInfo(FrameSettingsField.LODBias,
+                    overridedDefaultValue: hdrpAsset.currentPlatformRenderPipelineSettings.lodBias[serialized.lodBiasQualityLevel.intValue],
+                    customGetter: () => serialized.lodBias.floatValue,
+                    customSetter: v => serialized.lodBias.floatValue = (float)v,
+                    customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                    labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
+                    hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
+            }
 
             area.AmmendInfo(
                 FrameSettingsField.MaximumLODLevelMode,
@@ -291,13 +295,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
                 hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
 
-            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
-                overridedDefaultValue: hdrpSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue],
-                customGetter: () => serialized.maximumLODLevel.intValue,
-                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
-                labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level",
-                hasMixedValues: serialized.maximumLODLevel.hasMultipleDifferentValues);
+            if (hdrpAsset != null)
+            {
+                area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
+                    overridedDefaultValue: hdrpAsset.currentPlatformRenderPipelineSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue],
+                    customGetter: () => serialized.maximumLODLevel.intValue,
+                    customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
+                    customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                    labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level",
+                    hasMixedValues: serialized.maximumLODLevel.hasMultipleDifferentValues);
+            }
 
             area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
                 overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),
