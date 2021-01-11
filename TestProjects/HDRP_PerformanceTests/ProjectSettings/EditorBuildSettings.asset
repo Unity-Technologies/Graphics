@@ -59,4 +59,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0005_PostProcessing.unity
     guid: b636d9b99a5830a48b4d03bfda7dbf3b
+  - enabled: 1
+    path: Assets/Scenes/Timings/0006_DisplacementTesselation.unity
+    guid: 98b4844a5a982e041a60c581900e9857
   m_configObjects: {}
