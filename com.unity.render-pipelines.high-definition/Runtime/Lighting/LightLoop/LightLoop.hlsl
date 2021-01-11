@@ -551,8 +551,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             builtinData.bakeDiffuseLighting += apvBuiltinData.bakeDiffuseLighting;
         }
     }
-#else
-    builtinData.bakeDiffuseLighting = float3(1, 0, 0);
 #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
