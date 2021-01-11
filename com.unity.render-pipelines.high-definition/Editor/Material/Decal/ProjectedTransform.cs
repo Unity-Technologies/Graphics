@@ -167,13 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return controlID == HandleUtility.nearestControl && GUIUtility.hotControl == 0 && !Tools.viewToolActive;
         }
 
-        //position = decalProjector.transform.position
-        //zProjectionDistance = decalProjector.offset.z
-        //rotation = decalProjector.transform.rotation
         public static Vector3 DrawHandles(Vector3 position, float zProjectionDistance, Quaternion rotation)
         {
-            //using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one)))
-            //{
             var isHot = ids.Has(GUIUtility.hotControl);
             var planeSize = isHot ? paramXY.planeSize + paramXY.planeOffset : paramXY.planeSize;
             var planarSize = Mathf.Max(planeSize[0], planeSize[s_DoPositionHandle_Internal_NextIndex[0]]);
@@ -247,7 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return position;
-            //}
         }
     }
 }
