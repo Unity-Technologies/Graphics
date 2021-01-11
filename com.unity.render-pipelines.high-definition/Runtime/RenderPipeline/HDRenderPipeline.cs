@@ -1727,6 +1727,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         skipRequest = true;
                         // Execute custom render
+                        BeginCameraRendering(renderContext, camera);
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
 
@@ -3207,7 +3208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
             if (additionalCameraData.fullscreenPassthrough)
                 return false;
-
+                
             // Retrieve debug display settings to init FrameSettings, unless we are a reflection and in this case we don't have debug settings apply.
             DebugDisplaySettings debugDisplaySettings = (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview) ? s_NeutralDebugDisplaySettings : m_DebugDisplaySettings;
 
