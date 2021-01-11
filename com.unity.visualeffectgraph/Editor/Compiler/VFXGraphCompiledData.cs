@@ -190,58 +190,36 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts)
+        class VFXSpawnContextLayer
         {
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
-            {
-                foreach (var linked in context.outputContexts)
-                {
-                    var data = linked.GetData();
-                    if (data)
-                    {
-                        foreach (var attribute in data.GetAttributes())
-                        {
-                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !eventAttributeDescs.Any(o => o.name == attribute.attrib.name))
-                            {
-                                eventAttributeDescs.Add(new VFXLayoutElementDesc()
-                                {
-                                    name = attribute.attrib.name,
-                                    type = attribute.attrib.type
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            var structureLayoutTotalSize = (uint)eventAttributeDescs.Sum(e => (long)VFXExpression.TypeToSize(e.type));
-            var currentLayoutSize = 0u;
-            var listWithOffset = new List<VFXLayoutElementDesc>();
-            eventAttributeDescs.ForEach(e =>
-            {
-                e.offset.element = currentLayoutSize;
-                e.offset.structure = structureLayoutTotalSize;
-                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
-                listWithOffset.Add(e);
-            });
-
-            eventAttributeDescs.Clear();
-            eventAttributeDescs.AddRange(listWithOffset);
+            public VFXContext context;
+            public int depth;
         }
 
-        private static List<VFXContext> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts)
+        private static List<VFXSpawnContextLayer> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts, int currentDepth = 0)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
-            var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t)).Select(t => t.context).Distinct().ToList();
-
-            if (contextList.Any(o => contextEffectiveInputLinks[o].Any()))
-            {
-                var parentContextList = CollectContextParentRecursively(contextList.Except(inputList), ref subgraphContexts);
-                foreach (var context in parentContextList)
+            var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t))
+                .Select(t => t.context).Distinct()
+                .Select(c => new VFXSpawnContextLayer()
                 {
-                    if (!contextList.Contains(context))
+                    context = c,
+                    depth = currentDepth
+                }).ToList();
+
+            if (contextList.Any(o => contextEffectiveInputLinks[o.context].Any()))
+            {
+                var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context), ref subgraphContexts, currentDepth + 1);
+                foreach (var parentContextEntry in parentContextList)
+                {
+                    var currentEntry = contextList.FirstOrDefault(o => o.context == parentContextEntry.context);
+                    if (currentEntry == null)
                     {
-                        contextList.Add(context);
+                        contextList.Add(parentContextEntry);
+                    }
+                    else if (parentContextEntry.depth > currentEntry.depth)
+                    {
+                        currentEntry.depth = parentContextEntry.depth;
                     }
                 }
             }
@@ -251,8 +229,11 @@ namespace UnityEditor.VFX
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext, ref SubgraphInfos subgraphContexts)
         {
             var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent).ToList();
-            var spawnerList = CollectContextParentRecursively(initContext, ref subgraphContexts);
-            return spawnerList.Where(o => o.contextType == VFXContextType.Spawner).Reverse().ToArray();
+            var spawnerHierarchy = CollectContextParentRecursively(initContext, ref subgraphContexts);
+            var spawnerList = spawnerHierarchy.Where(o => o.context.contextType == VFXContextType.Spawner)
+                .OrderByDescending(o => o.depth)
+                .Select(o => o.context).ToArray();
+            return spawnerList;
         }
 
         struct SpawnInfo
@@ -1086,9 +1067,6 @@ namespace UnityEditor.VFX
 
                 var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
-                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
-                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
-
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
 
@@ -1133,9 +1111,10 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating systems", 9 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
+                    //Global attribute descriptor, always first entry in cpuBufferDesc, it can be empty (stride == 0).
                     capacity = 1u,
                     layout = m_ExpressionGraph.GlobalEventAttributes.ToArray(),
-                    stride = m_ExpressionGraph.GlobalEventAttributes.First().offset.structure,
+                    stride = m_ExpressionGraph.GlobalEventAttributes.Any() ? m_ExpressionGraph.GlobalEventAttributes.First().offset.structure : 0u,
                     initialData = ComputeArrayOfStructureInitialData(m_ExpressionGraph.GlobalEventAttributes)
                 });
 

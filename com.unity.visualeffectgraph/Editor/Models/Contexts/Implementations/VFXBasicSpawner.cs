@@ -223,6 +223,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                foreach (var attribute in base.attributes)
+                    yield return attribute;
+                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadWrite);
+            }
+        }
+
         static VFXExpression RandomFromVector2(VFXExpression input, RandId randId)
         {
             return VFXOperatorUtility.Lerp(input.x, input.y, new VFXExpressionRandom(false, randId));
