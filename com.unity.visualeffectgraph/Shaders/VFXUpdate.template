@@ -15,7 +15,7 @@ RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer; // Has to be a RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
 #endif
 
 #if VFX_USE_STRIPALIVE_CURRENT

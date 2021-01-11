@@ -8,9 +8,8 @@
 #pragma multi_compile _ NEAR
 #pragma multi_compile _ FAR
 
-// Indirect arguments have to be in a RWBuffer
 // The first three uints are near threadgroups, the last three are far threadgroups
-RWBuffer<uint> _IndirectBuffer;
+RWStructuredBuffer<uint> _IndirectBuffer; // Has to be RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
 
 CBUFFER_START(cb0)
     float4 _Params;

@@ -50,7 +50,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             int _ClusterDebugMode;
 
             StructuredBuffer<uint> g_TileList;
-            Buffer<uint> g_DispatchIndirectBuffer;
+            StructuredBuffer<uint> g_DispatchIndirectBuffer; // Has to be a StructuredBuffer (not Buffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
 
             float GetTileDepth(uint2 coord)
             {

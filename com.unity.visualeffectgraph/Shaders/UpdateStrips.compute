@@ -10,7 +10,7 @@ CBUFFER_START(params)
     uint particlePerStripCount;
 CBUFFER_END
 
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer; // Has to be a RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
 
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl"
 
