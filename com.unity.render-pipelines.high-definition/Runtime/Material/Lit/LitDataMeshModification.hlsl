@@ -71,7 +71,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     bool frustumCullCurrView = frustumCullEdgesMainView.w;
 #else
-    bool4 frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, _ShadowFrustumPlanes, 4); // Do not test near/far planes
+    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, _ShadowFrustumPlanes, 4); // Do not test near/far planes
 #endif
 
     bool faceCull = false;
