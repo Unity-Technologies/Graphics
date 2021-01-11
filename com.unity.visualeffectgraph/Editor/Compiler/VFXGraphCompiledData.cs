@@ -687,7 +687,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, ref SubgraphInfos subgraphInfos)
+        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, IEnumerable<VFXData> compilableData, ref SubgraphInfos subgraphInfos)
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
@@ -696,12 +696,11 @@ namespace UnityEditor.VFX
 
             var eventDescTemp = new[]
             {
-                new { eventName = VisualEffectAsset.PlayEventName, playSystems = allPlayNotLinked, stopSystems = new List<uint>() },
-                new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<uint>(), stopSystems = allStopNotLinked },
+                new { eventName = VisualEffectAsset.PlayEventName, playSystems = allPlayNotLinked, stopSystems = new List<uint>(), initSystems = new List<uint>() },
+                new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<uint>(), stopSystems = allStopNotLinked, initSystems = new List<uint>() },
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
-
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
             foreach (var evt in events)
@@ -711,40 +710,67 @@ namespace UnityEditor.VFX
                 if (subgraphInfos.spawnerSubgraph.ContainsKey(evt) && specialNames.Contains(eventName))
                     continue;
 
-                List<VFXContextLink> effecitveOuts = subgraphInfos.GetContextEffectiveOutputLinks(evt, 0);
+                List<VFXContextLink> effectiveOuts = subgraphInfos.GetContextEffectiveOutputLinks(evt, 0);
 
-                foreach (var link in effecitveOuts)
+                foreach (var link in effectiveOuts)
                 {
-                    if (contextSpawnToSpawnInfo.ContainsKey(link.context))
+                    var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
+                    if (eventIndex == -1)
                     {
-                        var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
-                        if (eventIndex == -1)
+                        eventIndex = eventDescTemp.Count;
+                        eventDescTemp.Add(new
                         {
-                            eventIndex = eventDescTemp.Count;
-                            eventDescTemp.Add(new
-                            {
-                                eventName = eventName,
-                                playSystems = new List<uint>(),
-                                stopSystems = new List<uint>(),
-                            });
-                        }
+                            eventName = eventName,
+                            playSystems = new List<uint>(),
+                            stopSystems = new List<uint>(),
+                            initSystems = new List<uint>()
+                        });
+                    }
 
-                        var startSystem = link.slotIndex == 0;
-                        var spawnerIndex = (uint)contextSpawnToSpawnInfo[link.context].systemIndex;
-                        if (startSystem)
+                    var eventDesc = eventDescTemp[eventIndex];
+                    if (link.context.contextType == VFXContextType.Spawner)
+                    {
+                        if (contextSpawnToSpawnInfo.ContainsKey(link.context))
                         {
-                            eventDescTemp[eventIndex].playSystems.Add(spawnerIndex);
+                            var spawnerDestinationIndex = (uint)contextSpawnToSpawnInfo[link.context].systemIndex;
+                            var startSystem = link.slotIndex == 0;
+                            if (startSystem)
+                            {
+                                eventDesc.playSystems.Add(spawnerDestinationIndex);
+                            }
+                            else
+                            {
+                                eventDesc.stopSystems.Add(spawnerDestinationIndex);
+                            }
                         }
-                        else
-                        {
-                            eventDescTemp[eventIndex].stopSystems.Add(spawnerIndex);
-                        }
+                    }
+                    else if (link.context.contextType == VFXContextType.Init)
+                    {
+                        var spawnIndexList = contextSpawnToSpawnInfo.Select(o => (int)o.Value.systemIndex);
+                        var particleSystemOffset = spawnIndexList.Any() ? (uint)spawnIndexList.Max() + 1u : 0u;
+
+                        //TODOPAUL : Anticipate what will be index of this particle system, not ideal
+                        var indexOfData = compilableData.ToList().IndexOf(link.context.GetData());
+                        if (indexOfData == -1)
+                            continue; //Could have been skipped from compilable for other reason
+
+                        eventDesc.initSystems.Add((uint)indexOfData);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(string.Format("Unexpected link context : " + link.context.contextType));
                     }
                 }
             }
             outEventDesc.Clear();
-            var relevantEvent = eventDescTemp.Where(o => o.playSystems.Any() || o.stopSystems.Any());
-            outEventDesc.AddRange(relevantEvent.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
+            var relevantEvent = eventDescTemp.Where(o => o.playSystems.Any() || o.stopSystems.Any() || o.initSystems.Any());
+            outEventDesc.AddRange(relevantEvent.Select(o => new VFXEventDesc()
+            {
+                name = o.eventName,
+                startSystems = o.playSystems.ToArray(),
+                stopSystems = o.stopSystems.ToArray(),
+                initSystems = o.initSystems.ToArray()
+            }));
         }
 
         private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies)
@@ -1117,7 +1143,7 @@ namespace UnityEditor.VFX
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<VFXEventDesc>();
-                FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts, ref subgraphInfos);
+                FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts, compilableData, ref subgraphInfos);
 
                 var dependentBuffersData = new VFXDependentBuffersData();
                 FillDependentBuffer(compilableData, bufferDescs, dependentBuffersData);
