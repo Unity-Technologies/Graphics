@@ -1003,7 +1003,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   localSpace: 0
-  vector: {x: 1, y: 0, z: 0}
+  vector: {x: -1, y: 0, z: 0}
   frequency: 1
   fps: 60
 --- !u!1 &705416273
