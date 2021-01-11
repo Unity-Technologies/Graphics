@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 - Fixed the default background color for previews to use the original color.
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
+- Fixed SAMPLE_TEXTURECUBE_ARRAY_LOD macro when using OpenGL ES. [case 1285132](https://issuetracker.unity3d.com/issues/urp-android-error-sample-texturecube-array-lod-is-not-supported-on-gles-3-dot-0-when-using-cubemap-array-shader-shaders)
 
 ## [10.2.0] - 2020-10-19
 
