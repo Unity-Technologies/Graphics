@@ -398,10 +398,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool hasDirectEventLink
+        {
+            get
+            {
+                //TODOPAUL : not sure it's needed
+                if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init)
+                {
+                    bool anyDirectLinkFromEvent = m_Contexts.First().inputFlowSlot.SelectMany(o => o.link).Any(o => o.context.contextType == VFXContextType.Event);
+                    return anyDirectLinkFromEvent;
+                }
+                return false;
+            }
+        }
+
         public override void GenerateAttributeLayout(Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
             m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
+
+            if (hasDirectEventLink)
+                m_SourceCount += 512; //TODOPAUL : Arbitrary allocation size, should handle a growable buffer in C++
+
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
             {

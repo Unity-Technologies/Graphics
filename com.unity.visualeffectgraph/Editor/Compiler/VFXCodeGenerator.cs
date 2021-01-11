@@ -236,13 +236,18 @@ namespace UnityEditor.VFX
             if (!context.GetData().dependenciesIn.Any())
             {
                 var spawnLinkCount = context.GetData().sourceCount;
+
                 r.WriteLine("int sourceIndex = 0;");
 
                 if (spawnLinkCount <= 1)
                     r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
 
+                r.WriteLine("#if !VFX_USE_DIRECT_LINK_EVENT");
+                r.WriteLineFormat("uint nbEvents = {0};", spawnLinkCount);
+                r.WriteLine("#endif");
+
                 r.WriteLine("uint currentSumSpawnCount = 0u;");
-                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
+                r.WriteLine("for (sourceIndex=0; sourceIndex < nbEvents; sourceIndex++)");
                 r.EnterScope();
                 r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
                 r.WriteLine("if (id < currentSumSpawnCount)");

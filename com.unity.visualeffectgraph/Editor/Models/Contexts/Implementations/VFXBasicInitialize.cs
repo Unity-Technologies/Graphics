@@ -40,6 +40,10 @@ namespace UnityEditor.VFX
                 if (hasGPUSpawner)
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
 
+                //TODOPAUL : should remove this cast and have proper design
+                if ((GetData() as VFXDataParticle).hasDirectEventLink)
+                    yield return "VFX_USE_DIRECT_LINK_EVENT";
+
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
             }
