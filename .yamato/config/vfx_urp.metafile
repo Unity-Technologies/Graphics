@@ -61,6 +61,7 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
