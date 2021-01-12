@@ -245,8 +245,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         i++;
                     }
                 }
-            #else
-                entityCount = input.variant;
             #endif
 
             #ifdef DISABLE_TILE_MODE
