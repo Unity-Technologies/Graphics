@@ -2,9 +2,6 @@
 #define UNITY_REVERSED_Z 1
 #define UNITY_GATHER_SUPPORTED (SHADER_TARGET >= 50)
 #define UNITY_CAN_READ_POSITION_IN_FRAGMENT_PROGRAM 1
-#define INTRINSIC_MINMAX3
-#define Min3 min3
-#define Max3 max3
 
 #define TEXTURE2D_SAMPLER2D(textureName, samplerName) Texture2D textureName; SamplerState samplerName
 #define TEXTURE3D_SAMPLER3D(textureName, samplerName) Texture3D textureName; SamplerState samplerName
