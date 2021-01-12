@@ -136,6 +136,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportPathtracing)
                     passes.Add(HDShaderPasses.GeneratePathTracing(supportLighting));
                 
+//SensorSDK - Begin - Lidar intensity support
+                    passes.Add(HDShaderPasses.GenerateLidarPathTracing(supportLighting));
+//SensorSDK - End - Lidar intensity support
                 return passes;
             }
         }

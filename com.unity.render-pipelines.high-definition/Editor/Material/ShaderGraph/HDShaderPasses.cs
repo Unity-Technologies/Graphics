@@ -1272,6 +1272,43 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #endregion
 
+//SensorSDK - Begin - Lidar intensity support
+#region Lidar Path Tracing
+
+        public static PassDescriptor GenerateLidarPathTracing(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                //Definition
+                displayName = "LidarDXR",
+                referenceName = "SHADERPASS_LIDAR_DXR",
+                lightMode = "PathTracingDXR",
+                useInPreview = false,
+
+                //Port mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = PathTracingFragment,
+
+                //Collections
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? LidarRaytracingPathTracingDefines : null,
+                keywords = CoreKeywords.HDBaseNoCrossFade,
+                includes = CoreIncludes.LidarRaytracing,
+                requiredFields = new FieldCollection() { HDFields.ShaderPass.RaytracingPathTracing },
+            };
+        }
+
+        public static DefineCollection LidarRaytracingPathTracingDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
+
+#endregion
+//SensorSDK - End - Lidar intensity support
+
+
 #region Define Utility
 
         public static class Defines

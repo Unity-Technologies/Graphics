@@ -32,5 +32,8 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor DOTSInstancing => new PragmaDescriptor { value = "multi_compile _ DOTS_INSTANCING_ON" };
         public static PragmaDescriptor MultiCompileFog => new PragmaDescriptor { value = "multi_compile_fog" };
         public static PragmaDescriptor EditorSyncCompilation => new PragmaDescriptor { value = "editor_sync_compilation" };
+//SensorSDK - Begin - Add debug pragma to shadergraph (to be removed)
+        public static PragmaDescriptor Debug => new PragmaDescriptor { value = "enable_ray_tracing_shader_debug_symbols" };
+//SensorSDK - End - Add debug pragma to shadergraph (to be removed)
     }
 }

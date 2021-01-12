@@ -174,6 +174,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public GPULightType lightType;
         }
 
+//SensorSDK - Begin - Tonemapping support
+        public RTHandle internalLogLut; // ARGBHalf
+        public Vector4 logLutSettings;
+
+        public RayTracingAccelerationStructure accelerationStructure;
+
+        public RayTracingShader pathTracingShaderOverride;
+        public delegate void PrepareDispatchRaysAction<T1>(T1 cmd);
+        public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
+
+        public bool isContinousCaptureEnabled = true;
+        public bool isLastIteration = false;
+        public PostProcessSystem postProcessSystem;
+//SensorSDK - End - Tonemapping support
+
         /// <summary>
         /// Enum that lists the various history slots that require tracking of their validity
         /// </summary>
@@ -1359,7 +1374,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
         /// </param>
         /// <returns></returns>
-        Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
+//SensorSDK - Begin - Expose some function for the camera code
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
+//SensorSDK - End - Expose some function for the camera code
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)

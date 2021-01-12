@@ -782,6 +782,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+//SensorSDK - Begin - Add debug pragma to shadergraph (to be removed)
+            { Pragma.Debug }
+//SensorSDK - End - Add debug pragma to shadergraph (to be removed)
         };
     }
 #endregion
@@ -903,6 +906,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassRaytracingGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl";
         public const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
         public const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
+
+//SensorSDK - Begin - Lidar intensity support
+        public const string kPassLidarPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/SensorSDK/SensorShaderPassPathTracing.hlsl";
+//SensorSDK - End - Lidar intensity support
 
         // Public Pregraph Function
         public const string kCommonLighting = "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl";

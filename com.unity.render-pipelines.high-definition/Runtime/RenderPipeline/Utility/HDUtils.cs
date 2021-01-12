@@ -139,8 +139,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => -matrix.m11 / matrix.m00;
-
-        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+//SensorSDK - Begin - Expose some function for the camera code
+        public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+//SensorSDK - End - Expose some function for the camera code
         {
             aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
 

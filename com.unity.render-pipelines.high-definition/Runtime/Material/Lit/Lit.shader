@@ -234,6 +234,10 @@ Shader "HDRP/Lit"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+
+//SensorSDK - Begin - Expose a reflectance parameter to override when using standard material
+        [HideInInspector] _SensorCustomReflectance("Diffusion Profile Hash", 2D) = "white" {}
+//SensorSDK - End - Expose a reflectance parameter to override when using standard material
     }
 
     HLSLINCLUDE
@@ -1214,6 +1218,43 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+//SensorSDK - Begin - Add an extra pass for lidar rendering
+        Pass
+        {
+            Name "LidarDXR"
+            Tags{ "LightMode" = "LidarDXR" }
+
+            HLSLPROGRAM
+
+            #pragma raytracing test
+
+            #pragma multi_compile _ DEBUG_DISPLAY
+
+            #define SHADERPASS SHADERPASS_LIDAR_DXR
+
+            // This is just because it need to be defined, shadow maps are not used.
+           #define SHADOW_LOW
+
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+           #define HAS_LIGHTLOOP
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+           #include "Packages/com.unity.render-pipelines.high-definition/Runtime/SensorSDK/SensorShaderPassPathTracing.hlsl"
+
+           ENDHLSL
+        }
+//SensorSDK - End - Add an extra pass for lidar rendering
     }
 
     CustomEditor "Rendering.HighDefinition.LitGUI"

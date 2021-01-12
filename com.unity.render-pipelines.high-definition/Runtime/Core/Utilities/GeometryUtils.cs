@@ -66,7 +66,9 @@ namespace UnityEngine.Rendering.HighDefinition
     } // struct Frustum
 
     [GenerateHLSL]
-    struct OrientedBBox
+//SensorSDK - Begin - Expose some function for the camera code
+    public struct OrientedBBox
+//SensorSDK - End - Expose some function for the camera code
     {
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
@@ -95,7 +97,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // struct OrientedBBox
 
-    static class GeometryUtils
+//SensorSDK - Begin - Expose some function for the camera code
+    public static class GeometryUtils
+//SensorSDK - End - Expose some function for the camera code
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
         public unsafe static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)

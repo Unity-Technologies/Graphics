@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     || snippet.passName == "ForwardDXR"
                     || snippet.passName == "VisibilityDXR"
                     || snippet.passName == "PathTracingDXR"
+//SensorSDK - Begin - Lidar intensity support
+                    || snippet.passName == "LidarDXR"
+//SensorSDK - End - Lidar intensity support
                     || snippet.passName == "GBufferDXR"
                     || snippet.passName == "SubSurfaceDXR")
                     return true;

@@ -4,7 +4,9 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    internal enum RayTracingRendererFlag
+//SensorSDK - Begin - Expose to be able to duplicate AddInstanceRAS in the sensor package.
+    public enum RayTracingRendererFlag
+//SensorSDK - End - Expose to be able to duplicate AddInstanceRAS in the sensor package.
     {
         Opaque = 0x01,
         CastShadowTransparent = 0x02,
@@ -367,6 +369,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingClusterCulling = false;
             m_RayTracedShadowsRequired = false;
             m_RayTracedContactShadowsRequired = false;
+
+//SensorSDK - Begin - Expose acceleration structure to avoid building our own into the custom pass
+            hdCamera.accelerationStructure = m_CurrentRAS;
+//SensorSDK - End - Expose acceleration structure to avoid building our own into the custom pass
 
             // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))

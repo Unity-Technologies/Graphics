@@ -6,7 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Caution: Order is important and is use for optimization in light loop
     [GenerateHLSL]
-    enum GPULightType
+//SensorSDK - Begin - Expose type and struct to use on SensorSDK side
+    public enum GPULightType
+//SensorSDK - End - Expose type and struct to use on SensorSDK side
     {
         Directional,
         Point,
@@ -114,7 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
-    struct LightData
+//SensorSDK - Begin - Expose type and struct to use on SensorSDK side
+    public struct LightData
+//SensorSDK - End - Expose type and struct to use on SensorSDK side
     {
         // Packing order depends on chronological access to avoid cache misses
         // Make sure to respect the 16-byte alignment

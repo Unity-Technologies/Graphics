@@ -1,7 +1,9 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.RayTracing)]
-    unsafe struct ShaderVariablesRaytracing
+//SensorSDK - Begin - Lidar intensity support
+    public unsafe struct ShaderVariablesRaytracing
+//SensorSDK - End - Lidar intensity support	
     {
         // Global ray bias used for all trace rays
         public float _RaytracingRayBias;
