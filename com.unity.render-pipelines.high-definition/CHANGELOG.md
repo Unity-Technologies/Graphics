@@ -4,7 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-12-02
+## [12.0.0] - 2021-01-11
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [11.0.0] - 2020-10-21
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
@@ -51,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
+- Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
 
 ## [10.3.0] - 2020-12-01
 
