@@ -600,7 +600,8 @@ namespace UnityEditor.Rendering.HighDefinition
             labelRect.width = EditorGUIUtility.labelWidth;
 
             // Expand to reach both lines of the intensity field.
-            labelRect.height *= 2f;
+            var interlineOffset = EditorGUIUtility.singleLineHeight + 2f;
+            labelRect.height += interlineOffset;
 
             //handling of prefab overrides in a parent label
             GUIContent parentLabel =  s_Styles.lightIntensity;
@@ -608,7 +609,7 @@ namespace UnityEditor.Rendering.HighDefinition
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             {
                 // Restore the original rect for actually drawing the label.
-                labelRect.height *= 0.5f;
+                labelRect.height -= interlineOffset;
 
                 EditorGUI.LabelField(labelRect, parentLabel);
             }
