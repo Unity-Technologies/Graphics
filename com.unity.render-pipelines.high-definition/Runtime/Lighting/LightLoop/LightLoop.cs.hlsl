@@ -82,6 +82,12 @@
 #define CLUSTERDEBUGMODE_VISUALIZE_OPAQUE (0)
 #define CLUSTERDEBUGMODE_VISUALIZE_SLICE (1)
 
+//
+// UnityEngine.Rendering.HighDefinition.BinnedDebugMode:  static fields
+//
+#define BINNEDDEBUGMODE_VISUALIZE_OPAQUE (0)
+#define BINNEDDEBUGMODE_VISUALIZE_SLICE (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.FiniteLightBound
 // PackingRules = Exact
 struct FiniteLightBound

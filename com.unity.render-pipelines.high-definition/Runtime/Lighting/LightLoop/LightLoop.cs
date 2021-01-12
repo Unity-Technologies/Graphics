@@ -474,6 +474,18 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Cluster visualization mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum BinnedDebugMode : int
+    {
+        /// <summary>Visualize z-binning on opaque objects.</summary>
+        VisualizeOpaque,
+        /// <summary>Visualize a slice of a range of z buckets.</summary>
+        VisualizeSlice
+    }
+
+    /// <summary>
     /// Light Volume Debug Mode.
     /// </summary>
     public enum LightVolumeDebug : int
@@ -3954,7 +3966,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
             int dwordsRequired  = (int)cb._BoundedEntityDwordOffsetPerCategory[(int)BoundedEntityCategory.Count - 1]
-                                + (int)cb._BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count - 1];
+                + (int)cb._BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count - 1];
 
             Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption.");
 
@@ -4463,7 +4475,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                 parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategory",       (int)lightingDebug.selectedEntityCategory);
                 parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategoryBudget",      lightingDebug.selectedEntityCategoryBudget);
-
+                parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
+                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._BinnedDebugMode, (int)lightingDebug.binnedDebugMode);
+                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._StartBucket, (int)lightingDebug.startBucket);
+                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._EndBucket, (int)lightingDebug.endBucket);
                 CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
             }
 

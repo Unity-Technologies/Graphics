@@ -261,6 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowDebugModeEnumIndex;
             internal int tileClusterDebugByCategoryEnumIndex;
             internal int clusterDebugModeEnumIndex;
+            internal int binnedDebugModeEnumIndex;
             internal int lightVolumeDebugTypeEnumIndex;
             internal int renderingFulscreenDebugModeEnumIndex;
             internal int terrainTextureEnumIndex;
@@ -1439,6 +1440,39 @@ namespace UnityEngine.Rendering.HighDefinition
                     max         = ()    => 999 // Completely arbitrary limit
                 });
 
+                debugContainer.children.Add(new DebugUI.EnumField
+                {
+                    displayName = "Binned Debug Mode",
+                    getter = () => (int)data.lightingDebugSettings.binnedDebugMode,
+                    setter = value => data.lightingDebugSettings.binnedDebugMode = (BinnedDebugMode)value,
+                    autoEnum = typeof(ClusterDebugMode),
+                    onValueChanged = RefreshLightingDebug,
+                    getIndex = () => data.binnedDebugModeEnumIndex,
+                    setIndex = value => data.binnedDebugModeEnumIndex = value
+                });
+
+                if (data.lightingDebugSettings.binnedDebugMode == BinnedDebugMode.VisualizeSlice)
+                {
+                    debugContainer.children.Add(new DebugUI.IntField
+                    {
+                        displayName = "Start bucket",
+                        getter = () => data.lightingDebugSettings.startBucket,
+                        setter = value => data.lightingDebugSettings.startBucket = value,
+                        min = () => 0,
+                        max = () => TiledLightingConstants.s_zBinCount - 1,
+                        incStep = 1
+                    });
+
+                    debugContainer.children.Add(new DebugUI.IntField
+                    {
+                        displayName = "End bucket",
+                        getter = () => data.lightingDebugSettings.endBucket,
+                        setter = value => data.lightingDebugSettings.endBucket = value,
+                        min = () => 0,
+                        max = () => TiledLightingConstants.s_zBinCount - 1,
+                        incStep = 1
+                    });
+                }
                 list.Add(debugContainer);
             }
 
