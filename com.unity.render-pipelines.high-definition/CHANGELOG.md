@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
+- HDRP Default Settings are now saved into their own asset and HDRenderPipeline's default asset refers to this new asset.
 
 ## [10.3.0] - 2020-12-01
 
