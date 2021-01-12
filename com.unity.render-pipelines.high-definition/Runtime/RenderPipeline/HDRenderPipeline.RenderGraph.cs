@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
-            CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, backBuffer);
+            CopyXRDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
 
             // In developer build, we always render post process in an intermediate buffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
