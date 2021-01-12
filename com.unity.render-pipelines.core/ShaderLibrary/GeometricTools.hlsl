@@ -234,9 +234,9 @@ bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 
 // Returns 'true' if the edge of the triangle is outside of the frustum.
 // The edges are defined s.t. they are on the opposite side of the point with the given index.
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
-//output packing: 
+//output packing:
 // x,y,z - one component per triangle edge, true if outside, false otherwise
-// w - true if entire triangle is outside of at least 1 plane of the frustum, false otherwise 
+// w - true if entire triangle is outside of at least 1 plane of the frustum, false otherwise
 bool4 CullFullTriangleAndEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
 {
     bool4 edgesOutsideXYZ_triangleOutsideW = false;
@@ -252,7 +252,7 @@ bool4 CullFullTriangleAndEdgesFrustum(float3 p0, float3 p1, float3 p2, float eps
         edgesOutside.x = pointsOutside.y && pointsOutside.z;
         edgesOutside.y = pointsOutside.x && pointsOutside.z;
         edgesOutside.z = pointsOutside.x && pointsOutside.y;
-        
+
         edgesOutsideXYZ_triangleOutsideW = edgesOutsideXYZ_triangleOutsideW || bool4(edgesOutside.xyz, all(pointsOutside));
     }
 
@@ -262,7 +262,7 @@ bool4 CullFullTriangleAndEdgesFrustum(float3 p0, float3 p1, float3 p2, float eps
 // Returns 'true' if the edge of the triangle is outside of the frustum.
 // The edges are defined s.t. they are on the opposite side of the point with the given index.
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
-//output packing: 
+//output packing:
 // x,y,z - one component per triangle edge, true if outside, false otherwise
 bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
 {
