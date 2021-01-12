@@ -15,7 +15,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD0;
 		#else
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+		float3 uv : TEXCOORD0;
+		#else
 		float2 uv : TEXCOORD0;	
+		#endif
 		#endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
