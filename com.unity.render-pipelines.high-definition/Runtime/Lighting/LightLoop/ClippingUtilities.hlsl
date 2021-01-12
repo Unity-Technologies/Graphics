@@ -228,7 +228,7 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
     }
 }
 
-// 5 arrays * 128 elements * 4 bytes each = 2560 bytes.
+// 4 arrays * 128 elements * 4 bytes each = 2048 bytes.
 groupshared float gs_HapVertsX[VERTS_PER_GROUP];
 groupshared float gs_HapVertsY[VERTS_PER_GROUP];
 groupshared float gs_HapVertsZ[VERTS_PER_GROUP];

@@ -135,7 +135,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 // 1 array * 16 elements * 4 bytes each = 64 bytes.
 groupshared uint gs_CullClipFaceMasks[ENTITIES_PER_GROUP]; // 6 faces each (HLSL does not support small data types)
-// 8 arrays * 16 elements * 4 bytes each = 512 bytes.
+// 6 arrays * 16 elements * 4 bytes each = 384 bytes.
 // These are actually floats reinterpreted as uints.
 // The reason is because floating-point atomic operations are not supported.
 groupshared uint gs_NdcAaBbMinPtX[ENTITIES_PER_GROUP];
