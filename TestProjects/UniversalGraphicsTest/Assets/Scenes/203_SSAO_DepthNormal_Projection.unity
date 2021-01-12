@@ -162,7 +162,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 9
+  m_RendererIndex: 11
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -409,6 +409,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SSAO_Scene
+      objectReference: {fileID: 0}
+    - target: {fileID: 2105869046135578123, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
