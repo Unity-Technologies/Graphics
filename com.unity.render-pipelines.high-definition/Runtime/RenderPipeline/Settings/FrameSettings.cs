@@ -728,6 +728,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderPipelineSettings">Contains what is supported by the engine.</param>
         internal static void Sanitize(ref FrameSettings sanitizedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
         {
+            // We have no clear flag to identify if a reflection is a planar reflection or a reflection probe. For now, the only way to do
+            // it is to check if the matrix is oblique.
+            bool reflectionPlanar = GeometryUtils.IsProjectionMatrixOblique(camera.projectionMatrix);
             bool reflection = camera.cameraType == CameraType.Reflection;
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
