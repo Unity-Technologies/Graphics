@@ -19,8 +19,8 @@ real3 EvaluateAmbientProbe(real3 normalWS)
     return SampleSH9(SHCoefficients, normalWS);
 }
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 // y channel is reserved for potential payload information to carry alongside the unintialized flag.
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
@@ -162,7 +162,7 @@ void SampleBakedGI(
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
@@ -170,7 +170,7 @@ void SampleBakedGI(
     return;
 #endif
 
-#elif SAMPLE_PROBEVOLUME_BUILTIN // SAMPLE_PROBEVOLUME_BUILTIN && SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 0
+#elif SAMPLE_PROBEVOLUME_BUILTIN // SAMPLE_PROBEVOLUME_BUILTIN && !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
 
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 
