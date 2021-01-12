@@ -5,7 +5,8 @@ def _cmd_base(project, platform, utr_calls, editor):
     base = [
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
-        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity-downloader-cli',
         f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"],cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
 
