@@ -1389,6 +1389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         skipRequest = true;
                         // Execute custom render
+                        UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
                     }
 
