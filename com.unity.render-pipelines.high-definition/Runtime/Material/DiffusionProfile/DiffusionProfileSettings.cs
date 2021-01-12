@@ -196,7 +196,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+//SensorSDK - Begin - Make class accessible (public)
+    public partial class DiffusionProfileSettings : ScriptableObject
+//SensorSDK - End - Make class accessible (public)
     {
         [SerializeField]
         internal DiffusionProfile profile;

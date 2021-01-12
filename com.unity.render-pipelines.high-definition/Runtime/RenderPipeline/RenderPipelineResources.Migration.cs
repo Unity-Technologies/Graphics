@@ -2,7 +2,9 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+//SensorSDK - Begin - Make class accessible (public)
     partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
+//SensorSDK - End - Make class accessible (public)
     {
         enum Version
         {

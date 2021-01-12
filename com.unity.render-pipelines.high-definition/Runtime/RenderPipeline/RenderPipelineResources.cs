@@ -5,7 +5,9 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    partial class RenderPipelineResources : ScriptableObject
+//SensorSDK - Begin - Make class accessible (public)
+    public partial class RenderPipelineResources : ScriptableObject
+//SensorSDK - End - Make class accessible (public)
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources

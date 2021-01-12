@@ -3477,6 +3477,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float lutContribution;
 
             public TonemappingMode tonemappingMode;
+
+//SensorSDK - Begin - Add camera parameter for colorgrading
+            public HDCamera camera;
+//SensorSDK - End - Add camera parameter for colorgrading
         }
 
         ColorGradingParameters PrepareColorGradingParameters()
@@ -3599,7 +3603,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (parameters.tonemappingMode == TonemappingMode.External)
             {
-                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, parameters.externalLuT);
+                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, parameters.externalLuT);                
                 cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / parameters.lutSize, parameters.lutSize - 1f, parameters.lutContribution, 0f));
             }
 
@@ -3618,6 +3622,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 (int)((parameters.lutSize + threadY - 1u) / threadY),
                 (int)((parameters.lutSize + threadZ - 1u) / threadZ)
             );
+
+//SensorSDK - Begin - Tonemapping support
+            if (parameters.camera != null)
+            {                
+                parameters.camera.internalLogLut = internalLogLuT; // ARGBHalf                
+                parameters.camera.logLutSettings = new Vector4(1f / parameters.lutSize, parameters.lutSize - 1f, parameters.lutContribution, 0f);
+            }
+//SensorSDK - End - Tonemapping support
         }
 
         // Returns color balance coefficients in the LMS space

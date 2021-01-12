@@ -1292,16 +1292,43 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 //Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? LidarRaytracingPathTracingDefines : null,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
-                includes = CoreIncludes.LidarRaytracing,
-                requiredFields = new FieldCollection() { HDFields.ShaderPass.RaytracingPathTracing },
+                includes = GenerateIncludes()                
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include path tracing support for the material
+                includes.Add(CoreIncludes.kPathtracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassPathTracing, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection LidarRaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingRaytraced },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 

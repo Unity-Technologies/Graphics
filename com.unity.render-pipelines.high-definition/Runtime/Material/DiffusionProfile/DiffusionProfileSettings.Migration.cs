@@ -8,7 +8,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    sealed partial class DiffusionProfileSettings : IVersionable<DiffusionProfileSettings.Version>
+//SensorSDK - Begin - Make class accessible (public)
+    public sealed partial class DiffusionProfileSettings : IVersionable<DiffusionProfileSettings.Version>
+//SensorSDK - End - Make class accessible (public)
     {
         enum Version
         {
