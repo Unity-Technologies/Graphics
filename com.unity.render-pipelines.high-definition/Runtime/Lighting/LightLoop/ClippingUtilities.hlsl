@@ -56,9 +56,6 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
     return lerp(v0.pt, v1.pt, alpha);
 }
 
-#ifdef INCLUDE_SPECIFIC_CLIPPING_CODE
-// The code below is specific to binned lighting.
-
 // (Sep 16, 2020)
 // Improve the quality of generated code at the expense of readability.
 // Remove when the shader compiler is clever enough to perform this optimization for us.
@@ -309,6 +306,5 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
     #endif
     }
 }
-#endif // INCLUDE_SPECIFIC_CLIPPING_CODE
 
 #endif // UNITY_CLIPPINGUTILITIES_INCLUDED

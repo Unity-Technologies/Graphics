@@ -9,10 +9,8 @@
 #define NO_SHADERVARIABLESGLOBAL_HLSL
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 #undef  NO_SHADERVARIABLESGLOBAL_HLSL
-#define INCLUDE_SPECIFIC_CLIPPING_CODE
 #define NUM_CLIP_PLANES (6) // Full frustum clipping
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
-#undef  INCLUDE_SPECIFIC_CLIPPING_CODE
 
 /* ------------------------------ Inputs ------------------------------------ */
 
