@@ -727,8 +727,8 @@ namespace UnityEditor.VFX
                     }
                     else if (link.context.contextType == VFXContextType.Init)
                     {
-                        //TODOPAUL : Anticipate what will be index of this particle system, not ideal
-                        var indexOfData = compilableData.ToList().IndexOf(link.context.GetData());
+                        //TODOPAUL : Anticipate what will be index of this particle system, not ideal and arbitrary.
+                        var indexOfData = compilableData.Where(o => o is VFXDataParticle).ToList().IndexOf(link.context.GetData());
                         if (indexOfData == -1)
                             continue; //Could have been skipped from compilable for other reason
 
