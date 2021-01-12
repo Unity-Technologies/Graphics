@@ -51,4 +51,4 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_XR
-        # - Standalone_cache
+        # - Standalone

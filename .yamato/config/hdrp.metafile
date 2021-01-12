@@ -21,22 +21,6 @@ test_platforms:
   - type: Standalone
     timeout:
       OSX_Metal: 2400
-  - type: Standalone
-    name: Standalone_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
-    utr_flags_build:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
 expression_trigger:
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"]'
 platforms:
@@ -115,14 +99,14 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        # - Standalone_cache
+        # - Standalone
         - playmode_cache
     - platform: Linux
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
+        - Standalone
         - playmode_cache
     - project: HDRP_DXR
       pr: true
@@ -147,14 +131,14 @@ nightly:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
+        - Standalone
         - playmode_XR
     - platform: Win
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
+        - Standalone
         - playmode_XR
     - platform: Linux
       api: Vulkan
