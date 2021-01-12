@@ -6,11 +6,22 @@ test_platforms:
     utr_flags:
       - [all]: --testfilter="VFX.Test"
       - [OSX_Metal]: --timeout=2400 --testfilter="VFX.Test"
+  - type: Standalone
+    name: Standalone_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
     utr_flags:
       - [all]: --testfilter="VFX.Test"
       - [OSX_Metal]: --timeout=2400 --testfilter="VFX.Test"
-#  - type: editmode
+  - type: playmode
+    name: playmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
+  - type: editmode
+    name: editmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
 expression_trigger: 
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
 platforms:
