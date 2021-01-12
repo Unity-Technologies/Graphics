@@ -45,13 +45,19 @@ class KawaseBlur : ScriptableRenderPass
     // The render pipeline will ensure target setup and clearing happens in a performant manner.
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
     {
-        var width = renderingData.cameraData.cameraTargetDescriptor.width / settings.downsample;
-        var height = renderingData.cameraData.cameraTargetDescriptor.height / settings.downsample;
+        var desc = renderingData.cameraData.cameraTargetDescriptor;
+        var width = desc.width;
+        var height = desc.height;
+        desc.width = width / settings.downsample;
+        desc.height = height / settings.downsample;
 
         tmpId1 = Shader.PropertyToID("tmpBlurRT1");
         tmpId2 = Shader.PropertyToID("tmpBlurRT2");
-        cmd.GetTemporaryRT(tmpId1, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
-        cmd.GetTemporaryRT(tmpId2, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+        cmd.GetTemporaryRT(tmpId1, desc, FilterMode.Bilinear);
+        cmd.GetTemporaryRT(tmpId2, desc, FilterMode.Bilinear);
+
+        desc.width = width;
+        desc.height = height;
 
         tmpRT1 = new RenderTargetIdentifier(tmpId1);
         tmpRT2 = new RenderTargetIdentifier(tmpId2);
