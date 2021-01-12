@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed StackLit ShaderGraph surface option property block to only display energy conserving specular color option for the specular parametrization (case 1257050)
 - Fixed missing BeginCameraRendering call for custom render mode of a Camera.
 - Fixed LayerMask editor for volume parameters.
+- Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
