@@ -556,6 +556,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     m_ImmediateModeResourceList[i].Clear();
                 }
+
+                m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
         }
 
