@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardController : SGViewController<BlackboardViewModel>
@@ -13,8 +15,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         IList<SGBlackboardSection> m_BlackboardSections;
 
-        public BlackboardController(BlackboardViewModel viewModel, GraphData graphData)
-            : base(viewModel, graphData)
+        public BlackboardController(BlackboardViewModel viewModel, GraphDataStore graphDataStore)
+            : base(viewModel, graphDataStore)
         {
         }
 
@@ -23,9 +25,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         }
 
-        protected override void ModelChanged(GraphData graphData)
+        public override void ApplyChanges()
+        {
+
+        }
+
+        public override void ModelChanged(GraphData graphData)
         {
             base.ModelChanged(graphData);
+
 
             // Do stuff
         }

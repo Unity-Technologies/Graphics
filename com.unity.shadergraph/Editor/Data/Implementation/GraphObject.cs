@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphs;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -28,6 +29,18 @@ namespace UnityEditor.Graphing
         [NonSerialized]
         int m_DeserializedVersion;
 
+        public DataStore<GraphData> graphDataStore
+        {
+            get => m_DataStore;
+            private set
+            {
+                if (m_DataStore != value && value != null)
+                    m_DataStore = value;
+            }
+        }
+
+        DataStore<GraphData> m_DataStore;
+
         public GraphData graph
         {
             get { return m_Graph; }
@@ -36,6 +49,7 @@ namespace UnityEditor.Graphing
                 if (m_Graph != null)
                     m_Graph.owner = null;
                 m_Graph = value;
+                graphDataStore = new DataStore<GraphData>(ReduceGraphDataAction, m_Graph);
                 if (m_Graph != null)
                     m_Graph.owner = this;
             }
@@ -98,6 +112,13 @@ namespace UnityEditor.Graphing
                 graph.OnEnable();
                 graph.ValidateGraph();
             }
+        }
+
+        // This is a very simple reducer, all it does is take the action and apply it to the graph data, and return the mutated state
+        GraphData ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
+        {
+            GraphData newState = graphDataAction.MutateGraphData(initialState);
+            return newState;
         }
 
         void OnEnable()

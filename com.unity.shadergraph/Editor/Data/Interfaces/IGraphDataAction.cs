@@ -1,3 +1,5 @@
+using GraphData = UnityEditor.ShaderGraph.GraphData;
+
 namespace UnityEditor.ShaderGraph
 {
     interface IGraphDataAction
@@ -6,3 +8,4 @@ namespace UnityEditor.ShaderGraph
         GraphData MutateGraphData(GraphData initialState);
     }
 }
+

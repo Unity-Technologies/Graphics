@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action<SGBlackboard> addItemRequested { get; set; }
         public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
-        public Action<SGBlackboard, VisualElement, string> editTextRequested { get; set; }
 
         public SGBlackboard(GraphView associatedGraphView) : base(associatedGraphView)
         {

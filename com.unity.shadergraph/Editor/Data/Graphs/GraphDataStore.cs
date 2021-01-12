@@ -1,7 +1,8 @@
 ﻿using UnityEditor.ShaderGraph;
 using ActionType = UnityEditor.ShaderGraph.IGraphDataAction;
+using System;
 
-namespace UnityEditor.Graphing
+namespace UnityEditor.ShaderGraph
 {
     delegate T Reducer<T> (T state, ActionType action);
 
@@ -9,6 +10,8 @@ namespace UnityEditor.Graphing
     {
         Reducer<T> m_Reducer;
         public T State { get; private set; }
+
+        public Action<T> Subscribe;
 
         public DataStore(Reducer<T> reducer, T initialState)
         {
@@ -19,6 +22,8 @@ namespace UnityEditor.Graphing
         public void Dispatch(ActionType action)
         {
             State = m_Reducer(State, action);
+            // Notifies any listeners about change in state
+            Subscribe?.Invoke(State);
         }
     }
 }

@@ -44,7 +44,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             blackboard = new SGBlackboard(associatedGraphView)
             {
                 subTitle = FormatPath(graph.path),
-                editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
@@ -233,6 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
                 var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 string name = info?.name ?? ObjectNames.NicifyVariableName(t.Name.Replace("ShaderProperty", ""));
+                // This is so bad, why do we need to create an instance of every type and hold onto it if we're going to throw away most of them?! Just keep the type info and instantiate on demand later instead of feeding actual instance to delegate
                 ShaderInput si = Activator.CreateInstance(t, true) as ShaderInput;
                 gm.AddItem(new GUIContent(name), false, () => AddInputRow(si, true));
                 //QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
@@ -265,22 +265,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             else
             {
                 gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => AddInputRow(keyword.Copy(), true));
-            }
-        }
-
-        void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
-        {
-            var field = (BlackboardFieldView)visualElement;
-            var input = (ShaderInput)field.userData;
-            if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
-            {
-                m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
-                input.displayName = newText;
-                m_Graph.SanitizeGraphInputName(input);
-                field.text = input.displayName;
-                // need to trigger the inspector update to match
-                field.InspectorUpdateTrigger();
-                DirtyNodes();
             }
         }
 
@@ -430,6 +414,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             else
             {
                 row.expanded = true;
+                // This is what actually adds the graph input to the graph, this is what we would abstract away to the graph data store
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
@@ -453,35 +438,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        void DirtyNodes()
-        {
-            foreach (var node in m_Graph.GetNodes<PropertyNode>())
-            {
-                node.OnEnable();
-                node.Dirty(ModificationScope.Node);
-            }
-            foreach (var node in m_Graph.GetNodes<KeywordNode>())
-            {
-                node.OnEnable();
-                node.Dirty(ModificationScope.Node);
-            }
-        }
-
         public BlackboardRow GetBlackboardRow(ShaderInput input)
         {
             if (m_InputRows.ContainsKey(input))
                 return m_InputRows[input];
             else
                 return null;
-        }
-
-        // Clear any rows that are currently highlighted due to mouse hovering over PropertyNodeViews in the graph
-        public void ClearHighlightedRows()
-        {
-            foreach (var row in m_InputRows)
-            {
-                row.Value.RemoveFromClassList("hovered");
-            }
         }
 
         void OnMouseHover(EventBase evt, ShaderInput input)

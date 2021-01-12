@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.Drawing
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
+
+namespace UnityEditor.ShaderGraph
 {
     struct SGControllerChangedEvent
     {
@@ -121,7 +125,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public abstract void ApplyChanges();
 
-
         public virtual IEnumerable<SGController<T>> allChildren
         {
             get { return Enumerable.Empty<SGController<T>>(); }
@@ -138,34 +141,28 @@ namespace UnityEditor.ShaderGraph.Drawing
         // NOTE: VFX Graph implements models at a base controller level but they also have a unified data model system that we lack which makes it possible, a note for future improvements
         // Holds application specific data
         // TODO : Have a const reference to a data store instead of a raw GraphData reference, to allow for action dispatches
-		GraphData m_Model;
+        GraphDataStore m_GraphDataStore;
 
         // Holds data specific to the views this controller is responsible for
         T m_ViewModel;
-        protected SGViewController(T viewModel, GraphData graphData)
+        protected SGViewController(T viewModel, GraphDataStore graphDataStore)
         {
             m_ViewModel = viewModel;
-            m_Model = graphData;
-            ApplyChanges();
+            m_GraphDataStore = graphDataStore;
+            ModelChanged(Model);
         }
 
         // This function is meant to be defined by child classes and lets them provide their own change identifiers, of which it then becomes the child class's responsibility to associate those change IDs with a certain IGraphDataAction
         protected abstract void ChangeModel(int ChangeID);
 
-        protected virtual void ModelChanged(GraphData graphData)
+        public virtual void ModelChanged(GraphData graphData)
         {
             // Lets all event handlers this controller owns/manages know that the model has changed
             // Usually this is to update views and make them reconstruct themself from updated view-model
             NotifyChange(AnyThing);
-        }
-
-        public override void ApplyChanges()
-        {
             // Reconstruct view-model first
             ViewModel.ConstructFromModel(Model);
-            // Notify event handlers of change
-            ModelChanged(Model);
-            // Let child controllers know about changes so they may update themselves in turn
+            // Let child controllers know about changes to this controller so they may update themselves in turn
             foreach (var controller in allChildren)
             {
                 controller.ApplyChanges();
@@ -173,16 +170,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public T ViewModel => m_ViewModel;
-        public GraphData Model
-        {
-            get { return m_Model; }
-            private set
-            {
-                if (m_Model != value)
-                {
-                    m_Model = value;
-                }
-            }
-        }
+        public GraphData Model => m_GraphDataStore.State;
     }
 }
