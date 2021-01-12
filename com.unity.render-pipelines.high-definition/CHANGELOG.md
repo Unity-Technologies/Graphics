@@ -4,7 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-12-02
+## [2021.2.0] - 2021-01-11
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [2021.1.0] - 2020-10-21
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
@@ -31,6 +36,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
 - Fixed an issue with half res ssgi upscale.
+- Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
+- Fixed timing issues with accumulation motion blur
+- Fixed an issue with the frame count management for the volumetric fog (case 1299251).
+- Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -45,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
+- Improved robustness of volumetric sampling in path tracing (case 1295187).
 
 ## [10.3.0] - 2020-12-01
 

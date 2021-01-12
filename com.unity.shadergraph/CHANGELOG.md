@@ -1,10 +1,15 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-10-21
+## [2021.2.0] - 2021-01-11
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [2021.1.0] - 2020-10-21
 
 ### Added
 
@@ -14,11 +19,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
 - Fixed an issue with the Gradient color picker displaying different values than the selected color. 
+- Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
+- Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
 
 ## [10.3.0] - 2020-11-03
 
