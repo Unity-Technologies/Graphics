@@ -4,21 +4,6 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [12.0.0] - 2021-01-11
-
-### Fixed
-- Fixed GC allocations from XR occlusion mesh when using multipass.
-- Fixed XR depth copy when using MSAA.
-
-## [11.0.0] - 2020-10-21
-## [12.0.0] - 2021-01-11
-
-### Fixed
-- Fixed GC allocations from XR occlusion mesh when using multipass.
-- Fixed XR depth copy when using MSAA.
-- Fixed register spilling on  FXC in light list shaders.
-
-## [11.0.0] - 2020-10-21
 ## [11.0.0] - 2020-12-02
 
 ### Added
@@ -51,6 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with half res ssgi upscale.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed timing issues with accumulation motion blur
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed XR depth copy when using MSAA.
+- Fixed register spilling on  FXC in light list shaders.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -65,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Removed the material pass probe volumes evaluation mode.
+- Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
 
 ## [10.3.0] - 2020-12-01
 
