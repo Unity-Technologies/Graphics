@@ -10,6 +10,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Refraction**. 
    HDRP now calculates SSR for any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-ScreenSpaceRefraction1.png)

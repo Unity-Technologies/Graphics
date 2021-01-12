@@ -61,9 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_RayBinResult = null;
         ComputeBuffer m_RayBinSizeResult = null;
 
-        // Structure that holds the g buffers
-        GBufferManager m_RaytracingGBufferManager;
-
         // The set of ray tracing shader names
         const string m_RayGenGBuffer = "RayGenGBuffer";
         const string m_RayGenGBufferHalfRes = "RayGenGBufferHalfRes";
@@ -78,41 +75,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RayBinResult = new ComputeBuffer(1, sizeof(uint));
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
-
-            m_RaytracingGBufferManager = new GBufferManager(asset, m_DeferredMaterial);
         }
 
         void ReleaseRayTracingDeferred()
         {
             CoreUtils.SafeRelease(m_RayBinResult);
             CoreUtils.SafeRelease(m_RayBinSizeResult);
-
-            m_RaytracingGBufferManager.DestroyBuffers();
-        }
-
-        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
-        {
-            DeferredLightingRTResources deferredResources = new DeferredLightingRTResources();
-
-            deferredResources.directionBuffer = directionBuffer;
-            deferredResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            deferredResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            deferredResources.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-
-            // Temporary buffers
-            deferredResources.gbuffer0 = m_RaytracingGBufferManager.GetBuffer(0);
-            deferredResources.gbuffer1 = m_RaytracingGBufferManager.GetBuffer(1);
-            deferredResources.gbuffer2 = m_RaytracingGBufferManager.GetBuffer(2);
-            deferredResources.gbuffer3 = m_RaytracingGBufferManager.GetBuffer(3);
-            deferredResources.distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-
-            // Debug textures
-            deferredResources.rayCountTexture = m_RayCountManager.GetRayCountTexture();
-
-            // Output Buffer
-            deferredResources.litBuffer = ouputBuffer;
-
-            return deferredResources;
         }
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
@@ -207,6 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, buffers.depthStencilBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, buffers.normalBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDirectionBuffer, buffers.directionBuffer);
+            cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, parameters.halfResolution ? 1 : 0);
 
             // Bind the output textures
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._GBufferTextureRW[0], buffers.gbuffer0);
@@ -240,7 +209,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, "_RaytracingHalfResolution", parameters.halfResolution ? 1 : 0);
                 cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBuffer, widthResolution, heightResolution, (uint)parameters.viewCount);
             }
 

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
+using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
@@ -15,6 +16,20 @@ namespace UnityEditor.VFX.Test
     {
         static readonly string tempBasePath = "Assets/TmpTests/";
         static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
+
+        public static VFXGraph CopyTemporaryGraph(string path)
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid);
+            System.IO.Directory.CreateDirectory(tempBasePath);
+            File.Copy(path, tempFilePath);
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempFilePath);
+            VisualEffectResource resource = asset.GetResource();
+            var graph = resource.GetOrCreateGraph();
+            return graph;
+        }
 
         public static VFXGraph MakeTemporaryGraph()
         {

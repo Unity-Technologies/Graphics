@@ -21,10 +21,10 @@ class Editor_PinningMergeAllJob():
             if not editor['editor_pinning']:
                 continue
             
-            if ci:
+            if ci: # for ci workflows use the abv dependency (true/false) marked in metafile
                 abv_markers.append(f'[{editor["track"]} ABV]' if editor['editor_pinning_use_abv'] else f'[{editor["track"]} no ABV]')
                 dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], editor["editor_pinning_use_abv"])}')
-            else:
+            else: # for manual workflow always disable ABV dependency, since the manual job is a 'force update' 
                 abv_markers.append(f'[{editor["track"]} no ABV]')
                 dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], False)}')
 
@@ -39,8 +39,6 @@ class Editor_PinningMergeAllJob():
             job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
         
         
-        #job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_dependencies(dependencies)
-        #job.add_commands(commands)
         return job

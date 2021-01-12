@@ -77,7 +77,7 @@ inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out S
 #endif
 
     outSurfaceData.metallic = 0.0; // unused
-    outSurfaceData.occlusion = 1.0;  // unused
+    outSurfaceData.occlusion = 1.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
 #endif
 
 #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    output.projectedPosition = ComputeScreenPos(vertexInput.positionCS);
+    output.projectedPosition = vertexInput.positionNDC;
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
