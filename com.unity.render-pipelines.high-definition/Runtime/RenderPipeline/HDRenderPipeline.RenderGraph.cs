@@ -91,7 +91,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                 //}
 
-                colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
+                if (hdCamera.viewCount == 1)
+                {
+                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
+                }
+                else
+                {
+                    Debug.LogWarning("Path Tracing is not supported with XR single-pass rendering.");
+                }
             }
             else
             {
