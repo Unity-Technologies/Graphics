@@ -84,7 +84,10 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #if PRE_FILTER_LIGHT_LIST
 
-#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
+//Temporary workaround for a DXC bug where the min funcion (and possibly others) used with constants produces the
+// error: "variable length arrays are not supported" when used to declare array sizes like for gs_localLightList
+#define DXC_MIN(a, b) (a) < (b) ? (a) : (b)
+#define MAX_SUPPORTED_LIGHTS DXC_MIN(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
