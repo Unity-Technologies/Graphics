@@ -668,7 +668,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, IEnumerable<VFXData> compilableData, ref SubgraphInfos subgraphInfos)
+        private static void FillEvent(List<VFXEventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, uint systemCount, IEnumerable<VFXContext> contexts, IEnumerable<VFXData> compilableData, ref SubgraphInfos subgraphInfos)
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
@@ -727,15 +727,12 @@ namespace UnityEditor.VFX
                     }
                     else if (link.context.contextType == VFXContextType.Init)
                     {
-                        var spawnIndexList = contextSpawnToSpawnInfo.Select(o => (int)o.Value.systemIndex);
-                        var particleSystemOffset = spawnIndexList.Any() ? (uint)spawnIndexList.Max() + 1u : 0u;
-
                         //TODOPAUL : Anticipate what will be index of this particle system, not ideal
                         var indexOfData = compilableData.ToList().IndexOf(link.context.GetData());
                         if (indexOfData == -1)
                             continue; //Could have been skipped from compilable for other reason
 
-                        eventDesc.initSystems.Add((uint)indexOfData);
+                        eventDesc.initSystems.Add((uint)indexOfData + systemCount);
                     }
                     else
                     {
@@ -1122,7 +1119,7 @@ namespace UnityEditor.VFX
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<VFXEventDesc>();
-                FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts, compilableData, ref subgraphInfos);
+                FillEvent(eventDescs, contextSpawnToSpawnInfo, (uint)systemDescs.Count, compilableContexts, compilableData, ref subgraphInfos);
 
                 var dependentBuffersData = new VFXDependentBuffersData();
                 FillDependentBuffer(compilableData, bufferDescs, dependentBuffersData);
