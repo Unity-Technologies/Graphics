@@ -1544,7 +1544,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        class BindResetCameraSizeForAfterPostProcess
+        class BindResetCameraSizeForAfterPostProcessPassData
         {
             public HDCamera hdCamera;
             public ShaderVariablesGlobal shaderVariablesGlobal;
@@ -1554,14 +1554,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.allowDynamicResolution && HDUtils.hdrpSettings.dynamicResolutionSettings.enabled)
             {
-                using (var builder = renderGraph.AddRenderPass("Reset Camera Size After Post Process", out BindResetCameraSizeForAfterPostProcess passData))
+                using (var builder = renderGraph.AddRenderPass("Reset Camera Size After Post Process", out BindResetCameraSizeForAfterPostProcessPassData passData))
                 {
                     passData.hdCamera = hdCamera;
                     passData.shaderVariablesGlobal = m_ShaderVariablesGlobalCB;
                     builder.AllowPassCulling(false);
 
                     builder.SetRenderFunc(
-                        (BindResetCameraSizeForAfterPostProcess data, RenderGraphContext ctx) =>
+                        (BindResetCameraSizeForAfterPostProcessPassData data, RenderGraphContext ctx) =>
                         {
                             data.shaderVariablesGlobal._ScreenSize = new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height);
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
