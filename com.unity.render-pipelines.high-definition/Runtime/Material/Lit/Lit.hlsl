@@ -207,6 +207,12 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
     return sourceAO;
 }
 
+#define HAS_PAYLOAD_WITH_UNINIT_GI
+float GetUninitializedGIPayload(SurfaceData surfaceData)
+{
+    return surfaceData.ambientOcclusion;
+}
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
@@ -669,7 +675,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // then remove bakeDiffuseLighting part.
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
-    #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+    #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
             if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
     #endif
             {
@@ -686,7 +692,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
@@ -746,7 +752,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
 #endif
     {
