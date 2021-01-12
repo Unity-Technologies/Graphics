@@ -43,7 +43,7 @@
 #define UNITY_LOOP      [loop]
 #define UNITY_FASTOPT   [fastopt]
 
-#define CBUFFER_START(name) ConstantBuffer name {
+#define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
 #if UNITY_GATHER_SUPPORTED
