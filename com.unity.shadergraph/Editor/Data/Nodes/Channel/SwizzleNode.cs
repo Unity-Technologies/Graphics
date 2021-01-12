@@ -50,12 +50,12 @@ namespace UnityEditor.ShaderGraph
             _maskInput = _maskInput.ToLower();
 
             Dictionary<char, char> mask_map = new Dictionary<char, char>
-                {
-                    {'r', 'x' },
-                    {'g', 'y' },
-                    {'b', 'z' },
-                    {'a', 'w' },
-                };
+            {
+                {'r', 'x' },
+                {'g', 'y' },
+                {'b', 'z' },
+                {'a', 'w' },
+            };
             bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
             char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
@@ -196,6 +196,4 @@ namespace UnityEditor.ShaderGraph
             }
         }
     }
-
-
 }

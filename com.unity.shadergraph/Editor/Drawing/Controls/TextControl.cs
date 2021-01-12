@@ -71,7 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             });
             field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
             {
-                if (m_Node.GetType() == typeof(SwizzleNode)) {
+                if (m_Node.GetType() == typeof(SwizzleNode))
+                {
                     //Only set node value when mouse clicked away
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change" + m_Node.name);
                     m_PropertyInfo.SetValue(m_Node, value, null);
