@@ -34,7 +34,11 @@ Pass
 		nointerpolation float4 scaleBias : TEXCOORD5;
 		#endif
 		#if USE_FLIPBOOK
-		nointerpolation float4 flipBookSize : TEXCOORD6;
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+			nointerpolation float flipBookSize : TEXCOORD6;
+		#else
+			nointerpolation float4 flipBookSize : TEXCOORD6;
+		#endif
 		nointerpolation float texIndex : TEXCOORD7;
 		#endif
 		#if WRITE_MOTION_VECTOR_IN_FORWARD
@@ -70,8 +74,12 @@ Pass
 #endif
 #if USE_FLIPBOOK
 #define VFX_VARYING_TEXINDEX texIndex
-#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
-#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize
+#else
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
+	#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#endif
 #endif
 #if USE_FLIPBOOK_MOTIONVECTORS
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
