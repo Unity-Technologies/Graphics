@@ -7,6 +7,11 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+//Note: adding `#pragma use_dxc` is insufficient here for Vk and Metal since wave ops also require a higher SM (6.2) to
+//be enabled when generating SPIR-V with DXC, they also require hardware support and Vk extensions to work.
+// This pragma also switches the compiler to DXC for non-consoles so `#pragma use_dxc` is also unnecessary here
+#pragma require wavebasic
+
 #pragma kernel SubsurfaceScattering
 
 #pragma multi_compile _ ENABLE_MSAA
