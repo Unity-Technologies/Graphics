@@ -4,8 +4,12 @@ project:
 test_platforms:
   - type: Standalone
     utr_flags:
-      - [OSX_Metal]: --timeout=2400
+      - [all]: --testfilter="VFX.Test"
+      - [OSX_Metal]: --timeout=2400 --testfilter="VFX.Test"
   - type: playmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
+      - [OSX_Metal]: --timeout=2400 --testfilter="VFX.Test"
 #  - type: editmode
 expression_trigger: 
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
