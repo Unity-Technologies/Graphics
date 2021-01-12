@@ -140,12 +140,15 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     defaultSmoothness = half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a);
     defaultSmoothness *= half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
 
-#ifndef _TERRAIN_BLEND_HEIGHT
-    // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-    half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
-    opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
-    half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
-    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+#ifndef _TERRAIN_BLEND_HEIGHT // density blending
+    if(_NumLayersCount <= 4)
+    {
+        // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (1 - splatControl)) * 1.0);
+        opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
+        half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
+        splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+    }
 #endif
 
     // Now that splatControl has changed, we can compute the final weight and normalize
@@ -155,11 +158,9 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     clip(weight <= 0.005h ? -1.0h : 1.0h);
 #endif
 
-#ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
-#endif
 
     mixedDiffuse = 0.0h;
     mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
@@ -372,6 +373,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness;
+    half alpha = dot(splatControl, 1.0h);
     SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
     half3 albedo = mixedDiffuse.rgb;
 
@@ -390,7 +392,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-    half alpha = weight;
 #endif
 
     InputData inputData;
