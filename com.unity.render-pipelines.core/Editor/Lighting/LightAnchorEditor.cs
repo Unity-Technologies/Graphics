@@ -328,7 +328,6 @@ namespace UnityEditor
             m_GameViewRootElement = gameView.rootVisualElement;
             m_ClickCatcher = new VisualElement();
             m_ClickCatcher.style.flexGrow = 1;
-            m_ClickCatcher.RegisterCallback<MouseDownEvent>(OnMouseDown);
 
             // Determine if the editor tool is already active (this helps keep our state when swapping between
             // different light objects directly, or after an assembly reload)
@@ -357,24 +356,6 @@ namespace UnityEditor
 
             // unsubscribe from EditorTool event
             ToolManager.activeToolChanged -= EditorToolsOnactiveToolChanged;
-        }
-
-        void OnMouseDown(MouseDownEvent evt)
-        {
-            // On right mouse button we cast a ray and then move the light anchor to the hit point
-            if (evt.button == 1)
-            {
-                // The mouse position reported by the event is not in the same space as Screen Space.  The Y axis is flipped
-                // Also we need to account for the toolbar.  I couldn't find any way to get an accurate number so this is a best
-                // guess for now
-
-                // Useful to uncomment for debugging
-                //var newMousePos = m_ClickCatcher.WorldToLocal(evt.mousePosition);
-                //var toolbarHeight = 21f;
-                //var mousePos = new Vector3(newMousePos.x, Screen.height - (newMousePos.y + toolbarHeight), 0f);
-                //var ray = Camera.main.ScreenPointToRay(Event.current.mousePosition);
-                //Debug.DrawLine(ray.origin, ray.origin + ray.direction * 100f, Color.yellow, 10f);
-            }
         }
 
         void EnableClickCatcher(bool enable)
