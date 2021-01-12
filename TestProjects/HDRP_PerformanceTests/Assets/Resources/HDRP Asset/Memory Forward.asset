@@ -111,11 +111,9 @@ MonoBehaviour:
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
     supportProbeVolume: 0
+    probeVolumeMemoryBudget: 1024
     supportRayTracing: 0
     supportedRayTracingMode: 3
-    probeVolumeSettings:
-      atlasResolution: 128
-      atlasOctahedralDepthResolution: 2048
     lightLoopSettings:
       cookieAtlasSize: 2048
       cookieFormat: 74
@@ -138,6 +136,8 @@ MonoBehaviour:
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
+      maxDensityVolumeSize: 32
+      maxDensityVolumesOnScreen: 64
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -174,7 +174,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
-      perChannelMask: 0
+      perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
@@ -285,10 +285,10 @@ MonoBehaviour:
       - 0.8
       - 1
       - 1.2
-      RTRUpScaleRadius: 040000000400000003000000
       RTRFullResolution: 000001
       RTRDenoise: 010101
       RTRDenoiserRadius: 080000000c00000010000000
+      RTRSmoothDenoising: 010000
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
       - 0.166

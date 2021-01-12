@@ -42,6 +42,10 @@ MonoBehaviour:
       sceneLabels: Simple
       scenePath: Assets/Scenes/Timings/0006_DisplacementTesselation.unity
       enabled: 1
+    - scene: 0007_Decals
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Timings/0007_Decals.unity
+      enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default

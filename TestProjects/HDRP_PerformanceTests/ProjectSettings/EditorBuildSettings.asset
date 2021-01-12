@@ -62,4 +62,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0006_DisplacementTesselation.unity
     guid: 98b4844a5a982e041a60c581900e9857
+  - enabled: 1
+    path: Assets/Scenes/Timings/0007_Decals.unity
+    guid: 2927e325ad9c3ad4cbbf2349fb02759f
   m_configObjects: {}
