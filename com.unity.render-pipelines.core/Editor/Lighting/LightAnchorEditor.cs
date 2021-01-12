@@ -102,7 +102,7 @@ namespace UnityEditor
                     rollChanged = oldValue != m_Roll;
                 }
                 EditorGUILayout.Space();
-                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, new GUIContent("")));
+                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, EditorGUIUtility.TrTextContent("")));
                 float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(angleRect, LightAnchorStyles.angleSubContent, angles);
