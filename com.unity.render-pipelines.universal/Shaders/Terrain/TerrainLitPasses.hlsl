@@ -400,12 +400,14 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
     // as forward renderer because we apply blending pre-lighting instead of post-lighting.
     // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.albedo.rgb *= alpha;
     brdfData.diffuse.rgb *= alpha;
     brdfData.specular.rgb *= alpha;
+    brdfData.reflectivity *= alpha;
     inputData.normalWS = inputData.normalWS * alpha;
     smoothness *= alpha;
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb, occlusion);
 
 #else
 
@@ -585,8 +587,8 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         ClipHoles(IN.uvMainAndLM.xy);
     #endif
 
-    half3 normalWS = IN.normal.xyz;
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    half3 normalWS = NormalizeNormalPerPixel(IN.normal.xyz);
+    return half4(normalWS, 0.0);
 }
 
 #endif
