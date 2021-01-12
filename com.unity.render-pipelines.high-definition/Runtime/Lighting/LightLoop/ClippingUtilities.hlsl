@@ -64,12 +64,9 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 // Remove when the shader compiler is clever enough to perform this optimization for us.
 #define OBTUSE_COMPILER
 
-// Clipping a plane by a cube may produce a hexagon (6-gon).
-// Clipping a hexagon by 4 planes (substitute a quad for the plane) may produce a decagon (10-gon).
-#define MAX_CLIP_VERTS     (10)
-#define NUM_VERTS          (8)
-#define NUM_FACES          (6)
-#define NUM_PLANES         (6)
+#define NUM_VERTS          (8) // The bounding volume is a frustum (+ a sphere)
+#define NUM_FACES          (6) // It has 6 quads
+#define MAX_CLIP_VERTS     (4 + NUM_CLIP_PLANES)
 #define THREADS_PER_GROUP  (64)
 #define THREADS_PER_ENTITY (4) // Set to 1 for debugging
 #define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)

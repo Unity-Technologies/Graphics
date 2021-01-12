@@ -10,6 +10,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 #undef  NO_SHADERVARIABLESGLOBAL_HLSL
 #define INCLUDE_SPECIFIC_CLIPPING_CODE
+#define NUM_CLIP_PLANES (6) // Full frustum clipping
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
 #undef  INCLUDE_SPECIFIC_CLIPPING_CODE
 
@@ -269,7 +270,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         uint behindMask = 0; // Initially in front
 
         // TODO: add epsilon for numerical robustness?
-        for (uint j = 0; j < (NUM_PLANES / 2); j++)
+        for (uint j = 0; j < (NUM_CLIP_PLANES / 2); j++)
         {
             // Test: dot(frustumPlane, hapVertCS) < 0:
             // (x < -w), (x > w), (y < -w), (y > w), (z < 0), (z > w).

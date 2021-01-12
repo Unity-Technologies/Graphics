@@ -19,6 +19,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 #define INCLUDE_SPECIFIC_CLIPPING_CODE
+#define NUM_CLIP_PLANES (4) // Do not clip against the near and far planes; let z-binning handle these (approximately)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
 #undef  INCLUDE_SPECIFIC_CLIPPING_CODE
 
@@ -352,7 +353,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         uint behindMask = 0; // Initially in front
 
         // TODO: add epsilon for numerical robustness?
-        for (uint j = 0; j < (NUM_PLANES / 2); j++)
+        for (uint j = 0; j < (NUM_CLIP_PLANES / 2); j++)
         {
             // Test: dot(frustumPlane, hapVertCS) < 0:
             // (x < -w), (x > w), (y < -w), (y > w), (z < 0), (z > w).
@@ -522,7 +523,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // 2. The bounding frustum is entirely inside  the view frustum.
         // 3. The view frustum is entirely inside the bounding frustum.
         // -> We can safely accept this entity.
-        // Case 2 has been handled inside TryCullBoundingFrustum.
+        // Case 2 has been handled inside TryCullBoundingSphere.
         // Case 3 has been handled in this function, above.
         // So the only remaining possibility is Case 1.
         trivialReject = true;
@@ -586,7 +587,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // 2. The bounding frustum is entirely inside  the view frustum.
         // 3. The view frustum is entirely inside the bounding frustum.
         // -> We can safely accept this entity.
-        // Case 2 has been handled inside TryCullBoundingFrustum.
+        // Case 2 has been handled inside TryCullBoundingSphere.
         // Case 3 has been handled in this function, above.
         // So the only remaining possibility is Case 1.
         trivialReject = true;
