@@ -18,7 +18,7 @@ The error "Invalid Mask" indicates an input mask value which includes one or mor
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Mask     | Inputfield | x, y, z, w, r, g, b, a (depending on input vector dimension) | The swizzle mask is a combination of one to eight characters that can be x, y, z, w, r, g, b or a. The size of output value depends on the length of the mask input.|
+| Mask     | Inputfield | x=r, y=g, z=b, w=a (depending on input vector dimension) | The swizzle mask is a combination of one to eight characters that can be x, y, z, w, r, g, b or a. The size of output value depends on the length of the mask input.|
 
 
 ## Generated Code Example
@@ -26,4 +26,4 @@ The error "Invalid Mask" indicates an input mask value which includes one or mor
 The following example code represents one possible outcome of this node.
 
 ```
-float4 _Swizzle_Out = In.xyzw;
+float4 _Swizzle_Out = In.wzyx;

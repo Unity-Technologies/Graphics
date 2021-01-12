@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool ValidateMaskInput(int InputValueSize)
         {
-            _maskInput = _maskInput.ToLower();
+            convertedMask = _maskInput.ToLower();
 
             Dictionary<char, char> mask_map = new Dictionary<char, char>
             {
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
                 {'a', 'w' },
             };
             bool MaskInputIsValid = true;
-            char[] MaskChars = _maskInput.ToCharArray();
+            char[] MaskChars = convertedMask.ToCharArray();
             char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
             List<char> CurrentChars = new List<char>();
             for (int i = 0; i < InputValueSize; i++)
@@ -99,17 +99,17 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
             switch (_maskInput.Length)
             {
-                default:
-                    AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-                    break;
-                case 3:
-                    AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+                case 1:
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
                     break;
                 case 2:
                     AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
                     break;
-                case 1:
-                    AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+                case 3:
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+                    break;
+                default:
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
                     break;
             }
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
@@ -129,13 +129,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                string outputValue = "";
-                for (int i = 0; i < 4; i++)
-                {
-                    if (i < convertedMask.Length)
-                        outputValue += convertedMask[i];
-                }
-                sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, outputValue);
+                sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, convertedMask);
             }
         }
 
