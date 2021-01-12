@@ -144,7 +144,7 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     if(_NumLayersCount <= 4)
     {
         // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (1 - splatControl)) * 1.0);
+        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (1 - splatControl)) * 20.0);
         opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
         half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
         splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
