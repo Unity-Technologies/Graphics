@@ -892,7 +892,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
                 ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
             }
@@ -975,7 +975,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to verify and flush any pending asset loading for probe volume.
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
                 ProbeReferenceVolume.instance.PerformPendingOperations();
             }
@@ -3214,7 +3214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
             cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
 
-            int probeVolumeIndexShift = (ShaderConfig.s_EnableProbeVolumes == 1)
+            int probeVolumeIndexShift = (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
                 ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
                 : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;

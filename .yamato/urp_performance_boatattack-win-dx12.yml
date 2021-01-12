@@ -17,7 +17,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_tru
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -42,7 +42,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -111,7 +111,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_trun
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -177,7 +177,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -244,7 +244,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_CUS
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -272,7 +272,7 @@ Build_URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -345,7 +345,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_CUST
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -415,7 +415,7 @@ URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTO
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
