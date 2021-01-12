@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
+- The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
@@ -22,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it [1291760]
+- Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
+- Fixed an issue where resizing the graph inspector window sometimes had unexpected results [1257036]
 
 ## [10.2.0] - 2020-10-19
 
