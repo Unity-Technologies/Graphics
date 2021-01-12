@@ -307,6 +307,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            UpdateSelectionWithNewNode();
             var groupNode = GetPickedGroupNode(mPos);
 
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
@@ -332,6 +333,10 @@ namespace UnityEditor.VFX.UI
 
                             newModel.SetSettingValue("m_Subgraph", subGraph);
 
+                            UpdateSelectionWithNewNode();
+
+                            controller.LightApplyChanges();
+
                             return controller.GetNewNodeController(newModel);
                         }
                     }
@@ -345,10 +350,14 @@ namespace UnityEditor.VFX.UI
             {
                 var parameter = d.modelDescriptor as VFXParameterController;
 
+                UpdateSelectionWithNewNode();
                 return controller.AddVFXParameter(mPos, parameter, groupNode != null ? groupNode.controller : null);
             }
             else
+            {
+                UpdateSelectionWithNewNode();
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
+            }
             return null;
         }
 
@@ -622,15 +631,19 @@ namespace UnityEditor.VFX.UI
                         return;
                     targetParent = targetContext.parent;
                 }
+                else
+                {
+                    targetParent = target.parent;
+                }
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
             }
-            if (target != null)
+
+            if (target != null && targetParent != null)
             {
                 var badge = type == VFXErrorType.Error ? IconBadge.CreateError(description) : IconBadge.CreateComment(description);
                 targetParent.Add(badge);
                 badge.AttachTo(target, alignement);
-
 
                 if (errorOrigin == VFXErrorOrigin.Compilation)
                 {
@@ -1026,6 +1039,13 @@ namespace UnityEditor.VFX.UI
             (e.target as GraphElement).UnregisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
         }
 
+        bool m_UpdateSelectionWithNewNode;
+
+        public void UpdateSelectionWithNewNode()
+        {
+            m_UpdateSelectionWithNewNode = true;
+        }
+
         void SyncNodes()
         {
             Profiler.BeginSample("VFXView.SyncNodes");
@@ -1056,6 +1076,9 @@ namespace UnityEditor.VFX.UI
                 bool needOneListenToGeometry = !m_GeometrySet;
 
                 Profiler.BeginSample("VFXView.SyncNodes:Create");
+
+                bool selectionCleared = false;
+
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
                     VFXNodeUI newElement = null;
@@ -1087,7 +1110,17 @@ namespace UnityEditor.VFX.UI
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
                     newElement.controller.model.RefreshErrors(controller.graph);
+                    if (m_UpdateSelectionWithNewNode)
+                    {
+                        if (!selectionCleared)
+                        {
+                            selectionCleared = true;
+                            ClearSelection();
+                        }
+                        AddToSelection(newElement);
+                    }
                 }
+                m_UpdateSelectionWithNewNode = false;
                 Profiler.EndSample();
 
                 elementsAddedToGroup = ElementAddedToGroupNode;
@@ -1640,7 +1673,7 @@ namespace UnityEditor.VFX.UI
             return change;
         }
 
-        VFXNodeUI GetNodeByController(VFXNodeController controller)
+        public VFXNodeUI GetNodeByController(VFXNodeController controller)
         {
             if (controller is VFXBlockController)
             {
@@ -1915,6 +1948,25 @@ namespace UnityEditor.VFX.UI
 
 
             return EventPropagation.Stop;
+        }
+
+        public void AddToSelection(VFXModel model, int id)
+        {
+            VFXNodeController nodeController = controller.GetRootNodeController(model, id);
+
+            if (nodeController != null)
+            {
+                AddToSelection(rootNodes[nodeController]);
+            }
+        }
+
+        public void AddParameterToSelection(VFXParameter parameter)
+        {
+            VFXParameterController parameterController = controller.GetParameterController(parameter);
+            if (parameterController != null)
+            {
+                m_Blackboard.AddToSelection(m_Blackboard.GetRowFromController(parameterController).field);
+            }
         }
 
         void CopyInputLinks(VFXNodeController sourceController, VFXNodeController targetController)
@@ -2338,9 +2390,13 @@ namespace UnityEditor.VFX.UI
                 {
                     DragAndDrop.AcceptDrag();
                     Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+
+                    UpdateSelectionWithNewNode();
+                    float cpt = 0;
                     foreach (var row in rows)
                     {
-                        AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller, groupNode);
+                        AddVFXParameter(mousePosition - new Vector2(50, 20) + cpt * new Vector2(0, 40), row.controller, groupNode);
+                        ++cpt;
                     }
                     e.StopPropagation();
                 }
@@ -2364,6 +2420,8 @@ namespace UnityEditor.VFX.UI
                         Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                         VFXModel newModel = (references.First() is VisualEffectAsset) ? VFXSubgraphContext.CreateInstance<VFXSubgraphContext>() as VFXModel : VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
 
+
+                        UpdateSelectionWithNewNode();
                         controller.AddVFXModel(mousePosition, newModel);
 
                         newModel.SetSettingValue("m_Subgraph", references.First());
@@ -2389,13 +2447,16 @@ namespace UnityEditor.VFX.UI
                         else if ((contextKind & VFXContextType.Output) == VFXContextType.Output)
                             contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput) && t.model.taskType == VFXTaskType.ParticleQuadOutput);
 
+                        UpdateSelectionWithNewNode();
                         VFXContext ctx = controller.AddVFXContext(mousePosition, contextType);
 
                         VFXModel newModel = VFXSubgraphBlock.CreateInstance<VFXSubgraphBlock>();
 
                         newModel.SetSettingValue("m_Subgraph", droppedBlocks.First());
 
+                        UpdateSelectionWithNewNode();
                         ctx.AddChild(newModel);
+
 
                         //TODO add to picked groupnode
                         e.StopPropagation();

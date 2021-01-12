@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
@@ -48,12 +49,22 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Property = value;
+                // Set callback association for display name updates
+                m_Property.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 AddOutputSlot();
                 Dirty(ModificationScope.Topological);
             }
         }
 
         public override bool canSetPrecision => false;
+
+        public void UpdateNodeDisplayName(string newDisplayName)
+        {
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);
+
+            if (foundSlot != null)
+                foundSlot.displayName = newDisplayName;
+        }
 
         public void OnEnable()
         {
@@ -238,7 +249,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision()
+        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)

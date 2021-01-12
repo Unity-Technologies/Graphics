@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
-            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -620,9 +620,29 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        private bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
+        {
+            int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
+
+            if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues)
+                return false;
+
+            var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
+
+            var fowardRendererData = rendererData as ForwardRendererData;
+            if (fowardRendererData != null && fowardRendererData.postProcessData == null)
+                return true;
+
+            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+            if (fenderer2DData != null && fenderer2DData.postProcessData == null)
+                return true;
+
+            return false;
+        }
+
         void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
         {
-            bool isPostProcessingEnabled = rpAsset.postProcessData == null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            bool isPostProcessingEnabled = IsAnyRendererHasPostProcessingEnabled(rpAsset) && m_AdditionalCameraDataRenderPostProcessing.boolValue;
 
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
@@ -829,7 +849,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // We want to show post processing warning only once and below the first option
             // This way we will avoid cluttering the camera UI
-            bool showPostProcessWarning = rpAsset.postProcessData == null;
+            bool showPostProcessWarning = IsAnyRendererHasPostProcessingEnabled(rpAsset);
 
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
             showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataRenderPostProcessing.boolValue);
