@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
+- Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
 
 ## [10.3.0] - 2020-12-01
 
