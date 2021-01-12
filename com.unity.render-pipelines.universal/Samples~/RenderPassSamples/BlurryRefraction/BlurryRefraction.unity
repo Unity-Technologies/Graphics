@@ -400,10 +400,10 @@ MonoBehaviour:
   setting:
     renderPassEvent: 400
     blurMaterial: {fileID: 2100000, guid: da469f6625c4f3c46990bc9b2d1d1225, type: 2}
-    blurPasses: 3
+    blurPasses: 4
     downsample: 2
     copyToFramebuffer: 0
-    targetName: _blurTexture
+    targetName: _GrabBlurTexture
 --- !u!65 &234435246
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -475,7 +475,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 234435244}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.77, y: 1.204, z: 0.23}
+  m_LocalPosition: {x: -0.77, y: 1.204, z: 0.2}
   m_LocalScale: {x: 0.1507784, y: 1.5, z: 3}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1026,7 +1026,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1469723922}
   m_LocalRotation: {x: 0.12903322, y: 0.5406464, z: -0.08441527, w: 0.82699823}
-  m_LocalPosition: {x: -2.19, y: 2.32058, z: -0.9690893}
+  m_LocalPosition: {x: -2.78, y: 2.32058, z: -0.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

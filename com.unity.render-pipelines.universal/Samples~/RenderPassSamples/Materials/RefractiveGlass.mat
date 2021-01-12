@@ -8,12 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: RefractiveGlass
-  m_Shader: {fileID: -6465566751694194690, guid: 8a841a7dee9ea994b98045d046d84a02, type: 3}
+  m_Shader: {fileID: 4800000, guid: 0a065e68f75b8cc4a979fae85a2e320c, type: 3}
   m_ShaderKeywords: _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -67,6 +67,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: 2b32522382963bc4c843887b1c98d4ce, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -108,6 +112,7 @@ Material:
     - Vector1_72ca165a4567490fb9e3380c25ac4515: 0.404
     - Vector1_8f45bd22d0de4b50a3b19b80f2558fea: 1.06
     - Vector1_d26221abde61488c82dbe4c126c9b1ea: 0.084
+    - _Alpha: 0.526
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -123,6 +128,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _NormalStrength: 228
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -132,6 +138,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _Surface: 0
+    - _UseRenderPass: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

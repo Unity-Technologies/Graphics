@@ -75,13 +75,18 @@ class KawaseBlur : ScriptableRenderPass
         // first pass
         // cmd.GetTemporaryRT(tmpId1, opaqueDesc, FilterMode.Bilinear);
         cmd.SetGlobalFloat("_offset", 1.5f);
-        cmd.Blit(cameraColorTexture, tmpRT1, settings.blurMaterial);
+        //cmd.Blit(cameraColorTexture, tmpRT1, settings.blurMaterial);
+        cmd.SetGlobalTexture("_BaseMap", cameraColorTexture);
+        cmd.SetRenderTarget(tmpRT1);
+        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, settings.blurMaterial, 0, -1);
 
         for (var i = 1; i < settings.blurPasses - 1; i++)
         {
             cmd.SetGlobalFloat("_offset", 0.5f + i);
-            cmd.Blit(tmpRT1, tmpRT2, settings.blurMaterial);
-
+            //cmd.Blit(tmpRT1, tmpRT2, settings.blurMaterial);
+            cmd.SetGlobalTexture("_BaseMap", tmpRT1);
+            cmd.SetRenderTarget(tmpRT2);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, settings.blurMaterial, 0, -1);
             // pingpong
             var rttmp = tmpRT1;
             tmpRT1 = tmpRT2;
@@ -92,11 +97,17 @@ class KawaseBlur : ScriptableRenderPass
         cmd.SetGlobalFloat("_offset", 0.5f + settings.blurPasses - 1f);
         if (settings.copyToFramebuffer)
         {
-            cmd.Blit(tmpRT1, cameraColorTexture, settings.blurMaterial);
+            //cmd.Blit(tmpRT1, cameraColorTexture, settings.blurMaterial);
+            cmd.SetGlobalTexture("_BaseMap", tmpRT1);
+            cmd.SetRenderTarget(cameraColorTexture);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, settings.blurMaterial, 0, -1);
         }
         else
         {
-            cmd.Blit(tmpRT1, tmpRT2, settings.blurMaterial);
+            //cmd.Blit(tmpRT1, tmpRT2, settings.blurMaterial);
+            cmd.SetGlobalTexture("_BaseMap", tmpRT1);
+            cmd.SetRenderTarget(tmpRT2);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, settings.blurMaterial, 0, -1);
             cmd.SetGlobalTexture(settings.targetName, tmpRT2);
         }
 

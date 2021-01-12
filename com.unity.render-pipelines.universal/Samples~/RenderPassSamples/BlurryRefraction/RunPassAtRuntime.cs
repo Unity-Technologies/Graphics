@@ -33,7 +33,7 @@ public class RunPassAtRuntime : MonoBehaviour
             else
                 RenderPipelineManager.beginCameraRendering -= EnqueRenderPass;
 
-            refactiveGlass.SetFloat("IsUsingRenderFeature", useRenderPass ? 1.0f : 0.0f);
+            refactiveGlass.SetFloat("_UseRenderPass", useRenderPass ? 1.0f : 0.0f);
 
         }
     }
