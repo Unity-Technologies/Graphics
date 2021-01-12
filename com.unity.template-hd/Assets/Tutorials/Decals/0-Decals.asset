@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
   m_Name: 0-Decals
   m_EditorClassIdentifier: 
-  m_TutorialTitle: Decals
+  TutorialTitle:
+    m_Untranslated: Decals
+  m_TutorialTitle: 
   m_LessonId: 0
   m_Version: 1
   m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
@@ -42,7 +44,4 @@ MonoBehaviour:
     m_Items:
     - {fileID: 11400000, guid: f30fe98e623fb7649ad45140b8107255, type: 2}
     - {fileID: 11400000, guid: 4709d2823b79f8443bde7a0102b09f89, type: 2}
-    - {fileID: 11400000, guid: 8af06b178edb4374dac187eab366a05d, type: 2}
-    - {fileID: 11400000, guid: 38cf3430dc9987341b1c682f187caf2b, type: 2}
-    - {fileID: 11400000, guid: 02084720c06fede44b8d994a02b1c45e, type: 2}
     - {fileID: 11400000, guid: e656046daf821a042b733831231132ed, type: 2}

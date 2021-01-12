@@ -44,5 +44,4 @@ MonoBehaviour:
     m_Items:
     - {fileID: 11400000, guid: 61c696643a2696d45af2a613bf91bf45, type: 2}
     - {fileID: 11400000, guid: 4dbd33c9899cb73499366e05200e6b2a, type: 2}
-    - {fileID: 11400000, guid: 3f8e55142ba104144804c36d2367e70b, type: 2}
     - {fileID: 11400000, guid: a53ccfed920901d489900c8f5d988991, type: 2}

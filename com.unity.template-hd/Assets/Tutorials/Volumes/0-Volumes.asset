@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
   m_Name: 0-Volumes
   m_EditorClassIdentifier: 
+  TutorialTitle:
+    m_Untranslated: 
   m_TutorialTitle: 
   m_LessonId: 
   m_Version: 0
@@ -43,6 +45,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 6fd6550405cc0334fb3b7cc08d055134, type: 2}
     - {fileID: 11400000, guid: 23652802bc2e14a43a0bed51e2ea96ad, type: 2}
     - {fileID: 11400000, guid: 0f98f4ed80b5fd646b0c68d104f13dfd, type: 2}
-    - {fileID: 11400000, guid: d37203f604a93d244a46e8dc6b17ddab, type: 2}
-    - {fileID: 11400000, guid: cc7e5ad196a2cd144b4a8db36db68d4f, type: 2}
     - {fileID: 11400000, guid: 03224d52a10da254d8874fab51b52e6f, type: 2}

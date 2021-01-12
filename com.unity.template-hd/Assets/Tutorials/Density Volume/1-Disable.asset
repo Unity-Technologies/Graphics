@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 4-CreateGlobal
+  m_Name: 1-Disable
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
+      m_Image: {fileID: 2800000, guid: 097f7a12a79ceb04e8f5d3d4f68a3f8f, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,19 +37,10 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Create a global volume
+        m_Untranslated: Density Volume
       Text:
-        m_Untranslated: "Alright, we have the basic understanding of how volumes
-          work, lets create our own volume to put the knowledge into practice.\r\n\r\n1)
-          Go to <b>Gameobject->Volume->Global Volume</b>\r\n2) Select the newly created
-          Global volume and in the <i>Inspector</i> window, click button <b>New</b>.
-          This will create a volume profile that will hold all of our overrides\r\n3)
-          Click <b>Add Override</b>\r\n4) Choose <b>Post-processing->Color adjustments</b>\r\n5)
-          Enable <b>Saturation</b>\r\n6) Set the value to <b>-100</b>\r\n7) Set priority
-          to <b>1</b>. This won\u2019t have any effect this time, but it\u2019s highly
-          recommended not to have multiple global volumes with the same priority.
-          It can cause confusion if both try to modify the same parameter.\r\n\r\nLook
-          around in the scene. Wherever you go, everything should be black and white.\r\n"
+        m_Untranslated: In the <i>Hierarchy</i> window under <b>Lightning</b> disable
+          <b> Density Volumes</b>. You should see the local fog disappear.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -67,12 +58,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 9.263008
-    m_Pivot: {x: 21.250538, y: 1.3553921, z: 2.6726072}
-    m_Rotation: {x: -0.047298957, y: 0.5634607, z: -0.03231157, w: -0.82422185}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -81,7 +72,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:

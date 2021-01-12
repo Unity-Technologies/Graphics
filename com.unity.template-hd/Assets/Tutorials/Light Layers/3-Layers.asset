@@ -49,9 +49,7 @@ MonoBehaviour:
           on it, see that inside Mixed, Lamps Only is off.\r\n\r\nThe whole point
           of this setup is that the light and the glass are on different layers.
           Meaning they can\u2019t affect each other in any way, thus no unwanted
-          shadows.\r\n\r\nDon\u2019t worry if you dint quite understand it in this
-          step, in the next one we will set up something up ourselves, and hopefully,
-          it will get clearer.\r"
+          shadows.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
