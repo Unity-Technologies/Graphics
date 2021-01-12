@@ -90,8 +90,6 @@ namespace UnityEditor
                     }
                     pitchChanged = oldValue != m_Pitch;
                     {
-                        Light light = manipulator.GetComponent<Light>();
-
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
                         usedColor = Color.grey;
@@ -289,7 +287,6 @@ namespace UnityEditor
                         manipulator.SynchronizeOnTransform(camera);
                     }
 
-                    Undo.RecordObjects(new UnityEngine.Object[] { manipulator }, "Reset Light Anchor Manipulator");
                     Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Light Anchor Transform");
                     if (yawChanged)
                         manipulator.yaw = m_Yaw;
@@ -302,9 +299,6 @@ namespace UnityEditor
 
                     manipulator.UpdateTransform(camera, anchor);
                     IsCacheInvalid(manipulator);
-
-                    EditorUtility.SetDirty(manipulator);
-                    EditorUtility.SetDirty(manipulator.transform);
                 }
             }
         }
