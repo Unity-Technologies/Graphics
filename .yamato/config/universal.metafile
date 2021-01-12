@@ -15,8 +15,8 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests"
-expression_trigger: 
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+expression_trigger:
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
@@ -192,14 +192,14 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
+        # - playmode_XR
     - platform: Win
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
+        # - playmode_XR
     - platform: Linux
       api: Vulkan
       build_config: mono
