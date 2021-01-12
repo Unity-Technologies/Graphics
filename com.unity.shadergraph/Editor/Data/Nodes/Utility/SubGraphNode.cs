@@ -164,10 +164,10 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (asset == null)
-                    return PreviewMode.Preview2D;
-
-                return PreviewMode.Preview3D;
+                PreviewMode mode = m_PreviewMode;
+                if ((mode == PreviewMode.Inherit) && (asset != null))
+                    mode = asset.previewMode;
+                return mode;
             }
         }
 

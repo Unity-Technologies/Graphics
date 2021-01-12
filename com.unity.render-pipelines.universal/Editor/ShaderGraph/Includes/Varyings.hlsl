@@ -105,7 +105,7 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
-    output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
+    output.screenPosition = vertexInput.positionNDC;
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
