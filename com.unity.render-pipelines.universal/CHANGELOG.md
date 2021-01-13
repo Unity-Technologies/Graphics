@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 - Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 - Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
 
 ## [10.2.0] - 2020-10-19
 
