@@ -176,10 +176,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
 
 
-            var cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.01f, 1.0f);
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-            m_PropertyBlock.SetMatrix("_CubeFaceViewProjection", cubeProj * builtinParams.viewMatrix);
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
         }
     }
