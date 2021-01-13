@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
             this.RegisterCallback<DragExitedEvent>(evt => HideScrollBoundaryRegions());
 
-            associatedGraphView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+            associatedGraphView.RegisterCallback<MouseLeaveEvent>(evt => HideScrollBoundaryRegions());
 
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
