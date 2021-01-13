@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
             Vector4 vectorProperty;
             TexturePropertyDescription textureProperty;
 
-            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BaseMap", material, textureProperty);
                 SetMaterialTextureProperty("_MainTex", material, textureProperty);
@@ -91,4 +91,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-

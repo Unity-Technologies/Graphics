@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            switch(masterNode)
+            switch (masterNode)
             {
                 case UnlitMasterNode1 unlitMasterNode:
                     UpgradeUnlitMasterNode(unlitMasterNode, out blockMap);

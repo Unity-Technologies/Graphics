@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Load();
 
                     matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
-                    if(matcapViewMixAlbedo)
+                    if (matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
                 }
             };

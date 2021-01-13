@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<(object, (Type, int))>             m_AllocatedArrays = new List<(object, (Type, int))>();
         List<MaterialPropertyBlock>             m_AllocatedMaterialPropertyBlocks = new List<MaterialPropertyBlock>();
 
-        internal RenderGraphObjectPool() { }
+        internal RenderGraphObjectPool() {}
 
         /// <summary>
         /// Allocate a temporary typed array of a specific size.
@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void ReleaseAllTempAlloc()
         {
-            foreach(var arrayDesc in m_AllocatedArrays)
+            foreach (var arrayDesc in m_AllocatedArrays)
             {
                 bool result = m_ArrayPool.TryGetValue(arrayDesc.Item2, out var stack);
                 Debug.Assert(result, "Correct stack type should always be allocated.");
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_AllocatedArrays.Clear();
 
-            foreach(var mpb in m_AllocatedMaterialPropertyBlocks)
+            foreach (var mpb in m_AllocatedMaterialPropertyBlocks)
             {
                 SharedObjectPool<MaterialPropertyBlock>.sharedPool.Release(mpb);
             }

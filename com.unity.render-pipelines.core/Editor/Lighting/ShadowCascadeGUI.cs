@@ -83,6 +83,44 @@ namespace UnityEditor.Rendering
         /// <param name="baseMetric">The base of the metric system. In most cases it is maximum shadow distance.</param>
         public static void DrawCascades(ref Cascade[] cascades, bool useMetric, float baseMetric)
         {
+            // Validate arguments
+            if (useMetric && baseMetric <= 0)
+            {
+                Debug.LogError($"Base metric must be greater than zero.");
+                return;
+            }
+            if (cascades == null || cascades.Length == 0)
+            {
+                Debug.LogError($"No cascades passed.");
+                return;
+            }
+
+            // Validate cascade sizes
+            float cascadeSizeSum = 0;
+            for (int i = 0; i < cascades.Length; ++i)
+            {
+                cascadeSizeSum += cascades[i].size;
+            }
+            if (Mathf.Abs(cascadeSizeSum - 1f) > Mathf.Epsilon)
+            {
+                Debug.LogError($"Cascade total sum of size must be 1.0 (Currently it is {cascadeSizeSum}).");
+
+                // Normalize
+                for (int i = 0; i < cascades.Length; ++i)
+                {
+                    if (cascadeSizeSum > 0)
+                        cascades[i].size /= cascadeSizeSum;
+                    else
+                        cascades[i].size = 0.25f;
+                }
+            }
+
+            // Validate cascade border sizes
+            for (int i = 0; i < cascades.Length; ++i)
+            {
+                cascades[i].borderSize = Mathf.Clamp01(cascades[i].borderSize);
+            }
+
             EditorGUILayout.BeginVertical();
 
             // Space for cascade handles

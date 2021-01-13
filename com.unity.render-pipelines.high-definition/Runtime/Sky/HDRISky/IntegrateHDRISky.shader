@@ -47,7 +47,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
 
                 return output;
             }
-            
+
 
             // With HDRI that have a large range (including the sun) it can be challenging to
             // compute the lux value without multiple importance sampling.

@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Tests
 
             public override int GetHashCode()
             {
-                fixed (float* fptr = &floatValue)
+                fixed(float* fptr = &floatValue)
                 return intValue ^ *(int*)fptr;
             }
         }
@@ -35,13 +35,13 @@ namespace UnityEditor.Rendering.Tests
         static object[][] s_CopyToList = new object[][]
         {
             new object[] { new List<TestData>
-            {
-                new TestData { floatValue = 2, intValue = 1 },
-                new TestData { floatValue = 3, intValue = 2 },
-                new TestData { floatValue = 4, intValue = 3 },
-                new TestData { floatValue = 5, intValue = 4 },
-                new TestData { floatValue = 6, intValue = 5 },
-            } }
+                           {
+                               new TestData { floatValue = 2, intValue = 1 },
+                               new TestData { floatValue = 3, intValue = 2 },
+                               new TestData { floatValue = 4, intValue = 3 },
+                               new TestData { floatValue = 5, intValue = 4 },
+                               new TestData { floatValue = 6, intValue = 5 },
+                           } }
         };
 
         [Test]
@@ -55,18 +55,16 @@ namespace UnityEditor.Rendering.Tests
                 Assert.AreEqual(datas[i], dest[i]);
         }
 
-
-
         static object[][] s_CopyToArray = new object[][]
         {
             new object[] { new TestData[]
-            {
-                new TestData { floatValue = 2, intValue = 1 },
-                new TestData { floatValue = 3, intValue = 2 },
-                new TestData { floatValue = 4, intValue = 3 },
-                new TestData { floatValue = 5, intValue = 4 },
-                new TestData { floatValue = 6, intValue = 5 },
-            } }
+                           {
+                               new TestData { floatValue = 2, intValue = 1 },
+                               new TestData { floatValue = 3, intValue = 2 },
+                               new TestData { floatValue = 4, intValue = 3 },
+                               new TestData { floatValue = 5, intValue = 4 },
+                               new TestData { floatValue = 6, intValue = 5 },
+                           } }
         };
 
         [Test]
@@ -98,7 +96,7 @@ namespace UnityEditor.Rendering.Tests
 
             CoreUnsafeUtils.QuickSort<int>(values.Length, ptrValues);
 
-            for (int i = 0; i< values.Length - 1; ++i)
+            for (int i = 0; i < values.Length - 1; ++i)
                 Assert.LessOrEqual(ptrValues[i], ptrValues[i + 1]);
         }
 

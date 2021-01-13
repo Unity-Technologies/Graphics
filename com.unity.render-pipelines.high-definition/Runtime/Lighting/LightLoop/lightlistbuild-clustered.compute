@@ -5,10 +5,10 @@
 #pragma kernel TileLightListGen_DepthRT_SrcBigTile          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile            ENABLE_DEPTH_TEXTURE_BACKPLANE                          USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile       ENABLE_DEPTH_TEXTURE_BACKPLANE      MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING
 
-#pragma kernel TileLightListGen_DepthRT_Oblique                     LIGHTLISTGEN=TileLightListGen_DepthRT_Oblique						ENABLE_DEPTH_TEXTURE_BACKPLANE			USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_DepthRT_MSAA_Oblique                LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_Oblique					ENABLE_DEPTH_TEXTURE_BACKPLANE			MSAA_ENABLED			USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_DepthRT_SrcBigTile_Oblique          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile_Oblique            ENABLE_DEPTH_TEXTURE_BACKPLANE          USE_TWO_PASS_TILED_LIGHTING				USE_OBLIQUE_MODE
-#pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique       ENABLE_DEPTH_TEXTURE_BACKPLANE			MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING			USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_Oblique                     LIGHTLISTGEN=TileLightListGen_DepthRT_Oblique                       ENABLE_DEPTH_TEXTURE_BACKPLANE          USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_MSAA_Oblique                LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_Oblique                  ENABLE_DEPTH_TEXTURE_BACKPLANE          MSAA_ENABLED            USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_SrcBigTile_Oblique          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile_Oblique            ENABLE_DEPTH_TEXTURE_BACKPLANE          USE_TWO_PASS_TILED_LIGHTING             USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique       ENABLE_DEPTH_TEXTURE_BACKPLANE          MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING         USE_OBLIQUE_MODE
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -47,7 +47,7 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't sup
 
 
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
-#define NR_THREADS              PLATFORM_LANE_COUNT  
+#define NR_THREADS              PLATFORM_LANE_COUNT
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -87,8 +87,8 @@ float GetLinearDepth(float2 pixXY, float zDptBufSpace, uint eyeIndex)    // 0 is
     float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
 
 #ifdef USE_OBLIQUE_MODE
-	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
-	return res2.x / res2.y;
+    float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
+    return res2.x / res2.y;
 #else
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
     // however this function must also work for orthographic projection so we keep it like this.
@@ -233,19 +233,19 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
         const float fDpth = FetchDepthMSAA(uPixCrd, i);
-		const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;		// this is optimized away when USE_OBLIQUE_MODE is NOT set.
+        const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
 #else
         const float fDpth = FetchDepth(uPixCrd);
-		const float2 fracSampleCoord = float2(0.5,0.5);
+        const float2 fracSampleCoord = float2(0.5,0.5);
 #endif
 
         if(fDpth<VIEWPORT_SCALE_Z)      // if not skydome
         {
-			float linZ = GetLinearDepth(uPixCrd+fracSampleCoord, fDpth, eyeIndex);
+            float linZ = GetLinearDepth(uPixCrd+fracSampleCoord, fDpth, eyeIndex);
 #if USE_LEFT_HAND_CAMERA_SPACE
-			float linDistZ = linZ;
+            float linDistZ = linZ;
 #else
-			float linDistZ = -linZ;
+            float linDistZ = -linZ;
 #endif
 
             linMaDist = max(linDistZ, linMaDist);

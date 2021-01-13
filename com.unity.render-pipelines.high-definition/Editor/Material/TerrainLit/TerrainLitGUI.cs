@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -34,14 +34,14 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< AdvancedOptionsUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
 
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
@@ -129,12 +129,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupTerrainLitKeywordsAndPass(Material material)
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                        : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             // TODO: planar/triplannar support
@@ -374,6 +374,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupTerrainLitKeywordsAndPass(material);
     }
 } // namespace UnityEditor

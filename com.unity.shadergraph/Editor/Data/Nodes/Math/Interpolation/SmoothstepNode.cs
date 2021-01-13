@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Smoothstep";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Smoothstep", BindingFlags.Static | BindingFlags.NonPublic);
@@ -23,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = smoothstep(Edge1, Edge2, In);
 }";

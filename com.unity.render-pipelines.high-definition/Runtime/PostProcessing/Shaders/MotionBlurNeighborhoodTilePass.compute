@@ -113,7 +113,7 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
 
     // TODO: We need to find a better min motionVec determination.
 #if USE_NEIGHBOURHOOD_MIN
-// Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
+// Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise.
     float v0 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))];
     float v1 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords))];
     float v2 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))];

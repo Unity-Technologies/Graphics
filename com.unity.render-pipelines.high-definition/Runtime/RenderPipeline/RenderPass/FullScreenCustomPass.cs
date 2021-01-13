@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (fetchColorBuffer)
                 {
                     ResolveMSAAColorBuffer(ctx.cmd, ctx.hdCamera);
-                    // reset the render target to the UI 
+                    // reset the render target to the UI
                     SetRenderTargetAuto(ctx.cmd);
                 }
 

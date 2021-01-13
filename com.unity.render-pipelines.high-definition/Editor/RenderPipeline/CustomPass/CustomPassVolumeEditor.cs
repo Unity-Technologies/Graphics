@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawSettingsGUI()
         {
             serializedObject.Update();
-            
+
             EditorGUI.BeginChangeCheck();
             {
                 Rect isGlobalRect = EditorGUILayout.GetControlRect();
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
                 EditorGUI.BeginChangeCheck();
-                
+
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
@@ -231,10 +231,25 @@ namespace UnityEditor.Rendering.HighDefinition
                         passList.serializedObject.Update();
                         // Notify the prefab that something have changed:
                         PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                   });
+                    });
                 }
                 menu.ShowAsContext();
-			};
+            };
+
+            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+
+            m_CustomPassList.onRemoveCallback = (list) =>
+            {
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                ClearCustomPassCache();
+            };
+        }
+
+        void ClearCustomPassCache()
+        {
+            // When custom passes are re-ordered, a topological change happens in the SerializedProperties
+            // So we have to rebuild all the drawers that were storing SerializedProperties.
+            customPassDrawers.Clear();
         }
 
         float GetCustomPassEditorHeight(SerializedProperty pass) => EditorGUIUtility.singleLineHeight;

@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             "Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
                             m_UpperHemisphereLuxValue.value.floatValue,
                             (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
-                        ), MessageType.Info);
+                            ), MessageType.Info);
                     }
                 }
             }

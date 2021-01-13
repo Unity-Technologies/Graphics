@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="matrix"></param>
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
-            => -matrix.m11 / matrix.m00;
+            => - matrix.m11 / matrix.m00;
 
         internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
         {
@@ -166,9 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
-                    new Vector4(0.0f, m11, 0.0f, 0.0f),
-                    new Vector4(m20, m21, -1.0f, 0.0f),
-                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                new Vector4(0.0f, m11, 0.0f, 0.0f),
+                new Vector4(m20, m21, -1.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
             // Remove the translation component.
             var homogeneousZero = new Vector4(0, 0, 0, 1);
@@ -392,7 +392,6 @@ namespace UnityEngine.Rendering.HighDefinition
             BlitTexture(cmd, source, viewportScale, material, pass);
         }
 
-
         /// <summary>
         /// Blit a RTHandle to another RTHandle.
         /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
@@ -546,7 +545,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
                 return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
-
             }
             return false;
         }
@@ -583,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
         internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
         {
-            if(wasUnsetFromQuality)
+            if (wasUnsetFromQuality)
             {
                 QualitySettings.renderPipeline = renderPipelineAsset;
             }
@@ -591,7 +589,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
             }
-
         }
 
         internal struct PackedMipChainInfo
@@ -656,8 +653,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     textureSize.x = Math.Max(textureSize.x, mipBegin.x + mipSize.x);
                     textureSize.y = Math.Max(textureSize.y, mipBegin.y + mipSize.y);
-
-                } while ((mipSize.x > 1) || (mipSize.y > 1));
+                }
+                while ((mipSize.x > 1) || (mipSize.y > 1));
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;
@@ -665,7 +662,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)
             {
-
                 if (m_OffsetBufferWillNeedUpdate)
                 {
                     mipLevelOffsetsBuffer.SetData(mipLevelOffsets);
@@ -708,23 +704,23 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static Vector4 ComputeViewportScaleAndLimit(Vector2Int viewportSize, Vector2Int bufferSize)
         {
             return new Vector4(ComputeViewportScale(viewportSize.x, bufferSize.x),  // Scale(x)
-                               ComputeViewportScale(viewportSize.y, bufferSize.y),  // Scale(y)
-                               ComputeViewportLimit(viewportSize.x, bufferSize.x),  // Limit(x)
-                               ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
+                ComputeViewportScale(viewportSize.y, bufferSize.y),                 // Scale(y)
+                ComputeViewportLimit(viewportSize.x, bufferSize.x),                 // Limit(x)
+                ComputeViewportLimit(viewportSize.y, bufferSize.y));                // Limit(y)
         }
 
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
         internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
-                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
-                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
-                    graphicDevice == GraphicsDeviceType.XboxOne ||
-                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
-                    graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan
-                    // Switch isn't supported currently (19.3)
-                    /* || graphicDevice == GraphicsDeviceType.Switch */);
+                graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                graphicDevice == GraphicsDeviceType.XboxOne ||
+                graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                graphicDevice == GraphicsDeviceType.Metal ||
+                graphicDevice == GraphicsDeviceType.Vulkan
+                // Switch isn't supported currently (19.3)
+                /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
 #if UNITY_EDITOR
@@ -732,16 +728,16 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-                    buildTarget == UnityEditor.BuildTarget.Stadia ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
-                    buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
-                    buildTarget == UnityEditor.BuildTarget.XboxOne ||
-                    buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
-                    // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
+                buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
+                buildTarget == UnityEditor.BuildTarget.Stadia ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
+                buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
+                buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                buildTarget == UnityEditor.BuildTarget.PS4 ||
+                // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
@@ -881,7 +877,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool executed = false;
             CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
-            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            foreach (var customPassVolume in m_TempCustomPassVolumeList)
             {
                 if (customPassVolume == null)
                     return false;
@@ -914,8 +910,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed (byte * b = bytes)
-                    vector = *(Vector4 *)b;
+                fixed(byte * b = bytes)
+                vector = *(Vector4 *)b;
             }
 
             return vector;
@@ -1060,7 +1056,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             return 0;
 #endif
-
         }
 
         internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)

@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         public void AppendLine(string formatString, params object[] args)
         {
             AppendIndentation();
-            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture,formatString, args);
+            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture, formatString, args);
             AppendNewLine();
         }
 
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
-            if(m_ScopeStack.Count == 0)
+            if (m_ScopeStack.Count == 0)
                 return;
 
             switch (m_ScopeStack.Pop())
@@ -213,13 +213,13 @@ namespace UnityEditor.ShaderGraph
         {
             int start = m_CurrentMapping.startIndex;
             int end = m_StringBuilder.Length - start;
-            m_StringBuilder.Replace(oldValue, newValue, start, end );
+            m_StringBuilder.Replace(oldValue, newValue, start, end);
         }
 
         public string ToCodeBlock()
         {
             // Remove new line
-            if(m_StringBuilder.Length > 0)
+            if (m_StringBuilder.Length > 0)
                 m_StringBuilder.Length = m_StringBuilder.Length - 1;
 
             // Set indentations

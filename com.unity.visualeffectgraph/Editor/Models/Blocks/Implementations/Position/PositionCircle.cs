@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression theta = null;
                 if (spawnMode == SpawnMode.Random)
-                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this,0));
+                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this, 0));
                 else
                     theta = arcCircle_arc * arcSequencer;
 
@@ -55,8 +55,6 @@ namespace UnityEditor.VFX.Block
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendPosition");
                 if (compositionDirection == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
-
-
             }
         }
 

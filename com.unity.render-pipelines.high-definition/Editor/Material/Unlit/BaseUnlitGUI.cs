@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool alphaToMaskEnable = alphaTestEnable && material.HasProperty(kAlphaToMask) && material.GetFloat(kAlphaToMask) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATOMASK_ON", alphaToMaskEnable);
-            
+
             SurfaceType surfaceType = material.GetSurfaceType();
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
@@ -299,6 +299,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
             }
+            else if (material.shader.IsShaderGraph())
+            {
+                // Shader graph generate distortion pass only if required. So we can safely enable it
+                // all the time here.
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
+            }
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
@@ -342,8 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
-             }
+            }
         }
-
     }
 }

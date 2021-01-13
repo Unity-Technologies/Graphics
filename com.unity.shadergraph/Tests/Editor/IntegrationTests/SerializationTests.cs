@@ -16,11 +16,11 @@ namespace UnityEditor.Graphing.IntegrationTests
 
             public DummyJsonHolder() : base()
             {
-
             }
+
             public DummyJsonHolder(List<MaterialSlot> materialSlots)
             {
-                foreach(var slot in materialSlots)
+                foreach (var slot in materialSlots)
                 {
                     testSlots.Add(slot);
                 }

@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">Light Layer Enum parameter.</param>
             /// <param name="overrideState">Initial override value.</param>
             public LightLayerEnumParameter(LightLayerEnum value, bool overrideState = false)
-                : base(value, overrideState) { }
+                : base(value, overrideState) {}
         }
     }
 }

@@ -16,7 +16,6 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
@@ -28,19 +27,24 @@ namespace UnityEditor.VFX
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
                 if (resource == null)
                     return;
-
-                resource.GetOrCreateGraph().SanitizeForImport();
+                VFXGraph graph = resource.graph as VFXGraph;
+                if (graph != null)
+                    graph.SanitizeForImport();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
         }
-        
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
             if (resource != null)
             {
-                VFXGraph graph = resource.GetOrCreateGraph();
+                VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
-                    return graph.GetImportDependencies();
+                    return resource.GetOrCreateGraph().GetImportDependencies();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
             return null;
         }
@@ -49,11 +53,11 @@ namespace UnityEditor.VFX
         {
             if (resource != null)
             {
-                VFXGraph graph = resource.GetOrCreateGraph();
+                VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
-                {
-                    graph.CompileForImport();
-                }
+                    resource.GetOrCreateGraph().CompileForImport();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
         }
 
@@ -491,7 +495,8 @@ namespace UnityEditor.VFX
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
-                cause != VFXModel.InvalidationCause.kUIChangedTransient)
+                cause != VFXModel.InvalidationCause.kUIChangedTransient &&
+                (model.hideFlags & HideFlags.DontSave) == 0)
             {
                 EditorUtility.SetDirty(this);
             }
@@ -646,7 +651,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void SetFlattenedParentToSubblocks( )
+        private void SetFlattenedParentToSubblocks()
         {
             foreach (var child in children.OfType<VFXContext>())
                 foreach (var block in child.children.OfType<VFXSubgraphBlock>())
@@ -755,11 +760,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach(var child in children)
+            foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
             SanitizeGraph();
         }
+
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -804,7 +810,6 @@ namespace UnityEditor.VFX
                     PrepareSubgraphs();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-
                 }
                 else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                 {
@@ -905,6 +910,5 @@ namespace UnityEditor.VFX
         }
 
         private VisualEffectResource m_Owner;
-
     }
 }

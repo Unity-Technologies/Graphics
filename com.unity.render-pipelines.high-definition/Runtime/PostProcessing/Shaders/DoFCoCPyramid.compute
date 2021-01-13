@@ -95,7 +95,7 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
         return;
 
     GroupMemoryBarrierWithGroupSync();
-    
+
     // Fourth mip - checks that X and Y are multiples of 8
     if ((groupIndex & 0xE7) == 0)
     {

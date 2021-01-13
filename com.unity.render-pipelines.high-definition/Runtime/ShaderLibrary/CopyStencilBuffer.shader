@@ -27,7 +27,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
     RW_TEXTURE2D_X(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
     RW_TEXTURE2D_X(float, _StencilBufferCopy); // DXGI_FORMAT_R8_UINT is not supported by Unity
 #endif
-        
+
     struct Attributes
     {
         uint vertexID : SV_VertexID;
@@ -156,7 +156,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
         {
             // Note, when supporting D3D 11.3+, this can be a one off copy pass.
             // This is essentially the equivalent of Pass 1, but writing to a UAV instead.
-            Name "Pass 3 - Initialize Stencil UAV copy with 1 if value different from stencilRef to output"  
+            Name "Pass 3 - Initialize Stencil UAV copy with 1 if value different from stencilRef to output"
 
             Stencil
             {
@@ -187,7 +187,7 @@ Shader "Hidden/HDRP/CopyStencilBuffer"
 
         Pass
         {
-            Name "Pass 4 - Update Stencil UAV copy with Stencil Ref"  
+            Name "Pass 4 - Update Stencil UAV copy with Stencil Ref"
 
             Stencil
             {

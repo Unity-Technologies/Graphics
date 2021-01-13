@@ -34,22 +34,27 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 displayName = "Fake VFX Target"; //Should not be displayed outside the test runner.
                 isHidden = !s_ForceVFXFakeTargetVisible;
             }
+
             public override void GetActiveBlocks(ref UnityEditor.ShaderGraph.TargetActiveBlockContext context)
             {
                 context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.BaseColor);
                 context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.Alpha);
             }
+
             public override void GetFields(ref TargetFieldContext context)
             {
             }
+
             public override void Setup(ref TargetSetupContext context)
             {
             }
+
             public override bool IsActive() => false;
             public override bool WorksWithSRP(UnityEngine.Rendering.RenderPipelineAsset scriptableRenderPipeline)
             {
                 return false;
             }
+
             public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, System.Action onChange, System.Action<System.String> registerUndo)
             {
             }
@@ -62,7 +67,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             s_ForceVFXFakeTargetVisible = true;
             GraphData graph = new GraphData();
             graph.AddContexts();
-            graph.InitializeOutputs(new [] { new VFXTarget() }, null);
+            graph.InitializeOutputs(new[] { new VFXTarget() }, null);
 
             Assert.IsNotNull(graph.activeTargets);
             Assert.AreEqual(1, graph.activeTargets.Count());
@@ -116,7 +121,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             var targetIndex2 = graph.GetTargetIndex(vfxTarget);
             Assert.AreEqual(targetIndex, targetIndex2);
-           
+
             var nonActiveVFXTarget = new VFXTarget();
             Assert.AreEqual(-1, graph.GetTargetIndex(nonActiveVFXTarget));
 
@@ -131,7 +136,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graph.AddContexts();
 
             var vfxTarget = new VFXTarget();
-            graph.InitializeOutputs(new [] { vfxTarget }, null);
+            graph.InitializeOutputs(new[] { vfxTarget }, null);
 
             graph.SetTargetInactive(vfxTarget);
 
@@ -146,7 +151,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             s_ForceVFXFakeTargetVisible = true;
             GraphData graph = new GraphData();
             graph.AddContexts();
-            graph.InitializeOutputs(new [] { new VFXTarget() }, new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.NormalTS } );
+            graph.InitializeOutputs(new[] { new VFXTarget() }, new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.NormalTS });
 
             // Block active state should match VFX Target's default GetActiveBlocks
             var blocks = graph.GetNodes<BlockNode>().ToList();
@@ -164,7 +169,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             s_ForceVFXFakeTargetVisible = true;
             GraphData graph = new GraphData();
             graph.AddContexts();
-            graph.InitializeOutputs(new [] { new VFXTarget() }, new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.NormalTS } );
+            graph.InitializeOutputs(new[] { new VFXTarget() }, new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.NormalTS });
 
             // Remove VFX target
             var vfxTarget = graph.allPotentialTargets.FirstOrDefault(x => x is VFXTarget);

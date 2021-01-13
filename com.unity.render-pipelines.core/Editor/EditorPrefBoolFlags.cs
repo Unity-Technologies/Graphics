@@ -52,25 +52,27 @@ namespace UnityEditor.Rendering
         /// <param name="l">The EditorPrefBoolFlags</param>
         /// <param name="r">The value</param>
         /// <returns>A EditorPrefBoolFlags with OR operator performed</returns>
-        public static EditorPrefBoolFlags<T> operator |(EditorPrefBoolFlags<T> l, T r)
+        public static EditorPrefBoolFlags<T> operator|(EditorPrefBoolFlags<T> l, T r)
         {
             l.rawValue |= (uint)(int)(object)r;
             return l;
         }
+
         /// <summary>And operator between a EditorPrefBoolFlags and a value</summary>
         /// <param name="l">The EditorPrefBoolFlags</param>
         /// <param name="r">The value</param>
         /// <returns>A EditorPrefBoolFlags with AND operator performed</returns>
-        public static EditorPrefBoolFlags<T> operator &(EditorPrefBoolFlags<T> l, T r)
+        public static EditorPrefBoolFlags<T> operator&(EditorPrefBoolFlags<T> l, T r)
         {
             l.rawValue &= (uint)(int)(object)r;
             return l;
         }
+
         /// <summary>Xor operator between a EditorPrefBoolFlags and a value</summary>
         /// <param name="l">The EditorPrefBoolFlags</param>
         /// <param name="r">The value</param>
         /// <returns>A EditorPrefBoolFlags with XOR operator performed</returns>
-        public static EditorPrefBoolFlags<T> operator ^(EditorPrefBoolFlags<T> l, T r)
+        public static EditorPrefBoolFlags<T> operator^(EditorPrefBoolFlags<T> l, T r)
         {
             l.rawValue ^= (uint)(int)(object)r;
             return l;

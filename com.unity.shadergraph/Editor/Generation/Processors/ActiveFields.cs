@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    internal interface IActiveFields: KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IActiveFields>
+    internal interface IActiveFields : KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IActiveFields>
     {
         IEnumerable<FieldDescriptor> fields { get; }
 
@@ -14,12 +14,12 @@ namespace UnityEditor.ShaderGraph.Internal
         bool Contains(string value);
     }
 
-    internal interface IActiveFieldsSet: KeywordDependentCollection.ISet<IActiveFields>
+    internal interface IActiveFieldsSet : KeywordDependentCollection.ISet<IActiveFields>
     {
         void AddAll(FieldDescriptor field);
     }
 
-    internal sealed class ActiveFields: KeywordDependentCollection<
+    internal sealed class ActiveFields : KeywordDependentCollection<
         HashSet<FieldDescriptor>,
         ActiveFields.All,
         ActiveFields.AllPermutations,
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Internal
         IActiveFieldsSet
     >
     {
-        public struct ForPermutationIndex: IActiveFields, IActiveFieldsSet
+        public struct ForPermutationIndex : IActiveFields, IActiveFieldsSet
         {
             private ActiveFields m_Source;
             private int m_PermutationIndex;
@@ -48,14 +48,14 @@ namespace UnityEditor.ShaderGraph.Internal
             }
 
             public bool Add(FieldDescriptor field)
-             => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Add(field);
+                => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Add(field);
 
             public bool Contains(FieldDescriptor field) =>
                 m_Source.baseStorage.Contains(field)
                 || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
 
             public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any()
-                || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Where(x => x.ToFieldString() == value).Any();
+            || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Where(x => x.ToFieldString() == value).Any();
             public void AddAll(FieldDescriptor field) => Add(field);
         }
 
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
             public IEnumerable<FieldDescriptor> fields => m_Source.baseStorage;
             public int instanceCount => 1;
-            public int permutationIndex => -1;
+            public int permutationIndex => - 1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
             public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
 
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
             public IEnumerable<FieldDescriptor> fields => m_Source.baseStorage;
             public int instanceCount => 1;
-            public int permutationIndex => -1;
+            public int permutationIndex => - 1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
 
             internal NoPermutation(ActiveFields source)

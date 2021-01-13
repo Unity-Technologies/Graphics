@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering
                 if (IsMaterialPath(s))
                     totalMaterialCount++;
             }
-            
+
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
@@ -354,7 +354,7 @@ namespace UnityEditor.Rendering
 
                     if (!ShouldUpgradeShader(m, shaderNamesToIgnore))
                         continue;
-                    
+
                     Upgrade(m, upgraders, flags);
 
                     //SaveAssetsAndFreeMemory();
@@ -448,7 +448,7 @@ namespace UnityEditor.Rendering
             }
 
             if (!EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
-                    DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
             string lastMaterialName = "";

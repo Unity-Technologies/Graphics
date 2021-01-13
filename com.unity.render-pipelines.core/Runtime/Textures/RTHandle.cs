@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
 
         internal void SetRenderTexture(RenderTexture rt)
         {
-            m_RT=  rt;
+            m_RT =  rt;
             m_ExternalTexture = null;
             m_NameID = new RenderTargetIdentifier(rt);
         }
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering
                 return new Vector2Int(
                     x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
                     y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
-                    );
+                );
             }
         }
 
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
             float residencyFraction = 1.0f,
             FastMemoryFlags flags = FastMemoryFlags.SpillTop,
             bool copyContents = false
-            )
+        )
         {
             residencyFraction = Mathf.Clamp01(residencyFraction);
             cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering
         public void CopyToFastMemory(CommandBuffer cmd,
             float residencyFraction = 1.0f,
             FastMemoryFlags flags = FastMemoryFlags.SpillTop
-            )
+        )
         {
             SwitchToFastMemory(cmd, residencyFraction, flags, copyContents: true);
         }
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
         {
             cmd.SwitchOutOfFastMemory(m_RT, copyContents);
         }
-#endif
 
+#endif
     }
 }

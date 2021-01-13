@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static void SetupMaterialWithColorMode(Material material)
         {
-            var colorMode = (ColorMode) material.GetFloat("_ColorMode");
+            var colorMode = (ColorMode)material.GetFloat("_ColorMode");
 
             switch (colorMode)
             {
@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             // Z write doesn't work with fading
             bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
-            if(!hasZWrite)
+            if (!hasZWrite)
             {
                 // Soft Particles
                 {
@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.showMixedValue = properties.distortionStrength.hasMixedValue;
                         var blend = EditorGUILayout.Slider(Styles.distortionBlend, properties.distortionBlend.floatValue, 0f, 1f);
-                        if(EditorGUI.EndChangeCheck())
+                        if (EditorGUI.EndChangeCheck())
                             properties.distortionBlend.floatValue = blend;
                         EditorGUI.indentLevel--;
                     }
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Display list of streams required to make this shader work
             bool useNormalMap = false;
             bool useFlipbookBlending = (material.GetFloat("_FlipbookBlending") > 0.0f);
-            if(material.HasProperty("_BumpMap"))
+            if (material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
 
             bool useGPUInstancing = ShaderUtil.HasProceduralInstancing(material.shader);

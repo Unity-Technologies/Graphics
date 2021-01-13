@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
@@ -68,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int layerCount = SortingLayer.layers.Length;
             int[] allLayers = new int[layerCount];
 
-            for(int layerIndex=0;layerIndex < layerCount;layerIndex++)
+            for (int layerIndex = 0; layerIndex < layerCount; layerIndex++)
             {
                 allLayers[layerIndex] = SortingLayer.layers[layerIndex].id;
             }
@@ -87,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
-            
+
             Renderer renderer = GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -101,17 +100,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = collider.bounds;
             }
 #endif
+            Vector3 inverseScale = Vector3.zero;
+            Vector3 relOffset = transform.position;
 
-            Vector3 relOffset = bounds.center - transform.position;
+            if (transform.lossyScale.x != 0 && transform.lossyScale.y != 0)
+            {
+                inverseScale = new Vector3(1 / transform.lossyScale.x, 1 / transform.lossyScale.y);
+                relOffset = new Vector3(inverseScale.x * -transform.position.x, inverseScale.y * -transform.position.y);
+            }
 
             if (m_ShapePath == null || m_ShapePath.Length == 0)
             {
                 m_ShapePath = new Vector3[]
                 {
-                    relOffset + new Vector3(-bounds.extents.x, -bounds.extents.y),
-                    relOffset + new Vector3(bounds.extents.x, -bounds.extents.y),
-                    relOffset + new Vector3(bounds.extents.x, bounds.extents.y),
-                    relOffset + new Vector3(-bounds.extents.x, bounds.extents.y)
+                    relOffset + new Vector3(inverseScale.x * bounds.min.x, inverseScale.y * bounds.min.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.min.x, inverseScale.y * bounds.max.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.max.x, inverseScale.y * bounds.max.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.max.x, inverseScale.y * bounds.min.y),
                 };
             }
         }
@@ -162,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if(m_CastsShadows)
+                if (m_CastsShadows)
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
@@ -175,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Awake();
             OnEnable();
         }
-#endif
 
+#endif
     }
 }

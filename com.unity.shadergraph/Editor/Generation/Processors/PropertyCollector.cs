@@ -162,10 +162,10 @@ namespace UnityEditor.ShaderGraph
             // build a list of all HLSL properties
             var hybridHLSLProps = new List<HLSLProperty>();
             properties.ForEach(p => p.ForeachHLSLProperty(h =>
-                {
-                    if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                        hybridHLSLProps.Add(h);
-                }));
+            {
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                    hybridHLSLProps.Add(h);
+            }));
 
             if (hybridHLSLProps.Any())
             {

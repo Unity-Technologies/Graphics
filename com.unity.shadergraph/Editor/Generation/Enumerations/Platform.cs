@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
     {
         public static string ToShaderString(this Platform platform)
         {
-            switch(platform)
+            switch (platform)
             {
                 case Platform.D3D11:
                     return "d3d11";

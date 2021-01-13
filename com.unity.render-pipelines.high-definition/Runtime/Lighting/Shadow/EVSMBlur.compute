@@ -5,9 +5,9 @@
 
 #define THREADS         8
 
-#pragma kernel ConvertAndBlur    KERNEL_MAIN=ConvertAndBlur   BLUR_SIZE=9        
-#pragma kernel Blur              KERNEL_MAIN=Blur   BLUR_SIZE=9    ALREADY_EVSM 
-#pragma kernel CopyMoments                 
+#pragma kernel ConvertAndBlur    KERNEL_MAIN=ConvertAndBlur   BLUR_SIZE=9
+#pragma kernel Blur              KERNEL_MAIN=Blur   BLUR_SIZE=9    ALREADY_EVSM
+#pragma kernel CopyMoments
 
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
@@ -157,7 +157,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
     }
 }
 
-#else 
+#else
 
 [numthreads(THREADS, THREADS, 1)]
 void CopyMoments(uint3 dispatchId : SV_DispatchThreadID)

@@ -67,9 +67,9 @@ namespace UnityEditor.Rendering.Universal
             // From this point on, we move to non-layout based code.
 
             var sliderRect = GUILayoutUtility.GetRect(GUIContent.none
-                    , s_CascadeSliderBG
-                    , GUILayout.Height(kSliderbarTopMargin + kSliderbarHeight + kSliderbarBottomMargin)
-                    , GUILayout.ExpandWidth(true));
+                , s_CascadeSliderBG
+                , GUILayout.Height(kSliderbarTopMargin + kSliderbarHeight + kSliderbarBottomMargin)
+                , GUILayout.ExpandWidth(true));
             GUI.Box(sliderRect, GUIContent.none);
 
             EditorGUILayout.EndHorizontal();
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    var m = currentPartition* distance;
+                    var m = currentPartition * distance;
                     cascadeText = $"{i+1}\n{m:F1}m";
                 }
 
