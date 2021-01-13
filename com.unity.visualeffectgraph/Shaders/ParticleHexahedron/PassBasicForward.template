@@ -16,7 +16,7 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_FEATURE_MOTION_VECTORS_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
@@ -41,9 +41,9 @@ Pass
 		#endif
 		nointerpolation float texIndex : TEXCOORD7;
 		#endif
-		#if WRITE_MOTION_VECTOR_IN_FORWARD
-		float4 cPosPrevious : TEXCOORD7;
-		float4 cPosNonJiterred : TEXCOORD8;
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosPrevious : TEXCOORD7;
+		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosNonJiterred : TEXCOORD8;
 		#endif
 		
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -52,7 +52,7 @@ Pass
 	struct ps_output
 	{
 		float4 color : SV_Target0;
-#if WRITE_MOTION_VECTOR_IN_FORWARD
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 		float4 outMotionVector : SV_Target1;
 #endif
 	};
@@ -85,7 +85,7 @@ Pass
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
 #endif
 								
-#if WRITE_MOTION_VECTOR_IN_FORWARD
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
@@ -105,7 +105,7 @@ Pass
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 
-#if WRITE_MOTION_VECTOR_IN_FORWARD
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
 		${VFXComputeOutputMotionVector}
 		o.outMotionVector = encodedMotionVector;
 		o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
