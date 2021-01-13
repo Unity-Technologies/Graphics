@@ -8,7 +8,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardViewModel : SGViewModel
     {
+        public string Subtitle { get; set; }
         List<Type> m_ShaderInputTypes;
+
 
         public override void ConstructFromModel(GraphData graphData)
         {

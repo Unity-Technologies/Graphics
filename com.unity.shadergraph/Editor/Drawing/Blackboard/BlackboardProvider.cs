@@ -13,13 +13,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
     {
         readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+
+        // The provider seems to hold onto this so that it can clean up the blackboard rows from its hierarchy, seems like we could do better
+        // Also is used by other classes like the PropertyNodeView to handle cleanup on property being removed etc
         readonly Dictionary<ShaderInput, BlackboardRow> m_InputRows;
         readonly SGBlackboardSection m_DefaultPropertySection;
         readonly SGBlackboardSection m_DefaultKeywordSection;
 
         public const int k_PropertySectionIndex = 0;
         public const int k_KeywordSectionIndex = 1;
-        const string k_styleName = "Blackboard";
 
         public SGBlackboard blackboard { get; private set; }
         Label m_PathLabel;
@@ -308,6 +310,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
             if (m_Graph.movedInputs.Any())
             {
+                // So if the graph has any moved inputs it just recreates the entire list, which is kinda wild
                 foreach (var row in m_InputRows.Values)
                     row.RemoveFromHierarchy();
 
@@ -409,6 +412,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
             if (!create)
             {
+                // And also used for holding onto rows to set the expanded state
                 m_InputRows[input].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.objectId}.isExpanded", false);
             }
             else
