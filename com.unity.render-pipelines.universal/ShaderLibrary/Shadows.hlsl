@@ -68,12 +68,13 @@ float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
 float4      _CascadeShadowSplitSphereRadii;
+float4      _CascadeShadowSplitSphereLast;  // (xyz: lastShadowCascadeSphere, w: lastShadowCascadeIndex)
 half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
-half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: oneOverFadeDist, w: minusStartFade)
-float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+half4       _MainLightShadowParams;   // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
+float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
@@ -85,6 +86,7 @@ half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
+half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 #else
 // GLES3 causes a performance regression in some devices when using CBUFFER.
@@ -97,6 +99,7 @@ half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
+half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 #ifndef SHADER_API_GLES3
 CBUFFER_END
@@ -294,13 +297,34 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
+half GetShadowFade(float3 positionWS, float cascadeIndex)
+{
+    float3 shadowFadeCenter = _CascadeShadowSplitSphereLast.xyz;
+    float3 camToPixel = positionWS - shadowFadeCenter;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    // Special path that changes fade depending on current cascade:
+    // - If current cascade is in the last one, we procide with normal fade.
+    // - If current cascade is outside cascades, we force fade to 0.
+    // - If current cascade is not in the last one, we force fade to 1. This is needed to avoid fading in near plane. 
+#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+    float lastCascadeIndex = _CascadeShadowSplitSphereLast.w;
+    float skipFadeOutsideCascade = cascadeIndex - lastCascadeIndex;
+#else
+    float skipFadeOutsideCascade = 0;
+#endif
+
+    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w + skipFadeOutsideCascade);
+    return fade;
+}
+
 half GetShadowFade(float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
-    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
-    return fade * fade;
+    half fade = saturate(distanceCamToPixel2 * _AdditionalShadowFadeParams.x + _AdditionalShadowFadeParams.y);
+    return fade;
 }
 
 half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
@@ -333,16 +357,9 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
 #endif
 
 #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetShadowFade(positionWS);
+    half shadowFade = GetShadowFade(positionWS, shadowCoord.w);
 #else
     half shadowFade = 1.0h;
-#endif
-
-#if defined(_MAIN_LIGHT_SHADOWS_CASCADE) && defined(CALCULATE_BAKED_SHADOWS)
-    // shadowCoord.w represents shadow cascade index
-    // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
-    // it is needed when realtime shadows gets cut to early during fade and causes disconnect between baked shadow
-    shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
 #endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);

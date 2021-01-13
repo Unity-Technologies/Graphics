@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalShadowOffset1;
             public static int _AdditionalShadowOffset2;
             public static int _AdditionalShadowOffset3;
+            public static int _AdditionalShadowFadeParams;
             public static int _AdditionalShadowmapSize;
         }
 
@@ -30,6 +31,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
+
+        float m_MaxShadowDistanceSq;
+        float m_CascadeBorder;
 
         ShadowSliceData[] m_AdditionalLightSlices = null;
 
@@ -59,6 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
+            AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
 
@@ -228,6 +233,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 sliceIndex++;
             }
 
+            m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+            m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
+
             return true;
         }
 
@@ -369,6 +377,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightsWorldToShadow);
                 cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightsShadowParams);
             }
+
+            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, new Vector4(shadowFadeScale, shadowFadeBias, 0, 0));
 
             if (softShadows)
             {

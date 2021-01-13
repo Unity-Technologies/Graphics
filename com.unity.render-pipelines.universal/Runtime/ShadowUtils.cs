@@ -164,6 +164,33 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
         }
 
+        /// <summary>
+        /// Extract scale and bias from a fade distance to achieve a linear fading of the fade distance.
+        /// </summary>
+        /// <param name="fadeDistance">Distance at which object should be totally fade</param>
+        /// <param name="border">Normalized distance of fade</param>
+        /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
+        /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
+        internal static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, float border, out float scale, out float bias)
+        {
+            // To avoid division from zero
+            // This values ensure that fade within cascade will be 0 and outside 1
+            if (border == 0)
+            {
+                scale = 1;
+                bias = -fadeDistance;
+                return;
+            }
+
+            border = 1 - border;
+            border *= border;
+
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            float distanceFadeNear = border * fadeDistance;
+            scale = 1.0f / (fadeDistance - distanceFadeNear);
+            bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
+        }
+
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);

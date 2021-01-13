@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _CascadeShadowSplitSpheres2;
             public static int _CascadeShadowSplitSpheres3;
             public static int _CascadeShadowSplitSphereRadii;
+            public static int _CascadeShadowSplitSphereLast;
             public static int _ShadowOffset0;
             public static int _ShadowOffset1;
             public static int _ShadowOffset2;
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_MaxCascades = 4;
         const int k_ShadowmapBufferBits = 16;
-        float m_MaxShadowDistance;
+        float m_CascadeBorder;
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
@@ -56,6 +57,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3 = Shader.PropertyToID("_CascadeShadowSplitSpheres3");
             MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii = Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSphereLast = Shader.PropertyToID("_CascadeShadowSplitSphereLast");
             MainLightShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
             MainLightShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
             MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
@@ -111,7 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            m_MaxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+            m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 
             return true;
         }
@@ -218,16 +220,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
 
-            //To make the shadow fading fit into a single MAD instruction:
-            //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
-            float startFade = m_MaxShadowDistance * 0.9f;
-            float oneOverFadeDist = 1/(m_MaxShadowDistance - startFade);
-            float minusStartFade = -startFade * oneOverFadeDist;
-
+            Vector4 lastCascade = m_CascadeSplitDistances[m_ShadowCasterCascadesCount - 1];
+            float lastCascadeRadiusSq = lastCascade.w * lastCascade.w;
+            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(lastCascadeRadiusSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
             cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, oneOverFadeDist, minusStartFade));
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
+                new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
 
             if (m_ShadowCasterCascadesCount > 1)
             {
@@ -245,6 +245,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_CascadeSplitDistances[2].w * m_CascadeSplitDistances[2].w,
                     m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
             }
+
+            // We always use last shadow cascade for main light shadow fade
+            var lastShadowCascade = m_ShadowCasterCascadesCount - 1;
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSphereLast,
+                new Vector4(lastCascade.x, lastCascade.y, lastCascade.z, lastShadowCascade));
 
             // Inside shader soft shadows are controlled through global keyword.
             // If any additional light has soft shadows it will force soft shadows on main light too.

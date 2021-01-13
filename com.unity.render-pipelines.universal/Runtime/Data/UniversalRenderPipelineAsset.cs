@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_CascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
@@ -614,6 +615,14 @@ namespace UnityEngine.Rendering.Universal
         public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
+        }
+
+        /// <summary>
+        /// Returns last cascade fade distance in procentage.
+        /// </summary>
+        public float cascadeBorder
+        {
+            get { return m_CascadeBorder; }
         }
 
         /// <summary>

@@ -124,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowCascade2SplitProp;
         SerializedProperty m_ShadowCascade3SplitProp;
         SerializedProperty m_ShadowCascade4SplitProp;
+        SerializedProperty m_ShadowCascadeBorderProp;
         SerializedProperty m_ShadowDepthBiasProp;
         SerializedProperty m_ShadowNormalBiasProp;
 
@@ -200,6 +201,7 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
+            m_ShadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
             m_ShadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
@@ -356,6 +358,12 @@ namespace UnityEditor.Rendering.Universal
 
                 int cascadeCount = m_ShadowCascadeCountProp.intValue;
                 EditorGUI.indentLevel++;
+
+                DrawCascadeSliders(cascadeCount - 1, unit == EditorUtils.Unit.Metric, m_ShadowDistanceProp.floatValue);
+                EditorGUI.indentLevel--;
+                DrawCascades(cascadeCount, unit);
+                EditorGUI.indentLevel++;
+
                 if (cascadeCount == 4)
                     EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 3)
@@ -373,6 +381,141 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        private void DrawCascadeSliders(int splitCount, bool useMetric, float baseMetric)
+        {
+            Vector3 shadowCascadeSplit = Vector3.zero;
+            if (splitCount == 3)
+                shadowCascadeSplit = m_ShadowCascade4SplitProp.vector3Value;
+            else if (splitCount == 2)
+                shadowCascadeSplit = m_ShadowCascade3SplitProp.vector2Value;
+            else if (splitCount == 1)
+                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+
+            float splitBias = 0.001f;
+
+            // Ensure correct split order
+            shadowCascadeSplit[0] = Mathf.Clamp(shadowCascadeSplit[0], 0f, shadowCascadeSplit[1] - splitBias);
+            shadowCascadeSplit[1] = Mathf.Clamp(shadowCascadeSplit[1], shadowCascadeSplit[0] + splitBias, shadowCascadeSplit[2] - splitBias);
+            shadowCascadeSplit[2] = Mathf.Clamp(shadowCascadeSplit[2], shadowCascadeSplit[1] + splitBias, 1f);
+
+            EditorGUI.BeginChangeCheck();
+            for (int i = 0; i < splitCount; ++i)
+            {
+                float value = shadowCascadeSplit[i];
+
+                float minimum = i == 0 ? 0 : shadowCascadeSplit[i - 1] + splitBias;
+                float maximum = i == splitCount - 1 ? 1 : shadowCascadeSplit[i + 1] - splitBias;
+
+                if (useMetric)
+                {
+                    float valueMetric = value * baseMetric;
+                    valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueMetric, 0f, baseMetric, null);
+
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueMetric / baseMetric, minimum, maximum);
+                }
+                else
+                {
+                    float valueProcentage = value * 100f;
+                    valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueProcentage, 0f, 100f, null);
+
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage / 100f, minimum, maximum);
+                }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (splitCount == 3)
+                    m_ShadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
+                else if (splitCount == 2)
+                    m_ShadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
+                else if (splitCount == 1)
+                    m_ShadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
+            }
+
+            var borderValue = m_ShadowCascadeBorderProp.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            if (useMetric)
+            {
+                var lastCascadeSplitSize = (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
+                float valueMetric = borderValue * lastCascadeSplitSize;
+                valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueMetric, 0f, lastCascadeSplitSize, null);
+
+                borderValue = valueMetric / lastCascadeSplitSize;
+            }
+            else
+            {
+                float valueProcentage = borderValue * 100f;
+                valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueProcentage, 0f, 100f, null);
+
+                borderValue = valueProcentage / 100f;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_ShadowCascadeBorderProp.floatValue = borderValue;
+            }
+        }
+
+        private void DrawCascades(int cascadeCount, EditorUtils.Unit unit)
+        {
+            var cascades = new Rendering.ShadowCascadeGUI.Cascade[cascadeCount];
+
+            Vector3 shadowCascadeSplit = Vector3.zero;
+            if (cascadeCount == 4)
+                shadowCascadeSplit = m_ShadowCascade4SplitProp.vector3Value;
+            else if (cascadeCount == 3)
+                shadowCascadeSplit = m_ShadowCascade3SplitProp.vector2Value;
+            else if (cascadeCount == 2)
+                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+            else
+                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+
+            float lastCascadePartitionSplit = 0;
+            for (int i = 0; i < cascadeCount - 1; ++i)
+            {
+                cascades[i] = new Rendering.ShadowCascadeGUI.Cascade()
+                {
+                    size = i == 0 ? shadowCascadeSplit[i] : shadowCascadeSplit[i] - lastCascadePartitionSplit, // Calculate the size of cascade
+                    borderSize = 0,
+                    cascadeHandleState = Rendering.ShadowCascadeGUI.HandleState.Enabled,
+                    borderHandleState = Rendering.ShadowCascadeGUI.HandleState.Hidden,
+                };
+                lastCascadePartitionSplit = shadowCascadeSplit[i];
+            }
+
+            // Last cascade is special
+            var lastCascade = cascadeCount - 1;
+            cascades[lastCascade] = new Rendering.ShadowCascadeGUI.Cascade()
+            {
+                size = lastCascade == 0 ? 1.0f : 1 - shadowCascadeSplit[lastCascade - 1], // Calculate the size of cascade
+                borderSize = m_ShadowCascadeBorderProp.floatValue,
+                cascadeHandleState = Rendering.ShadowCascadeGUI.HandleState.Hidden,
+                borderHandleState = Rendering.ShadowCascadeGUI.HandleState.Enabled,
+            };
+
+            EditorGUI.BeginChangeCheck();
+            Rendering.ShadowCascadeGUI.DrawCascades(ref cascades, unit == EditorUtils.Unit.Metric, m_ShadowDistanceProp.floatValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (cascadeCount == 4)
+                    m_ShadowCascade4SplitProp.vector3Value = new Vector3(
+                    cascades[0].size,
+                    cascades[0].size + cascades[1].size,
+                    cascades[0].size + cascades[1].size + cascades[2].size
+                    );
+                else if (cascadeCount == 3)
+                    m_ShadowCascade3SplitProp.vector2Value = new Vector2(
+                    cascades[0].size,
+                    cascades[0].size + cascades[1].size
+                    );
+                else if (cascadeCount == 2)
+                    m_ShadowCascade2SplitProp.floatValue = cascades[0].size;
+
+                m_ShadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
+            }
         }
 
         void DrawPostProcessingSettings()
