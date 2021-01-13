@@ -200,9 +200,10 @@ namespace UnityEngine
 
             float arcRadius = Mathf.Min(distance * 0.25f, k_ArcRadius);
             float axisLength = Mathf.Min(distance * 0.5f, k_AxisLength);
-            const float alpha = 0.2f;
 
 #if UNITY_EDITOR
+            const float alpha = 0.2f;
+
             Handles.color = Color.grey;
             Handles.DrawDottedLine(anchorPosition, anchorPosition + proj, 2);
             Handles.DrawDottedLine(anchorPosition + proj, transform.position, 2);
