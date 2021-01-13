@@ -4,7 +4,6 @@
 
 #ifndef SHADERCONFIG_CS_HLSL
 #define SHADERCONFIG_CS_HLSL
-
 //
 // UnityEngine.Rendering.HighDefinition.ShaderOptions:  static fields
 //
