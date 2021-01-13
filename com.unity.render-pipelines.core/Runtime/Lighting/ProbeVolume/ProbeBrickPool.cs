@@ -16,9 +16,14 @@ namespace UnityEngine.Rendering
         public struct DataLocation
         {
             internal Texture3D TexL0;
+
             internal Texture3D TexL1_R;
             internal Texture3D TexL1_G;
             internal Texture3D TexL1_B;
+
+            internal Texture3D TexL2_R;
+            internal Texture3D TexL2_G;
+            internal Texture3D TexL2_B;
 
             internal int width;
             internal int height;
@@ -27,14 +32,24 @@ namespace UnityEngine.Rendering
             internal void Cleanup()
             {
                 CoreUtils.Destroy(TexL0);
+
                 CoreUtils.Destroy(TexL1_R);
                 CoreUtils.Destroy(TexL1_G);
                 CoreUtils.Destroy(TexL1_B);
 
+                CoreUtils.Destroy(TexL2_R);
+                CoreUtils.Destroy(TexL2_G);
+                CoreUtils.Destroy(TexL2_B);
+
                 TexL0 = null;
+
                 TexL1_R = null;
                 TexL1_G = null;
                 TexL1_B = null;
+
+                TexL2_R = null;
+                TexL2_G = null;
+                TexL2_B = null;
             }
         }
 
@@ -89,9 +104,14 @@ namespace UnityEngine.Rendering
         internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
         {
             rr.L0 = m_Pool.TexL0;
+
             rr.L1_R = m_Pool.TexL1_R;
             rr.L1_G = m_Pool.TexL1_G;
             rr.L1_B = m_Pool.TexL1_B;
+
+            rr.L2_R = m_Pool.TexL2_R;
+            rr.L2_G = m_Pool.TexL2_G;
+            rr.L2_B = m_Pool.TexL2_B;
         }
 
         internal void Clear()
@@ -151,9 +171,15 @@ namespace UnityEngine.Rendering
                 {
                     int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0  , src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0  , dst.z + j, 0, dst.x, dst.y);
+
                     Graphics.CopyTexture(source.TexL1_R, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_R, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_G, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G, dst.z + j, 0, dst.x, dst.y);
                     Graphics.CopyTexture(source.TexL1_B, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B, dst.z + j, 0, dst.x, dst.y);
+
+                    // TODO: IF L2
+                    Graphics.CopyTexture(source.TexL2_R, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_R, dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL2_G, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_G, dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL2_B, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL2_B, dst.z + j, 0, dst.x, dst.y);
                 }
             }
         }
@@ -185,12 +211,20 @@ namespace UnityEngine.Rendering
 
             DataLocation loc;
             loc.TexL0   = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGB_BC6H_UFloat : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+
             loc.TexL1_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+
+            // TODO: IF L2
+            loc.TexL2_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL2_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.TexL2_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+
             loc.width = width;
             loc.height = height;
             loc.depth = depth;
+
             return loc;
         }
 
@@ -252,9 +286,99 @@ namespace UnityEngine.Rendering
             }
 
             loc.TexL0.Apply(false);
+
             loc.TexL1_R.Apply(false);
             loc.TexL1_G.Apply(false);
             loc.TexL1_B.Apply(false);
+        }
+
+        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2)
+        {
+            int numBricks = shl2.Length / kBrickProbeCountTotal;
+            int shidx = 0;
+            int bx = 0, by = 0, bz = 0;
+            Color c = new Color();
+            for (int brickIdx = 0; brickIdx < shl2.Length; brickIdx += kBrickProbeCountTotal)
+            {
+                for (int z = 0; z < kBrickProbeCountPerDim; z++)
+                {
+                    for (int y = 0; y < kBrickProbeCountPerDim; y++)
+                    {
+                        for (int x = 0; x < kBrickProbeCountPerDim; x++)
+                        {
+                            int ix = bx + x;
+                            int iy = by + y;
+                            int iz = bz + z;
+
+                            c.r = shl2[shidx][0, 3];
+                            c.g = shl2[shidx][1, 3];
+                            c.b = shl2[shidx][2, 3];
+                            loc.TexL0.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][0, 0];
+                            c.g = shl2[shidx][0, 1];
+                            c.b = shl2[shidx][0, 2];
+                            c.b = shl2[shidx][0, 3];
+                            loc.TexL1_R.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][1, 0];
+                            c.g = shl2[shidx][1, 1];
+                            c.b = shl2[shidx][1, 2];
+                            c.b = shl2[shidx][1, 3];
+                            loc.TexL1_G.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][2, 0];
+                            c.g = shl2[shidx][2, 1];
+                            c.b = shl2[shidx][2, 2];
+                            c.b = shl2[shidx][1, 3];
+                            loc.TexL1_B.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][0, 4];
+                            c.g = shl2[shidx][0, 5];
+                            c.b = shl2[shidx][0, 6];
+                            c.b = shl2[shidx][0, 7];
+                            loc.TexL2_R.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][2, 4];
+                            c.g = shl2[shidx][2, 5];
+                            c.b = shl2[shidx][2, 6];
+                            c.b = shl2[shidx][1, 7];
+                            loc.TexL2_G.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl2[shidx][2, 4];
+                            c.g = shl2[shidx][2, 5];
+                            c.b = shl2[shidx][2, 6];
+                            c.b = shl2[shidx][1, 7];
+                            loc.TexL2_B.SetPixel(ix, iy, iz, c);
+
+                            shidx++;
+                        }
+                    }
+                }
+                // update the pool index
+                bx += kBrickProbeCountPerDim;
+                if (bx >= loc.width)
+                {
+                    bx = 0;
+                    by += kBrickProbeCountPerDim;
+                    if (by >= loc.height)
+                    {
+                        by = 0;
+                        bz += kBrickProbeCountPerDim;
+                        Debug.Assert(bz < loc.depth || brickIdx == shl2.Length - kBrickProbeCountTotal, "Location depth exceeds data texture.");
+                    }
+                }
+            }
+
+            loc.TexL0.Apply(false);
+
+            loc.TexL1_R.Apply(false);
+            loc.TexL1_G.Apply(false);
+            loc.TexL1_B.Apply(false);
+
+            loc.TexL2_R.Apply(false);
+            loc.TexL2_G.Apply(false);
+            loc.TexL2_B.Apply(false);
         }
 
         private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)

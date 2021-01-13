@@ -157,6 +157,10 @@ namespace UnityEngine.Rendering
             /// Texture containing the third channel of Spherical Harmonics L1 band data.
             /// </summary>
             public Texture3D L1_B;
+
+            public Texture3D L2_R;
+            public Texture3D L2_G;
+            public Texture3D L2_B;
         }
 
         internal struct RegId
