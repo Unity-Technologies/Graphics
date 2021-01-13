@@ -11,7 +11,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_trunk:
     name: VFX_URP on OSX_OpenGLCore_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: graphics-foundation/mac-10.15:latest
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -20,9 +20,32 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
+VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
+    name: VFX_URP on OSX_OpenGLCore_playmode_cache_mono_Linear on version trunk
+    agent:
+        type: Unity::VM::osx
+        image: graphics-foundation/mac-10.15:latest
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
+      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-downloader-cli
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -32,7 +55,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: graphics-foundation/mac-10.15:latest
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -42,9 +65,36 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
+    name: VFX_URP on OSX_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: graphics-foundation/mac-10.15:latest
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
+      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity-downloader-cli
+      -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload true" --extra-editor-arg="-cacheServerEnableUpload true" --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
