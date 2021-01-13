@@ -262,11 +262,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
             this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Auto;
             #else
-            this.m_ScrollView.showVertical = true;
-            this.m_ScrollView.showHorizontal = true;
+            this.m_ScrollView.style.display = DisplayStyle.Flex;
             #endif
 
-            contentContainer.MarkDirtyRepaint();
+            this.MarkDirtyRepaint();
         }
 
         public void HideWindow()
@@ -276,11 +275,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
             this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             #else
-            this.m_ScrollView.showVertical = false;
-            this.m_ScrollView.showHorizontal = false;
+            this.m_ScrollView.style.display = DisplayStyle.None;
             #endif
 
-            contentContainer.MarkDirtyRepaint();
+            this.MarkDirtyRepaint();
         }
 
         void BuildManipulators()
