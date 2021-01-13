@@ -158,9 +158,11 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     clip(weight <= 0.005h ? -1.0h : 1.0h);
 #endif
 
+#ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
     splatControl /= (weight + HALF_MIN);
+#endif
 
     mixedDiffuse = 0.0h;
     mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
@@ -364,6 +366,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
+    half alpha = dot(splatControl, 1.0h);
 #ifdef _TERRAIN_BLEND_HEIGHT
     // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
     if (_NumLayersCount <= 4)
@@ -373,7 +376,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness;
-    half alpha = dot(splatControl, 1.0h);
     SplatmapMix(IN.uvMainAndLM, IN.uvSplat01, IN.uvSplat23, splatControl, weight, mixedDiffuse, defaultSmoothness, normalTS);
     half3 albedo = mixedDiffuse.rgb;
 
