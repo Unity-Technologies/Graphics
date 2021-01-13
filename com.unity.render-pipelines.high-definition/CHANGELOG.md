@@ -56,6 +56,7 @@ The version number for this package has increased due to a version update of a r
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
+- Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
 
 ## [10.3.0] - 2020-12-01
 
