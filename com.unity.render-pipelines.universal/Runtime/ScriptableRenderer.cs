@@ -339,6 +339,9 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
+        public static AttachmentDescriptor m_ActiveColorAttachmentDescriptor;
+        public static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
+
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
         // To avoid that warning assert we trim the RenderTargetIdentifier[] arrays we pass to CoreUtils.SetRenderTarget.
@@ -722,9 +725,29 @@ namespace UnityEngine.Rendering.Universal
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
+            bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier();
+            var attachments = new NativeArray<AttachmentDescriptor>(useDepth ? 2 : 1, Allocator.Temp);
+
+            attachments[0] = m_ActiveColorAttachmentDescriptor;
+            if (useDepth)
+                attachments[1] = m_ActiveDepthAttachmentDescriptor;
+
+            //cameraData.requiresDepth -> don't use depth
+
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+            context.BeginRenderPass(desc.width, desc.height, 1, attachments, 1);
+            attachments.Dispose();
+            var attachmentIndices = new NativeArray<int>(1, Allocator.Temp);
+            attachmentIndices[0] = 0;
+            context.BeginSubPass(attachmentIndices);
+            attachmentIndices.Dispose();
+            renderPass.Execute(context, ref renderingData);
+            context.EndSubPass();
+            context.EndRenderPass();
+
+
             CommandBufferPool.Release(cmd);
 
-            renderPass.Execute(context, ref renderingData);
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -864,6 +887,9 @@ namespace UnityEngine.Rendering.Universal
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
+                m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+//                m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
@@ -897,21 +923,36 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                // Only setup render target if current render pass attachments are different from the active ones
-                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-                {
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                m_ActiveColorAttachmentDescriptor.ConfigureTarget(passColorAttachment, true, true);
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    if (cameraData.xr.enabled)
-                    {
-                        // SetRenderTarget might alter the internal device state(winding order).
-                        // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
-                    }
-#endif
-                }
+                m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+
+                if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget)
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, true);
+                else
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment, true, true);
+                //if (!shouldLoadColor)
+                //    m_ActiveColorAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 1);
+             //   if (m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier())
+            //       m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment, true, true);
+
+
+
+//                 // Only setup render target if current render pass attachments are different from the active ones
+//                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+//                 {
+//                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+//
+// #if ENABLE_VR && ENABLE_XR_MODULE
+//                     if (cameraData.xr.enabled)
+//                     {
+//                         // SetRenderTarget might alter the internal device state(winding order).
+//                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+//                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
+//                         cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+//                     }
+// #endif
+//                 }
             }
         }
 
