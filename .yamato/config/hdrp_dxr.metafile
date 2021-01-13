@@ -16,7 +16,24 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
 expression_trigger: 
   expression: ""
 platforms:
@@ -51,4 +68,4 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_XR
-        # - Standalone
+        # - Standalone_cache
