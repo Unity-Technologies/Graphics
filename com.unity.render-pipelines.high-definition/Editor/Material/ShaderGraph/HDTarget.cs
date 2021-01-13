@@ -1081,6 +1081,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
+        public static KeywordDescriptor ProbeVolumes = new KeywordDescriptor()
+        {
+            displayName = "ProbeVolumes",
+            referenceName = "PROBE_VOLUMES",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "L1", referenceName = "L1" },
+                new KeywordEntry() { displayName = "L2", referenceName = "L2" },
+            }
+        };
+
         public static KeywordDescriptor LodFadeCrossfade = new KeywordDescriptor()
         {
             displayName = "LOD Fade Crossfade",
@@ -1322,6 +1337,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
+        {
+            displayName = "Multi Bounce Indirect",
+            referenceName = "MULTI_BOUNCE_INDIRECT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
     #endregion

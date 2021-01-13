@@ -4,6 +4,12 @@
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.DensityVolumeFalloffMode:  static fields
+//
+#define DENSITYVOLUMEFALLOFFMODE_LINEAR (0)
+#define DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.DensityVolumeData
 // PackingRules = Exact
 struct DensityVolumeData
@@ -17,13 +23,16 @@ struct DensityVolumeData
     float3 scattering;
     float extinction;
     float3 textureTiling;
-    int textureIndex;
-    float3 textureScroll;
     int invertFade;
-    float3 rcpPosFaceFade;
+    float3 textureScroll;
     float rcpDistFadeLen;
-    float3 rcpNegFaceFade;
+    float3 rcpPosFaceFade;
     float endTimesRcpDistFadeLen;
+    float3 rcpNegFaceFade;
+    int useVolumeMask;
+    float3 atlasOffset;
+    int falloffMode;
+    float4 maskSize;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -91,33 +100,45 @@ float3 GetTextureTiling(DensityVolumeData value)
 {
     return value.textureTiling;
 }
-int GetTextureIndex(DensityVolumeData value)
+int GetInvertFade(DensityVolumeData value)
 {
-    return value.textureIndex;
+    return value.invertFade;
 }
 float3 GetTextureScroll(DensityVolumeData value)
 {
     return value.textureScroll;
 }
-int GetInvertFade(DensityVolumeData value)
+float GetRcpDistFadeLen(DensityVolumeData value)
 {
-    return value.invertFade;
+    return value.rcpDistFadeLen;
 }
 float3 GetRcpPosFaceFade(DensityVolumeData value)
 {
     return value.rcpPosFaceFade;
 }
-float GetRcpDistFadeLen(DensityVolumeData value)
+float GetEndTimesRcpDistFadeLen(DensityVolumeData value)
 {
-    return value.rcpDistFadeLen;
+    return value.endTimesRcpDistFadeLen;
 }
 float3 GetRcpNegFaceFade(DensityVolumeData value)
 {
     return value.rcpNegFaceFade;
 }
-float GetEndTimesRcpDistFadeLen(DensityVolumeData value)
+int GetUseVolumeMask(DensityVolumeData value)
 {
-    return value.endTimesRcpDistFadeLen;
+    return value.useVolumeMask;
+}
+float3 GetAtlasOffset(DensityVolumeData value)
+{
+    return value.atlasOffset;
+}
+int GetFalloffMode(DensityVolumeData value)
+{
+    return value.falloffMode;
+}
+float4 GetMaskSize(DensityVolumeData value)
+{
+    return value.maskSize;
 }
 
 #endif

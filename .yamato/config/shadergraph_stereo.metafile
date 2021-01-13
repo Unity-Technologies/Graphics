@@ -3,7 +3,6 @@ project:
   folder: ShaderGraphUniversalStereo
 test_platforms:
   - type: Standalone
-# - type: playmode
   - type: editmode
 platforms:
   - name: Win
@@ -12,7 +11,9 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+expression_trigger: 
+  expression: ""
+pr:
   dependencies:
     - platform: Win
       api: ''
@@ -21,4 +22,7 @@ all:
       test_platforms:
         - Standalone
         - editmode
-        # - playmode
+nightly:
+  dependencies:
+    - project: ShaderGraph_Stereo
+      pr: true

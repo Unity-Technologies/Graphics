@@ -233,11 +233,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
         const float fDpth = FetchDepthMSAA(uPixCrd, i);
-        #if defined(SHADER_API_METAL) // GetSamplePosition isn't supported on Metal yet in Unity. TODO: remove when support is added
-        const float2 fracSampleCoord = float2(0.0, 0.0);
-        #else
         const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
-        #endif
 #else
         const float fDpth = FetchDepth(uPixCrd);
         const float2 fracSampleCoord = float2(0.5,0.5);
@@ -384,7 +380,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
     shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
     shiftIndex[LIGHTCATEGORY_DENSITY_VOLUME] = _DensityVolumeIndexShift;
-    shiftIndex[LIGHTCATEGORY_PROBE_VOLUME] = _ProbeVolumeIndexShift;
 
     int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals, density volumes, and probe volumes
     ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);

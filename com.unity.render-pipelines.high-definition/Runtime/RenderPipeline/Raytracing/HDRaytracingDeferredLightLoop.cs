@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, buffers.depthStencilBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, buffers.normalBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDirectionBuffer, buffers.directionBuffer);
+            cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingHalfResolution, parameters.halfResolution ? 1 : 0);
 
             // Bind the output textures
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._GBufferTextureRW[0], buffers.gbuffer0);
@@ -208,7 +209,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, "_RaytracingHalfResolution", parameters.halfResolution ? 1 : 0);
                 cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBuffer, widthResolution, heightResolution, (uint)parameters.viewCount);
             }
 
