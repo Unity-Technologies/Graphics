@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return null;
         }
 
-        [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Counters(GraphicsTestCase testCase)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
         const int GlobalTimeout = 120 * 1000;
-        [Timeout(GlobalTimeout), Version("1"), UnityTest, UseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
             var totalMemoryAllocated = Profiler.GetTotalAllocatedMemoryLong();
