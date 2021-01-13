@@ -84,10 +84,17 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #if PRE_FILTER_LIGHT_LIST
 
-//Temporary workaround for a DXC bug where the min funcion (and possibly others) used with constants produces the
-// error: "variable length arrays are not supported" when used to declare array sizes like for gs_localLightList
-#define DXC_MIN(a, b) (a) < (b) ? (a) : (b)
-#define MAX_SUPPORTED_LIGHTS DXC_MIN(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
+#if defined(UNITY_COMPILER_DXC)
+    //Temporary workaround for a DXC bug where the min funcion (and possibly others) used with constants produces the
+    // error: "variable length arrays are not supported" when used to declare array sizes like for gs_localLightList
+    #define MIN_DXC_WORKAROUND(a, b) (a) < (b) ? (a) : (b)
+#else
+    //Note: the above workaround produces the error: "array dimensions must be literal scalar expressions" with FXC
+    //which is why implementation is branched on the compiler
+    #define MIN_DXC_WORKAROUND(a, b) min((a), (b))
+#endif // UNITY_COMPILER_DXC
+
+#define MAX_SUPPORTED_LIGHTS MIN_DXC_WORKAROUND(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
