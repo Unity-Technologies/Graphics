@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
             this.RegisterCallback<DragExitedEvent>(evt => HideScrollBoundaryRegions());
 
+            associatedGraphView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
             m_ScrollBoundaryTop.RegisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
@@ -94,7 +96,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         void ScrollRegionTopEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
+            {
                 m_scrollToTop = true;
+                m_scrollToBottom = false;
+            }
         }
 
         void ScrollRegionTopLeave(MouseLeaveEvent mouseLeaveEvent)
@@ -106,7 +111,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
+            {
                 m_scrollToBottom = true;
+                m_scrollToTop = false;
+            }
         }
 
         void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
