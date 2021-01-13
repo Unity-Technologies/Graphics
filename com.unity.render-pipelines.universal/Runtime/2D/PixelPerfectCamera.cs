@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -181,11 +182,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
         }
 
-        void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
-            if (camera != m_Camera)
-                return;
-
             var targetTexture = m_Camera.targetTexture;
             Vector2Int rtSize = targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
 
@@ -206,8 +204,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 m_Camera.orthographicSize = m_Internal.orthoSize;
             }
+        }
 
-            UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+        void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera == m_Camera)
+                UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -220,6 +222,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
+            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
@@ -231,6 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void OnDisable()
         {
+            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
