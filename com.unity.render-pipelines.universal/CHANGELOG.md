@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
 - Fixed the default background color for previews to use the original color.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
 
 ## [10.2.0] - 2020-10-19
 
