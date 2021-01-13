@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.BooleanShaderProperty")]
     [BlackboardInputInfo(20)]
-    public sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
+    internal sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
         internal BooleanShaderProperty()
         {

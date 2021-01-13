@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         (variable name, function name, ...) this means
         no spaces, no funny characters, never starts with a number, ...
     */
-    public class IdentifierField : UIElements.TextValueField<string>
+    internal class IdentifierField : UIElements.TextValueField<string>
     {
         IdentifierInput tsInput => (IdentifierInput)textInputBase;
 

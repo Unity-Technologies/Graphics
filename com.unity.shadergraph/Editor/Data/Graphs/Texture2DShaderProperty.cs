@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.TextureShaderProperty")]
     [BlackboardInputInfo(50)]
-    public sealed class Texture2DShaderProperty : AbstractShaderProperty<SerializableTexture>
+    internal sealed class Texture2DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         public enum DefaultType { White, Black, Grey, Bump }
 

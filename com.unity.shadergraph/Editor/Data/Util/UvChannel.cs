@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public enum UVChannel
+    internal enum UVChannel
     {
         UV0 = 0,
         UV1 = 1,

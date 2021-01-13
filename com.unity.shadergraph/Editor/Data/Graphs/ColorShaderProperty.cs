@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
     [BlackboardInputInfo(10)]
-    public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
+    internal sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
         // 0 - original (broken color space)
         // 1 - fixed color space

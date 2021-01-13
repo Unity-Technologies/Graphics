@@ -10,7 +10,7 @@ using UnityEngine;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SubGraphOutputNode))]
-    public class SubGraphOutputNodePropertyDrawer : IPropertyDrawer
+    internal class SubGraphOutputNodePropertyDrawer : IPropertyDrawer
     {
         VisualElement CreateGUI(SubGraphOutputNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)

@@ -1,7 +1,7 @@
 namespace UnityEditor.ShaderGraph.Internal
 {
     [GenerationAPI]
-    public enum PropertyType
+    internal enum PropertyType
     {
         Color,
         Texture2D,

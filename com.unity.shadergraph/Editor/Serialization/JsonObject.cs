@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Serialization
 {
     [Serializable]
-    public class JsonObject : ISerializationCallbackReceiver
+    internal class JsonObject : ISerializationCallbackReceiver
     {
         public virtual int latestVersion { get; } = 0;
 

@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    public static class PropertyDrawerUtils
+    internal static class PropertyDrawerUtils
     {
         public static Label CreateLabel(string text, int indentLevel = 0, FontStyle fontStyle = FontStyle.Normal)
         {

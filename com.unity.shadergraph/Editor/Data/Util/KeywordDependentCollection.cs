@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public static class KeywordDependentCollection
+    internal static class KeywordDependentCollection
     {
         public enum KeywordPermutationInstanceType
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 
-    public abstract class KeywordDependentCollection<TStorage, TAll, TAllPermutations, TForPermutation, TBase, TIInstance, TISet>
+    internal abstract class KeywordDependentCollection<TStorage, TAll, TAllPermutations, TForPermutation, TBase, TIInstance, TISet>
         where TAll : TISet
         where TAllPermutations : TISet
         where TForPermutation : TISet, TIInstance

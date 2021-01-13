@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class TabbedView : VisualElement
+internal class TabbedView : VisualElement
 {
     public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> {}
 

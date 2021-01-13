@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class InspectableAttribute : Attribute
+    internal class InspectableAttribute : Attribute
     {
         // String value to use in the Property name TextLabel
         public string labelName { get; private set; }

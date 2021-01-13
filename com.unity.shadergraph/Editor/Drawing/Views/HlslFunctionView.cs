@@ -8,7 +8,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     [Serializable]
-    public enum HlslSourceType { File, String };
+    internal enum HlslSourceType { File, String };
 
     internal class HlslFunctionView : VisualElement
     {

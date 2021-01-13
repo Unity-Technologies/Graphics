@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class TextUtil
+    internal static class TextUtil
     {
         public static string PascalToLabel(this string pascalString)
         {

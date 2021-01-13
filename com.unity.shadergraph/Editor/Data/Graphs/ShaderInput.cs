@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public abstract class ShaderInput : JsonObject
+    internal abstract class ShaderInput : JsonObject
     {
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();

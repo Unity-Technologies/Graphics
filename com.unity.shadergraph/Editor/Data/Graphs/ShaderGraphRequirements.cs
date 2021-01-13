@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public struct ShaderGraphRequirements
+    internal struct ShaderGraphRequirements
     {
         [SerializeField] NeededCoordinateSpace m_RequiresNormal;
         [SerializeField] NeededCoordinateSpace m_RequiresBitangent;

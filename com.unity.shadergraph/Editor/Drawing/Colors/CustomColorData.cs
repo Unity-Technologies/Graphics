@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
     }
 
     [Serializable]
-    public class CustomColorData : ISerializationCallbackReceiver
+    internal class CustomColorData : ISerializationCallbackReceiver
     {
         Dictionary<string, Color> m_CustomColors = new Dictionary<string, Color>();
         [SerializeField]

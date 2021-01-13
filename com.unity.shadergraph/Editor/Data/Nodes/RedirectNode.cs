@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class RedirectNode : Node
+    internal class RedirectNode : Node
     {
         public RedirectNode()
         {

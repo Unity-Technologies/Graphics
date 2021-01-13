@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
     [FormerName("UnityEditor.ShaderGraph.Vector1ShaderProperty")]
     [BlackboardInputInfo(0, "Float")]
-    public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
+    internal sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         internal Vector1ShaderProperty()
         {
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 
-    public enum FloatType { Default, Slider, Integer, Enum }
+    internal enum FloatType { Default, Slider, Integer, Enum }
 
-    public enum EnumType { Enum, CSharpEnum, KeywordEnum, }
+    internal enum EnumType { Enum, CSharpEnum, KeywordEnum, }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
+    internal abstract class VectorShaderProperty : AbstractShaderProperty<Vector4>
     {
         internal override bool isExposable => true;
         internal override bool isRenamable => true;

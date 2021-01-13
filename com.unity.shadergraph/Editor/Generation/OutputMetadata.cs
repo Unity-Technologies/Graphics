@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public struct OutputMetadata
+    internal struct OutputMetadata
     {
         [SerializeField]
         int m_Index;

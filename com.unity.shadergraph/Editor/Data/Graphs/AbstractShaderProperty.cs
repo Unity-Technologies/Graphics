@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public abstract class AbstractShaderProperty : ShaderInput
+    internal abstract class AbstractShaderProperty : ShaderInput
     {
         public abstract PropertyType propertyType { get; }
 
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 
-    public enum HLSLType
+    internal enum HLSLType
     {
         // value types
         _float,

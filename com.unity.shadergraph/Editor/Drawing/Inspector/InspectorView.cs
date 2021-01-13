@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
     }
 
-    public static class InspectorUtils
+    internal static class InspectorUtils
     {
         internal static void GatherInspectorContent(
             List<Type> propertyDrawerList,

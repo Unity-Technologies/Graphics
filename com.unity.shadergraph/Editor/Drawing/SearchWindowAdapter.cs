@@ -6,7 +6,7 @@ using UnityEditor.Searcher;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class SearchWindowAdapter : SearcherAdapter
+    internal class SearchWindowAdapter : SearcherAdapter
     {
         readonly VisualTreeAsset m_DefaultItemTemplate;
         public override bool HasDetailsPanel => false;

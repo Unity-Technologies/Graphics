@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(GraphData))]
-    public class GraphDataPropertyDrawer : IPropertyDrawer
+    internal class GraphDataPropertyDrawer : IPropertyDrawer
     {
         public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
         public delegate void PostTargetSettingsChangedCallback();

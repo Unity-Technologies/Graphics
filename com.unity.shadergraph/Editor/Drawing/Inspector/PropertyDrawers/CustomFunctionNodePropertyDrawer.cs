@@ -10,7 +10,7 @@ using UnityEngine;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(CustomFunctionNode))]
-    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
+    internal class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;

@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Texture3DShaderProperty")]
     [BlackboardInputInfo(52)]
-    public sealed class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
+    internal sealed class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         internal Texture3DShaderProperty()
         {

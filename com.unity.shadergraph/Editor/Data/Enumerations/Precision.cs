@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph.Internal
         Half,
     }
 
-    public enum ConcretePrecision
+    internal enum ConcretePrecision
     {
         Single,
         Half,

@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph
     // All MaterialSlot types required by a BlockFieldDescriptor need a matching Control here.
     // We also need a corresponding case in BlockNode.AddSlot for each control.
 
-    public interface IControl
+    internal interface IControl
     {
         ShaderGraphRequirements GetRequirements();
     }
 
-    public class PositionControl : IControl
+    internal class PositionControl : IControl
     {
         public CoordinateSpace space { get; private set; }
 
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class NormalControl : IControl
+    internal class NormalControl : IControl
     {
         public CoordinateSpace space { get; private set; }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class TangentControl : IControl
+    internal class TangentControl : IControl
     {
         public CoordinateSpace space { get; private set; }
 
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class ColorControl : IControl
+    internal class ColorControl : IControl
     {
         public Color value { get; private set; }
         public bool hdr { get; private set; }
@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class ColorRGBAControl : IControl
+    internal class ColorRGBAControl : IControl
     {
         public Color value { get; private set; }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class FloatControl : IControl
+    internal class FloatControl : IControl
     {
         public float value { get; private set; }
 
@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class Vector2Control : IControl
+    internal class Vector2Control : IControl
     {
         public Vector2 value { get; private set; }
 
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class Vector3Control : IControl
+    internal class Vector3Control : IControl
     {
         public Vector3 value { get; private set; }
 

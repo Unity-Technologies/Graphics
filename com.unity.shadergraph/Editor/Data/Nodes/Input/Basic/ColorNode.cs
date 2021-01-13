@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public enum ColorMode
+    internal enum ColorMode
     {
         Default,
         HDR

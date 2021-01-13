@@ -8,13 +8,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public struct TextureInfo
+    internal struct TextureInfo
     {
         public string name;
         public Texture texture;
     }
 
-    public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
+    internal sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         private class ShaderGraphVfxAssetData : JsonObject
         {

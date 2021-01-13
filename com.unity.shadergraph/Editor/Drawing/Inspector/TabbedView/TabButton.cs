@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class TabButton : VisualElement
+internal class TabButton : VisualElement
 {
     internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> {}
 

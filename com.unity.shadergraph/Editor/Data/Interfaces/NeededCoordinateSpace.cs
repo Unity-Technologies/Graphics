@@ -4,7 +4,7 @@ using System.Linq;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Flags]
-    public enum NeededCoordinateSpace
+    internal enum NeededCoordinateSpace
     {
         None = 0,
         Object = 1 << 0,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
         AbsoluteWorld = 1 << 4
     }
 
-    public enum CoordinateSpace
+    internal enum CoordinateSpace
     {
         Object,
         View,
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
         AbsoluteWorld
     }
 
-    public enum InterpolatorType
+    internal enum InterpolatorType
     {
         Normal,
         BiTangent,
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Internal
         Position
     }
 
-    public static class CoordinateSpaceExtensions
+    internal static class CoordinateSpaceExtensions
     {
         static int s_SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
         static int s_InterpolatorCount = Enum.GetValues(typeof(InterpolatorType)).Length;
