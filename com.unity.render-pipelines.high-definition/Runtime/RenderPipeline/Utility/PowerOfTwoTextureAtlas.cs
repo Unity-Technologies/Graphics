@@ -195,6 +195,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
 
+            if (NeedsUpdate(texture))
+                return false;
+
             // new texture
             if (!IsCached(out _, texture))
             {
@@ -205,15 +208,39 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        public bool ReserveSpace(int id, int width, int height)
+        // Pass as parameter width & height, for Cubemap [uses width*2] & Texture2D [uses width]
+        public bool ReserveSpace(Texture texture, int width, int height)
         {
-            m_RequestedTextures[id] = new Vector2Int(width, height);
+            int textureID = GetTextureID(texture);
+            m_RequestedTextures[textureID] = new Vector2Int(width, height);
+
+            if (NeedsUpdate(texture))
+                return false;
 
             // new texture
-            if (!IsCached(out _, id))
+            if (!IsCached(out _, texture))
             {
                 Vector4 scaleBias = Vector4.zero;
-                if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))
+                if (!AllocateTextureWithoutBlit(textureID, width, height, ref scaleBias))
+                    return false;
+            }
+            return true;
+        }
+
+        // Pass as parameter width & height, for Cubemap [uses width*2] & Texture2D [uses width]
+        public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
+        {
+            int textureID = GetTextureID(textureA, textureB);
+            m_RequestedTextures[textureID] = new Vector2Int(width, height);
+
+            if (NeedsUpdate(textureA, textureB))
+                return false;
+
+            // new texture
+            if (!IsCached(out _, textureA, textureB))
+            {
+                Vector4 scaleBias = Vector4.zero;
+                if (!AllocateTextureWithoutBlit(textureID, width, height, ref scaleBias))
                     return false;
             }
             return true;
