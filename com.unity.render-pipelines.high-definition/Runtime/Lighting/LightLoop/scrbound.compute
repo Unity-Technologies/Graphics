@@ -321,7 +321,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     {
         // The entity is partially outside the view volume.
         // Therefore, some of the corners of the view volume may be inside the entity's bounding frustum.
-        // We perform aggressive culling, so we must make sure they are accounted for.
+        // Since we cull faces that are outside the view volume, so we must make sure its corners are accounted for.
         // We can exploit the properties of the frustum by building an entity-space projection matrix.
         // P_v = T * (R * S) * P_l
         // P_l = (R * S)^{-1} * T^{-1} * P_v
