@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
+### Changed
+- ClearFlag moved into the Unity Core module (Unity 2021.2).
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
@@ -15,9 +18,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed the default background color for previews to use the original color.
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
-
-### Changed
-- ClearFlag moved out of core package (now part of CommandBuffer interface).
 
 ## [10.2.0] - 2020-10-19
 
