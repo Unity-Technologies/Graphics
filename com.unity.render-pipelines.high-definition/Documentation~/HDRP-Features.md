@@ -248,6 +248,14 @@ In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky
 
 HDRP is able to handle multiple skies seen by different Cameras.
 
+### Clouds
+
+![](Images/HDRPFeatures-CloudLayer.png)
+
+In HDRP, you set up clouds inside a [Volume](Volumes.md), so you can change clouds settings, or even the type of clouds itself, depending on the position of the Camera in the Scene. HDRP allows you to separate the clouds in the visual sky from the clouds that you use for environment lighting. HDRP includes the following built-in cloud type for you to use in your Unity Project:
+
+- [Cloud Layer](Override-Cloud-Layer.md): Renders a cloud texture with options to simulate clouds self-shadows and projected shadows on the ground.
+
 ### Fog
 
 ![](Images/HDRPFeatures-Fog.png)
