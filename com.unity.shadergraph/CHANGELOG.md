@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 
 ## [10.2.0] - 2020-10-19
 
