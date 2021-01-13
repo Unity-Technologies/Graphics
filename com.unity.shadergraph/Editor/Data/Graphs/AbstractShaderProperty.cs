@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Internal
     }
 
     [Serializable]
-    public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
+    internal abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
         [SerializeField]
         T m_Value;

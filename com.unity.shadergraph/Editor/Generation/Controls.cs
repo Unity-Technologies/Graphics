@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    public class VertexColorControl : IControl
+    internal class VertexColorControl : IControl
     {
         public Color value { get; private set; }
 
