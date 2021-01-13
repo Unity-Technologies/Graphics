@@ -205,16 +205,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
-            contentContainer.MarkDirtyRepaint();
+            this.m_ScrollView.style.display = DisplayStyle.Flex;
+            this.MarkDirtyRepaint();
         }
 
         protected void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
-            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            contentContainer.Clear();
-            contentContainer.MarkDirtyRepaint();
+            this.m_ScrollView.style.display = DisplayStyle.None;
+            this.MarkDirtyRepaint();
         }
 
         void BuildManipulators()
