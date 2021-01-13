@@ -71,14 +71,19 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ViewVectorObject(
-    [Slot(1, Binding.ObjectSpacePosition, true, ShaderStageCapability.All)] Vector3 ObjectSpacePosition,
+    [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
     [Slot(0, Binding.None)] out Vector3 Out)
         {
             Out = new Vector3();
             return
 @"
 {
-    Out = TransformWorldToObject(_WorldSpaceCameraPos.xyz) - ObjectSpacePosition;
+    Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
+    if(!IsPerspectiveProjection())
+    {
+        Out = mul(GetViewForwardDir(), dot(Out, GetViewForwardDir()));
+    }
+    Out = TransformWorldToObjectDir(Out, false);
 }
 ";
         }
@@ -91,7 +96,14 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = TransformWorldToView(_WorldSpaceCameraPos.xyz) - ViewSpacePosition;
+    if(IsPerspectiveProjection())
+    {
+        Out = -ViewSpacePosition;
+    }
+    else
+    {
+        Out = -$precision3(0.0f, 0.0f, ViewSpacePosition.z);
+    }
 }
 ";
         }
@@ -106,7 +118,11 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = _WorldSpaceCameraPos.xyz - WorldSpacePosition;
+    Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
+    if(!IsPerspectiveProjection())
+    {
+        Out = mul(GetViewForwardDir(), dot(Out, GetViewForwardDir()));
+    }
 }
 ";
         }
@@ -123,8 +139,12 @@ namespace UnityEditor.ShaderGraph
 @"
 {
     $precision3x3 basisTransform = $precision3x3(WorldSpaceTangent, WorldSpaceBitangent, WorldSpaceNormal);
-    $precision3 worldSpaceViewVector = _WorldSpaceCameraPos.xyz - WorldSpacePosition;
-    Out = length(worldSpaceViewVector) * TransformWorldToTangent(worldSpaceViewVector, basisTransform);
+    Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
+    if(!IsPerspectiveProjection())
+    {
+        Out = mul(GetViewForwardDir(), dot(Out, GetViewForwardDir()));
+    }
+    Out = length(Out) * TransformWorldToTangent(Out, basisTransform);
 }
 ";
         }
