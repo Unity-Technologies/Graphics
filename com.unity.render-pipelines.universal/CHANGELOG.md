@@ -49,6 +49,7 @@ The version number for this package has increased due to a version update of a r
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 - Converted XR automated tests to use MockHMD.
+- Improved 2D Renderer performance on mobile GPUs when using MSAA
 
 ### Fixed
 - Fixed an issue where additional lights would not render with WebGL 1
