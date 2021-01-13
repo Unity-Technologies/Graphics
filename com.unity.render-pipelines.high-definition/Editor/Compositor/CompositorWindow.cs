@@ -114,13 +114,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
                 Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
             }
-            else if (compositor)
+            else if (compositor && (compositor.enabled != enableCompositor))
             {
                 string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
                 Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
-            else
+            else if (!compositor)
             {
                 return;
             }
@@ -223,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);
                 EditorUtility.SetDirty(compositor.profile);
+                compositor.CleanUpCameraOrphans();
                 compositor.UpdateLayerSetup();
             }
         }
