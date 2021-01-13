@@ -10,7 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
-- Added support for exposing the vertex color interpolator via ShaderGraph.
+- Added support for exposing the vertex color interpolator and vertex id via ShaderGraph.
 
 ## [11.0.0] - 2020-10-21
 ### Added
