@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (preRenderSky)
-                    skyContext.skyRenderer.PreRenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
+                    skyContext.skyRenderer.PreRenderSky(m_BuiltinParameters);
 
                 if (skyContext.HasClouds() && skyContext.cloudRenderer.RequiresPreRenderClouds(m_BuiltinParameters))
                 {
