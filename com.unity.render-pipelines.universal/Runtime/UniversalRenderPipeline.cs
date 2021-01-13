@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
-            // Must update volumeframework before initializing additional camera data
+            // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
 
