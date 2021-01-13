@@ -114,6 +114,16 @@ pr:
         - Standalone
     - project: ShaderGraph_Stereo
       pr: true
+    - project: HDRP
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+        - playmode_cache
+        - playmode_XR
+        - editmode
 nightly:
   dependencies:
     - project: ShaderGraph
