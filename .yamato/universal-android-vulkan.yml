@@ -15,6 +15,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
@@ -28,7 +29,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -46,6 +47,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
@@ -58,7 +60,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -66,7 +68,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Universal on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -76,6 +78,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
@@ -89,7 +92,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -110,6 +113,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
@@ -122,7 +126,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -130,7 +134,7 @@ Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always

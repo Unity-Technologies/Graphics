@@ -360,30 +360,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedShadowManager.Cleanup(renderGraph);
         }
 
-        public void InitializeNonRenderGraphResources()
-        {
-            m_Atlas.AllocateRenderTexture();
-            m_CascadeAtlas.AllocateRenderTexture();
-            cachedShadowManager.punctualShadowAtlas.AllocateRenderTexture();
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.AllocateRenderTexture();
-                cachedShadowManager.areaShadowAtlas.AllocateRenderTexture();
-            }
-        }
-
-        public void CleanupNonRenderGraphResources(RenderGraph renderGraph)
-        {
-            m_Atlas.Release(renderGraph);
-            m_CascadeAtlas.Release(renderGraph);
-            cachedShadowManager.punctualShadowAtlas.Release(renderGraph);
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.Release(renderGraph);
-                cachedShadowManager.areaShadowAtlas.Release(renderGraph);
-            }
-        }
-
         // Keep in sync with both HDShadowSampling.hlsl
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
@@ -724,85 +700,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
-        {
-            // Avoid to do any commands if there is no shadow to draw
-            if (m_ShadowRequestCount == 0)
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedPunctualShadowMaps)))
-            {
-                cachedShadowManager.punctualShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                cachedShadowManager.punctualShadowAtlas.AddBlitRequestsForUpdatedShadows(m_Atlas);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderCachedAreaShadowMaps)))
-            {
-                if (ShaderConfig.s_AreaLights == 1)
-                {
-                    cachedShadowManager.areaShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                    cachedShadowManager.areaShadowAtlas.AddBlitRequestsForUpdatedShadows(m_AreaLightShadowAtlas);
-                }
-            }
-
-            BlitCacheIntoAtlas(cmd);
-
-            // Clear atlas render targets and draw shadows
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderPunctualShadowMaps)))
-            {
-                m_Atlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDirectionalShadowMaps)))
-            {
-                m_CascadeAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderAreaShadowMaps)))
-            {
-                if (ShaderConfig.s_AreaLights == 1)
-                {
-                    m_AreaLightShadowAtlas.RenderShadows(cullResults, globalCB, hdCamera.frameSettings, renderContext, cmd);
-                }
-            }
-        }
-
-        public void BlitCacheIntoAtlas(CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitPunctualMixedCachedShadowMaps)))
-            {
-                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_Atlas.PrepareShadowBlitParameters(cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
-                    m_Atlas.renderTarget,
-                    cachedShadowManager.punctualShadowAtlas.renderTarget,
-                    cmd);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitAreaMixedCachedShadowMaps)))
-            {
-                HDDynamicShadowAtlas.BlitCachedIntoAtlas(m_AreaLightShadowAtlas.PrepareShadowBlitParameters(cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock),
-                    m_AreaLightShadowAtlas.renderTarget,
-                    cachedShadowManager.areaShadowAtlas.renderTarget,
-                    cmd);
-            }
-        }
-
         public void PushGlobalParameters(CommandBuffer cmd)
         {
             // This code must be in sync with HDShadowContext.hlsl
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
-        }
-
-        public void BindResources(CommandBuffer cmd)
-        {
-            m_Atlas.BindResources(cmd);
-            m_CascadeAtlas.BindResources(cmd);
-            cachedShadowManager.punctualShadowAtlas.BindResources(cmd);
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                m_AreaLightShadowAtlas.BindResources(cmd);
-                cachedShadowManager.areaShadowAtlas.BindResources(cmd);
-            }
         }
 
         public int GetShadowRequestCount()
@@ -837,20 +739,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle cachedPunctualShadowAtlas;
             public RTHandle cachedAreaShadowAtlas;
-        }
-
-        public ShadowDebugAtlasTextures GetDebugAtlasTextures()
-        {
-            var result = new ShadowDebugAtlasTextures();
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                result.areaShadowAtlas = m_AreaLightShadowAtlas.renderTarget;
-                result.cachedAreaShadowAtlas = cachedShadowManager.areaShadowAtlas.renderTarget;
-            }
-            result.punctualShadowAtlas = m_Atlas.renderTarget;
-            result.cascadeShadowAtlas = m_CascadeAtlas.renderTarget;
-            result.cachedPunctualShadowAtlas = cachedShadowManager.punctualShadowAtlas.renderTarget;
-            return result;
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations

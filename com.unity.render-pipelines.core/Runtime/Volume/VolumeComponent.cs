@@ -79,6 +79,27 @@ namespace UnityEngine.Rendering
 #pragma warning restore 414
 
         /// <summary>
+        /// Extracts all the <see cref="VolumeParameter"/>s defined in this class and nested classes.
+        /// </summary>
+        static void GetParameters(object o, List<VolumeParameter> parameters)
+        {
+            if (o == null)
+                return;
+
+            var fields = o.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .OrderBy(t => t.MetadataToken); // Guaranteed order
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                    parameters.Add((VolumeParameter)field.GetValue(o));
+                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
+                    GetParameters(field.GetValue(o), parameters);
+            }
+        }
+
+        /// <summary>
         /// Unity calls this method when it loads the class.
         /// </summary>
         /// <remarks>
@@ -87,13 +108,9 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
-            parameters = this.GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic  | BindingFlags.Instance)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .OrderBy(t => t.MetadataToken) // Guaranteed order
-                .Select(t => (VolumeParameter)t.GetValue(this))
-                .ToList()
-                .AsReadOnly();
+            var fields = new List<VolumeParameter>();
+            GetParameters(this, fields);
+            parameters = fields.AsReadOnly();
 
             foreach (var parameter in parameters)
             {

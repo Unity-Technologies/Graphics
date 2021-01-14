@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
@@ -49,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string pathtracingInclude => CoreIncludes.kLitPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Lit Subshader", "");
         protected override string subShaderInclude => CoreIncludes.kLit;
+        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
 
         // SubShader features
         protected override bool supportDistortion => true;
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(CoatMask,                             descs.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(CoatMask,                             descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
             context.AddField(ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
             context.AddField(RayTracing,                           litData.rayTracing);
 
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);

@@ -654,6 +654,27 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            ///////////////////////////////////////////////////////////////////
+            // Descriptor settings                                            /
+            ///////////////////////////////////////////////////////////////////
+
+            var renderer = additionalCameraData?.scriptableRenderer;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+
+            int msaaSamples = 1;
+            if (camera.allowMSAA && asset.msaaSampleCount > 1 && rendererSupportsMSAA)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
+            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
+            if (cameraData.xrRendering && rendererSupportsMSAA)
+                msaaSamples = XRSystem.GetMSAALevel();
+#endif
+
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>
@@ -716,19 +737,6 @@ namespace UnityEngine.Rendering.Universal
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
 
-            var renderer = baseAdditionalCameraData?.scriptableRenderer;
-            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
-
-            int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
-                msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
-            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering && rendererSupportsMSAA)
-                msaaSamples = XRSystem.GetMSAALevel();
-#endif
-
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
@@ -758,10 +766,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
-
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
-                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         /// <summary>
@@ -781,6 +785,14 @@ namespace UnityEngine.Rendering.Universal
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
+
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
@@ -896,6 +908,7 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeShadowData);
 
             m_ShadowBiasData.Clear();
+            m_ShadowResolutionData.Clear();
 
             for (int i = 0; i < visibleLights.Length; ++i)
             {
@@ -910,14 +923,31 @@ namespace UnityEngine.Rendering.Universal
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
                 else
                     m_ShadowBiasData.Add(new Vector4(settings.shadowDepthBias, settings.shadowNormalBias, 0.0f, 0.0f));
+
+                if (data && (data.additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    m_ShadowResolutionData.Add((int)light.shadowResolution); // native code does not clamp light.shadowResolution between -1 and 3
+                }
+                else if (data && (data.additionalLightsShadowResolutionTier != UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom))
+                {
+                    int resolutionTier = Mathf.Clamp(data.additionalLightsShadowResolutionTier, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow, UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh);
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(resolutionTier));
+                }
+                else
+                {
+                    m_ShadowResolutionData.Add(settings.GetAdditionalLightsShadowResolution(UniversalAdditionalLightData.AdditionalLightsShadowDefaultResolutionTier));
+                }
             }
 
             shadowData.bias = m_ShadowBiasData;
+            shadowData.resolution = m_ShadowResolutionData;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
             // We no longer use screen space shadows in URP.
             // This change allows us to have particles & transparent objects receive shadows.
+#pragma warning disable 0618
             shadowData.requiresScreenSpaceShadowResolve = false;
+#pragma warning restore 0618
 
             shadowData.mainLightShadowCascadesCount = settings.shadowCascadeCount;
             shadowData.mainLightShadowmapWidth = settings.mainLightShadowmapResolution;

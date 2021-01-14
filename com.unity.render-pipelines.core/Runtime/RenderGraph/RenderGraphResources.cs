@@ -65,6 +65,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool imported;
         public bool shared;
         public bool sharedExplicitRelease;
+        public bool requestFallBack;
+        public uint writeCount;
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
@@ -79,6 +81,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             cachedHash = -1;
             transientPassIndex = -1;
             sharedResourceLastFrameUsed = -1;
+            requestFallBack = false;
+            writeCount = 0;
 
             m_Pool = pool;
         }
@@ -91,6 +95,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public virtual bool IsCreated()
         {
             return false;
+        }
+
+        public virtual void IncrementWriteCount()
+        {
+            writeCount++;
+        }
+
+        public virtual bool NeedsFallBack()
+        {
+            return requestFallBack && writeCount == 0;
         }
 
         public virtual void CreatePooledGraphicsResource() {}
