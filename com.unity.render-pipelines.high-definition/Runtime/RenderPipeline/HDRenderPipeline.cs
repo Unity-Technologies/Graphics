@@ -1039,11 +1039,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
+
+                m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = m_AmbientOcclusionSystem.EvaluateSpecularOcclusionFlag(hdCamera);
             }
             else
             {
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = 0;
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
+                m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -2313,7 +2316,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams = hdCamera.xr.cullingParams;
 
                 // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
-                if (!camera.usePhysicalProperties)
+                if (!camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
                     camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
