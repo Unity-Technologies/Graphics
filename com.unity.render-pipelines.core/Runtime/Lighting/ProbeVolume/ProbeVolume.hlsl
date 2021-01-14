@@ -17,18 +17,34 @@ static const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 struct APVResources
 {
     StructuredBuffer<int> index;
+
     Texture3D L0;
+
     Texture3D L1_R;
     Texture3D L1_G;
     Texture3D L1_B;
+
+#ifdef PROBE_VOLUMES_L2
+    Texture3D L2_R;
+    Texture3D L2_G;
+    Texture3D L2_B;
+#endif
 };
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
+
 TEXTURE3D(_APVResL0);
+
 TEXTURE3D(_APVResL1_R);
 TEXTURE3D(_APVResL1_G);
 TEXTURE3D(_APVResL1_B);
+
+#ifdef PROBE_VOLUMES_L2
+TEXTURE3D(_APVResL2_R);
+TEXTURE3D(_APVResL2_G);
+TEXTURE3D(_APVResL2_B);
+#endif
 
 APVConstants LoadAPVConstants( StructuredBuffer<int> index )
 {
@@ -61,11 +77,10 @@ APVConstants LoadAPVConstants( StructuredBuffer<int> index )
     return apvc;
 }
 
-float3 DecodeSH( float l0, float3 l1 )
+float3 DecodeSH(float l0, float3 l1 )
 {
     return (l1 - 0.5) * 4.0 * l0;
 }
-
 
 #define APV_USE_BASE_OFFSET
 
@@ -89,6 +104,25 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float3 N, float3 backN, float
     diffuseLighting     = SHEvalLinearL1(N, l1_R, l1_G, l1_B);
     backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
 }
+
+#ifdef PROBE_VOLUMES_L2
+void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+{
+    float4 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_R, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_G, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_B, s_linear_clamp_sampler, uvw, 0).rgba;
+
+    diffuseLighting = SHEvalLinearL1(N, l1_R.rgb, l1_G.rgb, l1_B.rgb);
+    backDiffuseLighting = SHEvalLinearL1(backN, l1_R.rgb, l1_G.rgb, l1_B.rgb);
+
+    float4 l2_C = float4(l1_R.a, l1_G.a, l1_B.a, 0);
+    diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
+    backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
+}
+#endif
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
 {
@@ -166,7 +200,12 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
     {
         float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
+
+#ifdef PROBE_VOLUMES_L1
         EvaluateAPVL1(apvRes, L0, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+#elif PROBE_VOLUMES_L2
+        EvaluateAPVL1L2(apvRes, L0, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+#endif
 
         bakeDiffuseLighting += L0;
         backBakeDiffuseLighting += L0;
@@ -202,10 +241,18 @@ APVResources FillAPVResources()
 {
     APVResources apvRes;
     apvRes.index = _APVResIndex;
+
     apvRes.L0 = _APVResL0;
+
     apvRes.L1_R = _APVResL1_R;
     apvRes.L1_G = _APVResL1_G;
     apvRes.L1_B = _APVResL1_B;
+
+#if PROBE_VOLUMES_L2
+    apvRes.L2_R = _APVResL2_R;
+    apvRes.L2_G = _APVResL2_G;
+    apvRes.L2_B = _APVResL2_B;
+#endif
 
     return apvRes;
 }
