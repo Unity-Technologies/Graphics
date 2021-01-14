@@ -17,6 +17,8 @@ To enable the **Cloud Layer** override, you must assign a cloud map. For informa
 The Cloud Layer will bake the cloud map to an intermediate texture, which is recomputed everytime a parameter changes. The resolution of the baked texture is determined by the **Resolution** parameter in the advanced settings of the inspector.
 Clouds shadows are also baked to a separate texture whose resolution is set by the **Shadow Resolution** parameter.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## About the cloud map
 
 The cloud map is a 2D RGBA texture in LatLong layout (sometimes called Cylindrical or Equirectangular) where each channel contains a cloud opacity. For rendering, HDRP mixes the four channels together using the **Opacity RGBA** parameters of the Volume override. This allows you to change the aspects of the clouds using a single texture and the volume framework.
