@@ -93,6 +93,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // w = 1 + 1.0/height
         public Vector4 _ScreenParams;
         
+        // _ClusterDisplayParams holds all cluster related data:
+        // row 0: normalized viewport subsection, (0, 0) is bottom-left, (1, 1) is top-right
+        // row 1: global screensize (xy) and its reciprocate (zw)
+        // row 2: grid size expressed in tiles (x:int, y:int, 0, 0)
+        // row 3: unused
         public Matrix4x4 _ClusterDisplayParams;
 
         [HLSLArray(6, typeof(Vector4))]
