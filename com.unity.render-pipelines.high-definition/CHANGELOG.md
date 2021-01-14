@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 - Fixed box light attenuation.
 - Fixed compilation issues on platforms that don't support XR.
+- Fixed issue with compute shader stripping for probe volumes variants.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
