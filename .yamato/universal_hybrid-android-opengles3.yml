@@ -68,7 +68,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -134,7 +134,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
