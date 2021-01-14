@@ -1552,7 +1552,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResetCameraSizeForAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera, CommandBuffer commandBuffer)
         {
-            if (hdCamera.allowDynamicResolution && HDUtils.hdrpSettings.dynamicResolutionSettings.enabled)
+            if (DynamicResolutionHandler.instance.DynamicResolutionEnabled)
             {
                 using (var builder = renderGraph.AddRenderPass("Reset Camera Size After Post Process", out ResetCameraSizeForAfterPostProcessPassData passData))
                 {
