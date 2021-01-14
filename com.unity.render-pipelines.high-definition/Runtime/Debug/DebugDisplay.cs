@@ -1401,6 +1401,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 debugContainer.children.Add(new DebugUI.EnumField
                 {
+                });
+
+                debugContainer.children.Add(new DebugUI.EnumField
+                {
                     displayName = "Binned Debug Mode",
                     getter = () => (int)data.lightingDebugSettings.binnedDebugMode,
                     setter = value => data.lightingDebugSettings.binnedDebugMode = (BinnedDebugMode)value,

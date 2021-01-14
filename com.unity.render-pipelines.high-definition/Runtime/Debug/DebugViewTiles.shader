@@ -289,6 +289,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint category = (BOUNDEDENTITYCATEGORY_COUNT - 1) - tileCoord.y;
                     int lightListIndex = tileCoord.x - 2;
 
+                    uint i = 0;
                     uint entityIndex = 0;
                     int n = -1;
                     int i = 0;
@@ -299,6 +300,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         {
                             n = entityIndex;
                         }
+                        entityCount++;
                         i++;
                         entityCount++;
                     }
