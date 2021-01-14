@@ -131,5 +131,11 @@ Ray-traced shadows offer an alternative to the [exponential variance shadow map]
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
 
 
-## Notes
+## Limitations
+
+#### Double-sided shadows
 Ray-traced shadows do not support the **Two Sided** option for the Mesh Renderer's **Cast Shadows** property. To use double-sided shadows for a mesh, open the Mesh Renderer's Material in the Inspector and, in the **Surface Options** section, enable the **Double-Sided** property.
+
+#### Recursive rendering
+
+GameObjects HDRP renders using [recursive rendering](Ray-Tracing-Recursive-Rendering.md) cannot receive ray-traced shadows. If you enable both effects, HDRP renders rasterized [shadows](Shadows-in-HDRP.md) on recursively rendered GameObjects.
