@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
+- Fixed after post process custom pass scale issue when dynamic resolution is enabled (case 1299194).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
