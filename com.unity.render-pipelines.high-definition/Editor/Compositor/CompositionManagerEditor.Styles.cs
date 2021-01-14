@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
 
         internal static readonly int k_IconSize = 28;
+        internal static readonly int k_HeaderFontSize = 14;
         internal static readonly int k_ListItemPading = 4;
         internal static readonly int k_ListItemStackPading = 20;
         internal static readonly float k_SingleLineHeight = EditorGUIUtility.singleLineHeight;
