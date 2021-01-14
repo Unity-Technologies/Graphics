@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering
         private const string kPathTDownSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/DownSnatchFocused.png";
 
         private const float kSliderbarMargin = 2.0f;
-        private const float kSliderbarHeight = 25.0f;
+        private const float kSliderbarHeight = 28.0f;
 
         private static readonly Color[] kCascadeColors =
         {
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering
             EditorGUILayout.BeginVertical();
 
             // Space for cascade handles
-            GUILayout.Space(10f);
+            GUILayout.Space(13f);
 
             EditorGUILayout.BeginHorizontal();
 
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering
                             currentX - 6 - partitionHalfWidth,
                             usableRect.y - 19 + 1,
                             12,
-                            19);
+                            18);
                         var enabled = cascade.cascadeHandleState == HandleState.Enabled;
                         var cascadePartitionColor = enabled ? kCascadeColors[i + 1] : kDisabledColor;
                         var delta = DrawSnatchWithHandle(cascadeHandleRect, usableRect.width, cascadePartitionColor, GetDownSnatchStyle(), enabled);
