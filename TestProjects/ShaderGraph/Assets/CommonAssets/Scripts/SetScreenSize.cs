@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class SetScreenSize : MonoBehaviour
 {
-    void Start()
+    void Update()
     {
         var renderer = GetComponent<Renderer>();
-        renderer.material.SetFloat("_ScreenHeight", Screen.height);
-        renderer.material.SetFloat("_ScreenWidth", Screen.width);
+        var camera = Camera.main;
+        var settings = camera.GetComponent<ShaderGraphGraphicsTestSettings>();
+        if(settings != null)
+        {
+            renderer.material.SetFloat("_ScreenHeight", settings.TargetHeight);
+            renderer.material.SetFloat("_ScreenWidth", settings.TargetWidth);
+        }
     }
 }
