@@ -151,7 +151,7 @@ HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
 HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -313,7 +313,7 @@ HDRP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

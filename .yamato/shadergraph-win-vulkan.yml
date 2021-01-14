@@ -189,7 +189,7 @@ Build_ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 ShaderGraph_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -395,7 +395,7 @@ Build_ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

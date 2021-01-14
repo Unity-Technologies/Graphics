@@ -135,7 +135,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Stereo on Win__Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -279,7 +279,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
