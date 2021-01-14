@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
+- Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
 
 ## [11.0.0] - 2020-10-21
 
