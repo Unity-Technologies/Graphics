@@ -2,6 +2,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ClusterDisplay.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 
@@ -24,6 +25,8 @@
 #pragma kernel KMain_Variant13 MAIN=KMain_Variant13 ENABLE_ALPHA VARIANT=13
 #pragma kernel KMain_Variant14 MAIN=KMain_Variant14 ENABLE_ALPHA VARIANT=14
 #pragma kernel KMain_Variant15 MAIN=KMain_Variant15 ENABLE_ALPHA VARIANT=15
+
+#pragma multi_compile _ USING_CLUSTER_DISPLAY
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
@@ -122,7 +125,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = posInputs.positionNDC;
+    float2 uv = DEVICE_TO_CLUSTER_FULLSCREEN_UV(posInputs.positionNDC);
+    //float2 uv = posInputs.positionNDC;
     float2 uvDistorted = DistortUV(uv);
     CTYPE color = 0.0;
     CTYPE inputColor = 0.0;
@@ -135,7 +139,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 coords = 2.0 * uv - 1.0;
         float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
         float2 diff = end - uv;
-        int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
+    	int samples = clamp(int(length(CLUSTER_SCREEN_SIZE.xy * diff / 2.0)), 3, ChromaMaxSamples);
+    	//int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
         float2 delta = diff / samples;
         float2 pos = uv;
         float3 sum = 0.0, filterSum = 0.0;
@@ -143,7 +148,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         for (int i = 0; i < samples; i++)
         {
             float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
+        	float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(CLUSTER_TO_DEVICE_FULLSCREEN_UV(DistortUV(pos))), 0.0).xyz;
+        	//float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
             float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
             sum += s * filter;
@@ -159,7 +165,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).CTYPE_SWIZZLE;
+    	color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(CLUSTER_TO_DEVICE_FULLSCREEN_UV(uvDistorted)), 0.0).CTYPE_SWIZZLE;
+    	//color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).CTYPE_SWIZZLE;
         inputColor = color;
     }
 
@@ -168,7 +175,8 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (BloomEnabled)
     {
         #if 0 // Bilinear
-        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
+	float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(CLUSTER_TO_DEVICE_FULLSCREEN_UV(uvDistorted)), 0.0).xyz;
+	//float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
         #else
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _RTHandleScale.xy, _BloomBicubicParams, _RTHandleScale.xy, unity_StereoEyeIndex).xyz;
         #endif
@@ -194,14 +202,16 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         if (VignetteMode == 0u) // Procedural
         {
             float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-            d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
+	    d.x *= lerp(1.0, CLUSTER_SCREEN_SIZE.x / CLUSTER_SCREEN_SIZE.y, VignetteRounded);
+	    //d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
             d = pow(saturate(d), VignetteRoundness);
             float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
             color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);
         }
         else // Masked
         {
-            float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
+	    float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, CLUSTER_TO_DEVICE_FULLSCREEN_UV(uvDistorted), 0).w;
+	    //float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
             vfactor = FastSRGBToLinear(vfactor);
             float3 newColor = color.xyz * lerp(VignetteColor, (1.0).xxx, vfactor);
             color.xyz = lerp(color.xyz, newColor, VignetteOpacity);
