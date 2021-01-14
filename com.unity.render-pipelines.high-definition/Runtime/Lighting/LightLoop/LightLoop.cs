@@ -350,6 +350,19 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_EntityBoundsBuffer;
     }
 
+    // Only used by the ray tracing code.
+    // Should be probably deprecated in favor of BoundedEntityCategory.
+    [GenerateHLSL]
+    internal enum LightCategory
+    {
+        Punctual,
+        Area,
+        Env,
+        Decal,
+        DensityVolume,
+        Count
+    }
+
     [GenerateHLSL]
     internal enum LightFeatureFlags
     {
