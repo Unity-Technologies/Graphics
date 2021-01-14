@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed label style in pbr sky editor.
 - Fixed side effect on styles during compositor rendering.
 - Fixed size and spacing of compositor info boxes (case 1305652).
+- Fixed spacing of UI widgets in the Graphics Compositor (case 1305638).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
