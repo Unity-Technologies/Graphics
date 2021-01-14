@@ -12,6 +12,12 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - il2cpp
   color_spaces: 
     - Linear
+nightly:
+  extra_dependencies: # additional project jobs to run nightly
+    - project: URP_Performance_BoatAttack
+      pr: true
+    - project: URPUpdate
+      pr: true
 weekly:
   extra_dependencies: # additional project jobs to run weekly
     []
