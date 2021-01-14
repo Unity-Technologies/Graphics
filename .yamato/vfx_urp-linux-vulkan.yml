@@ -69,7 +69,7 @@ VFX_URP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -147,7 +147,7 @@ VFX_URP_Linux_Vulkan_playmode_PerformanceTests_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -171,7 +171,7 @@ VFX_URP_Linux_Vulkan_editmode_PerformanceTests_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -247,7 +247,7 @@ VFX_URP_Linux_Vulkan_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --timeout=1200 --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -336,7 +336,7 @@ VFX_URP_Linux_Vulkan_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -364,7 +364,7 @@ VFX_URP_Linux_Vulkan_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
