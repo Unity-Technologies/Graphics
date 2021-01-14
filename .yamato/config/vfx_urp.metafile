@@ -4,13 +4,18 @@ project:
 test_platforms:
   - type: Standalone
     utr_flags:
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
       - [all]: --testfilter="VFX.Test"
-      - [OSX_Metal]: --timeout=2400 --testfilter="VFX.Test"
   - type: Standalone
     name: Standalone_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+    utr_flags_build:
+      - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
   - type: playmode
     name: playmode_cache
     utr_flags:
@@ -25,6 +30,9 @@ test_platforms:
     name: playmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+  - type: editmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
   - type: editmode
     name: editmode_PerformanceTests
     utr_flags:
