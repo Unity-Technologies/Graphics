@@ -1,6 +1,16 @@
 project:
   name: URPUpdate_Top_Asset_Store
   folder: Top-URP-Assets
+  url: https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git
+  branch: '%ASSET_STORE_BRANCH%'
+  revision: '%ASSET_STORE_REVISION%'
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+  variables:
+    ASSET_STORE_BRANCH: master
+    ASSET_STORE_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
 test_platforms:
   - type: playmode
   - type: editmode

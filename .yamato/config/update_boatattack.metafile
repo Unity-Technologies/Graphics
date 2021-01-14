@@ -1,6 +1,17 @@
 project:
   name: URPUpdate_BoatAttack
   folder: BoatAttack-19-4
+  url: https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git
+  branch: '%BA_UPDATE_BRANCH%'
+  revision: '%BA_UPDATE_REVISION%'
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+  variables:
+    BA_UPDATE_BRANCH: master
+    BA_UPDATE_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
+
 test_platforms:
   - type: playmode
   - type: editmode

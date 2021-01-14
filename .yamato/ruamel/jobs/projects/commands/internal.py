@@ -4,12 +4,8 @@ from ...shared.utr_utils import  get_repeated_utr_calls
 
 def _cmd_base(project, platform, utr_calls, editor):
     base = [
-        f'git clone {GITHUB_CDS_URL}/sophia/URP-Update-testing.git TestProjects/URP-Update-testing',
         f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/utr.bat',
-        f'choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
-        f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.core\" /Y',
-        f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.universal\" /Y',
-        f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.shadergraph\" /Y',
+        f'choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local'
     ]
 
     if str(editor['track']).lower()=='custom-revision':
@@ -22,12 +18,16 @@ def _cmd_base(project, platform, utr_calls, editor):
 
 def cmd_editmode(project, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
-    return _cmd_base(project, platform, utr_calls, editor)
-
+    base = _cmd_base(project, platform, utr_calls, editor)
+    base = add_project_commands(project) + base
+    return base
 
 def cmd_playmode(project, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
-    return _cmd_base(project, platform, utr_calls, editor)
+    base = _cmd_base(project, platform, utr_calls, editor)
+
+    base = add_project_commands(project) + base
+    return base
 
 def cmd_standalone(project, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
@@ -35,9 +35,27 @@ def cmd_standalone(project, platform, api, test_platform, editor, build_config, 
     for utr_args in utr_calls:
         base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}')
 
+    base = add_project_commands(project) + base
     return base
 
 
 def cmd_standalone_build(project, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"], utr_flags_key="utr_flags_build")
     return _cmd_base(project, platform, utr_calls, editor)
+
+def add_project_commands(project):
+    cmds = []
+    if project.get("url"):
+        cmds.extend([
+            f'git clone {project["url"]} -b {project["branch"]} {TEST_PROJECTS_DIR}/{project["folder"]}',
+            f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {project["revision"]}',
+            f'NetSh Advfirewall set allprofiles state off'
+        ])
+    if project.get("unity_config_commands"):
+        cmds.extend([
+            f'choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local',
+            f'choco install unity-config'
+        ])
+        for unity_config in project["unity_config_commands"]:
+            cmds.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && {unity_config}')
+    return cmds
