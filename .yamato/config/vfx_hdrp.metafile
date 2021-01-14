@@ -7,9 +7,18 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
   - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
+  - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests" 
   - type: editmode
 expression_trigger: 
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]'
@@ -86,10 +95,10 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
-        - playmode
+        - playmode_cache
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
