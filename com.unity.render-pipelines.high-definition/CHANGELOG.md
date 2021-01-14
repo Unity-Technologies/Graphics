@@ -4,7 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-12-02
+## [12.0.0] - 2021-01-11
+
+### Fixed
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed XR depth copy when using MSAA.
+
+### Changed
+- Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+
+## [11.0.0] - 2020-10-21
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
@@ -33,6 +42,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with half res ssgi upscale.
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed timing issues with accumulation motion blur
+- Fixed an issue with the frame count management for the volumetric fog (case 1299251).
+- Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed issue with shadow mask and area lights.
+- Fixed an issue with the capture callback (now includes post processing results).
+- Fixed decal draw order for ShaderGraph decal materials.
+- Fixed StackLit ShaderGraph surface option property block to only display energy conserving specular color option for the specular parametrization (case 1257050)
+- Fixed missing BeginCameraRendering call for custom render mode of a Camera.
+- Fixed LayerMask editor for volume parameters.
+- Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
+- Fixed box light attenuation.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -47,7 +68,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Changed the convergence time of ssgi to 16 frames and the preset value
-- Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- Improved robustness of volumetric sampling in path tracing (case 1295187).
+- Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
+- Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
+- Changed the warning message for ray traced area shadows (case 1303410).
+- Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 
 ## [10.3.0] - 2020-12-01
 

@@ -5,36 +5,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// Options for the method HDRP uses to encode probe volumes.
-    /// </summary>
-    ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
-    public enum ProbeVolumesEncodingModes
-    {
-        /// <summary>Uses L0 spherical harmonics to encode probe volumes.</summary>
-        SphericalHarmonicsL0 = 0,
-        /// <summary>Uses L1 spherical harmonics to encode probe volumes.</summary>
-        SphericalHarmonicsL1 = 1,
-        /// <summary>Uses L2 spherical harmonics to encode probe volumes.</summary>
-        SphericalHarmonicsL2 = 2
-    }
-
-    /// <summary>
-    /// Options for the mode HDRP uses for probe volume bilateral filtering.
-    /// </summary>
-    ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
-    public enum ProbeVolumesBilateralFilteringModes
-    {
-        /// <summary>Disables bilateral filtering.</summary>
-        Disabled = 0,
-        /// <summary>Bilateral filtering using validity.</summary>
-        Validity = 1,
-        /// <summary>Bilateral filtering using octahedral depth.</summary>
-        OctahedralDepth = 2
-    }
-
-    /// <summary>
     /// Project-wide shader configuration options.
     /// </summary>
     /// <remarks>This enum will generate the proper shader defines.</remarks>
@@ -57,27 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         XrMaxViews = 1,
 #endif
-
-        // Warning: Probe Volumes is a highly experimental feature. It is disabled by default for this reason.
-        // It's functionality is subject to breaking changes and whole sale removal.
-        // It is not recommended for use outside of for providing feedback. It should not be used in production.
-        // To enable, set:
-        // EnableProbeVolumes = 1
-        // and inside of the editor run:
-        // Edit->Render Pipeline->Generate Shader Includes
-        // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
-        // Also uncomment in the HDRP package all ".../Experimental/Probe Volume" menu
-
-        /// <summary>Whether probe volumes are enabled.</summary>
-        EnableProbeVolumes = 0,
-        /// <summary>Probe volume supports additive blending.</summary>
-        ProbeVolumesAdditiveBlending = 1,
-        /// <summary>The probe volume filtering mode.</summary>
-        /// <seealso cref="ProbeVolumesBilateralFilteringModes"/>
-        ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
-        /// <summary>The probe volume encoding method.</summary>
-        /// /// <seealso cref="ProbeVolumesEncodingModes"/>
-        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
 
         /// <summary>Support for area lights.</summary>
         AreaLights = 1,
@@ -112,17 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ///<seealso cref="ShaderOptions.PrecomputedAtmosphericAttenuation"/>
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
 
-        /// <summary>Whether probe volumes are enabled.</summary>
-        public static int s_EnableProbeVolumes = (int)ShaderOptions.EnableProbeVolumes;
-        /// <summary>Indicates whether probe volumes support additive blending.</summary>
-        ///<seealso cref="ShaderOptions.ProbeVolumesAdditiveBlending"/>
-        public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
-        /// <summary>Specifies the probe volume filtering mode.</summary>
-        ///<seealso cref="ShaderOptions.ProbeVolumesBilateralFilteringMode"/>
-        public static ProbeVolumesBilateralFilteringModes s_ProbeVolumesBilateralFilteringMode = (ProbeVolumesBilateralFilteringModes)ShaderOptions.ProbeVolumesBilateralFilteringMode;
-        /// <summary>Specifies the probe volume encoding method.</summary>
-        ///<seealso cref="ShaderOptions.ProbeVolumesEncodingMode"/>
-        public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         /// <summary>Indicates whether to support area lights.</summary>
         ///<seealso cref="ShaderOptions.AreaLights"/>
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;

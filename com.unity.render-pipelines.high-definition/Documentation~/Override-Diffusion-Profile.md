@@ -9,6 +9,8 @@ To add a **Diffusion Profile Override** to a Volume:
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
 2. In the Inspector, navigate to **Add Override** and click on **Diffusion Profile Override**.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images\Override-DiffusionProfile1.png)
