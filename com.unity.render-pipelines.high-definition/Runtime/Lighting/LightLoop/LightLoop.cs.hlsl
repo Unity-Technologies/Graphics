@@ -86,6 +86,7 @@
 //
 #define BINNEDDEBUGMODE_VISUALIZE_OPAQUE (0)
 #define BINNEDDEBUGMODE_VISUALIZE_SLICE (1)
+#define BINNEDDEBUGMODE_VISUALIZE_VARIANTS (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.FiniteLightBound
 // PackingRules = Exact

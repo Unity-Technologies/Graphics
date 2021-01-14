@@ -245,6 +245,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         i++;
                     }
                 }
+            #else
+                entityCount = input.variant;
             #endif
 
                 // Tile overlap counter

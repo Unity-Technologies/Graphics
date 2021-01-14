@@ -1399,21 +1399,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     setIndex    = value => data.lightingDebugSettings.selectedEntityCategory = (BoundedEntityCategory)value
                 });
 
-                debugContainer.children.Add(new DebugUI.IntField
-                {
-                    displayName = "Entity Budget",
-                    getter      = ()    => data.lightingDebugSettings.selectedEntityCategoryBudget,
-                    setter      = value => data.lightingDebugSettings.selectedEntityCategoryBudget = value,
-                    min         = ()    => 1,
-                    max         = ()    => 999 // Completely arbitrary limit
-                });
-
                 debugContainer.children.Add(new DebugUI.EnumField
                 {
                     displayName = "Binned Debug Mode",
                     getter = () => (int)data.lightingDebugSettings.binnedDebugMode,
                     setter = value => data.lightingDebugSettings.binnedDebugMode = (BinnedDebugMode)value,
-                    autoEnum = typeof(ClusterDebugMode),
+                    autoEnum = typeof(BinnedDebugMode),
                     onValueChanged = RefreshLightingDebug,
                     getIndex = () => data.binnedDebugModeEnumIndex,
                     setIndex = value => data.binnedDebugModeEnumIndex = value

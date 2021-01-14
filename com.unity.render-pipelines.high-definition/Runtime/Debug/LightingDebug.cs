@@ -371,7 +371,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Binned lighting debug mode.</summary>
         public bool                  debugBinnedLighting          = false;
         public BoundedEntityCategory selectedEntityCategory       = BoundedEntityCategory.PunctualLight;
-        public int                   selectedEntityCategoryBudget = 4;
         public BinnedDebugMode       binnedDebugMode = BinnedDebugMode.VisualizeOpaque;
         public int                   startBucket = 0;
         public int                   endBucket = TiledLightingConstants.s_zBinCount - 1;

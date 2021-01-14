@@ -481,7 +481,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Visualize z-binning on opaque objects.</summary>
         VisualizeOpaque,
         /// <summary>Visualize a slice of a range of z buckets.</summary>
-        VisualizeSlice
+        VisualizeSlice,
+             /// <summary>Visualize material variants</summary>
+        VisualizeVariants
     }
 
     /// <summary>
@@ -4483,15 +4485,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightingDebug.debugBinnedLighting)
             {
-                parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
-                parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategory",       (int)lightingDebug.selectedEntityCategory);
-                parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategoryBudget",      lightingDebug.selectedEntityCategoryBudget);
-                parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._BinnedDebugMode, (int)lightingDebug.binnedDebugMode);
-                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._StartBucket, (int)lightingDebug.startBucket);
-                parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._EndBucket, (int)lightingDebug.endBucket);
-                CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
+                if(lightingDebug.binnedDebugMode == BinnedDebugMode.VisualizeVariants)
+                {
+                    // TODO
+                }
+                else
+                {
+                    parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
+                    parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                    parameters.debugViewTilesMaterial.SetInt("_SelectedEntityCategory",       (int)lightingDebug.selectedEntityCategory);
+                    parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
+                    parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._BinnedDebugMode, (int)lightingDebug.binnedDebugMode);
+                    parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._StartBucket, (int)lightingDebug.startBucket);
+                    parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._EndBucket, (int)lightingDebug.endBucket);
+                    CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
+                }
             }
 
             if (lightingDebug.displayCookieAtlas)
