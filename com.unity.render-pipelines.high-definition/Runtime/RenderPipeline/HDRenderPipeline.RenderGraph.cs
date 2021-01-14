@@ -1552,7 +1552,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResetCameraSizeForAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera, CommandBuffer commandBuffer)
         {
-            if (DynamicResolutionHandler.instance.DynamicResolutionEnabled)
+            if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
             {
                 using (var builder = renderGraph.AddRenderPass("Reset Camera Size After Post Process", out ResetCameraSizeForAfterPostProcessPassData passData))
                 {
@@ -1564,6 +1564,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         (ResetCameraSizeForAfterPostProcessPassData data, RenderGraphContext ctx) =>
                         {
                             data.shaderVariablesGlobal._ScreenSize = new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height);
+                            data.shaderVariablesGlobal._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
                             RTHandles.SetReferenceSize((int)data.hdCamera.finalViewport.width, (int)data.hdCamera.finalViewport.height, data.hdCamera.msaaSamples);
                         });
