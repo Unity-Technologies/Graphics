@@ -49,6 +49,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 - Fixed box light attenuation.
+- Fixed spacing of UI widgets in the Graphics Compositor (case 1305638).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
