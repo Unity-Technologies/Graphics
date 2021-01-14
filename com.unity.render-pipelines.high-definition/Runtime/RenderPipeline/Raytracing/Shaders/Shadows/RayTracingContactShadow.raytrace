@@ -56,7 +56,7 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
 
         // Evaluate the ray visibility term and PDF
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
-        
+
         // Not sure true translates to 1 in every compiler
         return (rayIntersection.color.x == 0.0) ? 1 : 0;
     }
@@ -107,14 +107,15 @@ void RayGenContactShadows()
         }
     }
 
-
-
-    uint i = 0;
     uint zBin = ComputeZBinIndex(posInput.linearDepth);
     uint tile = ComputeTileIndex(posInput.positionSS);
 
+    EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
+
+    uint i = 0;
+
     LightData lightData;
-    while (TryLoadPunctualLightData(i, tile, zBin, lightData))
+    while (TryLoadPunctualLightData(i, params, lightData))
     {
         if (lightData.contactShadowMask != 0 && lightData.isRayTracedContactShadow == 1.0)
         {
