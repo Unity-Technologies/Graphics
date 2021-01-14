@@ -9,6 +9,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -142,7 +143,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Gamma space... Just do the rest of Uber in linear and convert back to sRGB at the end
             #if UNITY_COLORSPACE_GAMMA
             {
-                color = SRGBToLinear(color);
+                color = GetSRGBToLinear(color);
             }
             #endif
 
@@ -205,13 +206,16 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Back to sRGB
             #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
             {
-                color = LinearToSRGB(color);
+                color = GetLinearToSRGB(color);
             }
             #endif
 
             #if _DITHERING
             {
                 color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                // Assume color > 0 and prevent 0 - ditherNoise.
+                // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
+                color = max(color, 0);
             }
             #endif
 

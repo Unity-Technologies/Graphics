@@ -123,9 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera != null)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor != null && compositor.outputCamera != null)
                 {
-                    return (float)m_Camera.pixelWidth / m_Camera.pixelHeight;
+                    return (float)compositor.outputCamera.pixelWidth / compositor.outputCamera.pixelHeight;
                 }
                 return 1.0f;
             }
@@ -158,6 +159,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (newLayer.m_Type == LayerType.Image || newLayer.m_Type == LayerType.Video)
             {
+                if (newLayer.m_Camera == null)
+                    newLayer.m_Camera = CompositionManager.CreateCamera(layerName);
+
                 // Image and movie layers do not render any 3D objects
                 newLayer.m_OverrideCullingMask = true;
                 newLayer.m_CullingMask = 0;
@@ -200,10 +204,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor && compositor.outputCamera)
                 {
                     float resScale = EnumToScale(m_ResolutionScale);
-                    return (int)(resScale * m_Camera.pixelWidth);
+                    return (int)(resScale * compositor.outputCamera.pixelWidth);
                 }
                 return 0;
             }
@@ -212,10 +217,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor && compositor.outputCamera)
                 {
                     float resScale = EnumToScale(m_ResolutionScale);
-                    return (int)(resScale * m_Camera.pixelHeight);
+                    return (int)(resScale * compositor.outputCamera.pixelHeight);
                 }
                 return 0;
             }
@@ -225,13 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_LayerName == "")
             {
                 m_LayerName = layerID;
-            }
-
-            // Compositor output layers (that allocate the render targets) also need a reference camera, just to get the reference pixel width/height
-            // Note: Movie & image layers are rendered at the output resolution (and not the movie/image resolution). This is required to have post-processing effects like film grain at full res.
-            if (m_Camera == null)
-            {
-                m_Camera = CompositionManager.GetSceneCamera();
             }
 
             var compositor = CompositionManager.GetInstance();
@@ -244,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // - is not shared between layers
                 // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
                 // - it does not force-clear the RT (the first layer of a stack, even if disabled by the user), still clears the RT
-                bool shouldClear = !enabled && m_LayerPositionInStack == 0;
+                bool shouldClear = !enabled && m_LayerPositionInStack == 0 && m_Camera;
                 bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
                 if (!isImageOrVideo && !hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera))
                 {
@@ -527,14 +526,17 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // Copy/update the camera data (but preserve the camera depth/draw-order [case 1264552])
             var drawOrder = m_LayerCamera.depth;
-            m_LayerCamera.CopyFrom(m_Camera);
-            m_LayerCamera.depth = drawOrder;
-
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraDataOrig)
+            if (m_Camera)
             {
-                cameraDataOrig.CopyTo(cameraData);
+                m_LayerCamera.CopyFrom(m_Camera);
+                m_LayerCamera.depth = drawOrder;
+
+                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraDataOrig)
+                {
+                    cameraDataOrig.CopyTo(cameraData);
+                }
             }
         }
 
@@ -552,7 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 if (compositorData)
-                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : Texture2D.blackTexture;
+                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : (m_LayerPositionInStack == 0) ? Texture2D.blackTexture : null;
             }
 
             if (m_LayerCamera.enabled)
@@ -606,15 +608,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void SetupClearColor()
         {
-            m_LayerCamera.enabled = true;
-            m_LayerCamera.cullingMask = 0;
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+            if (m_LayerCamera && m_Camera)
+            {
+                m_LayerCamera.enabled = true;
+                m_LayerCamera.cullingMask = 0;
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
 
-            cameraData.clearColorMode = cameraDataOrig.clearColorMode;
-            cameraData.clearDepth = true;
+                cameraData.clearColorMode = cameraDataOrig.clearColorMode;
+                cameraData.clearDepth = true;
 
-            m_ClearsBackGround = true;
+                m_ClearsBackGround = true;
+            }
         }
 
         public void AddInputFilter(CompositionFilter filter)
@@ -652,14 +657,16 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 if (layerPositionInStack != 0)
                 {
-                    // The next layer in the stack should clear with the texture of the previous layer: this will copy the content of the target RT to the RTHandle and preserve post process
+                    // The next layer in the stack should clear with the texture of the previous layer:
+                    // this will copy the content of the target RT to the RTHandle and preserve post process
+                    // Unless we have an image layer with a valid texture: in this case we use the texture as clear color
                     cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
                     var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                     if (!compositorData)
                     {
                         compositorData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
                     }
-                    if (m_Type != LayerType.Image)
+                    if (m_Type != LayerType.Image || (m_Type == LayerType.Image && m_InputTexture == null))
                     {
                         compositorData.clearColorTexture = targetLayer.GetRenderTarget();
                         compositorData.clearDepthTexture = targetLayer.m_RTHandle;

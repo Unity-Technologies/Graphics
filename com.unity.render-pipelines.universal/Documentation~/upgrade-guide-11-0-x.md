@@ -10,7 +10,7 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ## Upgrading from URP 7.2.x and later releases
 
-1. URP 10.x.x does not support the package Post-Processing Stack v2. If your Project uses the package Post-Processing Stack v2, migrate the effects that use that package first.
+1. URP 11.x.x does not support the package Post-Processing Stack v2. If your Project uses the package Post-Processing Stack v2, migrate the effects that use that package first.
 
 ### DepthNormals Pass
 
@@ -52,6 +52,12 @@ If you intend to use the SSAO effect with your custom shaders, consider the foll
 To support SSAO in custom shader, add the `DepthNormals` Pass and the `_SCREEN_SPACE_OCCLUSION` keyword the the shader. For example, see `Lit.shader`.
 
 If your custom shader implements custom lighting functions, use the function `GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)` to get the `AmbientOcclusionFactor` value for your lighting calculations.
+
+### Shadow Normal Bias
+
+In 11.0.x the formula used to apply Shadow Normal Bias has been slightly fix in order to work better with punctual lights.
+As a result, to match exactly shadow outlines from earlier revisions, the parameter might to be adjusted in some scenes. Typically, using 1.4 instead of 1.0 for a Directional light is usually enough.
+
 
 ## Upgrading from URP 7.0.x-7.1.x
 

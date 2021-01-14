@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                passData.indirectDiffuseBuffer = builder.ReadTexture(builder.WriteTexture(indirectDiffuseBuffer));
+                passData.indirectDiffuseBuffer = builder.ReadWriteTexture(indirectDiffuseBuffer);
 
                 builder.SetRenderFunc(
                     (AdjustRTGIWeightPassData data, RenderGraphContext ctx) =>
@@ -159,14 +159,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle QualityRTGI(RenderGraph renderGraph, in QualityRTIndirectDiffuseParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
+            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
             {
                 builder.EnableAsyncCompute(false);
 
                 passData.parameters = parameters;
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.rayCountTexture = builder.WriteTexture(builder.ReadTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
 

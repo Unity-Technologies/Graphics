@@ -474,7 +474,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var mat = (decalProjector as DecalProjector).material;
 
                         isDefaultMaterial |= mat == hdrp.GetDefaultDecalMaterial();
-                        isValidDecalMaterial = isValidDecalMaterial && DecalSystem.IsDecalMaterial(mat);
+                        isValidDecalMaterial &= mat != null && DecalSystem.IsDecalMaterial(mat);
                     }
                 }
 

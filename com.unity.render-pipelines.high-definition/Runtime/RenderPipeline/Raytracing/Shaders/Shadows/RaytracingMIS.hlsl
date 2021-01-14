@@ -47,6 +47,8 @@ struct LightSamplingOutput
     float lightPDF;
 };
 
+#define ANALYTIC_RADIANCE_THRESHOLD 1e-4
+
 // The approach here is that on a grid pattern, every pixel is using the opposite technique of his direct neighbor and every sample the technique used changes
 void EvaluateMISTechnique(inout MISSamplingInput samplingInput)
 {
@@ -83,29 +85,32 @@ void InitSphericalQuad(LightData areaLightData, float3 positionWS, out SphQuad s
     SphQuadInit(v0, ex, ey, positionWS, squad);
 }
 
-bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normalWS, inout SphQuad squad)
+bool InitSphericalQuad(LightData light, float3 positionWS, float3 normalWS, inout SphQuad squad)
 {
     ZERO_INITIALIZE(SphQuad, squad);
 
     // Dimension of the area light
-    float halfWidth  = areaLightData.size.x * 0.5;
-    float halfHeight = areaLightData.size.y * 0.5;
+    float halfWidth  = light.size.x * 0.5;
+    float halfHeight = light.size.y * 0.5;
 
     // Compute the world space position of the center of the lightlight
-    float3 areaLightPosWS = areaLightData.positionRWS;
+    float3 areaLightPosWS = light.positionRWS;
+
+    // Let's evaluate if the point can potentially receive lighting from this point
+    float3x3 lightToWorld = float3x3(light.right, light.up, light.forward);
+    // Convert the point to the local space of the area light
+    float3 positionLS = mul(positionWS - areaLightPosWS, transpose(lightToWorld));
 
     // Let's first compute the position of the rectangle's corners in world space
-    float3 v0 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up *  halfHeight;
-    float3 v1 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up * -halfHeight;
-    float3 v2 = areaLightPosWS + areaLightData.right * -halfWidth + areaLightData.up * -halfHeight;
-    float3 v3 = areaLightPosWS + areaLightData.right * -halfWidth + areaLightData.up *  halfHeight;
+    float3 v0 = areaLightPosWS + light.right *  halfWidth + light.up *  halfHeight;
+    float3 v1 = areaLightPosWS + light.right *  halfWidth + light.up * -halfHeight;
+    float3 v2 = areaLightPosWS + light.right * -halfWidth + light.up * -halfHeight;
+    float3 v3 = areaLightPosWS + light.right * -halfWidth + light.up *  halfHeight;
 
     // Make sure that this point may have light contributions
     float d = -dot(normalWS, positionWS);
-    if ((dot(normalWS, v0) + d < 0) && (dot(normalWS, v1) + d < 0) && (dot(normalWS, v2) + d < 0) && (dot(normalWS, v3) + d < 0))
-    {
+    if (positionLS.z <= 0.0 || (positionLS.z > 0.0 && ((dot(normalWS, v0) + d < 0) && (dot(normalWS, v1) + d < 0) && (dot(normalWS, v2) + d < 0) && (dot(normalWS, v3) + d < 0))))
         return false;
-    }
 
     float3 ex = v1 - v0;
     float3 ey = v3 - v0;
@@ -199,7 +204,6 @@ bool EvaluateMISProbabilties(DirectLighting lighting, float perceptualRoughness,
 
     // The exact factor to attenuate the brdf probability using the perceptualRoughness has been experimentally defined. It requires
     // an other pass to see if we can improve the quality if we use an other mapping (roughness instead of perceptualRoughness for instance)
-    static const float ANALYTIC_RADIANCE_THRESHOLD = 0.00001;
     brdfProb = specRadiance / max(totalRadiance, ANALYTIC_RADIANCE_THRESHOLD);
     brdfProb = lerp(brdfProb, 0.0, perceptualRoughness);
 

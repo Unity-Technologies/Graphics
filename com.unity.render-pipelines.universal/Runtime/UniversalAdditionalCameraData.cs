@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
         bool m_RequiresDepthTexture = false;
@@ -159,6 +160,23 @@ namespace UnityEngine.Rendering.Universal
                 return s_DefaultAdditionalCameraData;
             }
         }
+
+#if UNITY_EDITOR
+        internal new Camera camera
+#else
+        internal Camera camera
+#endif
+        {
+            get
+            {
+                if (!m_Camera)
+                {
+                    gameObject.TryGetComponent<Camera>(out m_Camera);
+                }
+                return m_Camera;
+            }
+        }
+
 
         /// <summary>
         /// Controls if this camera should render shadows.
@@ -294,7 +312,20 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.asset?.GetRenderer(m_RendererIndex);
+            get
+            {
+                if (UniversalRenderPipeline.asset is null)
+                    return null;
+                if (!UniversalRenderPipeline.asset.ValidateRendererData(m_RendererIndex))
+                {
+                    int defaultIndex = UniversalRenderPipeline.asset.m_DefaultRendererIndex;
+                    Debug.LogWarning(
+                        $"Renderer at <b>index {m_RendererIndex.ToString()}</b> is missing for camera <b>{camera.name}</b>, falling back to Default Renderer. <b>{UniversalRenderPipeline.asset.m_RendererDataList[defaultIndex].name}</b>",
+                        UniversalRenderPipeline.asset);
+                    return UniversalRenderPipeline.asset.GetRenderer(defaultIndex);
+                }
+                return UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+            }
         }
 
         /// <summary>

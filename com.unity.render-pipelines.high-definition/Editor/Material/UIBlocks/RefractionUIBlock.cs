@@ -10,7 +10,10 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class RefractionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents refraction properties.
+    /// </summary>
+    public class RefractionUIBlock : MaterialUIBlock
     {
         internal static class Styles
         {
@@ -26,31 +29,38 @@ namespace UnityEditor.Rendering.HighDefinition
             public static string refractionRenderingPassWarning = "Refraction is not supported with the rendering pass Pre-Refraction. Please, use a different rendering pass.";
         }
 
-        protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
-        protected MaterialProperty atDistance = null;
-        protected const string kATDistance = "_ATDistance";
-        protected MaterialProperty[] thickness = null;
-        protected const string kThickness = "_Thickness";
-        protected MaterialProperty[] thicknessRemap = null;
-        protected const string kThicknessRemap = "_ThicknessRemap";
-        protected MaterialProperty[] thicknessMap = null;
-        protected const string kThicknessMap = "_ThicknessMap";
-        protected MaterialProperty ior = null;
-        protected const string kIor = "_Ior";
-        protected MaterialProperty transmittanceColorMap = null;
-        protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
-        protected MaterialProperty transmittanceColor = null;
-        protected const string kTransmittanceColor = "_TransmittanceColor";
-        protected MaterialProperty blendMode = null;
+        MaterialProperty refractionModel = null;
+        const string kRefractionModel = "_RefractionModel";
+        MaterialProperty atDistance = null;
+        const string kATDistance = "_ATDistance";
+        MaterialProperty[] thickness = null;
+        const string kThickness = "_Thickness";
+        MaterialProperty[] thicknessRemap = null;
+        const string kThicknessRemap = "_ThicknessRemap";
+        MaterialProperty[] thicknessMap = null;
+        const string kThicknessMap = "_ThicknessMap";
+        MaterialProperty ior = null;
+        const string kIor = "_Ior";
+        MaterialProperty transmittanceColorMap = null;
+        const string kTransmittanceColorMap = "_TransmittanceColorMap";
+        MaterialProperty transmittanceColor = null;
+        const string kTransmittanceColor = "_TransmittanceColor";
+        MaterialProperty blendMode = null;
 
         int m_LayerCount;
 
+        /// <summary>
+        /// Constructs a RefractionUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="layerCount">Current layer index. For non-layered shader, indicate 1.</param>
         public RefractionUIBlock(int layerCount)
         {
             m_LayerCount = layerCount;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             refractionModel = FindProperty(kRefractionModel, false);
@@ -64,6 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition
             ior = FindProperty(kIor, false);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             if (refractionModel != null)

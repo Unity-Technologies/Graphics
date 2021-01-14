@@ -170,36 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Copy a camera sized texture into the texture buffers.</summary>
-        /// <param name="cmd">the command buffer to use for the copy.</param>
-        /// <param name="aovBufferId">The id of the buffer to copy.</param>
-        /// <param name="camera">The camera associated with the source texture.</param>
-        /// <param name="source">The source texture to copy</param>
-        /// <param name="targets">The target texture buffer.</param>
-        internal void PushCameraTexture(
-            CommandBuffer cmd,
-            AOVBuffers aovBufferId,
-            HDCamera camera,
-            RTHandle source,
-            List<RTHandle> targets
-        )
-        {
-            if (!isValid || m_RequestedAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(m_RequestedAOVBuffers);
-            Assert.IsNotNull(targets);
-
-            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
-            if (index == -1)
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
-            {
-                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
-            }
-        }
-
         class PushCameraTexturePassData
         {
             public TextureHandle source;
@@ -235,45 +205,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                     });
-            }
-        }
-
-        internal void PushCustomPassTexture(
-            CommandBuffer cmd,
-            CustomPassInjectionPoint injectionPoint,
-            RTHandle cameraSource,
-            Lazy<RTHandle> customPassSource,
-            List<RTHandle> targets
-        )
-        {
-            if (!isValid || m_CustomPassAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(targets);
-
-            int index = -1;
-            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
-            {
-                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index == -1)
-                return;
-
-            if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
-            {
-                HDUtils.BlitCameraTexture(cmd, cameraSource, targets[index]);
-            }
-            else
-            {
-                if (customPassSource.IsValueCreated)
-                {
-                    HDUtils.BlitCameraTexture(cmd, customPassSource.Value, targets[index]);
-                }
             }
         }
 

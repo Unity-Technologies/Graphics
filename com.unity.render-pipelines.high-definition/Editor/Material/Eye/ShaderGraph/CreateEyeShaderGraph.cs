@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateEyeShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Eye Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Eye Shader Graph", false, 208)]
         public static void CreateEyeGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.IrisNormalTS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.IOR,
