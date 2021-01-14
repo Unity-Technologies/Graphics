@@ -83,6 +83,21 @@ namespace UnityEditor.Rendering.LookDev
         [SerializeField]
         string m_EnvironmentLibraryGUID = ""; //Empty GUID
 
+        //Selection should be savable and outside of EnvironmentLibrary for versioning purpose
+        //Former version do not ave it so we must lazy init it or it could not be constructed.
+        [SerializeField]
+        EnvironmentLibrary.SavableSelectedIndex m_EnvironmentSelection;
+
+        internal int environmentSelection
+        {
+            get => m_EnvironmentSelection.index;
+            set 
+            {
+                Undo.RecordObject(m_EnvironmentSelection, "Selected Environment changed");
+                m_EnvironmentSelection.index = value;
+            }
+        }
+        
         [SerializeField]
         bool m_CameraSynced = true;
 
@@ -178,6 +193,9 @@ namespace UnityEditor.Rendering.LookDev
 
         internal void Init()
         {
+            if (m_EnvironmentSelection == null)
+                m_EnvironmentSelection = ScriptableObject.CreateInstance<EnvironmentLibrary.SavableSelectedIndex>();
+
             LoadEnvironmentLibraryFromGUID();
 
             //recompute non serialized computes states
@@ -191,8 +209,12 @@ namespace UnityEditor.Rendering.LookDev
         /// <param name="library">The new EnvironmentLibrary</param>
         public void UpdateEnvironmentLibrary(EnvironmentLibrary library)
         {
+            if (!HasLibraryAssetChanged(library))
+                return;
+            
             m_EnvironmentLibraryGUID = "";
             environmentLibrary = null;
+            environmentSelection = -1;
             if (library == null || library.Equals(null))
                 return;
 

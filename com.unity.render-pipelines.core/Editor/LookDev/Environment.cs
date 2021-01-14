@@ -10,8 +10,6 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public class Environment : ScriptableObject
     {
-        internal const string k_CubemapGUIDSerializedPath = "m_CubemapGUID"; //must be always sync with m_CubemapGUID
-
         [SerializeField]
         string m_CubemapGUID; //must be always sync with k_CubemapGUIDSerializedPath
         Cubemap m_Cubemap;
@@ -168,8 +166,7 @@ namespace UnityEditor.Rendering.LookDev
         void Bind(T data);
     }
 
-    // Note: Current design assime that you will only have one EnvironmentElement at a time
-    // If this change, check the PostprocessModificationsCallback and ensure it is only raised one time.
+    // Note: Current design assume that you will only have one EnvironmentElement at a time
     class EnvironmentElement : VisualElement, IBendable<Environment>, IDisposable
     {
         static class Styles
@@ -228,8 +225,7 @@ namespace UnityEditor.Rendering.LookDev
 
             environmentParams = GetDefaultInspector();
             Add(environmentParams);
-
-            Undo.postprocessModifications += PostprocessModificationsCallback;
+            
             Undo.undoRedoPerformed += RefreshIfNecessary;
         }
 
@@ -487,36 +483,26 @@ namespace UnityEditor.Rendering.LookDev
             if (!disposedValue)
             {
                 Undo.undoRedoPerformed -= RefreshIfNecessary;
-                Undo.postprocessModifications -= PostprocessModificationsCallback;
                 disposedValue = true;
             }
         }
-
-        static bool lastUndoIsOnEnvironment = false;
-        static bool lastUndoIsACubemapGUID = false;
-        UndoPropertyModification[] PostprocessModificationsCallback(UndoPropertyModification[] modifications)
-        {
-            lastUndoIsOnEnvironment = modifications[0].currentValue.target is Environment;
-            lastUndoIsACubemapGUID = modifications[0].currentValue.propertyPath == Environment.k_CubemapGUIDSerializedPath;
-            return modifications;
-        }
+        
 
         void RefreshIfNecessary()
         {
-            if (lastUndoIsOnEnvironment)
-            {
-                //if environment GUID have changed, be sure loaded cubemap too
-                if (lastUndoIsACubemapGUID)
-                    environment.RefreshCubemap();
-                
-                //update inspector again with sync again of thumbnail target
-                Bind(environment, OnUndoRedoResyncDeportedLatlong?.Invoke());
-                    
-                //as thumbnail is stored in the Environment asset, it got updated already
+            if (environment == null)
+                return;
 
-                //update scene
-                OnChangeCallback?.Invoke();
-            }
+            //if environment GUID have changed, be sure loaded cubemap too
+            environment.RefreshCubemap();
+                
+            //update inspector again with sync again of thumbnail target
+            Bind(environment, OnUndoRedoResyncDeportedLatlong?.Invoke());
+                    
+            //as thumbnail is stored in the Environment asset, it got updated already
+
+            //update scene
+            OnChangeCallback?.Invoke();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Linq;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -107,12 +108,13 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Hidden;
                     m_EnvironmentInspector.style.height = 0;
+                    LookDev.currentContext.environmentLibrary?.SelectAndSaveSelection(-1);
                 }
                 else
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Visible;
                     m_EnvironmentInspector.style.height = new StyleLength(StyleKeyword.Auto);
-                    Environment environment = LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex];
+                    Environment environment = LookDev.currentContext.environmentLibrary.SelectAndSaveSelection(m_EnvironmentList.selectedIndex);
                     m_EnvironmentInspector.Bind(environment, GetSelectedThumbnail());
                 }
             };
@@ -302,6 +304,11 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
                     m_NoEnvironmentList.style.display = DisplayStyle.None;
                 }
+
+                if (LookDev.currentContext.environmentSelection == -1)
+                    m_EnvironmentList.SetSelection(Enumerable.Empty<int>());
+                else
+                    m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentSelection;
             }
         }
 

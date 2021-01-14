@@ -15,6 +15,11 @@ namespace UnityEditor.Rendering.LookDev
     [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Environment-Library" + Documentation.endURL)]
     public class EnvironmentLibrary : ScriptableObject
     {
+        internal class SavableSelectedIndex : ScriptableObject
+        {
+            public int index = -1; // -1 = nothing selected;
+        }
+
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();
 
@@ -26,7 +31,24 @@ namespace UnityEditor.Rendering.LookDev
         /// Indexer giving access to contained Environment
         /// </summary>
         public Environment this[int index] => environments[index];
+        
+        /// <summary>
+        /// Access to contained Environment and save selection for Undo/Redo
+        /// </summary>
+        /// <param name="index">Index to seek at</param>
+        /// <returns>The requested environmenet. Null if out of range or -1 (= nothing selected).</returns>
+        public Environment SelectAndSaveSelection(int index) 
+        {
+            if (index < -1 || index >= Count)
+            {
+                Debug.LogError("Index out of range in SelectAndSaveSelection");
+                index = -1;
+            }
 
+            LookDev.currentContext.environmentSelection = index;
+            return index == -1 ? null : this[index];
+        }
+        
         /// <summary>
         /// Create a new empty Environment at the end of the collection
         /// </summary>
@@ -43,9 +65,10 @@ namespace UnityEditor.Rendering.LookDev
             Undo.RecordObject(this, "Add Environment");
             environments.Add(environment);
 
+            LookDev.currentContext.environmentSelection = Count;
+
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
-
             Undo.CollapseUndoOperations(group);
 
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
@@ -53,6 +76,7 @@ namespace UnityEditor.Rendering.LookDev
             AssetDatabase.SaveAssets();
 
             return environment;
+
         }
 
         /// <summary>
@@ -68,8 +92,9 @@ namespace UnityEditor.Rendering.LookDev
             Undo.RecordObject(this, "Remove Environment");
             environments.RemoveAt(index);
             Undo.DestroyObjectImmediate(environment);
-
             Undo.CollapseUndoOperations(group);
+
+            LookDev.currentContext.environmentSelection = -1;
 
             // Force save / refresh
             EditorUtility.SetDirty(this);
@@ -92,13 +117,14 @@ namespace UnityEditor.Rendering.LookDev
 
             Undo.RegisterCreatedObjectUndo(environment, "Duplicate Environment");
             Undo.RecordObject(this, "Duplicate Environment");
+            Undo.CollapseUndoOperations(group);
+
             environments.Add(environment);
+            LookDev.currentContext.environmentSelection = Count;
 
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
-
-            Undo.CollapseUndoOperations(group);
-
+            
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
