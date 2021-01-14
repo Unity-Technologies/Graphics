@@ -7,6 +7,12 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class ShadowCascadeGUI
     {
+        private const string kPathToHorizontalGradientTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/HorizontalGradient.png";
+        private const string kPathToUpSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/UpSnatch.png";
+        private const string kPathToUpSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/UpSnatchFocused.png";
+        private const string kPathToDownSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/DownSnatch.png";
+        private const string kPathTDownSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/DownSnatchFocused.png";
+
         private const float kSliderbarMargin = 2.0f;
         private const float kSliderbarHeight = 25.0f;
 
@@ -17,11 +23,16 @@ namespace UnityEditor.Rendering
             new Color(0.6f, 0.6f, 0.5f, 1.0f),
             new Color(0.6f, 0.5f, 0.5f, 1.0f),
         };
-        private static readonly Color kDisabledColor = new Color(0.5f, 0.5f, 0.5f, 0.4f); //works with both personal and pro skin
+        private static readonly Color kDisabledColor = new Color(0.5f, 0.5f, 0.5f, 0.4f); //Works with both personal and pro skin
 
-        private static GUIStyle s_UpSwatch = "Grad Up Swatch";
-        private static GUIStyle s_DownSwatch = "Grad Down Swatch";
-        private static GUIStyle s_CascadeSliderBG = "LODSliderRange"; // using a LODGroup skin
+        private static Vector2 s_DragLastMousePosition;
+        private static readonly int s_CascadeSliderId = "s_CascadeSliderId".GetHashCode();
+
+        private static GUIStyle s_HorizontalGradient = null; // Lazy init
+        private static GUIStyle s_UpSnatch = null; // Lazy init
+        private static GUIStyle s_DownSnatch = null; // Lazy init
+        private static GUIStyle s_QuickSearchItemBackground = null; // Lazy init
+        private static readonly GUIStyle s_CascadeSliderBG = "LODSliderRange"; // Using a LODGroup skin
         private static readonly GUIStyle s_TextCenteredStyle = new GUIStyle(EditorStyles.whiteMiniLabel)
         {
             alignment = TextAnchor.MiddleCenter
@@ -111,7 +122,7 @@ namespace UnityEditor.Rendering
                     if (cascadeSizeSum > 0)
                         cascades[i].size /= cascadeSizeSum;
                     else
-                        cascades[i].size = 0.25f;
+                        cascades[i].size = (1f / cascades.Length);
                 }
             }
 
@@ -209,13 +220,13 @@ namespace UnityEditor.Rendering
 
                     // Draw border snatch handle
                     var borderPartitionHandleRect = new Rect(
-                        currentX - 5 - partitionHalfWidth,
-                        usableRect.y + usableRect.height - 3,
-                        10,
-                        15);
+                        currentX - 6 - partitionHalfWidth,
+                        usableRect.y + usableRect.height - 1,
+                        12,
+                        18);
                     var enabled = cascade.borderHandleState == HandleState.Enabled;
-                    var borderPartitionColor = enabled ? kCascadeColors[i] : kDisabledColor; ;
-                    var delta = DrawSnatchWithHandle(borderPartitionHandleRect, cascadeWidth, borderPartitionColor, s_UpSwatch, enabled);
+                    var borderPartitionColor = enabled ? kCascadeColors[i] : kDisabledColor;;
+                    var delta = DrawSnatchWithHandle(borderPartitionHandleRect, cascadeWidth, borderPartitionColor, GetUpSnatchStyle(), enabled);
                     cascade.borderSize = Mathf.Clamp01(cascade.borderSize - delta);
 
                     // Draw border partition
@@ -248,14 +259,14 @@ namespace UnityEditor.Rendering
                     {
                         // Draw cascade partition snatch handle
                         var cascadeHandleRect = new Rect(
-                            currentX - 5 - partitionHalfWidth,
-                            usableRect.y - 15 + 1,
-                            10,
-                            15);
+                            currentX - 6 - partitionHalfWidth,
+                            usableRect.y - 19 + 1,
+                            12,
+                            19);
                         var enabled = cascade.cascadeHandleState == HandleState.Enabled;
                         var cascadePartitionColor = enabled ? kCascadeColors[i + 1] : kDisabledColor;
-                        var delta = DrawSnatchWithHandle(cascadeHandleRect, usableRect.width, cascadePartitionColor, s_DownSwatch, enabled);
-                        
+                        var delta = DrawSnatchWithHandle(cascadeHandleRect, usableRect.width, cascadePartitionColor, GetDownSnatchStyle(), enabled);
+
                         if (delta != 0)
                         {
                             ref var nextCascade = ref cascades[i + 1];
@@ -284,7 +295,7 @@ namespace UnityEditor.Rendering
             EditorGUILayout.EndHorizontal();
 
             // Space for border handles
-            GUILayout.Space(10f);
+            GUILayout.Space(15f);
 
             EditorGUILayout.EndVertical();
         }
@@ -298,27 +309,28 @@ namespace UnityEditor.Rendering
             return rect.width;
         }
 
-        private const string kPathToGradientWhiteTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/HorizontalGradient.png";
-        private static Texture2D s_GradientWhiteTexture;
         private static float DrawGradientBoxGUI(Rect rect, Color leftColor, Color rightColor)
         {
-            if (s_GradientWhiteTexture == null)
+            if (s_HorizontalGradient == null)
             {
-                s_GradientWhiteTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathToGradientWhiteTexture);
-                Debug.Assert(s_GradientWhiteTexture != null);
+                var horizontalGradientTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathToHorizontalGradientTexture);
+                Debug.Assert(horizontalGradientTexture != null);
+
+                s_HorizontalGradient = new GUIStyle();
+                s_HorizontalGradient.normal.background = horizontalGradientTexture;
             }
 
-            // Draw right color as background
             var cachedColor = GUI.backgroundColor;
+
+            // Draw right color as background
             GUI.backgroundColor = rightColor;
             GUI.Box(rect, GUIContent.none, s_CascadeSliderBG);
-            GUI.backgroundColor = cachedColor;
 
             // Draw left color as gradient overlay
-            cachedColor = GUI.color;
-            GUI.color = leftColor;
-            GUI.DrawTexture(rect, s_GradientWhiteTexture);
-            GUI.color = cachedColor;
+            GUI.backgroundColor = leftColor;
+            GUI.Box(rect, GUIContent.none, s_HorizontalGradient);
+
+            GUI.backgroundColor = cachedColor;
 
             return rect.width;
         }
@@ -329,13 +341,6 @@ namespace UnityEditor.Rendering
             GUI.backgroundColor = color;
             GUI.Box(rect, GUIContent.none, s_CascadeSliderBG);
             GUI.backgroundColor = cachedColor;
-            var realRect = new Rect(
-                rect.x * EditorGUIUtility.pixelsPerPoint,
-                rect.y * EditorGUIUtility.pixelsPerPoint,
-                rect.width * EditorGUIUtility.pixelsPerPoint,
-                rect.height * EditorGUIUtility.pixelsPerPoint
-                );
-            //Debug.Log(realRect);
             return rect.width;
         }
 
@@ -348,22 +353,34 @@ namespace UnityEditor.Rendering
             return rect.width;
         }
 
-        private static Vector2 s_DragLastMousePosition;
-        private static readonly int s_CascadeSliderId = "s_CascadeSliderId".GetHashCode();
         private static float DrawSnatchWithHandle(Rect rect, float distance, Color color, GUIStyle snatch, bool enabled = true)
         {
             // check for user input on any of the partition handles
             // this mechanism gets the current event in the queue... make sure that the mouse is over our control before consuming the event
-            int sliderControlId = GUIUtility.GetControlID(FocusType.Passive, rect);
+            int sliderControlId = GUIUtility.GetControlID(s_CascadeSliderId, FocusType.Keyboard, rect);
             Event currentEvent = Event.current;
             EventType eventType = currentEvent.GetTypeForControl(sliderControlId);
 
             if (eventType == EventType.Repaint)
             {
+                bool isFocused = GUIUtility.keyboardControl == sliderControlId && enabled;
+                bool isHovered = rect.Contains(currentEvent.mousePosition) && enabled;
+
                 var cachedColor = GUI.backgroundColor;
-                GUI.backgroundColor = color;
-                snatch.Draw(rect, true, false, false, false);
+
+                // Draw focused with white color as we want to keep original one in texture
+                GUI.backgroundColor = Color.white;
+                if (isFocused)
+                    snatch.Draw(rect, false, false, false, isFocused);
+
+                // Draw on top of the snatch texture
+                GUI.backgroundColor = color * (isFocused || isHovered ? 1.4f : 1.0f);
+                snatch.Draw(rect, false, false, false, false);
+
                 GUI.backgroundColor = cachedColor;
+
+                // Marks rect as hot region, this will enable hover events
+                MarkHotRegion(rect, sliderControlId);
             }
 
             float delta = 0;
@@ -374,6 +391,24 @@ namespace UnityEditor.Rendering
 
                 switch (eventType)
                 {
+                    case EventType.KeyDown:
+                        if (GUIUtility.keyboardControl != sliderControlId)
+                            break;
+
+                        if (currentEvent.keyCode == KeyCode.RightArrow)
+                        {
+                            delta = 0.01f;
+                            GUI.changed = true;
+                            currentEvent.Use();
+                        }
+                        else if (currentEvent.keyCode == KeyCode.LeftArrow)
+                        {
+                            delta = -0.01f;
+                            GUI.changed = true;
+                            currentEvent.Use();
+                        }
+
+                        break;
                     case EventType.MouseDown:
                         if (!rect.Contains(currentEvent.mousePosition))
                             break;
@@ -382,6 +417,7 @@ namespace UnityEditor.Rendering
                         // In case there is overlapping snatch, this way the last one will be hot control
 
                         GUIUtility.hotControl = sliderControlId;
+                        GUIUtility.keyboardControl = sliderControlId;
 
                         s_DragLastMousePosition = currentEvent.mousePosition;
                         break;
@@ -410,6 +446,71 @@ namespace UnityEditor.Rendering
             }
 
             return delta;
+        }
+
+        private static void MarkHotRegion(Rect rect, int controlId)
+        {
+            // This code enables repaint events to be called on hover.
+            // There is a lot of tribal knowledge behind it, so I will try to explain it here.
+            //
+            // Currently IMGUI has two modes of rendering.
+            //
+            // Old one that is identified if any backgroundTexture is set not to null (for example GUIStyle.normal.backgroundTexture).
+            // Old system does not handle hover event and it must be implemented differently.
+            //
+            // New one is somewhat transition from IMGUI to UIElements that supports subset of its functionality part of it is hovering.
+            // When GUIStyle has no textures set it assumes new system should be used.
+            // The reason it works like that to make our internal styles to use new system and keep old IMGUI code working like it was before.
+            //
+            // Hover functionality can be achieved with method UnityEditor.GUIView.MarkHotRegion.
+            // However it is currently internal, so we workaround this behavior by creating new system IMGUI element quick search that has no visuals.
+
+            if (s_QuickSearchItemBackground == null)
+            {
+                // We use quick search style which has no actual rendering, but provides us hovering
+                s_QuickSearchItemBackground = new GUIStyle();
+                s_QuickSearchItemBackground.name = "quick-search-item-background1";
+            }
+            s_QuickSearchItemBackground.Draw(rect, GUIContent.none, controlId, false, false);
+        }
+
+        private static GUIStyle GetDownSnatchStyle()
+        {
+            if (s_DownSnatch == null)
+            {
+                var downSnatch = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathToDownSnatchTexture);
+                Debug.Assert(downSnatch != null);
+
+                var downSnatchFocused = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathTDownSnatchFocusedTexture);
+                Debug.Assert(downSnatchFocused != null);
+
+
+                s_DownSnatch = new GUIStyle();
+                s_DownSnatch.normal.background = downSnatch;
+                s_DownSnatch.hover.background = downSnatch; // We will simulate hover with brighter color
+                s_DownSnatch.focused.background = downSnatchFocused;
+            }
+
+            return s_DownSnatch;
+        }
+
+        private static GUIStyle GetUpSnatchStyle()
+        {
+            if (s_UpSnatch == null)
+            {
+                var downSnatch = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathToUpSnatchTexture);
+                Debug.Assert(downSnatch != null);
+
+                var downSnatchFocused = AssetDatabase.LoadAssetAtPath<Texture2D>(kPathToUpSnatchFocusedTexture);
+                Debug.Assert(downSnatchFocused != null);
+
+                s_UpSnatch = new GUIStyle();
+                s_UpSnatch.normal.background = downSnatch;
+                s_UpSnatch.hover.background = downSnatch; // We will simulate hover with brighter color
+                s_UpSnatch.focused.background = downSnatchFocused;
+            }
+
+            return s_UpSnatch;
         }
     }
 }
