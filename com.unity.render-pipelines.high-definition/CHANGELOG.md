@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 - Fixed box light attenuation.
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
