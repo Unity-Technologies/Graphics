@@ -90,42 +90,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
-    ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 21
     XrSdk: None
@@ -266,15 +230,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: Needs fixing on OSX
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7f2ec65906a47474383300df9c0aad69, type: 3}
