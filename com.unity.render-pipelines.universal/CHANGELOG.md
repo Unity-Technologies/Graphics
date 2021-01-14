@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 - Converted XR automated tests to use MockHMD.
+- Reduced the size of the fragment input struct of the Terrain and Forward lighting shaders.
 
 ### Fixed
 - Fixed an issue where additional lights would not render with WebGL 1
