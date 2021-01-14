@@ -11,8 +11,9 @@ public class SetScreenSize : MonoBehaviour
         var settings = camera.GetComponent<ShaderGraphGraphicsTestSettings>();
         if(settings != null)
         {
-            renderer.material.SetFloat("_ScreenHeight", settings.TargetHeight);
-            renderer.material.SetFloat("_ScreenWidth", settings.TargetWidth);
+            //renderer.material.SetFloat("_ScreenHeight", settings.TargetHeight);
+            //renderer.material.SetFloat("_ScreenWidth", settings.TargetWidth);
+            Debug.Log(string.Format("ScreenSize: {0}, {1}", settings.TargetWidth, settings.TargetHeight));
         }
     }
 }
