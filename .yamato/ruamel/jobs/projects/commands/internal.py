@@ -10,7 +10,6 @@ def _cmd_base(project, platform, utr_calls, editor):
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.shadergraph\" /Y',
-        f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
 
     for utr_args in utr_calls:
@@ -31,7 +30,7 @@ def cmd_standalone(project, platform, api, test_platform, editor, build_config, 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project["folder"]}/utr.bat']
     for utr_args in utr_calls:
         base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}')
-    
+
     return base
 
 
