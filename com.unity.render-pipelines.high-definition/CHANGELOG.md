@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 - Fixed an issue with half res ssgi upscale.
 - Fixed timing issues with accumulation motion blur
+- Fixed register spilling on  FXC in light list shaders.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
