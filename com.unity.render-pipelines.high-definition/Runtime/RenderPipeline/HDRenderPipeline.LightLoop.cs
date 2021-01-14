@@ -645,7 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle          dilatedMaxZBuffer;
         }
 
-        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
