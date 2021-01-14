@@ -163,6 +163,8 @@ uint TryCullFace(uint f, uint baseVertexOffset)
     return (cullMaskOfFace != 0);
 }
 
+// TODO: we may be able to save several VGPRs by representing each vertex as
+// {v.xyz / abs(v.w), sign(v.w)}, where the sign is stored in a bit field.
 void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
                              inout float4 vertRingBuffer[MAX_CLIP_VERTS],
                              out uint dstBegin, out uint dstSize)
