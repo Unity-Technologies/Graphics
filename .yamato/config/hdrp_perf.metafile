@@ -9,7 +9,7 @@ test_platforms:
       - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
       - [all]: --timeout=2400
       - [all]: --platform=StandaloneWindows64
-      - [all]: --loglevel=verbose --player-connection-ip=%BOKKEN_HOST_IP%
+      - [all]: --loglevel=verbose
   - type: editmode
     name: performance_run_build
     utr_flags:
@@ -17,7 +17,7 @@ test_platforms:
       - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
       - [all]: --timeout=2400
       - [all]: --platform=editmode
-      - [all]: --loglevel=verbose --player-connection-ip=%BOKKEN_HOST_IP%
+      - [all]: --loglevel=verbose
 expression_trigger:
   expression: ""
 platforms:
