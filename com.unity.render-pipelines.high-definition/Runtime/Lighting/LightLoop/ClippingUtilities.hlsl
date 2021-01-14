@@ -56,11 +56,6 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
     return lerp(v0.pt, v1.pt, alpha);
 }
 
-// (Sep 16, 2020)
-// Improve the quality of generated code at the expense of readability.
-// Remove when the shader compiler is clever enough to perform this optimization for us.
-#define OBTUSE_COMPILER
-
 #define NUM_VERTS          (8) // The bounding volume is a frustum (+ a sphere)
 #define NUM_FACES          (6) // It has 6 quads
 #define MAX_CLIP_VERTS     (4 + NUM_CLIP_PLANES)
@@ -71,6 +66,14 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 #define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
 #define VERTS_PER_FACE     (4)
+
+#define IS_POW2(X)     (((X) & (X - 1)) == 0)
+#define IS_NOT_POW2(X) (((X) & (X - 1)) != 0)
+
+// (Sep 16, 2020)
+// Improve the quality of generated code at the expense of readability.
+// Remove when the shader compiler is clever enough to perform this optimization for us.
+#define OBTUSE_COMPILER IS_NOT_POW2(MAX_CLIP_VERTS)
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
