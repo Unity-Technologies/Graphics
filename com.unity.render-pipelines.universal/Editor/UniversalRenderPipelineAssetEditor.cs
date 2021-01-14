@@ -419,19 +419,12 @@ namespace UnityEditor.Rendering.Universal
                 bool useMetric = unit == EditorUtils.Unit.Metric;
                 float baseMetric = m_ShadowDistanceProp.floatValue;
                 int cascadeSplitCount = cascadeCount - 1;
+
                 DrawCascadeSliders(cascadeSplitCount, useMetric, baseMetric);
+
                 EditorGUI.indentLevel--;
                 DrawCascades(cascadeCount, useMetric, baseMetric);
                 EditorGUI.indentLevel++;
-
-                if (cascadeCount == 4)
-                    EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                else if (cascadeCount == 3)
-                    EditorUtils.DrawCascadeSplitGUI<Vector2>(ref m_ShadowCascade3SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                else if (cascadeCount == 2)
-                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                else if (cascadeCount == 1)
-                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
@@ -562,14 +555,14 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (cascadeCount == 4)
                     m_ShadowCascade4SplitProp.vector3Value = new Vector3(
-                    cascades[0].size,
-                    cascades[0].size + cascades[1].size,
-                    cascades[0].size + cascades[1].size + cascades[2].size
+                        cascades[0].size,
+                        cascades[0].size + cascades[1].size,
+                        cascades[0].size + cascades[1].size + cascades[2].size
                     );
                 else if (cascadeCount == 3)
                     m_ShadowCascade3SplitProp.vector2Value = new Vector2(
-                    cascades[0].size,
-                    cascades[0].size + cascades[1].size
+                        cascades[0].size,
+                        cascades[0].size + cascades[1].size
                     );
                 else if (cascadeCount == 2)
                     m_ShadowCascade2SplitProp.floatValue = cascades[0].size;

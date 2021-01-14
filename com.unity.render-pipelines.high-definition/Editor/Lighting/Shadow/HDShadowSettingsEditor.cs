@@ -109,8 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUILayout.Label("Cascade splits");
 
                 DrawShadowCascades(cascadeCount, unit == Unit.Metric, m_MaxShadowDistance.value.floatValue);
-
-                UnityEditor.ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, HDRenderPipeline.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
             }
 
             HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
