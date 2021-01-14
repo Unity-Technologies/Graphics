@@ -268,6 +268,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool clusterDisplayEnabled
+        {
+            get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clusterDisplayEnabled : false; }
+        }
+
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         internal bool isFirstFrame { get; private set; }
@@ -1352,7 +1357,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
+            if (xr.enabled || clusterDisplayEnabled)
             {
                 var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
                 transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));

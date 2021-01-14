@@ -351,6 +351,14 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_ClusterDisplayParams; }
             set { m_ClusterDisplayParams = value; }
         }
+        
+        bool m_ClusterDisplayEnabled;
+        
+        public bool clusterDisplayEnabled
+        {
+            get { return m_ClusterDisplayEnabled; }
+            set { m_ClusterDisplayEnabled = value; }
+        }
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
