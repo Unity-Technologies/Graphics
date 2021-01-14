@@ -727,20 +727,24 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
 			bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
             bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isBlit;
-            var attachments = new NativeArray<AttachmentDescriptor>(useDepth ? 2 : 1, Allocator.Temp);
+            var attachments = new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? 2 : 1, Allocator.Temp);
 
             attachments[0] = m_ActiveColorAttachmentDescriptor;
-            if (useDepth)
+            if (useDepth && !renderPass.depthOnly)
                 attachments[1] = m_ActiveDepthAttachmentDescriptor;
 ///yyy
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 			var sampleCount = isBlit ? 1 : desc.msaaSamples;
-		//	if (BuiltinRenderTextureType.CameraTarget == renderPass.colorAttachment)
-		//		Debug.Log(renderPass.GetType().Name + " " + m_ActiveColorAttachmentDescriptor.loadStoreTarget);
-            context.BeginRenderPass(desc.width, desc.height, sampleCount, attachments, useDepth ? 1 : -1);
+			int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
+			int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
+			sampleCount = renderPass.renderTargetSampleCount != -1  ? renderPass.renderTargetSampleCount : sampleCount;
+			//if (BuiltinRenderTextureType.CameraTarget == renderPass.colorAttachment)
+			//	Debug.Log(renderPass.GetType().Name + " " + m_ActiveColorAttachmentDescriptor.loadStoreTarget);
+            context.BeginRenderPass(width, height, sampleCount, attachments, useDepth ? (!renderPass.depthOnly ? 1 : 0) : -1);
             attachments.Dispose();
-            var attachmentIndices = new NativeArray<int>(1, Allocator.Temp);
-            attachmentIndices[0] = 0;
+            var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? 1 : 0, Allocator.Temp);
+			if (!renderPass.depthOnly)
+           		attachmentIndices[0] = 0;
             context.BeginSubPass(attachmentIndices);
             attachmentIndices.Dispose();
             renderPass.Execute(context, ref renderingData);
@@ -889,7 +893,10 @@ namespace UnityEngine.Rendering.Universal
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
-                m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+				if (!renderPass.overrideCameraTarget)
+                	m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+				else
+					m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(renderPass.renderTargetFormat);
 
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {
@@ -926,7 +933,6 @@ namespace UnityEngine.Rendering.Universal
 
 //zzz
                 m_ActiveColorAttachmentDescriptor.ConfigureTarget(passColorAttachment, true, true);
-
                 m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
 
                 if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget && cameraData.cameraTargetDescriptor.msaaSamples == 1)

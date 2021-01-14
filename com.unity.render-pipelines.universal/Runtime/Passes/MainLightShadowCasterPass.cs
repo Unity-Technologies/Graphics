@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                 m_ShadowmapHeight, k_ShadowmapBufferBits);
-            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
+            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_ShadowmapWidth, m_ShadowmapHeight, 1, true, RenderTextureFormat.Shadowmap);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
