@@ -48,6 +48,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed missing BeginCameraRendering call for custom render mode of a Camera.
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
+- Fixed box light attenuation.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
