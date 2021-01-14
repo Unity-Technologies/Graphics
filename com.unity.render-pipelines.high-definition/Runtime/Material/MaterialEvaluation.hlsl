@@ -98,7 +98,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float indirectSpecularOcclusion = lerp(1.0, GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness), _SpecularOcclusionBlend);
+    float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
     float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
     aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
