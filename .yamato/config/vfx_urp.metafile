@@ -9,7 +9,7 @@ test_platforms:
   - type: Standalone
     name: Standalone_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX
   - type: playmode
     name: playmode_cache
     utr_flags:
@@ -23,11 +23,11 @@ test_platforms:
   - type: playmode
     name: playmode_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX
   - type: editmode
     name: editmode_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=./Graphics --report-performance-data --performance-project-id=VFX
 expression_trigger: 
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
 platforms:
