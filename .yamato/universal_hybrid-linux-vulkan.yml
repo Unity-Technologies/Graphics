@@ -55,7 +55,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2021.1:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_2021.1:
     name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version 2021.1
     agent:
@@ -152,7 +152,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2021.1:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -205,7 +205,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
@@ -317,7 +317,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

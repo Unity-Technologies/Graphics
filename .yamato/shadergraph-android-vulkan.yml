@@ -68,7 +68,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_2021.1:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_2021.1:
     name: ShaderGraph on Android_Vulkan_Standalone_cache_il2cpp_Linear on version 2021.1
     agent:
@@ -130,7 +130,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_2021.1:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -196,7 +196,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
@@ -265,7 +265,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always

@@ -41,6 +41,7 @@ Build_VFX_URP_Win_DX11_Standalone_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -56,7 +57,7 @@ Build_VFX_URP_Win_DX11_Standalone_mono_Linear_2021.1:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 VFX_URP_Win_DX11_playmode_mono_Linear_2021.1:
     name: VFX_URP on Win_DX11_playmode_mono_Linear on version 2021.1
     agent:
@@ -70,6 +71,7 @@ VFX_URP_Win_DX11_playmode_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -96,6 +98,7 @@ VFX_URP_Win_DX11_playmode_cache_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -143,6 +146,7 @@ Build_VFX_URP_Win_DX11_Standalone_cache_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -158,7 +162,7 @@ Build_VFX_URP_Win_DX11_Standalone_cache_mono_Linear_2021.1:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -197,6 +201,7 @@ Build_VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -212,7 +217,7 @@ Build_VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -230,6 +235,7 @@ VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -260,6 +266,7 @@ VFX_URP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -314,6 +321,7 @@ Build_VFX_URP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -329,7 +337,7 @@ Build_VFX_URP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

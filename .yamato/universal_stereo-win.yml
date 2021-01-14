@@ -41,6 +41,7 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -56,7 +57,7 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_2021.1:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Stereo_Win_editmode_mono_Linear_2021.1:
     name: Universal_Stereo on Win__editmode_mono_Linear on version 2021.1
     agent:
@@ -70,6 +71,7 @@ Universal_Stereo_Win_editmode_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -117,6 +119,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2021.1:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli -u {{editor_versions.2021_1_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -132,7 +135,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2021.1:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Stereo on Win__Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -171,6 +174,7 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -186,7 +190,7 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
@@ -204,6 +208,7 @@ Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -258,6 +263,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGfxTestStereo/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/UniversalGfxTestStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -273,7 +279,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

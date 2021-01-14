@@ -22,6 +22,9 @@ Nightly_URPUpdate_Top_Asset_Store_2021.1:
     dependencies:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_2021.1
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store PR Job - CUSTOM-REVISION
     dependencies:
@@ -40,3 +43,5 @@ Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
