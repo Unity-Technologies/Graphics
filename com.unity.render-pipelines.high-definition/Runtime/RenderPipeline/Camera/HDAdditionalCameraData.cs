@@ -308,6 +308,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float probeCustomFixedExposure = 1.0f;
 
+        Matrix4x4 m_ClusterDisplayParams;
+        
+        public Matrix4x4 clusterDisplayParams
+        {
+            get { return m_ClusterDisplayParams; }
+            set { m_ClusterDisplayParams = value; }
+        }
+
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
         /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
