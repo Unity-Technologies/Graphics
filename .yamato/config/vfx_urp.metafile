@@ -11,6 +11,7 @@ test_platforms:
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
   - type: playmode
+  - type: playmode
     name: playmode_cache
     utr_flags:
     - [all]: --testfilter="VFX.Test"
@@ -28,7 +29,7 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
-expression_trigger: 
+expression_trigger:
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
 platforms:
   - name: Win
@@ -40,7 +41,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -54,7 +55,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -79,7 +80,7 @@ platforms:
     color_spaces:
       - Linear
 #  - name: Android
-#    apis: 
+#    apis:
 #      - name: Vulkan
 #      - name: OpenGLES3
 #    build_configs:
