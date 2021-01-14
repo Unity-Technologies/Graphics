@@ -36,6 +36,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
     float4 _ScreenParams;
+    float4x4 _ClusterDisplayParams;
     float4 _FrustumPlanes[6];
     float4 _ShadowFrustumPlanes[6];
     float4 _TaaFrameInfo;

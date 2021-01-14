@@ -258,6 +258,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal Matrix4x4 clusterDisplayParams
+        {
+            get
+            {
+                return m_AdditionalCameraData != null
+                    ? m_AdditionalCameraData.clusterDisplayParams
+                    : Matrix4x4.zero;
+            }
+        }
+
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         internal bool isFirstFrame { get; private set; }
@@ -717,6 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
             cb._FrameCount = frameCount;
             cb._XRViewCount = (uint)viewCount;
+            cb._ClusterDisplayParams = clusterDisplayParams;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale  = exposureMultiplierForProbes;

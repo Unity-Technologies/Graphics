@@ -92,6 +92,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // z = 1 + 1.0/width
         // w = 1 + 1.0/height
         public Vector4 _ScreenParams;
+        
+        public Matrix4x4 _ClusterDisplayParams;
 
         [HLSLArray(6, typeof(Vector4))]
         public fixed float _FrustumPlanes[6 * 4]; // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
