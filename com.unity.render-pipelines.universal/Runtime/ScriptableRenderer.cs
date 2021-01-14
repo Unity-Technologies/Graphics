@@ -936,7 +936,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
 
                 if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget && cameraData.cameraTargetDescriptor.msaaSamples == 1)
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, false, false);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, true);
                 else
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, false);
 
