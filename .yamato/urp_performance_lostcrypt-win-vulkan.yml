@@ -71,6 +71,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/2d-sara/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/2d-sara && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -140,6 +141,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_trun
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/2d-sara/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/2d-sara && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -235,6 +237,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/2d-sara/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/2d-sara && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
@@ -308,6 +311,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUST
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/2d-sara/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/2d-sara && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
