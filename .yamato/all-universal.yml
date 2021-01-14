@@ -28,7 +28,7 @@ PR_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_trunk
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -66,13 +66,13 @@ Nightly_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_trunk
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_Linear_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-linux-vulkan.yml#Universal_Linux_Vulkan_playmode_mono_Linear_trunk
+      -  path: .yamato/universal-linux-vulkan.yml#Universal_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -98,7 +98,7 @@ PR_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -135,13 +135,13 @@ Nightly_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-linux-vulkan.yml#Universal_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-linux-vulkan.yml#Universal_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
