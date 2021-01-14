@@ -53,12 +53,16 @@ namespace UnityEngine.VFX.Test
             var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
             var vfxTestSettingsInScene = Object.FindObjectOfType<VFXGraphicsTestSettings>();
 
+            var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = VFXGraphicsTestSettings.defaultAverageCorrectnessThreshold };
+            if (testSettingsInScene != null)
+            {
+                imageComparisonSettings = testSettingsInScene.ImageComparisonSettings;
+            }
+
             if (XRGraphicsAutomatedTests.enabled)
             {
-                if (vfxTestSettingsInScene == null || vfxTestSettingsInScene.xrCompatible)
-                    XRGraphicsAutomatedTests.running = true;
-                else
-                    Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+                bool xrCompatible = vfxTestSettingsInScene != null ? vfxTestSettingsInScene.xrCompatible : true;
+                Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(xrCompatible, 0, imageComparisonSettings);
             }
 
             //Setup frame rate capture
@@ -80,29 +84,18 @@ namespace UnityEngine.VFX.Test
             const int maxFrameWaiting = 8;
             int maxFrame = maxFrameWaiting;
             while (Time.deltaTime != period && maxFrame-- > 0)
-                yield return null;
+                yield return new WaitForEndOfFrame();
             Assert.Greater(maxFrame, 0);
-
-            int captureSizeWidth = 512;
-            int captureSizeHeight = 512;
-            if (testSettingsInScene != null)
-            {
-                captureSizeWidth = testSettingsInScene.ImageComparisonSettings.TargetWidth;
-                captureSizeHeight = testSettingsInScene.ImageComparisonSettings.TargetHeight;
-            }
 
             var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
             if (camera)
             {
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
-                var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
-                camera.targetTexture = rt;
-
                 //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
                 maxFrame = maxFrameWaiting;
                 while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
-                    yield return null;
+                    yield return new WaitForEndOfFrame();
                 Assert.Greater(maxFrame, 0);
 
                 foreach (var component in vfxComponents)
@@ -133,7 +126,7 @@ namespace UnityEngine.VFX.Test
 
                 while (Time.frameCount != expectedFrameIndex)
                 {
-                    yield return null;
+                    yield return new WaitForEndOfFrame();
 #if UNITY_EDITOR
                     foreach (var audioSource in audioSources)
                         if (audioSource.clip != null && audioSource.playOnAwake)
@@ -141,31 +134,7 @@ namespace UnityEngine.VFX.Test
 #endif
                 }
 
-                Texture2D actual = null;
-                try
-                {
-                    camera.targetTexture = null;
-                    actual = new Texture2D(captureSizeWidth, captureSizeHeight, TextureFormat.RGB24, false);
-                    RenderTexture.active = rt;
-                    actual.ReadPixels(new Rect(0, 0, captureSizeWidth, captureSizeHeight), 0, 0);
-                    RenderTexture.active = null;
-                    actual.Apply();
-
-                    var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = VFXGraphicsTestSettings.defaultAverageCorrectnessThreshold };
-                    if (testSettingsInScene != null)
-                    {
-                        imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
-                    }
-
-                    ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
-
-                }
-                finally
-                {
-                    RenderTexture.ReleaseTemporary(rt);
-                    if (actual != null)
-                        UnityEngine.Object.Destroy(actual);
-                }
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
             }
         }
 
