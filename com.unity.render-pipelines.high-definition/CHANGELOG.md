@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
 - Fixed Undo/Redo instability of light temperature.
 - Fixed label style in pbr sky editor.
+- Fixed side effect on styles during compositor rendering.
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
