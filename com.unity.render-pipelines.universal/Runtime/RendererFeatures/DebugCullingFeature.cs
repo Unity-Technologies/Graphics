@@ -325,6 +325,8 @@ namespace UnityEngine.Rendering.Universal
 
         public bool drawDirectLightFrustum = false;
         public bool drawSpotLightFrustum   = false;
+        public bool drawPointLightFrusta   = false;
+        public bool noPointLightFrustumBias = false;
 
         //TODO:
         // - perhaps add a point param to drawPlane, and use it to align/move the plane gizmo along the plane (i.e the gizmo tracks the point)
@@ -503,6 +505,34 @@ namespace UnityEngine.Rendering.Universal
                                 var shadowTransform = spotProj[li] * spotView[li];
                                 DebugCullingHelpers.DrawFrustum(shadowTransform, Color.white, Color.yellow, Color.black);
                                 DebugCullingHelpers.DrawAxes(spotView[li].inverse, 0.5f);
+                            }
+                        }
+                    }
+
+                    if (m_Feature.drawPointLightFrusta)
+                    {
+                        var lightCount = renderingData.lightData.visibleLights.Length;
+                        ShadowSplitData[] pointShadowSplitData = new ShadowSplitData[lightCount];
+                        Matrix4x4[] pointView = new Matrix4x4[lightCount];
+                        Matrix4x4[] pointProj = new Matrix4x4[lightCount];
+
+                        for (int li = 0; li < lightCount; li++)
+                        {
+                            VisibleLight l = renderingData.lightData.visibleLights[li];
+                            if (l.lightType == LightType.Point)
+                            {
+                                float fovBias = m_Feature.noPointLightFrustumBias
+                                    ? 0.0f
+                                    : Internal.AdditionalLightsShadowCasterPass.GetPointLightShadowFrustumFovBiasInDegrees(renderingData.shadowData.resolution[li], (l.light.shadows == LightShadows.Soft));
+                                for (int f = 0; f < 6; f++)
+                                {
+                                    CubemapFace face = (CubemapFace)f;
+                                    renderingData.cullResults.ComputePointShadowMatricesAndCullingPrimitives(li, face, fovBias, out pointView[li], out pointProj[li], out pointShadowSplitData[li]);
+                                    var shadowTransform = pointProj[li] * pointView[li];
+                                    DebugCullingHelpers.DrawFrustum(shadowTransform, Color.white, Color.yellow, Color.black);
+                                }
+
+                                DebugCullingHelpers.DrawAxes(pointView[li].inverse, 0.5f);
                             }
                         }
                     }
