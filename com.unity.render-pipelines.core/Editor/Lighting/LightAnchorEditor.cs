@@ -21,6 +21,7 @@ namespace UnityEditor
         // used for cache invalidation
         Vector3 m_CamToLight;
         float m_CamLightForwardDot;
+        float m_CamLightRightDot;
 
         bool m_EnableClickCatcher = false;
         bool m_FoldoutPreset = true;
@@ -387,9 +388,13 @@ namespace UnityEditor
             var manipulatorTransform = manipulator.transform;
             var camToLight = manipulatorTransform.position - cameraTransform.position;
             var camLightForwardDot = Vector3.Dot(manipulatorTransform.forward, cameraTransform.forward);
-            var dirty = camToLight != m_CamToLight || Math.Abs(camLightForwardDot - m_CamLightForwardDot) > float.Epsilon;
+            var camLightRightDot = Vector3.Dot(manipulatorTransform.right, cameraTransform.right);
+            var dirty = camToLight != m_CamToLight || Math.Abs(camLightForwardDot - m_CamLightForwardDot) > float.Epsilon
+                                                   || Math.Abs(camLightRightDot - m_CamLightRightDot) > float.Epsilon;
             m_CamToLight = camToLight;
             m_CamLightForwardDot = camLightForwardDot;
+            m_CamLightRightDot = camLightRightDot;
+
             return dirty;
         }
 
