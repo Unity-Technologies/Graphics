@@ -10,7 +10,7 @@ def _cmd_base(project, platform, utr_calls, editor):
         f'Xcopy /E /I \"com.unity.render-pipelines.core\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.core\" /Y',
         f'Xcopy /E /I \"com.unity.render-pipelines.universal\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.render-pipelines.universal\" /Y',
         f'Xcopy /E /I \"com.unity.shadergraph\" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/Packages/com.unity.shadergraph\" /Y',
-        f'Xcopy /E /I \"{PATH_UNITY_REVISION}" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/{PATH_UNITY_REVISION}" /Y',
+        f'Xcopy /I \"{PATH_UNITY_REVISION}" \"{TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]}/{PATH_UNITY_REVISION}" /Y',
         f'cd {TEST_PROJECTS_DIR}/URP-Update-testing/{project["folder"]} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
 
