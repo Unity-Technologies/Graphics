@@ -124,10 +124,10 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -261,10 +261,10 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/HDRP_Tests/Logs/*.log"
+              -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
