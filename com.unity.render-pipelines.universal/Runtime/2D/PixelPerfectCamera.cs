@@ -162,6 +162,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        Vector2Int cameraRTSize
+        {
+            get
+            {
+                var targetTexture = m_Camera.targetTexture;
+                return targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+            }
+        }
+
         // Snap camera position to pixels using Camera.worldToCameraMatrix.
         void PixelSnap()
         {
@@ -180,13 +189,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal = new PixelPerfectCameraInternal(this);
 
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
+
+            // Case 1249076: Initialize internals immediately after the scene is loaded,
+            // as the Cinemachine extension may need them before OnBeginContextRendering is called.
+            var rtSize = cameraRTSize;
+            m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
         }
 
         void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
-            var targetTexture = m_Camera.targetTexture;
-            Vector2Int rtSize = targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
-
+            var rtSize = cameraRTSize;
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
 
             PixelSnap();
