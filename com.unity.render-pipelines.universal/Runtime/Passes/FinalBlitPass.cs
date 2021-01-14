@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             m_Source = colorHandle;
+            ConfigureTarget(BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <inheritdoc/>
@@ -53,61 +54,62 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
-                    cameraTarget =
-                        new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
-
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        cameraTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.None,
-                        Color.black);
-
-                    cmd.SetViewport(cameraData.pixelRect);
-
-                    // We y-flip if
-                    // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
-                    // 2) renderTexture starts UV at top
-                    bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
-                }
-                else
-#endif
-                if (isSceneViewCamera || cameraData.isDefaultViewport)
-                {
-                    // This set render target is necessary so we change the LOAD state to DontCare.
-                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
-                }
-                else
-                {
+//#if ENABLE_VR && ENABLE_XR_MODULE
+//                if (cameraData.xr.enabled)
+//                {
+//                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
+//                    cameraTarget =
+//                        new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+//
+//                    CoreUtils.SetRenderTarget(
+//                        cmd,
+//                        cameraTarget,
+//                        RenderBufferLoadAction.Load,
+//                        RenderBufferStoreAction.Store,
+//                        ClearFlag.None,
+//                        Color.black);
+//
+//                    cmd.SetViewport(cameraData.pixelRect);
+//
+//                    // We y-flip if
+//                    // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
+//                    // 2) renderTexture starts UV at top
+//                    bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
+//                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
+//                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+//
+//                    cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
+//                }
+//                else
+//#endif
+//                if (isSceneViewCamera || cameraData.isDefaultViewport)
+//                {
+//                    // This set render target is necessary so we change the LOAD state to DontCare.
+//                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+//                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
+//                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+//                    cmd.Blit(m_Source.Identifier(), cameraTarget, m_BlitMaterial);
+//                }
+//                else
+//                {
                     // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                     // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
                     // meanwhile we set to load so split screen case works.
-                    CoreUtils.SetRenderTarget(
-                        cmd,
-                        cameraTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.None,
-                        Color.black);
+//                    CoreUtils.SetRenderTarget(
+//                        cmd,
+//                        cameraTarget,
+//                        RenderBufferLoadAction.Load,
+//                        RenderBufferStoreAction.Store,
+//                        ClearFlag.None,
+//                        Color.black);
 
                     Camera camera = cameraData.camera;
+
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                     cmd.SetViewport(cameraData.pixelRect);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                }
+//                }
             }
 
             context.ExecuteCommandBuffer(cmd);
