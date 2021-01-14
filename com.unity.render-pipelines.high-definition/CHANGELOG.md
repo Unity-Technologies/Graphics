@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed after post process custom pass scale issue when dynamic resolution is enabled (case 1299194).
 - Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
 - Fixed Undo/Redo instability of light temperature.
+- Fixed label style in pbr sky editor.
 - Fixed side effect on styles during compositor rendering.
 
 ### Changed
