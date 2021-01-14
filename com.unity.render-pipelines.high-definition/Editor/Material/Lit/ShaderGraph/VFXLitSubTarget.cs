@@ -76,7 +76,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
-                out var buildVFXFragInputs
+                out var buildVFXFragInputs,
+                out var defineSpaceDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -115,7 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
-                    buildVFXFragInputs
+                    buildVFXFragInputs,
+                    defineSpaceDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -255,7 +257,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
-            out AdditionalCommandDescriptor buildVFXFragInputs)
+            out AdditionalCommandDescriptor buildVFXFragInputs,
+            out AdditionalCommandDescriptor defineSpaceDescriptor)
         {
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
@@ -274,6 +277,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
             VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, out var buildFragInputsGeneration);
             buildVFXFragInputs = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
+
+            // Define coordinate space
+            var defineSpaceDescriptorContent = string.Empty;
+            if (context.GetData() is ISpaceable)
+            {
+                var spaceable = context.GetData() as ISpaceable;
+                defineSpaceDescriptorContent =
+                    $"#define {(spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE")} 1";
+            }
+            defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)

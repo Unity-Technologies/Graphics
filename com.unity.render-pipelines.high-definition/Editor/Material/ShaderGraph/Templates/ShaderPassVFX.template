@@ -42,8 +42,8 @@
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
 
+    $splice(VFXDefineSpace)
 
-    #define VFX_LOCAL_SPACE 1
     #include "Packages/Graphics/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
     #include "Packages/Graphics/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
 
@@ -244,6 +244,12 @@
         float4 csPos = TransformPositionVFXToClip(vPos);
 
         output.positionCS = csPos;
+
+#ifdef VARYINGS_NEED_POSITION_WS
+        // Need to overwrite the position with the result from VFX.
+        // Warning: Need to be explicit about relative space.
+        output.positionRWS = TransformPositionVFXToWorld(vPos);
+#endif
 
         // Interpolants Generation
         $splice(VFXInterpolantsGeneration)
