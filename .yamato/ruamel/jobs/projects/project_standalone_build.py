@@ -3,6 +3,7 @@ from ..shared.namer import project_job_id_build
 from ..shared.constants import get_editor_revision
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
+import copy
 
 class Project_StandaloneBuildJob():
 
@@ -14,11 +15,9 @@ class Project_StandaloneBuildJob():
 
     def get_job_definition(self, project, editor, platform, api, test_platform, build_config, color_space):
 
-        project_folder = project.get("folder_standalone", project["folder"])
+        project_copy = copy.deepcopy(dict(project))
+        project_copy["folder"] = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build', "")
-        job = _job(project, f'{test_platform["name"]}_build', editor, platform, api, cmd(project_folder, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
-        if project["name"] == "URP_Performance_BoatAttack":
-            job.add_artifacts_players_extra()
-        else:
-            job.add_artifacts_players()
+        job = _job(project_copy, f'{test_platform["name"]}_build', editor, platform, api, cmd(project_copy, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
+        job.add_artifacts_players()
         return job
