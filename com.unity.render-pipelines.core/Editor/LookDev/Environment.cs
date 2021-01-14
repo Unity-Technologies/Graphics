@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.LookDev
         Func<Image> OnUndoRedoResyncDeportedLatlong;
 
         public Environment target => environment;
-        
+
         public EnvironmentElement(bool withPreview, Action OnChangeCallback, Func<Image> OnUndoRedoResyncDeportedLatlong)
         {
             this.OnChangeCallback = OnChangeCallback;
@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering.LookDev
 
             environmentParams = GetDefaultInspector();
             Add(environmentParams);
-            
+
             Undo.undoRedoPerformed += RefreshIfNecessary;
         }
 
@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering.LookDev
             //update scene
             OnChangeCallback?.Invoke();
         }
-        
+
         private bool disposedValue = false; // To detect redundant calls
 
         void IDisposable.Dispose()
@@ -486,7 +486,6 @@ namespace UnityEditor.Rendering.LookDev
                 disposedValue = true;
             }
         }
-        
 
         void RefreshIfNecessary()
         {
@@ -495,10 +494,10 @@ namespace UnityEditor.Rendering.LookDev
 
             //if environment GUID have changed, be sure loaded cubemap too
             environment.RefreshCubemap();
-                
+
             //update inspector again with sync again of thumbnail target
             Bind(environment, OnUndoRedoResyncDeportedLatlong?.Invoke());
-                    
+
             //as thumbnail is stored in the Environment asset, it got updated already
 
             //update scene

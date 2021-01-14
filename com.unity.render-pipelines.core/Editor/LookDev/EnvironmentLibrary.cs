@@ -31,13 +31,13 @@ namespace UnityEditor.Rendering.LookDev
         /// Indexer giving access to contained Environment
         /// </summary>
         public Environment this[int index] => environments[index];
-        
+
         /// <summary>
         /// Access to contained Environment and save selection for Undo/Redo
         /// </summary>
         /// <param name="index">Index to seek at</param>
         /// <returns>The requested environmenet. Null if out of range or -1 (= nothing selected).</returns>
-        public Environment SelectAndSaveSelection(int index) 
+        public Environment SelectAndSaveSelection(int index)
         {
             if (index < -1 || index >= Count)
             {
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.LookDev
             LookDev.currentContext.environmentSelection = index;
             return index == -1 ? null : this[index];
         }
-        
+
         /// <summary>
         /// Create a new empty Environment at the end of the collection
         /// </summary>
@@ -76,7 +76,6 @@ namespace UnityEditor.Rendering.LookDev
             AssetDatabase.SaveAssets();
 
             return environment;
-
         }
 
         /// <summary>
@@ -124,7 +123,7 @@ namespace UnityEditor.Rendering.LookDev
 
             // Store this new environment as a subasset so we can reference it safely afterwards.
             AssetDatabase.AddObjectToAsset(environment, this);
-            
+
             // Force save / refresh. Important to do this last because SaveAssets can cause effect to become null!
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();

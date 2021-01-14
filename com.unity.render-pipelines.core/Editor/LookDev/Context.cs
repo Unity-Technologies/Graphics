@@ -91,13 +91,13 @@ namespace UnityEditor.Rendering.LookDev
         internal int environmentSelection
         {
             get => m_EnvironmentSelection.index;
-            set 
+            set
             {
                 Undo.RecordObject(m_EnvironmentSelection, "Selected Environment changed");
                 m_EnvironmentSelection.index = value;
             }
         }
-        
+
         [SerializeField]
         bool m_CameraSynced = true;
 
@@ -211,7 +211,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             if (!HasLibraryAssetChanged(library))
                 return;
-            
+
             m_EnvironmentLibraryGUID = "";
             environmentLibrary = null;
             environmentSelection = -1;
