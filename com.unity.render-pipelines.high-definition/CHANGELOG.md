@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed XR depth copy when using MSAA.
 
 ## [11.0.0] - 2020-10-21
 
@@ -48,7 +49,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed missing BeginCameraRendering call for custom render mode of a Camera.
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
-- Fixed resize IES when already baked in the Atlas 1299233
+- Fixed box light attenuation.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
