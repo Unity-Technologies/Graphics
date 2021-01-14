@@ -67,6 +67,7 @@ The version number for this package has increased due to a version update of a r
 - Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
 - Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
 - Changed the warning message for ray traced area shadows (case 1303410).
+- Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 
 ## [10.3.0] - 2020-12-01
 
