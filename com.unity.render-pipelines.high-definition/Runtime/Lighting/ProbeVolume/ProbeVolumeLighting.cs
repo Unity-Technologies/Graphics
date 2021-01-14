@@ -46,9 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 0)
-                return;
-
             bool loadedData = ProbeReferenceVolume.instance.DataHasBeenLoaded();
             cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData) ? 1u : 0u;
         }

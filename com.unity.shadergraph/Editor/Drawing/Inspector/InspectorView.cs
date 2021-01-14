@@ -109,21 +109,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             try
             {
+                bool anySelectables = false;
                 foreach (var selectable in selection)
                 {
                     if (selectable is IInspectable inspectable)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
-                        // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
-                        // Node Settings tab so we can make the assumption they want to see that tab
-                        m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
+                        anySelectables = true;
                     }
+                }
+                if (anySelectables)
+                {
+                    // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
+                    // Node Settings tab so we can make the assumption they want to see that tab
+                    m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Debug.LogError(e);
             }
 
             // Store this for update checks later, copying list deliberately as we dont want a reference
