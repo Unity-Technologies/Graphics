@@ -120,7 +120,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                     float3 L;
                     float4 distances; // {d, d^2, 1/d, d_proj}
                     GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
-                    float distToLight = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
                     float lightRadSqr = lightData.size.x;
                     float shadowP;
 
