@@ -2,9 +2,11 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class DensityVolumeManager
+    public class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
+        public delegate void SetComputeShaderParamsDelegate(DensityVolume volume, ComputeShader shader, CommandBuffer cmd);
+        public static SetComputeShaderParamsDelegate SetComputeShaderParams;
 
         public static DensityVolumeManager manager
         {

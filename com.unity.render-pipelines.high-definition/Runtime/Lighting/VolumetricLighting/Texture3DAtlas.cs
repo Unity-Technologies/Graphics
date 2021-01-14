@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class Texture3DAtlas
+    public class Texture3DAtlas
     {
         public static readonly int _ZOffset = Shader.PropertyToID("_ZOffset");
         public int NumTexturesInAtlas = 0;
@@ -159,6 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             Graphics.Blit(v.parameters.volumeMask, m_atlas.rt, Vector2.one, Vector2.zero, i, m_atlasSize * v.parameters.textureIndex + i);
                         }
+                        //var col = v.parameters.volumeMask.GetPixels();
+                        //Graphics.CopyTexture(v.parameters.volumeMask, m_atlas.rt);
                     }
 
                     RenderTexture.active = oldRt;
@@ -171,17 +173,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_atlas != null)
             {
+                var isRun = new bool[NumTexturesInAtlas];
+
                 foreach (DensityVolume v in m_volumes)
                 {
-                    if (v.parameters.volumeShader != null)
+                    if (v.parameters.volumeShader != null &&
+                        v.parameters.textureIndex != -1 &&
+                        !isRun[v.parameters.textureIndex])
                     {
+                        isRun[v.parameters.textureIndex] = true;
                         var cs = v.parameters.volumeShader;
+                        DensityVolumeManager.SetComputeShaderParams?.Invoke(v, cs, cmd);
                         cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
-                        var mtx =
-                            Matrix4x4.Rotate(Quaternion.Euler(45f, 0, 0))
-                            * Matrix4x4.Rotate(Quaternion.Euler(0, 100f * Time.time, 0))
-                            * Matrix4x4.Translate(new Vector3(-16f, -16f, -16f));
-                        cmd.SetComputeMatrixParam(cs, HDShaderIDs._Params, mtx);
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
                         cmd.DispatchCompute(v.parameters.volumeShader, 0, 4, 4, 4);
                     }
