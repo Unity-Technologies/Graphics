@@ -355,7 +355,7 @@ half GetShadowFade(float3 positionWS, float cascadeIndex)
     // Special path that changes fade depending on current cascade:
     // - If current cascade is in the last one, we procide with normal fade.
     // - If current cascade is outside cascades, we force fade to 0.
-    // - If current cascade is not in the last one, we force fade to 1. This is needed to avoid fading in near plane. 
+    // - If current cascade is not in the last one, we force fade to 1. This is needed to avoid fading in near plane.
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
     float lastCascadeIndex = _CascadeShadowSplitSphereLast.w;
     float skipFadeOutsideCascade = cascadeIndex - lastCascadeIndex;
