@@ -67,8 +67,8 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
 #define VERTS_PER_FACE     (4)
 
-#define IS_POW2(X)     (((X) & (X - 1)) == 0)
-#define IS_NOT_POW2(X) (((X) & (X - 1)) != 0)
+#define IS_POW2(X)     (( (X) & ( (X) - 1 )) == 0)
+#define IS_NOT_POW2(X) (( (X) & ( (X) - 1 )) != 0)
 
 // (Sep 16, 2020)
 // Improve the quality of generated code at the expense of readability.
@@ -174,14 +174,14 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
 
     ClipVertex tailVert = CreateClipVertex(vertRingBuffer[(srcBegin + srcSize - 1) % MAX_CLIP_VERTS], clipPlane);
 
-#ifdef OBTUSE_COMPILER
+#if (OBTUSE_COMPILER != 0)
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
     uint modDstIdx = dstBegin % MAX_CLIP_VERTS;
 #endif
 
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #ifndef OBTUSE_COMPILER
+    #if (OBTUSE_COMPILER == 0)
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
         ClipVertex leadVert = CreateClipVertex(vertRingBuffer[modSrcIdx], clipPlane);
@@ -198,11 +198,11 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
         {
             // The line segment is guaranteed to cross the plane.
             float4 clipVert = IntersectEdgeAgainstPlane(tailVert, leadVert);
-        #ifndef OBTUSE_COMPILER
+        #if (OBTUSE_COMPILER == 0)
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
             vertRingBuffer[modDstIdx] = clipVert;
-        #ifdef OBTUSE_COMPILER
+        #if (OBTUSE_COMPILER != 0)
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
@@ -211,18 +211,18 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
 
         if (leadVert.bc >= 0)
         {
-        #ifndef OBTUSE_COMPILER
+        #if (OBTUSE_COMPILER == 0)
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
             vertRingBuffer[modDstIdx] = leadVert.pt;
-        #ifdef OBTUSE_COMPILER
+        #if (OBTUSE_COMPILER != 0)
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
         #endif
         }
 
-    #ifdef OBTUSE_COMPILER
+    #if (OBTUSE_COMPILER != 0)
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
@@ -285,12 +285,12 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
                 bool isOrthoProj, float4x4 invProjMat,
                 inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
 {
-#ifdef OBTUSE_COMPILER
+#if (OBTUSE_COMPILER != 0)
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #ifndef OBTUSE_COMPILER
+    #if (OBTUSE_COMPILER == 0)
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
         float4 hapVertCS  = vertRingBuffer[modSrcIdx];
@@ -305,7 +305,7 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 
         ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
         ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
-    #ifdef OBTUSE_COMPILER
+    #if (OBTUSE_COMPILER != 0)
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
