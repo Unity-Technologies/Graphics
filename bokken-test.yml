@@ -1,0 +1,16 @@
+bokken_template_version: 2017-06-01
+
+name: docs example
+description: Simple example with a couple of instances
+
+resources:
+
+  - name: cpu
+    type: Unity::metal::macmini
+    image: slough-ops/macos-10.14-xcode:stable
+    flavor: m1.mac
+    num_instances: 2
+    config:
+      runcmd:
+        - echo hello
+        - echo world
