@@ -129,7 +129,10 @@ namespace UnityEditor.Rendering.LookDev
             s_ViewDisplayer = window;
             s_EnvironmentDisplayer = window;
             open = true;
-            ConfigureLookDev(reloadWithTemporaryID: false);
+
+            // Lookdev Initialize can be called when the window is re-created by the editor layout system.
+            // In that case, the current context won't be null and there might be objects to reload from the temp ID
+            ConfigureLookDev(reloadWithTemporaryID: s_CurrentContext != null);
         }
 
         [Callbacks.DidReloadScripts]
