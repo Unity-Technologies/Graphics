@@ -617,6 +617,19 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphInputName,
                 pass.virtualTextureFeedback);
 
+            if (m_Mode == GenerationMode.VFX)
+            {
+                using (var vfxSurfaceDescriptionInputs = new ShaderStringBuilder())
+                {
+                    m_GraphData.ForeachHLSLProperty(h =>
+                    {
+                        vfxSurfaceDescriptionInputs.Append($", fragInputs.{h.name}");
+                    });
+
+                    spliceCommands.Add("VFXSurfaceDescriptionInputs", vfxSurfaceDescriptionInputs.ToString());
+                }
+            }
+
             using (var pixelBuilder = new ShaderStringBuilder())
             {
                 // Generate final shader strings

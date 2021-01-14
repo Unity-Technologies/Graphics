@@ -429,6 +429,27 @@ namespace UnityEditor.VFX
             interpolatorsGeneration = additionalInterpolantsGeneration.ToString();
         }
 
+        internal static void BuildFragInputsGeneration(VFXContext context, VFXContextCompiledData contextData, out string buildFragInputsGeneration)
+        {
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            var fragInputsGeneration = new VFXShaderWriter();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
+                var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
+
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
+                fragInputsGeneration.WriteLine();
+            }
+
+            buildFragInputsGeneration = fragInputsGeneration.ToString();
+        }
+
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData, HashSet<string> dependencies)
         {
             if (!context.SetupCompilation())
@@ -666,7 +687,7 @@ namespace UnityEditor.VFX
             }
 
             // Use ShaderGraph to generate the VFX shader with the VFX target.
-            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph);
+            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX);
 
             // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);

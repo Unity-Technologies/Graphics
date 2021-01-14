@@ -206,11 +206,14 @@
     // Graph Pixel
     $splice(GraphPixel)
 
+    // ----------------------------------------------------
+    // Evaluate VFX Vertex
+
     // VFX Graph Block Functions
     $splice(VFXGeneratedBlockFunction)
 
-    // VFX Splice Test
     #define VaryingsMeshType VaryingsMeshToPS
+
     VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
     {
         Attributes attributes = (Attributes)0;
@@ -281,11 +284,9 @@
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants); // Apply double sided flip on the vertex normal
         #endif // SHADER_UNLIT
 
-        // VFX Interpolants Preparation
-        $splice(VFXInterpolantsPreparation)
-
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
-        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs $splice(VFXSurfaceDescriptionInputs));
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..

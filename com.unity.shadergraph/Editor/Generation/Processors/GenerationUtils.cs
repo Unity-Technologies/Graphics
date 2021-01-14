@@ -794,7 +794,18 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+            var vfxPropertiesBuilder = new ShaderStringBuilder();
+
+            // Extend the SurfaceDescriptionFunction prototype with properties computed by VFX.
+            if (mode == GenerationMode.VFX)
+            {
+                graph.ForeachHLSLProperty(h =>
+                {
+                    vfxPropertiesBuilder.Append($", {h.GetValueTypeString()} {h.name}");
+                });
+            }
+
+            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN{2})", surfaceDescriptionName, functionName, vfxPropertiesBuilder.ToString()), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
@@ -989,6 +1000,11 @@ namespace UnityEditor.ShaderGraph
 
                 builder.AppendLine("return description;");
             }
+        }
+
+        internal static string GenerateVFXPropertyInputs(PropertyCollector properties)
+        {
+            return string.Empty;
         }
 
         internal static string GetSpliceCommand(string command, string token)

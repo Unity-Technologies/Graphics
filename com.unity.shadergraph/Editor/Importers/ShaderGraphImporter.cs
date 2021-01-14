@@ -266,7 +266,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals)
         {
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -274,7 +274,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName, assetCollection);
+                var generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
 

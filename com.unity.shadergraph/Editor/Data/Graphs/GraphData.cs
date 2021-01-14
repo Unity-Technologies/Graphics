@@ -1161,6 +1161,14 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
+                // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
+                // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
+                if (generationMode == GenerationMode.VFX)
+                {
+                    prop.overrideHLSLDeclaration = true;
+                    prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
+                }
+
                 // ugh, this needs to be moved to the gradient property implementation
                 if (prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {

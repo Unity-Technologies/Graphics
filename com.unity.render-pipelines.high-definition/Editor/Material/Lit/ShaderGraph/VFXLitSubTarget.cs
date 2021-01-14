@@ -75,7 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
-                out var interpolantsGenerationDescriptor
+                out var interpolantsGenerationDescriptor,
+                out var buildVFXFragInputs
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -113,7 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     loadAttributeDescriptor,
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,
-                    interpolantsGenerationDescriptor
+                    interpolantsGenerationDescriptor,
+                    buildVFXFragInputs
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -175,8 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             foreach (string fragmentParameter in context.fragmentParameters)
             {
-                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
-                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));                                                              // if parameter already in the global scope, there's nothing to do
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
 
                 if (filteredNamedExpression.exp != null)
                 {
@@ -253,7 +254,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
-            out AdditionalCommandDescriptor interpolantsGenerationDescriptor)
+            out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
+            out AdditionalCommandDescriptor buildVFXFragInputs)
         {
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
@@ -268,6 +270,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
 
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
+
+            // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
+            VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, out var buildFragInputsGeneration);
+            buildVFXFragInputs = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
