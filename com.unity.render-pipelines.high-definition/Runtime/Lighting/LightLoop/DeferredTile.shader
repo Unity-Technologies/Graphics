@@ -309,6 +309,8 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+            #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
             #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL

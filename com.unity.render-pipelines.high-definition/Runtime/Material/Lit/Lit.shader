@@ -490,6 +490,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile_fragment _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
@@ -812,6 +813,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile_fragment _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
@@ -891,6 +893,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile_fragment _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
@@ -1047,6 +1050,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -1091,6 +1095,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -1132,6 +1137,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ MINIMAL_GBUFFER
 
@@ -1197,6 +1203,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE

@@ -1091,6 +1091,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static KeywordDescriptor ProbeVolumes = new KeywordDescriptor()
+        {
+            displayName = "ProbeVolumes",
+            referenceName = "PROBE_VOLUMES",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "L1", referenceName = "L1" },
+                new KeywordEntry() { displayName = "L2", referenceName = "L2" },
+            }
+        };
+
         public static KeywordDescriptor LodFadeCrossfade = new KeywordDescriptor()
         {
             displayName = "LOD Fade Crossfade",
