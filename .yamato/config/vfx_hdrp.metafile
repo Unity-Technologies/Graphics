@@ -14,9 +14,18 @@ test_platforms:
     utr_flags:
       - [all]: --testfilter="VFX.Test"
   - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
+  - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" --testfilter="VFX.Test"
+      - [all]: --extra-editor-arg="-xr-reuse-tests" --testfilter="VFX.Test"
   - type: playmode
     name: playmode_PerformanceTests
     utr_flags:
@@ -103,10 +112,10 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
-        - playmode
+        - playmode_cache
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
