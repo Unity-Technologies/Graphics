@@ -105,6 +105,9 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_cache
+        - editmode_PerformanceTests
+        - playmode_PerformanceTests
+        - Standalone_PerformanceTests
     - platform: OSX
       api: Metal
       build_config: mono

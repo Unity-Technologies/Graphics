@@ -38,7 +38,7 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
-expression_trigger: 
+expression_trigger:
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]'
 platforms:
   - name: Win
@@ -70,7 +70,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.xlarge
-  - name: OSX 
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -80,7 +80,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
@@ -114,9 +114,13 @@ nightly:
       test_platforms:
         - editmode
         - playmode_cache
+        - editmode_PerformanceTests
+        - playmode_PerformanceTests
+        - Standalone_PerformanceTests
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
         - playmode_cache
+
