@@ -1,0 +1,17 @@
+name: Greetings
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        pr-message: |
+                 Welcome to the Unity SRP repo!
+                 Please make sure to fill out the PR template as best you can to give reviewers as much information as possible.
+                 If you have any questions (and you are a Unity employee) go to "#devs-renderpipe"
