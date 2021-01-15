@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
 - Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
 - Fixed some render texture leaks.
+- Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
