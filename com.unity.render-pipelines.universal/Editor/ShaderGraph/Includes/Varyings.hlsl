@@ -36,14 +36,14 @@ Varyings BuildVaryings(Attributes input)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 
 #ifdef ATTRIBUTES_NEED_NORMAL
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+    half3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else
     // Required to compile ApplyVertexModification that doesn't use normal.
-    float3 normalWS = float3(0.0, 0.0, 0.0);
+    half3 normalWS = half3(0.0, 0.0, 0.0);
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    half4 tangentWS = half4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
     // TODO: Change to inline ifdef

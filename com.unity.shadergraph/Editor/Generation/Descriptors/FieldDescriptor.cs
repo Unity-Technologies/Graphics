@@ -23,12 +23,19 @@ namespace UnityEditor.ShaderGraph
         }
 
         public FieldDescriptor(string tag, string name, string define, ShaderValueType type,
-                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, bool nativeType = false)
         {
             this.tag = tag;
             this.name = name;
             this.define = define;
-            this.type = type.ToShaderString();
+            if (nativeType)
+            {
+                this.type = type.ToNativeShaderString();
+            }
+            else
+            {
+                this.type = type.ToShaderString();
+            }
             this.vectorCount = type.GetVectorCount();
             this.semantic = semantic;
             this.preprocessor = preprocessor;
