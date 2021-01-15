@@ -281,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (blackboard.moveItemRequested != null)
                         {
-                            blackboard.moveItemRequested(blackboard, m_InsertIndex, draggedElement.Item2);
+                            blackboard.moveItemRequested(m_InsertIndex, draggedElement.Item2);
                         }
                         else
                         {

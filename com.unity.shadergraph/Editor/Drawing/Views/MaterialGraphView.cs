@@ -7,6 +7,7 @@ using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
@@ -17,7 +18,7 @@ using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialGraphView : GraphView, IInspectable
+    sealed class MaterialGraphView : GraphView, IInspectable, ISelectionProvider
     {
         public MaterialGraphView()
         {
@@ -56,6 +57,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_BlackboardFieldDropDelegate;
             set => m_BlackboardFieldDropDelegate = value;
         }
+
+        public List<ISelectable> GetSelection => selection;
 
         Action m_BlackboardFieldDropDelegate;
 

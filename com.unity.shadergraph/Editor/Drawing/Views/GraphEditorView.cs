@@ -282,7 +282,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
 
-            m_BlackboardController = new BlackboardController(new BlackboardViewModel(), m_Graph.owner.graphDataStore);
+            m_BlackboardController = new BlackboardController(new BlackboardViewModel(), m_Graph.owner.graphDataStore, m_GraphView);
             m_Graph.owner.graphDataStore.Subscribe += m_BlackboardController.ModelChanged;
         }
 

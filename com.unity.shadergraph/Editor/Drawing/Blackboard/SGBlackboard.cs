@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
@@ -29,11 +30,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-    class SGBlackboard : GraphSubWindow, ISelection
+    class SGBlackboard : GraphSubWindow
     {
         VisualElement m_ScrollBoundaryTop;
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
+
+        // List of existing blackboard sections
+        IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
 
         bool m_scrollToTop = false;
         bool m_scrollToBottom = false;
@@ -47,22 +51,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override string UxmlName => "GraphView/Blackboard";
         public override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
 
-        public Action<SGBlackboard> addItemRequested { get; set; }
-        public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
+        public Action addItemRequested { get; set; }
+        public Action<int, VisualElement> moveItemRequested { get; set; }
 
-        public SGBlackboard(GraphView associatedGraphView) : base(associatedGraphView)
+        public SGBlackboard(VisualElement parentVisualElement) : base(parentVisualElement)
         {
             windowDockingLayout.dockingLeft = true;
 
             var addButton = m_MainContainer.Q(name: "addButton") as Button;
-            addButton.clickable.clicked += () => {
-                if (addItemRequested != null)
-                {
-                    addItemRequested(this);
-                }
+            addButton.clickable.clicked += () =>
+            {
+                addItemRequested?.Invoke();
             };
 
-            associatedGraphView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+            parentVisualElement.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
 
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
@@ -83,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             HideScrollBoundaryRegions();
 
             // Sets delegate association so scroll boundary regions are hidden when a blackboard property is dropped into graph
-            if (associatedGraphView is MaterialGraphView materialGraphView)
+            if (parentVisualElement is MaterialGraphView materialGraphView)
                 materialGraphView.blackboardFieldDropDelegate = HideScrollBoundaryRegions;
 
             isWindowScrollable = true;
@@ -155,19 +157,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
         }
 
-        public virtual void AddToSelection(ISelectable selectable)
+        public void HideAllDragIndicators()
         {
-            graphView?.AddToSelection(selectable);
-        }
 
-        public virtual void RemoveFromSelection(ISelectable selectable)
-        {
-            graphView?.RemoveFromSelection(selectable);
-        }
-
-        public virtual void ClearSelection()
-        {
-            graphView?.ClearSelection();
         }
     }
 }

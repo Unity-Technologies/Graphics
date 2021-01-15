@@ -136,12 +136,14 @@ namespace UnityEditor.ShaderGraph
     // Using the Curiously Recurring Template Pattern here
     // Generic subclass that provides itself as argument for base class type
     // Allows access to child class functionality in the parent, prevents the parent from growing into a monolithic base class over time
-    abstract class SGViewController<T> : SGController<SGViewController<T>> where T : SGViewModel
+    abstract class SGViewController<T> : SGController<SGViewController<T>> where T : ISGViewModel
     {
         // NOTE: VFX Graph implements models at a base controller level but they also have a unified data model system that we lack which makes it possible, a note for future improvements
         // Holds application specific data
         // TODO : Have a const reference to a data store instead of a raw GraphData reference, to allow for action dispatches
         GraphDataStore m_GraphDataStore;
+
+        protected GraphDataStore graphDataStore => m_GraphDataStore;
 
         // Holds data specific to the views this controller is responsible for
         T m_ViewModel;

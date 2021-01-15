@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -142,12 +142,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // which for SG, is a representation of the settings in GraphData
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
-            var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
+            var graphEditorView = parentView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
             contentContainer.Clear();
-            DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            DrawInspectable(contentContainer, (IInspectable)parentView, m_graphSettingsPropertyDrawer);
             contentContainer.MarkDirtyRepaint();
         }
     }

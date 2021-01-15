@@ -9,17 +9,17 @@ namespace UnityEditor.ShaderGraph
     class DataStore<T>
     {
         Reducer<T> m_Reducer;
-        public T State { get; private set; }
+        internal T State { get; private set; }
 
-        public Action<T> Subscribe;
+        internal Action<T> Subscribe;
 
-        public DataStore(Reducer<T> reducer, T initialState)
+        internal DataStore(Reducer<T> reducer, T initialState)
         {
             m_Reducer = reducer;
             State = initialState;
         }
 
-        public void Dispatch(ActionType action)
+        internal void Dispatch(ActionType action)
         {
             State = m_Reducer(State, action);
             // Notifies any listeners about change in state

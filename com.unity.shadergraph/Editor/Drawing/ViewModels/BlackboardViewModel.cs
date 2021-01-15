@@ -6,20 +6,13 @@ using UnityEditor;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class BlackboardViewModel : SGViewModel
+    class BlackboardViewModel : ISGViewModel
     {
+        public GraphData Model { get; set; }
         public string Subtitle { get; set; }
-        List<Type> m_ShaderInputTypes;
 
-
-        public override void ConstructFromModel(GraphData graphData)
+        public void ConstructFromModel(GraphData graphData)
         {
-            m_ShaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
-        }
-
-        public override void WriteToModel()
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

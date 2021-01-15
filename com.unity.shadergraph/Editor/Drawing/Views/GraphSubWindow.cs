@@ -6,7 +6,12 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, ISGResizable, ISGControlledElement<SGViewController<SGViewModel>>
+    interface ISelectionProvider
+    {
+        List<ISelectable> GetSelection { get; }
+    }
+
+    class GraphSubWindow : GraphElement, ISGResizable, ISGControlledElement<SGViewController<ISGViewModel>>
     {
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -19,13 +24,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         }
 
-        public SGViewController<SGViewModel> controller
+        public SGViewController<ISGViewModel> controller
         {
             get { return m_Controller; }
         }
         // --- ISGControlledElement implementation
 
-        SGViewController<SGViewModel> m_Controller;
+        SGViewController<ISGViewModel> m_Controller;
 
         Dragger m_Dragger;
 
@@ -49,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected ScrollView m_ScrollView;
         protected VisualElement m_ContentContainer;
         protected VisualElement m_HeaderItem;
-        protected GraphView m_GraphView;
+        protected VisualElement m_ParentView;
 
         // These are used as default values for styling and layout purposes
         // They can be overriden if a child class wants to roll its own style and layout behavior
@@ -61,24 +66,34 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         public virtual string elementName => "";
         public virtual string windowTitle => "";
 
-        public GraphView graphView
+        public VisualElement parentView
         {
             get
             {
-                if (!isWindowed && m_GraphView == null)
-                    m_GraphView = GetFirstAncestorOfType<GraphView>();
-                return m_GraphView;
+                if (!isWindowed && m_ParentView == null)
+                    m_ParentView = GetFirstAncestorOfType<GraphView>();
+                return m_ParentView;
             }
 
             set
             {
                 if (!isWindowed)
                     return;
-                m_GraphView = value;
+                m_ParentView = value;
             }
         }
 
-        public List<ISelectable> selection => graphView?.selection;
+        public List<ISelectable> selection
+        {
+            get
+            {
+                if(parentView is ISelectionProvider selectionProvider)
+                    return selectionProvider.GetSelection;
+
+                Debug.Log("ERROR: GraphSubWindow: Was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");
+                return new List<ISelectable>();
+            }
+        }
 
         public override string title
         {
@@ -202,10 +217,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
-        protected GraphSubWindow(GraphView associatedGraphView) : base()
+        protected GraphSubWindow(VisualElement parentVisualElement) : base()
         {
-            m_GraphView = associatedGraphView;
-            m_GraphView.Add(this);
+            m_ParentView = parentVisualElement;
+            parentView.Add(this);
 
             var styleSheet = Resources.Load<StyleSheet>($"Styles/{styleName}");
             // Setup VisualElement from Stylesheet and UXML file
@@ -258,26 +273,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         public void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
-            #if UNITY_2021_1_OR_NEWER
-            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Auto;
-            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Auto;
-            #else
             this.m_ScrollView.style.display = DisplayStyle.Flex;
-            #endif
-
             this.MarkDirtyRepaint();
         }
 
         public void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-            #if UNITY_2021_1_OR_NEWER
-            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
-            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            #else
             this.m_ScrollView.style.display = DisplayStyle.None;
-            #endif
-
             this.MarkDirtyRepaint();
         }
 
@@ -359,7 +362,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         void OnMoveEnd(MouseUpEvent upEvent)
         {
-            windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();

@@ -276,6 +276,7 @@
     right:0;
     bottom:0;
     -unity-text-align:middle-left;
+    -unity-font-color: red;
     font-size: 11px;
 }
 

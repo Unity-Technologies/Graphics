@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             return string.Join("/", newStrings.ToArray());
         }
 
-        void MoveItemRequested(SGBlackboard blackboard, int newIndex, VisualElement visualElement)
+        void MoveItemRequested(int newIndex, VisualElement visualElement)
         {
             var input = visualElement.userData as ShaderInput;
             if (input == null)
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        void AddItemRequested(SGBlackboard blackboard)
+        void AddItemRequested()
         {
             var gm = new GenericMenu();
             AddPropertyItems(gm);
