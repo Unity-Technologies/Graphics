@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
@@ -49,6 +49,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
+
+
+        public Action blackboardFieldDropDelegate
+        {
+            get => m_BlackboardFieldDropDelegate;
+            set => m_BlackboardFieldDropDelegate = value;
+        }
+
+        Action m_BlackboardFieldDropDelegate;
 
         Action m_InspectorUpdateDelegate;
         Action m_PreviewManagerUpdateDelegate;
@@ -911,7 +920,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // Gets the index after the currently selected shader input per row.
-        public static List<int> GetIndicesToInsert(Blackboard blackboard, int numberOfSections = 2)
+        public static List<int> GetIndicesToInsert(SGBlackboard blackboard, int numberOfSections = 2)
         {
             List<int> indexPerSection = new List<int>();
 
@@ -927,7 +936,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selectedBlackboardField != null)
                 {
                     BlackboardRow row = selectedBlackboardField.GetFirstAncestorOfType<BlackboardRow>();
-                    BlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<BlackboardSection>();
+                    SGBlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<SGBlackboardSection>();
                     if (row == null || section == null)
                         continue;
                     VisualElement sectionContainer = section.parent;
@@ -1009,6 +1018,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         CreateNode(field, localPos);
                     }
+
+                    // Call this delegate so blackboard can respond to blackboard field being dropped
+                    blackboardFieldDropDelegate?.Invoke();
                 }
             }
             else
@@ -1218,7 +1230,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
 
-            Blackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
+            SGBlackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
 
             // Get the position to insert the new shader inputs per section.
             List<int> indicies = MaterialGraphView.GetIndicesToInsert(blackboard);
