@@ -5,8 +5,11 @@ using UnityEngine.Rendering.Universal;
 public class OutputTextureFeature : ScriptableRendererFeature
 {
     public Shader shader;
+    public ScriptableRenderPassInput inputRequirement;
+
     private Material m_Material;
     private CustomRenderPass m_ScriptablePass;
+
 
     /// <inheritdoc/>
     public override void Create()
@@ -29,7 +32,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_Material = new Material(shader);
         }
 
-        m_ScriptablePass.Setup(m_Material);
+        m_ScriptablePass.Setup(m_Material, inputRequirement);
         renderer.EnqueuePass(m_ScriptablePass);
     }
 
@@ -43,10 +46,10 @@ public class OutputTextureFeature : ScriptableRendererFeature
     class CustomRenderPass : ScriptableRenderPass
     {
         private Material m_Material;
-        public void Setup(Material material)
+        public void Setup(Material material, ScriptableRenderPassInput inputRequirement)
         {
             m_Material = material;
-            ConfigureInput(ScriptableRenderPassInput.Normal);
+            ConfigureInput(inputRequirement);
         }
 
 
