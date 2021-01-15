@@ -135,6 +135,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(decalDesc);
         }
 
+        TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph)
+        {
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" });
+        }
+
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
@@ -283,16 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         class DepthPrepassData
         {
             public FrameSettings        frameSettings;
-            public bool                 msaaEnabled;
-            public bool                 decalLayersEnabled;
-            public bool                 hasDepthDeferredPass;
-            public TextureHandle        depthBuffer;
-            public TextureHandle        depthAsColorBuffer;
-            public TextureHandle        normalBuffer;
-            public TextureHandle        decalBuffer;
-
-            public RendererListHandle   rendererListDepthForward;
-            public RendererListHandle   rendererListDepthDeferred;
+            public RendererListHandle   rendererList;
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -302,91 +299,163 @@ namespace UnityEngine.Rendering.HighDefinition
         // True is returned if motion vector must be rendered after GBuffer pass
         bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output, out TextureHandle decalBuffer)
         {
-            var depthPrepassParameters = PrepareDepthPrepass(cull, hdCamera);
+            // Guidelines:
+            // Lit shader can be in deferred or forward mode. In this case we use "DepthOnly" pass with "GBuffer" or "Forward" pass name
+            // Other shader, including unlit are always forward and use "DepthForwardOnly" with "ForwardOnly" pass.
+            // Those pass are exclusive so use only "DepthOnly" or "DepthForwardOnly" but not both at the same time, same for "Forward" and "DepthForwardOnly"
+            // Any opaque material rendered in forward should have a depth prepass. If there is no depth prepass the lighting will be incorrect (deferred shadowing, contact shadow, SSAO), this may be acceptable depends on usage
+
+            // Whatever the configuration we always render first opaque object then opaque alpha tested as they are more costly to render and could be reject by early-z
+            // (but no Hi-z as it is disable with clip instruction). This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
+
+            // Forward material always output normal buffer.
+            // Deferred material never output normal buffer.
+            // Caution: Unlit material let normal buffer untouch. Caution as if people try to filter normal buffer, it can result in weird result.
+            // TODO: Do we need a stencil bit to identify normal buffer not fill by unlit? So don't execute SSAO / SRR ?
+
+            // Additional guidelines for motion vector:
+            // We render object motion vector at the same time than depth prepass with MRT to save drawcall. Depth buffer is then fill with combination of depth prepass + motion vector.
+            // For this we render first all objects that render depth only, then object that require object motion vector.
+            // We use the excludeMotion filter option of DrawRenderer to gather object without object motion vector (only C++ can know if an object have object motion vector).
+            // Caution: if there is no depth prepass we must render object motion vector after GBuffer pass otherwise some depth only objects can hide objects with motion vector and overwrite depth buffer but not update
+            // the motion vector buffer resulting in artifacts
+
+            // Additional guideline for decal
+            // Decal are in their own render queue to allow to force them to render in depth buffer.
+            // Thus it is not required to do a full depth prepass when decal are enabled
+            // Mean when decal are enabled and we haven't request a full prepass in deferred, we can't guarantee that the prepass will be complete
+
+            // With all this variant we have the following scenario of render target binding
+            // decalsEnabled
+            //     LitShaderMode.Forward
+            //         Range Opaque both deferred and forward - depth + optional msaa + normal
+            //         Range opaqueDecal for both deferred and forward - depth + optional msaa + normal + decal
+            //         Range opaqueAlphaTest for both deferred and forward - depth + optional msaa + normal
+            //         Range opaqueDecalAlphaTes for both deferred and forward - depth + optional msaa + normal + decal
+            //    LitShaderMode.Deferred
+            //         fullDeferredPrepass
+            //             Range Opaque for deferred - depth
+            //             Range opaqueDecal for deferred - depth + decal
+            //             Range opaqueAlphaTest for deferred - depth
+            //             Range opaqueDecalAlphaTes for deferred - depth + decal
+
+            //             Range Opaque for forward - depth + normal
+            //             Range opaqueDecal for forward - depth + normal + decal
+            //             Range opaqueAlphaTest for forward - depth + normal
+            //             Range opaqueDecalAlphaTes for forward - depth + normal + decal
+            //         !fullDeferredPrepass
+            //             Range opaqueDecal for deferred - depth + decal
+            //             Range opaqueAlphaTest for deferred - depth
+            //             Range opaqueDecalAlphaTes for deferred - depth + decal
+
+            //             Range Opaque for forward - depth + normal
+            //             Range opaqueDecal for forward - depth + normal + decal
+            //             Range opaqueAlphaTest for forward - depth + normal
+            //             Range opaqueDecalAlphaTesT for forward - depth + normal + decal
+            // !decalsEnabled
+            //     LitShaderMode.Forward
+            //         Range Opaque..OpaqueDecalAlphaTest for deferred and forward - depth + optional msaa + normal
+            //     LitShaderMode.Deferred
+            //         fullDeferredPrepass
+            //             Range Opaque..OpaqueDecalAlphaTest for deferred - depth
+
+            //             Range Opaque..OpaqueDecalAlphaTest for forward - depth + normal
+            //         !fullDeferredPrepass
+            //             Range OpaqueAlphaTest..OpaqueDecalAlphaTest for deferred - depth
+
+            //             Range Opaque..OpaqueDecalAlphaTest for forward - depth + normal
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool decalLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
+            bool decalsEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+            bool fullDeferredPrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering);
+            // To avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass when the motion vector pass is enabled) we exclude the objects that have motion vectors.
+            bool objectMotionEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors);
+            bool excludeMotion = fullDeferredPrepass ? objectMotionEnabled : false;
+            bool shouldRenderMotionVectorAfterGBuffer = (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !fullDeferredPrepass;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 decalBuffer = renderGraph.defaultResources.blackTextureXR;
-                output.depthAsColor = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" });
+                output.depthAsColor = CreateDepthAsColorBuffer(renderGraph);
                 output.normalBuffer = CreateNormalBuffer(renderGraph, msaa);
                 return false;
             }
 
-            using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(depthPrepassParameters.passName, out var passData, ProfilingSampler.Get(depthPrepassParameters.profilingId)))
+            // Needs to be created ahead because it's used in both prepasses.
+            if (decalLayersEnabled)
+                decalBuffer = CreateDecalPrepassBuffer(renderGraph, msaa);
+            else
+                decalBuffer = renderGraph.defaultResources.blackTextureXR;
+
+            // First prepass for relevant objects in deferred.
+            // Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
+            if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
             {
-                passData.frameSettings = hdCamera.frameSettings;
-                passData.msaaEnabled = msaa;
-                passData.decalLayersEnabled = decalLayersEnabled;
-                passData.hasDepthDeferredPass = depthPrepassParameters.hasDepthDeferredPass;
+                string deferredPassName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
+                    (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
 
-                passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
-                passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
-                if (decalLayersEnabled)
-                    passData.decalBuffer = builder.WriteTexture(CreateDecalPrepassBuffer(renderGraph, msaa));
-                // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive.
-                // The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
+                using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
+                {
+                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
+                        cull, hdCamera.camera, m_DepthOnlyPassNames,
+                        renderQueueRange: fullDeferredPrepass ? HDRenderQueue.k_RenderQueue_AllOpaque :
+                        (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
+                        stateBlock: m_AlphaToMaskBlock,
+                        excludeObjectMotionVectors: excludeMotion)));
+
+                    output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
+                    if (decalLayersEnabled)
+                        decalBuffer = builder.UseColorBuffer(decalBuffer, 0);
+
+                    builder.SetRenderFunc(
+                        (DepthPrepassData data, RenderGraphContext context) =>
+                        {
+                            // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                            context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
+                            DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
+                        });
+                }
+            }
+
+            string forwardPassName = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? "Forward Depth Prepass (Deferred ForwardOnly)" : "Forward Depth Prepass";
+            // Then prepass for forward materials.
+            using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(forwardPassName, out var passData, ProfilingSampler.Get(HDProfileId.ForwardDepthPrepass)))
+            {
+                output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
+                int mrtIndex = 0;
                 if (msaa)
-                {
-                    passData.depthAsColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" }));
-                }
-
-                if (passData.hasDepthDeferredPass)
-                {
-                    passData.rendererListDepthDeferred = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.depthDeferredRendererListDesc));
-                }
-
-                passData.rendererListDepthForward = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.depthForwardRendererListDesc));
-
-                output.depthBuffer = passData.depthBuffer;
-                output.depthAsColor = passData.depthAsColorBuffer;
-                output.normalBuffer = passData.normalBuffer;
+                    output.depthAsColor = builder.UseColorBuffer(CreateDepthAsColorBuffer(renderGraph), mrtIndex++);
+                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, msaa), mrtIndex++);
                 if (decalLayersEnabled)
-                    decalBuffer = passData.decalBuffer;
-                else
-                    decalBuffer = renderGraph.defaultResources.blackTextureXR;
+                    decalBuffer = builder.UseColorBuffer(decalBuffer, mrtIndex++);
+
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward)
+                {
+                    RenderStateBlock? stateBlock = null;
+                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                        stateBlock = m_AlphaToMaskBlock;
+
+                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
+                }
+                else if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
+                {
+                    // Forward only material that output normal buffer
+                    passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthForwardOnlyPassNames, stateBlock: m_AlphaToMaskBlock, excludeObjectMotionVectors: excludeMotion)));
+                }
 
                 builder.SetRenderFunc(
                     (DepthPrepassData data, RenderGraphContext context) =>
                     {
-                        RenderTargetIdentifier[] deferredMrt = null;
-                        if (data.hasDepthDeferredPass && data.decalLayersEnabled)
-                        {
-                            deferredMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(1);
-                            deferredMrt[0] = data.decalBuffer;
-                        }
-
-                        var forwardMrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>((data.msaaEnabled ? 2 : 1) + (data.decalLayersEnabled ? 1 : 0));
-                        if (data.msaaEnabled)
-                        {
-                            forwardMrt[0] = data.depthAsColorBuffer;
-                            forwardMrt[1] = data.normalBuffer;
-                            if (data.decalLayersEnabled)
-                                forwardMrt[2] = data.decalBuffer;
-                        }
-                        else
-                        {
-                            forwardMrt[0] = data.normalBuffer;
-                            if (data.decalLayersEnabled)
-                                forwardMrt[1] = data.decalBuffer;
-                        }
-
-                        RenderDepthPrepass(context.renderContext, context.cmd, data.frameSettings
-                            , deferredMrt
-                            , forwardMrt
-                            , data.depthBuffer
-                            , data.rendererListDepthDeferred
-                            , data.rendererListDepthForward
-                            , data.hasDepthDeferredPass
-                        );
+                        // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
+                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                     });
             }
 
-            return depthPrepassParameters.shouldRenderMotionVectorAfterGBuffer;
+            return shouldRenderMotionVectorAfterGBuffer;
         }
 
         class ObjectMotionVectorsPassData
