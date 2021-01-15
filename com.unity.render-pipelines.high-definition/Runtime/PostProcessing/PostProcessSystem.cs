@@ -1498,7 +1498,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void GetDoResolutionScale(in DepthOfFieldParameters dofParameters, out float scale, out float resolutionScale)
+        static void GetDoFResolutionScale(in DepthOfFieldParameters dofParameters, out float scale, out float resolutionScale)
         {
             scale = 1f / (float)dofParameters.resolution;
             resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
@@ -1557,7 +1557,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
             float barrelClipping = dofParameters.physicalCameraBarrelClipping / 3f;
 
-            GetDoResolutionScale(dofParameters, out float scale, out float resolutionScale);
+            GetDoFResolutionScale(dofParameters, out float scale, out float resolutionScale);
             var screenScale = new Vector2(scale, scale);
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);

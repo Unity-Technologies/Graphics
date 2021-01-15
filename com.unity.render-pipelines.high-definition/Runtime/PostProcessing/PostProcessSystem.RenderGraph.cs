@@ -507,7 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
 
-                        GetDoResolutionScale(passData.parameters, out float unused, out float resolutionScale);
+                        GetDoFResolutionScale(passData.parameters, out float unused, out float resolutionScale);
                         float actualNearMaxBlur = passData.parameters.nearMaxBlur * resolutionScale;
                         int passCount = Mathf.CeilToInt((actualNearMaxBlur + 2f) / 4f);
 
