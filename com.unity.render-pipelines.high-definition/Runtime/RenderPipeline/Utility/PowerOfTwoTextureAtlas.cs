@@ -195,9 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
 
-            if (NeedsUpdate(texture))
-                return false;
-
             // new texture
             if (!IsCached(out _, texture))
             {
@@ -208,33 +205,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        // pass width and height for CubeMap (use 2*width) & Texture2D (use width)
-        public bool ReserveSpace(Texture texture, int width, int height)
+        public bool ReserveSpace(int id, int width, int height)
         {
-            int id = GetTextureID(texture);
             m_RequestedTextures[id] = new Vector2Int(width, height);
-
-            if (NeedsUpdate(texture))
-                return false;
-
-            // new texture
-            if (!IsCached(out _, id))
-            {
-                Vector4 scaleBias = Vector4.zero;
-                if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))
-                    return false;
-            }
-            return true;
-        }
-
-        // pass width and height for CubeMap (use 2*width) & Texture2D (use width)
-        public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
-        {
-            int id = GetTextureID(textureA, textureB);
-            m_RequestedTextures[id] = new Vector2Int(width, height);
-
-            if (NeedsUpdate(textureA, textureB))
-                return false;
 
             // new texture
             if (!IsCached(out _, id))
