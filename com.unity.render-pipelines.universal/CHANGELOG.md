@@ -13,6 +13,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a case where shadow fade was clipped to early.
 
 ### Changed
+- Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
 
