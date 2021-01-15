@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureCameraTarget(m_CameraColor, m_CameraDepth);
 
             // 1) Depth pre-pass
-            m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, Shader.PropertyToID(m_CameraDepth.name));
+            m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraDepth);
             EnqueuePass(m_DepthPrepass);
 
             // 2) Forward opaque

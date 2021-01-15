@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (pass.rendererData.isNormalsRenderTargetValid)
                 {
-                    cmd.ReleaseTemporaryRT(URPShaderIDs._NormalMap);
+                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name));
                 }
 
                 pass.rendererData.isNormalsRenderTargetValid = true;
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 descriptor.dimension = TextureDimension.Tex2D;
 
-                cmd.GetTemporaryRT(URPShaderIDs._NormalMap, descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name), descriptor, FilterMode.Bilinear);
             }
         }
 
@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(Shader.PropertyToID(pass.rendererData.cameraSortingLayerRenderTarget.name), descriptor, FilterMode.Bilinear);
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -118,9 +118,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
             pass.rendererData.normalsRenderTargetScale = 0.0f;
-            cmd.ReleaseTemporaryRT(URPShaderIDs._NormalMap);
-            cmd.ReleaseTemporaryRT(URPShaderIDs._ShadowTex);
-            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name));
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.shadowsRenderTarget.name));
+            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
+            {
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.cameraSortingLayerRenderTarget.name));
+            }
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)

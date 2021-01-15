@@ -130,11 +130,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(Shader.PropertyToID($"_ShapeLightTexture{i}"));
+                m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(Shader.PropertyToID($"_ShapeLightTexture{i}"), $"_ShapeLightTexture{i}");
             }
 
-            normalsRenderTarget = RTHandles.Alloc(URPShaderIDs._NormalMap);
-            shadowsRenderTarget = RTHandles.Alloc(URPShaderIDs._ShadowTex);
+            normalsRenderTarget = RTHandles.Alloc(URPShaderIDs._NormalMap, "_NormalMap");
+            shadowsRenderTarget = RTHandles.Alloc(URPShaderIDs._ShadowTex, "_ShadowTex");
 
             const int totalMaterials = 256;
             if (shadowMaterials == null || shadowMaterials.Length == 0)
@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal float normalsRenderTargetScale { get; set; }
         internal RTHandle normalsRenderTarget;
         internal RTHandle shadowsRenderTarget;
-        internal int cameraSortingLayerRenderTargetId;
+        internal RTHandle cameraSortingLayerRenderTarget;
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }

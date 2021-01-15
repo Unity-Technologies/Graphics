@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     unsafe
                     {
-                        m_RenderTargets[i] = RTHandles.Alloc(Shader.PropertyToID($"ShadowTex_{i}"));
+                        m_RenderTargets[i] = RTHandles.Alloc(Shader.PropertyToID($"ShadowTex_{i}"), $"ShadowTex_{i}");
                     }
                 }
             }
@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
-            CreateShadowRenderTexture(pass, Shader.PropertyToID($"ShadowTex_{shadowIndex}"), renderingData, cmdBuffer);
+            CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
         }
 
         public static void PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalFloat(URPShaderIDs._ShadowVolumeIntensity, 1);
         }
 
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, int rtId, RenderingData renderingData, CommandBuffer cmdBuffer)
+        private static void CreateShadowRenderTexture(IRenderPass2D pass, RTHandle rtHandle, RenderingData renderingData, CommandBuffer cmdBuffer)
         {
             var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmdBuffer.GetTemporaryRT(rtId, descriptor, FilterMode.Bilinear);
+            cmdBuffer.GetTemporaryRT(Shader.PropertyToID(rtHandle.name), descriptor, FilterMode.Bilinear);
         }
 
         public static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
