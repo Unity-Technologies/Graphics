@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
+- Fixed register spilling on  FXC in light list shaders.
 - Fixed resize IES when already baked in the Atlas 1299233
 - Fixed after post process custom pass scale issue when dynamic resolution is enabled (case 1299194).
 - Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
@@ -17,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed side effect on styles during compositor rendering.
 - Fixed size and spacing of compositor info boxes (case 1305652).
 - Fixed spacing of UI widgets in the Graphics Compositor (case 1305638).
+- Fixed undo-redo on layered lit editor.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
+- Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
+- Fixed some render texture leaks.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 
 ### Changed
@@ -62,7 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 - Fixed box light attenuation.
-- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
+- Fixed compilation issues on platforms that don't support XR.
+- Fixed issue with compute shader stripping for probe volumes variants.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
