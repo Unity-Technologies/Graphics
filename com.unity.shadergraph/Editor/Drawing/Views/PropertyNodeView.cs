@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
             UpdateReferenceNameResetMenu();
-
+            
             // Set callback association for display name updates
             m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }

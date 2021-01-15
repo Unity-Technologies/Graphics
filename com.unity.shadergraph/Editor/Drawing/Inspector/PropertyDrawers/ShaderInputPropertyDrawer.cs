@@ -56,6 +56,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.normal = new GUIStyleState { textColor = Color.grey };
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
+
+            // Initializing this callback early on as it is needed by the BlackboardFieldView
+            // for binding to the menu action that triggers the reset
+            _resetReferenceNameCallback = newValue =>
+            {
+                m_ReferenceNameField.value = newValue;
+                m_ReferenceNameField.RemoveFromClassList("modified");
+            };
         }
 
         GraphData graphData;
@@ -191,12 +199,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
-
-                _resetReferenceNameCallback = newValue =>
-                {
-                    m_ReferenceNameField.value = newValue;
-                    m_ReferenceNameField.RemoveFromClassList("modified");
-                };
 
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
@@ -22,6 +21,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         GraphEditorView m_GraphEditorView;
         MaterialGraphEditWindow m_Window;
+
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
 
         [OneTimeSetUp]

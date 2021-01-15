@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 - Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
 - Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
