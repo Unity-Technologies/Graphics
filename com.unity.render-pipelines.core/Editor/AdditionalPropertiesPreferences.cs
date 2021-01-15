@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering
             {
                 var instance = dummyGameObject.AddComponent(editorTypes.objectType);
                 var editor = Editor.CreateEditor(instance, editorTypes.editorType) as IAdditionalPropertiesBoolFlagsHandler;
-                editor.ShowAdditionalProperties(value);
+                editor.SetAddditionalPropertiesVisibility(value);
 
                 UnityEngine.Object.DestroyImmediate((Editor)editor);
             }

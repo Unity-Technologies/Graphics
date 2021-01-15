@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDLightUI.UnregisterEditor(this);
         }
 
-        public void ShowAdditionalProperties(bool value)
+        public void SetAddditionalPropertiesVisibility(bool value)
         {
             HDLightUI.ShowAdditionalProperties(value);
         }

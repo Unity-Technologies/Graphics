@@ -9,6 +9,6 @@ namespace UnityEditor.Rendering
         /// Implement to show or hide all additional properties for this editor.
         /// </summary>
         /// <param name="value"></param>
-        void ShowAdditionalProperties(bool value);
+        void SetAddditionalPropertiesVisibility(bool value);
     }
 }

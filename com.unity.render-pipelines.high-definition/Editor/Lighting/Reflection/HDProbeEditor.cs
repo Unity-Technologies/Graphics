@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDProbeUI.UnregisterEditor(this);
         }
 
-        public void ShowAdditionalProperties(bool value)
+        public void SetAddditionalPropertiesVisibility(bool value)
         {
             HDProbeUI.ShowAdditionalProperties(value);
         }
