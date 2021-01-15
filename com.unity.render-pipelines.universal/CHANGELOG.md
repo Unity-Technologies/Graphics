@@ -6,17 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.3.0] - 2020-11-16
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-### Added
-
-### Changed
-
 ### Fixed
 - Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 - Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
+- Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 
 ## [10.2.0] - 2020-10-19
 
