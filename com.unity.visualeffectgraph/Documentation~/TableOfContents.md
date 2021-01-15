@@ -329,6 +329,8 @@
       * [Sample Texture3D](Operator-SampleTexture3D.md)
       * [Sample TextureCube](Operator-SampleTextureCube.md)
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
+    * Spawn
+      * [Spawn State](Operator-SpawnState.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
 * Reference
