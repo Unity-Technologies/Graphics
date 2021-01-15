@@ -84,11 +84,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
 
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
-            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTargetId, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 depthAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction,
                 ClearFlag.None, Color.clear);
-            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTargetId);
+            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget);
             context.ExecuteCommandBuffer(cmd);
         }
 

@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         Downsampling m_DownsamplingMethod;
         Material m_CopyColorMaterial;
 
-        private RenderTargetIdentifier source { get; set; }
-        private int destinationId { get; set; }
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
 
         /// <summary>
         /// Create the CopyColorPass
@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
             base.useNativeRenderPass = false;
+            destination = null;
         }
 
         /// <summary>
@@ -39,10 +40,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetIdentifier source, int destinationId, Downsampling downsampling)
+        public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;
-            this.destinationId = destinationId;
+            this.destination?.Release();
+            this.destination = destination;
             m_DownsamplingMethod = downsampling;
         }
 
@@ -62,7 +64,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 descriptor.height /= 4;
             }
 
-            cmd.GetTemporaryRT(destinationId, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }
 
         /// <inheritdoc/>
@@ -77,7 +79,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                RenderTargetIdentifier opaqueColorRT = destinationId;
+                RenderTargetIdentifier opaqueColorRT = destination;
 
                 ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag,
                     clearColor);
@@ -111,11 +113,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destinationId != -1 /*RenderTargetHandle.CameraTarget.id*/)
-            {
-                cmd.ReleaseTemporaryRT(destinationId);
-                destinationId = -1;  // RenderTargetHandle.CameraTarget.id;
-            }
+            if (destination != null)
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination.name));
+            destination = null;
         }
     }
 }

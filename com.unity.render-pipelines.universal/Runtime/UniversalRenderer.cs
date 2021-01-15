@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_ActiveCameraDepthAttachment.name), Shader.PropertyToID(m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].name));
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_DepthTexture.name), Shader.PropertyToID(m_NormalsTexture.name));
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture);
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);
@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
                     if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, Shader.PropertyToID(m_DepthTexture.name));
+                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (generateColorGradingLUT)
             {
-                colorGradingLutPass.Setup(Shader.PropertyToID(colorGradingLut.name));
+                colorGradingLutPass.Setup(colorGradingLut);
                 EnqueuePass(colorGradingLutPass);
             }
 
@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, Shader.PropertyToID(m_OpaqueColor.name), downsamplingMethod);
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -550,10 +550,11 @@ namespace UnityEngine.Rendering.Universal
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
-                    var destination = resolvePostProcessingToCameraTarget ? -1 : Shader.PropertyToID(afterPostProcessColor.name);
+                    var destination = resolvePostProcessingToCameraTarget ? k_CameraTarget : afterPostProcessColor;
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, resolvePostProcessingToCameraTarget);
+                    bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -606,7 +607,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, Shader.PropertyToID(afterPostProcessColor.name), m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 

@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(Shader.PropertyToID(pass.rendererData.cameraSortingLayerRenderTarget.name), descriptor, FilterMode.Bilinear);
         }
 
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -170,7 +170,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.normalsRenderTarget.name));
             cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.shadowsRenderTarget.name));
-            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTargetId);
+            if (pass.rendererData.cameraSortingLayerRenderTarget != null)
+            {
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(pass.rendererData.cameraSortingLayerRenderTarget.name));
+            }
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)

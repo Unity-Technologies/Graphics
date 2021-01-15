@@ -138,13 +138,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in int destinationId, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
             m_Source = source;
-            m_DestinationId = destinationId;
+            m_DestinationId = Shader.PropertyToID(destination.name);
             m_DestinationIsInternalRT = resolvePostProcessingToCameraTarget;
             m_Depth = depth;
             m_InternalLut = internalLut;

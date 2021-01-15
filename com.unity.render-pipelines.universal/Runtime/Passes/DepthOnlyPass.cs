@@ -38,9 +38,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            int depthAttachmentId)
+            RTHandle depthAttachment)
         {
-            this.depthAttachmentId = depthAttachmentId;
+            this.depthAttachmentId = Shader.PropertyToID(depthAttachment.name);
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
 

@@ -53,10 +53,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RTHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
-
             // Create and declare the render targets used in the pass
-            for (int i = 0; i < gbufferAttachments.Length; ++i)
+            for (int i = 0; i < m_DeferredLights.GbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i == m_DeferredLights.GBufferLightingIndex)
