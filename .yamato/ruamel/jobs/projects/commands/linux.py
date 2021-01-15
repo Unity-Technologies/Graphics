@@ -58,7 +58,7 @@ def add_project_commands(project):
     if project.get("url"):
         cmds.extend([
             f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} {TEST_PROJECTS_DIR}/{project["repo"]}',
-            f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
+            f'cd {TEST_PROJECTS_DIR}/{project["repo"]} && git checkout {switch_var_sign(project["revision"])}'
         ])
     if project.get("unity_config_commands"):
         cmds.extend([
@@ -68,5 +68,5 @@ def add_project_commands(project):
             f'sudo apt install -y unity-config',
         ])
         for unity_config in project["unity_config_commands"]:
-            cmds.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && {unity_config}')
+            cmds.append(f'cd {TEST_PROJECTS_DIR}/{project["repo"]} && {unity_config}')
     return cmds

@@ -21,13 +21,13 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_BRANCH% TestProjects/URP-Update-testing
-      -  cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_REVISION%
+      -  cd TestProjects/URP-Update-testing && git checkout %TEMPLATE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -51,13 +51,13 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_BRANCH% TestProjects/URP-Update-testing
-      -  cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_REVISION%
+      -  cd TestProjects/URP-Update-testing && git checkout %TEMPLATE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -82,13 +82,13 @@ URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_BRANCH% TestProjects/URP-Update-testing
-      -  cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_REVISION%
+      -  cd TestProjects/URP-Update-testing && git checkout %TEMPLATE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  copy /Y "unity_revision.txt" "TestProjects/URP-Update-testing/URP-Update-Testing/unity_revision.txt"
@@ -117,13 +117,13 @@ URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_BRANCH% TestProjects/URP-Update-testing
-      -  cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_REVISION%
+      -  cd TestProjects/URP-Update-testing && git checkout %TEMPLATE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/URP-Update-Testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+      -  cd TestProjects/URP-Update-testing && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  copy /Y "unity_revision.txt" "TestProjects/URP-Update-testing/URP-Update-Testing/unity_revision.txt"
