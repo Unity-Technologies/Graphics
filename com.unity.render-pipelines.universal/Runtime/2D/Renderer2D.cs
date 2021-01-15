@@ -175,6 +175,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
+            // is it here that we do this?
+            AddRenderPasses(ref renderingData);
+
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
