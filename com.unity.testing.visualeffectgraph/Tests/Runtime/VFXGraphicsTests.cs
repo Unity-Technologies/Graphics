@@ -92,6 +92,9 @@ namespace UnityEngine.VFX.Test
             {
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
 
+                var rt = RenderTexture.GetTemporary(imageComparisonSettings.TargetWidth, imageComparisonSettings.TargetHeight, 24);
+                camera.targetTexture = rt;
+
                 //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
                 maxFrame = maxFrameWaiting;
                 while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
@@ -122,7 +125,7 @@ namespace UnityEngine.VFX.Test
 
                 int waitFrameCount = (int)(simulateTime / period);
                 int startFrameIndex = Time.frameCount;
-                int expectedFrameIndex = startFrameIndex + waitFrameCount;
+                int expectedFrameIndex = startFrameIndex + waitFrameCount - 1;
 
                 while (Time.frameCount != expectedFrameIndex)
                 {
@@ -134,7 +137,19 @@ namespace UnityEngine.VFX.Test
 #endif
                 }
 
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
+                try
+                {
+                    // Reset targetTexture and wait one frame to reach the correct expectedFrameIndex
+                    camera.targetTexture = null;
+                    yield return new WaitForEndOfFrame();
+
+                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
+
+                }
+                finally
+                {
+                    RenderTexture.ReleaseTemporary(rt);
+                }
             }
         }
 
