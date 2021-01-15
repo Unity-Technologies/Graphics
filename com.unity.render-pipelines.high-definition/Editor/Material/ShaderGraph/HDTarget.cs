@@ -1007,7 +1007,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor Lightmap = new KeywordDescriptor()
@@ -1017,7 +1016,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
@@ -1027,7 +1025,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
@@ -1037,7 +1034,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()

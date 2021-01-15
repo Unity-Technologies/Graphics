@@ -314,7 +314,7 @@ Shader "HDRP/Unlit"
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
-            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #ifdef DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
