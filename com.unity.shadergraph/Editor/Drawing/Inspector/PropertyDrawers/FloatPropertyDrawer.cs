@@ -18,7 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyFloatField,
             int indentLevel = 0)
         {
-            var floatField = new FloatField {value = fieldToDraw};
+            var floatField = new FloatField {label = "X", value = fieldToDraw};
+            floatField.labelElement.style.minWidth = 15;
 
             if (valueChangedCallback != null)
             {
