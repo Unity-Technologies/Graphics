@@ -390,7 +390,7 @@ namespace UnityEditor
             var camLightForwardDot = Vector3.Dot(manipulatorTransform.forward, cameraTransform.forward);
             var camLightRightDot = Vector3.Dot(manipulatorTransform.right, cameraTransform.right);
             var dirty = camToLight != m_CamToLight || Math.Abs(camLightForwardDot - m_CamLightForwardDot) > float.Epsilon
-                                                   || Math.Abs(camLightRightDot - m_CamLightRightDot) > float.Epsilon;
+                || Math.Abs(camLightRightDot - m_CamLightRightDot) > float.Epsilon;
             m_CamToLight = camToLight;
             m_CamLightForwardDot = camLightForwardDot;
             m_CamLightRightDot = camLightRightDot;
