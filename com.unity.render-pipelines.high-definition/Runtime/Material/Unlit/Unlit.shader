@@ -110,6 +110,7 @@ Shader "HDRP/Unlit"
     // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
     #pragma shader_feature_local_fragment _EMISSIVE_COLOR_MAP
+    #pragma shader_feature_local_raytracing _EMISSIVE_COLOR_MAP
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
