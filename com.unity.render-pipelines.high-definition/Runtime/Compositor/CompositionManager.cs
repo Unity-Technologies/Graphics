@@ -551,6 +551,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     CoreUtils.Destroy(volume);
                 }
             }
+
+            // We don't need the custom passes anymore
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            UnRegisterCustomPasses(hdPipeline);
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)

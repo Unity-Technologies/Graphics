@@ -21,13 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public BoolParameter activate = new BoolParameter(false);
         Material m_Material;
 
-        protected override void OnEnable()
-        {
-            // Needed to get a scope name in RenderDoc captures
-            name = "ChromaKeying";
-            base.OnEnable();
-        }
-
         public bool IsActive() => m_Material != null;
 
         public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.BeforePostProcess;
