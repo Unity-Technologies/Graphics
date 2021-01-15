@@ -152,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
         internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
         {
             if (viewId >= views.Count)
@@ -159,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
         }
+#endif
 
         internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
         {
