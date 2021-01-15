@@ -489,32 +489,18 @@ void EvaluateLights(LightList lightList,
 
 // Functions used by volumetric sampling
 
-bool SolvePoly2(float a, float b, float c, out float x1, out float x2)
-{
-    float det = Sq(b) - 4.0 * a * c;
-
-    if (det < 0.0)
-        return false;
-
-    float sqrtDet = sqrt(det);
-    x1 = (-b - sign(a) * sqrtDet) / (2.0 * a);
-    x2 = (-b + sign(a) * sqrtDet) / (2.0 * a);
-
-    return true;
-}
-
 bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirection, out float tMin, out float tMax)
 {
     // We consider Direction to be normalized => a = 1
     float b = 2.0 * dot(rayDirection, lightToRayOrigin);
     float c = Length2(lightToRayOrigin) - Sq(radius);
 
-    float t1, t2;
-    if (!SolvePoly2(1.0, b, c, t1, t2))
+    float2 t;
+    if (!SolveQuadraticEquation(1.0, b, c, t))
         return false;
 
-    tMin = max(t1, 0.0);
-    tMax = max(t2, 0.0);
+    tMin = max(t.x, 0.0);
+    tMax = max(t.y, 0.0);
 
     return tMin < tMax;
 }
@@ -656,12 +642,12 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
         float b = 2.0 * (localOrigin.z * localDirection.z - dot(normalizedLocalOrigin, localDirection) * cosTheta2);
         float c = Sq(localOrigin.z) - dot(normalizedLocalOrigin, localOrigin) * cosTheta2;
 
-        float t1, t2;
-        if (!SolvePoly2(a, b, c, t1, t2))
+        float2 t;
+        if (!SolveQuadraticEquation(a, b, c, t))
             return false;
 
         // Check validity of the intersections (we want them only in front of the light)
-        GetFrontInterval(localOrigin.z, localDirection.z, t1, t2, tMin, tMax);
+        GetFrontInterval(localOrigin.z, localDirection.z, t.x, t.y, tMin, tMax);
     }
 
     return tMin < tMax;

@@ -2,7 +2,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
- 	class TextureCache2D : TextureCache
+    class TextureCache2D : TextureCache
     {
         private RenderTexture m_Cache;
 
@@ -19,20 +19,22 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 return ((RenderTexture)texture).useMipMap;
         }
+
         override public bool IsCreated()
         {
             return m_Cache.IsCreated();
         }
+
         protected override bool TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
             // Make sure the array is not null or empty and that the first texture is a render-texture or a texture2D
-            if(textureArray == null || textureArray.Length == 0  && (!(textureArray[0] is RenderTexture) && !(textureArray[0] is Texture2D)))
+            if (textureArray == null || textureArray.Length == 0  && (!(textureArray[0] is RenderTexture) && !(textureArray[0] is Texture2D)))
             {
                 return false;
             }
 
             // First check here is to check if all the sub-texture have the same size
-            for(int texIDx = 1; texIDx < textureArray.Length; ++texIDx)
+            for (int texIDx = 1; texIDx < textureArray.Length; ++texIDx)
             {
                 // We cannot update if the textures if they don't have the same size or not the right type
                 if (textureArray[texIDx].width != textureArray[0].width || textureArray[texIDx].height != textureArray[0].height || (!(textureArray[0] is RenderTexture) && !(textureArray[0] is Texture2D)))

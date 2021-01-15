@@ -57,11 +57,11 @@ namespace UnityEditor.VFX.Operator
             // normalize using w component and renormalize to range [0, 1]
             VFXExpression halfExpression = VFXValue.Constant(0.5f);
             VFXExpression normalizedExpression = new VFXExpressionCombine(new VFXExpression[]
-                {
-                    (clipPosExpression.x / clipPosExpression.w) * halfExpression + halfExpression,
-                    (clipPosExpression.y / clipPosExpression.w) * halfExpression + halfExpression,
-                    viewPosExpression.z // The z position is in world units from the camera
-                });
+            {
+                (clipPosExpression.x / clipPosExpression.w) * halfExpression + halfExpression,
+                (clipPosExpression.y / clipPosExpression.w) * halfExpression + halfExpression,
+                viewPosExpression.z     // The z position is in world units from the camera
+            });
 
             return new VFXExpression[]
             {

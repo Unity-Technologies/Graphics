@@ -92,9 +92,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
 
-        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) {}
 
-        protected virtual bool allowTextures { get { return shaderGraph == null; }}
+        protected virtual bool allowTextures { get { return shaderGraph == null; } }
 
         public class HDRPLitInputProperties
         {
@@ -120,32 +120,37 @@ namespace UnityEditor.VFX
             public float thickness = 1.0f;
         }
 
-        public class BaseColorMapProperties
+        protected IEnumerable<VFXPropertyWithValue> baseColorMapProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D baseColorMap = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "baseColorMap", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
 
-        public class MaskMapProperties
+        protected IEnumerable<VFXPropertyWithValue> maskMapsProperties
         {
-            [Tooltip("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")]
-            public Texture2D maskMap = VFXResources.defaultResources.noiseTexture;
-        }
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "maskMap", new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
 
-        public class NormalMapProperties
-        {
-            [Tooltip("Specifies the Normal map to obtain normals in tangent space for the particle.")]
-            public Texture2D normalMap = null; // TODO Add normal map to default resources
-            [Range(0, 2), Tooltip("Sets the scale of the normals. Larger values increase the impact of the normals.")]
-            public float normalScale = 1.0f;
+            }
         }
-
-        public class EmissiveMapProperties
+        protected IEnumerable<VFXPropertyWithValue> normalMapsProperties
         {
-            [Tooltip("Specifies the Emissive map (RGB) used to make particles glow.")]
-            public Texture2D emissiveMap = null;
-            [Tooltip("Sets the scale of the emission obtained from the emissive map.")]
-            public float emissiveScale = 1.0f;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "normalMap", new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "normalScale", new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
+            }
+        }
+        protected IEnumerable<VFXPropertyWithValue> emissiveMapsProperties
+        {
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "emissiveMap", new TooltipAttribute("Specifies the Emissive map (RGB) used to make particles glow.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "emissiveScale", new TooltipAttribute("Sets the scale of the emission obtained from the emissive map.")), 1.0f);
+            }
         }
 
         public class BaseColorProperties
@@ -184,7 +189,7 @@ namespace UnityEditor.VFX
                     if (allowTextures)
                     {
                         if (useBaseColorMap != BaseColorMapMode.None)
-                            properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
+                            properties = properties.Concat(baseColorMapProperties);
                     }
 
                     if ((colorMode & ColorMode.BaseColor) == 0) // particle color is not used as base color so add a slot
@@ -193,11 +198,11 @@ namespace UnityEditor.VFX
                     if (allowTextures)
                     {
                         if (useMaskMap)
-                            properties = properties.Concat(PropertiesFromType("MaskMapProperties"));
+                            properties = properties.Concat(maskMapsProperties);
                         if (useNormalMap)
-                            properties = properties.Concat(PropertiesFromType("NormalMapProperties"));
+                            properties = properties.Concat(normalMapsProperties);
                         if (useEmissiveMap)
-                            properties = properties.Concat(PropertiesFromType("EmissiveMapProperties"));
+                            properties = properties.Concat(emissiveMapsProperties);
                     }
 
                     if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
@@ -213,7 +218,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if( shaderGraph == null)
+            if (shaderGraph == null)
             {
                 yield return slotExpressions.First(o => o.name == "smoothness");
 
@@ -230,14 +235,15 @@ namespace UnityEditor.VFX
 
                     case MaterialType.Translucent:
                     case MaterialType.SimpleLitTranslucent:
-                        {
-                            yield return slotExpressions.First(o => o.name == "thickness");
-                            uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
-                            yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
-                            break;
-                        }
+                    {
+                        yield return slotExpressions.First(o => o.name == "thickness");
+                        uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+                        yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
+                        break;
+                    }
 
-                    default: break;
+                    default:
+                        break;
                 }
 
                 if (allowTextures)
@@ -318,7 +324,8 @@ namespace UnityEditor.VFX
                                 yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                             break;
 
-                        default: break;
+                        default:
+                            break;
                     }
 
                 if (allowTextures)
@@ -407,6 +414,7 @@ namespace UnityEditor.VFX
                 {
                     yield return "onlyAmbientLighting";
                     yield return "preserveSpecularLighting";
+                    yield return "excludeFromTAA";
                 }
             }
         }

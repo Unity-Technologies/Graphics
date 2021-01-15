@@ -3,7 +3,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
     /// <summary>
     /// Determine how the component of the motion vectors coming from the camera are clamped.
     /// </summary>
@@ -46,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public CameraClampModeParameter(CameraClampMode value, bool overrideState = false) : base(value, overrideState) { }
+        public CameraClampModeParameter(CameraClampMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -83,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// Determine how the component of the motion vectors coming from the camera is clamped. It is important to remember that clamping the camera component separately, velocities relative to camera might change too (e.g. an object parented to a camera
-        /// when the camera moves might not have a 0 motion vector anymore). 
+        /// when the camera moves might not have a 0 motion vector anymore).
         /// </summary>
         [Tooltip("Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion.")]
         public CameraClampModeParameter specialCameraClampMode = new CameraClampModeParameter(CameraClampMode.None);

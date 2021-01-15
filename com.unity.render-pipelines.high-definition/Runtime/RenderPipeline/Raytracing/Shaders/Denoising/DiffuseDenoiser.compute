@@ -106,7 +106,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         float2 newSample;
         newSample.x = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 0);
         newSample.y = GetLDSequenceSampleFloat(sampleIndex + sampleOffset, 1);
-        
+
         // Convert the sample to a local unit disk
         newSample = SampleDiskCubic(newSample.x, newSample.y);
 

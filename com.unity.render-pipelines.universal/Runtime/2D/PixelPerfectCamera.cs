@@ -276,6 +276,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             GUI.color = oldColor;
         }
+
 #endif
 
 #if UNITY_EDITOR
@@ -288,6 +289,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 OnDisable();
             }
         }
+
 #endif
     }
 }

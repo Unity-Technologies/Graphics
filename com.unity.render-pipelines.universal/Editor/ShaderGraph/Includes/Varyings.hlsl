@@ -1,5 +1,9 @@
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
+    // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+    // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+    // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
     float3 _LightDirection;
+    float3 _LightPosition;
 #endif
 
 Varyings BuildVaryings(Attributes input)
@@ -14,7 +18,7 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
@@ -53,20 +57,25 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_NORMAL_WS
-    output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
+    output.normalWS = normalWS;         // normalized in TransformObjectToWorldNormal()
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_WS
-    output.tangentWS = tangentWS;		// normalized in TransformObjectToWorldDir()
+    output.tangentWS = tangentWS;       // normalized in TransformObjectToWorldDir()
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Define shadow pass specific clip position for Universal
-    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
-    #if UNITY_REVERSED_Z
-        output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+    #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+        float3 lightDirectionWS = normalize(_LightPosition - positionWS);
     #else
-        output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+        float3 lightDirectionWS = _LightDirection;
+    #endif
+    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+    #if UNITY_REVERSED_Z
+        output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+    #else
+        output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #endif
 #elif (SHADERPASS == SHADERPASS_META)
     output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
@@ -96,7 +105,7 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
-    output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
+    output.screenPosition = vertexInput.positionNDC;
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
@@ -116,4 +125,3 @@ Varyings BuildVaryings(Attributes input)
 
     return output;
 }
-

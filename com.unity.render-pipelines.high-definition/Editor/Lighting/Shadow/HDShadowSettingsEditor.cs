@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_State = new EditorPrefBoolFlags<Unit>(Key);
         }
 
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<HDShadowSettings>(serializedObject);
@@ -167,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
             modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
                 value.floatValue = Mathf.Clamp01(modifiableValue / max);
             return true;
         }

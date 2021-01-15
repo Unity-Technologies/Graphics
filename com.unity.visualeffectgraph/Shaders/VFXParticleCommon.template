@@ -49,18 +49,32 @@ ${VFXEnd}
 
 ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK && defined(VFX_VARYING_UV)
-${VFXLoadParameter:{flipBookSize}}
-${VFXLoadParameter:{invFlipBookSize}}
-VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
-o.VFX_VARYING_UV.xy = uvData.uvs.xy;
-#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
-o.VFX_VARYING_UV.zw = uvData.uvs.zw;
-o.VFX_VARYING_FRAMEBLEND = uvData.blend;
-#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
-${VFXLoadParameter:{motionVectorScale}}
-o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
-#endif
-#endif
+	#if USE_FLIPBOOK_ARRAY_LAYOUT
+		${VFXLoadParameter:{flipBookSize}}
+		VFXUVData uvData = GetUVData(flipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		o.VFX_VARYING_UV.xyz = uvData.uvs.xyz;
+		#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
+			o.VFX_VARYING_UV.w = uvData.uvs.w;
+			o.VFX_VARYING_FRAMEBLEND = uvData.blend;
+			#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+				${VFXLoadParameter:{motionVectorScale}}
+				o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale;
+			#endif
+		#endif
+	#else
+		${VFXLoadParameter:{invFlipBookSize}}
+		${VFXLoadParameter:{flipBookSize}}
+		VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		o.VFX_VARYING_UV.xy = uvData.uvs.xy;
+		#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
+			o.VFX_VARYING_UV.zw = uvData.uvs.zw;
+			o.VFX_VARYING_FRAMEBLEND = uvData.blend;
+			#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+				${VFXLoadParameter:{motionVectorScale}}
+				o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+			#endif
+		#endif
+	#endif
 #endif
 ${VFXEnd}
 

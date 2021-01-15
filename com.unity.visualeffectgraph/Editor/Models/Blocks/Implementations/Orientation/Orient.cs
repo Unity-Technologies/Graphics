@@ -196,7 +196,7 @@ axisZ = cross(axisX, axisY);
                         }
                         else
                             return @"
-if (IsPerspectiveProjection()) 
+if (IsPerspectiveProjection())
 {
     axisZ = normalize(position - GetViewVFXPosition());
     axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));

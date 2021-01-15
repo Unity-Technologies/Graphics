@@ -42,21 +42,21 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return matOwner.GetVariableNameForSlot(id);
+            return $"UnityBuildTexture2DArrayStruct({nodeOwner.GetVariableNameForSlot(id)})";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             var prop = new Texture2DArrayShaderProperty();
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            prop.overrideReferenceName = nodeOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
             prop.value.textureArray = textureArray;
@@ -77,14 +77,17 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as Texture2DArrayInputMaterialSlot;
             if (slot != null)
+            {
                 m_TextureArray = slot.m_TextureArray;
+                bareResource = slot.bareResource;
+            }
         }
     }
 
     class MinimalTexture2DArrayInputMaterialSlot : IHasDependencies
     {
         [SerializeField]
-        private SerializableTextureArray m_TextureArray;
+        private SerializableTextureArray m_TextureArray = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {

@@ -319,7 +319,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
         dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
         float dist2 = dist * dist;
         float dist4 = dist2 * dist2;
-        // Fitted curve to match ray trace reference as good as possible. 
+        // Fitted curve to match ray trace reference as good as possible.
         float distScale = 3.298300241 - 2.001364639  * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
         shadowSoftness *= distScale;
 

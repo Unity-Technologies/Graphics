@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderAnalysis
 #endif
             return Internal_Tick();
         }
+
         protected abstract bool Internal_Tick();
 
         /// <inheritdoc cref="IAsyncJob"/>
@@ -39,8 +40,9 @@ namespace UnityEditor.ShaderAnalysis
                 Progress.Cancel(m_TaskId);
             else
 #endif
-                Internal_Cancel();
+            Internal_Cancel();
         }
+
         protected abstract void Internal_Cancel();
 
         /// <inheritdoc cref="IAsyncJob"/>

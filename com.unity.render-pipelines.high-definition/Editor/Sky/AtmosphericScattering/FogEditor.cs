@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new HDEditorUtils.IndentScope())
             {
                 if (!m_ColorMode.value.hasMultipleDifferentValues &&
-                    (FogColorMode) m_ColorMode.value.intValue == FogColorMode.ConstantColor)
+                    (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
                 {
                     PropertyField(m_Color);
                 }
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             using (new HDEditorUtils.IndentScope())
                             {
-                                if ((FogControl) m_FogControlMode.value.intValue == FogControl.Balance)
+                                if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
                                 {
                                     PropertyField(m_VolumetricFogBudget);
                                     PropertyField(m_ResolutionDepthRatio);

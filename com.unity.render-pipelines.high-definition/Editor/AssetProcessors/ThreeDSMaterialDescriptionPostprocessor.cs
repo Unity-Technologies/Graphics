@@ -113,4 +113,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

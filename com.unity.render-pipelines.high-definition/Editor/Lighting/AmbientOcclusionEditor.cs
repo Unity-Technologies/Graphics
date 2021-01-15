@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     using (new HDEditorUtils.IndentScope())
                     {
-                        if(!m_TemporalAccumulation.value.boolValue)
+                        if (!m_TemporalAccumulation.value.boolValue)
                         {
                             PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
 

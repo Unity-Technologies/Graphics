@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
@@ -43,11 +42,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return base.GetVariableNameForSlot(OutputSlotId);
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return $"UnityBuildTexture2DStructNoScale({GetTexturePropertyName()})";
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new Texture2DShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Texture,
                 modifiable = false
@@ -58,7 +67,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Texture2D)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 textureValue = texture,
                 texture2DDefaultType = Texture2DShaderProperty.DefaultType.White
             });
@@ -79,7 +88,7 @@ namespace UnityEditor.ShaderGraph
     class Minimal2d3dTextureAssetNode : IHasDependencies
     {
         [SerializeField]
-        private SerializableTexture m_Texture;
+        private SerializableTexture m_Texture = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {

@@ -12,9 +12,9 @@ class ABV_AllProjectCiWeeklyJob():
     def get_job_definition(self, editor, projects, extra_dependencies, target_branch, build_configs, color_space):
         dependencies = [] 
         for dep in extra_dependencies:
-            if dep.get("all"):
+            if dep.get("pr"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_all(dep["project"], editor["name"])}',
+                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_pr(dep["project"], editor["name"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for tp in dep["test_platforms"]:

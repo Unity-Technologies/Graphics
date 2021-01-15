@@ -66,8 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passData.parameters.needTemporaryBuffer)
                 {
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
-                                            new TextureDesc(Vector2.one, true, true)
-                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
+                        new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
                 }
                 else
                 {
@@ -78,19 +78,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
-                {
-                    var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = data.colorBuffer;
-                    resources.diffuseBuffer = data.diffuseBuffer;
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.depthTexture = data.depthTexture;
-                    resources.cameraFilteringBuffer = data.cameraFilteringBuffer;
-                    resources.sssBuffer = data.sssBuffer;
-                    resources.coarseStencilBuffer = data.coarseStencilBuffer;
+                    (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
+                    {
+                        var resources = new SubsurfaceScatteringResources();
+                        resources.colorBuffer = data.colorBuffer;
+                        resources.diffuseBuffer = data.diffuseBuffer;
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.depthTexture = data.depthTexture;
+                        resources.cameraFilteringBuffer = data.cameraFilteringBuffer;
+                        resources.sssBuffer = data.sssBuffer;
+                        resources.coarseStencilBuffer = data.coarseStencilBuffer;
 
-                    RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
-                });
+                        RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
+                    });
             }
         }
     }

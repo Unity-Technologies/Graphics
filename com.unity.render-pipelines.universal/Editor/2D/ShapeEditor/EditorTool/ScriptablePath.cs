@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public IUndoObject undoObject
         {
             get { return this; }
-            set { }
+            set {}
         }
 
         public ISelection<int> selection
@@ -112,6 +112,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         void IUndoObject.RegisterUndo(string name)
         {
             Undo.RegisterCompleteObjectUndo(this, name);
+            m_Modified = true;
+        }
+
+        public virtual void SetDefaultShape()
+        {
             m_Modified = true;
         }
     }

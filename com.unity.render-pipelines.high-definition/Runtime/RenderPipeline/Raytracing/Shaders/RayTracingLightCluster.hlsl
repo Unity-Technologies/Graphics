@@ -2,32 +2,32 @@
 
 uint GetTotalLightClusterCellCount(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 0];   
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 0];
 }
 
 uint GetPunctualLightClusterCellCount(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 1];   
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 1];
 }
 
 uint GetAreaLightClusterCellCount(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 2];   
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 2];
 }
 
 uint GetEnvLightClusterCellCount(int cellIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 3];   
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 3];
 }
 
 uint GetLightClusterCellLightByIndex(int cellIndex, int lightIndex)
 {
-    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 4 + lightIndex];   
+    return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 4) + 4 + lightIndex];
 }
 
 bool PointInsideCluster(float3 positionWS)
 {
-    return !(positionWS.x < _MinClusterPos.x || positionWS.y < _MinClusterPos.y || positionWS.z < _MinClusterPos.z 
+    return !(positionWS.x < _MinClusterPos.x || positionWS.y < _MinClusterPos.y || positionWS.z < _MinClusterPos.z
         || positionWS.x > _MaxClusterPos.x || positionWS.y > _MaxClusterPos.y || positionWS.z > _MaxClusterPos.z);
 }
 

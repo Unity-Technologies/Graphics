@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-
     enum OutputSpace
     {
         Tangent,
@@ -79,32 +78,32 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1} In, {2} Strength, $precision3 Position, $precision3x3 TangentMatrix, out {3} Out)",
+                    GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(StrengthSlotId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0}({1} In, {2} Strength, $precision3 Position, $precision3x3 TangentMatrix, out {3} Out)",
-                        GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(StrengthSlotId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
-                    {
-                        s.AppendLine("$precision3 worldDerivativeX = ddx(Position);");
-                        s.AppendLine("$precision3 worldDerivativeY = ddy(Position);");
-                        s.AppendNewLine();
-                        s.AppendLine("$precision3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);");
-                        s.AppendLine("$precision3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);");
-                        s.AppendLine("$precision d = dot(worldDerivativeX, crossY);");
-                        s.AppendLine("$precision sgn = d < 0.0 ? (-1.0f) : 1.0f;");
-                        s.AppendLine("$precision surface = sgn / max(0.000000000000001192093f, abs(d));");
-                        s.AppendNewLine();
-                        s.AppendLine("$precision dHdx = ddx(In);");
-                        s.AppendLine("$precision dHdy = ddy(In);");
-                        s.AppendLine("$precision3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);");
-                        s.AppendLine("Out = SafeNormalize(TangentMatrix[2].xyz - (Strength * surfGrad));");
+                    s.AppendLine("$precision3 worldDerivativeX = ddx(Position);");
+                    s.AppendLine("$precision3 worldDerivativeY = ddy(Position);");
+                    s.AppendNewLine();
+                    s.AppendLine("$precision3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);");
+                    s.AppendLine("$precision3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);");
+                    s.AppendLine("$precision d = dot(worldDerivativeX, crossY);");
+                    s.AppendLine("$precision sgn = d < 0.0 ? (-1.0f) : 1.0f;");
+                    s.AppendLine("$precision surface = sgn / max(0.000000000000001192093f, abs(d));");
+                    s.AppendNewLine();
+                    s.AppendLine("$precision dHdx = ddx(In);");
+                    s.AppendLine("$precision dHdy = ddy(In);");
+                    s.AppendLine("$precision3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);");
+                    s.AppendLine("Out = SafeNormalize(TangentMatrix[2].xyz - (Strength * surfGrad));");
 
-                        if(outputSpace == OutputSpace.Tangent)
-                            s.AppendLine("Out = TransformWorldToTangent(Out, TangentMatrix);");
-                    }
-                });
+                    if (outputSpace == OutputSpace.Tangent)
+                        s.AppendLine("Out = TransformWorldToTangent(Out, TangentMatrix);");
+                }
+            });
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
@@ -121,9 +120,10 @@ namespace UnityEditor.ShaderGraph
         {
             return NeededCoordinateSpace.World;
         }
+
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return NeededCoordinateSpace.World;
         }
-	}
+    }
 }

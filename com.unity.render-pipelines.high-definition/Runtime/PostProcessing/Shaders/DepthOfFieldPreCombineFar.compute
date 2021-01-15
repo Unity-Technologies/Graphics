@@ -4,7 +4,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel KMainPreCombineFar       
+#pragma kernel KMainPreCombineFar
 
 #pragma multi_compile _ ENABLE_ALPHA
 

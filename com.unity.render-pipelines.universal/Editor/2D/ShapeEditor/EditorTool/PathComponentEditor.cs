@@ -9,7 +9,7 @@ using UnityEditor.EditorTools;
 using UnityEditor.Experimental.Rendering.Universal.Path2D;
 
 #if !UNITY_2020_2_OR_NEWER
-using ToolManager=UnityEditor.EditorTools.EditorTools;
+using ToolManager = UnityEditor.EditorTools.EditorTools;
 #endif
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D

@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var serializedObject = new SerializedObject(HDRenderPipeline.defaultAsset);
                 m_SerializeHDRPAsset = new SerializedHDRenderPipelineAsset(serializedObject);
-                
+
                 var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
                 if (!EditorUtility.IsPersistent(editorResources))
                 {

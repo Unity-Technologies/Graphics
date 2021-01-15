@@ -3,8 +3,8 @@
 Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
 - [Directional](#DirectionalLight)
-- [Point](#PointLight)
-- [Spot](#SpotLight)
+- [Point](#point-and-spot-light)
+- [Spot](#point-and-spot-light)
 - [Rectangle](#RectangleLight)
 
 When you enable ray-traced shadows in your HDRP Project, they replace shadow maps for opaque GameObjects.

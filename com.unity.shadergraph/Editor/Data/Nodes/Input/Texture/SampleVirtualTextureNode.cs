@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SampleVirtualTextureNode() : this(false, false)
-        { }
+        {}
 
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {

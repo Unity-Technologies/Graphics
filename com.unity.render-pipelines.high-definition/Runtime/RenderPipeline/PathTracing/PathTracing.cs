@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif // UNITY_EDITOR
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
 
             m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-            enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-            name: "PathTracingFrameBuffer");
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: "PathTracingFrameBuffer");
         }
 
         void ReleasePathTracing()
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we just change the sample count, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
             {
-                m_CacheMaxIteration = (uint) m_PathTracingSettings.maximumSamples.value;
+                m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
                 m_SubFrameManager.SelectiveReset(m_CacheMaxIteration);
             }
             else
@@ -155,8 +155,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
-                camData.width = (uint) hdCamera.actualWidth;
-                camData.height = (uint) hdCamera.actualHeight;
+                camData.width = (uint)hdCamera.actualWidth;
+                camData.height = (uint)hdCamera.actualHeight;
                 camData.ResetIteration();
                 m_SubFrameManager.SetCameraData(camID, camData);
                 return;
@@ -198,10 +198,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            // Check light or geometry transforms dirtiness
+            if (m_TransformDirty)
+            {
+                m_TransformDirty = false;
+                ResetPathTracing();
+            }
+
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
-                m_CacheLightCount = (uint) m_RayTracingLights.lightCount;
+                m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
                 ResetPathTracing();
                 return;
             }
@@ -218,8 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("{0}_PathTracingHistoryBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_PathTracingHistoryBuffer{1}", viewName, frameIndex));
         }
 
         struct PathTracingParameters
@@ -295,43 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchRays(parameters.pathTracingShader, "RayGen", (uint)parameters.width, (uint)parameters.height, 1);
         }
 
-        void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture)
-        {
-            RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-            m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
-
-            // Check the validity of the state before moving on with the computation
-            if (!pathTracingShader || !m_PathTracingSettings.enable.value)
-                return;
-
-            if (hdCamera.viewCount > 1)
-            {
-                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
-                return;
-            }
-
-            CheckDirtiness(hdCamera);
-
-            var parameters = PreparePathTracingParameters(hdCamera);
-
-            if (!m_SubFrameManager.isRecording)
-            {
-                // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
-                m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
-            }
-
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-			if (Application.isPlaying)
-            	m_SubFrameManager.subFrameCount = 1;
-#endif
-
-            if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
-            {
-                RenderPathTracing(parameters, m_RadianceTexture, cmd);
-            }
-            RenderAccumulation(hdCamera, m_RadianceTexture, outputTexture, true, cmd);
-        }
-
         class RenderPathTracingData
         {
             public PathTracingParameters parameters;
@@ -346,15 +316,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(pathTracingBuffer);
 
                 builder.SetRenderFunc(
-                (RenderPathTracingData data, RenderGraphContext ctx) =>
-                {
-                    RenderPathTracing(data.parameters, data.output, ctx.cmd);
-                });
+                    (RenderPathTracingData data, RenderGraphContext ctx) =>
+                    {
+                        RenderPathTracing(data.parameters, data.output, ctx.cmd);
+                    });
 
                 return passData.output;
             }
         }
-
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera)
         {
@@ -389,8 +358,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
-			if (Application.isPlaying)
-            	m_SubFrameManager.subFrameCount = 1;
+            if (Application.isPlaying)
+                m_SubFrameManager.subFrameCount = 1;
 #endif
 
             if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)

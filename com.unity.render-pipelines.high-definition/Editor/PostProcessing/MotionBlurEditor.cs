@@ -80,27 +80,23 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Rotation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
                         {
                             PropertyField(m_CameraRotClamp, EditorGUIUtility.TrTextContent("Rotation Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have." +
-                                                                                                             " Only valid if Camera clamp mode is set to Rotation or Separate Translation And Rotation."));
+                                " Only valid if Camera clamp mode is set to Rotation or Separate Translation And Rotation."));
                         }
                         using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Translation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
                         {
                             PropertyField(m_CameraTransClamp, EditorGUIUtility.TrTextContent("Translation Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera translation can have." +
-                                                                                                               " Only valid if Camera clamp mode is set to Translation or Separate Translation And Rotation."));
-
+                                " Only valid if Camera clamp mode is set to Translation or Separate Translation And Rotation."));
                         }
                         using (new EditorGUI.DisabledScope(mode != (int)CameraClampMode.FullCameraMotionVector))
                         {
                             PropertyField(m_CameraFullClamp, EditorGUIUtility.TrTextContent("Motion Vector Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have." +
-                                                                                                                 " Only valid if Camera clamp mode is set to Full Camera Motion Vector."));
-
+                                " Only valid if Camera clamp mode is set to Full Camera Motion Vector."));
                         }
                     }
                 }
-
-
-
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

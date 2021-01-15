@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(InputSlotXId, kInputSlotXName, kInputSlotXName, SlotType.Input, m_Value.x));
@@ -51,11 +50,11 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("$precision4 {0} = $precision4({1}, {2}, {3}, {4});",
-                    outputName,
-                    inputXValue,
-                    inputYValue,
-                    inputZValue,
-                    inputWValue);
+                outputName,
+                inputXValue,
+                inputYValue,
+                inputZValue,
+                inputWValue);
             sb.AppendLine(s);
         }
 

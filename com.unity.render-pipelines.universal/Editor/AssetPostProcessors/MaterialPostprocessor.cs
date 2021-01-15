@@ -68,9 +68,9 @@ namespace UnityEditor.Rendering.Universal
                         if (!inTestSuite && fileExist)
                         {
                             EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
-                                                        " Unity must upgrade them to be compatible with your current version of URP. \n" +
-                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                                        " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
+                                " Unity must upgrade them to be compatible with your current version of URP. \n" +
+                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                                " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
                         }
 
                         ReimportAllMaterials();
@@ -188,7 +188,6 @@ namespace UnityEditor.Rendering.Universal
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
-
         }
 
         static void UpgradeV1(Material material, ShaderPathID shaderID)
@@ -228,7 +227,7 @@ namespace UnityEditor.Rendering.Universal
         static void UpgradeV2(Material material, ShaderPathID shaderID)
         {
             // fix 50 offset on shaders
-            if(material.HasProperty("_QueueOffset"))
+            if (material.HasProperty("_QueueOffset"))
                 BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
@@ -269,11 +268,10 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
+            if (material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
-
         }
 
         public LitUpdaterV1(string oldShaderName)
@@ -340,7 +338,7 @@ namespace UnityEditor.Rendering.Universal
                 throw new ArgumentNullException("material");
 
             var smoothnessSource = 1 - (int)material.GetFloat("_GlossinessSource");
-            material.SetFloat("_SmoothnessSource" ,smoothnessSource);
+            material.SetFloat("_SmoothnessSource" , smoothnessSource);
             if (material.GetTexture("_SpecGlossMap") == null)
             {
                 var col = material.GetColor("_SpecColor");
@@ -390,4 +388,3 @@ namespace UnityEditor.Rendering.Universal
     }
     #endregion
 }
-

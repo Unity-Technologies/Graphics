@@ -28,14 +28,6 @@ This section describes the properties of the Forward Renderer asset.
 
 ![URP Forward Renderer](Images/urp-assets/urp-forward-renderer.png)
 
-### Forward Renderer
-
-This section contains properties for advanced customization use cases.
-
-| Property | Description |
-|:-|:-|
-| Post Process Data | The asset containing references to shaders and Textures that the Renderer uses for post-processing.<br/>**Note:** This property is for advanced customization use cases. |
-
 ### Filtering
 
 This section contains properties that define which layers the renderer draws.

@@ -27,12 +27,15 @@ namespace UnityEditor.ShaderGraph.Internal
         [Serializable]
         class MinimalCubemapHelper
         {
+            // these variables are only ever populated by serialization, disable the C# warning that checks if they are ever assigned
+            #pragma warning disable 0649
             [Serializable]
             public struct MinimalTextureRef
             {
                 public string guid;
             }
             public MinimalTextureRef cubemap;
+            #pragma warning restore 0649
         }
 
         internal string guid

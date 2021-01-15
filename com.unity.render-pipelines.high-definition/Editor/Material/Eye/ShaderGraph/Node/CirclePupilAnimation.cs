@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
         {
             AnimatedIrisUV = Vector2.zero;
             return
-                @"
+@"
                 {
                     // Compute the normalized iris position
                     $precision2 irisUVCentered = (IrisUV - 0.5f) * 2.0f;

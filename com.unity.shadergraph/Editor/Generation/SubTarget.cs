@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph
         public abstract void GetActiveBlocks(ref TargetActiveBlockContext context);
         public abstract void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo);
 
-        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
-        public virtual void ProcessPreviewMaterial(Material material) { }
+        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) {}
+        public virtual void ProcessPreviewMaterial(Material material) {}
         public virtual object saveContext => null;
     }
 

@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static RenderQueueType MigrateRenderQueueToHDRP10(RenderQueueType renderQueue)
         {
-            switch((int)renderQueue)
+            switch ((int)renderQueue)
             {
                 case 0: return RenderQueueType.Background; // Background
                 case 1: return RenderQueueType.Opaque; // Opaque
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static RenderQueueType GetTransparentEquivalent(RenderQueueType type)
         {
-            switch(type)
+            switch (type)
             {
                 case RenderQueueType.Opaque:
                     return RenderQueueType.Transparent;
@@ -192,7 +192,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     throw new ArgumentException("Unknow RenderQueueType conversion to opaque equivalent, was " + type);
             }
         }
-
 
         //utility: split opaque/transparent queue
         public enum OpaqueRenderQueue
