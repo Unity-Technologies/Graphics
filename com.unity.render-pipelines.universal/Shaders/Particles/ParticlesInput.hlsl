@@ -59,4 +59,57 @@ struct VaryingsParticle
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct AttributesDepthOnlyParticle
+{
+    float4 vertex : POSITION;
+    half4 color   : COLOR;
+
+    #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+        float4 texcoords : TEXCOORD0;
+        float texcoordBlend : TEXCOORD1;
+    #else
+        float2 texcoords : TEXCOORD0;
+    #endif
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct VaryingsDepthOnlyParticle
+{
+    float4 clipPos                  : SV_POSITION;
+    float2 texcoord                 : TEXCOORD0;
+    half4 color                     : COLOR;
+
+    #if defined(_FLIPBOOKBLENDING_ON)
+        float3 texcoord2AndBlend    : TEXCOORD5;
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+struct VaryingsDepthNormalsParticle
+{
+    float4 clipPos                  : SV_POSITION;
+    float2 texcoord                 : TEXCOORD0;
+    half4 color                     : COLOR;
+
+    #if defined(_FLIPBOOKBLENDING_ON)
+        float3 texcoord2AndBlend    : TEXCOORD5;
+    #endif
+
+    #if !defined(PARTICLES_EDITOR_META_PASS)
+        #ifdef _NORMALMAP
+            float4 normalWS         : TEXCOORD2;    // xyz: normal, w: viewDir.x
+            float4 tangentWS        : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+            float4 bitangentWS      : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+        #else
+            float3 normalWS         : TEXCOORD2;
+            float3 viewDirWS        : TEXCOORD3;
+        #endif
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
 #endif // UNIVERSAL_PARTICLES_INPUT_INCLUDED
