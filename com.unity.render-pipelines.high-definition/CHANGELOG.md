@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
+- Fixed register spilling on  FXC in light list shaders.
 
 ## [11.0.0] - 2020-10-21
 
@@ -42,6 +43,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
+- Fixed issue with shadow mask and area lights.
+- Fixed an issue with the capture callback (now includes post processing results).
+- Fixed decal draw order for ShaderGraph decal materials.
+- Fixed StackLit ShaderGraph surface option property block to only display energy conserving specular color option for the specular parametrization (case 1257050)
+- Fixed missing BeginCameraRendering call for custom render mode of a Camera.
+- Fixed LayerMask editor for volume parameters.
+- Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
+- Fixed box light attenuation.
+- Fixed compilation issues on platforms that don't support XR.
+- Fixed issue with compute shader stripping for probe volumes variants.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -58,6 +69,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
 - Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
+- Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
+- Changed the warning message for ray traced area shadows (case 1303410).
+- Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 
 ## [10.3.0] - 2020-12-01
 

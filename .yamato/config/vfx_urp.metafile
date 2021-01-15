@@ -22,10 +22,10 @@ test_platforms:
     - [all]: --testfilter="VFX.Test"
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: playmode
     name: playmode_PerformanceTests
     utr_flags:
@@ -37,6 +37,24 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+#  - type: editmode
 expression_trigger:
   expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]'
 platforms:
@@ -58,6 +76,7 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
+          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -67,6 +86,7 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
+          - name: Standalone_cache
           - name: playmode_XR
       - name: Vulkan
         exclude_test_platforms:
@@ -102,7 +122,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - Standalone_cache
 nightly:
   dependencies:
     - project: VFX_URP
@@ -123,3 +143,4 @@ nightly:
       test_platforms:
         # - Standalone
         - playmode_cache
+        # - Standalone_cache
