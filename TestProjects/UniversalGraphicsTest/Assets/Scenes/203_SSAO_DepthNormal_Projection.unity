@@ -410,9 +410,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: SSAO_Scene
       objectReference: {fileID: 0}
-    - target: {fileID: 2105869046135578123, guid: 144d97346f1c24d4ebabd0eec382b95d,
+    - target: {fileID: 2105869044897334683, guid: 144d97346f1c24d4ebabd0eec382b95d,
         type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2105869045011004001, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2105869045618979920, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2105869045762234268, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5969367373063703645, guid: 144d97346f1c24d4ebabd0eec382b95d,
+        type: 3}
+      propertyPath: m_CastShadows
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
