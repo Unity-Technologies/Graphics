@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed box light attenuation.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
