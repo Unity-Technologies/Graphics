@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_ShaderWarning = "You must specify a composition graph to see an output from the compositor.";
+
+            static public readonly GUIStyle k_HeaderStyle = new GUIStyle(EditorStyles.helpBox) { fontSize = CompositorStyle.k_HeaderFontSize };
         }
 
         ReorderableList m_layerList;
@@ -120,9 +122,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Debug.LogError("Compositor target was null");
                 return;
             }
-
-            var headerStyle = EditorStyles.helpBox;
-            headerStyle.fontSize = 14;
 
             // Cache the serialized property fields
             if (m_IsEditorDirty || m_SerializedProperties == null)
@@ -273,7 +272,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(Styles.k_RenderSchedule, headerStyle);
+            EditorGUILayout.LabelField(Styles.k_RenderSchedule, Styles.k_HeaderStyle);
             m_layerList.DoLayoutList();
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
@@ -292,7 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.BeginChangeCheck();
             if (m_layerList.index >= 0)
             {
-                EditorGUILayout.LabelField(Styles.k_Properties, headerStyle);
+                EditorGUILayout.LabelField(Styles.k_Properties, Styles.k_HeaderStyle);
 
                 rectangle.y += EditorGUIUtility.singleLineHeight * 1.5f;
                 rectangle.x += 5;
