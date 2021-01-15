@@ -685,7 +685,24 @@ float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
     return lerp(s0, s1, uvData.blend);
 }
 
+float4 SampleTexture(VFXSampler2DArray s, VFXUVData uvData) //For flipbook in array layout
+{
+    float4 s0 = s.t.Sample(s.s, uvData.uvs.xyz + float3(uvData.mvs.xy,0.0f));
+    float4 s1 = s.t.Sample(s.s, uvData.uvs.xyw + float3(uvData.mvs.zw,0.0f));
+    return lerp(s0, s1, uvData.blend);
+}
+
 float3 SampleNormalMap(VFXSampler2D s, VFXUVData uvData)
+{
+    float4 packedNormal = SampleTexture(s, uvData);
+    packedNormal.w *= packedNormal.x;
+    float3 normal;
+    normal.xy = packedNormal.wy * 2.0 - 1.0;
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+}
+
+float3 SampleNormalMap(VFXSampler2DArray s, VFXUVData uvData)
 {
     float4 packedNormal = SampleTexture(s, uvData);
     packedNormal.w *= packedNormal.x;
@@ -711,18 +728,30 @@ VFXUVData GetUVData(float2 uv) // no flipbooks
 VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, float texIndex) // with flipbooks
 {
     VFXUVData data = (VFXUVData)0;
-
     float frameBlend = frac(texIndex);
     float frameIndex = texIndex - frameBlend;
-
     data.uvs.xy = GetSubUV(frameIndex, uv, flipBookSize, invFlipBookSize);
 #if USE_FLIPBOOK_INTERPOLATION
     data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
     data.blend = frameBlend;
 #endif
-
     return data;
 }
+
+VFXUVData GetUVData(float flipBookSize, float2 uv, float texIndex) // with flipbooks array layout (flipBookSize is a single float)
+{
+    VFXUVData data = (VFXUVData)0;
+    texIndex = fmod(texIndex, flipBookSize);
+    float frameBlend = frac(texIndex);
+    float frameIndex = texIndex - frameBlend;
+    data.uvs.xyz = float3(uv, frameIndex);
+#if USE_FLIPBOOK_INTERPOLATION
+    data.uvs.w = fmod(frameIndex + 1, flipBookSize);
+    data.blend = frameBlend;
+#endif
+    return data;
+}
+
 
 VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 {

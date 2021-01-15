@@ -29,15 +29,16 @@ float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
 
 // Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
 // Returns 'false' if there are no real roots, 'true' otherwise.
-// Numerically stable.
-// Ref: Numerical Recipes in C++ (3rd Edition)
+// Ensures that roots.x <= roots.y.
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
-    float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + CopySign(sqrt(d), b));
-    roots   = float2(c / q, q / a);
+    float det = Sq(b) - 4.0 * a * c;
 
-    return (d >= 0);
+    float sqrtDet = sqrt(det);
+    roots.x = (-b - sign(a) * sqrtDet) / (2.0 * a);
+    roots.y = (-b + sign(a) * sqrtDet) / (2.0 * a);
+
+    return (det >= 0.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -159,8 +160,8 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     // Check whether we have at least 1 root.
     bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
 
-    tEntr = min(roots.x, roots.y);
-    tExit = max(roots.x, roots.y);
+    tEntr = roots.x;
+    tExit = roots.y;
     float3 pEntr = o + tEntr * d;
     float3 pExit = o + tExit * d;
 
@@ -179,6 +180,15 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     if (tEntr == tExit) { hit = false; }
 
     return hit;
+}
+
+bool IntersectSphereAABB(float3 position, float radius, float3 aabbMin, float3 aabbMax)
+{
+  float x = max(aabbMin.x, min(position.x, aabbMax.x));
+  float y = max(aabbMin.y, min(position.y, aabbMax.y));
+  float z = max(aabbMin.z, min(position.z, aabbMax.z));
+  float distance2 = ((x - position.x) * (x - position.x) + (y - position.y) * (y - position.y) + (z - position.z) * (z - position.z));
+  return distance2 < radius * radius;
 }
 
 //-----------------------------------------------------------------------------
