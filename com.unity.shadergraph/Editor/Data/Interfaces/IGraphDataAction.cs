@@ -1,11 +1,13 @@
+using System;
+
 using GraphData = UnityEditor.ShaderGraph.GraphData;
 
 namespace UnityEditor.ShaderGraph
 {
+    // An action takes in a reference to a GraphData object and performs some modification on it
     interface IGraphDataAction
     {
-        // Takes in GraphData, performs some modification on it, and then returns it
-        GraphData MutateGraphData(GraphData initialState);
+		Action<GraphData> ModifyGraphDataAction { get; }
     }
 }
 

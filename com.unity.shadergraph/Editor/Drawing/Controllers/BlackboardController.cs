@@ -1,36 +1,50 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using System;
+
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
+using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    // Need some way to provide arguments to these actions so they have context, like type of blackboard item to add, etc
     class AddBlackboardItemAction : IGraphDataAction
     {
-        Type m_BlackboardItemType;
-
-        public GraphData MutateGraphData(GraphData m_graphData)
+        void AddBlackboardItem(GraphData m_GraphData)
         {
-            return m_graphData;
+
         }
+
+        public Action<GraphData> ModifyGraphDataAction => AddBlackboardItem;
+
+        Type m_BlackboardItemType;
     }
 
     class MoveBlackboardItemAction : IGraphDataAction
     {
-        public GraphData MutateGraphData(GraphData m_graphData)
+        void MoveBlackboardItem(GraphData m_GraphData)
         {
-            return m_graphData;
+
         }
+
+        public Action<GraphData> ModifyGraphDataAction => MoveBlackboardItem;
+
+        BlackboardItem m_ItemToMove;
+        int m_NewIndex;
     }
 
     class RemoveBlackboardItemAction : IGraphDataAction
     {
-        public GraphData MutateGraphData(GraphData m_graphData)
+        void RemoveBlackboardItem(GraphData m_GraphData)
         {
-            return m_graphData;
+
         }
+
+        public Action<GraphData> ModifyGraphDataAction => RemoveBlackboardItem;
+
+        BlackboardItem m_ItemToRemove;
     }
 
     class BlackboardController : SGViewController<BlackboardViewModel>
@@ -42,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             public const int RemoveBlackboardItem = 2;
         }
 
-        static const IList<Type> k_shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
+        TypeCache.TypeCollection k_shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>();
 
         VisualElement m_Blackboard;
 
@@ -51,12 +65,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardController(BlackboardViewModel viewModel, GraphDataStore graphDataStore, VisualElement parentVisualElement)
             : base(viewModel, graphDataStore)
         {
-            /*m_Blackboard = new SGBlackboard(parentVisualElement)
+            // TODO: Change it
+            m_Blackboard = new SGBlackboard(parentVisualElement)
             {
                 subTitle = FormatPath(graphDataStore.State.path),
                 addItemRequested = () => ChangeModel(Changes.AddBlackboardItem),
                 moveItemRequested = (newIndex, itemVisualElement) => ChangeModel(Changes.MoveBlackboardItem)
-            };*/
+            };
 
 
             PopulateAddPropertyMenu();
@@ -71,8 +86,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddPropertyItems(GenericMenu gm)
         {
+            var shaderInputTypes = k_shaderInputTypes.ToList();
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
-            k_shaderInputTypes.Sort((s1, s2) => {
+            shaderInputTypes.Sort((s1, s2) => {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
 

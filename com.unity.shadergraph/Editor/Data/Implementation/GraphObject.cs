@@ -114,11 +114,11 @@ namespace UnityEditor.Graphing
             }
         }
 
-        // This is a very simple reducer, all it does is take the action and apply it to the graph data, and return the mutated state
-        GraphData ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
+        // This is a very simple reducer, all it does is take the action and apply it to the graph data, which causes some mutation in state
+        // This isn't strictly redux anymore but its needed given that our state tree is quite large and we don't want to be creating copies of it everywhere by returning it from functions
+        void ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
         {
-            GraphData newState = graphDataAction.MutateGraphData(initialState);
-            return newState;
+            graphDataAction.ModifyGraphDataAction(initialState);
         }
 
         void OnEnable()
