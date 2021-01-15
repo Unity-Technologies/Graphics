@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 
 ## [10.2.0] - 2020-10-19

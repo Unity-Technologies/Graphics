@@ -18,11 +18,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
-        protected override string windowTitle => "Graph Inspector";
-        protected override string elementName => "InspectorView";
-        protected override string styleName => "InspectorView";
-        protected override string UxmlName => "GraphInspector";
-        protected override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
+        public override string windowTitle => "Graph Inspector";
+        public override string elementName => "InspectorView";
+        public override string styleName => "InspectorView";
+        public override string UxmlName => "GraphInspector";
+        public override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
         private TabbedView m_GraphInspectorView;
         protected VisualElement m_GraphSettingsContainer;
@@ -70,6 +70,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_GraphSettingsContainer = m_GraphInspectorView.Q<VisualElement>("GraphSettingsContainer");
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
             m_ContentContainer.Add(m_GraphInspectorView);
+
+            isWindowScrollable = true;
+            isWindowResizable = true;
 
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
