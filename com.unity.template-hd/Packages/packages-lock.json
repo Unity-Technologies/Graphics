@@ -37,6 +37,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.inputsystem": {
+      "version": "1.0.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.render-pipelines.core": {
       "version": "file:../../com.unity.render-pipelines.core",
       "depth": 0,
@@ -105,7 +112,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.5.1-pre.3",
+      "version": "1.5.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
