@@ -20,7 +20,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/Top-URP-Assets
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/URP-Update-testing
       -  cd TestProjects/Top-URP-Assets && git checkout %ASSET_STORE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -50,7 +50,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/Top-URP-Assets
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/URP-Update-testing
       -  cd TestProjects/Top-URP-Assets && git checkout %ASSET_STORE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -81,7 +81,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/Top-URP-Assets
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/URP-Update-testing
       -  cd TestProjects/Top-URP-Assets && git checkout %ASSET_STORE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -116,7 +116,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/Top-URP-Assets
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSET_STORE_BRANCH% TestProjects/URP-Update-testing
       -  cd TestProjects/Top-URP-Assets && git checkout %ASSET_STORE_REVISION%
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local

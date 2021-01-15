@@ -1,5 +1,6 @@
 project:
   name: URP_Performance_BoatAttack
+  repo: BoatAttack
   folder: BoatAttack
   url: https://github.com/Unity-Technologies/BoatAttack.git
   branch: '%BOAT_ATTACK_BRANCH%'

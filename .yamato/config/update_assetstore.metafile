@@ -1,5 +1,6 @@
 project:
   name: URPUpdate_Top_Asset_Store
+  repo: URP-Update-testing
   folder: Top-URP-Assets
   url: https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git
   branch: '%ASSET_STORE_BRANCH%'

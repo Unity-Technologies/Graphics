@@ -63,7 +63,7 @@ def add_project_commands(project):
     cmds = []
     if project.get("url"):
         cmds.extend([
-            f'git clone {project["url"]} -b {project["branch"]} {TEST_PROJECTS_DIR}/{project["folder"]}',
+            f'git clone {project["url"]} -b {project["branch"]} {TEST_PROJECTS_DIR}/{project["repo"]}',
             f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {project["revision"]}',
             f'NetSh Advfirewall set allprofiles state off'
         ])

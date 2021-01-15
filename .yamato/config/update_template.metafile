@@ -1,5 +1,6 @@
 project:
   name: URPUpdate
+  repo: URP-Update-testing
   folder: URP-Update-Testing
   url: https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git
   branch: '%TEMPLATE_BRANCH%'

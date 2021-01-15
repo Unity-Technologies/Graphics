@@ -53,7 +53,7 @@ def add_project_commands(project):
     cmds = []
     if project.get("url"):
         cmds.extend([
-            f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} {TEST_PROJECTS_DIR}/{project["folder"]}',
+            f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} {TEST_PROJECTS_DIR}/{project["repo"]}',
             f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
         ])
     if project.get("unity_config_commands"):

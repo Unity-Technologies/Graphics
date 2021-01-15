@@ -1,5 +1,6 @@
 project:
   name: URPUpdate_BoatAttack
+  repo: URP-Update-testing
   folder: BoatAttack-19-4
   url: https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git
   branch: '%BA_UPDATE_BRANCH%'
