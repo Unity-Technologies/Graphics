@@ -708,7 +708,8 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
-        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
+            ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
 
@@ -725,34 +726,51 @@ namespace UnityEngine.Rendering.Universal
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
-			bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
-            bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isBlit;
-            var attachments = new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? 2 : 1, Allocator.Temp);
 
-            attachments[0] = m_ActiveColorAttachmentDescriptor;
-            if (useDepth && !renderPass.depthOnly)
-                attachments[1] = m_ActiveDepthAttachmentDescriptor;
-///yyy
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
-			var sampleCount = isBlit ? 1 : desc.msaaSamples;
-			int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
-			int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
-			sampleCount = renderPass.renderTargetSampleCount != -1  ? renderPass.renderTargetSampleCount : sampleCount;
-			//if (BuiltinRenderTextureType.CameraTarget == renderPass.colorAttachment)
-			//	Debug.Log(renderPass.GetType().Name + " " + m_ActiveColorAttachmentDescriptor.loadStoreTarget);
-            context.BeginRenderPass(width, height, sampleCount, attachments, useDepth ? (!renderPass.depthOnly ? 1 : 0) : -1);
-            attachments.Dispose();
-            var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? 1 : 0, Allocator.Temp);
-			if (!renderPass.depthOnly)
-           		attachmentIndices[0] = 0;
-            context.BeginSubPass(attachmentIndices);
-            attachmentIndices.Dispose();
-            renderPass.Execute(context, ref renderingData);
-            context.EndSubPass();
-            context.EndRenderPass();
+            if (renderPass.useNativeRenderPass)
+            {
+                // Keep all the Native RenderPass stuff here
+
+                bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
+                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isBlit;
+                var attachments =
+                    new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? 2 : 1, Allocator.Temp);
+
+                attachments[0] = m_ActiveColorAttachmentDescriptor;
+                if (useDepth && !renderPass.depthOnly)
+                    attachments[1] = m_ActiveDepthAttachmentDescriptor;
+                ///yyy
+                var desc = renderingData.cameraData.cameraTargetDescriptor;
+                var sampleCount = isBlit ? 1 : desc.msaaSamples;
+                int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
+                int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
+                sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : sampleCount;
+                //if (BuiltinRenderTextureType.CameraTarget == renderPass.colorAttachment)
+                //	Debug.Log(renderPass.GetType().Name + " " + m_ActiveColorAttachmentDescriptor.loadStoreTarget);
+                context.BeginRenderPass(width, height, sampleCount, attachments,
+                    useDepth ? (!renderPass.depthOnly ? 1 : 0) : -1);
+                attachments.Dispose();
+                var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? 1 : 0, Allocator.Temp);
+                if (!renderPass.depthOnly)
+                    attachmentIndices[0] = 0;
+                context.BeginSubPass(attachmentIndices);
+                attachmentIndices.Dispose();
+                renderPass.Execute(context, ref renderingData);
+                context.EndSubPass();
+                context.EndRenderPass();
+
+                CommandBufferPool.Release(cmd);
+            }
+            else
+            {
+                CommandBufferPool.Release(cmd);
+
+                renderPass.Execute(context, ref renderingData);
+            }
 
 
-            CommandBufferPool.Release(cmd);
+
+        //CommandBufferPool.Release(cmd);
 
         }
 
@@ -931,34 +949,43 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-//zzz
-                m_ActiveColorAttachmentDescriptor.ConfigureTarget(passColorAttachment, true, true);
-                m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+                if (renderPass.useNativeRenderPass)
+                {
+                    // Keep all the Native RenderPass stuff here
 
-                if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget && cameraData.cameraTargetDescriptor.msaaSamples == 1)
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, true);
+                    //zzz
+                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(passColorAttachment, true, true);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+
+                    if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget && cameraData.cameraTargetDescriptor.msaaSamples == 1)
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, true);
+                    else
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, false);
+
+                    if (cameraData.cameraTargetDescriptor.msaaSamples > 1 && renderPass.GetType().Name != "FinalBlitPass")
+                    {
+                        //m_ActiveColorAttachmentDescriptor.ConfigureResolveTarget(m_CameraColorTarget);
+                    }
+                }
                 else
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, false);
+                {
+                    // Only setup render target if current render pass attachments are different from the active ones
+                    if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                    {
+                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
 
-				if (cameraData.cameraTargetDescriptor.msaaSamples > 1 && renderPass.GetType().Name != "FinalBlitPass")
-				{
-					//m_ActiveColorAttachmentDescriptor.ConfigureResolveTarget(m_CameraColorTarget);
-				}
-//                 // Only setup render target if current render pass attachments are different from the active ones
-//                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-//                 {
-//                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
-//
-// #if ENABLE_VR && ENABLE_XR_MODULE
-//                     if (cameraData.xr.enabled)
-//                     {
-//                         // SetRenderTarget might alter the internal device state(winding order).
-//                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-//                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-//                         cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
-//                     }
-// #endif
-//                 }
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        if (cameraData.xr.enabled)
+                        {
+                            // SetRenderTarget might alter the internal device state(winding order).
+                            // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                            bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
+                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        }
+#endif
+                    }
+                }
+
             }
         }
 

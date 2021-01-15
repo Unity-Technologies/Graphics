@@ -178,6 +178,8 @@ namespace UnityEngine.Rendering.Universal
         internal int renderTargetSampleCount { get; set; }
         internal bool depthOnly { get; set; }
 
+        internal bool useNativeRenderPass { get; set; }
+
         internal RenderTextureFormat renderTargetFormat { get; set; }
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
@@ -200,6 +202,8 @@ namespace UnityEngine.Rendering.Universal
             renderTargetHeight = -1;
             renderTargetSampleCount = -1;
             depthOnly = false;
+
+            useNativeRenderPass = true;
         }
 
         /// <summary>
