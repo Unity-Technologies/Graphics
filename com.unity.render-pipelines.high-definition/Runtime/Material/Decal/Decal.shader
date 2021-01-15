@@ -76,7 +76,7 @@ Shader "HDRP/Decal"
     #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local_fragment _EMISSIVEMAP
 
-	#pragma shader_feature_local_fragment _MATERIAL_AFFECTS_ALBEDO
+    #pragma shader_feature_local_fragment _MATERIAL_AFFECTS_ALBEDO
     #pragma shader_feature_local_fragment _MATERIAL_AFFECTS_NORMAL
     #pragma shader_feature_local_fragment _MATERIAL_AFFECTS_MASKMAP
 

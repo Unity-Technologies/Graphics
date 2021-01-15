@@ -86,7 +86,6 @@ namespace UnityEditor.ShaderGraph
                 dstStages.Add(KeywordShaderStage.RayTracing);
 
             return dstStages.Count > 1;
-
         }
 
         public static string ToKeywordStagesString(this KeywordShaderStage stages)

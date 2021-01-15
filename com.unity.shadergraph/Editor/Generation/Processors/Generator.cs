@@ -449,13 +449,13 @@ namespace UnityEditor.ShaderGraph
                 if (pass.keywords != null)
                 {
                     List<KeywordShaderStage> stages = new List<KeywordShaderStage>();
-                    foreach(KeywordCollection.Item keyword in pass.keywords)
+                    foreach (KeywordCollection.Item keyword in pass.keywords)
                     {
                         if (keyword.TestActive(activeFields))
                         {
-                            if(keyword.descriptor.NeedsMultiStageDefinition(ref stages))
+                            if (keyword.descriptor.NeedsMultiStageDefinition(ref stages))
                             {
-                                foreach(KeywordShaderStage stage in stages)
+                                foreach (KeywordShaderStage stage in stages)
                                 {
                                     // Override the stage for each one of the requested ones and append a line for each stage.
                                     KeywordDescriptor descCopy = keyword.descriptor;

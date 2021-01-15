@@ -441,9 +441,9 @@ Shader "HDRP/LayeredLit"
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature_fragment _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature_fragment _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature_fragment _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
-    #pragma shader_feature_raytracing _ENABLESPECULAROCCLUSION                     // Non-local 
+    #pragma shader_feature_raytracing _ENABLESPECULAROCCLUSION                     // Non-local
     #pragma shader_feature_raytracing _ SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
 
     #ifdef _ENABLESPECULAROCCLUSION
