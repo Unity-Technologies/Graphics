@@ -929,14 +929,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
-            int indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(ChromaKeying).AssemblyQualifiedName);
-            if (indx < 0)
+            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
             }
 
-            indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(AlphaInjection).AssemblyQualifiedName);
-            if (indx < 0)
+            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
             {
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
             }
@@ -950,14 +948,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            int indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(ChromaKeying).AssemblyQualifiedName);
-            if (indx >= 0)
+            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
             }
 
-            indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(AlphaInjection).AssemblyQualifiedName);
-            if (indx >= 0)
+            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
             {
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
