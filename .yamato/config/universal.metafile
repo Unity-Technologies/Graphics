@@ -6,17 +6,27 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
-      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
-      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
-      - [iPhone_Metal]: --timeout=1800
+      #- [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      #- [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      #- [iPhone_Metal]: --timeout=1800
+      - [all]: --timeout=3000
   - type: playmode
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload true"
   - type: editmode
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests"
-expression_trigger: 
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+expression_trigger:
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -60,11 +70,13 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -76,6 +88,7 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -132,7 +145,7 @@ pr:
       color_space: Linear
       test_platforms:
         # - Standalone
-        - playmode
+        - playmode_cache
     - platform: OSX
       api: OpenGLCore
       build_config: mono
@@ -184,24 +197,24 @@ nightly:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
-        - playmode_XR
+        - playmode_cache
+        # - playmode_XR
     - platform: Win
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
-        - playmode_XR
+        - playmode_cache
+        # - playmode_XR
     - platform: Linux
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache

@@ -306,7 +306,7 @@ EditorBuildSettings:
     guid: 7b2479971db0f4b1b87c121244585fe5
   - enabled: 1
     path: Assets/Scenes/145_ManyAdditionalLightShadowTypes.unity
-    guid: 625fae218da02c440b56ea72ea59d986    
+    guid: 625fae218da02c440b56ea72ea59d986
   - enabled: 1
     path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
     guid: aee9f891d65e44daf811d30053402efd
