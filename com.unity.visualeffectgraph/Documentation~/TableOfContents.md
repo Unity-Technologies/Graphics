@@ -344,6 +344,8 @@
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
       * [Skinned Mesh Index Count](Operator-MeshIndexCount.md)
       * [Skinned Mesh Vertex Count](Operator-MeshVertexCount.md)
+    * Spawn
+      * [Spawn State](Operator-SpawnState.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
 * Reference
