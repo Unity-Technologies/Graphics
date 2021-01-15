@@ -293,7 +293,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
 
     float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 
-    return float4(shadowCoord.xyz, cascadeIndex);
+    return float4(shadowCoord.xyz, 0);
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)
@@ -346,28 +346,32 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
-half GetShadowFade(float3 positionWS, float cascadeIndex)
+half GetMainLightShadowFade(float3 positionWS)
 {
+    // This code computes distance between capsule and point.
+    // Finally distance is used with shadow fade scale and bias to compute shadow fade blend value.
+
     float3 shadowFadeCenter = _CascadeShadowSplitSphereLast.xyz;
-    float3 camToPixel = positionWS - shadowFadeCenter;
-    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+    float3 worldSpaceCameraOppositeDir = -UNITY_MATRIX_V[2].xyz; // Move it to other property for faster access?
 
-    // Special path that changes fade depending on current cascade:
-    // - If current cascade is in the last one, we procide with normal fade.
-    // - If current cascade is outside cascades, we force fade to 0.
-    // - If current cascade is not in the last one, we force fade to 1. This is needed to avoid fading in near plane.
-#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
-    float lastCascadeIndex = _CascadeShadowSplitSphereLast.w;
-    float skipFadeOutsideCascade = cascadeIndex - lastCascadeIndex;
-#else
-    float skipFadeOutsideCascade = 0;
-#endif
+    // Here we treat problem as finding shortest distance between line segment and point.
 
-    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w + skipFadeOutsideCascade);
+    float3 lineDir = worldSpaceCameraOppositeDir;
+    float3 lineCenter = shadowFadeCenter;
+
+    float3 lineToPoint = positionWS - lineCenter;
+
+    // Find shortest vector between line and point
+    float distanceFromLineCenter = min(dot(lineDir, lineToPoint), 0);
+    float3 offsetFromLineCenter = lineDir * distanceFromLineCenter;
+    float3 shortestLineToPoint = lineToPoint - offsetFromLineCenter;
+
+    float distanceSq = dot(shortestLineToPoint, shortestLineToPoint);
+    half fade = saturate(distanceSq * _MainLightShadowParams.z + _MainLightShadowParams.w);
     return fade;
 }
 
-half GetShadowFade(float3 positionWS)
+half GetAdditionalLightShadowFade(float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
@@ -406,7 +410,7 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
 #endif
 
 #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetShadowFade(positionWS, shadowCoord.w);
+    half shadowFade = GetMainLightShadowFade(positionWS);
 #else
     half shadowFade = 1.0h;
 #endif
@@ -425,7 +429,7 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
 #endif
 
 #ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetShadowFade(positionWS);
+    half shadowFade = GetAdditionalLightShadowFade(positionWS);
 #else
     half shadowFade = 1.0h;
 #endif
@@ -459,6 +463,16 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
 
 // Renamed -> _MainLightShadowParams
 #define _MainLightShadowData _MainLightShadowParams
+
+// Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
+half GetShadowFade(float3 positionWS)
+{
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
+    return fade * fade;
+}
 
 // Deprecated: Use GetShadowFade instead.
 float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
