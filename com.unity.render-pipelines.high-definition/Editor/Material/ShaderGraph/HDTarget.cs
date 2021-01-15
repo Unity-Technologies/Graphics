@@ -1104,7 +1104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "L1", referenceName = "L1" },
                 new KeywordEntry() { displayName = "L2", referenceName = "L2" },
             },
-            stages = KeywordShaderStage.Fragment,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor LodFadeCrossfade = new KeywordDescriptor()
