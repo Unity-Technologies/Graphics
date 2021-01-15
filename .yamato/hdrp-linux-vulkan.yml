@@ -7,7 +7,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_2019.4:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -30,7 +30,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_2019.4:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version 2019.4
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -53,7 +53,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_2019.4:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -69,13 +69,13 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:linux
          rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_2019.4
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-Build_HDRP_Linux_Vulkan_Player_mono_Linear_2019.4:
-    name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version 2019.4
+Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_2019.4:
+    name: Build HDRP on Linux_Vulkan_mono_Linear_standalone_build_Player on version 2019.4
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -101,7 +101,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_fast-2019.4:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -124,7 +124,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_fast-2019.4:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -147,7 +147,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -163,13 +163,13 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:linux
          rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_fast-2019.4
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-Build_HDRP_Linux_Vulkan_Player_mono_Linear_fast-2019.4:
-    name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version fast-2019.4
+Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4:
+    name: Build HDRP on Linux_Vulkan_mono_Linear_standalone_build_Player on version fast-2019.4
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -195,7 +195,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -219,7 +219,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -243,7 +243,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -260,13 +260,13 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP on Linux_Vulkan_mono_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

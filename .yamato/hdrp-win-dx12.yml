@@ -106,10 +106,10 @@ HDRP_Win_DX12_Standalone_mono_Linear_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_mono_Linear_2019.4
+      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-Build_HDRP_Win_DX12_Player_mono_Linear_2019.4:
-    name: Build HDRP on Win_DX12_mono_Linear_Player on version 2019.4
+Build_HDRP_Win_DX12_Standalone_mono_Linear_2019.4:
+    name: Build HDRP on Win_DX12_mono_Linear_standalone_build_Player on version 2019.4
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -241,10 +241,10 @@ HDRP_Win_DX12_Standalone_mono_Linear_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_mono_Linear_fast-2019.4
+      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-Build_HDRP_Win_DX12_Player_mono_Linear_fast-2019.4:
-    name: Build HDRP on Win_DX12_mono_Linear_Player on version fast-2019.4
+Build_HDRP_Win_DX12_Standalone_mono_Linear_fast-2019.4:
+    name: Build HDRP on Win_DX12_mono_Linear_standalone_build_Player on version fast-2019.4
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -380,10 +380,10 @@ HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#Build_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Win_DX12_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP on Win_DX12_mono_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP on Win_DX12_mono_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
