@@ -94,8 +94,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.Init(field);
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
-
                 SortEntries(nodeEntries);
+
+                if (contextView.contextData.shaderStage == ShaderStage.Vertex)
+                {
+                    var customBlockNodeStub = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    customBlockNodeStub.InitCustomBlockNode();
+                    AddEntries(customBlockNodeStub, new string[] { "Custom Interpolator" }, nodeEntries);
+                }
+
                 currentNodeEntries = nodeEntries;
                 return;
             }
@@ -112,6 +119,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode)Activator.CreateInstance(type);
+                    if (!node.ExposeToSearcher)
+                        continue;
+
                     if (ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
                     {
                         var versions = node.allowedNodeVersions ?? Enumerable.Range(0, node.latestVersion + 1);
@@ -169,6 +179,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = new KeywordNode();
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
+            }
+            foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
+            {
+                var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
+                node.ConnectToCustomBlock(cibnode.value.customBlockName);
+                AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customBlockName }, nodeEntries);
             }
 
             SortEntries(nodeEntries);
@@ -338,10 +354,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!(target is ContextView contextView))
                     return true;
 
+                // ensure custom blocks have a unique name provided the existing context.
+                if (blockNode.isCustomBlock)
+                {
+                    HashSet<string> usedNames = new HashSet<string>();
+                    foreach (var other in contextView.contextData.blocks) usedNames.Add(other.value.descriptor.displayName);
+                    blockNode.customBlockName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", blockNode.descriptor.displayName);
+                    blockNode.RenewCustomBlockFieldDescriptor();
+                }
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
-                if (contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                else if (blockNode.isCustomBlock == false && contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                {
                     return true;
+                }
 
                 // Insert block to Data
                 blockNode.owner = m_Graph;
@@ -399,8 +425,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (newNode is BlockNode blockNode)
             {
                 blockNode.owner = m_Graph;
-                blockNode.Init(((BlockNode)oldNode).descriptor);
+                blockNode.isCustomBlock = ((BlockNode)oldNode).isCustomBlock;
+                blockNode.Init(((BlockNode)oldNode).descriptor);                
                 blockNode.owner = null;
+            }
+            else if (newNode is CustomInterpolatorNode cinode)
+            {
+                cinode.owner = m_Graph;
+                cinode.ConnectToCustomBlock(((CustomInterpolatorNode)oldNode).customBlockNodeName);
+                cinode.owner = null;
             }
             return newNode;
         }

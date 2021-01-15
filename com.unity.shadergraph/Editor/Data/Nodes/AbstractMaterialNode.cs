@@ -38,6 +38,11 @@ namespace UnityEditor.ShaderGraph
 
         public GraphData owner { get; set; }
 
+        internal virtual bool ExposeToSearcher
+        {
+            get => true;
+        }
+
         OnNodeModified m_OnModified;
 
         public GroupData group

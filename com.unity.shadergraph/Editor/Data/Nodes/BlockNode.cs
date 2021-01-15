@@ -1,7 +1,10 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -23,6 +26,82 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         BlockFieldDescriptor m_Descriptor;
+
+
+        [SerializeField]
+        private uint m_TestProperty = 0;
+
+        public uint testProperty
+        {
+            get => m_TestProperty;
+            set => m_TestProperty = value;
+        }
+
+
+        ///////////////////////////////////////////////////
+        // Custom block stuff.
+
+        [SerializeField]
+        private bool m_IsCustomBlock = false;
+
+        internal bool isCustomBlock
+        {
+            get => m_IsCustomBlock;
+            set => m_IsCustomBlock = value;
+        }
+
+        internal enum CustomBlockType { Float, Vector2, Vector3, Vector4 }
+
+        [SerializeField]
+        internal CustomBlockType customBlockType = CustomBlockType.Vector4;
+        internal string m_customBlockName;
+
+        internal string customBlockName
+        {
+            get => m_customBlockName ?? descriptor?.displayName ?? "CustomInterpolator";
+            set => m_customBlockName = value;
+        }
+
+    internal void RenewCustomBlockFieldDescriptor()
+        {
+            if (!isCustomBlock)
+                return;
+
+            // todo, sanitize this.
+            var referenceName = customBlockName;
+            var define = "VERTEXDESCRIPTION_" + customBlockName.ToUpper();
+
+            IControl control = null;
+            // control the subset of exposed property types, for now.
+            switch(customBlockType)
+            {
+                case CustomBlockType.Float: control = new FloatControl(default(float)); break;
+                case CustomBlockType.Vector2: control = new Vector2Control(default(Vector2)); break;
+                case CustomBlockType.Vector3: control = new Vector3Control(default(Vector3)); break;
+                case CustomBlockType.Vector4: control = new Vector4Control(default(Vector4)); break;
+            }
+
+            // create our new block field descriptor, which drives the rest of the behavior.
+            descriptor = new BlockFieldDescriptor(BlockFields.VertexDescription.name, referenceName, define, control, ShaderStage.Vertex);
+
+            AddSlotFromControlType();
+
+            owner?.ValidateGraph();
+            // I think the only revalidation use-case is if there are CINodes that referred to our a name
+            //foreach (var cibclient in owner?.GetNodes<CustomInterpolatorNode>().Where(cib => cib.customBlockNodeName == customBlockName))
+            //    cibclient.ValidateNode();
+        }
+
+        public void InitCustomBlockNode()
+        {
+            name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
+            isCustomBlock = true;
+            RenewCustomBlockFieldDescriptor();
+        }
+
+        ///////////////////////////////////////////////////
+
+
 
         public BlockNode()
         {
@@ -53,7 +132,7 @@ namespace UnityEditor.ShaderGraph
 
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
-            name = $"{fieldDescriptor.tag}.{fieldDescriptor.name}";
+            name = $"{fieldDescriptor.tag}.{(isCustomBlock ? "CustomInterpolator" : fieldDescriptor.name)}";
             m_Descriptor = fieldDescriptor;
 
             // TODO: This exposes the MaterialSlot API
@@ -66,6 +145,8 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
+            // if we are a custom block and we deserialized, we want to make sure we preserve the existing descriptor name.
+            customBlockName = fieldDescriptor.name;
             AddSlotFromControlType();
         }
 
@@ -76,32 +157,35 @@ namespace UnityEditor.ShaderGraph
             switch (descriptor.control)
             {
                 case PositionControl positionControl:
-                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability));
+                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability), false);
                     break;
                 case NormalControl normalControl:
-                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability));
+                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability), false);
                     break;
                 case TangentControl tangentControl:
-                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability));
+                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability), false);
                     break;
                 case VertexColorControl vertexColorControl:
-                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability));
+                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability), false);
                     break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
-                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
+                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability), false);
                     break;
                 case ColorRGBAControl colorRGBAControl:
-                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
+                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability), false);
                     break;
                 case FloatControl floatControl:
-                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
+                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability), false);
                     break;
                 case Vector2Control vector2Control:
-                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
+                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability), false);
                     break;
                 case Vector3Control vector3Control:
-                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
+                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability), false);
+                    break;
+                case Vector4Control vector4Control:
+                    AddSlot(new Vector4MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector4Control.value, stageCapability), false);
                     break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
