@@ -24,8 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_R, rr.L1_R);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_G, rr.L1_G);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_B, rr.L1_B);
-                    
-                    if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+
+                    // TODO
+                    //if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
                         cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_R, rr.L2_R);
                         cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_G, rr.L2_G);
@@ -53,7 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_G, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_B, TextureXR.GetBlackTexture3D());
 
-                if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                // TODO
+                //if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 { 
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_R, TextureXR.GetBlackTexture3D());
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_G, TextureXR.GetBlackTexture3D());

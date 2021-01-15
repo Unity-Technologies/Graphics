@@ -161,8 +161,9 @@ namespace UnityEngine.Rendering
 
                 UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(cell.index, sh, validity, bakedProbeOctahedralDepth);
 
-                cell.sh = new SphericalHarmonicsL1[numProbes];
+                cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                /*
                 for (int i = 0; i < numProbes; ++i)
                 {
                     Vector4[] channels = new Vector4[3];
@@ -203,7 +204,26 @@ namespace UnityEngine.Rendering
                     cell.sh[i] = sh1;
                     cell.validity[i] = validity[j];
                 }
+                */
+                for (int i = 0; i < numProbes; ++i)
+                {
+                    int j = bakingCells[c].probeIndices[i];
 
+                    for (int rgb = 0; rgb < 3; ++rgb)
+                    { 
+                        // compare to SphericalHarmonicsL2::GetShaderConstantsFromNormalizedSH
+                        cell.sh[i][rgb, 0] = sh[j][rgb, 3];
+                        cell.sh[i][rgb, 1] = sh[j][rgb, 1];
+                        cell.sh[i][rgb, 2] = sh[j][rgb, 2];
+                        cell.sh[i][rgb, 3] = sh[j][rgb, 0] - sh[j][rgb, 6];
+                        cell.sh[i][rgb, 4] = sh[j][rgb, 4];
+                        cell.sh[i][rgb, 5] = sh[j][rgb, 5];
+                        cell.sh[i][rgb, 6] = sh[j][rgb, 6] * 3.0f;
+                        cell.sh[i][rgb, 7] = sh[j][rgb, 7];
+                        cell.sh[i][rgb, 8] = sh[j][rgb, 8];
+                    }
+                }
+                
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
@@ -294,7 +314,7 @@ namespace UnityEngine.Rendering
         }
 
         private static void DilateInvalidProbes(Vector3[] probePositions,
-            List<Brick> bricks, SphericalHarmonicsL1[] sh, float[] validity, ProbeDilationSettings dilationSettings)
+            List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
             List<DilationProbe> culledProbes = new List<DilationProbe>();
@@ -317,15 +337,19 @@ namespace UnityEngine.Rendering
                     FindNearProbes(probeIdx, probePositions, dilationSettings, culledProbes, nearProbes, out float invDistSum);
 
                     // Set invalid probe to weighted average of found neighboring probes
-                    var shAverage = new SphericalHarmonicsL1();
+                    var shAverage = new SphericalHarmonicsL2();
                     for (int nearProbeIdx = 0; nearProbeIdx < nearProbes.Count; nearProbeIdx++)
                     {
                         var nearProbe = nearProbes[nearProbeIdx];
                         float weight = nearProbe.dist / invDistSum;
                         var target = sh[nearProbe.idx];
-                        shAverage.shAr += target.shAr * weight;
-                        shAverage.shAg += target.shAg * weight;
-                        shAverage.shAb += target.shAb * weight;
+
+                        for (int c = 0; c < 9; ++c)
+                        {
+                            shAverage[0, c] += target[0, c] * weight;
+                            shAverage[1, c] += target[1, c] * weight;
+                            shAverage[2, c] += target[2, c] * weight;
+                        }
                     }
 
                     sh[probeIdx] = shAverage;

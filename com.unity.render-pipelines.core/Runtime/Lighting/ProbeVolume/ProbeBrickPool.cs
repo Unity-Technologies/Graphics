@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
             int width, height, depth;
             DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
 
-            m_Pool = CreateDataLocation(width * height * depth, false);
+            m_Pool = CreateDataLocation(width * height * depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
             Profiler.EndSample();
         }
 
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering
             {
                 m_Pool.Cleanup();
             }
-            m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false);
+            m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static DataLocation CreateDataLocation(int numProbes, bool compressed)
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -216,10 +216,18 @@ namespace UnityEngine.Rendering
             loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
 
-            // TODO: IF L2
-            loc.TexL2_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            loc.TexL2_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            loc.TexL2_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                loc.TexL2_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+                loc.TexL2_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            }
+            else
+            {
+                loc.TexL2_R = null;
+                loc.TexL2_G = null;
+                loc.TexL2_B = null;
+            }
 
             loc.width = width;
             loc.height = height;
@@ -292,7 +300,7 @@ namespace UnityEngine.Rendering
             loc.TexL1_B.Apply(false);
         }
 
-        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2)
+        public static void FillDataLocation(ref DataLocation loc, SphericalHarmonicsL2[] shl2, ProbeVolumeSHBands bands)
         {
             int numBricks = shl2.Length / kBrickProbeCountTotal;
             int shidx = 0;
@@ -309,47 +317,50 @@ namespace UnityEngine.Rendering
                             int ix = bx + x;
                             int iy = by + y;
                             int iz = bz + z;
-
-                            c.r = shl2[shidx][0, 3];
-                            c.g = shl2[shidx][1, 3];
-                            c.b = shl2[shidx][2, 3];
-                            loc.TexL0.SetPixel(ix, iy, iz, c);
-
+                            
                             c.r = shl2[shidx][0, 0];
                             c.g = shl2[shidx][0, 1];
                             c.b = shl2[shidx][0, 2];
-                            c.b = shl2[shidx][0, 3];
+                            c.a = shl2[shidx][0, 3];
                             loc.TexL1_R.SetPixel(ix, iy, iz, c);
 
                             c.r = shl2[shidx][1, 0];
                             c.g = shl2[shidx][1, 1];
                             c.b = shl2[shidx][1, 2];
-                            c.b = shl2[shidx][1, 3];
+                            c.a = shl2[shidx][1, 3];
                             loc.TexL1_G.SetPixel(ix, iy, iz, c);
 
                             c.r = shl2[shidx][2, 0];
                             c.g = shl2[shidx][2, 1];
                             c.b = shl2[shidx][2, 2];
-                            c.b = shl2[shidx][1, 3];
+                            c.a = shl2[shidx][1, 3];
                             loc.TexL1_B.SetPixel(ix, iy, iz, c);
 
-                            c.r = shl2[shidx][0, 4];
-                            c.g = shl2[shidx][0, 5];
-                            c.b = shl2[shidx][0, 6];
-                            c.b = shl2[shidx][0, 7];
-                            loc.TexL2_R.SetPixel(ix, iy, iz, c);
+                            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                            {
+                                c.r = shl2[shidx][0, 4];
+                                c.g = shl2[shidx][0, 5];
+                                c.b = shl2[shidx][0, 6];
+                                c.a = shl2[shidx][0, 7];
+                                loc.TexL2_R.SetPixel(ix, iy, iz, c);
 
-                            c.r = shl2[shidx][2, 4];
-                            c.g = shl2[shidx][2, 5];
-                            c.b = shl2[shidx][2, 6];
-                            c.b = shl2[shidx][1, 7];
-                            loc.TexL2_G.SetPixel(ix, iy, iz, c);
+                                c.r = shl2[shidx][1, 4];
+                                c.g = shl2[shidx][1, 5];
+                                c.b = shl2[shidx][1, 6];
+                                c.a = shl2[shidx][1, 7];
+                                loc.TexL2_G.SetPixel(ix, iy, iz, c);
 
-                            c.r = shl2[shidx][2, 4];
-                            c.g = shl2[shidx][2, 5];
-                            c.b = shl2[shidx][2, 6];
-                            c.b = shl2[shidx][1, 7];
-                            loc.TexL2_B.SetPixel(ix, iy, iz, c);
+                                c.r = shl2[shidx][2, 4];
+                                c.g = shl2[shidx][2, 5];
+                                c.b = shl2[shidx][2, 6];
+                                c.a = shl2[shidx][1, 7];
+                                loc.TexL2_B.SetPixel(ix, iy, iz, c);
+
+                                c.r = shl2[shidx][0, 8];
+                                c.g = shl2[shidx][1, 8];
+                                c.b = shl2[shidx][2, 8];
+                                loc.TexL0.SetPixel(ix, iy, iz, c);
+                            }
 
                             shidx++;
                         }
@@ -376,9 +387,12 @@ namespace UnityEngine.Rendering
             loc.TexL1_G.Apply(false);
             loc.TexL1_B.Apply(false);
 
-            loc.TexL2_R.Apply(false);
-            loc.TexL2_G.Apply(false);
-            loc.TexL2_B.Apply(false);
+            if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            { 
+                loc.TexL2_R.Apply(false);
+                loc.TexL2_G.Apply(false);
+                loc.TexL2_B.Apply(false);
+            }
         }
 
         private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)

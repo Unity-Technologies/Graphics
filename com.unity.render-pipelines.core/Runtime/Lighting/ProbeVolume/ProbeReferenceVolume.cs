@@ -40,7 +40,6 @@ namespace UnityEngine.Rendering
     {
         public static int s_ProbeIndexPoolAllocationSize = 1024;
 
-
         [System.Serializable]
         internal struct Cell
         {
@@ -48,7 +47,7 @@ namespace UnityEngine.Rendering
             public Vector3Int position;
             public List<Brick> bricks;
             public Vector3[] probePositions;
-            public SphericalHarmonicsL1[] sh;
+            public SphericalHarmonicsL2[] sh;
             public float[] validity;
         }
 
@@ -306,8 +305,8 @@ namespace UnityEngine.Rendering
             {
                 // Push data to HDRP
                 bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
