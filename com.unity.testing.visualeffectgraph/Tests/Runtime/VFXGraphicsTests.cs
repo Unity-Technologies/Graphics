@@ -123,9 +123,12 @@ namespace UnityEngine.VFX.Test
                     }
                 }
 
+                if (XRGraphicsAutomatedTests.running)
+                    camera.targetTexture = null;
+
                 int waitFrameCount = (int)(simulateTime / period);
                 int startFrameIndex = Time.frameCount;
-                int expectedFrameIndex = startFrameIndex + waitFrameCount - 1;
+                int expectedFrameIndex = startFrameIndex + waitFrameCount;
 
                 while (Time.frameCount != expectedFrameIndex)
                 {
@@ -139,9 +142,7 @@ namespace UnityEngine.VFX.Test
 
                 try
                 {
-                    // Reset targetTexture and wait one frame to reach the correct expectedFrameIndex
                     camera.targetTexture = null;
-                    yield return new WaitForEndOfFrame();
 
                     ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
 
