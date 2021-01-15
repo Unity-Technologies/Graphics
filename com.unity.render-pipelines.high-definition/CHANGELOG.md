@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
 - Fixed some render texture leaks.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
+- Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 - Fixed path tracing alpha channel support (case 1304187).
 
 ### Changed
@@ -70,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed box light attenuation.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
