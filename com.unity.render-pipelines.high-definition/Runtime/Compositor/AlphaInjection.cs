@@ -27,8 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset != null)
                 m_Material = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.alphaInjectionPS);
-
-            name = "AlphaInjection"; // Needed to get a scope name in RenderDoc captures 
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
