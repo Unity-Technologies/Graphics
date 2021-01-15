@@ -191,10 +191,6 @@ namespace UnityEditor.Rendering.LookDev
                 s_ViewDisplayer = null;
                 //currentContext = null;
 
-                //release editorInstanceIDs
-                currentContext.GetViewContent(ViewIndex.First).CleanTemporaryObjectIndexes();
-                currentContext.GetViewContent(ViewIndex.Second).CleanTemporaryObjectIndexes();
-
                 SaveConfig();
 
                 open = false;
