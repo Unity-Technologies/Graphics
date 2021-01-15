@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
 - Fixed some render texture leaks.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
+- Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
