@@ -55,7 +55,7 @@ test_platforms:
 
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-        
+
       - [OSX_Metal]: --editor-location=.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -112,6 +112,7 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER%
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --reruncount=2
@@ -136,6 +137,7 @@ test_platforms:
   - type: editmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER%
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -268,7 +270,7 @@ platforms:
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image: package-ci/ubuntu:stable
     flavor: b1.small
   package_ci_ubuntu_large:
     type: Unity::VM

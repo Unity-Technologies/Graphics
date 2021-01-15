@@ -11,7 +11,7 @@ formatting:
     name: Formatting
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     commands:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
