@@ -347,6 +347,36 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsCached(out Vector4 scaleOffset, int id)
             => m_AllocationCache.TryGetValue(id, out scaleOffset);
 
+        public virtual bool HashChanged(Texture texture)
+        {
+            int key = GetTextureID(texture);
+            int textureHash = GetTextureHash(texture);
+
+            if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public virtual bool HashChanged(Texture textureA, Texture textureB)
+        {
+            int key = GetTextureID(textureA, textureB);
+            int textureHash = GetTextureHash(textureA, textureB);
+
+            if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
