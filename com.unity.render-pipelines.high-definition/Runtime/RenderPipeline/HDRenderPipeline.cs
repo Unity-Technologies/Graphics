@@ -844,7 +844,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Cleanup();
 
             DecalSystem.instance.Cleanup();
+
             ProbeReferenceVolume.instance.Cleanup();
+            CoreUtils.SafeRelease(m_EmptyIndexBuffer);
+            m_EmptyIndexBuffer = null;
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
