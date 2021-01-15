@@ -369,6 +369,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2503_LightLayer_DisableShadow.unity
     guid: a8cbd2435b2e88e4b8f3060f575e7af5
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2505_Area_Light_ShadowMask_Baking.unity
+    guid: 091dc511a7c5d714cba984414c7b7ecf
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2551_SSR.unity
     guid: 62f2b88cccb280246a9211bbcf0c8245
   - enabled: 1

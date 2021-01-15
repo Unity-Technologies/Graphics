@@ -48,26 +48,21 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
+        int waitFrames = settings.waitFrames;
+
         if (XRGraphicsAutomatedTests.enabled)
         {
-            if (settings.xrCompatible)
-            {
-                XRGraphicsAutomatedTests.running = true;
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.xrCompatible, waitFrames, settings.ImageComparisonSettings);
 
-                // Increase tolerance to account for slight changes due to float precision
-                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
-                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            // Increase tolerance to account for slight changes due to float precision
+            settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
 
-                // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
-                foreach (var volume in GameObject.FindObjectsOfType<Volume>())
-                {
-                    if (volume.profile.TryGet<Fog>(out Fog fog))
-                        fog.volumeSliceCount.value *= 2;
-                }
-            }
-            else
+            // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
+            foreach (var volume in GameObject.FindObjectsOfType<Volume>())
             {
-                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+                if (volume.profile.TryGet<Fog>(out Fog fog))
+                    fog.volumeSliceCount.value *= 2;
             }
         }
 
@@ -101,7 +96,7 @@ public class HDRP_GraphicTestRunner
         // Force clear all the history buffers
         hdCamera.RequestClearHistoryBuffers();
 
-        for (int i=0 ; i<settings.waitFrames ; ++i)
+        for (int i=0; i<waitFrames; ++i)
             yield return new WaitForEndOfFrame();
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
@@ -202,7 +197,7 @@ public class HDRP_GraphicTestRunner
     }
 
     [TearDown]
-    public void ResetSystemState()
+    public void TearDownXR()
     {
         XRGraphicsAutomatedTests.running = false;
     }

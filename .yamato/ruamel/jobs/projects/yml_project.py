@@ -15,10 +15,10 @@ def create_project_ymls(metafile):
         expression = ""
         if metafile["expression_trigger"]["expression"] != "":
             expression = metafile["expression_trigger"]["expression"]
-        job = Project_PRJob(metafile["project"]["name"], editor, expression, metafile["pr"]["dependencies"])
+        job = Project_PRJob(metafile["project"], editor, expression, metafile["pr"]["dependencies"])
         yml[job.job_id] = job.yml
 
-        job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])
+        job = Project_NightlyJob(metafile["project"], editor, metafile["nightly"]["dependencies"])
         yml[job.job_id] = job.yml
 
     yml_file = project_filepath_all(metafile["project"]["name"])
