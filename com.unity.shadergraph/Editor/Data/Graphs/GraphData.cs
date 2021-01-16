@@ -786,7 +786,11 @@ namespace UnityEditor.ShaderGraph
             //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
             foreach (var vertexBlock in vertexContext.blocks)
             {
-                if (vertexBlock.value?.descriptor?.isUnknown == true)
+                if (vertexBlock.value?.isCustomBlock == true)
+                {
+                    vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
+                }
+                else if (vertexBlock.value?.descriptor?.isUnknown == true)
                 {
                     vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
                 }
@@ -818,6 +822,9 @@ namespace UnityEditor.ShaderGraph
             {
                 for (int i = 0; i < contextData.blocks.Count; i++)
                 {
+                    if (contextData.blocks[i].value?.isCustomBlock == true) // custom interpolators are fine.
+                        continue;
+
                     var block = contextData.blocks[i];
                     if (!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
