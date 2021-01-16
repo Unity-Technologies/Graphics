@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             DirtyNodes(ModificationScope.Graph);
         }
 
-#region PropertyDrawers
+        #region PropertyDrawers
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
