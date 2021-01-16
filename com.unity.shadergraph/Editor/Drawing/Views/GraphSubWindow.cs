@@ -2,10 +2,11 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Interfaces;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, IResizable
+    class GraphSubWindow : GraphElement, ISGResizable
     {
         Dragger m_Dragger;
 
@@ -18,6 +19,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             verticalOffset = 8,
             horizontalOffset = 8,
         };
+
+        // Used to cache the window docking layout between resizing operations as it interferes with window resizing operations
+        private IStyle cachedWindowDockingStyle;
+
 
         protected VisualElement m_MainContainer;
         protected VisualElement m_Root;
@@ -249,7 +254,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         void BuildManipulators()
         {
             m_Dragger = new Dragger { clampToParentEdges = true };
-            RegisterCallback<MouseUpEvent>(OnMoved);
+            RegisterCallback<MouseUpEvent>(OnMoveEnd);
             this.AddManipulator(m_Dragger);
         }
 
@@ -258,16 +263,32 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
-            windowDockingLayout.ApplyPosition(this);
+
+            // If the parent shader graph window is being resized smaller than this window on either axis
+            if (parentLayout.width < this.layout.width || parentLayout.height < this.layout.height)
+            {
+                // Don't adjust the sub window in this case as it causes flickering errors and looks broken
+            }
+            else
+            {
+                windowDockingLayout.ApplyPosition(this);
+            }
+
             SerializeLayout();
         }
 
         public void OnStartResize()
         {
+            cachedWindowDockingStyle = this.style;
         }
 
         public void OnResized()
         {
+            this.style.left = cachedWindowDockingStyle.left;
+            this.style.right = cachedWindowDockingStyle.right;
+            this.style.bottom = cachedWindowDockingStyle.bottom;
+            this.style.top = cachedWindowDockingStyle.top;
+
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
@@ -306,12 +327,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
         }
 
-        void OnMoved(MouseUpEvent upEvent)
+        void OnMoveEnd(MouseUpEvent upEvent)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();
+        }
+
+        public bool CanResizePastParentBounds()
+        {
+            return false;
         }
 
         void OnWindowResize(MouseUpEvent upEvent)

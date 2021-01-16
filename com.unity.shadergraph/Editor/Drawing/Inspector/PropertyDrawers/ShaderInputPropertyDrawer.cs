@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
 
-            // Initializing this callback early on as it is needed by the BlackboardFieldView
+            // Initializing this callback early on as it is needed by the BlackboardFieldView and PropertyNodeView
             // for binding to the menu action that triggers the reset
             _resetReferenceNameCallback = newValue =>
             {
@@ -225,8 +225,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             switch (property)
             {
-            case IShaderPropertyDrawer propDrawer:	
-                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
+            case IShaderPropertyDrawer propDrawer:
+                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
                 break;
             case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
                 var helpBox = new HelpBoxRow(MessageType.Warning);
