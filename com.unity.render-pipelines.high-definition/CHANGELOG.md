@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some render texture leaks.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 - Fixed error in Depth Of Field near radius blur calculation (case 1306228).
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
@@ -69,7 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed box light attenuation.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
-- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
+- Fixed issue with an empty index buffer not being released.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

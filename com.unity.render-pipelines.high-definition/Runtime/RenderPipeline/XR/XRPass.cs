@@ -161,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
         }
+
 #endif
 
         internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
