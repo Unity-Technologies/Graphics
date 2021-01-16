@@ -55,7 +55,7 @@
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
@@ -100,12 +100,15 @@ RW_TEXTURE2D_X(float4, specularLightingUAV);
 StructuredBuffer<uint> g_TileList;
 #endif
 
-[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+// We always use 64 threads, regardless of the TILE_SIZE.
+// If TILE_SIZE is not 16, this shader needs to be fixed manually.
+// The same applies to 'builddispatchindirect.compute'.
+[numthreads(8, 8, 1)]
 void SHADE_OPAQUE_ENTRY(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID)
 {
 #ifdef USE_INDIRECT
     uint variantOffset = g_TileListOffset;
-    uint tileOffset    = groupId.x; // Includes the eye index for XR
+    uint tileOffset    = groupId.x / 4; // 4x 8*8 groups per a 16*16 tile (includes the eye index for XR)
     uint tileAndEye    = g_TileList[variantOffset + tileOffset];
     uint eye           = tileAndEye >> TILE_INDEX_SHIFT_EYE;
     uint tile          = tileAndEye ^ (eye << TILE_INDEX_SHIFT_EYE);
@@ -114,7 +117,7 @@ void SHADE_OPAQUE_ENTRY(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : 
 
     uint featureFlags  = TileVariantToFeatureFlags(VARIANT, tile, unity_StereoEyeIndex);
 #else // !USE_INDIRECT
-    uint tile          = groupId.x;
+    uint tile          = groupId.x / 4; // 4x 8*8 groups per a 16*16 tile
     uint eye           = groupId.z;
 
     UNITY_XR_ASSIGN_VIEW_INDEX(eye);
@@ -123,7 +126,9 @@ void SHADE_OPAQUE_ENTRY(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : 
 #endif
 
     uint2 tileCoord  = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
-    uint2 pixelCoord = tileCoord * TILE_SIZE + groupThreadId.xy;      // TODO: Morton order?
+    uint2 pixelCoord = tileCoord * TILE_SIZE
+                     + DeinterleaveQuad(groupId.x) * 8 // Z-order curve
+                     + groupThreadId.xy;               // TODO: full Morton order within the tile?
 
     // This need to stay in sync with deferred.shader
 

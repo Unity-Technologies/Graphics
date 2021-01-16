@@ -59,7 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe,
         Decal,
         DensityVolume,
-        // ProbeVolume,
         Count,
         None = Count // Unbounded
     }
@@ -416,9 +415,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
-        public static int s_TileEntryLimit       = 256; // Shared by all categories (specifies the total allocation size)
-        public static int s_CoarseTileSize       = 64;  // Pixels
-        public static int s_FineTileSize         = 8;   // Pixels
+        public static int s_TileEntryLimit         = 256; // Shared by all categories (specifies the total allocation size)
+        public static int s_CoarseTileSize         = 64;  // Pixels
+        public static int s_FineTileSize           = 16;  // Pixels
         public static int s_zBinCount            = 8192;
         public static int s_MaxReflectionProbesPerPixel = 4;
     }
@@ -3550,7 +3549,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     const int entitiesPerGroup = 16; // Shader: ENTITIES_PER_GROUP
 
-                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount, entitiesPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount, entitiesPerGroup); // 4x threads/entity
 
                     cmd.DispatchCompute(shader, kernel, groupCount, 1, parameters.viewCount);
                 }
@@ -3572,7 +3571,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
 
-                int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_zBinCount, threadsPerGroup);
+                int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_zBinCount, threadsPerGroup); // 1x thread/z-bin
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
@@ -3602,7 +3601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This is not an accident. We alias the fine tile buffer memory.
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.fineTileBuffer);
 
-                groupCount = HDUtils.DivRoundUp(coarseBufferSize, threadsPerGroup);
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize, threadsPerGroup); // 1x thread/coarse_tile
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
@@ -3613,7 +3612,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._DstCoarseTileBuffer, resources.coarseTileBuffer);
 
-                groupCount = HDUtils.DivRoundUp(coarseBufferSize, tilesPerGroup);
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize, tilesPerGroup); // 4x threads/coarse_tile
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
@@ -3623,7 +3622,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
 
-                groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup);
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup); // 4x threads/fine_tile, 64x threads/coarse_tile
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
@@ -4273,7 +4272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTiles, 1, parameters.viewCount);
+                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTiles * 4, 1, parameters.viewCount); // 4x 8*8 groups per a 16*16 tile
                         break; // There's only one variant. Don't render the same thing 30 times!
                     }
                 }

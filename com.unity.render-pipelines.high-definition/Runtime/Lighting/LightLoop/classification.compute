@@ -33,9 +33,7 @@ RWStructuredBuffer<uint> g_TileFeatureFlags;
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    groupshared uint gs_TileFeatureFlags;
-#endif
+groupshared uint gs_TileFeatureFlags;
 
 [numthreads(TILE_SIZE * TILE_SIZE, 1, 1)]
 void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
@@ -51,12 +49,10 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     const uint2 globalPixelCoord  = tileCoord * TILE_SIZE + localPixelCoord;
     const uint2 clampedPixelCoord = min(globalPixelCoord, uint2(_ScreenSize.xy) - 1);
 
-#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     if (t == 0) // Avoid bank conflicts
     {
         gs_TileFeatureFlags = 0;
     }
-#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     uint featureFlags = 0;
 
@@ -106,15 +102,11 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     #endif // MATERIAL_CLASSIFICATION
     }
 
-#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && (PLATFORM_LANE_COUNT >= (TILE_SIZE * TILE_SIZE)))
-    featureFlags = WaveActiveBitOr(featureFlags);
-#else
     InterlockedOr(gs_TileFeatureFlags, featureFlags);
 
     GroupMemoryBarrierWithGroupSync(); // Wait for writes to gs_TileFeatureFlags
 
     featureFlags = gs_TileFeatureFlags;
-#endif
 
     if (t == 0) // Avoid bank conflicts
     {
