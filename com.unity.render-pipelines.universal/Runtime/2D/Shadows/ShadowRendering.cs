@@ -7,10 +7,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal static class ShadowRendering
     {
         private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
+        private static readonly int k_SelfShadowingID = Shader.PropertyToID("_SelfShadowing");
         private static readonly int k_ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
         private static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
         private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
+        private static readonly int k_ShadowColorMaskID = Shader.PropertyToID("_ShadowColorMask");
+
+        private static readonly ProfilingSampler m_ProfilingSamplerShadows = new ProfilingSampler("Draw 2D Shadow Texture");
 
         private static RenderTargetHandle[] m_RenderTargets = null;
         public static  uint maxTextureCount { get; private set; }
@@ -30,6 +34,56 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
             }
+        }
+
+        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData, int colorMask)
+        {
+            //if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial.shader)
+            {
+                var material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
+                material.SetInt(k_ShadowColorMaskID, colorMask);
+                material.SetPass(0);
+                rendererData.projectedShadowMaterial = material;
+            }
+
+            return rendererData.projectedShadowMaterial;
+        }
+
+        private static Material GetStencilOnlyShadowMaterial(this Renderer2DData rendererData, int colorMask)
+        {
+            //if (rendererData.stencilOnlyShadowMaterial == null || rendererData.projectedShadowShader != rendererData.stencilOnlyShadowMaterial.shader)
+            {
+                var material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
+                material.SetInt(k_ShadowColorMaskID, colorMask);
+                material.SetPass(1);
+                rendererData.stencilOnlyShadowMaterial = material;
+            }
+
+            return rendererData.stencilOnlyShadowMaterial;
+        }
+
+        private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData, int colorMask)
+        {
+            //if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial.shader)
+            {
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
+                material.SetInt(k_ShadowColorMaskID, colorMask);
+                rendererData.spriteSelfShadowMaterial = material;
+            }
+
+            return rendererData.spriteSelfShadowMaterial;
+        }
+
+        private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData, int colorMask)
+        {
+            //if (rendererData.spriteUnshadowMaterial == null || rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial.shader)
+            {
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteUnshadowShader);
+                material.SetInt(k_ShadowColorMaskID, colorMask);
+                rendererData.spriteUnshadowMaterial = material;
+            }
+
+            return rendererData.spriteUnshadowMaterial;
         }
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
@@ -78,98 +132,90 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[shadowIndex].id);
         }
 
-        private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
-        {
-            var shadowMaterialIndex = index % 255;
-            if (rendererData.shadowMaterials[shadowMaterialIndex] == null)
-            {
-                rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
-            }
-
-            return rendererData.shadowMaterials[shadowMaterialIndex];
-        }
-
-        private static Material GetRemoveSelfShadowMaterial(this Renderer2DData rendererData, int index)
-        {
-            var shadowMaterialIndex = index % 255;
-            if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
-            {
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
-            }
-
-            return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
-        }
-
         public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
         {
-            cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmdBuffer.ClearRenderTarget(true, true, Color.black);  // clear stencil
-
-            var shadowRadius = 1.42f * light.boundingSphere.radius;
-
-            cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
-            cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
-
-            var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
-            var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
-            var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
-            if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
+            using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
             {
-                var previousShadowGroupIndex = -1;
-                var incrementingGroupIndex = 0;
-                for (var group = 0; group < shadowCasterGroups.Count; group++)
+                cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmdBuffer.ClearRenderTarget(true, true, Color.black);  // clear stencil
+
+                var shadowRadius = 1.42f * light.boundingSphere.radius;
+
+                cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
+                cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
+
+                // TODO: replace 0 with a color mask value. We should have a colormask passed in to this function
+                int colorMask = 0;
+                var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorMask);
+                var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorMask);
+                var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorMask);
+                var setGlobalStencilMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorMask);
+
+                var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                 {
-                    var shadowCasterGroup = shadowCasterGroups[group];
-                    var shadowCasters = shadowCasterGroup.GetShadowCasters();
-
-                    var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                    if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
+                    var previousShadowGroupIndex = -1;
+                    var incrementingGroupIndex = 0;
+                    for (var group = 0; group < shadowCasterGroups.Count; group++)
                     {
-                        incrementingGroupIndex++;
-                        shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
-                        removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
-                    }
+                        var shadowCasterGroup = shadowCasterGroups[group];
+                        var shadowCasters = shadowCasterGroup.GetShadowCasters();
 
-                    if (shadowCasters != null)
-                    {
-                        // Draw the shadow casting group first, then draw the silhouettes..
-                        for (var i = 0; i < shadowCasters.Count; i++)
+                        if (shadowCasters != null)
                         {
-                            var shadowCaster = shadowCasters[i];
-
-                            if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                            // Draw the projected shadows for the shadow caster group. Writing into the group stencil buffer bit
+                            for (var i = 0; i < shadowCasters.Count; i++)
                             {
-                                if (shadowCaster.castsShadows)
-                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
-                            }
-                        }
+                                var shadowCaster = shadowCasters[i];
 
-                        for (var i = 0; i < shadowCasters.Count; i++)
-                        {
-                            var shadowCaster = shadowCasters[i];
-
-                            if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
-                            {
-                                if (shadowCaster.useRendererSilhouette)
+                                if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    var renderer = shadowCaster.GetComponent<Renderer>();
-                                    if (renderer != null)
-                                    {
-                                        if (!shadowCaster.selfShadows)
-                                            cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                        else
-                                            cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
-                                    }
+                                    if (shadowCaster.castsShadows)
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
                                 }
-                                else
+                            }
+
+                            // Draw the sprites, either as self shadowing or unshadowing
+                            for (var i = 0; i < shadowCasters.Count; i++)
+                            {
+                                var shadowCaster = shadowCasters[i];
+
+                                if (shadowCaster != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
-                                    if (!shadowCaster.selfShadows)
+                                    if (shadowCaster.useRendererSilhouette)
+                                    {
+                                        // Draw using the sprite renderer
+                                        var renderer = (Renderer)null;
+                                        shadowCaster.TryGetComponent<Renderer>(out renderer);
+
+                                        if (renderer != null)
+                                        {
+                                            var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
+                                            if (material != null)
+                                                cmdBuffer.DrawRenderer(renderer, material);
+                                        }
+                                    }
+                                    else
                                     {
                                         var meshMat = shadowCaster.transform.localToWorldMatrix;
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
+                                        var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
+
+                                        // Draw using the shadow mesh
+                                        if (material != null)
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, material);
                                     }
+                                }
+                            }
+
+                            // Draw the projected shadows for the shadow caster group. Writing clearing the group stencil bit, and setting the global bit
+                            for (var i = 0; i < shadowCasters.Count; i++)
+                            {
+                                var shadowCaster = shadowCasters[i];
+
+                                if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                {
+                                    if (shadowCaster.castsShadows)
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 1);
                                 }
                             }
                         }
