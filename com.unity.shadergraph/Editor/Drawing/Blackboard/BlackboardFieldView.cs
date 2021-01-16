@@ -20,10 +20,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
 
-        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
-        // Common
-        IManipulator m_ResetReferenceMenu;
+        IManipulator m_RightClickMenuManipulator;
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
@@ -146,13 +145,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         {
             if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
-                this.RemoveManipulator(m_ResetReferenceMenu);
-                m_ResetReferenceMenu = null;
+                this.RemoveManipulator(m_RightClickMenuManipulator);
+                m_RightClickMenuManipulator = null;
             }
-            else
+            else if(m_RightClickMenuManipulator == null)
             {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-                this.AddManipulator(m_ResetReferenceMenu);
+                m_RightClickMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                this.AddManipulator(m_RightClickMenuManipulator);
             }
         }
 
