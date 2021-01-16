@@ -102,7 +102,17 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     #endif // MATERIAL_CLASSIFICATION
     }
 
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    // Reduce the pressure on the atomic counter.
+    featureFlags = WaveActiveBitOr(featureFlags);
+
+    if (WaveIsFirstLane())
+    {
+        InterlockedOr(gs_TileFeatureFlags, featureFlags);
+    }
+#else
     InterlockedOr(gs_TileFeatureFlags, featureFlags);
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     GroupMemoryBarrierWithGroupSync(); // Wait for writes to gs_TileFeatureFlags
 
