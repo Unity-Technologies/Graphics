@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed case where material keywords would not get setup before usage.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
