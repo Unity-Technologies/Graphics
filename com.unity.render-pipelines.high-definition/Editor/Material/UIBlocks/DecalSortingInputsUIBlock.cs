@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
         }
 
-        ExpandableBit  m_ExpandableBit;
+        Expandable     m_ExpandableBit;
         Features       m_Features;
  
 		protected MaterialProperty decalMeshBiasType = new MaterialProperty();
@@ -39,8 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected MaterialProperty decalMeshDepthBias = new MaterialProperty();
         protected const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
 
-        MaterialProperty decalMeshViewBias = new MaterialProperty();
-        const string kDecalViewDepthBias = "_DecalMeshViewBias";
+        protected MaterialProperty decalMeshViewBias = new MaterialProperty();
+        protected const string kDecalViewDepthBias = "_DecalMeshViewBias";
 
         protected MaterialProperty drawOrder = new MaterialProperty();
         protected const string kDrawOrder = "_DrawOrder";
