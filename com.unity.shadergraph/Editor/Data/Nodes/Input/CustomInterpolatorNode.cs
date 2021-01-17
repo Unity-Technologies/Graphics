@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool ExposeToSearcher { get => false; }
 
-        private BlockNode e_targetBlockNode // weak indirection via customBlockNodeName
+        internal BlockNode e_targetBlockNode // weak indirection via customBlockNodeName
         {
             get => (owner?.vertexContext.blocks.Find(cib => cib.value.descriptor.name == customBlockNodeName))?.value ?? null;
         }
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
             name = customBlockNodeName = customBlockName;
             if (e_targetBlockNode != null)
             {
-                serializedType = e_targetBlockNode.customBlockType;
+                serializedType = e_targetBlockNode.customWidth;
                 BuildSlot();                
                 e_targetBlockNode.RegisterCallback(OnCustomBlockModified);
             }
@@ -59,10 +59,10 @@ namespace UnityEditor.ShaderGraph
             {
                 if (bnode.isCustomBlock)
                 {
-                    name = customBlockNodeName = bnode.customBlockName;
+                    name = customBlockNodeName = bnode.customName;
                     if (e_targetBlockNode != null && e_targetBlockNode.owner != null)
                     {
-                        serializedType = e_targetBlockNode.customBlockType;
+                        serializedType = e_targetBlockNode.customWidth;
                         BuildSlot();
                     }
                     else // block node information we got was somehow invalid.

@@ -38,68 +38,7 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        ///////////////////////////////////////////////////
-        // Custom block stuff.
 
-        [SerializeField]
-        private bool m_IsCustomBlock = false;
-
-        internal bool isCustomBlock
-        {
-            get => m_IsCustomBlock;
-            set => m_IsCustomBlock = value;
-        }
-
-        internal enum CustomBlockType { Float, Vector2, Vector3, Vector4 }
-
-        [SerializeField]
-        internal CustomBlockType customBlockType = CustomBlockType.Vector4;
-        internal string m_customBlockName;
-
-        internal string customBlockName
-        {
-            get => m_customBlockName ?? descriptor?.displayName ?? "CustomInterpolator";
-            set => m_customBlockName = value;
-        }
-
-    internal void RenewCustomBlockFieldDescriptor()
-        {
-            if (!isCustomBlock)
-                return;
-
-            // todo, sanitize this.
-            var referenceName = customBlockName;
-            var define = "VERTEXDESCRIPTION_" + customBlockName.ToUpper();
-
-            IControl control = null;
-            // control the subset of exposed property types, for now.
-            switch(customBlockType)
-            {
-                case CustomBlockType.Float: control = new FloatControl(default(float)); break;
-                case CustomBlockType.Vector2: control = new Vector2Control(default(Vector2)); break;
-                case CustomBlockType.Vector3: control = new Vector3Control(default(Vector3)); break;
-                case CustomBlockType.Vector4: control = new Vector4Control(default(Vector4)); break;
-            }
-
-            // create our new block field descriptor, which drives the rest of the behavior.
-            descriptor = new BlockFieldDescriptor(BlockFields.VertexDescription.name, referenceName, define, control, ShaderStage.Vertex);
-
-            AddSlotFromControlType();
-
-            owner?.ValidateGraph();
-            // I think the only revalidation use-case is if there are CINodes that referred to our a name
-            //foreach (var cibclient in owner?.GetNodes<CustomInterpolatorNode>().Where(cib => cib.customBlockNodeName == customBlockName))
-            //    cibclient.ValidateNode();
-        }
-
-        public void InitCustomBlockNode()
-        {
-            name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
-            isCustomBlock = true;
-            RenewCustomBlockFieldDescriptor();
-        }
-
-        ///////////////////////////////////////////////////
 
 
 
@@ -132,8 +71,9 @@ namespace UnityEditor.ShaderGraph
 
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
-            name = $"{fieldDescriptor.tag}.{(isCustomBlock ? "CustomInterpolator" : fieldDescriptor.name)}";
             m_Descriptor = fieldDescriptor;
+            name = !isCustomBlock ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}" : $"{BlockFields.VertexDescription.name}.CustomInterpolator";
+            
 
             // TODO: This exposes the MaterialSlot API
             // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
@@ -145,8 +85,6 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
-            // if we are a custom block and we deserialized, we want to make sure we preserve the existing descriptor name.
-            customBlockName = fieldDescriptor.name;
             AddSlotFromControlType();
         }
 
@@ -294,13 +232,161 @@ namespace UnityEditor.ShaderGraph
             return requirements.requiresVertexColor;
         }
 
+
+
+
+
+        ///////////////////////////////////////////////////
+        // Custom block stuff.
+
+        internal enum CustomBlockType { Float = 1, Vector2 = 2, Vector3 = 3, Vector4 = 4 }
+
+        internal bool isCustomBlock
+        {
+            get => m_Descriptor?.isCustom ?? false;
+        }
+
+        internal string customName
+        {
+            get => m_Descriptor.name;
+            set => OnCustomBlockFieldModified(value, customWidth);
+        }
+
+        internal CustomBlockType customWidth
+        {
+            get => (CustomBlockType)ControlToWidth(m_Descriptor.control);
+            set => OnCustomBlockFieldModified(customName, value);
+        }
+        
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
             if (descriptor != null)
             {
+                if (isCustomBlock)
+                {
+                    int width = ControlToWidth(m_Descriptor.control);
+                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}#{width}";
+                }
+                else
+                {
+                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+                }
+            }
+        }
+
+        public override void OnAfterDeserialize()
+        {            
+            if (m_SerializedDescriptor.Contains("#"))
+            {
+                string descName = "CustomInterpolator";
+                CustomBlockType descWidth = CustomBlockType.Vector4;
+
+                var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
+                try   { descWidth = (CustomBlockType)int.Parse(wsplit[1]); }
+                catch
+                {
+                    Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
+                    descWidth = CustomBlockType.Vector4;
+                }
+                descName = wsplit[1];
+                Init(CreateCustomFieldDescriptor(descName, descWidth));
                 m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
             }
         }
+
+        private static BlockFieldDescriptor CreateCustomFieldDescriptor(string name, CustomBlockType width)
+        {
+            name = NodeUtils.ConvertToValidHLSLIdentifier(name);
+            var referenceName = name;
+            var define = "VERTEXDESCRIPTION_" + name.ToUpper();
+            IControl control = WidthToControl((int)width);
+            var tag = BlockFields.VertexDescription.name;
+            return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
+        }
+
+        static IControl WidthToControl(int width)
+        {
+            switch(width)
+            {
+                case 1: return new FloatControl(default(float));
+                case 2: return new Vector2Control(default(Vector2));
+                case 3: return new Vector3Control(default(Vector3));
+                case 4: return new Vector4Control(default(Vector4));
+                default: return null;
+            }
+        }
+
+        static int ControlToWidth(IControl control)
+        {
+            switch (control)
+            {
+                case FloatControl a: return 1;
+                case Vector2Control b: return 2;
+                case Vector3Control c: return 3;
+                case Vector4Control d: return 4;
+                default: return -1;
+            }
+        }
+
+        internal void OnCustomBlockFieldModified(string name, CustomBlockType width)
+        {
+            if (!isCustomBlock)
+            {
+                Debug.LogWarning(String.Format("{0} is not a custom interpolator.", this.name));
+                return;
+            }
+
+            m_Descriptor = CreateCustomFieldDescriptor(name, width);
+            AddSlotFromControlType();
+            owner?.ValidateGraph();
+        }
+
+
+        internal void InitCustomDefault()
+        {
+            Init(CreateCustomFieldDescriptor("CustomInterpolator", CustomBlockType.Vector4));
+        }
+
+
+
+
+
+        //[SerializeField]
+        //internal CustomBlockType customBlockType = CustomBlockType.Vector4;
+        //internal string m_customBlockName;
+
+        //internal string customBlockName
+        //{
+        //    get => m_customBlockName ?? descriptor?.displayName ?? "CustomInterpolator";
+        //    set => m_customBlockName = value;
+        //}
+
+        //internal void RenewCustomBlockFieldDescriptor()
+        //{
+        //    if (!isCustomBlock)
+        //        return;
+
+        //    // todo, sanitize this.
+        //    var referenceName = customBlockName;
+        //    var define = "VERTEXDESCRIPTION_" + customBlockName.ToUpper();
+        //    IControl control = WidthToControl((int)customBlockType);
+        //    descriptor = new BlockFieldDescriptor(BlockFields.VertexDescription.name, referenceName, define, control, ShaderStage.Vertex);
+
+        //    AddSlotFromControlType();
+        //    owner?.ValidateGraph();
+        //}
+
+        //public void InitCustomBlockNode()
+        //{
+        //    name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
+        //    isCustomBlock = true;
+
+        //    Init(CreateCustomFieldDescriptor("CustomInterpolator", CustomBlockType.Vector4));
+        //    //RenewCustomBlockFieldDescriptor();
+        //}
+
+
+        ///////////////////////////////////////////////////       
     }
 }

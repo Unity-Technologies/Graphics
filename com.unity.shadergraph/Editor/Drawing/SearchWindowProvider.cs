@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (contextView.contextData.shaderStage == ShaderStage.Vertex)
                 {
                     var customBlockNodeStub = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
-                    customBlockNodeStub.InitCustomBlockNode();
+                    customBlockNodeStub.InitCustomDefault();
                     AddEntries(customBlockNodeStub, new string[] { "Custom Interpolator" }, nodeEntries);
                 }
 
@@ -183,8 +183,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
             {
                 var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
-                node.ConnectToCustomBlock(cibnode.value.customBlockName);
-                AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customBlockName }, nodeEntries);
+                node.ConnectToCustomBlock(cibnode.value.customName);
+                AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
             }
 
             SortEntries(nodeEntries);
@@ -359,8 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     HashSet<string> usedNames = new HashSet<string>();
                     foreach (var other in contextView.contextData.blocks) usedNames.Add(other.value.descriptor.displayName);
-                    blockNode.customBlockName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", blockNode.descriptor.displayName);
-                    blockNode.RenewCustomBlockFieldDescriptor();
+                    blockNode.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", blockNode.descriptor.displayName);
                 }
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
@@ -425,8 +424,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (newNode is BlockNode blockNode)
             {
                 blockNode.owner = m_Graph;
-                blockNode.isCustomBlock = ((BlockNode)oldNode).isCustomBlock;
-                blockNode.Init(((BlockNode)oldNode).descriptor);                
+                blockNode.Init(((BlockNode)oldNode).descriptor);
                 blockNode.owner = null;
             }
             else if (newNode is CustomInterpolatorNode cinode)

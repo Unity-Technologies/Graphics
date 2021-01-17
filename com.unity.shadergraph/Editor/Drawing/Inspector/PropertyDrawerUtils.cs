@@ -74,6 +74,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 AddCustomInterpolatorProperties(parentElement, bnode, setNodesAsDirtyCallback, updateNodeViewsCallback);
             }
+
+            if (node is CustomInterpolatorNode cinode)
+            {
+                if (cinode.e_targetBlockNode != null)
+                {
+                    AddCustomInterpolatorProperties(parentElement, cinode.e_targetBlockNode, setNodesAsDirtyCallback, updateNodeViewsCallback);
+                }
+            }
         }
 
         internal static void AddCustomInterpolatorProperties(VisualElement parentElement, BlockNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
@@ -83,41 +91,42 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             TextField textField = null;
             {
-                textField = new TextField { value = node.customBlockName, multiline = false };
+                textField = new TextField { value = node.customName, multiline = false };
                 var propertyRow = new PropertyRow(new Label("Name"));
                 propertyRow.Add(textField, (field) =>
                 {
                     field.RegisterCallback<FocusOutEvent>(evt =>
                     {
+                        if (field.value.Equals(node.customName))
+                            return;
+
                         HashSet<string> usedNames = new HashSet<string>();
                         foreach (var other in node.contextData.blocks) if(other != node) usedNames.Add(other.value.descriptor.displayName);
-                        field.value = node.customBlockName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));
-                        
+                                                
                         setNodesAsDirtyCallback?.Invoke();
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Name");
-                        node.RenewCustomBlockFieldDescriptor();
-                        updateNodeViewsCallback?.Invoke();
+                        field.value = node.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));                        
+                        updateNodeViewsCallback?.Invoke();                   
                         node.Dirty(ModificationScope.Graph);
-                    });
+                    });                    
                 });
                 parentElement.Add(propertyRow);  
             }
 
             EnumField typeField = null;
             {
-                typeField = new EnumField(node.customBlockType);
+                typeField = new EnumField(node.customWidth);
                 var propertyRow = new PropertyRow(new Label("Type"));
                 propertyRow.Add(typeField, (field) =>
                 {
                     field.RegisterValueChangedCallback(evt =>
                     {
-                        if (evt.newValue.Equals(node.customBlockType))
+                        if (evt.newValue.Equals(node.customWidth))
                             return;
 
                         setNodesAsDirtyCallback?.Invoke();
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Type");
-                        node.customBlockType = (BlockNode.CustomBlockType)evt.newValue;
-                        node.RenewCustomBlockFieldDescriptor(); // Dirty
+                        node.customWidth = (BlockNode.CustomBlockType)evt.newValue;
                         updateNodeViewsCallback?.Invoke();
                         node.Dirty(ModificationScope.Graph);
                     }); 

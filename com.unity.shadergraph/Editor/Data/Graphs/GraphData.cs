@@ -2264,7 +2264,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
-                    block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    if (!block.isCustomBlock) // does its own deserialization
+                    { 
+                        block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    }
                     if (block.descriptor == null)
                     {
                         //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)

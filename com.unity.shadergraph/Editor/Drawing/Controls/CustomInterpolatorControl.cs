@@ -108,9 +108,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     {
                         // Our currently selected node's name was changed.
                         m_validNames.Remove(value.selectedEntry);
-                        m_validNames.Add(bnode.customBlockName);
-                        value.selectedEntry = m_PopupField.value = bnode.customBlockName;
-                        value.selectedType = e_oldFriend.customBlockType;
+                        m_validNames.Add(bnode.customName);
+                        value.selectedEntry = m_PopupField.value = bnode.customName;
+                        value.selectedType = e_oldFriend.customWidth;
                         m_PropertyInfo.SetValue(m_Node, value, null);
                     }                    
                 }
@@ -122,10 +122,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void OnValueChanged(ChangeEvent<string> evt)
         {
-            e_oldFriend = m_Node.owner.vertexContext.blocks.Find(bnr => bnr.value.customBlockName == m_PopupField.value);
+            e_oldFriend = m_Node.owner.vertexContext.blocks.Find(bnr => bnr.value.customName == m_PopupField.value);
 
             var value = (CustomInterpolatorList)m_PropertyInfo.GetValue(m_Node, null);
-            value.selectedType = e_oldFriend?.customBlockType ?? BlockNode.CustomBlockType.Vector4;
+            value.selectedType = e_oldFriend?.customWidth ?? BlockNode.CustomBlockType.Vector4;
             value.selectedEntry = m_PopupField.value;
             m_PropertyInfo.SetValue(m_Node, value, null);
 
