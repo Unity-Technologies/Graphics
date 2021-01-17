@@ -1111,7 +1111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
+            var parameters = PrepareVolumetricLightingParameters(hdCamera);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
             {
