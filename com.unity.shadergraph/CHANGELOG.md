@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
+- The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
@@ -21,7 +22,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
+- Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it [1291760]
+- Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
+- Fixed an issue where resizing the graph inspector window sometimes had unexpected results [1257036]
+- Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 
 ## [10.2.0] - 2020-10-19
