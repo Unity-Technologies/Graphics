@@ -188,7 +188,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _ _ALPHATEST_ON
-            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
 
             // -------------------------------------
             // Unity defined keywords
