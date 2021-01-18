@@ -21,7 +21,7 @@ You can also watch the presentation from Unite Copenhagen (October 2019) to lear
   * PlayStationVR
   * Open VR*
 
-Note: Valve is currently developing their OpenVR Unity XR plugin for 2019.3 and beyond. 
+Note: Valve is currently developing their OpenVR Unity XR plugin for 2019.3 and beyond.
 For more information, see [Unity XR platform updates](https://blogs.unity3d.com/2020/01/24/unity-xr-platform-updates/) on the Unity blog, and [XR Plugin Architecture](https://docs.unity3d.com/Manual/XRPluginArchitecture.html) in the Unity Manual.
 The XR Plugin architecture links to the OpenVR desktop package and has further info and recommendations.
 

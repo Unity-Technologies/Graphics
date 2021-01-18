@@ -10,13 +10,13 @@ Some blocks are only compatible with specific [Graph Settings](Graph-Settings-Me
 
 To add a new Block node to a Context in the Master Stack, place the cursor over an empty area in the Context, then press the Spacebar or right-click and select **Create Node**.
 
-This brings up the Create Node menu, which displays only Block nodes that are valid for the Context. For example, Vertex Blocks don't appear in the Create Node menu of a Fragment Context. 
+This brings up the Create Node menu, which displays only Block nodes that are valid for the Context. For example, Vertex Blocks don't appear in the Create Node menu of a Fragment Context.
 
 Select a Block node from the menu to add it to the Context. To remove a Block from the Context, select the Block node in the Context, then press the Delete key or right-click and select **Delete**.
 
 ### Automatically Add or Remove Blocks
 
-You can also enable or disable an option in the Shader Graph Preferences to automatically add and remove Blocks from a Context. 
+You can also enable or disable an option in the Shader Graph Preferences to automatically add and remove Blocks from a Context.
 
 If you enable **Automatically Add or Remove Blocks**, Shader Graph automatically adds the required Block nodes for that particular asset's Target or material type. It automatically removes any incompatible Block nodes that have no connections and default values.
 
