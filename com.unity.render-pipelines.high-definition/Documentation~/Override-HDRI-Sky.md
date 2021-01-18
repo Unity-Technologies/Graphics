@@ -65,4 +65,4 @@ These properties only appear if you enable [more options](More-Options.md).
 | -**Shadow Tint** | Specifies the color to tint shadows cast onto the backplate. |
 | - **Reset Color** | Resets the saved **Shadow Tint** for the shadow. HDRP calculates a new default shadow tint when the HDRI changes. |
 
-**Note**: To use ambient occlusion in the backplate, increase the value of the **Direct Lighting Strength** property on the [Ambient Occlusion](Override-Ambient-Occlusion.md) component override. As the backplate does not have global illumination, it can only get ambient occlusion from direct lighting.
+**Note**: To use ambient occlusion in the backplate, increase the value of the **Direct Lighting Strength** property on the [Ambient Occlusion](Override-Ambient-Occlusion.md) component override. As the backplate does not have global illumination, it can only get ambient occlusion from direct lighting. Also, note that for technical reasons, the backplate will never appear in the default sky reflection, only in local reflection probes.
