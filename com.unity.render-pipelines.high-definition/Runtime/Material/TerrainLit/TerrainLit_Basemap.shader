@@ -167,9 +167,9 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
-            #pragma multi_compile_fragment _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER
-            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
+            #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
