@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareWriteScreenSpaceShadowParameters(hdCamera, shadowIndex, shadowType);
                 passData.inputShadowBuffer = builder.ReadTexture(shadowTexture);
-                passData.outputShadowArrayBuffer = builder.WriteTexture(builder.ReadTexture(screenSpaceShadowArray));
+                passData.outputShadowArrayBuffer = builder.ReadWriteTexture(screenSpaceShadowArray);
 
                 builder.SetRenderFunc(
                 (WriteScreenSpaceShadowPassData data, RenderGraphContext context) =>

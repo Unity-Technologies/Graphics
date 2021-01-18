@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                passData.indirectDiffuseBuffer = builder.ReadTexture(builder.WriteTexture(indirectDiffuseBuffer));
+                passData.indirectDiffuseBuffer = builder.ReadWriteTexture(indirectDiffuseBuffer);
 
                 builder.SetRenderFunc(
                 (AdjustRTGIWeightPassData data, RenderGraphContext ctx) =>
@@ -159,14 +159,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle QualityRTGI(RenderGraph renderGraph, in QualityRTIndirectDiffuseParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
+            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
             {
                 builder.EnableAsyncCompute(false);
 
                 passData.parameters = parameters;
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.rayCountTexture = builder.WriteTexture(builder.ReadTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
 
@@ -226,13 +226,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (giSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
+                float historyValidity0 = EvaluateIndirectDiffuseHistoryValidity0(hdCamera, giSettings.fullResolution, true);
 
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
 
                 // Run the temporal denoiser
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
+                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity0);
                 TextureHandle historyBufferHF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureHF(hdCamera));
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer);
 
@@ -243,18 +243,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the second pass is requested, do it otherwise blit
                 if (giSettings.secondDenoiserPass)
                 {
+                    float historyValidity1 = EvaluateIndirectDiffuseHistoryValidity1(hdCamera, giSettings.fullResolution, true);
+
                     // Run the temporal denoiser
-                    tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
+                    tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity1);
                     TextureHandle historyBufferLF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureLF(hdCamera));
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer);
 
                     // Apply the diffuse denoiser
                     ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius * 0.5f, giSettings.halfResolutionDenoiser, false);
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
+
+                    // Propagate the history validity for the second buffer
+                    PropagateIndirectDiffuseHistoryValidity1(hdCamera, giSettings.fullResolution, true);
                 }
 
-                // Propagate the history
-                PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
+                // Propagate the history validity for the first buffer
+                PropagateIndirectDiffuseHistoryValidity0(hdCamera, giSettings.fullResolution, true);
 
                 return rtGIBuffer;
             }

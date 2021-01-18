@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.3.0] - 2020-11-16
+
+### Added
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+
+### Fixed
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+
 ## [10.2.0] - 2020-10-19
 
 Version Updated

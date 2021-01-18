@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)ExposureMode.Fixed)
             {
-                DoFixedExposureField(m_FixedExposure);
+                DoExposurePropertyField(m_FixedExposure);
                 PropertyField(m_Compensation);
             }
             else
@@ -152,8 +152,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else if (!(mode == (int)ExposureMode.AutomaticHistogram && m_HistogramCurveRemapping.value.boolValue))
                 {
-                    PropertyField(m_LimitMin);
-                    PropertyField(m_LimitMax);
+                    DoExposurePropertyField(m_LimitMin);
+                    DoExposurePropertyField(m_LimitMax);
                 }
 
                 PropertyField(m_Compensation);
@@ -204,18 +204,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // TODO: See if it's possible to refactor into a custom VolumeParameterDrawer
-        void DoFixedExposureField(SerializedDataParameter fixedExposure)
+        // TODO: See if this can be refactored into a custom VolumeParameterDrawer
+        void DoExposurePropertyField(SerializedDataParameter exposureProperty)
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                DrawOverrideCheckbox(fixedExposure);
+                DrawOverrideCheckbox(exposureProperty);
 
-                using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
-                    EditorGUILayout.LabelField(fixedExposure.displayName);
+                using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
+                    EditorGUILayout.LabelField(exposureProperty.displayName);
             }
 
-            using (new EditorGUI.DisabledScope(!fixedExposure.overrideState.boolValue))
+            using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
             {
                 var xOffset = EditorGUIUtility.labelWidth + 22;
                 var lineRect = EditorGUILayout.GetControlRect();
@@ -225,12 +225,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 var sliderRect = lineRect;
                 sliderRect.y -= EditorGUIUtility.singleLineHeight;
                 k_LightUnitSlider.SetSerializedObject(serializedObject);
-                k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
+                k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
 
-                // GUIContent.none disables horizontal scrolling, ur TrTextContent and adjust the rect to make it work
+                // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
                 lineRect.x -= EditorGUIUtility.labelWidth + 2;
                 lineRect.width += EditorGUIUtility.labelWidth + 2;
-                EditorGUI.PropertyField(lineRect, m_FixedExposure.value, EditorGUIUtility.TrTextContent(" "));
+                EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
             }
         }
     }

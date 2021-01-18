@@ -438,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ssgiBuffer = passData.parameters.validSSGI ? builder.ReadTexture(ssgiBuffer) : renderGraph.defaultResources.blackTextureXR;
                 passData.diffuseLightingBuffer = builder.ReadTexture(diffuseLightingBuffer);
                 passData.subsurfaceBuffer = builder.ReadTexture(rayTracedSSS);
-                passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
 
                 builder.SetRenderFunc(
                 (ComposeRTSSSPassData data, RenderGraphContext ctx) =>

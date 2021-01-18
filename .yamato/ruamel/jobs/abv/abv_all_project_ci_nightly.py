@@ -40,5 +40,5 @@ class ABV_AllProjectCiNightlyJob():
         job.set_name(f'_Nightly ABV against { editor["name"] }')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["track"])
-        job.add_trigger_recurrent(target_branch,'0 * * ?')
+        job.add_trigger_recurrent(target_branch,'1 * * ?')
         return job

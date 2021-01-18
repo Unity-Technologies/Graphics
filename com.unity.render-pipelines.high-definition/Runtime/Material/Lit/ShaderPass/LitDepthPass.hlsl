@@ -57,5 +57,9 @@
     #define VARYINGS_NEED_POSITION_WS // Required to get view vector use in cross fade effect 
 #endif
 
+#ifdef _DOUBLESIDED_ON
+#define VARYINGS_NEED_CULLFACE
+#endif
+
 // This include will define the various Attributes/Varyings structure
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"

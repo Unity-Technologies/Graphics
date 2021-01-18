@@ -186,8 +186,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = rrParams;
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
                 passData.flagMask = builder.ReadTexture(flagMask);
-                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
-                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
+                passData.outputBuffer = builder.ReadWriteTexture(colorBuffer);
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
