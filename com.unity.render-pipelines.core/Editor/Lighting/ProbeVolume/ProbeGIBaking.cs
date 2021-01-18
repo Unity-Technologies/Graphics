@@ -163,67 +163,44 @@ namespace UnityEngine.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
-                /*
-                for (int i = 0; i < numProbes; ++i)
-                {
-                    Vector4[] channels = new Vector4[3];
 
-                    int j = bakingCells[c].probeIndices[i];
-
-                    // compare to SphericalHarmonicsL2::GetShaderConstantsFromNormalizedSH
-                    channels[0] = new Vector4(sh[j][0, 3], sh[j][0, 1], sh[j][0, 2], sh[j][0, 0]);
-                    channels[1] = new Vector4(sh[j][1, 3], sh[j][1, 1], sh[j][1, 2], sh[j][1, 0]);
-                    channels[2] = new Vector4(sh[j][2, 3], sh[j][2, 1], sh[j][2, 2], sh[j][2, 0]);
-
-                    // It can be shown that |L1_i| <= |2*L0|
-                    // Precomputed Global Illumination in Frostbite by Yuriy O'Donnell.
-                    // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
-                    //
-                    // So divide by L0 brings us to [-2, 2],
-                    // divide by 4 brings us to [-0.5, 0.5],
-                    // and plus by 0.5 brings us to [0, 1].
-                    for (int channel = 0; channel < 3; ++channel)
-                    {
-                        var l0 = channels[channel][3];
-
-                        if (l0 != 0.0f)
-                        {
-                            for (int axis = 0; axis < 3; ++axis)
-                            {
-                                channels[channel][axis] = channels[channel][axis] / (l0 * 4.0f) + 0.5f;
-                                Debug.Assert(channels[channel][axis] >= 0.0f && channels[channel][axis] <= 1.0f);
-                            }
-                        }
-                    }
-
-                    SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1();
-                    sh1.shAr = channels[0];
-                    sh1.shAg = channels[1];
-                    sh1.shAb = channels[2];
-
-                    cell.sh[i] = sh1;
-                    cell.validity[i] = validity[j];
-                }
-                */
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = bakingCells[c].probeIndices[i];
 
                     for (int rgb = 0; rgb < 3; ++rgb)
-                    { 
+                    {
+                        float l0 = sh[j][rgb, 0];
+
                         // compare to SphericalHarmonicsL2::GetShaderConstantsFromNormalizedSH
                         cell.sh[i][rgb, 0] = sh[j][rgb, 3];
                         cell.sh[i][rgb, 1] = sh[j][rgb, 1];
                         cell.sh[i][rgb, 2] = sh[j][rgb, 2];
-                        cell.sh[i][rgb, 3] = sh[j][rgb, 0] - sh[j][rgb, 6];
+
                         cell.sh[i][rgb, 4] = sh[j][rgb, 4];
                         cell.sh[i][rgb, 5] = sh[j][rgb, 5];
-                        cell.sh[i][rgb, 6] = sh[j][rgb, 6] * 3.0f;
+                        cell.sh[i][rgb, 6] = sh[j][rgb, 6];
                         cell.sh[i][rgb, 7] = sh[j][rgb, 7];
                         cell.sh[i][rgb, 8] = sh[j][rgb, 8];
+
+                        // It can be shown that |L1_i| <= |2*L0|
+                        // Precomputed Global Illumination in Frostbite by Yuriy O'Donnell.
+                        // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
+                        //
+                        // So divide by L0 brings us to [-2, 2],
+                        // divide by 4 brings us to [-0.5, 0.5],
+                        // and plus by 0.5 brings us to [0, 1].
+                        if (l0 != 0.0f)
+                        {
+                            for (int x = 0; x < 9; ++x)
+                                cell.sh[i][rgb, x] = cell.sh[i][rgb, x] / (l0 * 4.0f) + 0.5f;
+                            
+                        }
+
+                        cell.sh[i][rgb, 3] = l0;
                     }
                 }
-                
+
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 

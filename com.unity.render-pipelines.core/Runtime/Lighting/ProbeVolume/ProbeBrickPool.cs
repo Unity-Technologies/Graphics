@@ -210,19 +210,12 @@ namespace UnityEngine.Rendering
             depth  *= kBrickProbeCountPerDim;
 
             DataLocation loc;
-            /*
+
             loc.TexL0   = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGB_BC6H_UFloat : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
 
-            loc.TexL1_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
-            */
-
-            loc.TexL0 = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
-
-            loc.TexL1_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
-            loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
-            loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            loc.TexL1_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
+            loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
