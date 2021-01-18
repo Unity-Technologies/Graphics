@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.3.0] - 2020-11-16
 
+### Added
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+
 ### Fixed
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
