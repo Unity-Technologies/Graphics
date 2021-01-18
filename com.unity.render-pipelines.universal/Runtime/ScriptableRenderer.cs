@@ -331,6 +331,8 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
+        bool m_FirstTimeColorClear = true;
+
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
@@ -974,19 +976,22 @@ namespace UnityEngine.Rendering.Universal
                     var destTarget = renderPass.depthOnly
                         ? passColorAttachment
                         : (samples > 1 && !isBlit ? m_CameraColorTarget : RenderTargetHandle.CameraTarget.Identifier());
-                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(destTarget, false, true);
-                    if (m_FirstTimeCameraColorTargetIsBound)
-                    {
-                        m_ActiveColorAttachmentDescriptor.ConfigureClear(Color.white, 1.0f, 0);
-                        m_FirstTimeCameraColorTargetIsBound = false;
-                    }
+                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(destTarget, !m_FirstTimeColorClear, true);
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
 
                     if (cameraData.cameraTargetDescriptor.msaaSamples == 1)
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, false, true);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, !m_FirstTimeColorClear , true);
                     else
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment, false, false);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment,!m_FirstTimeColorClear , true);
+
+                    if (m_FirstTimeColorClear)
+                    {
+                        m_FirstTimeColorClear = false;
+                        m_ActiveColorAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 0);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+                    }
+
 
                     if ( !isBlit && samples > 1)
                     {
@@ -1151,6 +1156,8 @@ namespace UnityEngine.Rendering.Universal
                     m_IsPipelineExecuting = false;
                 }
             }
+
+            m_FirstTimeColorClear = true;
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
