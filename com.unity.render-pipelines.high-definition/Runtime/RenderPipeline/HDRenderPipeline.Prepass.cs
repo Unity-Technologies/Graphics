@@ -210,6 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
+                UpdateColorMaskForUnlit(renderGraph, hdCamera);
+
                 // Bind the custom color/depth before the first custom pass
                 BindCustomPassBuffers(renderGraph, hdCamera);
 
@@ -284,6 +286,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return result;
+        }
+
+        class UpdateColorMaskForUnlitPassData
+        {
+            public ColorWriteMask colorWriteMask;
+        }
+
+        void UpdateColorMaskForUnlit(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<UpdateColorMaskForUnlitPassData>("UpdateColorMaskForUnlit", out var passData))
+            {
+                // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                passData.colorWriteMask = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? ColorWriteMask.All : 0;
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc(
+                    (UpdateColorMaskForUnlitPassData data, RenderGraphContext context) =>
+                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, (int)data.colorWriteMask));
+            }
         }
 
         class DepthPrepassData
@@ -365,6 +385,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //             Range Opaque..OpaqueDecalAlphaTest for forward - depth + normal
 
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+            {
+                decalBuffer = renderGraph.defaultResources.blackTextureXR;
+                output.depthAsColor = CreateDepthAsColorBuffer(renderGraph);
+                output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                return false;
+            }
+
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool decalLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
             bool decalsEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
@@ -374,15 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool excludeMotion = fullDeferredPrepass ? objectMotionEnabled : false;
             bool shouldRenderMotionVectorAfterGBuffer = (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !fullDeferredPrepass;
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
-            {
-                decalBuffer = renderGraph.defaultResources.blackTextureXR;
-                output.depthAsColor = CreateDepthAsColorBuffer(renderGraph);
-                output.normalBuffer = CreateNormalBuffer(renderGraph, msaa);
-                return false;
-            }
-
-            // Needs to be created ahead because it's used in both prepasses.
+            // Needs to be created ahead because it's used in both pre-passes.
             if (decalLayersEnabled)
                 decalBuffer = CreateDecalPrepassBuffer(renderGraph, msaa);
             else
@@ -412,8 +432,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (DepthPrepassData data, RenderGraphContext context) =>
                         {
-                            // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-                            context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
                             DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                         });
                 }
@@ -452,8 +470,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DepthPrepassData data, RenderGraphContext context) =>
                     {
-                        // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
                         DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                     });
             }
@@ -520,9 +536,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (ObjectMotionVectorsPassData data, RenderGraphContext context) =>
                     {
-                        // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
-
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
             }
