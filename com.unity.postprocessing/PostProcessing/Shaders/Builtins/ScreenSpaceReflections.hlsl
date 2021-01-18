@@ -329,7 +329,7 @@ float4 FragReproject(VaryingsDefault i) : SV_Target
 
     float4 minimum = min(min(min(min(min(min(min(min(top[0], top[1]), top[2]), top[3]), bottom[0]), bottom[1]), bottom[2]), bottom[3]), color);
     float4 maximum = max(max(max(max(max(max(max(max(top[0], top[1]), top[2]), top[3]), bottom[0]), bottom[1]), bottom[2]), bottom[3]), color);
-    
+
     float4 history = _History.SampleLevel(sampler_History, UnityStereoTransformScreenSpaceTex(uv), 0);
     history = clamp(history, minimum, maximum);
 
