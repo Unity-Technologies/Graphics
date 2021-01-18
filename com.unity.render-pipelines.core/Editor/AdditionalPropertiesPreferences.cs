@@ -31,10 +31,10 @@ namespace UnityEditor.Rendering
 
         static void InitializeIfNeeded()
         {
-            s_AdditionalPropertiesVisibilityMethods = TypeCache.GetMethodsWithAttribute<SetAdditionalPropertiesVisibilityAttribute>();
-
             if (s_VolumeComponentEditorTypes == null)
             {
+                s_AdditionalPropertiesVisibilityMethods = TypeCache.GetMethodsWithAttribute<SetAdditionalPropertiesVisibilityAttribute>();
+
                 s_VolumeComponentEditorTypes = TypeCache.GetTypesDerivedFrom<VolumeComponentEditor>()
                     .Where(
                         t => !t.IsAbstract
