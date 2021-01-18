@@ -5,19 +5,19 @@
 
 struct AttributesParticle
 {
-    float4 vertex : POSITION;
-    half4 color : COLOR;
+    float4 vertex                   : POSITION;
+    half4 color                     : COLOR;
 
     #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-        float4 texcoords : TEXCOORD0;
-        float texcoordBlend : TEXCOORD1;
+        float4 texcoords            : TEXCOORD0;
+        float texcoordBlend         : TEXCOORD1;
     #else
-        float2 texcoords : TEXCOORD0;
+        float2 texcoords            : TEXCOORD0;
     #endif
 
     #if !defined(PARTICLES_EDITOR_META_PASS)
-        float3 normal : NORMAL;
-        float4 tangent : TANGENT;
+        float3 normal               : NORMAL;
+        float4 tangent              : TANGENT;
     #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -61,16 +61,16 @@ struct VaryingsParticle
 
 struct AttributesDepthOnlyParticle
 {
-    float4 vertex : POSITION;
+    float4 vertex                       : POSITION;
 
     #if defined(_ALPHATEST_ON)
-        half4 color   : COLOR;
+        half4 color                     : COLOR;
 
         #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-            float4 texcoords : TEXCOORD0;
-            float texcoordBlend : TEXCOORD1;
+            float4 texcoords            : TEXCOORD0;
+            float texcoordBlend         : TEXCOORD1;
         #else
-            float2 texcoords : TEXCOORD0;
+            float2 texcoords            : TEXCOORD0;
         #endif
     #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -78,7 +78,7 @@ struct AttributesDepthOnlyParticle
 
 struct VaryingsDepthOnlyParticle
 {
-    float4 clipPos                  : SV_POSITION;
+    float4 clipPos                      : SV_POSITION;
 
     #if defined(_ALPHATEST_ON)
         float2 texcoord                 : TEXCOORD0;
@@ -95,23 +95,23 @@ struct VaryingsDepthOnlyParticle
 
 struct AttributesDepthNormalsParticle
 {
-    float4 vertex : POSITION;
+    float4 vertex                       : POSITION;
 
     #if defined(_ALPHATEST_ON)
-        half4 color : COLOR;
+        half4 color                     : COLOR;
     #endif
 
     #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
         #if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-            float4 texcoords : TEXCOORD0;
-            float texcoordBlend : TEXCOORD1;
+            float4 texcoords            : TEXCOORD0;
+            float texcoordBlend         : TEXCOORD1;
         #else
-            float2 texcoords : TEXCOORD0;
+            float2 texcoords            : TEXCOORD0;
         #endif
     #endif
 
-    float3 normal : NORMAL;
-    float4 tangent : TANGENT;
+    float3 normal                       : NORMAL;
+    float4 tangent                      : TANGENT;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -119,7 +119,7 @@ struct AttributesDepthNormalsParticle
 
 struct VaryingsDepthNormalsParticle
 {
-    float4 clipPos                  : SV_POSITION;
+    float4 clipPos                      : SV_POSITION;
 
     #if defined(_ALPHATEST_ON)
         half4 color                     : COLOR;
@@ -134,12 +134,12 @@ struct VaryingsDepthNormalsParticle
     #endif
 
     #if defined(_NORMALMAP)
-        float4 normalWS         : TEXCOORD2;    // xyz: normal, w: viewDir.x
-        float4 tangentWS        : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-        float4 bitangentWS      : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+        float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
     #else
-        float3 normalWS         : TEXCOORD2;
-        float3 viewDirWS        : TEXCOORD3;
+        float3 normalWS                 : TEXCOORD2;
+        float3 viewDirWS                : TEXCOORD3;
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
