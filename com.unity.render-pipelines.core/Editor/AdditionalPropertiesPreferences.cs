@@ -61,8 +61,12 @@ namespace UnityEditor.Rendering
 
         internal static void PreferenceGUI()
         {
+            Rect r = EditorGUILayout.GetControlRect();
+            r.xMin = 10;
+            EditorGUIUtility.labelWidth = 251;
+
             EditorGUI.BeginChangeCheck();
-            int newValue = EditorGUILayout.IntPopup(Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
+            int newValue = EditorGUI.IntPopup(r, Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
             if (EditorGUI.EndChangeCheck())
             {
                 showAllAdditionalProperties = newValue == 1;
