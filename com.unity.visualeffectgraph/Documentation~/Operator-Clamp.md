@@ -1,8 +1,8 @@
 # Clamp
 
-Menu Path : **Operator > Math > Clamp > Clamp**  
+Menu Path : **Operator > Math > Clamp > Clamp**
 
-The **Clamp** Operator limits an input value between a lower and upper bound. 
+The **Clamp** Operator limits an input value between a lower and upper bound.
 
 If the input value is greater than **Max**, this Operator returns **Max**. If the input value is less than **Min**, this Operator returns **Min**. If the Input value is between **Max** and **Min**, the result is the same as the input.
 
@@ -22,7 +22,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Operator’s configuration, click the **cog** icon in the Operator’s header. For input, you can choose a type beyond all [Available Types](#available-types). 
+To view the Operator’s configuration, click the **cog** icon in the Operator’s header. For input, you can choose a type beyond all [Available Types](#available-types).
 
 
 
