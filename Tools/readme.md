@@ -66,7 +66,7 @@ git add test.txt
 git commit -m "test"
 // Some kind of output about the hooks being run
 // Do a reset to undo our test: git reset --soft HEAD~1 (This "undoes" the last commit and keep the committed files in your staging area so delete test.txt after)
-``` 
+```
 
 
 
@@ -74,7 +74,7 @@ git commit -m "test"
 
 Please, follow these steps: https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh. Do not forget the ssh agent step.
 
-If that still doesn’t work, try running 
+If that still doesn’t work, try running
 ```
 ssh -vT git@github.cds.internal.unity3d.com
 ```
@@ -112,7 +112,7 @@ Follow the suggestions of [this StackOverflow answer](https://stackoverflow.com/
 
 **Can't locate Win32/Process.pm in @INC...**
 
-On Windows, Active perl is not supported by the formatting tool. Use Strawberry perl. 
+On Windows, Active perl is not supported by the formatting tool. Use Strawberry perl.
 
 ## Formatting
 

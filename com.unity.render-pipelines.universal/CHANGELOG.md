@@ -428,7 +428,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
 - Light2D GameObjects that you've created now have a default position with z equal to 0.
-- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.  
+- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -901,7 +901,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ## [1.1.2-preview] - 2018-01-01
 
 ### Changed
- - Performance improvements in mobile  
+ - Performance improvements in mobile
 
 ### Fixed
  - Shadows on GLES 2.0

@@ -22,4 +22,3 @@ Because this feature is an alternative to the [Ambient Occlusion](Override-Ambie
 ## Properties
 
 HDRP implements ray-traced ambient occlusion on top of the Ambient Occlusion override. For information on the properties that control this effect, see [Ray-traced properties](Override-Ambient-Occlusion.md#ray-traced).
-
