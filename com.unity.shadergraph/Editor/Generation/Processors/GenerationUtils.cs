@@ -72,10 +72,7 @@ namespace UnityEditor.ShaderGraph
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using (structBuilder.BlockSemicolonScope())
             {
-                // custom interpolators
-                var cifields = activeFields.baseInstance.fields.Where(d => d.tag == shaderStruct.name && d.semantic.Contains("SGCI")); 
-
-                foreach (FieldDescriptor subscript in shaderStruct.fields.Union(cifields))
+                foreach (FieldDescriptor subscript in shaderStruct.fields)
                 {
                     bool fieldIsActive;
                     var keywordIfDefs = string.Empty;
@@ -198,8 +195,7 @@ namespace UnityEditor.ShaderGraph
             unpackBuilder.IncreaseIndent();
             unpackBuilder.AppendLine($"{shaderStruct.name} output;");
 
-            var cifields = activeFields.fields.Where(d => d.tag == shaderStruct.name && d.semantic.Contains("SGCI"));
-            foreach (FieldDescriptor subscript in shaderStruct.fields.Union(cifields))
+            foreach (FieldDescriptor subscript in shaderStruct.fields)
             {
                 if (IsFieldActive(subscript, activeFields, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)))
                 {
@@ -463,114 +459,114 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        // CUSTOM INTERPOLATORS
-        internal static void GenerateCustomPassThroughFunc(ShaderStringBuilder builder, /*List<AbstractMaterialNode> vertexNodes*/ IActiveFields activeFields)
-        {
-            builder.AppendLine("Varyings SGCIPassThrough(Varyings invary, VertexDescription input)");
-            using (builder.BlockScope())
-            {
-                builder.AppendLine("Varyings output = invary;");
-                foreach (var bd in activeFields.fields.OfType<BlockFieldDescriptor>().Where(b => b.isCustom))
-                //foreach (var bd in vertexNodes.OfType<BlockNode>().Where(b => b.isCustomBlock).Select(b => b.descriptor))
-                {
-                    builder.AppendLine($"output.{bd.name} = input.{bd.name};");
-                }
-                builder.AppendLine("return output;");
-            }
-        }
+        //// CUSTOM INTERPOLATORS
+        //internal static void GenerateCustomPassThroughFunc(ShaderStringBuilder builder, /*List<AbstractMaterialNode> vertexNodes*/ IActiveFields activeFields)
+        //{
+        //    builder.AppendLine("Varyings SGCIPassThrough(Varyings invary, VertexDescription input)");
+        //    using (builder.BlockScope())
+        //    {
+        //        builder.AppendLine("Varyings output = invary;");
+        //        foreach (var bd in activeFields.fields.OfType<BlockFieldDescriptor>().Where(b => b.isCustom))
+        //        //foreach (var bd in vertexNodes.OfType<BlockNode>().Where(b => b.isCustomBlock).Select(b => b.descriptor))
+        //        {
+        //            builder.AppendLine($"output.{bd.name} = input.{bd.name};");
+        //        }
+        //        builder.AppendLine("return output;");
+        //    }
+        //}
 
-        internal static void AddCustomFields(List<AbstractMaterialNode> vertexNodes, IActiveFieldsSet activeFields)
-        {
-            string vdtag = k_VertexDescriptionStructName;
-            string sditag = StructFields.SurfaceDescriptionInputs.name;
-            string varytag = "Varyings";
-            string semantic = "SGCI";
-            int i = 0;
-            // Custom interpolators get added to VertexDescription _and_ SurfaceDescriptionInput.
-            foreach (var bd in vertexNodes.OfType<BlockNode>().Where(b => b.isCustomBlock).Select(b => b.descriptor))
-            {
-                string name = bd.name;
-                ShaderValueType valtype = ShaderValueType.Float4;
-                switch(bd.control)
-                {
-                    case FloatControl a: valtype = ShaderValueType.Float; break;
-                    case Vector2Control b: valtype = ShaderValueType.Float2; break;
-                    case Vector3Control c: valtype = ShaderValueType.Float3; break;
-                    case Vector4Control d: valtype = ShaderValueType.Float4; break;
-                }
+        //internal static void AddCustomFields(List<AbstractMaterialNode> vertexNodes, IActiveFieldsSet activeFields)
+        //{
+        //    string vdtag = k_VertexDescriptionStructName;
+        //    string sditag = StructFields.SurfaceDescriptionInputs.name;
+        //    string varytag = "Varyings";
+        //    string semantic = "SGCI";
+        //    int i = 0;
+        //    // Custom interpolators get added to VertexDescription _and_ SurfaceDescriptionInput.
+        //    foreach (var bd in vertexNodes.OfType<BlockNode>().Where(b => b.isCustomBlock).Select(b => b.descriptor))
+        //    {
+        //        string name = bd.name;
+        //        ShaderValueType valtype = ShaderValueType.Float4;
+        //        switch(bd.control)
+        //        {
+        //            case FloatControl a: valtype = ShaderValueType.Float; break;
+        //            case Vector2Control b: valtype = ShaderValueType.Float2; break;
+        //            case Vector3Control c: valtype = ShaderValueType.Float3; break;
+        //            case Vector4Control d: valtype = ShaderValueType.Float4; break;
+        //        }
 
-                activeFields.AddAll(new FieldDescriptor(vdtag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
-                activeFields.AddAll(new FieldDescriptor(sditag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
-                activeFields.AddAll(new FieldDescriptor(varytag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
-                activeFields.AddAll(new FieldDescriptor("PackedVaryings", name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
-                ++i;
-            }
-        }
+        //        activeFields.AddAll(new FieldDescriptor(vdtag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
+        //        activeFields.AddAll(new FieldDescriptor(sditag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
+        //        activeFields.AddAll(new FieldDescriptor(varytag, name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
+        //        activeFields.AddAll(new FieldDescriptor("PackedVaryings", name, "", type: valtype, semantic: semantic + i, subscriptOptions: StructFieldOptions.Generated));
+        //        ++i;
+        //    }
+        //}
 
-        struct AdjPair { public int idx, comp; }
+        //struct AdjPair { public int idx, comp; }
 
-        internal static void GenerateCustomPackingFuncs(ShaderStringBuilder builder, IActiveFields activeFields)
-        {
-            // linear packing isn't ideal.
-            var unpackedFields = activeFields.fields.Where(b => b.semantic.Contains("SGCI") && b.tag == "Varyings").ToList();
-            string sgcipack = "sgcipack";
+        //internal static void GenerateCustomPackingFuncs(ShaderStringBuilder builder, IActiveFields activeFields)
+        //{
+        //    // linear packing isn't ideal.
+        //    var unpackedFields = activeFields.fields.Where(b => b.semantic.Contains("SGCI") && b.tag == "Varyings").ToList();
+        //    string sgcipack = "sgcipack";
 
-            var adj = new Dictionary<int, List<AdjPair>>();
-            var fri = new Dictionary<int, List<AdjPair>>();
+        //    var adj = new Dictionary<int, List<AdjPair>>();
+        //    var fri = new Dictionary<int, List<AdjPair>>();
 
-            int aidx = 0;
-            for (int fidx = 0; fidx < unpackedFields.Count; ++fidx)
-                for (int j = 0; j < unpackedFields[fidx].vectorCount; ++j)
-                {
-                    if (!fri.ContainsKey(fidx)) fri.Add(fidx, new List<AdjPair>());
-                    if (!adj.ContainsKey(aidx)) adj.Add(aidx, new List<AdjPair>());
+        //    int aidx = 0;
+        //    for (int fidx = 0; fidx < unpackedFields.Count; ++fidx)
+        //        for (int j = 0; j < unpackedFields[fidx].vectorCount; ++j)
+        //        {
+        //            if (!fri.ContainsKey(fidx)) fri.Add(fidx, new List<AdjPair>());
+        //            if (!adj.ContainsKey(aidx)) adj.Add(aidx, new List<AdjPair>());
 
-                    adj[aidx].Add(new AdjPair { idx = fidx, comp = j });
-                    var packCount = adj[aidx].Count;
-                    fri[fidx].Add(new AdjPair { idx = aidx, comp = packCount-1 });
-                    aidx += (packCount == 4) ? 1 : 0;
-                }
+        //            adj[aidx].Add(new AdjPair { idx = fidx, comp = j });
+        //            var packCount = adj[aidx].Count;
+        //            fri[fidx].Add(new AdjPair { idx = aidx, comp = packCount-1 });
+        //            aidx += (packCount == 4) ? 1 : 0;
+        //        }
 
-            builder.AppendLine("Varyings SGCIUnpack(Varyings invary, PackedVaryings input)");
-            using (builder.BlockScope())
-            {
-                // have to copy out existing unpacking state (if there is any).
-                builder.AppendLine("Varyings output = invary;");
-                foreach (var fkv in fri) // unpacking
-                {
-                    var len = fkv.Value.Count;
-                    string line = $"output.{unpackedFields[fkv.Key].name} = float{len}(";
-                    for (int i = 0; i < len; ++i)
-                    {
-                        AdjPair p = fkv.Value[i];
-                        line += $"{sgcipack}{p.idx}[{p.comp}]" + (i < len ? "," : ");");
-                    }
-                    builder.AppendLine(line);
-                }
-                builder.AppendLine("return output;");
-            }
+        //    builder.AppendLine("Varyings SGCIUnpack(Varyings invary, PackedVaryings input)");
+        //    using (builder.BlockScope())
+        //    {
+        //        // have to copy out existing unpacking state (if there is any).
+        //        builder.AppendLine("Varyings output = invary;");
+        //        foreach (var fkv in fri) // unpacking
+        //        {
+        //            var len = fkv.Value.Count;
+        //            string line = $"output.{unpackedFields[fkv.Key].name} = float{len}(";
+        //            for (int i = 0; i < len; ++i)
+        //            {
+        //                AdjPair p = fkv.Value[i];
+        //                line += $"{sgcipack}{p.idx}[{p.comp}]" + (i < len ? "," : ");");
+        //            }
+        //            builder.AppendLine(line);
+        //        }
+        //        builder.AppendLine("return output;");
+        //    }
 
-            builder.AppendLine("PackedVaryings SGCIPack(PackedVaryings invary, Varyings input)");
-            using (builder.BlockScope())
-            {
-                var tag = "PackedVaryings";
-                builder.AppendLine("PackedVaryings output = invary;");
-                foreach (var akv in adj) // packing
-                {
-                    var len = akv.Value.Count;
-                    var fieldName = $"{sgcipack}{akv.Key}";
-                    string line = $"output.{sgcipack}{akv.Key} = float{len}(";
-                    for (int i = 0; i < len; ++i)
-                    {
-                        AdjPair p = akv.Value[i];
-                        line += $"{unpackedFields[p.idx]}[{p.comp}]" + (i < len ? "," : ");");
-                    }         
-                    builder.AppendLine(line);
-                    activeFields.Add(new FieldDescriptor(tag, fieldName, "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Generated));
-                }
-                builder.AppendLine("return output;");
-            }
-        }
+        //    builder.AppendLine("PackedVaryings SGCIPack(PackedVaryings invary, Varyings input)");
+        //    using (builder.BlockScope())
+        //    {
+        //        var tag = "PackedVaryings";
+        //        builder.AppendLine("PackedVaryings output = invary;");
+        //        foreach (var akv in adj) // packing
+        //        {
+        //            var len = akv.Value.Count;
+        //            var fieldName = $"{sgcipack}{akv.Key}";
+        //            string line = $"output.{sgcipack}{akv.Key} = float{len}(";
+        //            for (int i = 0; i < len; ++i)
+        //            {
+        //                AdjPair p = akv.Value[i];
+        //                line += $"{unpackedFields[p.idx]}[{p.comp}]" + (i < len ? "," : ");");
+        //            }         
+        //            builder.AppendLine(line);
+        //            activeFields.Add(new FieldDescriptor(tag, fieldName, "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Generated));
+        //        }
+        //        builder.AppendLine("return output;");
+        //    }
+        //}
 
 
 

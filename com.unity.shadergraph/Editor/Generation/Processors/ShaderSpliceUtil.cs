@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph
         {
             // inputs
             ActiveFields activeFields;
+            List<BlockFieldDescriptor> customFields;
             Dictionary<string, string> namedFragments;
             string[] templatePaths;
             bool isDebug;
@@ -55,8 +56,9 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, List<BlockFieldDescriptor> customFields,  Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
+                this.customFields = customFields;
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
@@ -361,12 +363,9 @@ namespace UnityEditor.ShaderGraph
                         cur = nonwhitespace;
                         return true;
                     }
-                    else if (fieldName == "sgci_sdiEntry")
+                    else if (fieldName == CustomInterpolatorUtils.k_ShaderDescriptionInputs)
                     {
-                        foreach (var ci in activeFields.baseInstance.fields.Where(f => f.tag == StructFields.SurfaceDescriptionInputs.name && (f.semantic?.Contains("SGCI") ?? false)))
-                        {
-                            result.AppendLine($"output.{ci.name} = input.{ci.name};");
-                        }
+                        CustomInterpolatorUtils.GenerateCopyWriteBlock(customFields, result, "input", "output");
                         return false;
                     }
                     else
