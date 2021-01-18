@@ -1,10 +1,16 @@
 #ifndef SG_DEPTH_ONLY_PASS_INCLUDED
 #define SG_DEPTH_ONLY_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexPosNrm(input.positionOS, input.normalOS, input.vertexID);
+#endif
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);
     return packedOutput;

@@ -22,7 +22,9 @@ struct AttributesMesh
 #ifdef ATTRIBUTES_NEED_COLOR
     float4 color        : COLOR;
 #endif
-
+#ifdef DOTS_INSTANCING_ON
+    uint vertexID        : SV_VertexID;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 

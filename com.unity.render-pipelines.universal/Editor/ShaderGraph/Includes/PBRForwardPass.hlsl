@@ -34,9 +34,14 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexData(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+#endif
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);

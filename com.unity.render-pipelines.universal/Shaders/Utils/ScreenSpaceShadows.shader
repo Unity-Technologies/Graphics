@@ -38,6 +38,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+#if defined(DOTS_INSTANCING_ON)
+            FetchComputeVertexPosition(input.positionOS, input.vertexID);
+#endif
+
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
             float4 projPos = output.positionCS * 0.5;
