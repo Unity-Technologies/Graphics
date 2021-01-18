@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
             m_SerializedProperties.layerList.serializedObject.Update();
+            m_compositionManager.DeleteLayerRTs();
             m_compositionManager.UpdateLayerSetup();
         }
 

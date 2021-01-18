@@ -47,8 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         internal float timeSinceLastRepaint;
 
-        static List<Camera> s_CompositorManagedCameras = new List<Camera>();
-
         public bool enableOutput
         {
             get
@@ -557,11 +555,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // We don't need the custom passes anymore
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             UnRegisterCustomPasses(hdPipeline);
-            
-            CleanUpCameraOrphans();
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
-            s_CompositorManagedCameras.Clear();
+            CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -969,47 +965,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
-        
-        // Keeps track of compositor allocated cameras
-        internal void RegisterInternalCamera(Camera camera)
-        {
-            s_CompositorManagedCameras.Add(camera);
-        }
-        internal void UnregisterInternalCamera(Camera camera)
-        {
-            s_CompositorManagedCameras.Remove(camera);
-        }
 
-        // Checks for any compositor allocated cameras that are now unused and frees their resources. 
-        internal void CleanUpCameraOrphans()
-        {
-            s_CompositorManagedCameras.RemoveAll(x => x == null);
-
-            for (int i = s_CompositorManagedCameras.Count - 1; i >= 0; i--)
-            {
-                bool found = false;
-                foreach (var layer in m_InputLayers)
-                {
-                    if (s_CompositorManagedCameras[i] == layer.camera)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                // If the camera is not used by any layer anymore, then destroy it
-                if (found == false && s_CompositorManagedCameras[i] != null)
-                {
-                    var cameraData = s_CompositorManagedCameras[i].GetComponent<HDAdditionalCameraData>();
-                    if (cameraData)
-                    {
-                        CoreUtils.Destroy(cameraData);
-                    }
-                    s_CompositorManagedCameras[i].targetTexture = null;
-                    CoreUtils.Destroy(s_CompositorManagedCameras[i]);
-                    s_CompositorManagedCameras.RemoveAt(i);
-                }
-            }
-        }
     }
 }

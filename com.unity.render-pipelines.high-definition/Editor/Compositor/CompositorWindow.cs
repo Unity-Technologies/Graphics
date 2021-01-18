@@ -223,7 +223,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);
                 EditorUtility.SetDirty(compositor.profile);
-                compositor.CleanUpCameraOrphans();
+
+                // Clean-up existing cameras after undo, we will re-allocate the layer resources
+                compositor.DeleteLayerRTs();
+                CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans(compositor.layers);
                 compositor.UpdateLayerSetup();
             }
         }
