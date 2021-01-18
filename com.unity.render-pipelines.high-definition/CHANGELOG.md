@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 - Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 - Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
+- Fixed light gizmo showing shadow near plane when shadows are disabled.
+- Fixed path tracing alpha channel support (case 1304187).
+- Fixed shadow matte not working with ambient occlusion when MSAA is enabled
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
@@ -91,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
 - Changed the warning message for ray traced area shadows (case 1303410).
 - Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
+- Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
 
 ## [10.3.0] - 2020-12-01
 
