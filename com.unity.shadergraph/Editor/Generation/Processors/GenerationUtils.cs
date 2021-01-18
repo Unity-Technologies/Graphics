@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
+                    if ((subscript.HasSemantic() && !subscript.semantic.Contains(CustomInterpolatorUtils.k_Semantic)) || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -166,11 +166,23 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
-                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
-                        packedSubscripts.Add(packedSubscript);
+                        if (packedCounts[interpIndex] == 4)
+                        {
+                            var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", ShaderValueType.Float4,
+                                "INTERP" + interpIndex, "", StructFieldOptions.Static);
+                            packedSubscripts.Add(packedSubscript);
+                        }
                     }
                 }
+            }
+            var count = packedCounts.Count;
+            if (count != 0 && (packedCounts.Last() % 4 != 0))
+            {
+                var interpIndex = count-1;
+                
+                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", ShaderValueType.Float4,
+                    "INTERP" + interpIndex, "", StructFieldOptions.Static);
+                packedSubscripts.Add(packedSubscript);
             }
             packStruct.fields = packedSubscripts.ToArray();
         }
@@ -205,7 +217,7 @@ namespace UnityEditor.ShaderGraph
                         packBuilder.AppendLine($"#if {subscript.preprocessor}");
                         unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
                     }
-                    if (subscript.HasSemantic() || vectorCount == 0)
+                    if ((subscript.HasSemantic() && !subscript.semantic.Contains(CustomInterpolatorUtils.k_Semantic)) || vectorCount == 0)
                     {
                         packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
