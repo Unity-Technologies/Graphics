@@ -8,9 +8,9 @@ The following is a list of features Unity added to version 11 of the High Defini
 
 ### Mixed cached shadow maps
 
-From HDRP 11.0, it is possible to cache only a portion of non-directional shadow maps. With this setup, HDRP renders shadows for static shadow casters into the shadow map based on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. 
+From HDRP 11.0, it is possible to cache only a portion of non-directional shadow maps. With this setup, HDRP renders shadows for static shadow casters into the shadow map based on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame.
 
-This can result in significant performance improvements for projects that have lights that don't move or move not often, but need dynamic shadows being cast from them. 
+This can result in significant performance improvements for projects that have lights that don't move or move not often, but need dynamic shadows being cast from them.
 
 For more information about the future, see the [Shadow](Shadows-in-HDRP.md) section of the documentation.
 
