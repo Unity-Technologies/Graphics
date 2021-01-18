@@ -20,6 +20,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         BlockNode.CustomBlockType serializedType = BlockNode.CustomBlockType.Vector4;
 
+        // preview should be the CI value.
+        public override bool hasPreview { get { return true; } }
+
         internal override bool ExposeToSearcher { get => false; }
 
         internal BlockNode e_targetBlockNode // weak indirection via customBlockNodeName
@@ -57,7 +60,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (node is BlockNode bnode)
             {
-                if (bnode.isCustomBlock)
+                if (bnode?.isCustomBlock ?? false)
                 {
                     name = customBlockNodeName = bnode.customName;
                     if (e_targetBlockNode != null && e_targetBlockNode.owner != null)
@@ -65,14 +68,9 @@ namespace UnityEditor.ShaderGraph
                         serializedType = e_targetBlockNode.customWidth;
                         BuildSlot();
                     }
-                    else // block node information we got was somehow invalid.
-                    {
-                        // This is probably a case for an exception,
-                        // this callback should only be triggered if the node we are weak pointing to is still valid and in in the hierarchy.
-                        // we'll get badged on validate.
-                    }
                 }
             }
+            // bnode information we got is somehow invalid, this is probably case for an exception.
         }
 
         public override void ValidateNode()

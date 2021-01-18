@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph
         public delegate void OnRevalidation();
         public OnRevalidation revalidationCallback;
 
+        internal override bool ExposeToSearcher { get => false; } // slated for removal.
+
         public CustomInterpolatorSelectorNode()
         {
             name = "Custom Interpolator";

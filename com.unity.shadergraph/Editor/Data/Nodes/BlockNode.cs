@@ -279,8 +279,11 @@ namespace UnityEditor.ShaderGraph
         {            
             if (m_SerializedDescriptor.Contains("#"))
             {
+                name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
+
                 string descName = "CustomInterpolator";
                 CustomBlockType descWidth = CustomBlockType.Vector4;
+                var descTag = BlockFields.VertexDescription.name;
 
                 var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
                 try   { descWidth = (CustomBlockType)int.Parse(wsplit[2]); }
@@ -289,9 +292,14 @@ namespace UnityEditor.ShaderGraph
                     Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
                     descWidth = CustomBlockType.Vector4;
                 }
-                descName = wsplit[1];
-                Init(CreateCustomFieldDescriptor(descName, descWidth));
-                m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+                descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
+
+                IControl control;
+                try   { control = (IControl)m_Slots[0].value.InstantiateControl(); }
+                catch { control = WidthToControl((int)descWidth); }
+                 
+
+                m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
             }
         }
 
@@ -299,9 +307,10 @@ namespace UnityEditor.ShaderGraph
         {
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
             var referenceName = name;
-            var define = "VERTEXDESCRIPTION_" + name.ToUpper();
-            IControl control = WidthToControl((int)width);
+            var define = "";
+            IControl control = WidthToControl((int)width);            
             var tag = BlockFields.VertexDescription.name;
+
             return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
         }
 

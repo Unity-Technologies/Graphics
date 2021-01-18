@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         bool m_IsActive = true;
 
         [SerializeField]
-        List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
+        protected List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
         public GraphData owner { get; set; }
 
