@@ -12,7 +12,7 @@ This example shows how to implement the following effect:
 
 * When the character goes behind objects, Unity draws the character silhouette with a different Material.
 
-    ![Character goes behind objects](../Images/renderer-features/charecter-goes-behind-object.gif)
+    ![Character goes behind objects](../Images/renderer-features/character-goes-behind-object.gif)
 
 ## Prerequisites
 
@@ -84,7 +84,7 @@ Create a Renderer Feature to draw the character behind objects.
 
 With such settings, Unity renders the character with the `CharacterBehindObjects` Material only when the character is behind another object. But Unity also renders parts of the character using the `CharacterBehindObjects` Material, because some parts of the character occlude the character itself.    
 
-![Unity renders parts of the character using the `CharacterBehindObjects` Material](../Images/renderer-features/charecter-depth-test-greater.gif.gif)
+![Unity renders parts of the character using the `CharacterBehindObjects` Material](../Images/renderer-features/character-depth-test-greater.gif)
 
 The following section shows how to avoid the self see-through effect.
 
@@ -124,6 +124,6 @@ The following steps show how to avoid such behavior and ensure that Unity draws 
 
 The example is complete. When the character goes behind objects, Unity draws the character silhouette with the `CharacterBehindObjects` Material.
 
-![Character goes behind objects](../Images/renderer-features/charecter-goes-behind-object.gif)
+![Character goes behind objects](../Images/renderer-features/character-goes-behind-object.gif)
 
 To see another use case of the Render Objects Renderer Feature, refer to the **Object Occlusion** Scene in the [Universal Rendering Examples](https://github.com/Unity-Technologies/UniversalRenderingExamples) project.
