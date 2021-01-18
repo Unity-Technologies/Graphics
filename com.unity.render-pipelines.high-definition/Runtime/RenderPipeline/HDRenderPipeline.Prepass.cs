@@ -210,6 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
+                UpdateColorMaskForUnlit(renderGraph, hdCamera);
+
                 // Bind the custom color/depth before the first custom pass
                 BindCustomPassBuffers(renderGraph, hdCamera);
 
@@ -284,6 +286,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return result;
+        }
+
+        class UpdateColorMaskForUnlitPassData
+        {
+            public ColorWriteMask colorWriteMask;
+        }
+
+        void UpdateColorMaskForUnlit(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<UpdateColorMaskForUnlitPassData>("UpdateColorMaskForUnlit", out var passData))
+            {
+                // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
+                passData.colorWriteMask = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? ColorWriteMask.All : 0;
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc(
+                    (UpdateColorMaskForUnlitPassData data, RenderGraphContext context) =>
+                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, (int)data.colorWriteMask));
+            }
         }
 
         class DrawRendererListPassData
