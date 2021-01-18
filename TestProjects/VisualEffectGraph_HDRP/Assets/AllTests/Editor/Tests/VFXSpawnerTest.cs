@@ -73,6 +73,31 @@ namespace UnityEditor.VFX.Test
             camera.transform.LookAt(vfxComponent.transform);
         }
 
+        [UnityTest]
+        public IEnumerator Sanitize_VFXSpawnerCustomCallback_Namespace()
+        {
+            string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpawnerCustomCallbackBuiltin.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicSpawner>().Count());
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            Assert.AreEqual(4, basicSpawner.GetNbChildren());
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SpawnOverDistance")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SetSpawnTime")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("LoopAndDelay")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("IncrementStripIndexOnStart")));
+
+            foreach (var sanitizeSpawn in basicSpawner.children)
+            {
+                Assert.IsFalse(sanitizeSpawn.inputSlots.Any(o => !o.HasLink()));
+                Assert.IsNotNull(sanitizeSpawn.GetSettingValue("m_customScript"));
+                Assert.IsNotNull((sanitizeSpawn as VFXSpawnerCustomWrapper).customBehavior);
+            }
+
+            yield return null;
+        }
+
+
         static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
 
         [UnityTest]
@@ -341,6 +366,7 @@ namespace UnityEditor.VFX.Test
 
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
@@ -398,6 +424,7 @@ namespace UnityEditor.VFX.Test
             CreateAssetAndComponent(3615.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
             graph.GetResource().updateMode = (VFXUpdateMode)timeMode.vfxUpdateMode;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            Assert.AreEqual(graph.GetResource().updateMode, (VFXUpdateMode)timeMode.vfxUpdateMode);
 
             var previousCaptureFrameRate = Time.captureFramerate;
             var previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;

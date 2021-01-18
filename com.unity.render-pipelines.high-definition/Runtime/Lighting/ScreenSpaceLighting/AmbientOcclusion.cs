@@ -303,6 +303,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
+        internal float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
+        {
+            AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
+            if (enableRTAO)
+                return m_RaytracingAmbientOcclusion.EvaluateRTSpecularOcclusionFlag(hdCamera, ssoSettings);
+            else
+                return 1.0f;
+        }
+
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, RTHandle depthTexture, RTHandle normalBuffer, RTHandle motionVectors, in ShaderVariablesRaytracing globalRTCB, int frameCount)

@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StartSinglePass(ctx.cmd);
+                    m_Context.hdCamera.xr.StopSinglePass(ctx.cmd);
             }
 
             /// <summary>
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             void IDisposable.Dispose()
             {
                 if (m_Context.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StopSinglePass(m_Context.cmd);
+                    m_Context.hdCamera.xr.StartSinglePass(m_Context.cmd);
             }
         }
 

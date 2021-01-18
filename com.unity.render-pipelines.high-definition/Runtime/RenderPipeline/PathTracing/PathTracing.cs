@@ -198,6 +198,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            // Check light or geometry transforms dirtiness
+            if (m_TransformDirty)
+            {
+                m_TransformDirty = false;
+                ResetPathTracing();
+            }
+
             // Check lights dirtiness
             if (m_CacheLightCount != m_RayTracingLights.lightCount)
             {
@@ -364,12 +371,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check the validity of the state before moving on with the computation
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
-
-            if (hdCamera.viewCount > 1)
-            {
-                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
-                return TextureHandle.nullHandle;
-            }
 
             CheckDirtiness(hdCamera);
 

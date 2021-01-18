@@ -1008,56 +1008,62 @@ namespace UnityEngine.Rendering.HighDefinition
         void RefreshDisplayStatsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
-            RegisterDisplayStatsDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterDisplayStatsDebug();
         }
 
         // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
         void RefreshLightingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
-            RegisterLightingDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterLightingDebug();
         }
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
-            RegisterDecalsDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterDecalsDebug();
         }
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-            RegisterRenderingDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterRenderingDebug();
         }
 
         void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
-            RegisterMaterialDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterMaterialDebug();
         }
 
         void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-            RegisterVolumeDebug();
 
             if (DebugManager.instance.displayRuntimeUI)
                 DebugManager.instance.ReDrawOnScreenDebug();
+
+            RegisterVolumeDebug();
         }
 
         void RegisterLightingDebug()
@@ -1408,11 +1414,19 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.BoolField { displayName = "Display Light Volumes", getter = () => data.lightingDebugSettings.displayLightVolumes, setter = value => data.lightingDebugSettings.displayLightVolumes = value, onValueChanged = RefreshLightingDebug });
             if (data.lightingDebugSettings.displayLightVolumes)
             {
-                list.Add(new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug });
+                var container = new DebugUI.Container
+                {
+                    children = 
+                    {
+                        new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug }
+                    }
+                };
                 if (data.lightingDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.Gradient)
                 {
-                    list.Add(new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 });
+                    container.children.Add(new DebugUI.UIntField { displayName = "Max Debug Light Count", getter = () => (uint)data.lightingDebugSettings.maxDebugLightCount, setter = value => data.lightingDebugSettings.maxDebugLightCount = value, min = () => 0, max = () => 24, incStep = 1 });
                 }
+
+                list.Add(container);
             }
 
             list.Add(new DebugUI.BoolField { displayName = "Display Cookie Atlas", getter = () => data.lightingDebugSettings.displayCookieAtlas, setter = value => data.lightingDebugSettings.displayCookieAtlas = value, onValueChanged = RefreshLightingDebug});

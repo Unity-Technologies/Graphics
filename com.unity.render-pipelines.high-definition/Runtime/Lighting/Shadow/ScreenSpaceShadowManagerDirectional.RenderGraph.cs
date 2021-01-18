@@ -75,15 +75,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
 
                 // Debug buffers
-                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
 
                 // Output Buffers
-                passData.velocityBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, clearBuffer = true, name = "Velocity Buffer" })));
-                passData.distanceBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Distance Buffer" })));
-                passData.outputShadowBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "RT Directional Shadow" })));
+                passData.velocityBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, clearBuffer = true, name = "Velocity Buffer" }));
+                passData.distanceBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Distance Buffer" }));
+                passData.outputShadowBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "RT Directional Shadow" }));
 
                 builder.SetRenderFunc(
                 (RTSDirectionalTracePassData data, RenderGraphContext context) =>
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         passData.parameters = PrepareSSShadowDirectionalParameters();
                         passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                        passData.screenSpaceShadowArray = builder.ReadTexture(builder.WriteTexture(screenSpaceShadowArray));
+                        passData.screenSpaceShadowArray = builder.ReadWriteTexture(screenSpaceShadowArray);
 
                         builder.SetRenderFunc(
                         (SSSDirectionalTracePassData data, RenderGraphContext context) =>

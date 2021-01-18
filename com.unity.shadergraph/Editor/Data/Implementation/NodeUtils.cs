@@ -145,6 +145,8 @@ namespace UnityEditor.Graphing
             var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
             foreach (var slot in ids)
             {
+                if (node.owner == null)
+                    break;
                 foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
                 {
                     var outputNode = ((Edge)edge).outputSlot.node;

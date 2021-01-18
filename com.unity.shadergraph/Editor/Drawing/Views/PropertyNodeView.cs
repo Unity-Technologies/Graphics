@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering;
@@ -10,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph
     {
         static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+
+        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
@@ -54,6 +56,11 @@ namespace UnityEditor.ShaderGraph
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            UpdateReferenceNameResetMenu();
+            
+            // Set callback association for display name updates
+            m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }
         public Node gvNode => this;
         public AbstractMaterialNode node { get; }
@@ -62,6 +69,8 @@ namespace UnityEditor.ShaderGraph
 
         [Inspectable("ShaderInput", null)]
         AbstractShaderProperty property => (node as PropertyNode)?.property;
+
+        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
 
         public object GetObjectToInspect()
         {
@@ -90,6 +99,8 @@ namespace UnityEditor.ShaderGraph
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
+
+            UpdateReferenceNameResetMenu();
         }
 
         void ChangeExposedField(bool newValue)
@@ -106,6 +117,8 @@ namespace UnityEditor.ShaderGraph
             {
                 property.displayName = newValue;
                 graph.SanitizeGraphInputName(property);
+                m_displayNameUpdateTrigger?.Invoke(newValue);
+                MarkNodesAsDirty(true, ModificationScope.Node);
             }
         }
 
@@ -321,19 +334,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void OnMouseHover(EventBase evt)
+        BlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
-                return;
+                return null;
 
             var blackboardProvider = graphView.blackboardProvider;
             if (blackboardProvider == null)
-                return;
+                return null;
 
             var propNode = (PropertyNode)node;
+            return blackboardProvider.GetBlackboardRow(propNode.property);
+        }
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.property);
+        void OnMouseHover(EventBase evt)
+        {
+            var propRow = GetAssociatedBlackboardRow();
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())
@@ -349,6 +366,12 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
+            var propRow = GetAssociatedBlackboardRow();
+            // The associated blackboard row can be deleted in which case this property node view is also cleaned up with it, so we want to check for null
+            if (propRow != null)
+            {
+                propRow.RemoveFromClassList("hovered");
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateUnlitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Unlit Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Unlit Shader Graph", false, 208)]
         public static void CreateHDUnlitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));

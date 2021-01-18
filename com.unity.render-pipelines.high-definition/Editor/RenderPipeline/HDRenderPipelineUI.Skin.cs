@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxRadiusQuality = EditorGUIUtility.TrTextContent("Max Radius");
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
-            public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
+            public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
+            public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");

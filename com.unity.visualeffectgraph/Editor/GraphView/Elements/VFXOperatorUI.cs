@@ -186,7 +186,7 @@ namespace UnityEditor.VFX.UI
                     m_EditButton.RemoveFromHierarchy();
             }
 
-            if (!base.expanded && m_EditContainer.parent != null)
+            if (!base.expanded && m_EditContainer != null && m_EditContainer.parent != null)
                 m_EditContainer.RemoveFromHierarchy();
         }
 

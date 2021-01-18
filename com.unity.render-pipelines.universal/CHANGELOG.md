@@ -4,10 +4,31 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.3.0] - 2020-11-16
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+
+### Changed
+
+### Fixed
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
+- Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
+- Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
+
 ## [10.2.0] - 2020-10-19
+
+### Added
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 
 ### Changed
 - Changed RenderObjectsFeature UI to only expose valid events. Previously, when selecting events before BeforeRenderingPrepasses objects would not be drawn correctly as stereo and camera setup only happens before rendering opaques objects.
+- Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
+- Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
 
 ### Fixed
 - Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
@@ -22,7 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the depth texture sample node used an incorrect texture in some frames. [case 1268079](https://issuetracker.unity3d.com/issues/urp-depth-texture-sample-node-does-not-use-correct-texture-in-some-frames)
 - Fixed MSAA on Metal MacOS and Editor.
 - Fixed an issue causing passthrough camera to not render. [case 1283894](https://issuetracker.unity3d.com/product/unity/issues/guid/1283894/) 
-
 - Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
 - Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
 

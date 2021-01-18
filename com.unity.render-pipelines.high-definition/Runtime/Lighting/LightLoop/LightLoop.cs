@@ -319,13 +319,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<Vector4>                env2DCaptureForward { get; private set; }
             public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
-            Material m_CubeToPanoMaterial;
-
             public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-
-                m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
                 lightCookieManager = new LightCookieManager(hdrpAsset, k_MaxCacheSize);
 
@@ -365,8 +361,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 reflectionProbeCache.Release();
                 reflectionPlanarProbeCache.Release();
                 lightCookieManager.Release();
-
-                CoreUtils.Destroy(m_CubeToPanoMaterial);
             }
 
             public void NewFrame()
@@ -1874,8 +1868,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
-            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
+            envLightData.distanceBasedRoughness = 0.0f;
 
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
@@ -1973,8 +1968,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
                         capturePosition = cameraPositionSettings.position;
 
-                        break;
-                    }
+                    // Propagate the distance based information to the env light data (only if we are not an infinite projection)
+                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
+
+                    break;
+                }
             }
             // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
             if (envIndex == int.MinValue)
@@ -4300,6 +4298,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                return;
+
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
             {

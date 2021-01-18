@@ -595,12 +595,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer                visibleVolumeDataBuffer;
         }
 
-        TextureHandle VolumeVoxelizationPass(   RenderGraph         renderGraph,
-                                                HDCamera            hdCamera,
-                                                ComputeBuffer       visibleVolumeBoundsBuffer,
-                                                ComputeBuffer       visibleVolumeDataBuffer,
-                                                ComputeBufferHandle bigTileLightList,
-                                                int                 frameIndex)
+        TextureHandle VolumeVoxelizationPass(RenderGraph         renderGraph,
+            HDCamera            hdCamera,
+            ComputeBuffer       visibleVolumeBoundsBuffer,
+            ComputeBuffer       visibleVolumeDataBuffer,
+            ComputeBufferHandle bigTileLightList)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -608,10 +607,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
-                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
+                    passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -638,18 +638,25 @@ namespace UnityEngine.Rendering.HighDefinition
         class GenerateMaxZMaskPassData
         {
             public GenerateMaxZParameters parameters;
+            public TextureHandle          depthTexture;
             public TextureHandle          maxZ8xBuffer;
             public TextureHandle          maxZBuffer;
             public TextureHandle          dilatedMaxZBuffer;
         }
 
-        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                {
+                    return renderGraph.defaultResources.blackTextureXR;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
-                    passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo, frameIndex);
+                    passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo);
+                    passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZ8xBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask8x));
                     passData.maxZ8xBuffer = builder.WriteTexture(passData.maxZ8xBuffer);
                     passData.maxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask));
@@ -660,7 +667,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
                     {
-                        GenerateMaxZ(data.parameters, data.maxZ8xBuffer, data.maxZBuffer, data.dilatedMaxZBuffer, ctx.cmd);
+                        GenerateMaxZ(data.parameters, data.depthTexture, data.maxZ8xBuffer, data.maxZBuffer, data.dilatedMaxZBuffer, ctx.cmd);
                     });
 
                     return passData.dilatedMaxZBuffer;
@@ -682,11 +689,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle          bigTileLightListBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
-                var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
+                // Evaluate the parameters
+                var parameters = PrepareVolumetricLightingParameters(hdCamera);
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
@@ -694,7 +702,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
@@ -707,6 +716,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (passData.parameters.enableReprojection)
                     {
+                        int frameIndex = (int)VolumetricFrameIndex(hdCamera);
                         var currIdx = (frameIndex + 0) & 1;
                         var prevIdx = (frameIndex + 1) & 1;
 

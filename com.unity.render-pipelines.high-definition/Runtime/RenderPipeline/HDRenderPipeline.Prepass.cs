@@ -122,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
+                , fallBackToBlackTexture = true
             };
             return renderGraph.CreateTexture(normalDesc);
         }
@@ -806,6 +807,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Return all black textures for default values.
                 var blackTexture = renderGraph.defaultResources.blackTextureXR;
+                output.depthPyramidTexture = blackTexture;
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;

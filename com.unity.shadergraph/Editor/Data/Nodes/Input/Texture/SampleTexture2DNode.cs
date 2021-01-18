@@ -109,10 +109,10 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D({1}, {2}, {3});"
+            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {3});"
                     , GetVariableNameForSlot(OutputSlotRGBAId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
                     , uvName);
 
             sb.AppendLine(result);

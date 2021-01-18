@@ -44,11 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // History buffers
                 passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
                 passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
-                passData.historyBuffer = builder.ReadTexture(builder.WriteTexture(historyBuffer));
+                passData.historyBuffer = builder.ReadWriteTexture(historyBuffer);
 
                 // Output buffers
-                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" })));
+                passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
 
                 builder.SetRenderFunc(
                 (TemporalFilterPassData data, RenderGraphContext ctx) =>
@@ -135,15 +135,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // History buffers
                 passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
                 passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
-                passData.historyBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(historyBuffer)));
-                passData.validationHistoryBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(validationHistoryBuffer)));
-                passData.distanceHistorySignal = distanceBased ? builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(distanceHistorySignal))) : renderGraph.defaultResources.blackTextureXR;
+                passData.historyBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
+                passData.validationHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(validationHistoryBuffer));
+                passData.distanceHistorySignal = distanceBased ? builder.ReadWriteTexture(renderGraph.ImportTexture(distanceHistorySignal)) : renderGraph.defaultResources.blackTextureXR;
 
                 // Output textures
-                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" })));
-                passData.outputDistanceSignal = distanceBased ? builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" }))) : new TextureHandle();
+                passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
+                passData.outputDistanceSignal = distanceBased ? builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+				{ colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })) : new TextureHandle();
 
                 builder.SetRenderFunc(
                 (TemporalFilterArrayPassData data, RenderGraphContext ctx) =>

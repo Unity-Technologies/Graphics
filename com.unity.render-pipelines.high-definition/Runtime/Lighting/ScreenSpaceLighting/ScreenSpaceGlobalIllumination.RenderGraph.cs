@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle inoutputBuffer0, TextureHandle inoutputBuffer1)
         {
-            using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
+            using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIConvert)))
             {
                 builder.EnableAsyncCompute(false);
 
@@ -129,8 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.inoutputBuffer0 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer0));
-                passData.inoutputBuffer1 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer1));
+                passData.inoutputBuffer0 = builder.ReadWriteTexture(inoutputBuffer0);
+                passData.inoutputBuffer1 = builder.ReadWriteTexture(inoutputBuffer1);
 
                 builder.SetRenderFunc(
                 (ConvertSSGIPassData data, RenderGraphContext ctx) =>
@@ -159,11 +159,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 TraceOutput traceOutput = TraceSSGI(renderGraph, hdCamera, giSettings, depthPyramid, normalBuffer, motionVectorsBuffer);
 
                 // Evaluate the history validity
-                float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
+                float historyValidity = EvaluateIndirectDiffuseHistoryValidityCombined(hdCamera, giSettings.fullResolutionSS, false);
                 SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
                 SSGIDenoiser.SSGIDenoiserOutput denoiserOutput = ssgiDenoiser.Denoise(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectorsBuffer, traceOutput.outputBuffer0, traceOutput.outputBuffer1, m_DepthBufferMipChainInfo, !giSettings.fullResolutionSS, historyValidity: historyValidity);
                 // Propagate the history
-                PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
+                PropagateIndirectDiffuseHistoryValidityCombined(hdCamera, giSettings.fullResolutionSS, false);
 
                 // Convert back the result to RGB space
                 TextureHandle colorBuffer = ConvertSSGI(renderGraph, hdCamera, !giSettings.fullResolutionSS, depthPyramid, stencilBuffer, normalBuffer, denoiserOutput.outputBuffer0, denoiserOutput.outputBuffer1);

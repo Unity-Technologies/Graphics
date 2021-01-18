@@ -341,6 +341,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
+        internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
+
         internal HDPhysicalCamera physicalParameters { get; private set; }
 
         internal IEnumerable<AOVRequestData> aovRequests =>
@@ -571,8 +573,8 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = false;
             cameraFrameCount++;
 
-            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
-            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
+            HDRenderPipeline.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -740,6 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._XRNonJitteredViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredViewProjMatrix[j];
                     cb._XRPrevViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrix[j];
                     cb._XRPrevInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevInvViewProjMatrix[j];
+                    cb._XRViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].viewProjectionNoCameraTrans[j];
                     cb._XRPrevViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrixNoCameraTrans[j];
                     cb._XRPixelCoordToViewDirWS[i * 16 + j] = m_XRViewConstants[i].pixelCoordToViewDirWS[j];
                 }
@@ -944,10 +947,13 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float                   m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
+        /// <summary>
+        /// Store current algorithm which help to know if we trigger to reset history SSR Buffers.
+        /// </summary>
         public ScreenSpaceReflectionAlgorithm
-                                currentSSRAlgorithm = ScreenSpaceReflectionAlgorithm.Approximation; // Store current algorithm which help to know if we trigger to reset history SSR Buffers
+            currentSSRAlgorithm = ScreenSpaceReflectionAlgorithm.Approximation;
 
-        ViewConstants[]         m_XRViewConstants;
+        internal ViewConstants[] m_XRViewConstants;
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -1380,6 +1386,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Dispose()
         {
+            HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+
             VolumeManager.instance.DestroyStack(volumeStack);
 
             if (m_HistoryRTSystem != null)

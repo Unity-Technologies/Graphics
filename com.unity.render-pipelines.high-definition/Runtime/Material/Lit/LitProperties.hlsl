@@ -454,6 +454,8 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax)
     UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor)
     UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor)
     UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff);

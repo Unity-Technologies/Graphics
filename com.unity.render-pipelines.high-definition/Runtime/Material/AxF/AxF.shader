@@ -96,19 +96,21 @@ Shader "HDRP/AxF"
         // Stencil state
         // Forward
         [HideInInspector] _StencilRef("_StencilRef", Int) = 0   // StencilUsage.Clear
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 6 // StencilUsage.RequiresDeferredLighting | StencilUsage.SubsurfaceScattering
         // Depth prepass
-        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 16 // DecalsForwardOutputNormalBuffer
-        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 48 // DoesntReceiveSSR | DecalsForwardOutputNormalBuffer
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // StencilUsage.Clear
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 8 // StencilUsage.TraceReflectionRay (8)
         // Motion vector pass
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 32 // StencilUsage.ObjectMotionVector
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector (32)
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 40 // StencilUsage.ObjectMotionVector (32) | StencilUsage.TraceReflectionRay (8) as it can be a prepass
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
+        [HideInInspector] _AlphaDstBlend("__alphaDst", Float) = 0.0
         [HideInInspector][ToggleUI]_AlphaToMaskInspectorValue("_AlphaToMaskInspectorValue", Float) = 0 // Property used to save the alpha to mask state in the inspector
         [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
