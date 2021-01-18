@@ -135,6 +135,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+#if defined(DOTS_SKINNING)
+    DOTS_Skinning(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+#endif
+
 #if defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif

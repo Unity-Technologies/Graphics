@@ -97,6 +97,9 @@ CBUFFER_START(UnityPerDraw)
     //W : Camera only
     float4 unity_MotionVectorsParams;
 
+    float4 unity_ComputeMeshIndex;
+    float4 unity_SkinSetting;
+
 CBUFFER_END
 
 CBUFFER_START(UnityPerDrawRare)
@@ -372,6 +375,9 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(float4, unity_ComputeMeshIndex);
+    UNITY_DOTS_INSTANCED_PROP(float4, unity_SkinSetting);
+
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
@@ -391,7 +397,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
 #define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
 #define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
-
+#define unity_ComputeMeshIndex      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ComputeMeshIndex)
+#define unity_SkinSetting           UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SkinSetting)
 #endif
 
 // Define View/Projection matrix macro

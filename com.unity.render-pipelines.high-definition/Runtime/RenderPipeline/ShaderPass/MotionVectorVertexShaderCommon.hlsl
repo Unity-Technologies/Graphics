@@ -107,7 +107,11 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
-        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+#if defined(DOTS_SKINNING)
+        //only if hasDeformation?
+        DOTS_GetPreviousDeformedPosition(inputPass.previousPositionOS, inputMesh.vertexID);
+#endif
+        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);  
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
@@ -115,7 +119,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
-        previousMesh.positionOS = effectivePositionOS ;
+        previousMesh.positionOS = effectivePositionOS;
 
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
