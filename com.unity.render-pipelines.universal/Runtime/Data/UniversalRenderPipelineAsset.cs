@@ -307,8 +307,9 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
-            return new UniversalRenderPipeline(this);
+            return pipeline;
         }
 
         void DestroyRenderers()

@@ -144,6 +144,11 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
+            // Initial state of the RTHandle system.
+            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
+            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
+            RTHandles.Initialize(Screen.width, Screen.height, asset.msaaSampleCount > 1, (MSAASamples)asset.msaaSampleCount);
+
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
             bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
@@ -376,6 +381,8 @@ namespace UnityEngine.Rendering.Universal
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
+
+                RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height, (MSAASamples)cameraData.cameraTargetDescriptor.msaaSamples);
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
                 {
