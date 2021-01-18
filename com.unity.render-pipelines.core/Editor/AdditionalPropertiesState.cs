@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
         public bool this[TState mask]
         {
             get => GetAdditionalPropertiesState(mask);
-            set => SetAdditionalPropertiesState(mask, value)
+            set => SetAdditionalPropertiesState(mask, value);
         }
 
         /// <summary>Accessor to the expended state of this specific mask.</summary>
