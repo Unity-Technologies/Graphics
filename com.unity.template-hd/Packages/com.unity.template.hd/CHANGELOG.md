@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ### Changed
 - Update SRP package to 12.0.0
 

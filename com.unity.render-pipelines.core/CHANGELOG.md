@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
@@ -21,9 +24,6 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - New View Lighting Tool, a component which allow to setup light in the camera space
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
-
-### Added
-- Support for the PlayStation 5 platform has been added.
 
 ## [10.2.0] - 2020-10-19
 
