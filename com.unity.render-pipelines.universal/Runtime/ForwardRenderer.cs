@@ -515,6 +515,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                 var colorDescriptor = descriptor;
+                colorDescriptor.useMipMap = false;
+                colorDescriptor.autoGenerateMips = false;
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
@@ -522,6 +524,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
             {
                 var depthDescriptor = descriptor;
+                depthDescriptor.useMipMap = false;
+                depthDescriptor.autoGenerateMips = false;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                 cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);

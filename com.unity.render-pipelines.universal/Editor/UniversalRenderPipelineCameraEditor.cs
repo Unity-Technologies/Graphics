@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
 
         public new void OnEnable()
         {
-            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            m_UniversalRenderPipeline = UniversalRenderPipeline.asset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -369,7 +369,7 @@ namespace UnityEditor.Rendering.Universal
                         result.Add(camera);
                 }
             }
-            
+
             return result.ToArray();
         }
 

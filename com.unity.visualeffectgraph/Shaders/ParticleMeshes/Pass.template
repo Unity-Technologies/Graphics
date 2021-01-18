@@ -84,11 +84,11 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 		size3);
 			
 	float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
-	#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose
+	#ifdef VFX_VARYING_NORMAL
 	o.VFX_VARYING_NORMAL = normalWS;
 	#endif
 	#ifdef VFX_VARYING_TANGENT
-	o.VFX_VARYING_TANGENT = float4(normalize(TransformNormalVFXToWorld(mul(elementToVFX_N,i.tangent.xyz))),i.tangent.w);
+	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);
 	#endif
 
 	${VFXVertexComputeCurrentAndPreviousClipPos}

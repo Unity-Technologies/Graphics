@@ -57,7 +57,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformNormalVFXToWorld(normalize(-transpose(elementToVFX_N)[2].xyz)));
 	#endif
 	#ifdef VFX_VARYING_TANGENT
-	o.VFX_VARYING_TANGENT = normalize(TransformNormalVFXToWorld(normalize(transpose(elementToVFX_N)[0].xyz)));
+	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));
 	#endif
 	
 	[unroll]

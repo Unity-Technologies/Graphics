@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.5.3] - 2021-01-11
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [7.5.2] - 2020-11-16
 
 ### Added
@@ -24,6 +29,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 - Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
+- Fixed NullReferenceException when loading multipel scene async
+- Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
+- Fixed LayeredLit shader compilation issue with metal shader and raytracing
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed case where material keywords would not get setup before usage.
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).

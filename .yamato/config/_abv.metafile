@@ -21,6 +21,27 @@ weekly:
         - playmode
         - editmode
         - Standalone
+    - project: Universal
+      platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - project: Universal
+      platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - project: Universal
+      platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
 nightly:
   extra_dependencies: [] # additional project jobs to run nightly (in addition to ABV)
 trunk_verification: # jobs to include in trunk verification job

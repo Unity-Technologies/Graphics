@@ -58,7 +58,7 @@ Shader "Example/URPUnlitShaderBasic"
                 // Declaring the output object (OUT) with the Varyings struct.
                 Varyings OUT;
                 // The TransformObjectToHClip function transforms vertex positions
-                // from object space to homogenous space
+                // from object space to homogenous clip space.
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 // Returning the output.
                 return OUT;
@@ -68,8 +68,7 @@ Shader "Example/URPUnlitShaderBasic"
             half4 frag() : SV_Target
             {
                 // Defining the color variable and returning it.
-                half4 customColor;
-                customColor = half4(0.5, 0, 0, 1);
+                half4 customColor = half4(0.5, 0, 0, 1);
                 return customColor;
             }
             ENDHLSL
@@ -108,9 +107,9 @@ ShaderLab code starts with the `Shader` declaration.
 Shader "Example/URPUnlitShaderBasic"
 ```
 
-The path in this declaration determines the display name and location of the Unity shader in the Shader menu on a Material.
+The path in this declaration determines the display name and location of the Unity shader in the Shader menu on a Material. The method [Shader.Find](https://docs.unity3d.com/ScriptReference/Shader.Find.html) also uses this path.
 
-![location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
+![Location of the shader in the Shader menu on a Material](Images/shader-examples/urp-material-ui-shader-path.png)
 
 <a name="properties"></a>
 
@@ -132,17 +131,23 @@ Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
 A SubShader Tag with a name of `RenderPipeline` tells Unity which render pipelines to use this SubShader with, and the value of `UniversalPipeline` indicates that Unity should use this SubShader with URP.
 
+To execute the same shader in different render pipelines, create multiple SubShader blocks with different `RenderPipeline` tag values. To execute a SubShader block in HDRP, set the `RenderPipeline` tag to `HDRenderPipeline`, to execute it in the Built-in Render Pipeline, set `RenderPipeline` to an empty value.
+
 For more information on SubShader Tags, see [ShaderLab: SubShader Tags](https://docs.unity3d.com/Manual/SL-SubShaderTags.html).
 
 ### Pass block
 
 In this example, there is one Pass block that contains the HLSL program code. For more information on Pass blocks, see [ShaderLab: Pass](https://docs.unity3d.com/Manual/SL-Pass.html).
 
+A Pass block can optionally contain a Pass tags block. For more information, see [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md).
+
 ### HLSLPROGRAM block
 
 This block contains the HLSL program code.
 
-> **NOTE**: URP shaders support only the HLSL language.
+> **NOTE**: HLSL language is the preferred language for URP shaders.
+
+> **NOTE**: URP supports the CG language. If you add the CGPROGRAM/ENDCGPROGRAM block in a shader, Unity includes shaders from the Built-in Render Pipeline library automatically. If you include shaders from the SRP shader library, some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. Shaders with the CGPROGRAM block are not SRP Batcher compatible.
 
 This block contains the `#include` declaration with the reference to the `Core.hlsl` file.
 
