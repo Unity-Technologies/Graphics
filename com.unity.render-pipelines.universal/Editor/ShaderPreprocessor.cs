@@ -143,8 +143,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
-                if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x) // [Work-around] We do not strip this variant on GLES3 because it could make some scenes crash current Unity GLES3 AndroidPlayer on OnePlus6T - TODO: remove this line once https://issuetracker.unity3d.com/product/unity/issues/guid/1293454/ is fixed
-                    return true;
+                return true;
 
             bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredShadow)
