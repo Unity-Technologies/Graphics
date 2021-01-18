@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
                     prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, clearCoatMask, skyTexture, rayCountTexture,
-                    m_FrameCount, m_ShaderVariablesRayTracingCB, transparent);
+                    m_ShaderVariablesRayTracingCB, transparent);
             }
             else
             {

@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, frameCount, shaderVariablesRaytracing);
+                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
                         var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);

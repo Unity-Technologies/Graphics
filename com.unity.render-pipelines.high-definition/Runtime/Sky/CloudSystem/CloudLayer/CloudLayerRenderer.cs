@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CloudLayerMaterial;
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        private float lastTime = 0.0f;
         int m_LastPrecomputationParamHash;
 
         static readonly int _CloudTexture = Shader.PropertyToID("_CloudTexture");
@@ -89,13 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cloudLayer.opacity.value == 0.0f)
                 return;
 
-#if UNITY_EDITOR
-            float time = (float)EditorApplication.timeSinceStartup;
-#else
-            float time = Time.time;
-#endif
-            float dt = time - lastTime;
-            lastTime = time;
+            float dt = builtinParams.hdCamera.time - builtinParams.hdCamera.lastTime;
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 

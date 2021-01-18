@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        float scrollFactor = 0.0f, lastTime = 0.0f;
+        float scrollFactor = 0.0f;
 
         private static int m_RenderCubemapID                                = 0; // FragBaking
         private static int m_RenderFullscreenSkyID                          = 1; // FragRender
@@ -155,14 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-#if UNITY_EDITOR
-                // Time.time is not always updated in editor
-                float time = (float)EditorApplication.timeSinceStartup;
-#else
-                float time = Time.time;
-#endif
-                scrollFactor += hdriSky.scrollSpeed.value * (time - lastTime) * 0.01f;
-                lastTime = time;
+                scrollFactor += hdriSky.scrollSpeed.value * (builtinParams.hdCamera.time - builtinParams.hdCamera.lastTime) * 0.01f;
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");

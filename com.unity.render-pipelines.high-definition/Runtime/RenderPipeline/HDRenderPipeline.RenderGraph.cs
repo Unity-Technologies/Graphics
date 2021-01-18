@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer,
-                currentFrameIndex = GetFrameCount()
+                currentFrameIndex = m_FrameCount
             };
 
             m_RenderGraph.Begin(renderGraphParams);
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     case IndirectDiffuseMode.Raytrace:
                         lightingBuffers.ssgiLightingBuffer = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
                             prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
-                            m_FrameCount, m_ShaderVariablesRayTracingCB);
+                            m_ShaderVariablesRayTracingCB);
                         break;
                     default:
                         lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
