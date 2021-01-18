@@ -1339,6 +1339,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
+            
+            m_ShaderVariablesGlobalCB._HybridDeformedVertexStreamIndex = UnityEngine.Time.frameCount & 1;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }

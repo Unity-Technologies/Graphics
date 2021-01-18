@@ -19,6 +19,7 @@ The version number for this package has increased due to a version update of a r
 - Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
+ - Removed Compute Deformation Node
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]

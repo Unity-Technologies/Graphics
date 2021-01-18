@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
 
 float3 _LightDirection;
 
@@ -11,6 +12,9 @@ struct Attributes
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float2 texcoord     : TEXCOORD0;
+#if DOTS_INSTANCING_ON
+    uint vertexID       : SV_VertexID;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -40,6 +44,10 @@ Varyings ShadowPassVertex(Attributes input)
 {
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
+
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexPosition(input.positionOS, input.vertexID);
+#endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionCS = GetShadowPositionHClip(input);
