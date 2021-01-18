@@ -20,6 +20,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
 - New View Lighting Tool, a component which allow to setup light in the camera space
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
