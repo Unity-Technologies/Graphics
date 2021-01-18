@@ -627,10 +627,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ResolvePrepassData
         {
-            public TextureHandle    depthBuffer;
-            public TextureHandle    depthValuesBuffer;
-            public TextureHandle    normalBuffer;
-            public TextureHandle    motionVectorsBuffer;
             public TextureHandle    depthAsColorBufferMSAA;
             public TextureHandle    normalBufferMSAA;
             public TextureHandle    motionVectorBufferMSAA;
@@ -661,23 +657,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
-                passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
-                passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
+                output.resolvedDepthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
+                output.depthValuesMSAA = builder.UseColorBuffer(depthValuesBuffer, 0);
+                output.resolvedNormalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
-                    passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
+                    output.resolvedMotionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
                 else
-                    passData.motionVectorsBuffer = TextureHandle.nullHandle;
+                    output.resolvedMotionVectorsBuffer = TextureHandle.nullHandle;
 
                 passData.normalBufferMSAA = builder.ReadTexture(output.normalBuffer);
                 passData.depthAsColorBufferMSAA = builder.ReadTexture(output.depthAsColor);
                 if (passData.needMotionVectors)
                     passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
-
-                output.resolvedNormalBuffer = passData.normalBuffer;
-                output.resolvedDepthBuffer = passData.depthBuffer;
-                output.resolvedMotionVectorsBuffer = passData.motionVectorsBuffer;
-                output.depthValuesMSAA = passData.depthValuesBuffer;
 
                 builder.SetRenderFunc(
                     (ResolvePrepassData data, RenderGraphContext context) =>
