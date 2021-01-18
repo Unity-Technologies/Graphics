@@ -900,7 +900,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
+                passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
+                {
+                    sortingCriteria = SortingCriteria.CommonOpaque,
+                    rendererConfiguration = PerObjectData.None,
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                }));
 
                 SetupDBufferTargets(renderGraph, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
@@ -922,7 +927,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DBufferNormalPatchData
         {
-            public DBufferNormalPatchParameters parameters;
+            public Material decalNormalBufferMaterial;
+            public int dBufferCount;
+            public int stencilRef;
+            public int stencilMask;
+
             public DBufferOutput dBuffer;
             public TextureHandle depthStencilBuffer;
             public TextureHandle normalBuffer;
@@ -943,20 +952,38 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<DBufferNormalPatchData>("DBuffer Normal (forward)", out var passData, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
                 {
-                    passData.parameters = PrepareDBufferNormalPatchParameters(hdCamera);
-                    passData.dBuffer = ReadDBuffer(output.dbuffer, builder);
+                    passData.dBufferCount = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask ? 4 : 3;
+                    passData.decalNormalBufferMaterial = m_DecalNormalBufferMaterial;
+                    switch (hdCamera.frameSettings.litShaderMode)
+                    {
+                        case LitShaderMode.Forward:  // in forward rendering all pixels that decals wrote into have to be composited
+                            passData.stencilMask = (int)StencilUsage.Decals;
+                            passData.stencilRef = (int)StencilUsage.Decals;
+                            break;
+                        case LitShaderMode.Deferred: // in deferred rendering only pixels affected by both forward materials and decals need to be composited
+                            passData.stencilMask = (int)StencilUsage.Decals | (int)StencilUsage.RequiresDeferredLighting;
+                            passData.stencilRef = (int)StencilUsage.Decals;
+                            break;
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
 
+                    passData.dBuffer = ReadDBuffer(output.dbuffer, builder);
                     passData.normalBuffer = builder.WriteTexture(output.resolvedNormalBuffer);
                     passData.depthStencilBuffer = builder.ReadTexture(output.resolvedDepthBuffer);
 
                     builder.SetRenderFunc(
                         (DBufferNormalPatchData data, RenderGraphContext ctx) =>
                         {
-                            RTHandle[] mrt = ctx.renderGraphPool.GetTempArray<RTHandle>(data.dBuffer.dBufferCount);
-                            for (int i = 0; i < data.dBuffer.dBufferCount; ++i)
-                                mrt[i] = data.dBuffer.mrt[i];
+                            data.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, data.stencilMask);
+                            data.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, data.stencilRef);
+                            for (int i = 0; i < data.dBufferCount; ++i)
+                                data.decalNormalBufferMaterial.SetTexture(HDShaderIDs._DBufferTexture[i], data.dBuffer.mrt[i]);
 
-                            DecalNormalPatch(data.parameters, mrt, data.depthStencilBuffer, data.normalBuffer, ctx.cmd);
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.depthStencilBuffer);
+                            ctx.cmd.SetRandomWriteTarget(1, data.normalBuffer);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.decalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
+                            ctx.cmd.ClearRandomWriteTargets();
                         });
                 }
             }
