@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using Unity.PerformanceTesting;
@@ -12,6 +11,7 @@ using UnityEngine.VFX.Test;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
 using UnityEngine.Profiling;
+using UnityEngine.VFX.PerformanceTest;
 using static PerformanceTestUtils;
 using static PerformanceMetricNames;
 

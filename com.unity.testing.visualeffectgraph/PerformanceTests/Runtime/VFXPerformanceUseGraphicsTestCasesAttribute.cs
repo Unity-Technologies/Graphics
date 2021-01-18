@@ -3,22 +3,26 @@ using UnityEngine.TestTools;
 using NUnit.Framework.Internal;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using NUnit.Framework.Internal.Builders;
 using NUnit.Framework;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Scripting;
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Linq;
 #endif
 
-namespace UnityEngine.VFX.Test
+[assembly: Preserve]
+
+namespace UnityEngine.VFX.PerformanceTest
 {
+    using Test = NUnit.Framework.Internal.Test;
     // If there are several UseGraphicTestCasesAttribute within the project, the AssetBundle.Load leads to an unexpected error.
     public class VFXPerformanceUseGraphicsTestCasesAttribute : UnityTestAttribute, ITestBuilder
     {
         NUnitTestCaseBuilder m_Builder = new NUnitTestCaseBuilder();
 
-        IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, NUnit.Framework.Internal.Test suite)
+        IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
         {
             var results = new List<TestMethod>();
 #if UNITY_EDITOR
