@@ -12,8 +12,6 @@ using UnityEditor;
 using System.Linq;
 #endif
 
-[assembly: Preserve]
-
 namespace UnityEngine.VFX.PerformanceTest
 {
     using Test = NUnit.Framework.Internal.Test;
