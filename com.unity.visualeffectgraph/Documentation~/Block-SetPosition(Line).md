@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Shape : Line)**
 
-The **Set Position (Shape : Line)** block calculates a position based on an input Line and stores the result in the [position attribute](Reference-Attributes.md), based on composition. 
+The **Set Position (Shape : Line)** block calculates a position based on an input Line and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 
 This Block also calculates a direction vector based on the calculated position on the shape, and stores it to the [direction attribute](Reference-Attributes.md), based on composition. This direction is equal to the normalized vector that goes from the start point of the line to its end point.
@@ -35,4 +35,3 @@ This Block is compatible with the following Contexts:
 | **Line Sequencer**  | Float    | Determines the position of a particle on the line (as a percentage of its progress).<br/>This property only appears if you set **Spawn Mode** to **Custom**. |
 | **Blend Position**  | Float    | The blend percentage between the current position attribute value and the newly calculated position value.<br/>This property only appears if you set **Composition Position** to **Blend**. |
 | **Blend Direction** | Float    | The blend percentage between the current direction attribute value and the newly calculated direction value.<br/>This property only appears if you set **Composition Direction** to **Blend**. |
-

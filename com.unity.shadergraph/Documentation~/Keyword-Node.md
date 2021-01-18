@@ -7,4 +7,3 @@ You can use a Keyword Node to create a static branch in your Shader Graph that r
 Because each Keyword Node references a specific Keyword, you must first define at least one Keyword on the Blackboard. Drag a Keyword from the Blackboard to the workspace to make a Keyword Node that corresponds to that Keyword.
 
 You can also right-click anywhere on the workspace, and use the **Create Node** menu to make a new Keyword Node. Under **Keywords**, there is a list of Keywords that you defined on the Blackboard. Click on a Keyword in that list to create a corresponding Keyword Node.
-
