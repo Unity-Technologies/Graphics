@@ -49,7 +49,7 @@ There are three main ways to allocate an `RTHandle`. They all use the same `Allo
 
 There are also overrides that create RTHandles from [RenderTargetIdentifier](https://docs.unity3d.com/ScriptReference/Rendering.RenderTargetIdentifier.html). [RenderTextures](https://docs.unity3d.com/ScriptReference/RenderTexture.html), or [Textures](https://docs.unity3d.com/Manual/Textures.html). These are useful when you want to use the RTHandle API to interact with all your textures, even though the texture might not be an actual `RTHandle`.
 
-The following code sample contains example uses of the `Alloc` function: 
+The following code sample contains example uses of the `Alloc` function:
 
 ```c#
 // Simple Scale
@@ -105,7 +105,7 @@ public struct RTHandleProperties
     public Vector2Int previousRenderTargetSize;
     public Vector2Int currentViewportSize;
     public Vector2Int currentRenderTargetSize;
-	public Vector4 rtHandleScale;
+    public Vector4 rtHandleScale;
 }
 ```
 
@@ -131,7 +131,7 @@ There are no shader constants provided by default with SRP. So, when you use RTH
 
 ## Camera specific RTHandles
 
-Most of the render textures that a rendering loop uses can be shared by all Cameras. If their content does not need to carry from one frame to another, this is fine. However, some render textures need persistence. A good example of this is using the main color buffer in subsequent frames for Temporal Anti-aliasing. This means that the Camera cannot share its RTHandle with other Cameras. Most of the time, this also means that these RTHandles must be at least double-buffered (written to during the current frame, read from during the previous frame). To address this problem, the RTHandle system includes `BufferedRTHandleSystems`. 
+Most of the render textures that a rendering loop uses can be shared by all Cameras. If their content does not need to carry from one frame to another, this is fine. However, some render textures need persistence. A good example of this is using the main color buffer in subsequent frames for Temporal Anti-aliasing. This means that the Camera cannot share its RTHandle with other Cameras. Most of the time, this also means that these RTHandles must be at least double-buffered (written to during the current frame, read from during the previous frame). To address this problem, the RTHandle system includes `BufferedRTHandleSystems`.
 
 A `BufferedRTHandleSystem` is an `RTHandleSystem` that can multi-buffer RTHandles. The principle is to identify a buffer by a unique ID and provide APIs to allocate a number of instances of the same buffer then retrieve them from previous frames. These are history buffers. Usually, you must allocate one `BufferedRTHandleSystem` for each Camera. Each one owns their Camera-specific RTHandles.
 
