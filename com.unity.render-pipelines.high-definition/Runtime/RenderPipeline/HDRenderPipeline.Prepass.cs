@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        class DepthPrepassData
+        class DrawRendererListPassData
         {
             public FrameSettings        frameSettings;
             public RendererListHandle   rendererList;
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 string deferredPassName = fullDeferredPrepass ? "Full Depth Prepass (Deferred)" :
                     (decalsEnabled ? "Partial Depth Prepass (Deferred - Decal + AlphaTest)" : "Partial Depth Prepass (Deferred - AlphaTest)");
 
-                using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
+                using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(deferredPassName, out var passData, ProfilingSampler.Get(HDProfileId.DeferredDepthPrepass)))
                 {
                     passData.frameSettings = hdCamera.frameSettings;
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(
@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         decalBuffer = builder.UseColorBuffer(decalBuffer, 0);
 
                     builder.SetRenderFunc(
-                        (DepthPrepassData data, RenderGraphContext context) =>
+                        (DrawRendererListPassData data, RenderGraphContext context) =>
                         {
                             DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                         });
@@ -419,7 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string forwardPassName = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? "Forward Depth Prepass (Deferred ForwardOnly)" : "Forward Depth Prepass";
             // Then prepass for forward materials.
-            using (var builder = renderGraph.AddRenderPass<DepthPrepassData>(forwardPassName, out var passData, ProfilingSampler.Get(HDProfileId.ForwardDepthPrepass)))
+            using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>(forwardPassName, out var passData, ProfilingSampler.Get(HDProfileId.ForwardDepthPrepass)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
 
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                    (DepthPrepassData data, RenderGraphContext context) =>
+                    (DrawRendererListPassData data, RenderGraphContext context) =>
                     {
                         DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
                     });
@@ -457,20 +457,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return shouldRenderMotionVectorAfterGBuffer;
         }
 
-        class ObjectMotionVectorsPassData
-        {
-            public FrameSettings        frameSettings;
-            public TextureHandle        depthBuffer;
-            public RendererListHandle   rendererList;
-        }
-
         void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle decalBuffer, in PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors) ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<ObjectMotionVectorsPassData>("Objects Motion Vectors Rendering", out var passData, ProfilingSampler.Get(HDProfileId.ObjectsMotionVector)))
+            using (var builder = renderGraph.AddRenderPass<DrawRendererListPassData>("Objects Motion Vectors Rendering", out var passData, ProfilingSampler.Get(HDProfileId.ObjectsMotionVector)))
             {
                 // With all this variant we have the following scenario of render target binding
                 // decalsEnabled
@@ -504,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 passData.frameSettings = hdCamera.frameSettings;
-                passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
+                builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
@@ -514,7 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
 
                 builder.SetRenderFunc(
-                    (ObjectMotionVectorsPassData data, RenderGraphContext context) =>
+                    (DrawRendererListPassData data, RenderGraphContext context) =>
                     {
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
@@ -525,8 +518,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings        frameSettings;
             public RendererListHandle   rendererList;
-            public TextureHandle[]      gbufferRT = new TextureHandle[RenderGraph.kMaxMRTCount];
-            public TextureHandle        depthBuffer;
             public DBufferOutput        dBuffer;
         }
 
@@ -538,16 +529,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public int shadowMaskTextureIndex;
         }
 
-        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, GBufferPassData passData, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
+        void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
         {
             bool clearGBuffer = NeedClearGBuffer();
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
             int currentIndex = 0;
-            passData.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
-            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(sssBuffer, 0);
-            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
+            prepassOutput.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+            prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(sssBuffer, currentIndex++);
+            prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(prepassOutput.normalBuffer, currentIndex++);
 
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
@@ -558,45 +549,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
-            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
+            prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) {
                     colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
-                }), 2);
-            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(renderGraph.CreateTexture(
+                }), currentIndex++);
+            prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true) {
                     colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
-                }), 3);
+                }), currentIndex++);
 
 #if ENABLE_VIRTUALTEXTURES
-            passData.gbufferRT[currentIndex++] = builder.UseColorBuffer(vtFeedbackBuffer, 4);
+            prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(vtFeedbackBuffer, currentIndex++);
 #endif
 
             prepassOutput.gbuffer.lightLayersTextureIndex = -1;
             prepassOutput.gbuffer.shadowMaskTextureIndex = -1;
             if (lightLayers)
             {
-                passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
+                prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer, clearColor = Color.clear, name = "LightLayers" }), currentIndex);
                 prepassOutput.gbuffer.lightLayersTextureIndex = currentIndex++;
             }
             if (shadowMasks)
             {
-                passData.gbufferRT[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
+                prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetShadowMaskBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "ShadowMasks" }), currentIndex);
                 prepassOutput.gbuffer.shadowMaskTextureIndex = currentIndex++;
             }
 
             prepassOutput.gbuffer.gBufferCount = currentIndex;
-            for (int i = 0; i < currentIndex; ++i)
-            {
-                prepassOutput.gbuffer.mrt[i] = passData.gbufferRT[i];
-            }
         }
 
         // TODO RENDERGRAPH: For now we just bind globally for GBuffer/Forward passes.
@@ -623,7 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings frameSettings = hdCamera.frameSettings;
 
                 passData.frameSettings = frameSettings;
-                SetupGBufferTargets(renderGraph, hdCamera, passData, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
+                SetupGBufferTargets(renderGraph, hdCamera, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
                 passData.rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
 
