@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.Universal
         // Must be called after all views have been added to the pass
         internal void UpdateOcclusionMesh()
         {
-            if (isOcclusionMeshSupported && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
             {
                 if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
                 {
@@ -406,6 +406,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
+        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+        #endif
+
             if (isOcclusionMeshSupported)
             {
                 using (new ProfilingScope(cmd, _XROcclusionProfilingSampler))

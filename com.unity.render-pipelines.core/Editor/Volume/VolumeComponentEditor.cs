@@ -179,16 +179,27 @@ namespace UnityEditor.Rendering
             OnEnable();
         }
 
-        class ParameterSorter : Comparer<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop = null)
         {
-            public override int Compare((GUIContent displayName, int displayOrder, SerializedDataParameter param) x, (GUIContent displayName, int displayOrder, SerializedDataParameter param) y)
+            if (o == null)
+                return;
+
+            var fields = o.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var field in fields)
             {
-                if (x.displayOrder < y.displayOrder)
-                    return -1;
-                else if (x.displayOrder == y.displayOrder)
-                    return 0;
-                else
-                    return 1;
+                if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                {
+                    if ((field.GetCustomAttributes(typeof(HideInInspector), false).Length == 0) &&
+                        ((field.GetCustomAttributes(typeof(SerializeField), false).Length > 0) ||
+                         (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
+                        infos.Add((field, prop == null ?
+                            serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
+                }
+                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
+                    GetFields(field.GetValue(o), infos, prop == null ?
+                        serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
             }
         }
 
@@ -201,37 +212,27 @@ namespace UnityEditor.Rendering
         /// </remarks>
         public virtual void OnEnable()
         {
-            m_Parameters = new List<(GUIContent, int, SerializedDataParameter)>();
-
             // Grab all valid serializable field on the VolumeComponent
             // TODO: Should only be done when needed / on demand as this can potentially be wasted CPU when a custom editor is in use
-            var fields = target.GetType()
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .Where(t =>
-                    (t.IsPublic && t.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0) ||
-                    (t.GetCustomAttributes(typeof(SerializeField), false).Length > 0)
-                )
-                .Where(t => t.GetCustomAttributes(typeof(HideInInspector), false).Length == 0)
-                .ToList();
+            var fields = new List<(FieldInfo, SerializedProperty)>();
+            GetFields(target, fields);
 
-            // Prepare all serialized objects for this editor
-            foreach (var field in fields)
-            {
-                var property = serializedObject.FindProperty(field.Name);
+            m_Parameters = fields
+                .Select(t => {
                 var name = "";
                 var order = 0;
-                var attr = (DisplayInfoAttribute[])field.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
                 if (attr.Length != 0)
                 {
                     name = attr[0].name;
                     order = attr[0].order;
                 }
 
-                var parameter = new SerializedDataParameter(property);
-                m_Parameters.Add((new GUIContent(name), order, parameter));
-            }
-            m_Parameters.Sort(new ParameterSorter());
+                var parameter = new SerializedDataParameter(t.Item2);
+                return (new GUIContent(name), order, parameter);
+            })
+                .OrderBy(t => t.order)
+                .ToList();
         }
 
         /// <summary>
