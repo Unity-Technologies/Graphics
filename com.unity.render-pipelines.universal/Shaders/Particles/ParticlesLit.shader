@@ -91,7 +91,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // -------------------------------------
             // Particle Keywords
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature_local _FLIPBOOKBLENDING_ON
             #pragma shader_feature_local _SOFTPARTICLES_ON
@@ -186,6 +186,11 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma target 2.0
 
             // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _ALPHATEST_ON
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+
+            // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
@@ -193,10 +198,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthOnlyPass.hlsl"
@@ -216,9 +217,9 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local _ _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------

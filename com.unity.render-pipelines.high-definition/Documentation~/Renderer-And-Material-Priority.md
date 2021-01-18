@@ -8,7 +8,7 @@ HDRP uses these two sorting methods together to control the render queue. To cal
 
 1. Sorts Meshes into groups that share Materials
 2. Uses each Materials’ **Priority** to calculate the rendering order of these Material groups
-3.  Sorts the Material groups using each Mesh Renderer’s **Priority** property. 
+3.  Sorts the Material groups using each Mesh Renderer’s **Priority** property.
 
 The resulting queue is a list of GameObjects that are first sorted by their Material’s **Priority**, then by their individual Mesh Renderer’s **Priority**.
 
