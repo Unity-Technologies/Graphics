@@ -60,9 +60,17 @@ Shader "Universal Render Pipeline/Particles/Lit"
         [HideInInspector] _Color("color", Color) = (1,1,1,1)
     }
 
+    HLSLINCLUDE
+
+    //Particle shaders rely on "write" to CB syntax which is not supported by DXC
+    #pragma never_use_dxc
+
+    ENDHLSL
+
     SubShader
     {
         Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit"}
+
 
         // ------------------------------------------------------------------
         //  Forward pass.
