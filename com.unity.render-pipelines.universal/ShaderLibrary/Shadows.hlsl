@@ -67,7 +67,7 @@ float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
 float4      _CascadeShadowSplitSphereRadii;
-float4      _CascadeShadowSplitSphereLast;  // (xyz: lastShadowCascadeSphere, w: lastShadowCascadeIndex)
+float4      _CascadeShadowSplitSphereLast;  // (xyz: lastShadowCascadeSphere, w: 0)
 half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;

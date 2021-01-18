@@ -250,9 +250,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // We always use last shadow cascade for main light shadow fade
-            var lastShadowCascade = m_ShadowCasterCascadesCount - 1;
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSphereLast,
-                new Vector4(lastCascade.x, lastCascade.y, lastCascade.z, lastShadowCascade));
+                new Vector4(lastCascade.x, lastCascade.y, lastCascade.z, 0));
 
             // Inside shader soft shadows are controlled through global keyword.
             // If any additional light has soft shadows it will force soft shadows on main light too.
