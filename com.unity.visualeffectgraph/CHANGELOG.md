@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Fixed rare bug causing the vfx compilation to do nothing silently.
-- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph
 - SpawnOverDistance spawner block now behaves correctly
 - Quad strip outputs take into account orientation block
 - Fixed Random Vector subgraph utility operator in Additional Samples

@@ -17,7 +17,7 @@ This group of menu items is useful when you upgrade HDRP to a later version.
 | **Add Decal Layer Default to Selected Mesh Renderers and Terrains** | Adds the **Decal Layer Default** item to every selected Mesh Renderer and Terrain in the currently open scene. This is useful when upgrading your HDRP project from Unity 2020.1 to 2020.2, if you want to use [Decal Layers](Decal.md#decal-layers). |
 | **Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes** | Fixes an issue that occurs if you enter Play Mode with Reflection Probes that Unity baked prior to 2019.3. This is useful when upgrading your HDRP project from Unity 2019.2 to 2019.3. |
 
- 
+
 
 ### Upgrade From Built-in pipeline
 
@@ -29,7 +29,7 @@ This group of menu items is useful when you upgrade your Unity Project from usin
 | **Upgrade Selected Materials to High Definition Materials** | Converts every compatible Material currently selected in the project window to an HDRP Material. |
 | **Upgrade Scene Terrains to High Definition Terrains**      | Replaces the built-in default standard terrain Material in every [Terrain](https://docs.unity3d.com/Manual/script-Terrain.html) in the scene with the HDRP default Terrain Material. |
 
- 
+
 
 ### Other items
 
