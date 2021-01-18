@@ -17,7 +17,7 @@ path-ignore=<<EOT
 # rooted folder paths
 ^(
  Tools
-)
+)/|
 # rooted file paths
 ^(
 )$
