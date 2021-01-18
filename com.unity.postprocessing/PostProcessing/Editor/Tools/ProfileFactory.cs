@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.PostProcessing
 
             path += targetName + " Profile.asset";
             path = AssetDatabase.GenerateUniqueAssetPath(path);
-                        
+
             var profile = ScriptableObject.CreateInstance<PostProcessProfile>();
             AssetDatabase.CreateAsset(profile, path);
             AssetDatabase.SaveAssets();
