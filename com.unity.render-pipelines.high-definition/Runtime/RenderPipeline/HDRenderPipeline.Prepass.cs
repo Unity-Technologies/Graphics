@@ -822,53 +822,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDBufferPassData
         {
-            public RenderDBufferParameters  parameters;
-            public TextureHandle[]          mrt = new TextureHandle[Decal.GetMaterialDBufferCount()];
-            public int                      dBufferCount;
             public RendererListHandle       meshDecalsRendererList;
-            public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public TextureHandle            decalBuffer;
         }
 
         struct DBufferOutput
         {
-            public TextureHandle[]      mrt;
-            public int                  dBufferCount;
-        }
-
-        class DBufferNormalPatchData
-        {
-            public DBufferNormalPatchParameters parameters;
-            public DBufferOutput dBuffer;
-            public TextureHandle depthStencilBuffer;
-            public TextureHandle normalBuffer;
+            public TextureHandle[]  mrt;
+            public int              dBufferCount;
         }
 
         static string[] s_DBufferNames = { "DBuffer0", "DBuffer1", "DBuffer2", "DBuffer3" };
 
-        void SetupDBufferTargets(RenderGraph renderGraph, RenderDBufferPassData passData, bool use4RTs, ref PrepassOutput output, RenderGraphBuilder builder)
+        static Color s_DBufferClearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+        static Color s_DBufferClearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+        static Color s_DBufferClearColorAOSBlend = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        static Color[] s_DBufferClearColors = { s_DBufferClearColor, s_DBufferClearColorNormal, s_DBufferClearColor, s_DBufferClearColorAOSBlend };
+
+        void SetupDBufferTargets(RenderGraph renderGraph, bool use4RTs, ref PrepassOutput output, RenderGraphBuilder builder)
         {
             GraphicsFormat[] rtFormat;
             Decal.GetMaterialDBufferDescription(out rtFormat);
-            passData.dBufferCount = use4RTs ? 4 : 3;
+            output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
 
-            for (int dbufferIndex = 0; dbufferIndex < passData.dBufferCount; ++dbufferIndex)
+            // for alpha compositing, color is cleared to 0, alpha to 1
+            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            for (int dbufferIndex = 0; dbufferIndex < output.dbuffer.dBufferCount; ++dbufferIndex)
             {
-                passData.mrt[dbufferIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = rtFormat[dbufferIndex], name = s_DBufferNames[dbufferIndex] }), dbufferIndex);
+                output.dbuffer.mrt[dbufferIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one, true, true) { colorFormat = rtFormat[dbufferIndex], name = s_DBufferNames[dbufferIndex], clearBuffer = true, clearColor = s_DBufferClearColors[dbufferIndex] }), dbufferIndex);
             }
 
-            int propertyMaskBufferSize = ((m_MaxCameraWidth + 7) / 8) * ((m_MaxCameraHeight + 7) / 8);
-            propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64; // round off to nearest multiple of 64 for ease of use in CS
-
-            passData.depthStencilBuffer = builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
-
-            output.dbuffer.dBufferCount = passData.dBufferCount;
-            for (int i = 0; i < passData.dBufferCount; ++i)
-            {
-                output.dbuffer.mrt[i] = passData.mrt[i];
-            }
+            builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);
         }
 
         static DBufferOutput ReadDBuffer(DBufferOutput dBufferOutput, RenderGraphBuilder builder)
@@ -914,37 +900,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDBufferPassData>("DBufferRender", out var passData, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
-                passData.parameters = PrepareRenderDBufferParameters(hdCamera);
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
-                SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
+
+                SetupDBufferTargets(renderGraph, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
                 passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
                     (RenderDBufferPassData data, RenderGraphContext context) =>
                     {
-                        RenderTargetIdentifier[] rti = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.dBufferCount);
-                        RTHandle[] rt = context.renderGraphPool.GetTempArray<RTHandle>(data.dBufferCount);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, data.decalBuffer);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
 
-                        // TODO : Remove once we remove old renderer
-                        // This way we can directly use the UseColorBuffer API and set clear color directly at resource creation and not in the RenderDBuffer shared function.
-                        for (int i = 0; i < data.dBufferCount; ++i)
-                        {
-                            rt[i] = data.mrt[i];
-                            rti[i] = rt[i];
-                        }
+                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.meshDecalsRendererList);
+                        DecalSystem.instance.RenderIntoDBuffer(context.cmd);
 
-                        RenderDBuffer(data.parameters,
-                            rti,
-                            rt,
-                            data.depthStencilBuffer,
-                            data.depthTexture,
-                            data.meshDecalsRendererList,
-                            data.decalBuffer,
-                            context.renderContext,
-                            context.cmd);
+                        context.cmd.ClearRandomWriteTargets();
                     });
             }
+        }
+
+        class DBufferNormalPatchData
+        {
+            public DBufferNormalPatchParameters parameters;
+            public DBufferOutput dBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle normalBuffer;
         }
 
         void DecalNormalPatch(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
