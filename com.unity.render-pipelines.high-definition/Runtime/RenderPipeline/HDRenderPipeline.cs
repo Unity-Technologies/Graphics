@@ -4658,8 +4658,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
-                // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-                cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
 
                 RenderStateBlock? stateBlock = null;
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
