@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_NormalsTexture;
         RenderTargetHandle[] m_GBufferHandles;
         RenderTargetHandle m_OpaqueColor;
+		RenderTargetHandle m_ResolveTexture;
         // For tiled-deferred shading.
         RenderTargetHandle m_DepthInfoTexture;
         RenderTargetHandle m_TileDepthInfoTexture;
@@ -193,6 +194,9 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
+
+			m_ResolveTexture.Init("_CameraResolveTexture");
+
             if (this.renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferHandles = new RenderTargetHandle[(int)DeferredLights.GBufferHandles.Count];
@@ -340,14 +344,15 @@ namespace UnityEngine.Rendering.Universal
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= this.actualRenderingMode == RenderingMode.Deferred;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
+//#if ENABLE_VR && ENABLE_XR_MODULE
+//            if (cameraData.xr.enabled)
             {
                 // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
                 createDepthTexture |= createColorTexture;
                 createColorTexture = createDepthTexture;
+
             }
-#endif
+//#endif
 
 #if UNITY_ANDROID || UNITY_WEBGL
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
@@ -357,7 +362,6 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
             }
 #endif
-
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
@@ -370,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, cameraTargetDescriptor.msaaSamples > 1);
             }
             else
             {
@@ -380,6 +384,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign camera targets (color and depth)
             {
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, true);
+
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
 
@@ -391,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
 
-                ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
+                ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId, m_ResolveTexture.Identifier());
             }
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
@@ -557,7 +563,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ResolveTexture);
                     EnqueuePass(m_FinalBlitPass);
                 }
 
@@ -725,7 +731,7 @@ namespace UnityEngine.Rendering.Universal
             return inputSummary;
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth, bool createResolve = false)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
@@ -753,6 +759,15 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                     cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
                 }
+
+				if (createResolve)
+				{
+					var resolveDescriptor = descriptor;
+					resolveDescriptor.msaaSamples = 1;
+					resolveDescriptor.useMipMap = false;
+					resolveDescriptor.depthBufferBits = 0;
+					cmd.GetTemporaryRT(m_ResolveTexture.id, resolveDescriptor, FilterMode.Bilinear);
+				}
             }
 
             context.ExecuteCommandBuffer(cmd);

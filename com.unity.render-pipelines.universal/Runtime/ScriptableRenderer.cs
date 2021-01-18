@@ -326,6 +326,7 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+		RenderTargetIdentifier m_CameraResolveTarget;
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
@@ -412,6 +413,18 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
+        }
+
+        /// <summary>
+        /// Configures the camera target.
+        /// </summary>
+        /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
+        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, RenderTargetIdentifier resolveTarget)
+        {
+            m_CameraColorTarget = colorTarget;
+            m_CameraDepthTarget = depthTarget;
+			m_CameraResolveTarget = resolveTarget;
         }
 
         // This should be removed when early camera color target assignment is removed.
@@ -741,10 +754,10 @@ namespace UnityEngine.Rendering.Universal
                     attachments[1] = m_ActiveDepthAttachmentDescriptor;
                 ///yyy
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
-                var sampleCount = isBlit ? 1 : desc.msaaSamples;
+                var sampleCount = desc.msaaSamples;
                 int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
                 int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
-                sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : sampleCount;
+                sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : !isBlit ? sampleCount : 1;
                 //if (BuiltinRenderTextureType.CameraTarget == renderPass.colorAttachment)
                 //	Debug.Log(renderPass.GetType().Name + " " + m_ActiveColorAttachmentDescriptor.loadStoreTarget);
                 context.BeginRenderPass(width, height, sampleCount, attachments,
@@ -954,17 +967,30 @@ namespace UnityEngine.Rendering.Universal
                     // Keep all the Native RenderPass stuff here
 
                     //zzz
-                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(passColorAttachment, true, true);
+
+					bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
+                    var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+
+                    var destTarget = renderPass.depthOnly
+                        ? passColorAttachment
+                        : (samples > 1 && !isBlit ? m_CameraColorTarget : RenderTargetHandle.CameraTarget.Identifier());
+                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(destTarget, false, true);
+                    if (m_FirstTimeCameraColorTargetIsBound)
+                    {
+                        m_ActiveColorAttachmentDescriptor.ConfigureClear(Color.white, 1.0f, 0);
+                        m_FirstTimeCameraColorTargetIsBound = false;
+                    }
+
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
 
-                    if (m_CameraDepthTarget == BuiltinRenderTextureType.CameraTarget && cameraData.cameraTargetDescriptor.msaaSamples == 1)
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, true);
+                    if (cameraData.cameraTargetDescriptor.msaaSamples == 1)
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, false, true);
                     else
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, true, false);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment, false, false);
 
-                    if (cameraData.cameraTargetDescriptor.msaaSamples > 1 && renderPass.GetType().Name != "FinalBlitPass")
+                    if ( !isBlit && samples > 1)
                     {
-                        //m_ActiveColorAttachmentDescriptor.ConfigureResolveTarget(m_CameraColorTarget);
+                        m_ActiveColorAttachmentDescriptor.ConfigureResolveTarget(m_CameraResolveTarget);
                     }
                 }
                 else
