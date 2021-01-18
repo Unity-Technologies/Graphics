@@ -449,9 +449,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (ObjectMotionVectorsPassData data, RenderGraphContext context) =>
                     {
-                        // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, data.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
-
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
             }
