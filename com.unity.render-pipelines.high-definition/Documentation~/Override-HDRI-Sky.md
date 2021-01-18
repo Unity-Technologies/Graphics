@@ -67,4 +67,4 @@ These properties only appear if you enable [more options](More-Options.md).
 
 **Note**: To use ambient occlusion in the backplate, increase the value of the **Direct Lighting Strength** property on the [Ambient Occlusion](Override-Ambient-Occlusion.md) component override. As the backplate does not have global illumination, it can only get ambient occlusion from direct lighting. 
 
-**Limitation**: The backplate don't affect the Sky lighting (Sky Reflection / Ligthmaps / LightProbes / Ambient Probe). It will not appear with the default sky reflection but only in local reflection probes.
+**Limitation**: The backplate only appears in local reflection probes and it does not appear in the default sky reflection. This is because the default sky reflection is a cubemap projected at infinity which is incompatible with how Unity renders the backplate.
