@@ -214,6 +214,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 bool destinationIsInternalRT = lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass;
 
+                m_PostProcessPasses.Setup(cameraTargetDescriptor);
+
                 var postProcessDestHandle = destinationIsInternalRT ? k_CameraTarget : afterPostProcessColorHandle;
 
                 postProcessPass.Setup(
