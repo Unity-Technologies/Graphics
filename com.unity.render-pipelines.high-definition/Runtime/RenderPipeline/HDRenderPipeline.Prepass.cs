@@ -755,39 +755,74 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void PrepareBuildCoarseStencilPassData(RenderGraph renderGraph, RenderGraphBuilder builder, ResolveStencilPassData passData, HDCamera hdCamera, bool resolveOnly, in PrepassOutput output)
+        {
+            passData.hdCamera = hdCamera;
+            passData.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
+
+            bool MSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
+            // With MSAA, the following features require a copy of the stencil, if none are active, no need to do the resolve.
+            bool resolveIsNecessary = (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(transparent: true)) && MSAAEnabled;
+
+            int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
+            passData.resolveKernel = passData.resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
+            passData.resolveOnly = resolveOnly;
+
+            if (passData.resolveIsNecessary && resolveOnly)
+                passData.resolveKernel = (kernel - 1) + 7;
+
+            passData.inputDepth = builder.ReadTexture(output.depthBuffer);
+            passData.coarseStencilBuffer = builder.WriteComputeBuffer(
+                renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
+            if (passData.resolveIsNecessary)
+                passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+            else
+                passData.resolvedStencil = output.stencilBuffer;
+        }
+
         class ResolveStencilPassData
         {
-            public BuildCoarseStencilAndResolveParameters parameters;
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
             public ComputeBufferHandle coarseStencilBuffer;
+
+            public HDCamera hdCamera;
+            public ComputeShader resolveStencilCS;
+            public int resolveKernel;
+            public bool resolveIsNecessary;
+            public bool resolveOnly;
         }
 
         // This pass build the coarse stencil buffer if requested (i.e. when resolveOnly: false) and perform the MSAA resolve of the
         // full res stencil buffer if needed (a pass requires it and MSAA is on).
         void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, bool resolveOnly, ref PrepassOutput output)
         {
-            using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.ResolveStencilBuffer)))
+            using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.BuildCoarseStencilAndResolveIfNeeded)))
             {
-                passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera, resolveOnly);
-                passData.inputDepth = output.depthBuffer;
-                passData.coarseStencilBuffer = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
-                if (passData.parameters.resolveIsNecessary)
-                    passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
-                else
-                    passData.resolvedStencil = output.stencilBuffer;
+                PrepareBuildCoarseStencilPassData(renderGraph, builder, passData, hdCamera, resolveOnly, output);
+
                 builder.SetRenderFunc(
                     (ResolveStencilPassData data, RenderGraphContext context) =>
                     {
-                        BuildCoarseStencilAndResolveIfNeeded(data.parameters, data.inputDepth, data.resolvedStencil, data.coarseStencilBuffer, context.cmd);
+                        if (data.resolveOnly && !data.resolveIsNecessary)
+                            return;
+
+                        ComputeShader cs = data.resolveStencilCS;
+                        context.cmd.SetComputeBufferParam(cs, data.resolveKernel, HDShaderIDs._CoarseStencilBuffer, data.coarseStencilBuffer);
+                        context.cmd.SetComputeTextureParam(cs, data.resolveKernel, HDShaderIDs._StencilTexture, data.inputDepth, 0, RenderTextureSubElement.Stencil);
+
+                        if (data.resolveIsNecessary)
+                            context.cmd.SetComputeTextureParam(cs, data.resolveKernel, HDShaderIDs._OutputStencilBuffer, data.resolvedStencil);
+
+                        int coarseStencilWidth = HDUtils.DivRoundUp(data.hdCamera.actualWidth, 8);
+                        int coarseStencilHeight = HDUtils.DivRoundUp(data.hdCamera.actualHeight, 8);
+                        context.cmd.DispatchCompute(cs, data.resolveKernel, coarseStencilWidth, coarseStencilHeight, data.hdCamera.viewCount);
                     });
 
                 bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (isMSAAEnabled)
-                {
                     output.stencilBuffer = passData.resolvedStencil;
-                }
                 output.coarseStencilBuffer = passData.coarseStencilBuffer;
             }
         }

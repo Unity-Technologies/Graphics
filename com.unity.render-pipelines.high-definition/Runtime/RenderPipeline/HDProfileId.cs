@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
-        CoarseStencilGeneration,
-        ResolveStencilBuffer,
+        BuildCoarseStencilAndResolveIfNeeded,
         AmbientOcclusion,
         HorizonSSAO,
         UpSampleSSAO,

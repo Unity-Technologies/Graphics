@@ -1079,64 +1079,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
 
-        struct BuildCoarseStencilAndResolveParameters
-        {
-            public HDCamera         hdCamera;
-            public ComputeShader    resolveStencilCS;
-            public int              resolveKernel;
-            public bool             resolveIsNecessary;
-            public bool             resolveOnly;
-        }
-
-        BuildCoarseStencilAndResolveParameters PrepareBuildCoarseStencilParameters(HDCamera hdCamera, bool resolveOnly)
-        {
-            var parameters = new BuildCoarseStencilAndResolveParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
-
-            bool MSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-
-            // The following features require a copy of the stencil, if none are active, no need to do the resolve.
-            bool resolveIsNecessary = GetFeatureVariantsEnabled(hdCamera.frameSettings);
-            resolveIsNecessary = resolveIsNecessary || hdCamera.IsSSREnabled()
-                || hdCamera.IsSSREnabled(transparent: true);
-            // We need the resolve only with msaa
-            parameters.resolveIsNecessary = resolveIsNecessary && MSAAEnabled;
-
-            int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
-            parameters.resolveKernel = parameters.resolveIsNecessary ? kernel + 3 : kernel; // We have a different variant if we need to resolve to non-MSAA stencil
-            parameters.resolveOnly = resolveOnly;
-
-            if (parameters.resolveIsNecessary && resolveOnly)
-            {
-                parameters.resolveKernel = (kernel - 1) + 7;
-            }
-
-            return parameters;
-        }
-
-        static void BuildCoarseStencilAndResolveIfNeeded(BuildCoarseStencilAndResolveParameters parameters, RTHandle depthStencilBuffer, RTHandle resolvedStencilBuffer, ComputeBuffer coarseStencilBuffer, CommandBuffer cmd)
-        {
-            if (parameters.resolveOnly && !parameters.resolveIsNecessary)
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CoarseStencilGeneration)))
-            {
-                ComputeShader cs = parameters.resolveStencilCS;
-                cmd.SetComputeBufferParam(cs, parameters.resolveKernel, HDShaderIDs._CoarseStencilBuffer, coarseStencilBuffer);
-                cmd.SetComputeTextureParam(cs, parameters.resolveKernel, HDShaderIDs._StencilTexture, depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-
-                if (parameters.resolveIsNecessary)
-                {
-                    cmd.SetComputeTextureParam(cs, parameters.resolveKernel, HDShaderIDs._OutputStencilBuffer, resolvedStencilBuffer);
-                }
-
-                int coarseStencilWidth = HDUtils.DivRoundUp(parameters.hdCamera.actualWidth, 8);
-                int coarseStencilHeight = HDUtils.DivRoundUp(parameters.hdCamera.actualHeight, 8);
-                cmd.DispatchCompute(cs, parameters.resolveKernel, coarseStencilWidth, coarseStencilHeight, parameters.hdCamera.viewCount);
-            }
-        }
-
         void ConfigureKeywords(bool enableBakeShadowMask, HDCamera hdCamera, CommandBuffer cmd)
         {
             // Globally enable (for GBuffer shader and forward lit (opaque and transparent) the keyword SHADOWS_SHADOWMASK
