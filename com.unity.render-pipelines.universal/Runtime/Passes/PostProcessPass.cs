@@ -171,10 +171,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
             if (m_DestinationIsInternalRT)
                 return;
-
-            var desc = GetCompatibleDescriptor();
-            desc.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_Destination.nameID == BuiltinRenderTextureType.CameraTarget ? -1 : Shader.PropertyToID(m_Destination.name), desc, FilterMode.Point);
         }
 
         /// <inheritdoc/>
@@ -183,8 +179,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Logic here matches the if check in OnCameraSetup
             if (m_DestinationIsInternalRT)
                 return;
-
-            cmd.ReleaseTemporaryRT(m_Destination.nameID == BuiltinRenderTextureType.CameraTarget ? -1 : Shader.PropertyToID(m_Destination.name));
         }
 
         public void ResetHistory()

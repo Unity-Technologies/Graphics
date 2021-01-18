@@ -47,6 +47,26 @@ namespace UnityEngine.Rendering.Universal
             Recreate(rendererPostProcessData);
         }
 
+        public void Setup(in RenderTextureDescriptor cameraTargetDescriptor)
+        {
+            m_AfterPostProcessColor.Release();
+            m_AfterPostProcessColor = RTHandles.Alloc(
+                width: cameraTargetDescriptor.width,
+                height: cameraTargetDescriptor.height,
+                depthBufferBits: DepthBits.None,
+                colorFormat: cameraTargetDescriptor.graphicsFormat,
+                filterMode: FilterMode.Point,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: cameraTargetDescriptor.dimension,
+                enableRandomWrite: cameraTargetDescriptor.enableRandomWrite,
+                useMipMap: cameraTargetDescriptor.useMipMap,
+                autoGenerateMips: cameraTargetDescriptor.autoGenerateMips,
+                bindTextureMS: cameraTargetDescriptor.bindMS,
+                useDynamicScale: cameraTargetDescriptor.useDynamicScale,
+                memoryless: cameraTargetDescriptor.memoryless,
+                name: "_AfterPostProcessTexture");
+        }
+
         /// <summary>
         /// Recreates post process passes with supplied data. If already contains valid post process passes, they will be replaced by new ones.
         /// </summary>
@@ -87,6 +107,9 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLutPass?.Cleanup();
             m_PostProcessPass?.Cleanup();
             m_FinalPostProcessPass?.Cleanup();
+
+            m_AfterPostProcessColor.Release();
+            m_ColorGradingLut.Release();
         }
     }
 }
