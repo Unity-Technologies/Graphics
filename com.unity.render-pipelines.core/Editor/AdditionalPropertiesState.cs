@@ -42,8 +42,8 @@ namespace UnityEditor.Rendering
         /// <returns>True: All flagged area are expended</returns>
         public bool this[TState mask]
         {
-            get { return m_State.HasFlag(mask); }
-            set { m_State.SetFlag(mask, value); if (value) ResetAnimation(mask); }
+            get => GetAdditionalPropertiesState(mask);
+            set => SetAdditionalPropertiesState(mask, value)
         }
 
         /// <summary>Accessor to the expended state of this specific mask.</summary>

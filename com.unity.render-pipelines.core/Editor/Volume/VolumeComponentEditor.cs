@@ -224,8 +224,11 @@ namespace UnityEditor.Rendering
 
             InitAdditionalPropertiesPreference();
 
-            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint);
-            m_AdditionalPropertiesAnimation.speed = CoreEditorConstants.additionalPropertiesHightLightSpeed;
+            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint)
+            {
+                speed = CoreEditorConstants.additionalPropertiesHightLightSpeed
+            };
+
 
             OnEnable();
         }
