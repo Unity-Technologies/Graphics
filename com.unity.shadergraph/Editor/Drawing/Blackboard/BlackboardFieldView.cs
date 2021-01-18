@@ -1,32 +1,28 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
     class BlackboardFieldView : BlackboardField, IInspectable
     {
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
-        internal delegate void BlackBoardCallback();
 
         ShaderInput m_Input;
 
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
 
-        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
-        // Common
-        IManipulator m_ResetReferenceMenu;
+        IManipulator m_RightClickMenuManipulator;
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
@@ -65,10 +61,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
+        // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
         private Action m_inspectorUpdateTrigger;
-        private BlackBoardCallback BlackBoardUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Label m_NameLabelField;
 
         public string inspectorTitle
         {
@@ -100,14 +96,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
-            Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public BlackboardFieldView(
+            GraphData graph,
+            ShaderInput input,
+            Texture icon,
+            string text,
+            string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
-            this.BlackBoardUpdateTrigger = updateBlackboardView;
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+
+            UpdateRightClickMenu();
+
+            var nameTextField = this.Q("textField") as TextField;
+            var textinput = nameTextField.Q(TextField.textInputUssName);
+            // When a display name is changed through the BlackboardPill, this callback handle it
+            textinput.RegisterCallback<FocusOutEvent>(e =>
+            {
+                this.RegisterPropertyChangeUndo("Change Display Name");
+                ChangeDisplayNameField(nameTextField.text);
+                // This gets triggered on property creation so need to check for inspector update trigger being valid (which it might not be at the time)
+                if (this.m_inspectorUpdateTrigger != null)
+                    this.MarkNodesAsDirty(true, ModificationScope.Topological);
+                else
+                    DirtyNodes(ModificationScope.Topological);
+            });
+
+            m_NameLabelField = this.Q("title-label") as Label;
+
+            // Set callback association for display name updates
+            m_Input.displayNameUpdateTrigger += UpdateDisplayNameText;
         }
 
         ~BlackboardFieldView()
@@ -120,31 +140,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             return shaderInput;
         }
 
-        void UpdateReferenceNameResetMenu()
+        // Checks if the reference name has been overriden and appends menu action to reset it, if so
+        internal void UpdateRightClickMenu()
         {
             if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
-                this.RemoveManipulator(m_ResetReferenceMenu);
-                m_ResetReferenceMenu = null;
+                this.RemoveManipulator(m_RightClickMenuManipulator);
+                m_RightClickMenuManipulator = null;
             }
-            else
+            else if(m_RightClickMenuManipulator == null)
             {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-                this.AddManipulator(m_ResetReferenceMenu);
+                m_RightClickMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                this.AddManipulator(m_RightClickMenuManipulator);
             }
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Reset Reference", e =>
-                {
-                    m_Input.overrideReferenceName = null;
-                    m_resetReferenceNameTrigger(shaderInput.referenceName);
-                    DirtyNodes(ModificationScope.Graph);
-                }, DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Reset Reference", e => { ResetReferenceAction(); }, DropdownMenuAction.AlwaysEnabled);
         }
 
-#region PropertyDrawers
+        internal void ResetReferenceAction()
+        {
+            m_Input.overrideReferenceName = null;
+            m_resetReferenceNameTrigger(shaderInput.referenceName);
+            DirtyNodes(ModificationScope.Graph);
+        }
+
+        #region PropertyDrawers
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
@@ -166,6 +189,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }
+
+            UpdateRightClickMenu();
         }
 
         void ChangeExposedField(bool newValue)
@@ -179,8 +204,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Input.displayName = newValue;
                 m_Graph.SanitizeGraphInputName(m_Input);
-                this.BlackBoardUpdateTrigger();
             }
+        }
+
+        void UpdateDisplayNameText(string newDisplayName)
+        {
+            m_NameLabelField.text = newDisplayName;
         }
 
         void ChangeReferenceNameField(string newValue)
@@ -188,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (newValue != m_Input.referenceName)
                 m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
 
-            UpdateReferenceNameResetMenu();
+            UpdateRightClickMenu();
         }
 
         void RegisterPropertyChangeUndo(string actionName)

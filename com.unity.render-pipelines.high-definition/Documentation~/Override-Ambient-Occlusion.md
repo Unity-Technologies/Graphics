@@ -22,6 +22,8 @@ The property to enable in your Frame Settings is: **Lighting > Screen Space Ambi
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Ambient Occlusion**. 
    HDRP now applies **Ambient Occlusion** to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
@@ -74,3 +76,4 @@ The properties visible in the Inspector change depending on whether or not you e
 ### Screen-space ambient occlusion
 
 A screen-space effect only processes what is on the screen at a given point in time. This means that objects outside of the field of view cannot visually occlude objects in the view. You can sometimes see this on the edges of the screen.
+When rendering [Reflection Probes](Reflection-Probe.md) screen space ambient occlusion is not supported.

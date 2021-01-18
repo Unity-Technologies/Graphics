@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle inoutputBuffer0, TextureHandle inoutputBuffer1)
         {
-            using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
+            using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIConvert)))
             {
                 builder.EnableAsyncCompute(false);
 

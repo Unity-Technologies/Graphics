@@ -44,10 +44,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
-            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
-            public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
-            public const string hdrpVersionWithLocalPackage = "You are using High-Definition Render Pipeline local {0} version. Last packaged version available is {1}."; //{0} and {1} will be replaced when displayed by the version number.
-            public const string hdrpVersionChecking = "Checking last version available for High-Definition Render Pipeline.";
+            public const string HDRPVersion = "Current HDRP version: ";
+            public const string HDRPVersionUpdateButton = "Check update";
+
 
             //configuration debugger
             public const string resolve = "Fix";
@@ -381,9 +380,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var repopulate = new Button(Repopulate)
             {
                 text = Style.firstTimeInitLabel,
-                tooltip = Style.firstTimeInitTooltip,
-                name = "Repopulate"
+                tooltip = Style.firstTimeInitTooltip
             };
+            repopulate.AddToClassList("RightAnchoredButton");
 
             var row = new VisualElement() { name = "ResourceRow" };
             row.Add(defaultResourceFolder);
@@ -429,11 +428,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         VisualElement CreateLargeButton(string title, Action action)
-            => new Button(action)
-            {
-                text = title,
-                name = "LargeButton"
-            };
+        {
+            Button button = new Button(action) { text = title };
+            button.AddToClassList("LargeButton");
+            return button;
+        }
 
         VisualElement CreateInstallConfigPackageArea()
         {
@@ -531,38 +530,24 @@ namespace UnityEditor.Rendering.HighDefinition
             return label;
         }
 
-        HelpBox CreateHdrpVersionChecker()
+        VisualElement CreateHdrpVersionChecker()
         {
-            var helpBox = new HelpBox(HelpBox.Kind.Info, Style.hdrpVersionChecking);
+            VisualElement container = new VisualElement() { name = "HDRPVersionContainer" };
 
-            m_LastAvailablePackageRetriever.ProcessAsync(k_HdrpPackageName, version =>
-            {
-                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo) =>
-                {
-                    // With recent introduction of preview srp version, our HDRP wizard don't work with Version() call
-                    // patch it for now until this is solve.
-                    bool compatibleWithVersionCall = version.ToString().Contains("preview") ? false : true;
+            TextElement label = new TextElement() { text = Style.HDRPVersion + "checking..." };
+            label.AddToClassList("normal");
+            container.Add(label);
 
-                    // installed is not used because this one will be always installed
-                    if (packageInfo.source == PackageManager.PackageSource.Local)
-                    {
-                        helpBox.kind = HelpBox.Kind.Info;
-                        helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
-                    }
-                    else if(compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
-                    {
-                        helpBox.kind = HelpBox.Kind.Warning;
-                        helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
-                    }
-                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) == new Version(version)))
-                    {
-                        helpBox.kind = HelpBox.Kind.Info;
-                        helpBox.text = String.Format(Style.hdrpVersionLast, version);
-                    }
-                });
-            });
+            Button button = new Button(() =>
+                UnityEditor.PackageManager.UI.Window.Open("com.unity.render-pipelines.high-definition"))
+            { text = Style.HDRPVersionUpdateButton };
+            button.AddToClassList("RightAnchoredButton");
+            container.Add(button);
 
-            return helpBox;
+            m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo)
+                => label.text = Style.HDRPVersion + packageInfo.version + (packageInfo.source == PackageManager.PackageSource.Local ? " (local)" : ""));
+
+            return container;
         }
 
         #endregion

@@ -149,7 +149,7 @@ Event Attributes are [Attributes](Attributes.md) that attach to [Events](Events.
 
 #### Creating Event Attributes
 
-To create a `VFXEventAttribute`, use the `CreateVFXEventAttribute()` method of the Visual Effect component. If you want to send the same Event multiple times with the same attributes, you should store the `VFXEventAtrribute`, rather than create a new one every time you send the Event. When you send an Event to a Visual Effect Graph, Unity creates a copy of the EventAttribute in its current state and sends the copy. This means that, after you send the Event, you can safely modify the EventAttribute without affecting the information sent to the Visual Effect Graph.
+To create a `VFXEventAttribute`, use the `CreateVFXEventAttribute()` method of the Visual Effect component. If you want to send the same Event multiple times with the same attributes, store the `VFXEventAtrribute`, rather than create a new one every time you send the Event. When you send an Event to a Visual Effect Graph, Unity creates a copy of the EventAttribute in its current state and sends the copy. This means that, after you send the Event, you can safely modify the EventAttribute without affecting the information sent to the Visual Effect Graph.
 
 #### Setting the Attribute's payload
 

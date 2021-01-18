@@ -341,8 +341,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
-            m_TransformDirty |= currentRenderer.transform.hasChanged;
             m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+
+            // Indicates that a transform has changed in our scene (mesh or light)
+            m_TransformDirty |= currentRenderer.transform.hasChanged;
             currentRenderer.transform.hasChanged = false;
 
             // return the status
@@ -386,6 +388,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Check if there is a ray traced shadow in the scene
                     m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
                     m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
+
+                    // Indicates that a transform has changed in our scene (mesh or light)
+                    m_TransformDirty |= hdLight.transform.hasChanged;
+                    hdLight.transform.hasChanged = false;
 
                     switch (hdLight.type)
                     {
@@ -574,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
