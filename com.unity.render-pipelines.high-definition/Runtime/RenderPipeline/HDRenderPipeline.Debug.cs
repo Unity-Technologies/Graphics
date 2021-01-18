@@ -487,12 +487,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
-            GraphicsFormat rtFormat = GetColorBufferFormat();
-
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = rtFormat,
+                    colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
                     enableMSAA = msaa,

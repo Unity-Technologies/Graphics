@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugLightFilterMode m_LightFilterProperty;
         DebugFullScreen m_DebugFullScreen;
 
+        // When this variable is true, HDRP will render internally with the graphics format of teh user provided AOV output buffer
+        // Use the SetOverrideRenderFormat member function to change the value of this parameter.
         internal bool overrideRenderFormat => m_OverrideRenderFormat;
         internal bool m_OverrideRenderFormat;
 
