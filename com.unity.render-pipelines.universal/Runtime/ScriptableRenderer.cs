@@ -973,9 +973,9 @@ namespace UnityEngine.Rendering.Universal
 					bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
-                    var destTarget = renderPass.depthOnly
+                    var destTarget = (renderPass.depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                         ? passColorAttachment
-                        : (samples > 1 && !isBlit ? m_CameraColorTarget : RenderTargetHandle.CameraTarget.Identifier());
+                        : (!isBlit ? m_CameraColorTarget : RenderTargetHandle.CameraTarget.Identifier());
                     m_ActiveColorAttachmentDescriptor.ConfigureTarget(destTarget, !m_FirstTimeColorClear, true);
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
