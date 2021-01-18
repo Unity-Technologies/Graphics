@@ -19,7 +19,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -41,7 +41,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -72,7 +72,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -100,7 +100,7 @@ HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -128,7 +128,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -138,7 +138,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -156,7 +156,7 @@ HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -178,7 +178,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
@@ -210,7 +210,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -235,7 +235,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -270,7 +270,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -302,7 +302,7 @@ HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -334,7 +334,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
@@ -344,7 +344,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -366,7 +366,7 @@ HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -391,7 +391,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  NetSh Advfirewall set allprofiles state off
       -  cd TestProjects/HDRP_DXR_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
