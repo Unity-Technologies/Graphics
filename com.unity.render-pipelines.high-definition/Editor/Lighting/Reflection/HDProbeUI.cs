@@ -34,7 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             k_AdditionalPropertiesState.UnregisterEditor(editor);
         }
 
-        internal static void ShowAdditionalProperties(bool value)
+        [SetAdditionalPropertiesVisibility]
+        internal static void SetAdditionalPropertiesVisibility(bool value)
         {
             if (value)
                 k_AdditionalPropertiesState.ShowAll();
