@@ -283,7 +283,7 @@ namespace UnityEditor.ShaderGraph
                 CustomBlockType descWidth = CustomBlockType.Vector4;
 
                 var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
-                try   { descWidth = (CustomBlockType)int.Parse(wsplit[1]); }
+                try   { descWidth = (CustomBlockType)int.Parse(wsplit[2]); }
                 catch
                 {
                     Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
@@ -347,46 +347,5 @@ namespace UnityEditor.ShaderGraph
         {
             Init(CreateCustomFieldDescriptor("CustomInterpolator", CustomBlockType.Vector4));
         }
-
-
-
-
-
-        //[SerializeField]
-        //internal CustomBlockType customBlockType = CustomBlockType.Vector4;
-        //internal string m_customBlockName;
-
-        //internal string customBlockName
-        //{
-        //    get => m_customBlockName ?? descriptor?.displayName ?? "CustomInterpolator";
-        //    set => m_customBlockName = value;
-        //}
-
-        //internal void RenewCustomBlockFieldDescriptor()
-        //{
-        //    if (!isCustomBlock)
-        //        return;
-
-        //    // todo, sanitize this.
-        //    var referenceName = customBlockName;
-        //    var define = "VERTEXDESCRIPTION_" + customBlockName.ToUpper();
-        //    IControl control = WidthToControl((int)customBlockType);
-        //    descriptor = new BlockFieldDescriptor(BlockFields.VertexDescription.name, referenceName, define, control, ShaderStage.Vertex);
-
-        //    AddSlotFromControlType();
-        //    owner?.ValidateGraph();
-        //}
-
-        //public void InitCustomBlockNode()
-        //{
-        //    name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
-        //    isCustomBlock = true;
-
-        //    Init(CreateCustomFieldDescriptor("CustomInterpolator", CustomBlockType.Vector4));
-        //    //RenewCustomBlockFieldDescriptor();
-        //}
-
-
-        ///////////////////////////////////////////////////       
     }
 }

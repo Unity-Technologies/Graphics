@@ -237,6 +237,10 @@ namespace UnityEditor.ShaderGraph
                 var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
 
+                foreach(var bd in currentBlockDescriptors)
+                    if (bd.isCustom)
+                        activeBlockContext.AddBlock(bd);
+
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
@@ -282,8 +286,11 @@ namespace UnityEditor.ShaderGraph
                 vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
                 pixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
 
+                var cifilter = m_GraphData.vertexContext.blocks.Where(b => b.value.isCustomBlock).Select(d => d.value.descriptor).ToArray();
+
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
+                ProcessStackForPass(m_GraphData.vertexContext, cifilter, vertexNodes, vertexSlots);
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.validPixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
@@ -318,7 +325,8 @@ namespace UnityEditor.ShaderGraph
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
-            // GET CUSTOM ACTIVE FIELDS HERE!
+            // GET CUSTOM ACTIVE FIELDS HERE!           
+            GenerationUtils.AddCustomFields(vertexNodes, activeFields.baseInstance);
 
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
@@ -463,6 +471,9 @@ namespace UnityEditor.ShaderGraph
             // Generated structs and Packing code
             var interpolatorBuilder = new ShaderStringBuilder();
             var passStructs = new List<StructDescriptor>();
+            var customIntPackingFunc = new ShaderStringBuilder();
+
+            // GenerationUtils.GenerateCustomPackingFuncs(customIntPackingFunc, activeFields.baseInstance);
 
             if (pass.structs != null)
             {
@@ -518,7 +529,9 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             if (interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
+            { 
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
+            }
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
@@ -578,6 +591,11 @@ namespace UnityEditor.ShaderGraph
                 vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
                 vertexBuilder.AppendNewLine();
                 vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+                vertexBuilder.AppendNewLine();
+
+                var sgciFunc = new ShaderStringBuilder();
+                GenerationUtils.GenerateCustomPassThroughFunc(sgciFunc, /*vertexNodes*/ activeFields.baseInstance);
+                vertexBuilder.AppendLines(sgciFunc.ToString());
             }
 
             // Add to splice commands

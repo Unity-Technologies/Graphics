@@ -361,6 +361,14 @@ namespace UnityEditor.ShaderGraph
                         cur = nonwhitespace;
                         return true;
                     }
+                    else if (fieldName == "sgci_sdiEntry")
+                    {
+                        foreach (var ci in activeFields.baseInstance.fields.Where(f => f.tag == StructFields.SurfaceDescriptionInputs.name && (f.semantic?.Contains("SGCI") ?? false)))
+                        {
+                            result.AppendLine($"output.{ci.name} = input.{ci.name};");
+                        }
+                        return false;
+                    }
                     else
                     {
                         // predicate is not active

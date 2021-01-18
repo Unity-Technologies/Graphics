@@ -54,5 +54,7 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.FaceSign:                  BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 #undef BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 
+    $sgci_sdiEntry:
+
     return output;
 }
