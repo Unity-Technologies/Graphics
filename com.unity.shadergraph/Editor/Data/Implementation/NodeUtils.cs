@@ -546,14 +546,8 @@ namespace UnityEditor.Graphing
         // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
-            char[] arr = input.ToCharArray();
-            arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
-            var safeName = new string(arr);
-            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
-            {
-                safeName = $"var{safeName}";
-            }
-            return safeName;
+            // DO IT.
+            return ConvertToValidHLSLIdentifier(input);
         }
 
         static readonly string[] k_HLSLNumericKeywords =

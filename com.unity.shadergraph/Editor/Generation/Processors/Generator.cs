@@ -329,9 +329,9 @@ namespace UnityEditor.ShaderGraph
 
             // GET CUSTOM ACTIVE FIELDS HERE!
             var passStructs = new List<StructDescriptor>();
-            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name != "Attributes"));
+            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name != "Attributes" && x.name != "VertexDescriptionInputs"));
             passStructs = CustomInterpolatorUtils.GetActiveCustomFields(customFields, passStructs, activeFields.baseInstance);
-            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name == "Attributes"));
+            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name == "Attributes" || x.name == "VertexDescriptionInputs"));
 
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);

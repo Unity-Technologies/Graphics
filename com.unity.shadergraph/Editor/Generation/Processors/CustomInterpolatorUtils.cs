@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             var usedList = graphData.GetNodes<CustomInterpolatorNode>().Select(cin => cin.e_targetBlockNode);
 
             // cache the custom bd's now for later steps involvign active fields-- this is filtered based on what is actually in use.
-            return usedList.Select(b => b.descriptor).ToList();
+            return usedList.Where(b => b != null).Select(b => b.descriptor).ToList();
         }
 
         static ShaderValueType ShaderValueTypeFrom(IControl ctrl)
