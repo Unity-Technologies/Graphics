@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 - Fixed light gizmo showing shadow near plane when shadows are disabled.
 - Fixed path tracing alpha channel support (case 1304187).
+- Fixed shadow matte not working with ambient occlusion when MSAA is enabled
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
