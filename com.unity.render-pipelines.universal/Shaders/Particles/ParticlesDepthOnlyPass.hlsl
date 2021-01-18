@@ -12,18 +12,20 @@ VaryingsDepthOnlyParticle DepthOnlyVertex(AttributesDepthOnlyParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     output.clipPos = vertexInput.positionCS;
-    output.color = GetParticleColor(input.color);
 
-    #if defined(_FLIPBOOKBLENDING_ON)
-        #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-            GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+    #if defined(_ALPHATEST_ON)
+        output.color = GetParticleColor(input.color);
+
+        #if defined(_FLIPBOOKBLENDING_ON)
+            #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+                GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+            #else
+                GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+            #endif
         #else
-            GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+            GetParticleTexcoords(output.texcoord, input.texcoords.xy);
         #endif
-    #else
-        GetParticleTexcoords(output.texcoord, input.texcoords.xy);
     #endif
-
 
     return output;
 }
@@ -33,11 +35,9 @@ half4 DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    // Inputs...
-    float2 uv = input.texcoord;
-
     // Check if we need to discard...
     #if defined(_ALPHATEST_ON)
+        float2 uv = input.texcoord;
         half4 vertexColor = input.color;
         half4 baseColor = _BaseColor;
 

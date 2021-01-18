@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesParticle input)
+VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle input)
 {
     VaryingsDepthNormalsParticle output = (VaryingsDepthNormalsParticle)0;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -18,7 +18,7 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesParticle input)
         viewDirWS = SafeNormalize(viewDirWS);
     #endif
 
-    #ifdef _NORMALMAP
+    #if defined(_NORMALMAP)
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
         output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
         output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
@@ -28,16 +28,21 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesParticle input)
     #endif
 
     output.clipPos = vertexInput.positionCS;
-    output.color = GetParticleColor(input.color);
 
-    #if defined(_FLIPBOOKBLENDING_ON)
-        #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-            GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+    #if defined(_ALPHATEST_ON)
+        output.color = GetParticleColor(input.color);
+    #endif
+
+    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+        #if defined(_FLIPBOOKBLENDING_ON)
+            #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+                GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+            #else
+                GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+            #endif
         #else
-            GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+            GetParticleTexcoords(output.texcoord, input.texcoords.xy);
         #endif
-    #else
-        GetParticleTexcoords(output.texcoord, input.texcoords.xy);
     #endif
 
     return output;
@@ -49,21 +54,23 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     // Inputs...
-    float2 uv = input.texcoord;
-    #if defined(_FLIPBOOKBLENDING_ON)
-        float3 blendUv = input.texcoord2AndBlend;
-    #else
+    #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
+        float2 uv = input.texcoord;
         float3 blendUv = float3(0,0,0);
+
+        #if defined(_FLIPBOOKBLENDING_ON)
+            float3 blendUv = input.texcoord2AndBlend;
+        #endif
     #endif
 
     // Check if we need to discard...
     #if defined(_ALPHATEST_ON)
         half4 vertexColor = input.color;
         half4 baseColor = _BaseColor;
-
         half4 albedo = BlendTexture(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), uv, blendUv) * baseColor;
+
         half4 colorAddSubDiff = half4(0, 0, 0, 0);
-        #if defined (_COLORADDSUBDIFF_ON)
+        #if defined(_COLORADDSUBDIFF_ON)
             colorAddSubDiff = _BaseColorAddSubDiff;
         #endif
 
