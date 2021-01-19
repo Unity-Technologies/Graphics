@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
+- Added support for Texture2D Arrays in Flipbooks
 - Provide explicit access to spawnCount in graph
 
 ### Changed
