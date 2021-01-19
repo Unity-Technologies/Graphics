@@ -19,6 +19,16 @@ namespace UnityEditor.ShaderGraph
         {
             name = "View Direction";
             UpdateNodeAfterDeserialization();
+            onAfterVersionChange += () => { if (sgVersion > 0) owner.ClearErrorsForNode(this); };
+        }
+
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+            if(sgVersion == 0)
+            {
+                owner.AddValidationError(objectId, "Node behavior was changed. See inspector for details", Rendering.ShaderCompilerMessageSeverity.Warning);
+            }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -59,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public string GetCustomDeprecationLabel()
         {
-            return name + "(*)";
+            return name;
         }
     }
 }
