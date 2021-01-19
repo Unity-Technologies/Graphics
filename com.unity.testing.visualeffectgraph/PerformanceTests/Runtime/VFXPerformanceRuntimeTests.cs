@@ -160,55 +160,80 @@ namespace UnityEditor.VFX.PerformanceTest
 
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
+        private IEnumerable<Type> GetVFXMemoryObjectTypes()
+        {
+            yield return typeof(VisualEffect);
+            yield return typeof(VisualEffectAsset);
+            foreach (var other in GetMemoryObjectTypes())
+                yield return other;
+        }
+
+        private static long s_minObjectSize = 1024 * 64;
+
+        private IEnumerator FreeMemory()
+        {
+            GC.Collect();
+            var unloadAsync = Resources.UnloadUnusedAssets();
+            while (!unloadAsync.isDone)
+                yield return new WaitForEndOfFrame();
+        }
+
         const int GlobalTimeout = 120 * 1000;
         [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
-            var totalMemoryAllocated = Profiler.GetTotalAllocatedMemoryLong();
-            var totalMemoryAllocatedForGraphicsDriver = Profiler.GetAllocatedMemoryForGraphicsDriver();
+            yield return FreeMemory();
 
             UnityEngine.Debug.unityLogger.logEnabled = false;
             yield return VFXRuntimePerformanceTests.Load_And_Prepare(testCase);
 
-            var allVisualEffect = Resources.FindObjectsOfTypeAll<VisualEffect>();
-            var allVisualEffectAsset = Resources.FindObjectsOfTypeAll<VisualEffectAsset>();
-
             var results = new List<(string name, long size)>();
+            long totalMemory = 0u;
             long totalMemoryVfx = 0;
-            foreach (var visualEffect in allVisualEffect)
+            foreach (var type in GetVFXMemoryObjectTypes())
             {
-                var asset = visualEffect.visualEffectAsset;
-                var name = "VisualEffectComponent." + (asset != null ? asset.name : "null");
-                long currSize = Profiler.GetRuntimeMemorySizeLong(visualEffect);
-                totalMemoryVfx += currSize;
-                results.Add((name, currSize));
-            }
+                var allObjectOfType = Resources.FindObjectsOfTypeAll(type);
+                foreach (var obj in allObjectOfType)
+                {
+                    long currSize = Profiler.GetRuntimeMemorySizeLong(obj);
+                    totalMemory += currSize;
+                    if (type == typeof(VisualEffect) || type == typeof(VisualEffectAsset))
+                    {
+                        totalMemoryVfx += currSize;
+                    }
+                    else
+                    {
+                        //Only for not vfx object, skip small object report
+                        if (currSize < s_minObjectSize)
+                            continue;
+                    }
 
-            foreach (var visualEffectAsset in allVisualEffectAsset)
-            {
-                var name = "VisualEffectAsset." + visualEffectAsset;
-                long currSize = Profiler.GetRuntimeMemorySizeLong(visualEffectAsset);
-                totalMemoryVfx += currSize;
-                results.Add((name, currSize));
+                    string name = obj.GetType().Name;
+                    if (type == typeof(VisualEffect)) //Special naming for VisualEffectComponent
+                    {
+                        var visualEffect = obj as VisualEffect;
+                        var asset = visualEffect.visualEffectAsset;
+                        if (asset != null)
+                            name += "." + asset.name;
+                    }
+                    else if (!String.IsNullOrEmpty(obj.name))
+                    {
+                        name += "." + obj.name;
+                    }
+                    results.Add((name, currSize));
+                }
             }
-
-            //Apply delta of whole memory
-            totalMemoryAllocated = Profiler.GetTotalAllocatedMemoryLong() - totalMemoryAllocated;
-            totalMemoryAllocatedForGraphicsDriver = Profiler.GetAllocatedMemoryForGraphicsDriver() - totalMemoryAllocatedForGraphicsDriver;
 
             foreach (var result in results)
                 Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name), SampleUnit.Byte, false), result.size);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemory"), SampleUnit.Byte, false), totalMemory);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryVfx"), SampleUnit.Byte, false), totalMemoryVfx);
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), totalMemoryAllocated);
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), totalMemoryAllocatedForGraphicsDriver);
-
-            yield return new WaitForEndOfFrame();
-            //Force garbage collection to avoid unexpected state in following test
-            GC.Collect();
-            Resources.UnloadUnusedAssets();
-            yield return new WaitForEndOfFrame();
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), Profiler.GetTotalAllocatedMemoryLong());
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), Profiler.GetAllocatedMemoryForGraphicsDriver());
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
+
+            yield return FreeMemory();
         }
     }
 }
