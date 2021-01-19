@@ -318,23 +318,33 @@ namespace UnityEngine.Rendering
                             int ix = bx + x;
                             int iy = by + y;
                             int iz = bz + z;
-                            
-                            c.r = shl2[shidx][0, 0];
-                            c.g = shl2[shidx][0, 1];
-                            c.b = shl2[shidx][0, 2];
-                            c.a = shl2[shidx][0, 3];
+
+                            // L1r
+                            c.r = shl2[shidx][0, 1];
+                            c.g = shl2[shidx][0, 2];
+                            c.b = shl2[shidx][0, 3];
+                            // L0r
+                            c.a = shl2[shidx][0, 0];
+
                             loc.TexL1_R.SetPixel(ix, iy, iz, c);
 
-                            c.r = shl2[shidx][1, 0];
-                            c.g = shl2[shidx][1, 1];
-                            c.b = shl2[shidx][1, 2];
-                            c.a = shl2[shidx][1, 3];
+                            // L1g
+                            c.r = shl2[shidx][1, 1];
+                            c.g = shl2[shidx][1, 2];
+                            c.b = shl2[shidx][1, 3];
+
+                            // L0g
+                            c.a = shl2[shidx][1, 0];
                             loc.TexL1_G.SetPixel(ix, iy, iz, c);
 
-                            c.r = shl2[shidx][2, 0];
-                            c.g = shl2[shidx][2, 1];
-                            c.b = shl2[shidx][2, 2];
-                            c.a = shl2[shidx][1, 3];
+                            // L1b
+                            c.r = shl2[shidx][2, 1];
+                            c.g = shl2[shidx][2, 2];
+                            c.b = shl2[shidx][2, 3];
+
+
+                            // L0b
+                            c.a = shl2[shidx][2, 0];
                             loc.TexL1_B.SetPixel(ix, iy, iz, c);
 
                             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -360,6 +370,7 @@ namespace UnityEngine.Rendering
                                 c.r = shl2[shidx][0, 8];
                                 c.g = shl2[shidx][1, 8];
                                 c.b = shl2[shidx][2, 8];
+                                c.a = 1;
                                 loc.TexL0.SetPixel(ix, iy, iz, c);
                             }
 
@@ -389,7 +400,7 @@ namespace UnityEngine.Rendering
             loc.TexL1_B.Apply(false);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-            { 
+            {
                 loc.TexL2_R.Apply(false);
                 loc.TexL2_G.Apply(false);
                 loc.TexL2_B.Apply(false);

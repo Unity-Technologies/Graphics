@@ -121,11 +121,11 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 N, float3 backN, float3 uvw, ou
     float4 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    //float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_R, s_linear_clamp_sampler, uvw, 0).rgba;
-    //float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_G, s_linear_clamp_sampler, uvw, 0).rgba;
-    //float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_B, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_R, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_G, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_B, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    //float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L0, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L0, s_linear_clamp_sampler, uvw, 0).rgba;
 
     // decode the L1 coefficients
     l1_R.rgb = DecodeSH(l1_R.a, l1_R.rgb);
@@ -141,8 +141,8 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 N, float3 backN, float3 uvw, ou
     diffuseLighting = SHEvalLinearL1(N, l1_R.rgb, l1_G.rgb, l1_B.rgb);
     backDiffuseLighting = SHEvalLinearL1(backN, l1_R.rgb, l1_G.rgb, l1_B.rgb);
 
-    //diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
-    //backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
+    diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
+    backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
 }
 //#endif
 
