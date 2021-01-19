@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 HelpBoxRow help = new HelpBoxRow(messageType);
                 var label = new Label(labelText)
                 {
-                    tooltip = deprecationText
+                    tooltip = deprecationText, name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
                 };
                 help.Add(label);
                 help.contentContainer.Add(upgradeButton);
