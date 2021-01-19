@@ -9,6 +9,7 @@
         "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
         "com.unity.test-framework": "1.1.14",
         "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
         "com.unity.timeline": "1.2.9",
         "com.unity.ugui": "1.0.0",
         "com.unity.testing.graphics-performance": "file:../../../com.unity.testing.graphics-performance",
@@ -48,6 +49,7 @@
     "disableProjectUpdate": true,
     "testables": [
         "com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr",
         "com.unity.render-pipelines.visualeffectgraph",
 		"com.unity.testframework.graphics",
 		"com.unity.testing.graphics-performance"

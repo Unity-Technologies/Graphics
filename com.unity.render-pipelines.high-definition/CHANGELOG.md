@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
+### Added
+- Added support for the PlayStation 5 platform.
+
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
@@ -27,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light gizmo showing shadow near plane when shadows are disabled.
 - Fixed path tracing alpha channel support (case 1304187).
 - Fixed shadow matte not working with ambient occlusion when MSAA is enabled
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
