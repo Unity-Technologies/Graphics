@@ -49,7 +49,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         public bool isDirty => m_IsEditorDirty;
 
         public int defaultSelection = -1;
-        public int selectionIndex => m_layerList != null ? m_layerList.index : -1;
+        public int selectionIndex
+        {
+            get => m_layerList != null ? m_layerList.index : -1;
+            set
+            {
+                if (m_layerList != null) m_layerList.index = Math.Min(value, m_layerList.count - 1);
+            }
+        }
+            
 
         void AddLayerOfTypeCallback(object type)
         {

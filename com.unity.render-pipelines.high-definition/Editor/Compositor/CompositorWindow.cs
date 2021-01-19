@@ -178,6 +178,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 if (m_Editor)
                 {
                     m_Editor.OnInspectorGUI();
+
+                    // Remember which layer was selected / drawn in the last draw call
+                    s_SelectionIndex = m_Editor.selectionIndex;
                 }
             }
             GUILayout.EndScrollView();
@@ -214,7 +217,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             m_Editor.CacheSerializedObjects();
             m_RequiresRedraw = true;
-            s_SelectionIndex = m_Editor.selectionIndex;
+
+            // After undo, set the selection index to the last shown layer, because the Unity Editor resets the value to the last layer in the list
+            m_Editor.defaultSelection = s_SelectionIndex;
+            m_Editor.selectionIndex = s_SelectionIndex;
+
 
             CompositionManager compositor = CompositionManager.GetInstance();
             // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
