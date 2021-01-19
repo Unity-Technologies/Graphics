@@ -555,6 +555,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // We don't need the custom passes anymore
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             UnRegisterCustomPasses(hdPipeline);
+
+            // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
+            CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -962,5 +965,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
+
     }
 }
