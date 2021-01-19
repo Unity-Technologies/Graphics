@@ -18,7 +18,7 @@ uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
 
 void DOTS_Skinning(inout float3 position, inout float3 normal, inout float4 tangent, uint vertexID)
 {
-    const int doSkinning = (int)unity_SkinSetting.x;
+    const int doSkinning = asint(unity_ComputeMeshIndex.z);
     if (doSkinning > 0)
     {
 		const int streamIndex = _HybridDeformedVertexStreamIndex;
@@ -36,10 +36,9 @@ void DOTS_Skinning(inout float3 position, inout float3 normal, inout float4 tang
 
 void DOTS_GetPreviousDeformedPosition(inout float3 prevPos, uint vertexID)
 {
-    const int doSkinning = (int)unity_SkinSetting.x;
+    const int doSkinning = asint(unity_ComputeMeshIndex.z);
     if (doSkinning > 0)
     {
-        //const int meshIndex = (int)unity_ComputeMeshIndex.x;
 		const int streamIndex = (_HybridDeformedVertexStreamIndex + 1) % 2;
 		const int startIndex = asint(unity_ComputeMeshIndex)[streamIndex];
 		const DeformedVertexData vertexData = _PreviousFrameDeformedMeshData[startIndex + vertexID];
