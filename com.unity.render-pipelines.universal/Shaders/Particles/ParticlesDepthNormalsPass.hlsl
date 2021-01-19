@@ -56,10 +56,11 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
     // Inputs...
     #if defined(_ALPHATEST_ON) || defined(_NORMALMAP)
         float2 uv = input.texcoord;
-        float3 blendUv = float3(0,0,0);
 
         #if defined(_FLIPBOOKBLENDING_ON)
             float3 blendUv = input.texcoord2AndBlend;
+        #else
+            float3 blendUv = float3(0,0,0);
         #endif
     #endif
 
