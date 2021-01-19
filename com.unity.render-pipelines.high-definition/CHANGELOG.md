@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 - Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 - Fixed light gizmo showing shadow near plane when shadows are disabled.
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
@@ -72,7 +73,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
 - Fixed issue with an empty index buffer not being released.
-- Fixed issues with compositor's undo (case 1305633).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

@@ -1,12 +1,6 @@
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering.HighDefinition.Attributes;
-using UnityEngine.Video;
-
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
