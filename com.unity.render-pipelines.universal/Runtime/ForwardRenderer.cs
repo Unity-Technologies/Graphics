@@ -529,13 +529,13 @@ namespace UnityEngine.Rendering.Universal
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    postProcessPass.Setup(cameraTargetDescriptor, cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
-                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
+                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : m_ActiveCameraColorAttachment);
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
@@ -563,7 +563,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : sourceForFinalPass);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
 
@@ -582,7 +582,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment,  cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 
