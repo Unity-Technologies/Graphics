@@ -54,7 +54,7 @@ You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ra
 1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
-4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects. 
+4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
 
 Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -193,7 +193,7 @@ Depending on which ray tracing mode you select, HDRP may expose difference prope
 You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down.
 
 If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
 
