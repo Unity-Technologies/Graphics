@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
             {
                 cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmdBuffer.ClearRenderTarget(true, true, Color.black);  // clear stencil
+                cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
 
                 var shadowRadius = 1.42f * light.boundingSphere.radius;
 
@@ -148,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 // TODO: We should have colorBit passed in to this function
                 // Bit 0 - Alpha, 1 - Blue, 2 - Green, 3 - Red
-                int colorBit = 2;
+                int colorBit = 0;
                 int colorMask = 1 << colorBit;
 
                 cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
