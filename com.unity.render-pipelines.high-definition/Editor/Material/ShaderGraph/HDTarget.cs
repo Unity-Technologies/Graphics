@@ -1050,7 +1050,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor ScreenSpaceShadow = new KeywordDescriptor()
