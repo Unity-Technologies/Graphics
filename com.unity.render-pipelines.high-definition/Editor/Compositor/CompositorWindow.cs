@@ -225,8 +225,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 EditorUtility.SetDirty(compositor.profile);
 
                 // Clean-up existing cameras after undo, we will re-allocate the layer resources
-                compositor.DeleteLayerRTs();
                 CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans(compositor.layers);
+                compositor.DeleteLayerRTs();
                 compositor.UpdateLayerSetup();
             }
         }
