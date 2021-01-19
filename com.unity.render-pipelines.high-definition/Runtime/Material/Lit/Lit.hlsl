@@ -1800,16 +1800,18 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
     float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
     lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
-                                                    lerp(preLightData.specularFGD, F, bsdfData.coatMask)
-                                                    : preLightData.specularFGD);
+                                                    F * bsdfData.coatMask : preLightData.specularFGD);
     // Set the default weight value
-    reflectionHierarchyWeight  = ssrLighting.a;
+    reflectionHierarchyWeight = ssrLighting.a;
 
     // In case this is a clear coat material, we only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
     // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
-    // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+    // we do something similar. The base layer is multiplied by (1-coatF)^2, but here we have no lighting to provide for the base layer, so instead,
+    // we leave some room in the hierarchyWeight so there is possibility to use the fallback probes later called in EvaluateBSDF_Env().
+    // The drawback is that the coat will still be evaluated by those, possibly incorrectly adding again coat lighting.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask);
+        //reflectionHierarchyWeight  *= 1 - Sq(1-F);
+        reflectionHierarchyWeight  *= F;
 
     return lighting;
 }
