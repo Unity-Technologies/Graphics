@@ -60,6 +60,10 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     {
         yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
 
+        var unloadTask = Resources.UnloadUnusedAssets();
+        while (!unloadTask.isDone)
+            yield return new WaitForEndOfFrame();
+
         // We run memory tests with 3 different resolutions for texture asset types:
         if (testDescription.assetType.IsSubclassOf(typeof(Texture)))
         {
