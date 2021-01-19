@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering
         /// <param name ="sh">The SphericalHarmonicsL2 data structure to get information from.</param>
         /// <param name ="index">The index of the coefficient that is requested (must be less than 9).</param>
         /// <returns>The value of the requested coefficient.</returns>
-        public static Vector3 GetCoefficient(ref SphericalHarmonicsL2 sh, int index)
+        public static Vector3 GetCoefficient(SphericalHarmonicsL2 sh, int index)
         {
             Debug.Assert(index < 9);
             return new Vector3(sh[0, index], sh[1, index], sh[2, index]);

@@ -196,27 +196,10 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1();
-                    sh1.shAr = channels[0];
-                    sh1.shAg = channels[1];
-                    sh1.shAb = channels[2];
-
-                    cell.sh[i][0, 0] = sh1.shAr.w;
-                    cell.sh[i][1, 0] = sh1.shAg.w;
-                    cell.sh[i][2, 0] = sh1.shAb.w;
-
-                    cell.sh[i][0, 1] = sh1.shAr.x;
-                    cell.sh[i][1, 1] = sh1.shAg.x;
-                    cell.sh[i][2, 1] = sh1.shAb.x;
-
-                    cell.sh[i][0, 2] = sh1.shAr.y;
-                    cell.sh[i][1, 2] = sh1.shAg.y;
-                    cell.sh[i][2, 2] = sh1.shAb.y;
-
-                    cell.sh[i][0, 3] = sh1.shAr.z;
-                    cell.sh[i][1, 3] = sh1.shAg.z;
-                    cell.sh[i][2, 3] = sh1.shAb.z;
-
+                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(channels[0].w, channels[1].w, channels[2].w));
+                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(channels[0].x, channels[0].y, channels[0].z));
+                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(channels[1].x, channels[1].y, channels[1].z));
+                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(channels[2].x, channels[2].y, channels[2].z));
 
                     cell.validity[i] = validity[j];
                 }
@@ -225,14 +208,11 @@ namespace UnityEngine.Rendering
                 {
                     int j = bakingCells[c].probeIndices[i];
 
-                    for (int rgb = 0; rgb < 3; ++rgb)
-                    {
-                        cell.sh[i][rgb, 4] = sh[j][rgb, 4];
-                        cell.sh[i][rgb, 5] = sh[j][rgb, 5];
-                        cell.sh[i][rgb, 6] = sh[j][rgb, 6];
-                        cell.sh[i][rgb, 7] = sh[j][rgb, 7];
-                        cell.sh[i][rgb, 8] = sh[j][rgb, 8];
-                    }
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(sh[j][0, 4], sh[j][1, 4], sh[j][2, 4]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(sh[j][0, 5], sh[j][1, 5], sh[j][2, 5]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(sh[j][0, 6], sh[j][1, 6], sh[j][2, 6]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
                 // Reset index

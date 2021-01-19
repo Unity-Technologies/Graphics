@@ -319,57 +319,56 @@ namespace UnityEngine.Rendering
                             int iy = by + y;
                             int iz = bz + z;
 
-                            // L1r
-                            c.r = shl2[shidx][0, 1];
-                            c.g = shl2[shidx][0, 2];
-                            c.b = shl2[shidx][0, 3];
-                            // L0r
-                            c.a = shl2[shidx][0, 0];
+                            Vector3 L0 = SphericalHarmonicsL2Utils.GetCoefficient(shl2[shidx], 0);
+                            Vector3 L1R, L1G, L1B;
+                            SphericalHarmonicsL2Utils.GetL1(shl2[shidx], out L1R, out L1G, out L1B);
 
+                            c.r = L1R.x;
+                            c.g = L1R.y;
+                            c.b = L1R.z;
+                            c.a = L0.x;
                             loc.TexL1_R.SetPixel(ix, iy, iz, c);
 
                             // L1g
-                            c.r = shl2[shidx][1, 1];
-                            c.g = shl2[shidx][1, 2];
-                            c.b = shl2[shidx][1, 3];
-
-                            // L0g
-                            c.a = shl2[shidx][1, 0];
+                            c.r = L1G.x;
+                            c.g = L1G.y;
+                            c.b = L1G.z;
+                            c.a = L0.y;
                             loc.TexL1_G.SetPixel(ix, iy, iz, c);
 
-                            // L1b
-                            c.r = shl2[shidx][2, 1];
-                            c.g = shl2[shidx][2, 2];
-                            c.b = shl2[shidx][2, 3];
-
-
-                            // L0b
-                            c.a = shl2[shidx][2, 0];
+                            c.r = L1B.x;
+                            c.g = L1B.y;
+                            c.b = L1B.z;
+                            c.a = L0.z;
                             loc.TexL1_B.SetPixel(ix, iy, iz, c);
 
                             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                             {
-                                c.r = shl2[shidx][0, 4];
-                                c.g = shl2[shidx][0, 5];
-                                c.b = shl2[shidx][0, 6];
-                                c.a = shl2[shidx][0, 7];
+                                Vector3 L2_0, L2_1, L2_2, L2_3, L2_4;
+                                SphericalHarmonicsL2Utils.GetL2(shl2[shidx], out L2_0, out L2_1, out L2_2, out L2_3, out L2_4);
+
+                                c.r = L2_0.x;
+                                c.g = L2_1.x;
+                                c.b = L2_2.x;
+                                c.a = L2_3.x;
                                 loc.TexL2_R.SetPixel(ix, iy, iz, c);
 
-                                c.r = shl2[shidx][1, 4];
-                                c.g = shl2[shidx][1, 5];
-                                c.b = shl2[shidx][1, 6];
-                                c.a = shl2[shidx][1, 7];
+                                c.r = L2_0.y;
+                                c.g = L2_1.y;
+                                c.b = L2_2.y;
+                                c.a = L2_3.y;
                                 loc.TexL2_G.SetPixel(ix, iy, iz, c);
 
-                                c.r = shl2[shidx][2, 4];
-                                c.g = shl2[shidx][2, 5];
-                                c.b = shl2[shidx][2, 6];
-                                c.a = shl2[shidx][1, 7];
+
+                                c.r = L2_0.z;
+                                c.g = L2_1.z;
+                                c.b = L2_2.z;
+                                c.a = L2_3.z;
                                 loc.TexL2_B.SetPixel(ix, iy, iz, c);
 
-                                c.r = shl2[shidx][0, 8];
-                                c.g = shl2[shidx][1, 8];
-                                c.b = shl2[shidx][2, 8];
+                                c.r = L2_4.x;
+                                c.g = L2_4.y;
+                                c.b = L2_4.z;
                                 c.a = 1;
                                 loc.TexL0.SetPixel(ix, iy, iz, c);
                             }
