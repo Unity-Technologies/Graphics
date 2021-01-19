@@ -33,20 +33,24 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
                                                     BSDFData bsdfData,
                                                     PreLightData preLightData,
-                                                    float3 reflection)
+                                                    float3 reflection,
+                                                    inout float reflectionHierarchyWeight,
+                                                    inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
     float3 reflectanceFactor = (float3)0.0;
+    float coatFGD;
 
     if (IsVLayeredEnabled(bsdfData))
     {
         reflectanceFactor = preLightData.specularFGD[COAT_LOBE_IDX];
-        reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
         // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
         // Incorrect, but for now:
         reflectanceFactor *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
+        coatFGD = Max3(reflectanceFactor.r, reflectanceFactor.g, reflectanceFactor.b); // should be scalar anyway (coat)
+        reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
     }
     else
     {
@@ -62,6 +66,19 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
     }
 
     lighting.specularReflected = reflection.rgb * reflectanceFactor;
+    if (IsVLayeredEnabled(bsdfData))
+    {
+        lightHierarchyData.lobeReflectionWeight[COAT_LOBE_IDX] = reflectionHierarchyWeight;
+        // Instead of reflectionHierarchyWeight *= coatFGD,
+        // we return min_of_all(lobeReflectionWeight) == 0, as we didn't provide any light for the bottom layer lobes:
+        reflectionHierarchyWeight = 0;
+    }
+    else
+    {
+        lightHierarchyData.lobeReflectionWeight[BASE_LOBEA_IDX] =
+        lightHierarchyData.lobeReflectionWeight[BASE_LOBEB_IDX] = reflectionHierarchyWeight;
+    }
+
     return lighting;
 }
 

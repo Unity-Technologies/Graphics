@@ -43,6 +43,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
 
+    // This struct is defined in the material and is private to it. It can be used for multiple lobe materials when eg directions are different,
+    // and to avoid double lighting some lobes (eg coat from SSR vs env.)
+    // The Lightloop does not access it but pass it back for SSR and env evaluation.
+    // It is pruned out by the compiler if unused by the material.
+    // Accessed below by EvaluateBSDF_ScreenSpaceReflection and EVALUATE_BSDF_ENV (EvaluateBSDF_Env).
+    LightHierarchyData lightHierarchyData;
+    ZERO_INITIALIZE(LightHierarchyData, lightHierarchyData); // LightLoop is in charge of initializing the struct
+
     // Indices of the subranges to process
     uint lightStart = 0, lightEnd = 0;
 
@@ -79,7 +87,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Add the traced reflection
     if (reflectionHierarchyWeight == 1.0)
     {
-        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection, reflectionHierarchyWeight, lightHierarchyData);
         AccumulateIndirectLighting(lighting, aggregateLighting);
     }
 
@@ -97,7 +105,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
-    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
+    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight), lightHierarchyData); \
     AccumulateIndirectLighting(lighting, aggregateLighting);
 
 // Environment cubemap test lightlayers, sky don't test it

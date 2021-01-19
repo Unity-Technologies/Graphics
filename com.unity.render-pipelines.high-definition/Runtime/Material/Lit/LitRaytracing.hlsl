@@ -32,11 +32,22 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
                                                     BSDFData bsdfData,
                                                     PreLightData preLightData,
-                                                    float3 reflection)
+                                                    float3 reflection,
+                                                    inout float reflectionHierarchyWeight,
+                                                    inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
-    lighting.specularReflected = reflection.rgb * preLightData.specularFGD;
+
+    float clampedNdotV = ClampNdotV(preLightData.NdotV);
+    float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
+    lighting.specularReflected = reflection.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
+                                                  F * bsdfData.coatMask : preLightData.specularFGD);
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+        //reflectionHierarchyWeight  *= 1 - Sq(1-F);
+        reflectionHierarchyWeight  *= F;
+
     return lighting;
 }
 
