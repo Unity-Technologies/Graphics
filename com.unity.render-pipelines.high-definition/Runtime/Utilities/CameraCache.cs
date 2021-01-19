@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <typeparam name="K">The type of the key.</typeparam>
     class CameraCache<K>: IDisposable
     {
-        Dictionary<K, (Camera camera, uint lastFrame)> m_Cache = new Dictionary<K, (Camera camera, uint lastFrame)>();
+        Dictionary<K, (Camera camera, int lastFrame)> m_Cache = new Dictionary<K, (Camera camera, int lastFrame)>();
         K[] cameraKeysCache = new K[0];
 
         /// <summary> Get or create a camera for the specified key </summary>
@@ -30,14 +30,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_Cache.TryGetValue(key, out var camera) || camera.camera == null || camera.camera.Equals(null))
             {
-                camera = (new GameObject().AddComponent<Camera>(), 0);
+                camera = (new GameObject().AddComponent<Camera>(), Time.frameCount);
                 camera.camera.cameraType = cameraType;
                 m_Cache[key] = camera;
             }
             else
             {
-                var hdCamera = HDCamera.GetOrCreate(camera.camera);
-                camera.lastFrame = hdCamera.GetCameraFrameCount();
+                camera.lastFrame = Time.frameCount;
                 m_Cache[key] = camera;
             }
             return camera.camera;
@@ -60,8 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Cache.TryGetValue(key, out var value))
                 {
-                    uint frameCount = HDCamera.GetOrCreate(value.camera).GetCameraFrameCount();
-                    if (value.camera == null || (frameCount - value.lastFrame) > frameWindow)
+                    if (Math.Abs(Time.frameCount - value.lastFrame) > frameWindow)
                     {
                         if (value.camera != null)
                         {

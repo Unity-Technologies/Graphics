@@ -1251,17 +1251,28 @@ namespace UnityEngine.Rendering.HighDefinition
             BeginContextRendering(renderContext, cameras);
 #else
             BeginFrameRendering(renderContext, cameras);
-
 #endif
 
             // Check if we can speed up FrameSettings process by skiping history
             // or go in detail if debug is activated. Done once for all renderer.
             m_FrameSettingsHistoryEnabled = FrameSettingsHistory.enabled;
 
-            int  newCount = Time.frameCount;
+#if UNITY_EDITOR
+            int newCount = m_FrameCount;
+            foreach (var c in cameras)
+            {
+                if (c.cameraType != CameraType.Preview)
+                {
+                    newCount++;
+                    break;
+                }
+            }
+#else
+            int newCount = Time.frameCount;
+#endif
             if (newCount != m_FrameCount)
             {
-                m_FrameCount  = newCount;
+                m_FrameCount = newCount;
                 m_ProbeCameraCache.ClearCamerasUnusedFor(2);
                 HDCamera.CleanUnused();
             }
