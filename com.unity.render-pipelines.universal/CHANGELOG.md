@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 
+### Removed
+- Code to upgrade from LWRP to URP was removed. This means if you want to upgrade from LWRP you must first upgrade to previous versions of URP and then upgrader to this version.
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.
