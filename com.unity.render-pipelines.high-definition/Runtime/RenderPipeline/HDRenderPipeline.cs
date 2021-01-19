@@ -1273,7 +1273,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (newCount != m_FrameCount)
             {
                 m_FrameCount = newCount;
-                m_ProbeCameraCache.ClearCamerasUnusedFor(2);
+                m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
             }
 
@@ -1630,7 +1630,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), CameraType.Reflection);
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
                         if (additionalCameraData == null)
