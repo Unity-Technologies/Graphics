@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        static private ComputeBuffer m_EmptyIndexBuffer = null;
+        private ComputeBuffer m_EmptyIndexBuffer = null;
 
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {

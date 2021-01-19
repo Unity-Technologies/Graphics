@@ -1,6 +1,6 @@
 # Kill (Sphere)
 
-Menu Path : **Kill >** **Kill (Sphere)**  
+Menu Path : **Kill >** **Kill (Sphere)**
 
 The Kill (Sphere) Block kills (sets the `alive` attribute to false) particles depending on where they are in comparison to a given [Sphere](Type-Sphere.md).
 
