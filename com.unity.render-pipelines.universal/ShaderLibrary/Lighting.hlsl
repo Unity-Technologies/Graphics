@@ -54,6 +54,28 @@ struct Light
     half    shadowAttenuation;
 };
 
+// WebGL1 does not support the variable conditioned for loops used for additional lights
+#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3)
+    #define _USE_WEBGL1_LIGHTS 1
+    #define _WEBGL1_MAX_LIGHTS 8
+#else
+    #define _USE_WEBGL1_LIGHTS 0
+#endif
+
+#if !_USE_WEBGL1_LIGHTS
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
+
+    #define LIGHT_LOOP_END }
+#else
+    // WebGL 1 doesn't support variable for loop conditions
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex) { \
+        if (lightIndex >= (int)lightCount) break;
+
+    #define LIGHT_LOOP_END }
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,6 +275,7 @@ int GetAdditionalLightsCount()
 
 struct BRDFData
 {
+    half3 albedo;
     half3 diffuse;
     half3 specular;
     half reflectivity;
@@ -272,7 +295,7 @@ half ReflectivitySpecular(half3 specular)
 #if defined(SHADER_API_GLES)
     return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
 #else
-    return max(max(specular.r, specular.g), specular.b);
+    return Max3(specular.r, specular.g, specular.b);
 #endif
 }
 
@@ -287,8 +310,16 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+half MetallicFromReflectivity(half reflectivity)
 {
+    half oneMinusDielectricSpec = kDielectricSpec.a;
+    return (reflectivity - kDielectricSpec.r) / oneMinusDielectricSpec;
+}
+
+inline void InitializeBRDFDataDirect(half3 albedo, half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+{
+    outBRDFData = (BRDFData)0;
+    outBRDFData.albedo = albedo;
     outBRDFData.diffuse = diffuse;
     outBRDFData.specular = specular;
     outBRDFData.reflectivity = reflectivity;
@@ -306,6 +337,13 @@ inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflect
 #endif
 }
 
+// Legacy: do not call, will not correctly initialize albedo property.
+inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)
+{
+    InitializeBRDFDataDirect(half3(0.0, 0.0, 0.0), diffuse, specular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
+}
+
+// Initialize BRDFData for material, managing both specular and metallic setup using shader keyword _SPECULAR_SETUP.
 inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha, out BRDFData outBRDFData)
 {
 #ifdef _SPECULAR_SETUP
@@ -320,7 +358,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     half3 brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
 #endif
 
-    InitializeBRDFDataDirect(brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
+    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
 }
 
 half3 ConvertF0ForClearCoat15(half3 f0)
@@ -334,6 +372,9 @@ half3 ConvertF0ForClearCoat15(half3 f0)
 
 inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
 {
+    outBRDFData = (BRDFData)0;
+    outBRDFData.albedo = 1.0h;
+
     // Calculate Roughness of Clear Coat layer
     outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
     outBRDFData.specular            = kDielectricSpec.rgb;
@@ -641,13 +682,13 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half NoV = saturate(dot(normalWS, viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
 
-    half3 indirectDiffuse = bakedGI * occlusion;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
+    half3 indirectDiffuse = bakedGI;
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, 1.0h);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, 1.0h);
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
@@ -655,9 +696,9 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     // Smooth surface & "ambiguous" lighting
     // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
-    return color * (1.0 - coatFresnel * clearCoatMask) + coatColor;
+    return (color * (1.0 - coatFresnel * clearCoatMask) + coatColor) * occlusion;
 #else
-    return color;
+    return color * occlusion;
 #endif
 }
 
@@ -783,12 +824,11 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
     uint lightsCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < lightsCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(lightsCount)
         Light light = GetAdditionalLight(lightIndex, positionWS);
         half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
-    }
+    LIGHT_LOOP_END
 #endif
 
     return vertexLightColor;
@@ -845,8 +885,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -855,7 +894,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                          light,
                                          inputData.normalWS, inputData.viewDirectionWS,
                                          surfaceData.clearCoatMask, specularHighlightsOff);
-    }
+    LIGHT_LOOP_END
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -910,8 +949,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -919,7 +957,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
-    }
+    LIGHT_LOOP_END
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX

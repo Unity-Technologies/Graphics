@@ -1,6 +1,6 @@
 # Cotton/Wool shader
 
-The Cotton/Wool shader is your starting point for rendering diffuse fabrics in the High Definition Render Pipeline (HDRP). You can use the Cotton/Wool shader to create fabrics like cotton, wool, linen, or velvet.  
+The Cotton/Wool shader is your starting point for rendering diffuse fabrics in the High Definition Render Pipeline (HDRP). You can use the Cotton/Wool shader to create fabrics like cotton, wool, linen, or velvet.
 
 The type of fibers that make up the fabric, as well as the fabric's knit or weave, influence the appearance of the fabric. Natural fibers are typically rougher and therefore diffuse light.
 
@@ -29,7 +29,7 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 
 3. Click the **Shader** drop-down at the top of the Material Inspector, and select **HDRP > Fabric > Cotton/Wool**.
 
-   
+
 
 [!include[](snippets/thread-map.md)]
 
@@ -65,6 +65,8 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 | **Fuzz Map UV Scale**                 | Sets the scale of the Thread UV used to sample the Fuzz Map. |
 | **Fuzz Strength**                     | Sets the strength of the Fuzz Color added to the Base Color. |
 
-###  
-
 [!include[](snippets/shader-properties/advanced-options/lit-advanced-options.md)]
+
+## Limitations
+
+[!include[](snippets/area-light-material-support-disclaimer.md)]

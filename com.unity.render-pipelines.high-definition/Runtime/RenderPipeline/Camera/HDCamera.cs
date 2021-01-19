@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GlobalIllumination0,
             GlobalIllumination1,
+            RayTracedReflections,
             Count
         }
 
@@ -341,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
+
+        internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
         internal HDPhysicalCamera physicalParameters { get; private set; }
 
@@ -572,8 +575,8 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = false;
             cameraFrameCount++;
 
-            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
-            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
+            HDRenderPipeline.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -847,6 +850,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDUtils.IsRegularPreviewCamera(camera))
             {
                 visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
+                visualSky.cloudSettings = null;
                 lightingSky = visualSky;
                 skyAmbientMode = SkyAmbientMode.Dynamic;
             }
@@ -856,6 +860,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
+                visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -863,7 +868,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
                 {
                     SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
-                    if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                    CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
+
+                    if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
+                        (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
                     {
                         // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                         // Resetting the visual sky hash will ensure that.
@@ -871,6 +879,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     m_LightingOverrideSky.skySettings = newSkyOverride;
+                    m_LightingOverrideSky.cloudSettings = newCloudOverride;
                     lightingSky = m_LightingOverrideSky;
                 }
                 else
@@ -1356,6 +1365,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Dispose()
         {
+            HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+
             VolumeManager.instance.DestroyStack(volumeStack);
 
             if (m_HistoryRTSystem != null)

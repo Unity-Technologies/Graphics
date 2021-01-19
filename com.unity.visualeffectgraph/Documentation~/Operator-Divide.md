@@ -1,6 +1,6 @@
 # Divide
 
-Menu Path : **Operator > Math > Arithmetic > Divide**  
+Menu Path : **Operator > Math > Arithmetic > Divide**
 
 The **Divide** Operator divides the first input sequentially by all other inputs. For example, an input value of (1, 2) / (3, 4, 5) outputs (0.33, 0.5, 0.2). And an input value of (1, 2) / 3 outputs (0.33, 0.66).
 

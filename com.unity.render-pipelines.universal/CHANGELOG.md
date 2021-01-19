@@ -4,11 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2021-01-11
+
+### Fixed
+- Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
+- Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
+- Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
+- Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.
-
-### Added
+- Added support for custom additional (i.e punctual) light shadow resolutions.
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 - Added the TerrainCompatible SubShader Tag. Use this Tag in your custom shader to tell Unity that the shader is compatible with the Terrain system.
 - Added _CameraSortingLayerTexture global shader variable and related parameters
@@ -17,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
 - Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
 - Added screen space shadow as renderer feature
+- Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
@@ -39,15 +48,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 - Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
 - Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
-- Changed shader keywords of main light shadow from toggling to enumerating
+- Changed shader keywords of main light shadow from toggling to enumerating.
+- Always use "High" quality normals, which normalizes the normal in pixel shader. "Low" quality normals looked too much like a bug.
+- Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
+- Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
+- Converted XR automated tests to use MockHMD.
+- Reduced the size of the fragment input struct of the Terrain and Forward lighting shaders.
 
 ### Fixed
+- Fixed an issue where additional lights would not render with WebGL 1
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
 - Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
 - Fixed an issue where no preview would show for the lit sprite master node in shadergraph
 - Fixed an issue where no shader was generated for unlit sprite shaders in shadergraph
 - Fixed an issue where Sprite-Lit-Default shader's Normal Map property wasn't affected by Tiling or Offset. [case 1270850](https://issuetracker.unity3d.com/issues/sprite-lit-default-shaders-normal-map-and-mask-textures-are-not-affected-by-tiling-and-offset-values)
+- Fixed an issue where normal-mapped Sprites could render differently depending on whether they're dynamically-batched. [case 1286186](https://issuetracker.unity3d.com/issues/urp-2d-2d-light-on-a-rotated-sprite-is-skewed-when-using-normal-map-and-sorting-layer-is-not-default)
 - Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
 - Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
 - Fixed camera renders black in XR when user sets invalid MSAA value.
@@ -71,6 +87,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+- Fixed the default background color for previews to use the original color.
+- Fixed an issue where the scene view would turn black when bloom was enabled. [case 1298790](https://issuetracker.unity3d.com/issues/urp-bloom-and-tonemapping-causes-the-screen-to-go-black-in-scene-mode)
+- Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
+- Fixed SAMPLE_TEXTURECUBE_ARRAY_LOD macro when using OpenGL ES. [case 1285132](https://issuetracker.unity3d.com/issues/urp-android-error-sample-texturecube-array-lod-is-not-supported-on-gles-3-dot-0-when-using-cubemap-array-shader-shaders)
+- Fixed an issue such that it is now posible to enqueue render passes at runtime.
 
 ## [10.2.0] - 2020-10-19
 
@@ -90,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Parallax Mapping to the Lit shader (Lit.shader).
 - Added the Detail Inputs setting group in the Lit shader (Lit.shader).
 - Added Smooth shadow fading.
+- Added SSAO support for deferred renderer.
 - The pipeline now outputs a warning in the console when trying to access camera color or depth texture when those are not valid. Those textures are only available in the context of `ScriptableRenderPass`.
 - Added a property to access the renderer from the `CameraData`.
 
@@ -97,7 +119,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
 - The maximum number of visible lights when using OpenGL ES 3.x on Android now depends on the minimum OpenGL ES 3.x version as configured in PlayerSettings.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
-- Moved `ForwardRendererData.postProcessData` into `UniversalRenderPipelineAsset.postProcessData` and made it optional. Builds do not include post-processing shaders and textures when `UniversalRenderPipelineAsset.postProcessData` is null.
 
 ### Fixed
 - Fixed an issue where the CapturePass would not capture the post processing effects.
@@ -411,7 +432,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
 - Light2D GameObjects that you've created now have a default position with z equal to 0.
-- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.  
+- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -884,7 +905,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ## [1.1.2-preview] - 2018-01-01
 
 ### Changed
- - Performance improvements in mobile  
+ - Performance improvements in mobile
 
 ### Fixed
  - Shadows on GLES 2.0

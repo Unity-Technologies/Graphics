@@ -9,17 +9,6 @@
 //
 #define DBUFFERMATERIAL_COUNT (4)
 
-// Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalSurfaceData
-// PackingRules = Exact
-struct DecalSurfaceData
-{
-    float4 baseColor;
-    float4 normalWS;
-    float4 mask;
-    float3 emissive;
-    float2 MAOSBlend;
-};
-
 // Generated from UnityEngine.Rendering.HighDefinition.DecalData
 // PackingRules = Exact
 struct DecalData
@@ -34,6 +23,17 @@ struct DecalData
     float4 scalingBAndRemappingM;
     float3 blendParams;
     uint decalLayerMask;
+};
+
+// Generated from UnityEngine.Rendering.HighDefinition.Decal+DecalSurfaceData
+// PackingRules = Exact
+struct DecalSurfaceData
+{
+    float4 baseColor;
+    float4 normalWS;
+    float4 mask;
+    float3 emissive;
+    float2 MAOSBlend;
 };
 
 

@@ -403,15 +403,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrpAsset == null)
                 return;
 
-            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
-            hdrpAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
-            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
+            var runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
+            hdrpAsset.renderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
+            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources,
                 HDUtils.GetHDRenderPipelinePath()))
             {
                 InternalEditorUtility.SaveToSerializedFileAndForget(
-                    new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineEditorResources },
-                    editorResourcesPath,
+                    new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineResources },
+                    runtimeResourcesPath,
                     true);
             }
         }
@@ -914,7 +914,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
-        
+
         class PackageInstaller
         {
             PackageManager.Requests.AddRequest m_CurrentRequest;
