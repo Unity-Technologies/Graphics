@@ -18,13 +18,13 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
-- Fixed an issue with the Gradient color picker displaying different values than the selected color. 
+- Fixed an issue with the Gradient color picker displaying different values than the selected color.
 - Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
-- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible
 - Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
-- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview
 - Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
-- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.

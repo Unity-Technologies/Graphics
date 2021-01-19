@@ -11,15 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-### Changed 
+### Changed
 - Update SRP package to 11.0.0
 
 ## [10.2.0] - 2020-10-19
 
-### Changed 
+### Changed
 - Update SRP package to 10.2.0
 
 ## [10.1.0] - 2020-10-12
 
-### Added 
+### Added
 - Initial creation of 2020 HD Template

@@ -11,6 +11,7 @@
         "com.unity.test-framework.utp-reporter": "1.0.2-preview",
         "com.unity.testframework.graphics": "7.8.0-preview",
         "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
         "com.unity.timeline": "1.2.9",
         "com.unity.ugui": "1.0.0",
         "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
@@ -49,6 +50,7 @@
     "disableProjectUpdate": true,
     "testables": [
         "com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr",
         "com.unity.render-pipelines.visualeffectgraph",
         "com.unity.testframework.graphics"
     ]

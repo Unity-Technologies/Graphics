@@ -1,6 +1,6 @@
 # Asin
 
-Menu Path : **Operator > Math > Trigonometry > Asin**  
+Menu Path : **Operator > Math > Trigonometry > Asin**
 
 The **Asin** Operator calculates the [arcsine](https://docs.unity3d.com/ScriptReference/Mathf.Asin.html) of the input. This Operator is the inverse of the [Sine Operator](Operator-Sine.md). The result is in radians.
 
