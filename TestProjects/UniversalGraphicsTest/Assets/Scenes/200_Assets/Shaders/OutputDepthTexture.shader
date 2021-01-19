@@ -45,12 +45,8 @@ Shader "Hidden/Test/OutputDepthTexture"
             half4 Fragment(Varyings input) : SV_Target
             {
                 float2 uv = input.positionCS.xy;
-
                 float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(uv);
-                normalizedScreenSpaceUV.y = 1.0 - normalizedScreenSpaceUV.y;
-
                 float depth = SampleSceneDepth(normalizedScreenSpaceUV);
-
                 return half4(depth, depth, depth, 1);
             }
             ENDHLSL

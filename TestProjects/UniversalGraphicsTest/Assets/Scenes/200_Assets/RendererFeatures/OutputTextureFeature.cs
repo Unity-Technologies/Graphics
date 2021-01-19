@@ -6,16 +6,17 @@ public class OutputTextureFeature : ScriptableRendererFeature
 {
     public Shader shader;
     public ScriptableRenderPassInput inputRequirement;
+    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRendering;
+    public int renderPassEventAdjustment = 0;
 
     private Material m_Material;
-    private CustomRenderPass m_ScriptablePass;
+    private OutputTexturePass m_OutputTexturePassPass;
 
 
     /// <inheritdoc/>
     public override void Create()
     {
-        m_ScriptablePass = new CustomRenderPass();
-        m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRendering + 2;
+        m_OutputTexturePassPass = new OutputTexturePass(name);
     }
 
     // Here you can inject one or multiple render passes in the renderer.
@@ -31,9 +32,9 @@ public class OutputTextureFeature : ScriptableRendererFeature
         {
             m_Material = new Material(shader);
         }
-
-        m_ScriptablePass.Setup(m_Material, inputRequirement);
-        renderer.EnqueuePass(m_ScriptablePass);
+        m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
+        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement, renderPassEvent, renderPassEventAdjustment);
+        renderer.EnqueuePass(m_OutputTexturePassPass);
     }
 
     protected override void Dispose(bool disposing)
@@ -42,13 +43,21 @@ public class OutputTextureFeature : ScriptableRendererFeature
     }
 
 
-
-    class CustomRenderPass : ScriptableRenderPass
+    class OutputTexturePass : ScriptableRenderPass
     {
         private Material m_Material;
-        public void Setup(Material material, ScriptableRenderPassInput inputRequirement)
+        private ScriptableRenderer m_Renderer;
+        private ProfilingSampler m_ProfilingSampler;
+
+        public OutputTexturePass(string profilerTag)
+        {
+            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+        }
+
+        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement, RenderPassEvent renderPassEvent, int renderPassEventAdjustment)
         {
             m_Material = material;
+            m_Renderer = renderer;
             ConfigureInput(inputRequirement);
         }
 
@@ -70,9 +79,9 @@ public class OutputTextureFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, new ProfilingSampler("OutputTextureFeature")))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                cmd.SetRenderTarget(m_Renderer.cameraColorTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);

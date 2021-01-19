@@ -56,3 +56,5 @@ MonoBehaviour:
   m_Active: 1
   shader: {fileID: 4800000, guid: 718823c46701e42c89603ff80f90f8b6, type: 3}
   inputRequirement: 2
+  renderPassEvent: 1000
+  renderPassEventAdjustment: 0

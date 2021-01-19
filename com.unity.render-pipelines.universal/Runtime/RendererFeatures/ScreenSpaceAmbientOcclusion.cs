@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
                 m_FullResDescriptor.depthBufferBits = 0;
 
                 m_Descriptor.colorFormat = RenderTextureFormat.R8;
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_Descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FullResDescriptor, FilterMode.Bilinear);
 
                 m_FullResDescriptor.colorFormat = RenderTextureFormat.ARGB32;
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_FullResDescriptor, FilterMode.Bilinear);
