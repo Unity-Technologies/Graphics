@@ -796,7 +796,7 @@ namespace UnityEditor.ShaderGraph
 
             var vfxPropertiesBuilder = new ShaderStringBuilder();
 
-            // Extend the SurfaceDescriptionFunction prototype with properties computed by VFX.
+            // Extend the SurfaceDescriptionFunction signature with properties computed by VFX.
             if (mode == GenerationMode.VFX)
             {
                 graph.ForeachHLSLProperty(h =>
@@ -1000,11 +1000,6 @@ namespace UnityEditor.ShaderGraph
 
                 builder.AppendLine("return description;");
             }
-        }
-
-        internal static string GenerateVFXPropertyInputs(PropertyCollector properties)
-        {
-            return string.Empty;
         }
 
         internal static string GetSpliceCommand(string command, string token)
