@@ -23,7 +23,7 @@ void DOTS_Skinning(inout float3 position, inout float3 normal, inout float4 tang
     {
 		const int streamIndex = _HybridDeformedVertexStreamIndex;
 		const int startIndex = asint(unity_ComputeMeshIndex)[streamIndex];
-		const DeformedVertexData vertexData = _PreviousFrameDeformedMeshData[startIndex + vertexID];
+		const DeformedVertexData vertexData = _DeformedMeshData[startIndex + vertexID];
 	
         //const int meshIndex = (int)unity_ComputeMeshIndex.x;
         //const DeformedVertexData data = _DeformedMeshData[meshIndex + vertexID];
