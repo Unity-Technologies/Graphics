@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class TransparencyOverdrawPassData
         {
-            public TransparencyOverdrawParameters parameters;
-            public TextureHandle output;
-            public TextureHandle depthBuffer;
+            public FrameSettings frameSettings;
+            public ShaderVariablesDebugDisplay constantBuffer;
+
             public RendererListHandle transparencyRL;
             public RendererListHandle transparencyAfterPostRL;
             public RendererListHandle transparencyLowResRL;
@@ -27,26 +27,50 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle transparencyOverdrawOutput = TextureHandle.nullHandle;
                 using (var builder = renderGraph.AddRenderPass<TransparencyOverdrawPassData>("Transparency Overdraw", out var passData))
                 {
-                    passData.parameters = PrepareTransparencyOverdrawParameters(hdCamera, cull);
-                    passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat() }));
-                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.transparencyRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyRL));
-                    passData.transparencyAfterPostRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyAfterPostRL));
-                    passData.transparencyLowResRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyLowResRL));
+                    var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
+                    var stateBlock = new RenderStateBlock
+                    {
+                        mask = RenderStateMask.Blend,
+                        blendState = new BlendState
+                        {
+                            blendState0 = new RenderTargetBlendState
+                            {
+                                destinationColorBlendMode = BlendMode.One,
+                                sourceColorBlendMode = BlendMode.One,
+                                destinationAlphaBlendMode = BlendMode.One,
+                                sourceAlphaBlendMode = BlendMode.One,
+                                colorBlendOperation = BlendOp.Add,
+                                alphaBlendOperation = BlendOp.Add,
+                                writeMask = ColorWriteMask.All
+                            }
+                        }
+                    };
+
+                    passData.frameSettings = hdCamera.frameSettings;
+                    passData.constantBuffer = m_ShaderVariablesDebugDisplayCB;
+                    builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                    passData.transparencyRL = builder.UseRendererList(renderGraph.CreateRendererList(
+                        CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, stateBlock: stateBlock)));
+                    passData.transparencyAfterPostRL = builder.UseRendererList(
+                        renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent, stateBlock: stateBlock)));
+                    passData.transparencyLowResRL = builder.UseRendererList(
+                        renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_LowTransparent, stateBlock: stateBlock)));
+
+                    transparencyOverdrawOutput = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { name = "Transparency Overdraw", colorFormat = GetColorBufferFormat(), clearBuffer = true, clearColor = Color.black }), 0);
 
                     builder.SetRenderFunc(
                         (TransparencyOverdrawPassData data, RenderGraphContext ctx) =>
                         {
-                            RenderTransparencyOverdraw(data.parameters,
-                                data.output,
-                                data.depthBuffer,
-                                data.transparencyRL,
-                                data.transparencyAfterPostRL,
-                                data.transparencyLowResRL,
-                                ctx.renderContext, ctx.cmd);
-                        });
+                            data.constantBuffer._DebugTransparencyOverdrawWeight = 1.0f;
+                            ConstantBuffer.PushGlobal(ctx.cmd, data.constantBuffer, HDShaderIDs._ShaderVariablesDebugDisplay);
 
-                    transparencyOverdrawOutput = passData.output;
+                            DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.frameSettings, data.transparencyRL);
+                            DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.frameSettings, data.transparencyAfterPostRL);
+
+                            data.constantBuffer._DebugTransparencyOverdrawWeight = 0.25f;
+                            ConstantBuffer.PushGlobal(ctx.cmd, data.constantBuffer, HDShaderIDs._ShaderVariablesDebugDisplay);
+                            DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.frameSettings, data.transparencyLowResRL);
+                        });
                 }
 
                 PushFullScreenDebugTexture(renderGraph, transparencyOverdrawOutput, FullScreenDebugMode.TransparencyOverdraw);
