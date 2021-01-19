@@ -11,7 +11,6 @@ SUPPORTED_PACKAGES=[
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config",
-    "com.unity.render-pipelines.lightweight",
     "com.unity.render-pipelines.universal",
     "com.unity.visualeffectgraph"
 ]
