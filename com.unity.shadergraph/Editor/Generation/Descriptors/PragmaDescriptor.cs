@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -32,5 +32,6 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor DOTSInstancing => new PragmaDescriptor { value = "multi_compile _ DOTS_INSTANCING_ON" };
         public static PragmaDescriptor MultiCompileFog => new PragmaDescriptor { value = "multi_compile_fog" };
         public static PragmaDescriptor EditorSyncCompilation => new PragmaDescriptor { value = "editor_sync_compilation" };
+        public static PragmaDescriptor DX11Debug => new PragmaDescriptor { value = "enable_d3d11_debug_symbols" };
     }
 }
