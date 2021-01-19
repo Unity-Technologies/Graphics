@@ -21,6 +21,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - New View Lighting Tool, a component which allow to setup light in the camera space
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
 
 ## [10.2.0] - 2020-10-19
 
