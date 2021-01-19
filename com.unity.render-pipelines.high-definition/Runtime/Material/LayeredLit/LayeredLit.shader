@@ -495,7 +495,7 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
 
-    #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
 
     // Keyword for transparent

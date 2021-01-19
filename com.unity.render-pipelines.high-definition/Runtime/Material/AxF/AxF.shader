@@ -198,7 +198,7 @@ Shader "HDRP/AxF"
 
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
-    #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

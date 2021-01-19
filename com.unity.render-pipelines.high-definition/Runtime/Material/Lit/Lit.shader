@@ -331,7 +331,7 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
 
-    #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     //-------------------------------------------------------------------------------------
     // Define
