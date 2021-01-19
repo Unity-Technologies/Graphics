@@ -85,8 +85,6 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
-
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
         public void Load_VFXLibrary()
         {
@@ -94,7 +92,7 @@ namespace UnityEditor.VFX.PerformanceTest
             bool oldState = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = false;
 
-            for (int i = 0; i < 8; i++) //Doing this multiple time to have an average result
+            for (int i = 0; i < 16; i++) //Doing this multiple time to have an average result
             {
                 VFXLibrary.ClearLibrary();
                 using (Measure.Scope("VFXLibrary.Load"))
@@ -136,7 +134,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 window.graphView.FrameAll();
             }
 
-            for (int i = 0; i < 16; ++i) //Render n frames
+            for (int i = 0; i < 8; ++i) //Render n frames
             {
                 var position = window.graphView.viewTransform.position;
                 position.x += i%2 == 1 ? 3.0f : -3.0f;
@@ -169,7 +167,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
             if (graph)
             {
-                for (int i = 0; i < 16; ++i)
+                for (int i = 0; i < 4; ++i)
                 {
                     object backup = null;
                     using (Measure.Scope("VFXGraph.Backup"))
@@ -191,8 +189,9 @@ namespace UnityEditor.VFX.PerformanceTest
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
 
+        static readonly string[] allForceShaderValidation = { "ShaderValidation_On", "ShaderValidation_Off" };
         [Timeout(k_BuildTimeout), Version("1"), Test, Performance]
-        public void Compilation([ValueSource("allForceShaderValidation")] string forceShaderValidationModeName, [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
+        public void Compilation(/*[ValueSource("allForceShaderValidation")] string forceShaderValidationModeName,*/ [ValueSource("allCompilationMode")] string compilationModeName, [ValueSource("allVisualEffectAsset")] string vfxAssetPath)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
             bool oldState = ShaderUtil.allowAsyncCompilation;
@@ -201,7 +200,8 @@ namespace UnityEditor.VFX.PerformanceTest
             VFXCompilationMode compilationMode;
             Enum.TryParse<VFXCompilationMode>(compilationModeName, out compilationMode);
 
-            bool forceShaderValidationMode = forceShaderValidationModeName == "ShaderValidation_On";
+            //This compilation test shouldn't measure shader compilation time, furthermore, the first variant isn't always relevant.
+            bool forceShaderValidationMode = false; 
 
             VFXGraph graph;
             string fullPath;
