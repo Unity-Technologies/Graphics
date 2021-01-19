@@ -65,7 +65,7 @@ def cmd_standalone(project, platform, api, test_platform, editor, build_config, 
         
 def cmd_standalone_build(project, platform, api, test_platform, editor, build_config, color_space):
 
-    if "BoatAttack" not in project["name"]:
+    if "Performance" not in project["name"]:
         base = [
             f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
             f'brew install unity/unity/unity-downloader-cli',

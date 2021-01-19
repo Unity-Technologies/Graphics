@@ -1,0 +1,267 @@
+project:
+  name: URP_Performance_LostCrypt
+  folder: 2d-sara
+  url: https://github.com/Unity-Technologies/2d-sara.git
+  branch: '%LOST_CRYPT_BRANCH%'
+  revision: '%LOST_CRYPT_REVISION%'
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+    - 'unity-config project add dependency com.unity.addressables@1.16.7 --project-path .'
+    - 'unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .'
+    - 'unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .'
+    - 'unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .'
+    - 'unity-config project add testable com.unity.cli-project-setup  --project-path .'
+    - 'unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .'
+    - 'unity-config project add testable com.unity.test.metadata-manager  --project-path .'
+    - 'unity-config project add testable com.unity.testing.graphics-performance --project-path .'
+    - 'unity-config project add testable com.unity.render-pipelines.core  --project-path .'
+    - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
+    - 'unity-config project set project-update false --project-path .'
+  variables:
+    LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+    LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+
+test_platforms:
+  - type: Standalone
+    name: performance_playmode_runtime
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=LostCrypt
+      - [iPhone_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+      - [all]: --category=URP
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
+    utr_repeat:
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersLow
+        utr_flags_build:
+        - [all]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersLow
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersMedium
+        utr_flags_build:
+        - [all]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersMedium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersHigh
+        utr_flags_build:
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --testfilter=High
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersHigh
+  - type: playmode
+    name: performance_playmode_editor
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=LostCrypt
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --category=URP
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+    utr_repeat:
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+  - type: editmode
+    name: performance_build_editmode
+    is_performance: True
+    utr_flags:
+      - [all]: --testfilter=Build
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=LostCrypt
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --category=URP
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+    utr_repeat:
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+expression_trigger: 
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+        model: rtx2080
+  - name: Android
+    apis: 
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+  - name: iPhone
+    apis: 
+      - name: Metal
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM::osx
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.large
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        #- performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_LostCrypt
+      pr: true

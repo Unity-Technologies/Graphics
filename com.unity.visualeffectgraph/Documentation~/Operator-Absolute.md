@@ -1,10 +1,10 @@
 # Absolute
 
-Menu Path : **Operator > Math > Arithmetic > Absolute**  
+Menu Path : **Operator > Math > Arithmetic > Absolute**
 
 The **Absolute** Operator calculates the absolute value of the input. For example, an input value of (4 ,0, -4) outputs (4, 0, 4).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). 
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator properties
 
