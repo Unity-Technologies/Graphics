@@ -38,17 +38,11 @@ PR_URP_Performance_LostCrypt_trunk:
          rerun: on-new-revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
-         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
+        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
 Nightly_URP_Performance_LostCrypt_trunk:
     name: Nightly URP_Performance_LostCrypt - trunk
     dependencies:
@@ -57,8 +51,8 @@ Nightly_URP_Performance_LostCrypt_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
+        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
 PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt PR Job - CUSTOM-REVISION
     dependencies:
@@ -90,18 +84,12 @@ PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
+        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
 Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: Nightly URP_Performance_LostCrypt - CUSTOM-REVISION
     dependencies:
@@ -111,5 +99,5 @@ Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-        LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
+        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a

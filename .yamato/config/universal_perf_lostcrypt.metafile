@@ -24,8 +24,8 @@ project:
     - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
     - 'unity-config project set project-update false --project-path .'
   variables:
-    LOST_CRYPT_BRANCH: 20.2/urp-perf-test
-    LOST_CRYPT_REVISION: f4b0e6d13aa8b4a3b6715011b5495e852ef5f3e4
+    LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+    LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
 
 test_platforms:
   - type: Standalone
@@ -260,14 +260,6 @@ pr:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_build_editmode
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
         - performance_build_editmode
 nightly:
   dependencies:
