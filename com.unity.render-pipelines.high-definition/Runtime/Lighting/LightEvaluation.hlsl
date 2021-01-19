@@ -481,12 +481,11 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
     float shadow        = 1.0;
     float shadowMask    = 1.0;
-    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
     // When screen space shadows are not supported, this value is stripped out as it is a constant.

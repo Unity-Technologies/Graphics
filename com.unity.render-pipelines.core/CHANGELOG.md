@@ -18,6 +18,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
+### Added
+- New View Lighting Tool, a component which allow to setup light in the camera space
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+
 ## [10.2.0] - 2020-10-19
 
 Version Updated
