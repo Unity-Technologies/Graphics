@@ -23,10 +23,10 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:linux
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_2019.4
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_2019.4:
-    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Player on version 2019.4
+Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_2019.4:
+    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_standalone_build_Player on version 2019.4
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -117,10 +117,10 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:linux
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_fast-2019.4
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_fast-2019.4:
-    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Player on version fast-2019.4
+Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_fast-2019.4:
+    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_standalone_build_Player on version fast-2019.4
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -212,10 +212,10 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build ShaderGraph on Linux_Vulkan_mono_Linear_standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
