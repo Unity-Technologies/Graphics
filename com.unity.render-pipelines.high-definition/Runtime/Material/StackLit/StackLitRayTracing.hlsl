@@ -1,15 +1,27 @@
 float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
 {
-    float roughness = bsdfData.roughnessAT;
+    float roughness;
     float3x3 localToWorld;
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+
+    if (IsVLayeredEnabled(bsdfData))
     {
-        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+        roughness = bsdfData.coatRoughness;
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
     else
     {
-        localToWorld = GetLocalFrame(bsdfData.normalWS);
+        roughness = PerceptualRoughnessToRoughness(lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix));
+
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+        {
+            localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+        }
+        else
+        {
+            localToWorld = GetLocalFrame(bsdfData.normalWS);
+        }
     }
+
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
     SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
