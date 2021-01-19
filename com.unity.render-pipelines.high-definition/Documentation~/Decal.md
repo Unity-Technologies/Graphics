@@ -15,12 +15,12 @@ Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal
 
 To use Decal Layers, first enable them in your Project’s [HDRP Asset](HDRP-Asset.md). You can then enable Decal Layers in your [Frame Settings](Frame-Settings.md) to set your Cameras to process Decal Layers.
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Decal > Layers** and enable the checkbox.
-2. To enable Decal Layers in the default Frame Settings for all Cameras, in your HDRP Asset, go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Rendering** section, enable the **Decal Layers** checkbox. 
+2. To enable Decal Layers in the default Frame Settings for all Cameras, in your HDRP Asset, go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Rendering** section, enable the **Decal Layers** checkbox.
 
 To override the Frame Settings for Cameras and set Decal Layers on an individual basis:
 
-1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector. 
-2. Go to the **General** section and enable the **Custom Frame Settings** checkbox. This exposes the **Frame Settings Overrides,** which you can use to customize this Camera only. 
+1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector.
+2. Go to the **General** section and enable the **Custom Frame Settings** checkbox. This exposes the **Frame Settings Overrides,** which you can use to customize this Camera only.
 3. In the **Rendering** section, enable the **Decal Layers** checkbox to make this Camera use Decal Layers.
 
 ## Using Decal Layers
