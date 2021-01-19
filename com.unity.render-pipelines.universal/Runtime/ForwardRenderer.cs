@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign camera targets (color and depth)
             {
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, true);
+                    //CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, true);
 
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
