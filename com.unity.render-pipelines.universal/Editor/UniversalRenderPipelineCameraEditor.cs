@@ -63,6 +63,9 @@ namespace UnityEditor.Rendering.Universal
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
+            public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
+            public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
+
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
             public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
@@ -102,6 +105,7 @@ namespace UnityEditor.Rendering.Universal
         ReorderableList m_LayerList;
 
         public Camera camera { get { return target as Camera; } }
+        static List<Camera> k_Cameras;
 
         List<Camera> validCameras = new List<Camera>();
         // This is the valid list of types, so if we need to add more types we just add it here.
