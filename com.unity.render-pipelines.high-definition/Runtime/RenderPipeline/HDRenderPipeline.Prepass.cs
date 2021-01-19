@@ -96,8 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle        stencilBuffer;
             public ComputeBufferHandle  coarseStencilBuffer;
-
-            public TextureHandle        flagMaskBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
@@ -208,7 +206,6 @@ namespace UnityEngine.Rendering.HighDefinition
             result.motionVectorsBuffer = motionVectors ? CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors) : renderGraph.defaultResources.blackTextureXR;
             result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.stencilBuffer = result.depthBuffer;
-            result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 
@@ -219,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderCustomPass(renderGraph, hdCamera, colorBuffer, result, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeRendering, aovRequest, aovBuffers);
 
-                RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, result.flagMaskBuffer, result.depthBuffer, false);
+                RenderRayTracingDepthPrepass(renderGraph, cullingResults, hdCamera, result.depthBuffer);
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
 
@@ -288,6 +285,84 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return result;
+        }
+
+        class RayTracingDepthPrepassData
+        {
+            public FrameSettings frameSettings;
+            public TextureHandle depthBuffer;
+            public RendererListHandle opaqueRenderList;
+            public RendererListHandle transparentRenderList;
+        }
+
+        void RenderRayTracingDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            if (!recursiveSettings.enable.value)
+                return;
+
+            // The goal of this pass is to fill the depth buffer with object flagged for recursive rendering.
+            // This will save performance because we reduce overdraw of non recursive rendering objects.
+            // This is also required to avoid marking the pixels for various effects like motion blur and such.
+            using (var builder = renderGraph.AddRenderPass<RayTracingDepthPrepassData>("RayTracing Depth Prepass", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingDepthPrepass)))
+            {
+                passData.frameSettings = hdCamera.frameSettings;
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
+                passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
+
+                builder.SetRenderFunc(
+                    (RayTracingDepthPrepassData data, RenderGraphContext context) =>
+                    {
+                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.opaqueRenderList);
+                        DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.transparentRenderList);
+                    });
+            }
+        }
+
+        class RayTracingFlagMaskPassData
+        {
+            public FrameSettings frameSettings;
+            public TextureHandle depthBuffer;
+            public TextureHandle flagMask;
+            public RendererListHandle opaqueRenderList;
+            public RendererListHandle transparentRenderList;
+            public bool clear;
+        }
+
+        TextureHandle RenderRayTracingFlagMask(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return renderGraph.defaultResources.blackTextureXR;
+
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            if (!recursiveSettings.enable.value)
+                return renderGraph.defaultResources.blackTextureXR;
+
+            // This pass will fill the flag mask texture. This will only tag pixels for recursive rendering for now.
+            // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a render target (But it require various headaches to work correctly).
+            using (var builder = renderGraph.AddRenderPass<RayTracingFlagMaskPassData>("RayTracing Flag Mask", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingFlagMask)))
+            {
+                passData.frameSettings = hdCamera.frameSettings;
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.flagMask = builder.UseColorBuffer(CreateFlagMaskTexture(renderGraph), 0);
+                passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite)));
+                passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes, stateBlock: m_DepthStateNoWrite)));
+
+                builder.SetRenderFunc(
+                    (RayTracingFlagMaskPassData data, RenderGraphContext context) =>
+                    {
+                        DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.opaqueRenderList);
+                        DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.transparentRenderList);
+                    });
+
+                return passData.flagMask;
+            }
         }
 
         class DrawRendererListPassData

@@ -126,7 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
-        RayTracingPrepass,
+        RayTracingDepthPrepass,
+        RayTracingFlagMask,
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
