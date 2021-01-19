@@ -25,8 +25,7 @@ Shader "Hidden/Shadow2DShadowSprite"
                 Fail Keep
             }
 
-            //ColorMask [_ShadowColorMask]
-            ColorMask R
+            ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert

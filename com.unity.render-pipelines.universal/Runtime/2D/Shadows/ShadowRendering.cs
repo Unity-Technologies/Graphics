@@ -17,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingSamplerShadows = new ProfilingSampler("Draw 2D Shadow Texture");
 
         private static RenderTargetHandle[] m_RenderTargets = null;
+        private static readonly Color[] k_ColorLookup = new Color[4] { new Color(0, 0, 0, 1), new Color(0, 0, 1, 0), new Color(0, 1, 0, 0), new Color(1, 0, 0, 0) };
+
         public static  uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
@@ -144,8 +146,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
 
-                // TODO: replace 0 with a color mask value. We should have a colormask passed in to this function
-                int colorMask = 0;
+                // TODO: We should have colorBit passed in to this function
+                // Bit 0 - Alpha, 1 - Blue, 2 - Green, 3 - Red
+                int colorBit = 2;
+                int colorMask = 1 << colorBit;
+
+                cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
                 var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorMask);
                 var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorMask);
                 var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorMask);
