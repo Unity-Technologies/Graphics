@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.3.0] - 2020-11-16
 
+### Added
+- Added support for the PlayStation 5 platform.
+
 ### Fixed
 - Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 - Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
