@@ -18,32 +18,32 @@ struct APVResources
 {
     StructuredBuffer<int> index;
 
-    Texture3D L0;
+    Texture3D L0_L1Rx;
 
-    Texture3D L1_R;
-    Texture3D L1_G;
-    Texture3D L1_B;
+    Texture3D L1G_L1Ry;
+    Texture3D L1B_L1Rz;
 
 #ifdef PROBE_VOLUMES_L2
-    Texture3D L2_R;
-    Texture3D L2_G;
-    Texture3D L2_B;
+    Texture3D L2_0;
+    Texture3D L2_1;
+    Texture3D L2_2;
+    Texture3D L2_3;
 #endif
 };
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
 
-TEXTURE3D(_APVResL0);
+TEXTURE3D(_APVResL0_L1Rx);
 
-TEXTURE3D(_APVResL1_R);
-TEXTURE3D(_APVResL1_G);
-TEXTURE3D(_APVResL1_B);
+TEXTURE3D(_APVResL1G_L1Ry);
+TEXTURE3D(_APVResL1B_L1Rz);
 
 #ifdef PROBE_VOLUMES_L2
-TEXTURE3D(_APVResL2_R);
-TEXTURE3D(_APVResL2_G);
-TEXTURE3D(_APVResL2_B);
+TEXTURE3D(_APVResL2_0);
+TEXTURE3D(_APVResL2_1);
+TEXTURE3D(_APVResL2_2);
+TEXTURE3D(_APVResL2_3);
 #endif
 
 APVConstants LoadAPVConstants( StructuredBuffer<int> index )
@@ -90,20 +90,22 @@ float4 DecodeSH(float l0, float4 l1)
 #define APV_USE_BASE_OFFSET
 
 // We split the evaluation in several steps to make variants with different bands easier.
-float3 EvaluateAPVL0(APVResources apvRes, float3 uvw)
+float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
 {
-    float4 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+    L1Rx = L0_L1Rx.w;
 
-    return float3(l1_R.a, l1_G.a, l1_B.a);
+    return L0_L1Rx.xyz;
 }
 
-void EvaluateAPVL1(APVResources apvRes, float3 L0, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
 {
-    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, uvw, 0).rgb;
-    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgb;
-    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgb;
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+
+    float3 l1_R = float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w);
+    float3 l1_G = L1G_L1Ry.xyz;
+    float3 l1_B = L1B_L1Rz.xyz;
 
     // decode the L1 coefficients
     l1_R = DecodeSH(L0.r, l1_R);
@@ -115,25 +117,14 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float3 N, float3 backN, float
 }
 
 #ifdef PROBE_VOLUMES_L2
-void EvaluateAPVL1L2(APVResources apvRes, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
 {
-    float4 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, uvw, 0).rgba;
+    EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_R, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_G, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_B, s_linear_clamp_sampler, uvw, 0).rgba;
-
-    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L0, s_linear_clamp_sampler, uvw, 0).rgba;
-
-    // decode the L1 coefficients
-    l1_R.rgb = DecodeSH(l1_R.a, l1_R.rgb);
-    l1_G.rgb = DecodeSH(l1_G.a, l1_G.rgb);
-    l1_B.rgb = DecodeSH(l1_B.a, l1_B.rgb);
-
-    diffuseLighting = SHEvalLinearL1(N, l1_R.rgb, l1_G.rgb, l1_B.rgb);
-    backDiffuseLighting = SHEvalLinearL1(backN, l1_R.rgb, l1_G.rgb, l1_B.rgb);
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
 
     diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
     backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
@@ -217,12 +208,13 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     float3 pool_uvw;
     if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
     {
-        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
+        float L1Rx;
+        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, L1Rx);
 
 #ifdef PROBE_VOLUMES_L1
-        EvaluateAPVL1(apvRes, L0, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+        EvaluateAPVL1(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
 #elif PROBE_VOLUMES_L2
-        EvaluateAPVL1L2(apvRes, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+        EvaluateAPVL1L2(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 
         bakeDiffuseLighting += L0;
@@ -243,7 +235,8 @@ float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in APV
     float3 pool_uvw;
     if (TryToGetPoolUVW(apvRes, posWS, normalWS, pool_uvw))
     {
-        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw);
+        float unused;
+        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, unused);
         bakeDiffuseLighting = L0;
     }
     else
@@ -260,16 +253,16 @@ APVResources FillAPVResources()
     APVResources apvRes;
     apvRes.index = _APVResIndex;
 
-    apvRes.L0 = _APVResL0;
+    apvRes.L0_L1Rx = _APVResL0_L1Rx;
 
-    apvRes.L1_R = _APVResL1_R;
-    apvRes.L1_G = _APVResL1_G;
-    apvRes.L1_B = _APVResL1_B;
+    apvRes.L1G_L1Ry = _APVResL1G_L1Ry;
+    apvRes.L1B_L1Rz = _APVResL1B_L1Rz;
 
 #if PROBE_VOLUMES_L2
-    apvRes.L2_R = _APVResL2_R;
-    apvRes.L2_G = _APVResL2_G;
-    apvRes.L2_B = _APVResL2_B;
+    apvRes.L2_0 = _APVResL2_0;
+    apvRes.L2_1 = _APVResL2_1;
+    apvRes.L2_2 = _APVResL2_2;
+    apvRes.L2_3 = _APVResL2_3;
 #endif
 
     return apvRes;

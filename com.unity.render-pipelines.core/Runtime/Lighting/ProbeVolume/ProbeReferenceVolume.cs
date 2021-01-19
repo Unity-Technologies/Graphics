@@ -141,25 +141,22 @@ namespace UnityEngine.Rendering
             /// </summary>
             public ComputeBuffer index;
             /// <summary>
-            /// Texture containing Spherical Harmonics L0 band data.
+            /// Texture containing Spherical Harmonics L0 band data and first coefficient of L1_R.
             /// </summary>
-            public Texture3D L0;
+            public Texture3D L0_L1rx;
             /// <summary>
-            /// Texture containing the first channel of Spherical Harmonics L1 band data.
+            /// Texture containing the second channel of Spherical Harmonics L1 band data and second coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_R;
+            public Texture3D L1_G_ry;
             /// <summary>
-            /// Texture containing the second channel of Spherical Harmonics L1 band data.
+            /// Texture containing the second channel of Spherical Harmonics L1 band data and third coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_G;
-            /// <summary>
-            /// Texture containing the third channel of Spherical Harmonics L1 band data.
-            /// </summary>
-            public Texture3D L1_B;
+            public Texture3D L1_B_rz;
 
-            public Texture3D L2_R;
-            public Texture3D L2_G;
-            public Texture3D L2_B;
+            public Texture3D L2_0;
+            public Texture3D L2_1;
+            public Texture3D L2_2;
+            public Texture3D L2_3;
         }
 
         internal struct RegId
@@ -647,7 +644,7 @@ namespace UnityEngine.Rendering
             }
 
             // Update the pool and index and ignore any potential frame latency related issues for now
-            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list);
+            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             m_BricksLoaded = true;
 
