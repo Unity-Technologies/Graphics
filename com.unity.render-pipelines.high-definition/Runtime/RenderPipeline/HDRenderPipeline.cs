@@ -2764,9 +2764,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool                        hasDepthDeferredPass
         )
         {
-            // Disable write to normal buffer for unlit shader (the normal buffer binding change when using MSAA)
-            cmd.SetGlobalInt(HDShaderIDs._ColorMaskNormal, frameSettings.IsEnabled(FrameSettingsField.MSAA) ? (int)ColorWriteMask.All : 0);
-
             if (hasDepthDeferredPass)
             {
                 if (deferredMrt == null)
