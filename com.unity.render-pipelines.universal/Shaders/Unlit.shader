@@ -50,8 +50,10 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #include "UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct Attributes
             {
@@ -100,6 +102,12 @@ Shader "Universal Render Pipeline/Unlit"
 #ifdef _ALPHAPREMULTIPLY_ON
                 color *= alpha;
 #endif
+
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
+                #endif
 
                 color = MixFog(color, input.fogCoord);
 
@@ -243,6 +251,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #include "UnlitInput.hlsl"
 
@@ -293,6 +302,12 @@ Shader "Universal Render Pipeline/Unlit"
 #ifdef _ALPHAPREMULTIPLY_ON
                 color *= alpha;
 #endif
+
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
+                #endif
 
                 color = MixFog(color, input.fogCoord);
                 alpha = OutputAlpha(alpha, _Surface);

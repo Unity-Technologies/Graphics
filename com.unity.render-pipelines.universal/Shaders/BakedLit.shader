@@ -147,10 +147,13 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
-                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
                 #endif
+
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha, _Surface);
 
@@ -459,10 +462,13 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
-                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
                 #endif
+
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha, _Surface);
 
