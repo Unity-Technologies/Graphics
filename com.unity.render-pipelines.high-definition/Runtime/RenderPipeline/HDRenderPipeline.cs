@@ -2594,41 +2594,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        struct FullScreenDebugParameters
-        {
-            public RendererListDesc rendererList;
-            public FrameSettings frameSettings;
-        }
-
-        FullScreenDebugParameters PrepareFullScreenDebugParameters(HDCamera hdCamera, CullingResults cull)
-        {
-            var parameters = new FullScreenDebugParameters();
-
-            parameters.rendererList = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all);
-            parameters.frameSettings = hdCamera.frameSettings;
-
-            return parameters;
-        }
-
-        static void RenderFullScreenDebug(FullScreenDebugParameters   parameters,
-            RTHandle                    colorBuffer,
-            RTHandle                    depthBuffer,
-            ComputeBuffer               debugBuffer,
-            in RendererList             rendererList,
-            ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderFullScreenDebug)))
-            {
-                CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
-                cmd.SetRandomWriteTarget(1, debugBuffer);
-
-                CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
-
-                cmd.ClearRandomWriteTargets();
-            }
-        }
-
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, int frameIndex, CommandBuffer cmd)
         {
             m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), frameIndex, cmd);

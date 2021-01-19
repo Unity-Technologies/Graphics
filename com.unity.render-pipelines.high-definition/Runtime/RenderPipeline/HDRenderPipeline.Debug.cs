@@ -79,9 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FullScreenDebugPassData
         {
-            public FullScreenDebugParameters parameters;
-            public TextureHandle output;
-            public TextureHandle depthBuffer;
+            public FrameSettings frameSettings;
             public ComputeBufferHandle debugBuffer;
             public RendererListHandle rendererList;
         }
@@ -90,26 +88,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             TextureHandle fullscreenDebugOutput = TextureHandle.nullHandle;
             ComputeBufferHandle fullscreenDebugBuffer = ComputeBufferHandle.nullHandle;
+
             using (var builder = renderGraph.AddRenderPass<FullScreenDebugPassData>("FullScreen Debug", out var passData))
             {
-                passData.parameters = PrepareFullScreenDebugParameters(hdCamera, cull);
-                passData.output = builder.WriteTexture(colorBuffer);
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                fullscreenDebugOutput = builder.UseColorBuffer(colorBuffer, 0);
+                builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+
+                passData.frameSettings = hdCamera.frameSettings;
                 passData.debugBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(hdCamera.actualWidth * hdCamera.actualHeight * hdCamera.viewCount, sizeof(uint))));
-                passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.rendererList));
+                passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_FullScreenDebugPassNames, renderQueueRange: RenderQueueRange.all)));
 
                 builder.SetRenderFunc(
                     (FullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderFullScreenDebug(data.parameters,
-                            data.output,
-                            data.depthBuffer,
-                            data.debugBuffer,
-                            data.rendererList,
-                            ctx.renderContext, ctx.cmd);
+                        ctx.cmd.SetRandomWriteTarget(1, data.debugBuffer);
+                        CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.rendererList);
+                        ctx.cmd.ClearRandomWriteTargets();
                     });
 
-                fullscreenDebugOutput = passData.output;
                 fullscreenDebugBuffer = passData.debugBuffer;
             }
 
