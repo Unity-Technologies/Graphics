@@ -189,6 +189,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Material Keywords
             #pragma shader_feature_local _ _ALPHATEST_ON
             #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -197,7 +198,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
-
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthOnlyPass.hlsl"

@@ -117,6 +117,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // Material Keywords
             #pragma shader_feature_local _ _ALPHATEST_ON
             #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Unity defined keywords
@@ -180,10 +181,8 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _ _NORMALMAP
-            #pragma shader_feature_local _ _PARALLAXMAP
-            #pragma shader_feature_local _ _DETAIL_MULX2 _DETAIL_SCALED
             #pragma shader_feature_local _ _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Unity defined keywords

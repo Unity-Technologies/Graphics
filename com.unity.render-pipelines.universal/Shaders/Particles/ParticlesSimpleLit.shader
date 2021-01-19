@@ -199,6 +199,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // Material Keywords
             #pragma shader_feature_local _ _ALPHATEST_ON
             #pragma shader_feature_local _ _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Unity defined keywords
