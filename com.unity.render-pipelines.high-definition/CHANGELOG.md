@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Added support for the PlayStation 5 platform.
 
 ### Fixed
 - Fixed probe volumes debug views.

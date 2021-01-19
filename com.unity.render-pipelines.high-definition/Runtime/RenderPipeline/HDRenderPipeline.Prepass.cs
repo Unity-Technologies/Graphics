@@ -248,6 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Only on consoles is safe to read and write from/to the depth atlas
                 bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
@@ -806,6 +807,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
 
