@@ -13,35 +13,31 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <typeparam name="K">The type of the key.</typeparam>
     class CameraCache<K>: IDisposable
     {
-        Dictionary<K, (Camera camera, int lastFrame)> m_Cache = new Dictionary<K, (Camera camera, int lastFrame)>();
+        Dictionary<K, (Camera camera, uint lastFrame)> m_Cache = new Dictionary<K, (Camera camera, uint lastFrame)>();
         K[] cameraKeysCache = new K[0];
 
         /// <summary> Get or create a camera for the specified key </summary>
         /// <param name="key">The key to look at.</param>
-        /// <param name="frameCount">
-        /// The current frame count.
-        ///
-        /// This frame count is assigned to the returned camera to know the age of its last use.
-        /// </param>
         /// <param name="cameraType"> The type of camera to create if one does not exists.</param>
         /// <returns>
         /// The cached camera if the key was found,
         /// otherwise a new camera that was inserted in the cache during the call.
         /// </returns>
-        public Camera GetOrCreate(K key, int frameCount, CameraType cameraType = CameraType.Game)
+        public Camera GetOrCreate(K key, CameraType cameraType = CameraType.Game)
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
 
             if (!m_Cache.TryGetValue(key, out var camera) || camera.camera == null || camera.camera.Equals(null))
             {
-                camera = (new GameObject().AddComponent<Camera>(), frameCount);
+                camera = (new GameObject().AddComponent<Camera>(), 0);
                 camera.camera.cameraType = cameraType;
                 m_Cache[key] = camera;
             }
             else
             {
-                camera.lastFrame = Time.frameCount;
+                var hdCamera = HDCamera.GetOrCreate(camera.camera);
+                camera.lastFrame = hdCamera.GetCameraFrameCount();
                 m_Cache[key] = camera;
             }
             return camera.camera;
@@ -49,8 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary> Destroy all cameras that are unused more than <paramref name="frameWindow"/>. </summary>
         /// <param name="frameWindow">The age of the cameras to keep.</param>
-        /// <param name="frameCount">The current frame count. Usually <see cref="Time.frameCount"/>.</param>
-        public void ClearCamerasUnusedFor(int frameWindow, int frameCount)
+        public void ClearCamerasUnusedFor(uint frameWindow)
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
@@ -65,7 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Cache.TryGetValue(key, out var value))
                 {
-                    if ((frameCount - value.lastFrame) > frameWindow)
+                    uint frameCount = HDCamera.GetOrCreate(value.camera).GetCameraFrameCount();
+                    if (value.camera == null || (frameCount - value.lastFrame) > frameWindow)
                     {
                         if (value.camera != null)
                         {

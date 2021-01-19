@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-                scrollFactor += hdriSky.scrollSpeed.value * (builtinParams.hdCamera.time - builtinParams.hdCamera.lastTime) * 0.01f;
+                scrollFactor += hdriSky.scrollSpeed.value * builtinParams.hdCamera.deltaTime * 0.01f;
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");

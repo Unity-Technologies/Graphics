@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cloudLayer.opacity.value == 0.0f)
                 return;
 
-            float dt = builtinParams.hdCamera.time - builtinParams.hdCamera.lastTime;
+            float dt = builtinParams.hdCamera.deltaTime;
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
