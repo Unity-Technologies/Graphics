@@ -22,7 +22,7 @@ The URP asset now has the Post Processing check box. This check box turns post-p
 
 ## Issues resolved
 
-TODO: If we would like to highlight some particular fixes, list them here. 
+TODO: If we would like to highlight some particular fixes, list them here.
 
 For a complete list of issues resolved in URP 11, see the [Changelog](../../changelog/CHANGELOG.html).
 
