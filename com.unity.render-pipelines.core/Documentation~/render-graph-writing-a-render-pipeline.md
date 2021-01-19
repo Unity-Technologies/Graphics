@@ -11,18 +11,18 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 public class MyRenderPipeline : RenderPipeline
 {
-	RenderGraph m_RenderGraph;
-	
-	void InitializeRenderGraph()
-	{
-		m_RenderGraph = new RenderGraph(“MyRenderGraph”);
-	}
+    RenderGraph m_RenderGraph;
 
-	void CleanupRenderGraph()
-	{
-		m_RenderGraph.Cleanup();
-	      m_RenderGraph = null;
-	}
+    void InitializeRenderGraph()
+    {
+        m_RenderGraph = new RenderGraph(“MyRenderGraph”);
+    }
+
+    void CleanupRenderGraph()
+    {
+        m_RenderGraph.Cleanup();
+          m_RenderGraph = null;
+    }
 }
 ```
 
@@ -76,11 +76,11 @@ Here are the most important ones:
 
 - **clearColor**: This property stores the color to clear the buffer to, if applicable.
 
-  
+
 
 There are also two notions specific to textures that a render graph exposes through the `TextureDesc` constructors:
 
-- **xrReady**: This boolean indicates to the graph whether this texture is for XR rendering. If true, the render graph creates the texture as an array for rendering into each XR eye. 
+- **xrReady**: This boolean indicates to the graph whether this texture is for XR rendering. If true, the render graph creates the texture as an array for rendering into each XR eye.
 - **dynamicResolution**: This boolean indicates to the graph whether it needs to dynamically resize this texture when the application uses dynamic resolution. If false, the texture does not scale automatically.
 
 
@@ -104,7 +104,7 @@ Before Unity can execute the render graph, you need to declare all the render pa
 During setup, you declare the render pass and all the data it needs to execute. The render graph represents data by a class specific to the render pass which contains all the relevant properties. These can be regular C# constructs (struct, PoDs, etc) as well as render graph resource handles. This data structure is accessible during the actual rendering code.
 
 ```c#
-class MyRenderPassData 
+class MyRenderPassData
 {
     public float parameter;
     public TextureHandle inputTexture;
@@ -120,14 +120,14 @@ After you define the pass data, you can then declare the render pass itself:
 ```c#
 using (var builder = renderGraph.AddRenderPass<MyRenderPassData>("My Render Pass", out var passData))
 {
-    	passData.parameter = 2.5f;
-	passData.inputTexture = builder.ReadTexture(inputTexture);
-		
-	TextureHandle output = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+        passData.parameter = 2.5f;
+    passData.inputTexture = builder.ReadTexture(inputTexture);
+
+    TextureHandle output = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.black, name = "Output" });
-	passData.outputTexture = builder.WriteTexture(output);
-		
-	builder.SetRenderFunc(myFunc); // details below.
+    passData.outputTexture = builder.WriteTexture(output);
+
+    builder.SetRenderFunc(myFunc); // details below.
 }
 ```
 
@@ -172,7 +172,7 @@ delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraph
 
 You can either pass a render function as a `static` function or a lambda. The benefit of using a lambda function is that it can bring better code clarity as the rendering code is right next to the setup code.
 
- 
+
 
 Note that if you use a lambda, be very careful not to capture any parameters from the main scope of the function as that generates garbage, which Unity later locates and frees during garbage collection. If you use Visual Studio and hover over the arrow **=>**, it tells you if the lambda captures anything from the scope. One thing to avoid is accessing members or member functions as using either captures `this`.
 
@@ -217,37 +217,37 @@ The following code example contains a render pass with a setup and render functi
 ```c#
 TextureHandle MyRenderPass(RenderGraph renderGraph, TextureHandle inputTexture, float parameter, Material material)
 {
-	using (var builder = renderGraph.AddRenderPass<MyRenderPassData>("My Render Pass", out var passData))
-	{
-		passData.parameter = parameter;
-		passData.material = material;
-		
-		// Tells the graph that this pass will read inputTexture.
-		passData.inputTexture = builder.ReadTexture(inputTexture);
-		
-		// Creates the output texture.
-		TextureHandle output = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.black, name = "Output" });
-		// Tells the graph that this pass will write this texture and needs to be set as render target 0.
-		passData.outputTexture = builder.UseColorBuffer(output, 0);
-		
-		builder.SetRenderFunc(
-		(MyRenderPassData data, RenderGraphContext ctx) =>
-		{
-			// Render Target is already set via the use of UseColorBuffer above.
-			// If builder.WriteTexture was used, you'd need to do something like that:
-			// CoreUtils.SetRenderTarget(ctx.cmd, data.output);
-			
-			// Setup material for rendering
-			var materialPropertyBlock = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-			materialPropertyBlock.SetTexture("_MainTexture", data.input);
-			materialPropertyBlock.SetFloat("_FloatParam", data.parameter);
+    using (var builder = renderGraph.AddRenderPass<MyRenderPassData>("My Render Pass", out var passData))
+    {
+        passData.parameter = parameter;
+        passData.material = material;
 
-			CoreUtils.DrawFullScreen(ctx.cmd, data.material, materialPropertyBlock);
-		});
-		
-		return output;
-	}
+        // Tells the graph that this pass will read inputTexture.
+        passData.inputTexture = builder.ReadTexture(inputTexture);
+
+        // Creates the output texture.
+        TextureHandle output = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.black, name = "Output" });
+        // Tells the graph that this pass will write this texture and needs to be set as render target 0.
+        passData.outputTexture = builder.UseColorBuffer(output, 0);
+
+        builder.SetRenderFunc(
+        (MyRenderPassData data, RenderGraphContext ctx) =>
+        {
+            // Render Target is already set via the use of UseColorBuffer above.
+            // If builder.WriteTexture was used, you'd need to do something like that:
+            // CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+
+            // Setup material for rendering
+            var materialPropertyBlock = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+            materialPropertyBlock.SetTexture("_MainTexture", data.input);
+            materialPropertyBlock.SetFloat("_FloatParam", data.parameter);
+
+            CoreUtils.DrawFullScreen(ctx.cmd, data.material, materialPropertyBlock);
+        });
+
+        return output;
+    }
 }
 ```
 

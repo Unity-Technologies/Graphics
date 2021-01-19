@@ -8,15 +8,15 @@ Here is an example of what can be achieved using custom passes:
 
 ## Workflow with volumes
 
-Custom Passes have been implemented through a volume system, but note that it's different from the builtin [Volumes system](Volumes.md) in HDRP due to different design reason and usage. Therefore you can note these major differences:  
+Custom Passes have been implemented through a volume system, but note that it's different from the builtin [Volumes system](Volumes.md) in HDRP due to different design reason and usage. Therefore you can note these major differences:
 
 - Custom Pass Volumes are can't be blend like standard volumes, you can only have a fade
 - In case of overlap of multiple volumes with the same injection point, the smallest (in term of bounding volume) will be executed, all the others are ignored
 - The data of the custom passes are saved in the volume GameObject in itself, not in an asset in the project
 
-Like in volumes, there is two modes for the custom pass volume: `Local` and `Global`. The `Local` mode uses colliders attached to the GameObject where the custom pass is to define a zone where the effect will be executed. `Global` volumes are executed everywhere in your scene.  
-The priority is used to determine the execution order when you have multiple custom pass volumes in your scene that share the same injection point.  
-A `fade` system is also available to allow you to smooth the transition between your normal rendering and the custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
+Like in volumes, there is two modes for the custom pass volume: `Local` and `Global`. The `Local` mode uses colliders attached to the GameObject where the custom pass is to define a zone where the effect will be executed. `Global` volumes are executed everywhere in your scene.
+The priority is used to determine the execution order when you have multiple custom pass volumes in your scene that share the same injection point.
+A `fade` system is also available to allow you to smooth the transition between your normal rendering and the custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.
 Because we give the full control over what can be done in the custom passes, the fading must be manually included in your effects. To help you, there is a builtin variable `_FadeValue` in the shader and `CustomPass.fadeValue` in the C# that contains a value between 0 and 1 representing how far the camera is from the collider bounding volume. If you want more details about the fading in script, you can [jump to the scripting API tag](#ScriptingAPI).
 
 Here you can see an example of a custom pass with a box collider (solid transparent box) and the fade radius is represented by the wireframe cube.
@@ -42,7 +42,7 @@ You can see here on this diagram where the custom passes are injected inside an 
 
 ## Custom Pass List
 
-The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure then. There are two custom passes that are builtin to HDRP, the FullScreen and the DrawRenderers custom pass.  
+The main part of the **Custom Pass Volume** component is the **Custom Passes** reorderable list, it allow you to add new custom pass effects and configure then. There are two custom passes that are builtin to HDRP, the FullScreen and the DrawRenderers custom pass.
 In this screenshot, you can see a FullScreen render pass:
 
 ![FullScreenCustomPass_Inspector](Images/FullScreenCustomPass_Inspector.png)
@@ -64,7 +64,7 @@ There are some settings that you will find by default on every custom pass, here
 
 ### FullScreen Custom Pass
 
-When you add a FullScreen pass, it will be rendered with the **FullScreen Material** provided in the field in the UI. To create a material compatible with the FullScreen pass, first you need to create a shader using the menu **Create/Shader/HDRP/Custom FullScreen Pass** and the right click above this shader and create a new Material.  
+When you add a FullScreen pass, it will be rendered with the **FullScreen Material** provided in the field in the UI. To create a material compatible with the FullScreen pass, first you need to create a shader using the menu **Create/Shader/HDRP/Custom FullScreen Pass** and the right click above this shader and create a new Material.
 Then when you add the material to the field `FullScreen Material` field in the inspector you'll see a dropdown called `Pass Name` that allow you to choose which pass of the shader will be used to draw the FullScreen quad, this is especially useful if you want to do multiple variants of one effect and switch between them.
 
 Now that the custom pass is setup, you can start to edit the shader of the FullScreen Material. By default in the template you have a `FullScreenPass` function where you'll add your code:
@@ -177,7 +177,7 @@ struct AttributesMesh
 
 > **Note that all the transformation in this function are made in object space**
 
-A very important thing to be aware of is the `ATTRIBUTES_NEED` and `VARYINGS_NEED` system, there are a list of defines that controls which data is going to be sent to the vertex and fragment shader. `ATTRIBUTES_NEED` are for the vertex data and `VARYINGS_NEED` are for the fragment, so for example if you want to sample uvs in the fragment shader, you need to define both `ATTRIBUTES_NEED_TEXCOORD0` and `VARYINGS_NEED_TEXCOORD0`. Note that by default you have access to UV 0 and normals.  
+A very important thing to be aware of is the `ATTRIBUTES_NEED` and `VARYINGS_NEED` system, there are a list of defines that controls which data is going to be sent to the vertex and fragment shader. `ATTRIBUTES_NEED` are for the vertex data and `VARYINGS_NEED` are for the fragment, so for example if you want to sample uvs in the fragment shader, you need to define both `ATTRIBUTES_NEED_TEXCOORD0` and `VARYINGS_NEED_TEXCOORD0`. Note that by default you have access to UV 0 and normals.
 Here is the list of all the defines you can enable
 ```HLSL
 #define ATTRIBUTES_NEED_NORMAL
@@ -206,7 +206,7 @@ Note that you can also override the depth state of the objects in your pass. Thi
 
 ## Scripting API
 
-To do even more complex effect, that may require more than one buffer or even `Compute Shaders`, you have a Scripting API available to extend the `CustomPass` class.  
+To do even more complex effect, that may require more than one buffer or even `Compute Shaders`, you have a Scripting API available to extend the `CustomPass` class.
 Every non abstract class that inherit from `CustomPass` will be listed when you click on the `+` button of the custom passes list.
 
 ![](Images/CustomPass_Add_Inspector.png)
@@ -237,13 +237,13 @@ In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRe
 > **Important:** if the shader is never referenced in any of your scenes it won't get built and the effect will not work when running the game outside of the editor. Either add it to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html) or put it in the **Always Included Shaders** list in `Edit -> Project Settings -> Graphics`. Be careful with this especially if you load shaders using `Shader.Find()` otherwise, you'll end up with a black screen.
 
 
-> **Pro Tips:**  
+> **Pro Tips:**
 > - To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
 > ```CSharp
 > RTHandle myBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, useDynamicScale: true, name: "My Buffer");
 > ```
-> - Don't forget release the buffer afterwards using `myBuffer.Release();`  
-> - To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
+> - Don't forget release the buffer afterwards using `myBuffer.Release();`
+> - To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.
 > - When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
 > - **MSAA**: when you enable MSAA and you want to render objects to the main camera color buffer and then in a second pass, sample this buffer, you'll need to resolve it first. To do so you have this function `CustomPass.ResolveMSAAColorBuffer` that will resolve the MSAA camera color buffer into the standard camera color buffer.
 > - **If you don't want your effect to executed in the Scene View**, then you can override the protected `executeInSceneView` boolean to false.
@@ -372,7 +372,7 @@ it will allow you to add more layers / custom culling options to the cullingResu
 
 When writing your effect, you'll probably arrive at a point where you want to debug and analyze what's going on.
 
-The frame debugger is here to help you, enabling it in the game view allow you to examine every draw calls you issued in the custom pass. To find your pass, you just need to search for the name of custom pass you set in the UI.  
+The frame debugger is here to help you, enabling it in the game view allow you to examine every draw calls you issued in the custom pass. To find your pass, you just need to search for the name of custom pass you set in the UI.
 For example, in this image I'm debugging the outline pass which I called "My Outline Pass" in the inspector:
 ![](Images/CustomPass_FrameDebugger.png)
 
@@ -397,7 +397,7 @@ Then, we can create a new GameObject and add a Custom pass volume component. Sel
 
 ![](Images/CustomPass_Glitch_Inspector.png)
 
-Note that we use the `ForwardOnly` pass of our ShaderGraph because we want to render the object color.  
+Note that we use the `ForwardOnly` pass of our ShaderGraph because we want to render the object color.
 The `Selection` Layer here will be used to render the objects with a glitch.
 
 Then you just have to put GameObjects in the `Selection` layer and voila !
@@ -466,7 +466,7 @@ class Outline : CustomPass
 
 In the setup function, we allocate a buffer to render the objects that are in the `outlineLayer` layer.
 
-The Execute function is pretty straightforward, we render the objects and then do a fullscreen pass which will perform the outline. When we draw the objects, we don't use an override material here because we want the effect to be working with alpha clip and transparency.  
+The Execute function is pretty straightforward, we render the objects and then do a fullscreen pass which will perform the outline. When we draw the objects, we don't use an override material here because we want the effect to be working with alpha clip and transparency.
 For the shader, it's the classic way of doing an outline: sample the color in the outline buffer, if it's below the threshold, then it means that we're maybe in an outline. To check if it's the case, we perform a neighbour search and if we find a pixel above the threshold, then we outline it.
 
 To be more efficient, we use a transparent fullscreen pass with a blend mode that will replace pixels that needs to be outlined.
@@ -491,7 +491,7 @@ Shader "Hidden/Outline"
     #define c45 0.707107
     #define c225 0.9238795
     #define s225 0.3826834
-    
+
     #define MAXSAMPLES 8
     // Neighbour pixel positions
     static float2 samplingPositions[MAXSAMPLES] =
