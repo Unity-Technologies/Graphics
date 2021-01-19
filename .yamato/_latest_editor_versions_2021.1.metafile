@@ -51,12 +51,12 @@ editor_versions:
       version: 2021.1.0b2
   2021_1_staging:
     android:
-      revision: 9375a28ac1345556b91caab23907d451a7fc1f9f
-      updated_at: '2021-01-17 00:08:53.013250'
+      revision: 69b36110715a3b1b72ac04d7325c80613f8788c2
+      updated_at: '2021-01-19 00:09:40.229210'
       version: ''
     ios:
-      revision: 9375a28ac1345556b91caab23907d451a7fc1f9f
-      updated_at: '2021-01-17 00:08:53.013250'
+      revision: 69b36110715a3b1b72ac04d7325c80613f8788c2
+      updated_at: '2021-01-19 00:09:40.229210'
       version: ''
     linux:
       revision: 9375a28ac1345556b91caab23907d451a7fc1f9f
@@ -67,6 +67,6 @@ editor_versions:
       updated_at: '2021-01-17 00:08:53.013250'
       version: ''
     windows:
-      revision: 9375a28ac1345556b91caab23907d451a7fc1f9f
-      updated_at: '2021-01-17 00:08:53.013250'
+      revision: 69b36110715a3b1b72ac04d7325c80613f8788c2
+      updated_at: '2021-01-19 00:09:40.229210'
       version: ''
