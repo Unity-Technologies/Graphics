@@ -47,7 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed LayerMask editor for volume parameters.
 - Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
 - Fixed box light attenuation.
-
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
+ 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.

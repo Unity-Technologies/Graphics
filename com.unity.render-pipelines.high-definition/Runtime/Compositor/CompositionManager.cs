@@ -552,6 +552,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     CoreUtils.Destroy(volume);
                 }
             }
+
+            // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
+            CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -920,5 +923,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             return null;
         }
+
     }
 }
