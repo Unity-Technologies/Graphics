@@ -94,14 +94,14 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
+        - Standalone
         - playmode_XR
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
+        - Standalone
 nightly:
   dependencies:
     - project: VFX_HDRP
@@ -112,10 +112,10 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
-        - playmode_cache
+        - playmode
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
