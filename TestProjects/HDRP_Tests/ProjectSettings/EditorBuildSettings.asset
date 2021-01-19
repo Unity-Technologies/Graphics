@@ -180,6 +180,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1712_DecalAngleFading.unity
     guid: 4b93985ba01d5aa49a5f0cdd342faa27
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
+    guid: 0adc2fcc221085f45ba4dce7e4afae0d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
@@ -565,6 +568,9 @@ EditorBuildSettings:
     guid: 446a8abf33eabaa4eb3228747da30066
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8107_UnlitShadowMatteAmbientOcclusion.unity
+    guid: 3258eb67f3c2f974bb87d063ef60ccb5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8108_UnlitShadowMatteAmbientOcclusionMSAA.unity
     guid: c2efdf3fe2a75b54588a53fc3be2bd17
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
@@ -686,7 +692,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9901_AOV_buffers.unity
     guid: 5b7d40e46ea038446bf4f714c9d89eaf
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
-    guid: 0adc2fcc221085f45ba4dce7e4afae0d
   m_configObjects: {}

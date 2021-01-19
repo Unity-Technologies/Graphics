@@ -16,7 +16,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests"
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
     name: Standalone_cache
     utr_flags:
