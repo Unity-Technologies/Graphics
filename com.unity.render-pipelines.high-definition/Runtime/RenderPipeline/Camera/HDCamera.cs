@@ -444,15 +444,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return a && b && c;
         }
 
-        float GetTime()
-        {
-#if UNITY_EDITOR
-            return Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
-#else
-            return Time.time;
-#endif
-        }
-
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
@@ -466,9 +457,16 @@ namespace UnityEngine.Rendering.HighDefinition
             animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(aniCam);
             if (animateMaterials)
             {
-                float newTime = GetTime();
-                lastTime = Mathf.Clamp(time, newTime - 0.2f, newTime);
+                float newTime, deltaTime;
+#if UNITY_EDITOR
+                newTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+                deltaTime = Application.isPlaying ? Time.deltaTime : 0.033f;
+#else
+                newTime = Time.time;
+                deltaTime = Time.deltaTime;
+#endif
                 time = newTime;
+                lastTime = newTime - deltaTime;
             }
             else
             {

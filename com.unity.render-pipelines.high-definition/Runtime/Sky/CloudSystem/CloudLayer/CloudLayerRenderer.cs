@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CloudLayerMaterial;
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
+        private float lastTime = 0.0f;
         int m_LastPrecomputationParamHash;
 
         static readonly int _CloudTexture = Shader.PropertyToID("_CloudTexture");
@@ -83,12 +84,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
+            var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
             if (cloudLayer.opacity.value == 0.0f)
                 return;
 
-            float dt = builtinParams.hdCamera.deltaTime;
+            float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
+            lastTime = hdCamera.time;
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
