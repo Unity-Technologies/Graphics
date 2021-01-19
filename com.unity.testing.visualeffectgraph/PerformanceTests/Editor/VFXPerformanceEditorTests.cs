@@ -10,6 +10,7 @@ using System.Reflection;
 using UnityEditor.VFX.UI;
 using UnityEngine.TestTools;
 using System.Collections;
+using UnityEngine;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -126,7 +127,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 window.autoCompile = false;
                 window.Repaint();
             }
-            yield return null;
+            yield return new WaitForEndOfFrame();
 
             using (Measure.Scope("VFXViewWindow.LoadAsset"))
             {
@@ -147,7 +148,7 @@ namespace UnityEditor.VFX.PerformanceTest
             using (Measure.Scope("VFXViewWindow.Close"))
             {
                 window.Close();
-                yield return null; //Ensure window is closed for next test
+                yield return new WaitForEndOfFrame(); //Ensure window is closed for next test
             }
 
             ShaderUtil.allowAsyncCompilation = oldState;
@@ -170,7 +171,7 @@ namespace UnityEditor.VFX.PerformanceTest
             {
                 for (int i = 0; i < 16; ++i)
                 {
-                    Object backup = null;
+                    object backup = null;
                     using (Measure.Scope("VFXGraph.Backup"))
                     {
                         backup = graph.Backup();

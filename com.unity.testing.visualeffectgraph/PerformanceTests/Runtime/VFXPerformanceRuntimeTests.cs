@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.PerformanceTest
         public static IEnumerator Load_And_Prepare(GraphicsTestCase testCase)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
-            yield return null;
+            yield return new WaitForEndOfFrame();
 
             float simulateTime = VFXGraphicsTestSettings.defaultSimulateTime;
             int captureFrameRate = VFXGraphicsTestSettings.defaultCaptureFrameRate;
@@ -108,11 +108,11 @@ namespace UnityEditor.VFX.PerformanceTest
             UnityEngine.VFX.VFXManager.maxDeltaTime = period;
 
             while (waitFrameCount-- > 0)
-                yield return null;
+                yield return new WaitForEndOfFrame();
             Time.captureFramerate = previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = previousMaxDeltaTime;
-            yield return null;
+            yield return new WaitForEndOfFrame();
         }
 
         [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
             // Wait for the markers to be initialized
             for (int i = 0; i < 20; i++)
-                yield return null;
+                yield return new WaitForEndOfFrame();
 
             for (int i = 0; i < 120; i++)
             {
@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.PerformanceTest
                     if (sampler.recorder.gpuElapsedNanoseconds > 0)
                         Measure.Custom(sampler.gpu, (double)sampler.recorder.gpuElapsedNanoseconds / 1000000.0);
                 }
-                yield return null;
+                yield return new WaitForEndOfFrame();
             }
 
             foreach (var sampler in samplers)
@@ -202,11 +202,11 @@ namespace UnityEditor.VFX.PerformanceTest
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), totalMemoryAllocated);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), totalMemoryAllocatedForGraphicsDriver);
 
-            yield return null;
+            yield return new WaitForEndOfFrame();
             //Force garbage collection to avoid unexpected state in following test
             GC.Collect();
             Resources.UnloadUnusedAssets();
-            yield return null;
+            yield return new WaitForEndOfFrame();
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
         }
