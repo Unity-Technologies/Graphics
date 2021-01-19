@@ -29,6 +29,8 @@ all_project_ci_nightly_trunk:
     dependencies:
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_trunk
+         rerun: on-new-revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
