@@ -7,10 +7,15 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         Material m_DepthResolveMaterial;
+        Material m_CameraMotionVectorsMaterial;
+        Material m_DecalNormalBufferMaterial;
+        Material m_DownsampleDepthMaterial;
+
         // Need to cache to avoid alloc of arrays...
         GBufferOutput m_GBufferOutput;
         DBufferOutput m_DBufferOutput;
 
+        GPUCopy m_GPUCopy;
         HDUtils.PackedMipChainInfo m_DepthBufferMipChainInfo;
 
         Vector2Int ComputeDepthBufferMipChainSize(Vector2Int screenSize)
@@ -25,6 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
             m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
+            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
+            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
+            m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
 
             m_GBufferOutput = new GBufferOutput();
             m_GBufferOutput.mrt = new TextureHandle[RenderGraph.kMaxMRTCount];
@@ -35,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_DepthBufferMipChainInfo.Allocate();
 
+            m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
             m_DepthPyramidDesc = new TextureDesc(ComputeDepthBufferMipChainSize, true, true)
             { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" };
         }
@@ -42,6 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupPrepass()
         {
             CoreUtils.Destroy(m_DepthResolveMaterial);
+            CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
+            CoreUtils.Destroy(m_DecalNormalBufferMaterial);
+            CoreUtils.Destroy(m_DownsampleDepthMaterial);
         }
 
         bool NeedClearGBuffer()
@@ -163,21 +175,13 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool decalLayerEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
+            int index = 0;
             if (msaa)
-            {
-                builder.UseColorBuffer(prepassOutput.depthAsColor, 0);
-                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 1);
-                if (decalLayerEnabled)
-                    builder.UseColorBuffer(decalBuffer, 2);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 3 : 2);
-            }
-            else
-            {
-                builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, 0);
-                if (decalLayerEnabled)
-                    builder.UseColorBuffer(decalBuffer, 1);
-                builder.UseColorBuffer(prepassOutput.normalBuffer, decalLayerEnabled ? 2 : 1);
-            }
+                builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
+            builder.UseColorBuffer(prepassOutput.motionVectorsBuffer, index++);
+            if (decalLayerEnabled)
+                builder.UseColorBuffer(decalBuffer, index++);
+            builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
         }
 
         PrepassOutput RenderPrepass(RenderGraph     renderGraph,
