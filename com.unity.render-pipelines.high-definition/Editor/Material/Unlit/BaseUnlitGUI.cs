@@ -247,11 +247,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
         // Since we don't have those parameters in our shaders we need to provide a "fake" useless version of them with the right values for the GI to work.
+        
         public static void SetupMainTexForAlphaTestGI(this Material material, string colorMapPropertyName, string colorPropertyName)
         {
+            //@TODO: This method is called twice with different colorMapPropertyName & colorPropertyName from BaseLitGUI and BaseUnlitGUI
+            
             if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
+
                 material.SetTexture("_MainTex", mainTex);
             }
 
@@ -270,6 +274,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
+            bool transparentBackfaceEnablePass = false;
+            bool depthWriteEnable = false;
+            bool transparentPrepassEnabled = false;
+            bool rayTracingEnable = false;
+            
             if (material.HasProperty(kDistortionEnable))
             {
                 bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
@@ -292,37 +301,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferWithPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, distortionEnable); // note: use distortionEnable
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
+                transparentBackfaceEnablePass = enablePass;
+                depthWriteEnable = enablePass;
+                transparentPrepassEnabled = enablePass;
+                rayTracingEnable = enablePass;
             }
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
-                bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
+                bool prepassDepthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
                 bool ssrTransparent = material.HasProperty(kReceivesSSRTransparent) ? (material.GetFloat(kReceivesSSRTransparent) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent) : false;
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable || ssrTransparent);
+                transparentPrepassEnabled = prepassDepthWriteEnable || ssrTransparent;
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))
             {
-                bool depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, depthWriteEnable);
+                depthWriteEnable = (material.GetFloat(kTransparentDepthPostpassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
             }
-
             if (material.HasProperty(kTransparentBackfaceEnable))
             {
-                bool backFaceEnable = (material.GetFloat(kTransparentBackfaceEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, backFaceEnable);
+                transparentBackfaceEnablePass = (material.GetFloat(kTransparentBackfaceEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
             }
 
             if (material.HasProperty(kRayTracing))
             {
-                bool rayTracingEnable = (material.GetFloat(kRayTracing) > 0.0f);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
+                rayTracingEnable = (material.GetFloat(kRayTracing) > 0.0f);
             }
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
@@ -342,8 +347,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 // don't do any vertex deformation but we can still have
                 // skinning / morph target
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, addPrecomputedVelocity);
-             }
+            }
+
+            material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, depthWriteEnable);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, transparentBackfaceEnablePass);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, transparentPrepassEnabled);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, rayTracingEnable);
         }
 
+        
     }
 }
