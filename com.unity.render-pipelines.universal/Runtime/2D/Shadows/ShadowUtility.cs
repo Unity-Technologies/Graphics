@@ -132,16 +132,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Create interior geometry
             int pointCount = shapePath.Length;
-            var inputs = new ContourVertex[2 * pointCount];
+            var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; i++)
             {
                 Color extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[i].x, shapePath[i].y);
                 int nextPoint = (i + 1) % pointCount;
-                inputs[2 * i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = extrusionData };
-
-                extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[nextPoint].x, shapePath[nextPoint].y);
-                Vector2 midPoint = 0.5f * (shapePath[i] + shapePath[nextPoint]);
-                inputs[2 * i + 1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0}, Data = extrusionData };
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = extrusionData };
             }
 
             Tess tessI = new Tess();

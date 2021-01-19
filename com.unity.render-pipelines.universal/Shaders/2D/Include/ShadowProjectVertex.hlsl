@@ -34,17 +34,11 @@ Varyings ProjectShadow(Attributes v)
 
     // Start of code to calculate offset
     float3 vertexWS0 = TransformObjectToWorld(float3(v.extrusion.xy, 0));
-    float3 vertexWS1 = TransformObjectToWorld(float3(v.extrusion.zw, 0));
     float3 shadowDir0 = vertexWS0 - _LightPos;
     shadowDir0.z = 0;
     shadowDir0 = normalize(shadowDir0);
 
-    float3 shadowDir1 = vertexWS1 - _LightPos;
-    shadowDir1.z = 0;
-    shadowDir1 = normalize(shadowDir1);
-
-    float3 shadowDir = normalize(shadowDir0 + shadowDir1);
-
+    float3 shadowDir = normalize(shadowDir0);
 
     float3 sharedShadowOffset = sharedShadowTest * _ShadowRadius * shadowDir;
 

@@ -11,7 +11,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
 
         Cull Off
         BlendOp Add
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend One Zero
         ZWrite Off
 
         Pass
@@ -59,7 +59,8 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-                return half4(0, 0, 0, main.a);
+                half color = 1-main.a;
+                return half4(color, color, color, color);
             }
             ENDHLSL
         }
