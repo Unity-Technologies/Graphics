@@ -43,7 +43,8 @@ namespace UnityEditor.ShaderGraph
                 e_targetBlockNode.UnregisterCallback(OnCustomBlockModified);
             }
 
-            name = customBlockNodeName = customBlockName + " (Custom Interpolator)";
+            name = customBlockName + " (Custom Interpolator)";
+            customBlockNodeName = customBlockName;
             if (e_targetBlockNode != null)
             {
                 serializedType = e_targetBlockNode.customWidth;
