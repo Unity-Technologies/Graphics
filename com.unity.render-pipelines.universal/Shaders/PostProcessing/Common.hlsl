@@ -9,6 +9,7 @@
 // relying on the matrix set by the C++ engine to avoid issues with XR
 
 float4x4 _FullscreenProjMat;
+float4 _RTHandleScale;
 
 float4 TransformFullscreenMesh(half3 positionOS)
 {

@@ -50,10 +50,24 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = null;
             m_CurrentPostProcessData = null;
 
+            GraphicsFormat format;
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+            {
+                format = GraphicsFormat.B10G11R11_UFloatPack32;
+            }
+            else if (QualitySettings.activeColorSpace == ColorSpace.Linear)
+            {
+                format = GraphicsFormat.R8G8B8A8_SRGB;
+            }
+            else
+            {
+                format = GraphicsFormat.R8G8B8A8_UNorm;
+            }
+
             m_AfterPostProcessColor = RTHandles.Alloc(
                 Vector2.one,
                 depthBufferBits: DepthBits.None,
-                colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
+                colorFormat: format,
                 filterMode: FilterMode.Point,
                 wrapMode: TextureWrapMode.Clamp,
                 dimension: TextureDimension.Tex2D,
