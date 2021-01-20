@@ -149,11 +149,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawCameraSortingLayerTexture();
             DrawPostProcessing();
 
-            EditorGUILayout.Space();
-            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
-
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space();
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()
