@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
 
 ## [10.2.0] - 2020-10-19
 
