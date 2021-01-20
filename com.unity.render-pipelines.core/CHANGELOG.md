@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -16,9 +16,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
-
-### Fixed
-- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed ACES tonemapping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ### Added
