@@ -124,8 +124,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ReleaseAtlas()
         {
             // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.
-            volumeAtlas.Release();
-            m_VolumeAtlas = null;
+            if (m_VolumeAtlas != null)
+            {
+                volumeAtlas.Release();
+                m_VolumeAtlas = null;
+            }
         }
     }
 }
