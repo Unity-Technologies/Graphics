@@ -117,8 +117,12 @@ namespace UnityEditor.ShaderGraph
                     case PropertyType.Vector4: return $" float4({v.x},{v.y},{v.z},{v.w}) ";
                 }
             }
+            else if (e_targetBlockNode != null)
+            {
+                return string.Format("IN.{0}", customBlockNodeName);
+            }
 
-            return string.Format("IN.{0}", customBlockNodeName);
+            return $" float4(0,0,0,0) ";
         }
 
 
