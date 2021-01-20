@@ -342,8 +342,13 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
-        public static AttachmentDescriptor m_ActiveColorAttachmentDescriptor;
-        public static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
+        static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
+        {
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment
+        };
+        static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
@@ -751,7 +756,7 @@ namespace UnityEngine.Rendering.Universal
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? 2 : 1, Allocator.Temp);
 
-                attachments[0] = m_ActiveColorAttachmentDescriptor;
+                attachments[0] = m_ActiveColorAttachmentDescriptors[0];
                 if (useDepth && !renderPass.depthOnly)
                     attachments[1] = m_ActiveDepthAttachmentDescriptor;
                 ///yyy
@@ -874,7 +879,8 @@ namespace UnityEngine.Rendering.Universal
 
                         if (writeIndex != otherTargetsCount)
                             Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
-                        SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
+                        if (!renderPass.useNativeRenderPass)
+                            SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
                 }
 
@@ -893,7 +899,9 @@ namespace UnityEngine.Rendering.Universal
                         var trimmedAttachments = m_TrimmedColorAttachmentCopies[rtCount];
                         for (int i = 0; i < rtCount; ++i)
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
-                        SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+
+                        if (!renderPass.useNativeRenderPass)
+                            SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
 
                     #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -933,9 +941,9 @@ namespace UnityEngine.Rendering.Universal
                 Color finalClearColor;
 
 				if (!renderPass.overrideCameraTarget)
-                	m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                	m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
 				else
-					m_ActiveColorAttachmentDescriptor = new AttachmentDescriptor(renderPass.renderTargetFormat);
+					m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat);
 
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {
@@ -986,7 +994,7 @@ namespace UnityEngine.Rendering.Universal
                             ? new RenderTargetIdentifier(cameraData.targetTexture)
                             : RenderTargetHandle.CameraTarget.Identifier());
 
-                    m_ActiveColorAttachmentDescriptor.ConfigureTarget(destTarget, !m_FirstTimeColorClear, !isBlit);
+                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(destTarget, !m_FirstTimeColorClear, !isBlit);
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
 
@@ -999,8 +1007,8 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (!renderPass.depthOnly)
                             m_FirstTimeColorClear = false;
-                        
-                        m_ActiveColorAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 0);
+
+                        m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
                         if (!isBlit)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                     }
@@ -1008,7 +1016,7 @@ namespace UnityEngine.Rendering.Universal
 
                     if ( !isBlit && samples > 1)
                     {
-                        m_ActiveColorAttachmentDescriptor.ConfigureResolveTarget(m_CameraResolveTarget);
+                        m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
                     }
                 }
                 else
