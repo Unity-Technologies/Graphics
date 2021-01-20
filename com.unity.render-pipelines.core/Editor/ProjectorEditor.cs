@@ -7,11 +7,11 @@ namespace UnityEditor.Rendering
     [CanEditMultipleObjects]
     class ProjectorEditor : Editor
     {
-        const string k_Message = "The active render pipeline does not support the Projector component. If using HDRP, use the Decal Projector component instead.";
+        static readonly GUIContent k_Message = EditorGUIUtility.TrTextContent("The active render pipeline does not support the Projector component. If using HDRP, use the Decal Projector component instead.");
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox(k_Message, MessageType.Warning);
+            EditorGUILayout.HelpBox(k_Message.text, MessageType.Warning);
 
             using (new EditorGUI.DisabledScope(true))
             {
