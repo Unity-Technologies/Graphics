@@ -133,9 +133,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.PropertyToID("_BloomMipDown15"),
         };
 
-        public static readonly int _TempTarget         = Shader.PropertyToID("_TempTarget");
-        public static readonly int _TempTarget2        = Shader.PropertyToID("_TempTarget2");
-
         public static readonly int _StencilRef         = Shader.PropertyToID("_StencilRef");
         public static readonly int _StencilMask        = Shader.PropertyToID("_StencilMask");
 

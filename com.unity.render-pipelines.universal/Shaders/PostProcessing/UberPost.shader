@@ -115,7 +115,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
             float2 uvDistorted = DistortUV(uv);
 
             half3 color = (0.0).xxx;
@@ -150,9 +150,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #if defined(BLOOM)
             {
                 #if _BLOOM_HQ && !defined(SHADER_API_GLES)
-                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted * _RTHandleScale.xy, _Bloom_Texture_TexelSize.zwxy,  _RTHandleScale.xy, unity_StereoEyeIndex);
+                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy,  _RTHandleScale.xy, unity_StereoEyeIndex);
                 #else
-                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, uvDistorted * _RTHandleScale.xy);
+                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, uvDistorted);
                 #endif
 
                 #if UNITY_COLORSPACE_GAMMA
