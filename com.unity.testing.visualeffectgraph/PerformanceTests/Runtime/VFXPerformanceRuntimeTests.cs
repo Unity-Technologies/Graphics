@@ -19,6 +19,20 @@ namespace UnityEditor.VFX.PerformanceTest
 {
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
+        private bool m_PreviousAllowAsyncCompilation;
+        [OneTimeSetUp]
+        public void Init()
+        {
+            m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
+        }
+
+        [OneTimeTearDown]
+        public void Clear()
+        {
+            ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+        }
+
         static IEnumerable<CounterTestDescription> GetCounterTests()
         {
             yield break;
@@ -116,8 +130,6 @@ namespace UnityEditor.VFX.PerformanceTest
         [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Counters(GraphicsTestCase testCase)
         {
-            UnityEngine.Debug.unityLogger.logEnabled = false;
-
             yield return Load_And_Prepare(testCase);
 
             //TODO : Avoid too much garbage here
@@ -151,13 +163,25 @@ namespace UnityEditor.VFX.PerformanceTest
 
             foreach (var sampler in samplers)
                 sampler.recorder.enabled = false;
-
-            UnityEngine.Debug.unityLogger.logEnabled = true;
         }
     }
 
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
+        private bool m_PreviousAllowAsyncCompilation;
+        [OneTimeSetUp]
+        public void Init()
+        {
+            m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
+        }
+
+        [OneTimeTearDown]
+        public void Clear()
+        {
+            ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+        }
+
         private IEnumerable<Type> GetVFXMemoryObjectTypes()
         {
             yield return typeof(VisualEffect);
@@ -181,7 +205,6 @@ namespace UnityEditor.VFX.PerformanceTest
         {
             yield return FreeMemory();
 
-            UnityEngine.Debug.unityLogger.logEnabled = false;
             yield return VFXRuntimePerformanceTests.Load_And_Prepare(testCase);
 
             var results = new List<(string name, long size)>();
@@ -227,8 +250,6 @@ namespace UnityEditor.VFX.PerformanceTest
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryVfx"), SampleUnit.Byte, false), totalMemoryVfx);
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocated"), SampleUnit.Byte, false), Profiler.GetTotalAllocatedMemoryLong());
             Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, "totalMemoryAllocatedForGraphicsDriver"), SampleUnit.Byte, false), Profiler.GetAllocatedMemoryForGraphicsDriver());
-
-            UnityEngine.Debug.unityLogger.logEnabled = true;
 
             yield return FreeMemory();
         }
