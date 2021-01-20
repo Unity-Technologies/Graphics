@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Threshold;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_ElementsCount;
+        SerializedDataParameter m_ElementIntensities;
 
         public override void OnEnable()
         {
@@ -21,7 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Type = Unpack(o.Find(x => x.type));
             m_Threshold = Unpack(o.Find(x => x.threshold));
             m_Intensity = Unpack(o.Find(x => x.intensity));
-            m_ElementsCount = Unpack(o.Find(x => x.elementsCount));
+            //m_ElementsCount = Unpack(o.Find(x => x.elementsCount));
+            //m_ElementIntensities = Unpack(o.Find(x => x.elementsIntensity));
         }
 
         public override void OnInspectorGUI()
@@ -37,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Type, new GUIContent("Type"));
             PropertyField(m_Threshold, new GUIContent("Threshold"));
             PropertyField(m_Intensity, new GUIContent("Intensity"));
-            PropertyField(m_ElementsCount, new GUIContent("Elements Count"));
+            //PropertyField(m_ElementsCount, new GUIContent("Elements Count"));
         }
     }
 }

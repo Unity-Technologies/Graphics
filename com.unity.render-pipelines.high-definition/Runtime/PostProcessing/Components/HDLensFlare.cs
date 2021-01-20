@@ -1,6 +1,8 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering.HighDefinition;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -39,7 +41,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the strength of the LensFlare filter.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
-        public MinIntParameter elementsCount = new MinIntParameter(3, 1);
+        private MinIntParameter m_ElementsCount = new MinIntParameter(3, 1);
+
+        public MinIntParameter elementsCount
+        {
+            get => m_ElementsCount;
+            set {
+                for (int i = elementsIntensity.Count + 1; i < value.value; ++i)
+                    elementsIntensity.Add(new ClampedFloatParameter(0f, 0f, 1f));
+                if (elementsIntensity.Count > value.value)
+                    elementsIntensity.RemoveRange(value.value, elementsIntensity.Count - value.value);
+            }
+        }
+
+        public ArrayList elementsIntensity = new ArrayList();
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
