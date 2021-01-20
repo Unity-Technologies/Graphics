@@ -39,11 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: "Those are the basics of HDRP settings. \n\nHere is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a>
-          tutorial on the subject. \n\nAnd some additional documentation:\n\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html\">HDRP
-          asset</a>\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html\">Scalability
-          (Quality levels)</a>\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Frame-Settings.html\">Frame
-          Settings</a>"
+        m_Untranslated: "Those are the basics of HDRP settings.\r\n\r\nHere is a<a
+          href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a> tutorial on the subject.\r\n\r\nAnd
+          some additional documentation:\r\n\r\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html\">HDRP
+          asset</a>\r\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/HDRP-Asset.html\">Scalability
+          (Quality levels)</a>\r\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Frame-Settings.html\">Frame
+          Settings</a>\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

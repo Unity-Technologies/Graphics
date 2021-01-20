@@ -44,23 +44,23 @@ MonoBehaviour:
           Gizmos are on, light probes are not selected and at the bottom of the Lighting
           window, set Light Probe Visualization to <b>All probes no cells</b>.\r\n\r\nAll
           the scene light probes can be found in <i>Hierarchy</i> window <b>Lighting->Light
-          Probe Group</b>. They were placed by hand, if you'd select Light Probe
-          Group and in the <i>Inspector</i> click <b>Edit Light Probes</b> button,
-          you could select, move or add new ones. \r\n\r\nWe will not cover how to
-          manually place or create them since there is nothing HDRP specific, however,
-          will highlight a few key points to have in mind:\r\n\r\n* Light probes
-          are not realtime, remember to rebake if you made drastic changes to lighting.\r\n\r\n*
-          Spheres in the image above show at what points in the scene lighting data
-          will be sampled. Whenever an object is set to receive lighting from light
-          probes(default), the object will receive the lighting using a blend from
-          the 4 closest probes. So it is important to place probes where a drastic
-          lighting change is occurring, for example in a shadow and next to it.\r\n\r\n*
-          Even if an object will not move, it doesn\u2019t mean it should be marked
-          as static and use lightmaps. Using light probes instead, even for stationary
-          objects, will reduce baking times and lightmap sizes a lot. For example,
-          see the chairs in the 3rd room. They are only static for reflections and
-          receive lighting from probes. Generally, small objects should use light
-          probes, not baked lightmaps.\r\n"
+          Probe Group</b>. They were placed by hand. Select Light Probe Group and
+          in the <i>Inspector</i> click <b>Edit Light Probes</b> button then you
+          can select, move or add new ones.\r\n\r\nThis tutorial will not delve into
+          manually placing or creating a Light Probe Group,however, we will highlight
+          a few key principles to have in mind:\r\n\r\n* Light probes are not realtime,
+          remember to rebake if you made drastic changes to lighting.\r\n\r\n* Spheres
+          in the image above show at what points in the scene lighting data will
+          be sampled. Whenever an object is set to receive lighting from light probes(default),
+          the object will receive the lighting using a blend from the 4 closest probes.
+          So it is important to place probes on both sides where a drastic lighting
+          change is occurring, for example in a shadow and next to it.\r\n\r\n* Even
+          if an object does not move, it doesn\u2019t mean it should be marked as
+          static and use lightmaps. Using light probes  for stationary objects, will
+          reduce baking times and lightmap sizes. For example, see the chairs in
+          the third room. They are only static for reflections and receive lighting
+          from probes. Generally, small objects should use light probes, not baked
+          lightmaps.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

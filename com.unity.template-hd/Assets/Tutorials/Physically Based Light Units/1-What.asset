@@ -37,22 +37,23 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: What are Physically Based Light Units?
+        m_Untranslated: What is Physically Based Lighting?
       Text:
-        m_Untranslated: 'These are light values based on real-life measurements,
-          like those you see on light bulb packaging or a photographic light meter.
+        m_Untranslated: 'Physically based lighting relies on real-life lighting intensities,
+          like those you see on light bulb packaging or a light meter.
 
           
 
           While
           this is a difficult topic to grasp for beginners, learning to work with
-          real-life values will make work much easier in the future. No more guessing
-          what values to set for light sources, simply look up the measurements on
-          the web and input into Unity.
+          real-life values will make work much easier in the future and improve lighting
+          consistency. No more guessing what values to set for light sources, simply
+          look up the measurements on the web and input them in Unity.
 
           
 
-          Here are some href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Physical-Light-Units.html"<a>examples</a>
+          Here
+          are some href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Physical-Light-Units.html"<a>examples</a>.
 
 '
       m_Summary: 

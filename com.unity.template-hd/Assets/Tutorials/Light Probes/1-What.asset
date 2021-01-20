@@ -39,12 +39,22 @@ MonoBehaviour:
       Title:
         m_Untranslated: What are light probes?
       Text:
-        m_Untranslated: "Light probes are a part of baked lighting. They are necessary
-          in order to apply indirect lighting to dynamic objects in the scene.\r\n\r\nAdd
-          a cube in the scene and set its coordinates to x:26 y:1.5 z:5.5.\r\n\r\nThe
-          newly added cube has a green tint on one of the sides representing the
-          bounced light from the wall nearby, it also generally fits well within
-          the scene.\r"
+        m_Untranslated: 'Light probes are a part of baked lighting. They are necessary
+          for applying indirect lighting to dynamic objects in the scene.
+
+          
+
+          Add
+          a cube in the scene and set its coordinates to x:26 y:1.5 z:5.5.
+
+          
+
+          The
+          newly added cube has a green tint on one of its sides representing the
+          bounced light from the wall nearby, also it looks appropriately lit within
+          the scene.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

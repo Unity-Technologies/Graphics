@@ -39,10 +39,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Falling Leaves
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject\r\n2)
-          Select <b>FallingLeaves</b> gameobject\r\n3) Toggle it <b>on</b> and <b>off</b>
-          in the <i>Inspector</i>\r\n\r\nFalling leaves have a minor impact on the
-          scene but it gives that realistic touch to your set up. \r\n"
+        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> GameObject\r\n2)
+          Select <b>ButterFlies</b> GameObjectgameobject\r\n3) Go to <i>Inspector</i>
+          window -> <i>Properties</i>\r\n4) Set <b>Wing Animation Speed</b> to 0.1 
+          \r\n\r\nNotice how the animation slows down.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

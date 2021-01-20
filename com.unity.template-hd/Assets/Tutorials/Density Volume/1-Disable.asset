@@ -39,8 +39,19 @@ MonoBehaviour:
       Title:
         m_Untranslated: Density Volume
       Text:
-        m_Untranslated: In the <i>Hierarchy</i> window under <b>Lightning</b> disable
-          <b> Density Volumes</b>. You should see the local fog disappear.
+        m_Untranslated: 'In this tutorial, we will disable/enable the existing density
+          volume and observe the effect it has on the scene.
+
+          
+
+          1)
+          In the <i>Hierarchy</i> window under <b>Lightning</b> disable <b> Density
+          Volumes</b>. You should see the local fog disappear.
+
+          2) Enable
+          <b> Density Volumes</b> again to see the difference.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

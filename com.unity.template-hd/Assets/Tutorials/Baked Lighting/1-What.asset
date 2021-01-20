@@ -39,16 +39,35 @@ MonoBehaviour:
       Title:
         m_Untranslated: What is baked lighting?
       Text:
-        m_Untranslated: "Lights have to be baked in order to simulate indirect lighting,
-          this is especially important for indoor environments. \r\n\r\nIn reality,
-          most of the objects we see are lit by indirect light that bounced from
-          walls, floors, etc. Thus the absence of it is instantly noticeable.\r\n\r\nThe
+        m_Untranslated: 'Lights have to be baked in order to simulate indirect lighting,
+          this is especially important for indoor environments.
+
+          
+
+          In
+          reality, most of the objects we see are lit by indirect light that bounced
+          from walls, floors, etc. Thus the absence of it is instantly noticeable.
+
+          
+
+          The
           image above shows the scene when baked data is cleared. As you can see
           bounced light is missing, but there are also a few other key things to
-          take note of. When baked data does not exist:\r\n\r\n* The sky is used
-          for reflections  (set in Lighting->Volumes->Volume Global->Visual Environment)\r\n\r\n*
-          All objects receive ambient lighting from the sky, light is not occluded
-          (set in Window->Rendering->Environment->Static lighting sky)\r"
+          take note of. When baked data does not exist:
+
+          
+
+          *
+          The sky is used for reflections  (set in Lighting->Volumes->Volume Global->Visual
+          Environment)
+
+          
+
+          * All objects receive ambient lighting
+          from the sky, light is not occluded (set in Window->Rendering->Environment->Static
+          lighting sky)
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

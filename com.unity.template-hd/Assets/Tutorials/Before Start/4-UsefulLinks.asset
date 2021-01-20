@@ -39,10 +39,9 @@ MonoBehaviour:
       Title:
         m_Untranslated: More HDRP
       Text:
-        m_Untranslated: "That\u2019s it, you are set to go! Explore the template
-          on your own or complete the tutorials in any order you choose.\r\n\r\nBelow
-          will provide some links that you might find useful.\r\n\r\nOther HDRP projects:\r\n<a
-          href=\"https://github.com/Unity-Technologies/FontainebleauDemo\">\r\nFontainebleau
+        m_Untranslated: "You can now explore the template on your own or complete
+          the tutorials in any order you choose.\r\n\r\nBelow will provide some links
+          that you might find useful.\r\n\r\nOther HDRP projects:\r\n<a href=\"https://github.com/Unity-Technologies/FontainebleauDemo\">\r\nFontainebleau
           Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/SpaceshipDemo\">\r\nSpaceship
           Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/SmallOfficeRayTracing\">\r\nRaytracing
           Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/VRAlchemyLab\">\r\nVR

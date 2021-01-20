@@ -39,13 +39,23 @@ MonoBehaviour:
       Title:
         m_Untranslated: Using provided presets
       Text:
-        m_Untranslated: "Using presets is very easy, however, note that baking can
+        m_Untranslated: 'Using presets is very easy, however, note that baking can
           take a long time to complete depending on your machine and it is safe to
-          skip this step if you understand the subject.\r\n\r\n1) Open Lighting tab
-          <b>Window->Rendering->Lighting</b>\r\n2) In the scene tab, assign one of
-          the presets into <b>Lighting Settings</b> field. For example <b>Lighting
-          Settings Draft</b>\r\n3) In the bottom right corner of the Lighting tab,
-          click <b>Generate Lighting</b>\r"
+          skip this step if you understand the subject.
+
+          
+
+          1)
+          Open Lighting tab <b>Window->Rendering->Lighting</b>
+
+          2) In
+          the scene tab, assign one of the presets into <b>Lighting Settings</b>
+          field. For example <b>Lighting Settings Draft</b>
+
+          3) In the
+          bottom right corner of the Lighting tab, click <b>Generate Lighting</b>
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

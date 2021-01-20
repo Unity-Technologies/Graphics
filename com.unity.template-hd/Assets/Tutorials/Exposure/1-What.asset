@@ -39,16 +39,36 @@ MonoBehaviour:
       Title:
         m_Untranslated: What is exposure?
       Text:
-        m_Untranslated: "In HDRP exposure is just one of many Volume Overrides. However,
-          it\u2019s so important that it deserves a tutorial of its own.\r\n\r\nExposure
-          simulates how our eyes adapt to lighting conditions in real life. For example,
-          being able to see slightly better after spending some time in a dark room.
-          \r\n\r\nThere are a few different exposure modes in HDRP, the most notable
-          are:\r\n\r\n<b>Fixed</b> - Allows you to manually set the Scene exposure.
-          Your eyes will no longer adapt to lighting when leaving or entering dark
-          areas.\n\r\n<b>Automatic</b> - Simulates how eyes adapt to light intensities
-          automatically. It has more parameters and is slightly harder to get used
-          to, but is recommended because it most accurately resembles real life.\r"
+        m_Untranslated: 'In HDRP, mastering Exposure is key to achieving believable
+          lighting.
+
+          
+
+          Exposure is the amount of lighting affecting
+          the sensor of a camera. Cameras, and your eyes, can automatically adapt
+          to the amount of light in the environment. However, like in real-life,
+          it is important to control the exposure of your HDRP cameras to prevent
+          over or under exposure.
+
+          
+
+          There are a few different
+          exposure modes in HDRP, the most notable are:
+
+          
+
+          <b>Fixed</b>
+          - Allows you to manually set the Scene exposure. The camera does not  adapt
+          to the lighting conditions when leaving or entering dark areas. It is commonly
+          used for set lighting, when lighting conditions remain constant.
+
+          
+
+          <b>Automatic
+          Histogram</b> - Simulates how a camera can automatically adapt to dynamic
+          lighting conditions.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

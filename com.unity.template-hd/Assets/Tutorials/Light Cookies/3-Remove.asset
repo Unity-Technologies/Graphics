@@ -44,8 +44,7 @@ MonoBehaviour:
           in the <i>Inspector</i> window\r\n2) Press <b>Delete</b> key\r\n3) Notice
           the light shape changes, the edges no longer have a smooth transition,
           and some fine details are lost around the center\r\n4) Press <b>Ctrl+Z</b>
-          to undo the change\r\n\r\nUndo and Redo a few times until you spot all
-          the changes\r"
+          to undo the change\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

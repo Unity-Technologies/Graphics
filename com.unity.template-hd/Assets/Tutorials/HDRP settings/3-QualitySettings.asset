@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,28 +36,21 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Quality settings
-      m_Description: 'It is a good practice to have multiple HDRP assets with different
-        settings for different performance targets.
-
-
-        1) Go to <b>Edit->Project
-        Settings->Quality</b>, we have 3 quality levels <b>High, Medium, Low</b>
-
-        2)
-        <b>Medium</b> is currently active and the default one. Lets switcht to <b>Low
-        Quality</b>
-
-        3) Notice the fog is now gone and it should also affect
-        your framerate
-
-        4) Change back to <b>Medium Quality</b>
-
-
-        Optionally
-        you can locate the <b>Low</b> asset in Settings folder and verify that indeed
-        <b>Lighting->Volumetrics</b> are off. Also you can try switching to <b>High</b>
-        and see what effect it has on the shadows in the second room.'
+      Title:
+        m_Untranslated: Quality settings
+      Text:
+        m_Untranslated: "It is good practice to have multiple HDRP assets with different
+          settings for different performance targets.\r\n\r\n1) Go to <b>Edit->Project
+          Settings->Quality</b>, we have 3 quality levels <b>High, Medium, Low</b>\r\n2)
+          <b>Medium</b> is currently active and the default one. Let's switch to
+          <b>Low Quality</b>\r\n3) Notice the fog is now gone and it should also
+          affect your framerate\r\n4) Change back to <b>Medium Quality</b>\r\n\r\nOptionally
+          you can locate the <b>Low</b> asset in Settings folder and verify that
+          indeed <b>Lighting->Volumetrics</b> is off in the <b>Low Quality</b> level.
+          Also you can try switching to <b>High Quality</b> and see what effect it
+          has on the shadow filtering quality.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -84,13 +81,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

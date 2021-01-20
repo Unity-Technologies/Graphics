@@ -39,15 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore global volume
       Text:
-        m_Untranslated: "Let\u2019s see how volumes are being used in this scene\r\n\r\n1)
-          In <i>Hierarchy</i> window expand <b>Lighting->Volumes</b>\r\n2) Select
+        m_Untranslated: "Let\u2019s see how volumes are being used in this scene.\r\n\r\n1)
+          In the <i>Hierarchy</i> window, expand <b>Lighting->Volumes</b>\r\n2) Select
           the <b>Volume Global</b> gameobject\r\n3) Notice the <b>Mode</b> is <b>Global</b>
-          in the <i>Inspector</i>. Move your scene camera anywhere in the scene and
-          <b>disable tonemapping</b> override\r\n4) Undo your change\r\n\r\nNotice
-          it has an effect no matter where the camera is. It is the most important
-          and the only <b>Global</b> volume for this scene containing most of the
-          overrides. Its recommended to only have 1 <b>Global</b> volume per scene
-          and use <b>Local</b> ones whenever possible.\r\n"
+          in the <i>Inspector</i>. Disable the <b>Tonemapping</b> Override\r\n4)
+          Undo your change\r\n\r\nNotice it has an effect no matter where the camera
+          is located. This Global Volume is important to set up a baseline for the
+          effects which usually remain constant, no matter the location of the camera,
+          such as Shadows, Motion Blur, Bloom, Ambient Occlusion, Film Grain, etc.
+          \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

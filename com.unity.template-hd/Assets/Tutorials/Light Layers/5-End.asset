@@ -40,13 +40,16 @@ MonoBehaviour:
         m_Untranslated: Congradulations!
       Text:
         m_Untranslated: 'You have finished the <b>Light Layers</b> tutorial. For
-          more about light layers, take a look at this<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Light-Layers.html">youtube
+          more about light layers, take a look at these links:<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Light-Layers.html">youtube
           video</a> or<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Decal-Projector.html">the
           documentation.</a>
 
+          
 
-          Note: You do not need to save in order to
-          follow other tutorials.'
+          Note: You do not need to save
+          in order to follow other tutorials.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

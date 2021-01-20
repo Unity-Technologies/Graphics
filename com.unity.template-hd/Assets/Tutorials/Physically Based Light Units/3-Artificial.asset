@@ -39,17 +39,19 @@ MonoBehaviour:
       Title:
         m_Untranslated: Artificial Lights
       Text:
-        m_Untranslated: "Select the light illuminating the wall and inspects its
-          properties. The gameobject is called Light_Spot_1600lm. \r\n\r\nIt\u2019s
-          usually very simple with artificial lights because all the values are often
-          provided by the manufacturer.\r\n\r\nThe selected lamps intensity is <b>1600
-          Lumen</b> and the temperature is <b>3500 Kelvin</b>.  Try searching Amazon
-          or any other online store for a 1600 lm bulb, notice light bulbs with the
-          same intensity can come in a variety of colors.\r\n\r\nSo creating realistic
-          lighting becomes as simple as looking up bulb values online or using the
-          slider ranges if you don\u2019t have a particular light in mind.\r\n\r\n<b>Performance
-          tip:</b> Keep your Fade Distance setting as low as you can, so that the
-          light disappears beyond a certain distance.\r\n"
+        m_Untranslated: "Select the light illuminating the wall and inspect its properties.
+          The gameobject is called Light_Spot_1600lm.\r\n\r\nThe intensity of the
+          light bulb is usually provided by the manufacturer, usually in Lumen or
+          Candela.\r\n\r\nThe selected lamps intensity is <b>1600 Lumen</b> and the
+          temperature is <b>3500 Kelvin</b>. This corresponds to the intensity of
+          a powerful 100W halogen bulb. \r\nCreating realistic lighting becomes as
+          simple as looking up bulb values online or using the slider ranges if you
+          don\u2019t have a particular light in mind.\r\n\r\nWhen dealing with lumen
+          and Spot lights, make sure you enable the <b>Reflector</b> checkbox in
+          the Emission foldout, under the <b>Intensity</b> field. If you cannot see
+          this checkbox, enable <i>More Options</i> for the Emission foldout.\r\n\r\n<b>Performance
+          tip:</b> Keep the <b>Fade Distance</b> property as low as possible, so
+          that the light disappears beyond a certain distance (in meter).\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

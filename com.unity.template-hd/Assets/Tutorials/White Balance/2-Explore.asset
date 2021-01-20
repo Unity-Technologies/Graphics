@@ -47,7 +47,7 @@ MonoBehaviour:
           here applies a cool color filter to the image, to counterbalance the strong
           orange color cast from the lamps above the chairs.\r\n Often, artificial
           lighting falls on the warm side of the color temperature range, and white
-          balance is a way to adjust the perception of white color in a scene. \r\n\r\nThe
+          balance is a way to adjust the perception of white color in a scene.\r\n\r\nThe
           opposite effect can be applied to an outdoor scene with a blue sky, which
           tends to have a slight blue color cast.\r\n"
       m_Summary: 

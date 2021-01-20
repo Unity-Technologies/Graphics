@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,28 +36,38 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Explore global settings
-      m_Description: '1) Delete your Global Volume in the <i>Hierarchy</i> window.
-        We wont need it anymore.
+      Title:
+        m_Untranslated: Explore global settings
+      Text:
+        m_Untranslated: '1) Delete your Global Volume in the <i>Hierarchy</i> window.
+          We wont need it anymore.
 
-        2) Select Lighting->Volumes->Volume Global
+          2) Select Lighting->Volumes->Volume
+          Global
 
-        3)
-        Take a look at the <i>Inspector</i> tab to see Exposure settings in use
+          3) Take a look at the <i>Inspector</i> tab to see Exposure
+          settings in use
 
+          
 
-        These
-        are globally applied to all volumes in the scene. The most notable  are:
+          These are globally applied to
+          all volumes in the scene. The most notable  are:
 
+          
 
-        <b>Mode</b>
-        - Automatic Histogram, very similar to automatic but has additional options.
+          <b>Mode</b>
+          - Automatic Histogram, very similar to automatic but has additional options.
 
+          
 
-        <b>Speed
-        Dark to Light</b> - controls how fast will the camera adapt to light conditions
-        change. In real life it is also not instant, so most of the time you''d probably
-        want to have a higher value than 0'
+          <b>Speed
+          Dark to Light</b> - controls how fast will the camera adapt to light conditions
+          change. In real life it is also not instant, so most of the time you''d
+          probably want to have a higher value than 0
+
+'
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -84,13 +98,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

@@ -39,12 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You have finished the <b>Materialss</b> tutorial. For more
+        m_Untranslated: 'You have finished the <b>Materials</b> tutorial. For more
           information check out Reflection Probes  <a href="https://docs.unity3d.com/Manual/class-ReflectionProbe.htmll">documentation</a>.
 
+          
 
           Note:
-          You do not need to save in order to follow other tutorials.'
+          You do not need to save in order to follow other tutorials.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
