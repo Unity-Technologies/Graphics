@@ -6,7 +6,7 @@ class Project_NightlyJob():
     
     def __init__(self, project, editor, dependencies_in_nightly):
         self.project = project
-        self.job_id = project_job_id_nightly(project, editor["name"])
+        self.job_id = project_job_id_nightly(project["name"], editor["name"])
         self.yml = self.get_job_definition(project, editor, dependencies_in_nightly).get_yml()
 
     
@@ -15,7 +15,7 @@ class Project_NightlyJob():
         # define dependencies
         dependencies = []
         for dep in dependencies_in_nightly:
-            project_dep = dep.get('project', project)
+            project_dep = dep.get('project', project["name"])
             
             if dep.get("pr"):
                 dependencies.append({
@@ -37,16 +37,16 @@ class Project_NightlyJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Nightly {project} - {editor["name"]}')
+        job.set_name(f'Nightly {project["name"]} - {editor["name"]}')
         job.add_dependencies(dependencies)
         # if expression_trigger != "":
         #     job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         job.add_var_custom('UTR_VERSION', dss("current"))
         job.add_var_custom('TEST_FILTER', '.*')
-        # if project == "URP_Performance_BoatAttack":
-        #     job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-        #     job.add_var_custom('BOAT_ATTACK_REVISION', '60b6bc595f20b29f4869d3236ce1aa91a490ef6b')
+        if project.get('variables'):
+            for key,value in project.get('variables').items():
+                job.add_var_custom(key,value)
         return job
     
     

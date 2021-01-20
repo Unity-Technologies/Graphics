@@ -6,13 +6,13 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-        #pragma multi_compile_local _ FXAA
-        #pragma multi_compile_local _ GRAIN
-        #pragma multi_compile_local _ DITHER
-        #pragma multi_compile_local _ ENABLE_ALPHA
-        #pragma multi_compile_local _ APPLY_AFTER_POST
+        #pragma multi_compile_local_fragment _ FXAA
+        #pragma multi_compile_local_fragment _ GRAIN
+        #pragma multi_compile_local_fragment _ DITHER
+        #pragma multi_compile_local_fragment _ ENABLE_ALPHA
+        #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
-        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
+        #pragma multi_compile_local_fragment _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

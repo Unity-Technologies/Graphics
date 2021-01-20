@@ -19,8 +19,8 @@ URPUpdate_Win_DX11_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
@@ -43,8 +43,8 @@ URPUpdate_Win_DX11_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
@@ -68,11 +68,12 @@ URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
+      -  copy /Y "unity_revision.txt" "TestProjects/URP-Update-testing/URP-Update-Testing/unity_revision.txt"
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
@@ -96,11 +97,12 @@ URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-testing
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output TestProjects/URP-Update-testing/URP-Update-Testing/utr.bat
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/URP-Update-Testing/Packages/com.unity.shadergraph" /Y
+      -  copy /Y "unity_revision.txt" "TestProjects/URP-Update-testing/URP-Update-Testing/unity_revision.txt"
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/URP-Update-Testing && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
