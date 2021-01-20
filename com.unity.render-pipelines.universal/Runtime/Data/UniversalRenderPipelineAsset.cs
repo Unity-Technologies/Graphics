@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
