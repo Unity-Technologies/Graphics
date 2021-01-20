@@ -40,6 +40,33 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(resultC, expressionC.Get<float>());
         }
 
+        static readonly Vector2[] s_ProcessExpressionSafeNormalizeValues = new Vector2[]
+        {
+            new Vector2(0,0),
+            new Vector2(0.0f, 1e-30f),
+            new Vector2(0.0f, 1e-20f),
+            new Vector2(0.0f, 1e-10f),
+            new Vector2(1e-30f, 1e-30f),
+            new Vector2(1e-20f, 1e-20f),
+            new Vector2(1e-10f, 1e-10f),
+            new Vector2(1e-10f, 1e-10f),
+            new Vector2(1.0f, 1.0f),
+            new Vector2(2.0f, -1.0f),
+            new Vector2(0.5f, 0.2f),
+            new Vector2(-1.0f, -1.0f),
+        };
+
+        [Test]
+        public void ProcessExpressionSafeNormalize([ValueSource("s_ProcessExpressionSafeNormalizeValues")] Vector2 input)
+        {
+            var valueInput = new VFXValue<Vector2>(input);
+            var expression = VFXOperatorUtility.SafeNormalize(valueInput);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+            var expectedResult = input.normalized;
+            Assert.AreEqual(expectedResult, resultExpression.Get<Vector2>());
+        }
+
         [Test]
         public void ProcessExpressionAdd()
         {

@@ -74,19 +74,21 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
-        public class OptionalInputProperties
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
-        }
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
 
+            }
+        }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
                 if (GetOrRefreshShaderGraphObject() == null)
-                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                    properties = properties.Concat(optionalInputProperties);
 
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));

@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
                     yield return property;
 
                 if (GetOrRefreshShaderGraphObject() == null)
-                    foreach (var property in PropertiesFromType("OptionalInputProperties"))
+                    foreach (var property in optionalInputProperties)
                         yield return property;
             }
         }
@@ -108,10 +108,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        public class OptionalInputProperties
+
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+
+            }
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)

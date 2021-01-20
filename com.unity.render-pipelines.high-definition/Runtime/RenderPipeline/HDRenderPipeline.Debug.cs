@@ -204,7 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.tileClusterDebug == TileClusterDebug.None
                 && !lightingDebug.displayCookieAtlas
-                && !lightingDebug.displayPlanarReflectionProbeAtlas)
+                && !lightingDebug.displayPlanarReflectionProbeAtlas
+                && !lightingDebug.displayDensityVolumeAtlas)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderLightLoopDebugOverlay", out var passData))
@@ -226,25 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
                     {
                         RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.tileList, data.lightList, data.perVoxelLightList, data.dispatchIndirect, data.depthPyramidTexture);
-                    });
-            }
-        }
-
-        void RenderProbeVolumeDebugOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
-        {
-            if (!m_SupportProbeVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.None)
-                return;
-
-            using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
-            {
-                passData.debugParameters = debugParameters;
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-
-                builder.SetRenderFunc(
-                    (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
                     });
             }
         }
@@ -316,7 +298,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSkyReflectionOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderRayCountOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, rayCountTexture);
             RenderLightLoopDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, lightLists, depthPyramidTexture);
-            RenderProbeVolumeDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderShadowsDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
         }
@@ -547,7 +528,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.transparentRendererList = builder.UseRendererList(
                         renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames,
                             rendererConfiguration: m_CurrentRendererConfigurationBakedLighting,
-                            stateBlock: m_DepthStateOpaque)));
+                            stateBlock: m_DepthStateNoWrite)));
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera

@@ -42,6 +42,8 @@ class Project_NightlyJob():
         # if expression_trigger != "":
         #     job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
+        job.add_var_custom('UTR_VERSION', dss("current"))
+        job.add_var_custom('TEST_FILTER', '.*')
         # if project == "URP_Performance_BoatAttack":
         #     job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
         #     job.add_var_custom('BOAT_ATTACK_REVISION', '60b6bc595f20b29f4869d3236ce1aa91a490ef6b')
