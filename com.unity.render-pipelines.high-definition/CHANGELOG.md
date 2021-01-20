@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- Change some light unit slider value ranges to better reflect the lighting scenario.
 
 ## [11.0.0] - 2020-10-21
 
