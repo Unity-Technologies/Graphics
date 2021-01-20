@@ -1209,6 +1209,8 @@ namespace UnityEditor.ShaderGraph
                     else
                         m_Keywords.Insert(index, keyword);
 
+                    OnKeywordChangedNoValidate();
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

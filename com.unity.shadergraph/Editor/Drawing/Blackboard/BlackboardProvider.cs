@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new SGBlackboard(associatedGraphView)
+            blackboard = new SGBlackboard(new BlackboardViewModel(), associatedGraphView)
             {
                 subTitle = FormatPath(graph.path),
                 addItemRequested = AddItemRequested,
@@ -423,6 +423,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
 
+                // Couldn't this just be in GraphData?? We do a check there anyway for property vs keyword
                 if (input as ShaderKeyword != null)
                 {
                     m_Graph.OnKeywordChangedNoValidate();

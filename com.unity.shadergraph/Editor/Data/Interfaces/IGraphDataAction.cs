@@ -10,4 +10,3 @@ namespace UnityEditor.ShaderGraph
 		Action<GraphData> ModifyGraphDataAction { get; }
     }
 }
-

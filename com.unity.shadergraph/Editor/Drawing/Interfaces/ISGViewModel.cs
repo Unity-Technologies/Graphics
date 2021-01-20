@@ -4,6 +4,7 @@
     {
         GraphData Model { get; set; }
 
-        void ConstructFromModel(GraphData graphData);
+        // Wipes all data in this view-model
+        void Reset();
     }
 }

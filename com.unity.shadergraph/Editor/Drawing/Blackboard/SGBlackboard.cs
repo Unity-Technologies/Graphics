@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -36,6 +36,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
 
+        BlackboardViewModel m_ViewModel;
+
+        public BlackboardViewModel ViewModel
+        {
+            get => m_ViewModel;
+            set
+            {
+                if (m_ViewModel != value)
+                {
+                    m_ViewModel = value;
+                }
+            }
+        }
+
         // List of existing blackboard sections
         IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
 
@@ -54,15 +68,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action addItemRequested { get; set; }
         public Action<int, VisualElement> moveItemRequested { get; set; }
 
-        public SGBlackboard(VisualElement parentVisualElement) : base(parentVisualElement)
+        GenericMenu m_AddPropertyMenu;
+
+        public SGBlackboard(BlackboardViewModel viewModel, VisualElement parentVisualElement) : base(parentVisualElement)
         {
+            ViewModel = viewModel;
+
+            InitializeAddPropertyMenu();
+
+            // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
 
-            var addButton = m_MainContainer.Q(name: "addButton") as Button;
-            addButton.clickable.clicked += () =>
-            {
-                addItemRequested?.Invoke();
-            };
+            if (m_MainContainer.Q(name: "addButton") is Button addButton)
+                addButton.clickable.clicked += () =>
+                {
+                    addItemRequested?.Invoke();
+                    ShowAddPropertyMenu();
+                };
 
             parentVisualElement.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
 
@@ -160,6 +182,50 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void HideAllDragIndicators()
         {
 
+        }
+
+        void InitializeAddPropertyMenu()
+        {
+            m_AddPropertyMenu = new GenericMenu();
+
+            if (ViewModel == null)
+            {
+                Debug.Log("ERROR: SGBlackboard: View Model is null.");
+                return;
+            }
+
+            foreach (var nameToAddActionTuple in ViewModel.PropertyNameToAddActionMap)
+            {
+                string propertyName = nameToAddActionTuple.Key;
+                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+            }
+            m_AddPropertyMenu.AddSeparator($"/");
+
+            foreach (var nameToAddActionTuple in ViewModel.DefaultKeywordNameToAddActionMap)
+            {
+                string defaultKeywordName = nameToAddActionTuple.Key;
+                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+            }
+            m_AddPropertyMenu.AddSeparator($"Keyword/");
+
+            foreach (var nameToAddActionTuple in ViewModel.BuiltInKeywordNameToAddActionMap)
+            {
+                string builtInKeywordName = nameToAddActionTuple.Key;
+                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+            }
+
+            foreach (string disabledKeywordName in ViewModel.DisabledKeywordNameList)
+            {
+                m_AddPropertyMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
+            }
+        }
+
+        void ShowAddPropertyMenu()
+        {
+            m_AddPropertyMenu.ShowAsContext();
         }
     }
 }

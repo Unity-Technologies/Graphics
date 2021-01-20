@@ -5,6 +5,8 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System;
 
+using UnityEditor.ShaderGraph.Internal;
+
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
 
@@ -14,12 +16,30 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void AddBlackboardItem(GraphData m_GraphData)
         {
+            if (m_GraphData != null)
+            {
+                // If type property is valid, create instance of that type
+                if (blackboardItemType != null)
+                    blackboardItemReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+                // If type is null a direct override object must have been provided or else we are in an error-state
+                else if (blackboardItemReference == null)
+                {
+                    Debug.Log("ERROR: BlackboardController: Unable to complete Add Blackboard Item action.");
+                    return;
+                }
 
+                m_GraphData.owner.RegisterCompleteObjectUndo("Add Blackboard Item");
+                m_GraphData.AddGraphInput(blackboardItemReference);
+            }
         }
 
         public Action<GraphData> ModifyGraphDataAction => AddBlackboardItem;
 
-        Type m_BlackboardItemType;
+        // If this is provided, is a subclass of ShaderInput and is not null, then an object of this type is created to add
+        public Type blackboardItemType { get; set; }
+
+        // If the type field above is null and this is provided, then it is directly used as the blackboard item to add to the graph
+        public BlackboardItem blackboardItemReference { get; set; }
     }
 
     class MoveBlackboardItemAction : IGraphDataAction
@@ -49,44 +69,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class BlackboardController : SGViewController<BlackboardViewModel>
     {
-        public class Changes
+        // Type changes (adds/removes of Types) only happen after a full assmebly reload so its safe to make this stuff static (I think, confirm this assumption)
+        static IList<Type> m_shaderInputTypes;
+
+        static BlackboardController()
         {
-            public const int AddBlackboardItem = 0;
-            public const int MoveBlackboardItem = 1;
-            public const int RemoveBlackboardItem = 2;
-        }
-
-        TypeCache.TypeCollection k_shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>();
-
-        VisualElement m_Blackboard;
-
-        GenericMenu m_AddPropertyMenu;
-
-        public BlackboardController(BlackboardViewModel viewModel, GraphDataStore graphDataStore, VisualElement parentVisualElement)
-            : base(viewModel, graphDataStore)
-        {
-            // TODO: Change it
-            m_Blackboard = new SGBlackboard(parentVisualElement)
-            {
-                subTitle = FormatPath(graphDataStore.State.path),
-                addItemRequested = () => ChangeModel(Changes.AddBlackboardItem),
-                moveItemRequested = (newIndex, itemVisualElement) => ChangeModel(Changes.MoveBlackboardItem)
-            };
-
-
-            PopulateAddPropertyMenu();
-        }
-
-        void PopulateAddPropertyMenu()
-        {
-            m_AddPropertyMenu = new GenericMenu();
-            AddPropertyItems(m_AddPropertyMenu);
-            AddKeywordItems(m_AddPropertyMenu);
-        }
-
-        void AddPropertyItems(GenericMenu gm)
-        {
-            var shaderInputTypes = k_shaderInputTypes.ToList();
+            var shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
             shaderInputTypes.Sort((s1, s2) => {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
@@ -98,91 +86,100 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return info1.priority.CompareTo(info2.priority);
             });
 
-            foreach (var t in shaderInputTypes)
-            {
-                if (t.IsAbstract)
-                    continue;
+            m_shaderInputTypes = shaderInputTypes.ToList();
+        }
+        VisualElement m_Blackboard;
 
-                var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
-                string name = info?.name ?? ObjectNames.NicifyVariableName(t.Name.Replace("ShaderProperty", ""));
-                // This is so bad, why do we need to create an instance of every type and hold onto it if we're going to throw away most of them?! Just keep the type info and instantiate on demand later instead of feeding actual instance to delegate
-                gm.AddItem(new GUIContent(name), false, () => AddInputRow(si, true));
-                //QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
-                if (ShaderGraphPreferences.allowDeprecatedBehaviors && si is ColorShaderProperty csp)
-                {
-                    gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), true));
-                }
-            }
-            gm.AddSeparator($"/");
+        public BlackboardController(BlackboardViewModel inViewModel, GraphDataStore graphDataStore, VisualElement parentVisualElement)
+            : base(inViewModel, graphDataStore)
+        {
+            InitializeViewModel();
+
+            // TODO: Change it so MoveItem isn't handled by the BlackboardController,
+            // it'd be nice to have a BlackboardRowController that handled moving, deleting, updating etc after a BlackboardRow is created and its assigned that as its view
+            m_Blackboard = new SGBlackboard(ViewModel, parentVisualElement);
+
+            // TODO: VFXBlackboard owns a list of VFXBlackboardCategories, and handles the code for managing them being added, moved, removed etc
+            // That seems fine given that moving sections for instance is an operation that affects the whole blockboard so maybe that makes sense
         }
 
-        void AddKeywordItems(GenericMenu gm)
+        void InitializeViewModel()
         {
-            gm.AddItem(new GUIContent($"Keyword/Boolean"), false, () => AddInputRow(new ShaderKeyword(KeywordType.Boolean), true));
-            gm.AddItem(new GUIContent($"Keyword/Enum"), false, () => AddInputRow(new ShaderKeyword(KeywordType.Enum), true));
-            gm.AddSeparator($"Keyword/");
+            // Clear the view model
+            ViewModel.Reset();
+
+            ViewModel.Subtitle = FormatPath(Model.path);
+
+            // TODO: Could all this below data be static in the view model as well? Can't really see it ever changing at runtime
+            // All of this stuff seems static and driven by attributes so it would seem to be compile-time defined, could definitely be an option
+            // Only issue is checking for conflicts with user made keywords, could leave just that bit here and make everything else static
+
+            // Property data first
+            foreach (var shaderInputType in m_shaderInputTypes)
+            {
+                if (shaderInputType.IsAbstract)
+                    continue;
+
+                var info = Attribute.GetCustomAttribute(shaderInputType, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
+                string name = info?.name ?? ObjectNames.NicifyVariableName(shaderInputType.Name.Replace("ShaderProperty", ""));
+
+                ViewModel.PropertyNameToAddActionMap.Add(name, new AddBlackboardItemAction() { blackboardItemType = shaderInputType });
+
+                // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
+                if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                {
+                    ViewModel.PropertyNameToAddActionMap.Add("Color (Deprecated)", new AddBlackboardItemAction() { blackboardItemReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion) });
+                }
+            }
+
+            // Default Keywords next
+            ViewModel.DefaultKeywordNameToAddActionMap.Add("Boolean",  new AddBlackboardItemAction() { blackboardItemReference = new ShaderKeyword(KeywordType.Boolean) });
+            ViewModel.DefaultKeywordNameToAddActionMap.Add("Enum",  new AddBlackboardItemAction() { blackboardItemReference = new ShaderKeyword(KeywordType.Enum) });
+
+            // Built-In Keywords last
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
                 var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
-                AddBuiltinKeyword(gm, keyword);
+                // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name
+                if (Model.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
+                {
+                    ViewModel.DisabledKeywordNameList.Add(keyword.displayName);
+                }
+                else
+                {
+                    ViewModel.BuiltInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddBlackboardItemAction() { blackboardItemReference = keyword.Copy() });
+                }
             }
         }
 
-        void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword)
+        protected override void RequestModelChange(IGraphDataAction changeAction)
         {
-            if (m_Graph.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
+            GraphDataStore.Dispatch(changeAction);
+        }
+
+        protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
+        {
+            // Reconstruct view-model first
+            // TODO: (would be cool to have some scoping here to see if the action was one that changed the UI or not, could avoid reconstructing the ViewModel based on that)
+            InitializeViewModel();
+
+            // Lets all event handlers this controller owns/manages know that the model has changed
+            // Usually this is to update views and make them reconstruct themself from updated view-model
+            NotifyChange(changeAction);
+
+            // Let child controllers know about changes to this controller so they may update themselves in turn
+            foreach (var controller in allChildren)
             {
-                gm.AddDisabledItem(new GUIContent($"Keyword/{keyword.displayName}"));
-            }
-            else
-            {
-                gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => AddInputRow(keyword.Copy(), true));
+                controller.ApplyChanges();
             }
         }
 
-        protected override void ChangeModel(int changeID)
+        // Called to respond to add blackboard item action in ModelChanged()
+        void AddBlackboardRow(ShaderInput shaderInput)
         {
-            switch (changeID)
-            {
-                case Changes.AddBlackboardItem:
-                    graphDataStore.Dispatch(new AddBlackboardItemAction());
-                    break;
-                case Changes.MoveBlackboardItem:
-                    graphDataStore.Dispatch(new MoveBlackboardItemAction());
-                    break;
-                default:
-                    Debug.Log("ERROR: BlackboardController: Unhandled Model Change Requested.");
-                    break;
-            }
+            // Create BlackboardRowController, give it a field view and Shader Input to manage
+            // let it handle all the stuff that comes in AddInputRow()
         }
-
-        /*void MoveItemRequested(int newIndex, VisualElement visualElement)
-        {
-            var input = visualElement.userData as ShaderInput;
-            if (input == null)
-                return;
-
-            m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            switch (input)
-            {
-                case AbstractShaderProperty property:
-                    m_Graph.MoveProperty(property, newIndex);
-                    break;
-                case ShaderKeyword keyword:
-                    m_Graph.MoveKeyword(keyword, newIndex);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        void AddItemRequested()
-        {
-            var gm = new GenericMenu();
-            AddPropertyItems(gm);
-            AddKeywordItems(gm);
-            gm.ShowAsContext();
-        }*/
 
         static string FormatPath(string path)
         {
@@ -210,14 +207,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void ApplyChanges()
         {
 
-        }
-
-        public override void ModelChanged(GraphData graphData)
-        {
-            base.ModelChanged(graphData);
-
-
-            // Do stuff
         }
     }
 }
