@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 window.autoCompile = false;
                 window.Repaint();
             }
-            yield return new WaitForEndOfFrame();
+            yield return null;
 
             using (Measure.Scope("VFXViewWindow.LoadAsset"))
             {
@@ -149,7 +149,7 @@ namespace UnityEditor.VFX.PerformanceTest
             using (Measure.Scope("VFXViewWindow.Close"))
             {
                 window.Close();
-                yield return new WaitForEndOfFrame(); //Ensure window is closed for next test
+                yield return null; //Ensure window is closed for next test
             }
         }
 
