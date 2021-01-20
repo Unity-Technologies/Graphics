@@ -16,11 +16,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         SystemData systemData;
         BuiltinData builtinData;
         LightingData lightingData;
+        List<string> lockedProperties;
 
         public List<SubTargetPropertyBlock> uiBlocks = new List<SubTargetPropertyBlock>();
 
         public SubTargetPropertiesGUI(TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo,
-                                      SystemData systemData, BuiltinData builtinData, LightingData lightingData)
+                                      SystemData systemData, BuiltinData builtinData, LightingData lightingData,
+                                      List<string> lockedProperties)
         {
             this.context = context;
             this.onChange = onChange;
@@ -28,11 +30,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             this.systemData = systemData;
             this.builtinData = builtinData;
             this.lightingData = lightingData;
+            this.lockedProperties = lockedProperties;
         }
 
         public void AddPropertyBlock(SubTargetPropertyBlock block)
         {
-            block.Initialize(context, onChange, registerUndo, systemData, builtinData, lightingData);
+            block.Initialize(context, onChange, registerUndo, systemData, builtinData, lightingData, lockedProperties);
             block.CreatePropertyGUIWithHeader();
             Add(block);
         }

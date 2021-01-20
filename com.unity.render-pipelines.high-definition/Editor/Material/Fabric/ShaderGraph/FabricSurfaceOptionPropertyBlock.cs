@@ -28,14 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(Styles.materialType, () => fabricData.materialType, (newValue) => fabricData.materialType = newValue);
+            AddProperty(Styles.materialType, "FabricData.materialType", () => fabricData.materialType, (newValue) => fabricData.materialType = newValue);
 
             base.CreatePropertyGUI();
 
             // Fabric specific properties:
-            AddProperty(energyConservingSpecularColorText, () => fabricData.energyConservingSpecular, (newValue) => fabricData.energyConservingSpecular = newValue);
-            AddProperty(subsurfaceEnableText, () => fabricData.subsurfaceScattering, (newValue) => fabricData.subsurfaceScattering = newValue);
-            AddProperty(transmissionEnableText, () => fabricData.transmission, (newValue) => fabricData.transmission = newValue);
+            AddProperty(energyConservingSpecularColorText, "FabricData.energyConservingSpecular", () => fabricData.energyConservingSpecular, (newValue) => fabricData.energyConservingSpecular = newValue);
+            AddProperty(subsurfaceEnableText, "FabricData.subsurfaceScattering", () => fabricData.subsurfaceScattering, (newValue) => fabricData.subsurfaceScattering = newValue);
+            AddProperty(transmissionEnableText, "FabricData.transmission", () => fabricData.transmission, (newValue) => fabricData.transmission = newValue);
         }
     }
 }

@@ -23,13 +23,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(affectAlbedoText, () => decalData.affectsAlbedo, (newValue) => decalData.affectsAlbedo = newValue);
-            AddProperty(affectNormalText, () => decalData.affectsNormal, (newValue) => decalData.affectsNormal = newValue);
-            AddProperty(affectMetalText, () => decalData.affectsMetal, (newValue) => decalData.affectsMetal = newValue);
-            AddProperty(affectAmbientOcclusionText, () => decalData.affectsAO, (newValue) => decalData.affectsAO = newValue);
-            AddProperty(affectSmoothnessText, () => decalData.affectsSmoothness, (newValue) => decalData.affectsSmoothness = newValue);
-            AddProperty(affectEmissionText, () => decalData.affectsEmission, (newValue) => decalData.affectsEmission = newValue);
-            AddProperty(supportLodCrossFadeText, () => decalData.supportLodCrossFade, (newValue) => decalData.supportLodCrossFade = newValue);
+            AddProperty(affectAlbedoText, "DecalData.affectsAlbedo", () => decalData.affectsAlbedo, (newValue) => decalData.affectsAlbedo = newValue);
+            AddProperty(affectNormalText, "DecalData.affectsNormal", () => decalData.affectsNormal, (newValue) => decalData.affectsNormal = newValue);
+            AddProperty(affectMetalText, "DecalData.affectsMetal", () => decalData.affectsMetal, (newValue) => decalData.affectsMetal = newValue);
+            AddProperty(affectAmbientOcclusionText, "DecalData.affectsAO", () => decalData.affectsAO, (newValue) => decalData.affectsAO = newValue);
+            AddProperty(affectSmoothnessText, "DecalData.affectsSmoothness", () => decalData.affectsSmoothness, (newValue) => decalData.affectsSmoothness = newValue);
+            AddProperty(affectEmissionText, "DecalData.affectsEmission", () => decalData.affectsEmission, (newValue) => decalData.affectsEmission = newValue);
+            AddProperty(supportLodCrossFadeText, "DecalData.supportLodCrossFade", () => decalData.supportLodCrossFade, (newValue) => decalData.supportLodCrossFade = newValue);
         }
     }
 }

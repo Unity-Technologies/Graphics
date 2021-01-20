@@ -26,15 +26,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // StackLit specific advanced properties GUI
             //context.AddLabel("Advanced Options", 0);
-            AddProperty("Anisotropy For Area Lights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 0);
+            AddProperty("Anisotropy For Area Lights", "StackLitData.anisotropyForAreaLights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 0);
 
             // Per Punctual/Directional Lights
             context.AddLabel("Per Punctual/Directional Lights:", 0);
             if (stackLitData.coat)
-                AddProperty("Base Layer Uses Refracted Angles", () => stackLitData.shadeBaseUsingRefractedAngles, (newValue) => stackLitData.shadeBaseUsingRefractedAngles = newValue, 1);
+                AddProperty("Base Layer Uses Refracted Angles", "StackLitData.shadeBaseUsingRefractedAngles", () => stackLitData.shadeBaseUsingRefractedAngles, (newValue) => stackLitData.shadeBaseUsingRefractedAngles = newValue, 1);
             if (stackLitData.coat || stackLitData.iridescence)
-                AddProperty("Recompute Stack & Iridescence", () => stackLitData.recomputeStackPerLight, (newValue) => stackLitData.recomputeStackPerLight = newValue, 1);
-            AddProperty("Honor Per Light Max Smoothness", () => stackLitData.honorPerLightMinRoughness, (newValue) => stackLitData.honorPerLightMinRoughness = newValue, 1);
+                AddProperty("Recompute Stack & Iridescence", "StackLitData.recomputeStackPerLight", () => stackLitData.recomputeStackPerLight, (newValue) => stackLitData.recomputeStackPerLight = newValue, 1);
+            AddProperty("Honor Per Light Max Smoothness", "StackLitData.honorPerLightMinRoughness", () => stackLitData.honorPerLightMinRoughness, (newValue) => stackLitData.honorPerLightMinRoughness = newValue, 1);
         }
     }
 }

@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, builtinData, lightingData);
+            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, builtinData, lightingData, target.lockedProperties);
             AddInspectorPropertyBlocks(gui);
             context.Add(gui);
         }

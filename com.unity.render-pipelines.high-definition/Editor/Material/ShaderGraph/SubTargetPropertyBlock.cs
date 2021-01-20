@@ -22,9 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected SystemData systemData;
         protected BuiltinData builtinData;
         protected LightingData lightingData;
+        protected List<string> lockedProperties;
 
         internal void Initialize(TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo,
-            SystemData systemData, BuiltinData builtinData, LightingData lightingData)
+            SystemData systemData, BuiltinData builtinData, LightingData lightingData, List<string> lockedProperties)
         {
             this.context = context;
             this.onChange = onChange;
@@ -32,27 +33,40 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             this.systemData = systemData;
             this.builtinData = builtinData;
             this.lightingData = lightingData;
+            this.lockedProperties = lockedProperties;
         }
 
         // Utility function to create UIElement fields:
-        protected void AddProperty<Data>(string displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
-            => AddProperty<Data>(new GUIContent(displayName), getter, setter, indentLevel);
+        protected void AddProperty<Data>(string displayName, string fieldName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddProperty<Data>(new GUIContent(displayName), fieldName, getter, setter, indentLevel);
 
-        protected void AddProperty<Data>(GUIContent displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+        protected Action<bool> CreateLockerFor(string fieldName)
+        {
+            return (locked) =>
+            {
+                if (!locked)
+                    lockedProperties.Remove(fieldName);
+                else if (!lockedProperties.Contains(fieldName))
+                    lockedProperties.Add(fieldName);
+            };
+        }
+
+        protected void AddProperty<Data>(GUIContent displayName, string fieldName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
         {
             // Create UIElement from type:
             BaseField<Data> elem = null;
             BaseField<Enum> elemEnum = null;
 
-            // [TODO] Extract key for this property line
-            string m_Key = "";
+            bool isLocked = lockedProperties.Contains(fieldName);
+
+            Action<bool> locker = CreateLockerFor(fieldName);
 
             switch (getter())
             {
-                case bool b: elem = new LockableBaseField<Toggle, bool>(new Toggle { value = b, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
-                case int i: elem = new LockableBaseField<IntegerField, int>(new IntegerField { value = i, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
-                case float f: elem = new LockableBaseField<FloatField, float>(new FloatField { value = f, tooltip = displayName.tooltip }, m_Key) as BaseField<Data>; break;
-                case Enum e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, m_Key); break;
+                case bool b: elem = new LockableBaseField<Toggle, bool>(new Toggle { value = b, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
+                case int i: elem = new LockableBaseField<IntegerField, int>(new IntegerField { value = i, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
+                case float f: elem = new LockableBaseField<FloatField, float>(new FloatField { value = f, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
+                case Enum e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, isLocked, locker); break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
@@ -160,15 +174,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         BaseField<TValueType> m_ContainedField;
         LockArea m_LockArea;
-        readonly string m_Key;
 
-        public LockableBaseField(BaseField<TValueType> containedField, string key)
+        public LockableBaseField(BaseField<TValueType> containedField, bool isLocked, Action<bool> locker)
             : base(null, null)
         {
-            m_Key = key;
             m_ContainedField = containedField;
-            bool lockInitValue = false; // [TODO] should be gathered by testing if m_Locks in metadata have the given m_Key
-            m_LockArea = new LockArea(lockInitValue, RegisterChange);
+            m_LockArea = new LockArea(isLocked, locker);
 
             Add(m_ContainedField);
 
@@ -210,17 +221,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void SetValueWithoutNotify(TValueType newValue)
             => m_ContainedField.SetValueWithoutNotify(newValue);
-
-        void RegisterChange(bool newValue)
-        {
-            // [TODO]
-            // grab m_Locks from metadata
-            // if (newValue)
-            //    m_Locks.Add(m_Key);
-            // else
-            //    m_Locks.Remove(m_Key);
-            // update metadata
-        }
     }
 
     class LockArea : Image

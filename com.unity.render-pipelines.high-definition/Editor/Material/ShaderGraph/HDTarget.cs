@@ -60,6 +60,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        [SerializeField]
+        List<string> m_LockedProperties = new List<string>();
+
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
@@ -81,6 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_CustomEditorGUI;
             set => m_CustomEditorGUI = value;
+        }
+
+        public List<string> lockedProperties
+        {
+            get => m_LockedProperties;
+            set => m_LockedProperties = value;
         }
 
         public override bool IsActive()

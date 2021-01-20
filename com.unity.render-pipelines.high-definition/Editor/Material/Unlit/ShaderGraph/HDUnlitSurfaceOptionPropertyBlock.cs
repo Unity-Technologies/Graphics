@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             // HDUnlit specific properties:
-            AddProperty(Styles.shadowMatte, () => unlitData.enableShadowMatte, (newValue) => unlitData.enableShadowMatte = newValue);
+            AddProperty(Styles.shadowMatte, "HDUnlitData.enableShadowMatte", () => unlitData.enableShadowMatte, (newValue) => unlitData.enableShadowMatte = newValue);
         }
     }
 }
