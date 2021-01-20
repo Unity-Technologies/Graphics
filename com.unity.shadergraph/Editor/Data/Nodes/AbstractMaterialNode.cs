@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool allowedInSubGraph
         {
-            get { return !(this is BlockNode); }
+            get { return !(this is BlockNode || this is CustomInterpolatorNode); }
         }
 
         public virtual bool allowedInMainGraph
