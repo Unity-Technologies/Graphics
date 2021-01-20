@@ -24,15 +24,19 @@ namespace UnityEngine.VFX.Test
         int m_previousCaptureFrameRate;
         float m_previousFixedTimeStep;
         float m_previousMaxDeltaTime;
+#if UNITY_EDITOR
         bool m_previousAllowAsyncCompilation;
+#endif
         [OneTimeSetUp]
         public void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+#if UNITY_EDITOR
             m_previousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = false;
+#endif
         }
 
         [UnityTest, Category("VisualEffect")]
@@ -173,7 +177,9 @@ namespace UnityEngine.VFX.Test
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+#if UNITY_EDITOR
             ShaderUtil.allowAsyncCompilation = m_previousAllowAsyncCompilation;
+#endif
         }
     }
 }
