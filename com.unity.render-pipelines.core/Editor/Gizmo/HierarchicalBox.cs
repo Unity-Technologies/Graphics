@@ -128,12 +128,9 @@ namespace UnityEditor.Rendering
         {
             m_MonochromeFillColor = color;
             material.color = m_MonochromeFillColor;
-            color.a = 1f;
-            m_MonochromeHandleColor = color;
-            color.a = 0.7f;
-            m_WireframeColor = color;
-            color.a = 0.2f;
-            m_WireframeColorBehind = color;
+            m_MonochromeHandleColor = GizmoUtility.GetHandleColor(color);
+            m_WireframeColor = GizmoUtility.GetWireframeColor(color);
+            m_WireframeColorBehind = GizmoUtility.GetWireframeColorBehindObjects(color);
         }
 
         //Note: Handles.Slider not allow to use a specific ControlID.

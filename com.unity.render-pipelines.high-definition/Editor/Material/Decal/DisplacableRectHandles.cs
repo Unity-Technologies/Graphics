@@ -52,12 +52,9 @@ namespace UnityEditor.Rendering.HighDefinition
             get { return m_MonochromeHandleColor; }
             set
             {
-                value.a = 1f;
-                m_MonochromeHandleColor = value;
-                value.a = 0.7f;
-                m_WireframeColor = value;
-                value.a = 0.2f;
-                m_WireframeColorBehind = value;
+                m_MonochromeHandleColor = GizmoUtility.GetHandleColor(value);
+                m_WireframeColor = GizmoUtility.GetWireframeColor(value);
+                m_WireframeColorBehind = GizmoUtility.GetWireframeColorBehindObjects(value);
             }
         }
 
@@ -67,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>Draw the rect.</summary>
-        public void DrawRect(bool dottedLine = false, float sickness = .0f, float screenSpaceSize = 5f)
+        public void DrawRect(bool dottedLine = false, float thickness = .0f, float screenSpaceSize = 5f)
         {
             Vector2 start = center - size * .5f;
             Vector3[] positions = new Vector3[]
@@ -91,10 +88,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     Handles.DrawDottedLines(edges, screenSpaceSize);
                 else
                 {
-                    Handles.DrawLine(positions[0], positions[1], sickness);
-                    Handles.DrawLine(positions[1], positions[2], sickness);
-                    Handles.DrawLine(positions[2], positions[3], sickness);
-                    Handles.DrawLine(positions[3], positions[0], sickness);
+                    Handles.DrawLine(positions[0], positions[1], thickness);
+                    Handles.DrawLine(positions[1], positions[2], thickness);
+                    Handles.DrawLine(positions[2], positions[3], thickness);
+                    Handles.DrawLine(positions[3], positions[0], thickness);
                 }
             }
 
@@ -109,25 +106,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Handles.color = previousColor;
         }
 
-        /// <summary>Draw the manipulable handles</summary>
-        public void DrawHandle()
+        NamedEdge DrawSliders(ref Vector3 leftPosition, ref Vector3 rightPosition, ref Vector3 topPosition, ref Vector3 bottomPosition)
         {
-            Event evt = Event.current;
-            bool useHomothety = evt.shift;
-            bool useSymetry = evt.alt || evt.command;
-            // Note: snapping is handled natively on ctrl for each Slider1D
-
-            for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
-                m_ControlIDs[i] = GUIUtility.GetControlID("DisplacableRectHandles".GetHashCode() + i, FocusType.Passive);
-
-            Vector3 leftPosition = center + size.x * .5f * Vector2.left;
-            Vector3 rightPosition = center + size.x * .5f * Vector2.right;
-            Vector3 topPosition = center + size.y * .5f * Vector2.up;
-            Vector3 bottomPosition = center + size.y * .5f * Vector2.down;
-
-            var theChangedEdge = NamedEdge.None;
-
-            EditorGUI.BeginChangeCheck();
+            NamedEdge theChangedEdge = NamedEdge.None;
+            
             using (new Handles.DrawingScope(m_MonochromeHandleColor))
             {
                 EditorGUI.BeginChangeCheck();
@@ -150,6 +132,93 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     theChangedEdge = NamedEdge.Bottom;
             }
+
+            return theChangedEdge;
+        }
+
+        void EnsureEdgeFacesOutsideForHomothety(NamedEdge theChangedEdge, ref Vector3 leftPosition, ref Vector3 rightPosition, ref Vector3 topPosition, ref Vector3 bottomPosition)
+        {
+            switch (theChangedEdge)
+            {
+                case NamedEdge.Left:
+                    if (rightPosition.x < leftPosition.x)
+                        leftPosition.x = rightPosition.x;
+                    if (topPosition.y < bottomPosition.y)
+                        topPosition.y = bottomPosition.y = center.y;
+                    break;
+                case NamedEdge.Right:
+                    if (rightPosition.x < leftPosition.x)
+                        rightPosition.x = leftPosition.x;
+                    if (topPosition.y < bottomPosition.y)
+                        topPosition.y = bottomPosition.y = center.y;
+                    break;
+                case NamedEdge.Top:
+                    if (topPosition.y < bottomPosition.y)
+                        topPosition.y = bottomPosition.y;
+                    if (rightPosition.x < leftPosition.x)
+                        rightPosition.x = leftPosition.x = center.x;
+                    break;
+                case NamedEdge.Bottom:
+                    if (topPosition.y < bottomPosition.y)
+                        bottomPosition.y = topPosition.y;
+                    if (rightPosition.x < leftPosition.x)
+                        rightPosition.x = leftPosition.x = center.x;
+                    break;
+            }
+        }
+        
+        void EnsureEdgeFacesOutsideForSymetry(NamedEdge theChangedEdge, ref Vector3 leftPosition, ref Vector3 rightPosition, ref Vector3 topPosition, ref Vector3 bottomPosition)
+        {
+            switch (theChangedEdge)
+            {
+                case NamedEdge.Left:
+                case NamedEdge.Right:
+                    if (rightPosition.x < leftPosition.x)
+                        rightPosition.x = leftPosition.x = center.x;
+                    break;
+                case NamedEdge.Top:
+                case NamedEdge.Bottom:
+                    if (topPosition.y < bottomPosition.y)
+                        topPosition.y = bottomPosition.y = center.y;
+                    break;
+            }
+        }
+        
+        void EnsureEdgeFacesOutsideForOtherTransformation(ref Vector2 max, ref Vector2 min)
+        {
+            for (int axis = 0; axis < 2; ++axis)
+            {
+                if (min[axis] > max[axis])
+                {
+                    // Control IDs in m_ControlIDs[0-1] are for positive axes
+                    if (GUIUtility.hotControl == m_ControlIDs[axis])
+                        max[axis] = min[axis];
+                    else
+                        min[axis] = max[axis];
+                }
+            }
+        }
+
+        /// <summary>Draw the manipulable handles</summary>
+        public void DrawHandle()
+        {
+            Event evt = Event.current;
+            bool useHomothety = evt.shift;
+            bool useSymetry = evt.alt || evt.command;
+            // Note: snapping is handled natively on ctrl for each Slider1D
+
+            for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
+                m_ControlIDs[i] = GUIUtility.GetControlID("DisplacableRectHandles".GetHashCode() + i, FocusType.Passive);
+
+            Vector3 leftPosition = center + size.x * .5f * Vector2.left;
+            Vector3 rightPosition = center + size.x * .5f * Vector2.right;
+            Vector3 topPosition = center + size.y * .5f * Vector2.up;
+            Vector3 bottomPosition = center + size.y * .5f * Vector2.down;
+
+            var theChangedEdge = NamedEdge.None;
+
+            EditorGUI.BeginChangeCheck();
+            theChangedEdge = DrawSliders(ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
             if (EditorGUI.EndChangeCheck())
             {
                 float delta = 0f;
@@ -189,20 +258,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             case NamedEdge.Bottom: topPosition.y -= delta; break;
                         }
 
-                        //ensure that the rect edges are still facing outside
-                        switch (theChangedEdge)
-                        {
-                            case NamedEdge.Left:
-                            case NamedEdge.Right:
-                                if (rightPosition.x < leftPosition.x)
-                                    rightPosition.x = leftPosition.x = center.x;
-                                break;
-                            case NamedEdge.Top:
-                            case NamedEdge.Bottom:
-                                if (topPosition.y < bottomPosition.y)
-                                    topPosition.y = bottomPosition.y = center.y;
-                                break;
-                        }
+                        EnsureEdgeFacesOutsideForSymetry(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
                     }
 
                     if (useHomothety)
@@ -222,61 +278,19 @@ namespace UnityEditor.Rendering.HighDefinition
                                 break;
                         }
 
-                        //ensure that the rect edges are still facing outside
-                        switch (theChangedEdge)
-                        {
-                            case NamedEdge.Left:
-                                if (rightPosition.x < leftPosition.x)
-                                    leftPosition.x = rightPosition.x;
-                                if (topPosition.y < bottomPosition.y)
-                                    topPosition.y = bottomPosition.y = center.y;
-                                break;
-                            case NamedEdge.Right:
-                                if (rightPosition.x < leftPosition.x)
-                                    rightPosition.x = leftPosition.x;
-                                if (topPosition.y < bottomPosition.y)
-                                    topPosition.y = bottomPosition.y = center.y;
-                                break;
-                            case NamedEdge.Top:
-                                if (topPosition.y < bottomPosition.y)
-                                    topPosition.y = bottomPosition.y;
-                                if (rightPosition.x < leftPosition.x)
-                                    rightPosition.x = leftPosition.x = center.x;
-                                break;
-                            case NamedEdge.Bottom:
-                                if (topPosition.y < bottomPosition.y)
-                                    bottomPosition.y = topPosition.y;
-                                if (rightPosition.x < leftPosition.x)
-                                    rightPosition.x = leftPosition.x = center.x;
-                                break;
-                        }
+                        EnsureEdgeFacesOutsideForHomothety(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
                     }
 
                     var max = new Vector2(rightPosition.x, topPosition.y);
                     var min = new Vector2(leftPosition.x, bottomPosition.y);
 
                     if (!useSymetry && !useHomothety)
-                    {
-                        //ensure that the rect edges are still facing outside
-                        for (int axis = 0; axis < 2; ++axis)
-                        {
-                            if (min[axis] > max[axis])
-                            {
-                                // Control IDs in m_ControlIDs[0-3[ are for positive axes
-                                if (GUIUtility.hotControl == m_ControlIDs[axis])
-                                    max[axis] = min[axis];
-                                else
-                                    min[axis] = max[axis];
-                            }
-                        }
-                    }
+                        EnsureEdgeFacesOutsideForOtherTransformation(ref max, ref min);
 
                     center = (max + min) * .5f;
                     size = max - min;
                 }
             }
         }
-
-        internal string debug => $"center:({center.x},{center.y}) size:({size.x},{size.y})";
     }
 }

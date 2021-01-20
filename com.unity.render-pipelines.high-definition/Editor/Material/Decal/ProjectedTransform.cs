@@ -67,10 +67,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public override bool Equals(object obj)
             {
-                if (!(obj is PositionHandleIds))
+                if (!(obj is PositionHandleIds o))
                     return false;
-
-                var o = (PositionHandleIds)obj;
+                
                 return o.x == x && o.y == y && o.z == z && o.xy == xy;
             }
         }
