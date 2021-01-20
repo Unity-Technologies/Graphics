@@ -339,7 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        
+
         void DrawPivotHandles(DecalProjector decalProjector)
         {
             using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
@@ -355,7 +355,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        
+
         void DrawUVHandles(DecalProjector decalProjector)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.offset - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))

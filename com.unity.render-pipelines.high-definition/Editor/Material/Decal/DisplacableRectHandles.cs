@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
         NamedEdge DrawSliders(ref Vector3 leftPosition, ref Vector3 rightPosition, ref Vector3 topPosition, ref Vector3 bottomPosition)
         {
             NamedEdge theChangedEdge = NamedEdge.None;
-            
+
             using (new Handles.DrawingScope(m_MonochromeHandleColor))
             {
                 EditorGUI.BeginChangeCheck();
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
         }
-        
+
         void EnsureEdgeFacesOutsideForSymetry(NamedEdge theChangedEdge, ref Vector3 leftPosition, ref Vector3 rightPosition, ref Vector3 topPosition, ref Vector3 bottomPosition)
         {
             switch (theChangedEdge)
@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
         }
-        
+
         void EnsureEdgeFacesOutsideForOtherTransformation(ref Vector2 max, ref Vector2 min)
         {
             for (int axis = 0; axis < 2; ++axis)

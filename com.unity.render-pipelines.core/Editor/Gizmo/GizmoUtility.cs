@@ -10,11 +10,13 @@ namespace UnityEditor.Rendering
             baseColor.a = 1f;
             return baseColor;
         }
+
         public static Color GetWireframeColor(Color baseColor)
         {
             baseColor.a = .7f;
             return baseColor;
         }
+
         public static Color GetWireframeColorBehindObjects(Color baseColor)
         {
             baseColor.a = .2f;

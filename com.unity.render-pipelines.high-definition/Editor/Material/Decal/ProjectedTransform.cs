@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!(obj is PositionHandleIds o))
                     return false;
-                
+
                 return o.x == x && o.y == y && o.z == z && o.xy == xy;
             }
         }

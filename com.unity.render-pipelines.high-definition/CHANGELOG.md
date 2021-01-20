@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with compositor's undo (cases 1305633, 1307170).
 
 ### Changed
-- Removed the material pass probe volumes evaluation mode. 
+- Removed the material pass probe volumes evaluation mode.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 
 ## [11.0.0] - 2020-10-21
