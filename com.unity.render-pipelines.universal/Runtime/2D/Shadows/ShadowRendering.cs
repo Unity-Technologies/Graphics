@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
 
-                var shadowRadius = 1.42f * light.boundingSphere.radius;
+                var shadowRadius = light.boundingSphere.radius;
 
                 cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
