@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.PerformanceTest
 {
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
+#if UNITY_EDITOR
         private bool m_PreviousAllowAsyncCompilation;
         [OneTimeSetUp]
         public void Init()
@@ -32,6 +33,7 @@ namespace UnityEditor.VFX.PerformanceTest
         {
             ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
         }
+#endif
 
         static IEnumerable<CounterTestDescription> GetCounterTests()
         {
