@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -30,6 +31,18 @@ namespace UnityEngine.Rendering.Universal
 
         public bool isCreated { get => m_CurrentPostProcessData != null; }
 
+        static bool NeedsReAlloc(in RTHandle handle, in RenderTextureDescriptor desc)
+        {
+            return handle.rt.graphicsFormat != desc.graphicsFormat ||
+                handle.rt.dimension != desc.dimension ||
+                handle.rt.enableRandomWrite != desc.enableRandomWrite ||
+                handle.rt.useMipMap != desc.useMipMap ||
+                handle.rt.autoGenerateMips != desc.autoGenerateMips ||
+                handle.rt.bindTextureMS != desc.bindMS ||
+                handle.rt.useDynamicScale != desc.useDynamicScale ||
+                handle.rt.memorylessMode != desc.memoryless;
+        }
+
         public PostProcessPasses(PostProcessData rendererPostProcessData, Material blitMaterial)
         {
             m_ColorGradingLutPass = null;
@@ -37,7 +50,20 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = null;
             m_CurrentPostProcessData = null;
 
-            m_AfterPostProcessColor = RTHandles.Alloc(URPShaderIDs._AfterPostProcessTexture, "_AfterPostProcessTexture");
+            m_AfterPostProcessColor = RTHandles.Alloc(
+                Vector2.one,
+                depthBufferBits: DepthBits.None,
+                colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
+                filterMode: FilterMode.Point,
+                wrapMode: TextureWrapMode.Clamp,
+                dimension: TextureDimension.Tex2D,
+                enableRandomWrite: false,
+                useMipMap: false,
+                autoGenerateMips: true,
+                bindTextureMS: false,
+                useDynamicScale: false,
+                memoryless: RenderTextureMemoryless.None,
+                name: "_AfterPostProcessTexture");
             m_ColorGradingLut = RTHandles.Alloc(URPShaderIDs._InternalGradingLut, "_InternalGradingLut");
 
             m_RendererPostProcessData = rendererPostProcessData;
@@ -49,22 +75,24 @@ namespace UnityEngine.Rendering.Universal
 
         public void Setup(in RenderTextureDescriptor cameraTargetDescriptor)
         {
-            m_AfterPostProcessColor.Release();
-            m_AfterPostProcessColor = RTHandles.Alloc(
-                width: cameraTargetDescriptor.width,
-                height: cameraTargetDescriptor.height,
-                depthBufferBits: DepthBits.None,
-                colorFormat: cameraTargetDescriptor.graphicsFormat,
-                filterMode: FilterMode.Point,
-                wrapMode: TextureWrapMode.Clamp,
-                dimension: cameraTargetDescriptor.dimension,
-                enableRandomWrite: cameraTargetDescriptor.enableRandomWrite,
-                useMipMap: cameraTargetDescriptor.useMipMap,
-                autoGenerateMips: cameraTargetDescriptor.autoGenerateMips,
-                bindTextureMS: cameraTargetDescriptor.bindMS,
-                useDynamicScale: cameraTargetDescriptor.useDynamicScale,
-                memoryless: cameraTargetDescriptor.memoryless,
-                name: "_AfterPostProcessTexture");
+            if (NeedsReAlloc(m_AfterPostProcessColor, cameraTargetDescriptor))
+            {
+                m_AfterPostProcessColor.Release();
+                m_AfterPostProcessColor = RTHandles.Alloc(
+                    Vector2.one,
+                    filterMode: FilterMode.Point,
+                    wrapMode: TextureWrapMode.Clamp,
+                    depthBufferBits: DepthBits.None,
+                    colorFormat: cameraTargetDescriptor.graphicsFormat,
+                    dimension: cameraTargetDescriptor.dimension,
+                    enableRandomWrite: cameraTargetDescriptor.enableRandomWrite,
+                    useMipMap: cameraTargetDescriptor.useMipMap,
+                    autoGenerateMips: cameraTargetDescriptor.autoGenerateMips,
+                    bindTextureMS: cameraTargetDescriptor.bindMS,
+                    useDynamicScale: cameraTargetDescriptor.useDynamicScale,
+                    memoryless: cameraTargetDescriptor.memoryless,
+                    name: m_AfterPostProcessColor.name);
+            }
         }
 
         /// <summary>

@@ -349,6 +349,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int _ScaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int _ScaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
 
+        public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
+
         // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
         public static readonly int _RendererColor = Shader.PropertyToID("_RendererColor");
 
