@@ -666,9 +666,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 rendererPriority = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false
-                    // Enlighten is deprecated in 2019.3 and above
-                , enlighten = false
+                editableMaterialRenderQueue = false,
+                enlighten = true
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
