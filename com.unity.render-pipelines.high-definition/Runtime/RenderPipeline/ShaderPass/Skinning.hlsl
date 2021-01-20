@@ -16,17 +16,18 @@ struct DeformedVertexData
 uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData;
 uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
 
-void DOTS_Skinning(inout float3 position, inout float3 normal, inout float4 tangent, uint vertexID)
+void DOTS_Deformation(inout float3 position, inout float3 normal, inout float4 tangent, uint vertexID)
 {
-    const int doSkinning = asint(unity_ComputeMeshIndex.z);
-    if (doSkinning > 0)
+    // x = curr frame index
+    // y = prev frame index
+    // z = deformation check (0 = no deformation, 1 = has deformation)
+    const int4 deformProperty = asint(unity_ComputeMeshIndex);
+    const int doSkinning = deformProperty.z;
+    if (doSkinning == 1)
     {
 		const int streamIndex = _HybridDeformedVertexStreamIndex;
-		const int startIndex = asint(unity_ComputeMeshIndex)[streamIndex];
+		const int startIndex = deformProperty[streamIndex];
 		const DeformedVertexData vertexData = _DeformedMeshData[startIndex + vertexID];
-	
-        //const int meshIndex = (int)unity_ComputeMeshIndex.x;
-        //const DeformedVertexData data = _DeformedMeshData[meshIndex + vertexID];
 
         position = vertexData.Position;
         normal   = vertexData.Normal;
@@ -34,15 +35,24 @@ void DOTS_Skinning(inout float3 position, inout float3 normal, inout float4 tang
     }
 }
 
-void DOTS_GetPreviousDeformedPosition(inout float3 prevPos, uint vertexID)
+// position only for motion vec vs
+void DOTS_Deformation_MotionVecPass(inout float3 currPos, inout float3 prevPos, uint vertexID)
 {
-    const int doSkinning = asint(unity_ComputeMeshIndex.z);
-    if (doSkinning > 0)
+    // x = curr frame index
+    // y = prev frame index
+    // z = deformation check (0 = no deformation, 1 = has deformation)
+    const int4 deformProperty = asint(unity_ComputeMeshIndex);
+    const int doSkinning = deformProperty.z;
+    if (doSkinning == 1)
     {
-		const int streamIndex = (_HybridDeformedVertexStreamIndex + 1) % 2;
-		const int startIndex = asint(unity_ComputeMeshIndex)[streamIndex];
-		const DeformedVertexData vertexData = _PreviousFrameDeformedMeshData[startIndex + vertexID];
-        prevPos = vertexData.Position;
+        const int currStreamIndex = _HybridDeformedVertexStreamIndex;
+		const int prevStreamIndex = (currStreamIndex + 1) % 2;
+
+        const int currMeshStart = deformProperty[currStreamIndex];
+        const int prevMeshStart = deformProperty[prevStreamIndex];
+
+        currPos = _DeformedMeshData[currMeshStart + vertexID].Position;
+        prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
     }
 }
 #endif
