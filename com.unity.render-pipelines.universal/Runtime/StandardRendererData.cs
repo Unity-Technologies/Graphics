@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<StandardRendererData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
@@ -40,26 +41,22 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
-
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
-            public Shader tileDepthInfoPS;
-
-            [Reload("Shaders/Utils/TileDeferred.shader")]
-            public Shader tileDeferredPS;
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/MaterialError.shader")]
+            public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -79,16 +76,10 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
+                ReloadAllNullProperties();
             }
-#endif
             return new StandardRenderer(this);
         }
 
@@ -191,9 +182,13 @@ namespace UnityEngine.Rendering.Universal
             if (shaders == null)
                 return;
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif

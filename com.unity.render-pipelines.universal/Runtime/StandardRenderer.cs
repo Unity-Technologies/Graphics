@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static class Profiling
         {
-            private const string k_Name = nameof(ForwardRenderer);
+            private const string k_Name = nameof(StandardRenderer);
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 

@@ -629,7 +629,7 @@ namespace UnityEditor.Rendering.Universal
 
             var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
 
-            var fowardRendererData = rendererData as ForwardRendererData;
+            var fowardRendererData = rendererData as StandardRendererData;
             if (fowardRendererData != null && fowardRendererData.postProcessData == null)
                 return true;
 
