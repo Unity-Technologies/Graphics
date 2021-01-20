@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 - Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
+- Change some light unit slider value ranges to better reflect the lighting scenario.
 
 ## [10.3.0] - 2020-12-01
 
