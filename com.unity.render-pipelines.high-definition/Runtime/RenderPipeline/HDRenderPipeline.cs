@@ -3154,6 +3154,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public int              width, height, viewCount;
 
+            public int              frameIdx;
+
             public ComputeBuffer    offsetBufferData;
 
             public ShaderVariablesScreenSpaceReflection cb;
@@ -3195,10 +3197,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = depthPyramid.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+            {
+                parameters.frameIdx = 1;
                 cb._SsrAccumulationAmount = 1.0f;
+            }
             else
+            {
+                parameters.frameIdx = ((int)hdCamera.cameraFrameCount);
                 cb._SsrAccumulationAmount = volumeSettings.accumulationFactor.value;
-				
+            }
+
             parameters.offsetBufferData = depthPyramid.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             return parameters;
@@ -3257,6 +3265,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                 cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._SsrHitPointTexture, SsrHitPointTexture);
+                cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRBias, ssrSettings.biasFactor.value);
 
                 if (stencilBuffer.rt.stencilFormat == GraphicsFormat.None)  // We are accessing MSAA resolved version and not the depth stencil buffer directly.
                 {
@@ -3307,6 +3316,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrAccumPrev, ssrAccumPrev);
                     cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                     cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorsBuffer);
+                    cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, (float)parameters.frameIdx);
 
                     ConstantBuffer.Push(cmd, parameters.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 

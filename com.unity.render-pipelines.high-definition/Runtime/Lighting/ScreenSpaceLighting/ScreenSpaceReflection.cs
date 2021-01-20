@@ -114,6 +114,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
+        /// For PBR: Controls the bias of accumulation (0 no bias, 1 bias ssr)
+        /// </summary>
+        public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
