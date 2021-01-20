@@ -115,7 +115,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
-    #endif
+#endif
 
 #endif
 
