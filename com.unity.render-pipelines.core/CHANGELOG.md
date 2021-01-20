@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ALL/NONE to maintain the state on the Volume Component Editors.
 - Fixed the selection of the Additional properties from ALL/NONE when the option "Show additional properties" is disabled
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
 
 ## [10.2.0] - 2020-10-19
 
