@@ -99,8 +99,27 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
+            List<PreviewProperty> props = new List<PreviewProperty>();
+
+            e_targetBlockNode?.CollectPreviewMaterialProperties(props);
+            bool inlineProp = e_targetBlockNode?.GetInputNodeFromSlot(0) == null && props.Count != 0;
+
+            // If the CIB uses an inlined value, it may as well be a constant. Let's just use that...
+            if (inlineProp)
+            {
+                var v = props[0].vector4Value;
+                switch (props[0].propType)
+                {
+                    case PropertyType.Float: return $"{props[0].floatValue}";
+                    case PropertyType.Vector2: return $" float2({v.x},{v.y}) ";
+                    case PropertyType.Vector3: return $" float3({v.x},{v.y},{v.z}) ";
+                    case PropertyType.Vector4: return $" float4({v.x},{v.y},{v.z},{v.w}) ";
+                }
+            }
+
             return string.Format("IN.{0}", customBlockNodeName);
         }
+
 
         void BuildSlot()
         {

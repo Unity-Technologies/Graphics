@@ -83,6 +83,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_NewMasterPreviewSize = newSize;
         }
 
+        private void MarkAllCustomFromNode(BlockNode bnode)
+        {
+            HashSet<AbstractMaterialNode> result = new HashSet<AbstractMaterialNode>();
+            HashSet<AbstractMaterialNode> change = new HashSet<AbstractMaterialNode>() {bnode};
+            PropagateNodes(change, PropagationDirection.Downstream, result);
+            ForEachNodesPreview(result, p => m_PreviewsNeedsRecompile.Add(p));
+        }
+
         public PreviewRenderData GetPreviewRenderData(AbstractMaterialNode node)
         {
             PreviewRenderData result = null;
@@ -162,6 +170,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.RegisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 m_NodesPropertyChanged.Add(node);
+                MarkAllCustomFromNode(node as BlockNode);
                 return;
             }
 
@@ -210,6 +219,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
                 // should instead flag m_NodesConstantChanged
                 m_NodesPropertyChanged.Add(node);
+                if (node is BlockNode bnode)
+                    MarkAllCustomFromNode(bnode);
             }
         }
 
@@ -327,7 +338,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = edge.inputSlot.node;
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
+                {
                     UpdateMasterPreview(ModificationScope.Topological);
+                    MarkAllCustomFromNode(node as BlockNode);
+                }
 
                 m_NodesShaderChanged.Add(node);
                 //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
@@ -342,7 +356,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (node != null)
                 {
                     if ((node is BlockNode) || (node is SubGraphOutputNode))
+                    {
                         UpdateMasterPreview(ModificationScope.Topological);
+                        MarkAllCustomFromNode(node as BlockNode);
+                    }
 
                     m_NodesShaderChanged.Add(node);
                     m_TopologyDirty = true;
@@ -1185,6 +1202,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
                 node.UnregisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
+                MarkAllCustomFromNode(node as BlockNode);
                 return;
             }
 

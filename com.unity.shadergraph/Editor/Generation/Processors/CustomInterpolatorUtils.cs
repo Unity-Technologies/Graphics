@@ -18,7 +18,8 @@ namespace UnityEditor.ShaderGraph
         internal static List<BlockFieldDescriptor> GetCustomFields(GraphData graphData)
         {
             // We don't care about the blocks if they aren't used-- so just get our CIN nodes to find out what's in use <__<.
-            var usedList = graphData.GetNodes<CustomInterpolatorNode>().Select(cin => cin.e_targetBlockNode);
+            var usedList = graphData.GetNodes<CustomInterpolatorNode>().Select(cin => cin.e_targetBlockNode).Distinct();
+            
 
             // cache the custom bd's now for later steps involvign active fields-- this is filtered based on what is actually in use.
             return usedList.Where(b => b != null).Select(b => b.descriptor).ToList();
@@ -142,10 +143,17 @@ namespace UnityEditor.ShaderGraph
                     var cibSlot = node.e_targetBlockNode.GetSlotReference(0);
                     var rerouteSlot = GetRerouteSlot(result, cibSlot);
 
-                    // CIB has no input node.
+                    
                     if (rerouteSlot.Equals(default))
                     {
-                        
+                        // CIB has no input node.
+                        // CIN, in preview node, needs to generate different code,
+                        // but get GetVariableNameForSlot does not consider generation mode.
+
+                        // Two issues-- The Material Property Block is filled up by Original Graph.
+                        // CIN can't switch it's generation based on Generation mode
+                            // Modify GetVariableNameForSlot to include a generation mode
+                            // Then we could inline a float4 based on block's current property value.                            
                     }
                     else
                     {
