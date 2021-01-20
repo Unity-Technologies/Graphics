@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support for the PlayStation 5 platform has been added.
 
+### Changed
+- Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
