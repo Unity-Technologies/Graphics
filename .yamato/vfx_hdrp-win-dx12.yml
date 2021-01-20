@@ -189,7 +189,7 @@ VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --testfilter="VFX.Test" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -217,7 +217,7 @@ VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -272,7 +272,7 @@ VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -535,7 +535,7 @@ VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --testfilter="VFX.Test" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -567,7 +567,7 @@ VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -630,7 +630,7 @@ VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

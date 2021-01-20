@@ -122,7 +122,7 @@ VFX_URP_Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear_trunk:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -170,7 +170,7 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_trunk:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -307,7 +307,7 @@ VFX_URP_Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -363,7 +363,7 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

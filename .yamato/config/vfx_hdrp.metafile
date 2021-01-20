@@ -29,18 +29,21 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" --testfilter="VFX.Test"
+      - [all]: --testfilter="VFX.Test"
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: playmode
     name: playmode_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
   - type: editmode
     utr_flags:
       - [all]: --testfilter="VFX.Test"
   - type: editmode
     name: editmode_PerformanceTests
     utr_flags:
-      - [all]: --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
   - type: Standalone
     name: Standalone_cache
     utr_flags:

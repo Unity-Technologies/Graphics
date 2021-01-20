@@ -89,7 +89,7 @@ VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -133,7 +133,7 @@ VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -234,7 +234,7 @@ VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -286,7 +286,7 @@ VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --testproject=. --zero-tests-are-ok=1
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
