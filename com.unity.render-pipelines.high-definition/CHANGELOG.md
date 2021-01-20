@@ -24,9 +24,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 - Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 - Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 
 ## [11.0.0] - 2020-10-21
 
