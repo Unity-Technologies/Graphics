@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
         }
 
-        public override string GetDefaultReferenceName()
+        public override string GetOldDefaultReferenceName()
         {
             return $"Color_{objectId}";
         }

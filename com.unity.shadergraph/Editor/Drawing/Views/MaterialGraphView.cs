@@ -723,7 +723,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
-                graph.SanitizeGraphInputName(prop);
+                prop.SetDisplayNameAndSanitizeForGraph(graph);
                 graph.AddGraphInput(prop);
 
                 var propNode = new PropertyNode();
@@ -1149,7 +1149,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (graph.properties.FirstOrDefault(p => p == property) == null)
                         {
                             var copy = (AbstractShaderProperty)property.Copy();
-                            graph.SanitizeGraphInputName(copy);
+                            copy.SetDisplayNameAndSanitizeForGraph(graph);
                             graph.SanitizeGraphInputReferenceName(copy, property.overrideReferenceName); // We do want to copy the overrideReferenceName
 
                             property = copy;
@@ -1172,7 +1172,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (graph.keywords.FirstOrDefault(k => k == keyword) == null)
                         {
                             var copy = (ShaderKeyword)keyword.Copy();
-                            graph.SanitizeGraphInputName(copy);
+                            copy.SetDisplayNameAndSanitizeForGraph(graph);
                             graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName); // We do want to copy the overrideReferenceName
 
                             keyword = copy;
@@ -1334,7 +1334,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderInput copy = original.Copy();
             if (copy != null) // some ShaderInputs cannot be copied
             {
-                graph.SanitizeGraphInputName(copy);
+                copy.SetDisplayNameAndSanitizeForGraph(graph);
                 graph.AddGraphInput(copy, index);
                 copy.generatePropertyBlock = original.generatePropertyBlock;
             }

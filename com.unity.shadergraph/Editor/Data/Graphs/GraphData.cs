@@ -1268,17 +1268,45 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public void SanitizeGraphInputName(ShaderInput input)
+        public string SanitizeGraphInputName(ShaderInput input, string desiredName)
         {
-            input.displayName = input.displayName.Trim();
+            string currentName = input.displayName;
+            string sanitizedName = desiredName.Trim();
             switch (input)
             {
                 case AbstractShaderProperty property:
-                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, input.displayName), "{0} ({1})", input.displayName);
+                    sanitizedName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, currentName), "{0} ({1})", sanitizedName);
                     break;
                 case ShaderKeyword keyword:
-                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    sanitizedName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", sanitizedName);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            return sanitizedName;
+        }
+
+        public string DeduplicateGraphInputReferenceName(ShaderInput input, string newName)
+        {
+            if (string.IsNullOrEmpty(newName))
+                newName = "_";
+
+            string name = newName.Trim();
+            if (string.IsNullOrEmpty(name))
+                name = "_";
+
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
+
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+
+            switch (input)
+            {
+                case AbstractShaderProperty property:
+                    return GraphUtil.DeduplicateName(properties.Where(p => p != property).Select(p => p.referenceName), "{0}_{1}", name);
+                case ShaderKeyword keyword:
+                    name = name.ToUpper();
+                    return GraphUtil.DeduplicateName(keywords.Where(p => p != input).Select(p => p.referenceName), "{0}_{1}", name.ToUpper());
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1764,7 +1792,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        SanitizeGraphInputName(keywordNode.keyword);
+                        keywordNode.keyword.SetDisplayNameAndSanitizeForGraph(this);
                         SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
                         AddGraphInput(keywordNode.keyword);
                     }
@@ -1794,7 +1822,7 @@ namespace UnityEditor.ShaderGraph
 
         static T DeserializeLegacy<T>(string typeString, string json, Guid? overrideObjectId = null) where T : JsonObject
         {
-            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var jsonObj = MultiJsonInternal.CreateInstanceForDeserialization(typeString);
             var value = jsonObj as T;
             if (value == null)
             {
@@ -1814,7 +1842,7 @@ namespace UnityEditor.ShaderGraph
 
         static AbstractMaterialNode DeserializeLegacyNode(string typeString, string json, Guid? overrideObjectId = null)
         {
-            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var jsonObj = MultiJsonInternal.CreateInstanceForDeserialization(typeString);
             var value = jsonObj as AbstractMaterialNode;
             if (value == null)
             {

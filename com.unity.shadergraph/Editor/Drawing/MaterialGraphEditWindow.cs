@@ -717,7 +717,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
                 var copiedInput = (ShaderKeyword)keyword.Copy();
-                subGraph.SanitizeGraphInputName(copiedInput);
+                copiedInput.SetDisplayNameAndSanitizeForGraph(subGraph);
                 subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
                 subGraph.AddGraphInput(copiedInput);
 
@@ -883,11 +883,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    prop.displayName = fromProperty != null
+                    var propName = fromProperty != null
                         ? fromProperty.displayName
                         : fromSlot.concreteValueType.ToString();
-                    prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
-                        prop.displayName);
+                    prop.SetDisplayNameAndSanitizeForGraph(subGraph, propName);
+
                     subGraph.AddGraphInput(prop);
                     if (fromProperty != null)
                     {
