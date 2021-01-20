@@ -268,6 +268,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
 
+        public static readonly int rtHandleScale = Shader.PropertyToID("_RTHandleScale");
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");

@@ -48,6 +48,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
         float4 _Dithering_Params;
+        float4 _RTHandleScale;
 
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw

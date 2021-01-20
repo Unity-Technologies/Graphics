@@ -387,6 +387,10 @@ namespace UnityEngine.Rendering.Universal
 
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                 new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                            scaleBias.x *= RTHandles.rtHandleProperties.rtHandleScale.x;
+                            scaleBias.y *= RTHandles.rtHandleProperties.rtHandleScale.y;
+                            scaleBias.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+                            scaleBias.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.

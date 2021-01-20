@@ -436,17 +436,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetIdentifier cameraTarget;
+                RTHandle cameraTarget;
                 if (m_Destination.nameID != BuiltinRenderTextureType.CameraTarget)
                     cameraTarget = m_Destination;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 else if (cameraData.xr.enabled)
-                    cameraTarget = cameraData.xr.renderTarget;
+                    cameraTarget = RTHandles.Alloc(cameraData.xr.renderTarget);
 #endif
                 else if (cameraData.targetTexture == null)
-                    cameraTarget = BuiltinRenderTextureType.CameraTarget;
+                    cameraTarget = k_CameraTarget;
                 else
-                    cameraTarget = cameraData.targetTexture;
+                    cameraTarget = RTHandles.Alloc(cameraData.targetTexture);
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || m_HasFinalPass || m_Destination.nameID == BuiltinRenderTextureType.CameraTarget;
@@ -454,8 +454,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
-                        colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    CoreUtils.SetRenderTarget(cmd, cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
 
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     if (isRenderToBackBufferTarget)
@@ -466,6 +465,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                    cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
 
                     // TODO: We need a proper camera texture swap chain in URP.
