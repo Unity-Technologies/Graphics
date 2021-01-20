@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering
                     case GraphicsDeviceType.Direct3D11:
                     case GraphicsDeviceType.Direct3D12:
                     case GraphicsDeviceType.PlayStation4:
+                    case GraphicsDeviceType.PlayStation5:
                     case GraphicsDeviceType.Vulkan:
                         return true;
 

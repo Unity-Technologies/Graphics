@@ -38,7 +38,7 @@ Due to some technical limitations that will be resolved in later versions, you n
 ```csharp
 private void Awake()
 {
-    TextureXR.maxViews = 2;
+    UnityEngine.Rendering.TextureXR.maxViews = 2;
 }
 ```
 
