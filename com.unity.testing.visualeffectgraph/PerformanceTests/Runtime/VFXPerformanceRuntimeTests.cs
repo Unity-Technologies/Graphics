@@ -19,8 +19,6 @@ namespace UnityEditor.VFX.PerformanceTest
 {
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
-        const int GlobalTimeout = 120 * 1000;
-
         static IEnumerable<CounterTestDescription> GetCounterTests()
         {
             yield break;
@@ -115,7 +113,7 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Counters(GraphicsTestCase testCase)
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
@@ -178,8 +176,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return new WaitForEndOfFrame();
         }
 
-        const int GlobalTimeout = 120 * 1000;
-        [Timeout(GlobalTimeout), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
             yield return FreeMemory();

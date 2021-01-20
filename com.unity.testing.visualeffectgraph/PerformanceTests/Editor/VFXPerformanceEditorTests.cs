@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.PerformanceTest
 {
     public class VFXCompilePerformanceTests : EditorPerformanceTests
     {
-        const int k_BuildTimeout = 10 * 60 * 1000;
+        const int k_BuildTimeout = 600 * 1000;
 
         static IEnumerable<string> allVisualEffectAsset
         {
