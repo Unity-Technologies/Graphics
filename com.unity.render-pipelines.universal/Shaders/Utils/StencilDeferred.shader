@@ -585,5 +585,3 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
     }
 }
-    }
-}
