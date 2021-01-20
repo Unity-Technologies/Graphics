@@ -9,7 +9,8 @@ def _cmd_base(project_folder, platform, editor):
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     
     base = [
-        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity/unity/unity-downloader-cli',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr'
@@ -29,7 +30,8 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
     base = [
-        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity-downloader-cli',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr'
@@ -66,7 +68,8 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
     base = [
-        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity/unity/unity-downloader-cli',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr'

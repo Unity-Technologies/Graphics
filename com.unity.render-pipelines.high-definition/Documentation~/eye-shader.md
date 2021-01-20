@@ -7,8 +7,8 @@ Under the hood, the Eye shader is a pre-configured Shader Graph. To learn more a
 
 ## Eye anatomy
 
-When rendering eyes, it’s helpful to become familiar with their actual biological structure to produce a realistic outcome. 
-* The **Iris** is the flat, colored, ring that surrounds the Pupil. It sits underneath the Cornea. 
+When rendering eyes, it’s helpful to become familiar with their actual biological structure to produce a realistic outcome.
+* The **Iris** is the flat, colored, ring that surrounds the Pupil. It sits underneath the Cornea.
 * The **Cornea** is the transparent lens on top of the Iris. It reflects and focuses light into the Pupil.
 * The **Pupil** is the opening in the Iris that allows light to pass into the eye and reach the retina.
 * The **Limbus**, or the Limbal Ring, is the darkened bordering region between the Cornea and the Sclera.
@@ -18,7 +18,7 @@ When rendering eyes, it’s helpful to become familiar with their actual biologi
 
 ## Authoring eye maps
 
-It’s important to note that due to how properties for subsurface scattering, limbal ring, smoothness, and other surface information blends between the Iris and Sclera, you must provide their respective maps separately. In practice, this means you provide a Sclera map that with no Iris information, and an Iris map with no Sclera information. 
+It’s important to note that due to how properties for subsurface scattering, limbal ring, smoothness, and other surface information blends between the Iris and Sclera, you must provide their respective maps separately. In practice, this means you provide a Sclera map that with no Iris information, and an Iris map with no Sclera information.
 
 ![](Images/eye-shader-sclera-map.png)![](Images/eye-shader-iris-map.png)
 

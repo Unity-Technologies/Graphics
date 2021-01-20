@@ -5,6 +5,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
+  expression_trigger: 
+    expression: 'pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"]'
   build_configs:
     - mono
     - il2cpp
@@ -21,7 +23,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: ShaderGraph
       platform: Win
@@ -29,7 +31,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: HDRP
       platform: Win
@@ -37,7 +39,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_HDRP
       platform: Win
@@ -45,7 +47,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_URP
       platform: Win
@@ -53,4 +55,4 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
