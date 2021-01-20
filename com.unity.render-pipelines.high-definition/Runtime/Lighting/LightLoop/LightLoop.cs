@@ -663,8 +663,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data needed for the PrepareGPULightdata
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
 
-        static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
-
         bool HasLightToCull()
         {
             return m_TotalLightCount > 0;
