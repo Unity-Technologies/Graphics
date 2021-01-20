@@ -289,12 +289,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DebugOverlayPassData
         {
-            public LightingDebugSettings lightingDebugSettings;
             public DebugOverlay debugOverlay;
-            public Material debugLatlongMaterial;
-            public Texture skyReflectionTexture;
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+        }
+
+        class SkyReflectionOverlayPassData
+            : DebugOverlayPassData
+        {
+            public LightingDebugSettings lightingDebugSettings;
+            public Material debugLatlongMaterial;
+            public Texture skyReflectionTexture;
         }
 
         void RenderSkyReflectionOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
@@ -302,17 +307,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displaySkyReflection)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("SkyReflectionOverlay", out var passData))
+            using (var builder = renderGraph.AddRenderPass<SkyReflectionOverlayPassData>("SkyReflectionOverlay", out var passData))
             {
-                passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.debugLatlongMaterial = m_DebugDisplayLatlong;
 
                 builder.SetRenderFunc(
-                    (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                    (SkyReflectionOverlayPassData data, RenderGraphContext ctx) =>
                     {
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
@@ -350,10 +355,6 @@ namespace UnityEngine.Rendering.HighDefinition
         struct LightLoopDebugOverlayParameters
         {
             public Material debugViewTilesMaterial;
-            public HDShadowManager shadowManager;
-            public int debugSelectedLightShadowIndex;
-            public int debugSelectedLightShadowCount;
-            public Material debugShadowMapMaterial;
             public Material debugDensityVolumeMaterial;
             public Material debugBlitMaterial;
             public LightCookieManager cookieManager;
@@ -365,10 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new LightLoopDebugOverlayParameters();
 
             parameters.debugViewTilesMaterial = m_DebugViewTilesMaterial;
-            parameters.shadowManager = m_ShadowManager;
-            parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
-            parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
-            parameters.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
+
             parameters.debugDensityVolumeMaterial = m_DebugDensityVolumeMaterial;
             parameters.debugBlitMaterial = m_DebugBlitMaterial;
             parameters.cookieManager = m_TextureCaches.lightCookieManager;
@@ -553,58 +551,120 @@ namespace UnityEngine.Rendering.HighDefinition
         class RenderShadowsDebugOverlayPassData
             : DebugOverlayPassData
         {
-            public DebugParameters debugParameters;
+            public LightingDebugSettings lightingDebugSettings;
             public ShadowResult shadowTextures;
+            public HDShadowManager shadowManager;
+            public int debugSelectedLightShadowIndex;
+            public int debugSelectedLightShadowCount;
+            public Material debugShadowMapMaterial;
         }
 
-        void RenderShadowsDebugOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer, in ShadowResult shadowResult)
+        void RenderShadowsDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in ShadowResult shadowResult)
         {
-            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.None)
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0
+                || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.None)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderShadowsDebugOverlayPassData>("RenderShadowsDebugOverlay", out var passData))
+            using (var builder = renderGraph.AddRenderPass<RenderShadowsDebugOverlayPassData>("RenderShadowsDebugOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayShadows)))
             {
-                passData.debugParameters = debugParameters;
+                passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.shadowTextures = HDShadowManager.ReadShadowResult(shadowResult, builder);
+                passData.shadowManager = m_ShadowManager;
+                passData.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
+                passData.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
+                passData.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
 
                 builder.SetRenderFunc(
                     (RenderShadowsDebugOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                        var debugParams = data.debugParameters;
+                        var lightingDebug = data.lightingDebugSettings;
+                        var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                        var shadowAtlases = new HDShadowManager.ShadowDebugAtlasTextures();
-                        shadowAtlases.punctualShadowAtlas = data.shadowTextures.punctualShadowResult;
-                        shadowAtlases.cascadeShadowAtlas = data.shadowTextures.directionalShadowResult;
-                        shadowAtlases.areaShadowAtlas = data.shadowTextures.areaShadowResult;
-                        shadowAtlases.cachedPunctualShadowAtlas = data.shadowTextures.cachedPunctualShadowResult;
-                        shadowAtlases.cachedAreaShadowAtlas = data.shadowTextures.cachedAreaShadowResult;
+                        switch (lightingDebug.shadowDebugMode)
+                        {
+                            case ShadowMapDebugMode.VisualizeShadowMap:
+                                int startShadowIndex = (int)lightingDebug.shadowMapIndex;
+                                int shadowRequestCount = 1;
 
-                        RenderShadowsDebugOverlay(debugParams, shadowAtlases, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+#if UNITY_EDITOR
+                                if (lightingDebug.shadowDebugUseSelection)
+                                {
+                                    if (data.debugSelectedLightShadowIndex != -1 && data.debugSelectedLightShadowCount != 0)
+                                    {
+                                        startShadowIndex = data.debugSelectedLightShadowIndex;
+                                        shadowRequestCount = data.debugSelectedLightShadowCount;
+                                    }
+                                    else
+                                    {
+                                        // We don't display any shadow map if the selected object is not a light
+                                        shadowRequestCount = 0;
+                                    }
+                                }
+#endif
+
+                                for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
+                                {
+                                    data.shadowManager.DisplayShadowMap(data.shadowTextures, shadowIndex, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                    data.debugOverlay.Next();
+                                }
+                                break;
+                            case ShadowMapDebugMode.VisualizePunctualLightAtlas:
+                                data.shadowManager.DisplayShadowAtlas(data.shadowTextures.punctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                data.debugOverlay.Next();
+                                break;
+                            case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
+                                data.shadowManager.DisplayCachedPunctualShadowAtlas(data.shadowTextures.cachedPunctualShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                data.debugOverlay.Next();
+                                break;
+                            case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
+                                data.shadowManager.DisplayShadowCascadeAtlas(data.shadowTextures.directionalShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                data.debugOverlay.Next();
+                                break;
+                            case ShadowMapDebugMode.VisualizeAreaLightAtlas:
+                                data.shadowManager.DisplayAreaLightShadowAtlas(data.shadowTextures.areaShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                data.debugOverlay.Next();
+                                break;
+                            case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
+                                data.shadowManager.DisplayCachedAreaShadowAtlas(data.shadowTextures.cachedAreaShadowResult, ctx.cmd, data.debugShadowMapMaterial, data.debugOverlay.x, data.debugOverlay.y, data.debugOverlay.overlaySize, data.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                                data.debugOverlay.Next();
+                                break;
+                            default:
+                                break;
+                        }
                     });
             }
         }
 
-        //void RenderDecalOverlay(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle colorBuffer, TextureHandle depthBuffer)
-        //{
-        //    if (!debugParameters.debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
-        //        return;
+        class RenderDecalOverlayPassData
+            : DebugOverlayPassData
+        {
+            public int mipLevel;
+            public HDCamera hdCamera;
+        }
 
-        //    using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("DecalOverlay", out var passData))
-        //    {
-        //        passData.debugParameters = debugParameters;
-        //        passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-        //        passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+        void RenderDecalOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
+        {
+            if (!m_CurrentDebugDisplaySettings.data.decalsDebugSettings.displayAtlas)
+                return;
 
-        //        builder.SetRenderFunc(
-        //            (DebugOverlayPassData data, RenderGraphContext ctx) =>
-        //            {
-        //                DecalSystem.instance.RenderDebugOverlay(data.debugParameters.hdCamera, ctx.cmd, data.debugParameters.debugDisplaySettings, data.debugParameters.debugOverlay);
-        //            });
-        //    }
-        //}
+            using (var builder = renderGraph.AddRenderPass<RenderDecalOverlayPassData>("DecalOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
+            {
+                passData.debugOverlay = m_DebugOverlay;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.mipLevel = (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel;
+                passData.hdCamera = hdCamera;
+
+                builder.SetRenderFunc(
+                    (RenderDecalOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        DecalSystem.instance.RenderDebugOverlay(data.hdCamera, ctx.cmd, data.mipLevel, data.debugOverlay);
+                    });
+            }
+        }
 
         void RenderDebugOverlays(RenderGraph                renderGraph,
             in DebugParameters          debugParameters,
@@ -623,8 +683,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSkyReflectionOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
             RenderRayCountOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, rayCountTexture);
             RenderLightLoopDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, lightLists, depthPyramidTexture);
-            RenderShadowsDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, shadowResult);
-            //RenderDecalOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
+            RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
+            RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
         }
 
         class RenderLightVolumesPassData
