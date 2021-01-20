@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
 

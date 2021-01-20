@@ -1,4 +1,4 @@
-﻿// This file should be used as a container for things on its
+// This file should be used as a container for things on its
 // way to being deprecated and removed in future releases
 using System;
 using System.ComponentModel;
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
     [Obsolete("ForwardRenderer has been deprecated. Use StandardRenderer instead (UnityUpgradable) -> StandardRenderer", true)]
-    public sealed class ForwardRenderer: ScriptableRenderer
+    public sealed class ForwardRenderer : ScriptableRenderer
     {
         private static readonly string k_ErrorMessage = "ForwardRenderer has been deprecated. Use StandardRenderer instead";
 
