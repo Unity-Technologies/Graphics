@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
-        bool m_overrideVertexColor = false;
+        bool m_OverrideVertexColor = false;
 
         [SerializeField]
         string m_CustomEditorGUI;
