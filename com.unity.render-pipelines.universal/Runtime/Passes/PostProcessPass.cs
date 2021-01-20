@@ -21,12 +21,17 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class PostProcessPass : ScriptableRenderPass
     {
         static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+        static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
 
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
         RTHandle m_Destination;
         RTHandle m_Depth;
         RTHandle m_InternalLut;
+        RTHandle m_TempTarget;
+        RTHandle m_TempTarget2;
+        RTHandle[] m_BloomMipDown;
+        RTHandle[] m_BloomMipUp;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -121,9 +126,60 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
             base.useNativeRenderPass = false;
+
+            m_TempTarget = RTHandles.Alloc(URPShaderIDs._TempTarget, "_TempTarget");
+            m_TempTarget2 = RTHandles.Alloc(URPShaderIDs._TempTarget2, "_TempTarget2");
+
+            Vector2 mipScale = Vector2.one;
+            var mipCount = 16;
+            m_BloomMipDown = new RTHandle[mipCount];
+            m_BloomMipUp = new RTHandle[mipCount];
+            for (uint i = 0; i < mipCount; ++i)
+            {
+                mipScale *= 0.5f;
+                m_BloomMipDown[i] = RTHandles.Alloc(
+                    mipScale,
+                    depthBufferBits: DepthBits.None,
+                    colorFormat: m_DefaultHDRFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: TextureDimension.Tex2D,
+                    enableRandomWrite: false,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    bindTextureMS: false,
+                    useDynamicScale: false,
+                    memoryless: RenderTextureMemoryless.None,
+                    name: $"_BloomMipDown{i}");
+                m_BloomMipUp[i] = RTHandles.Alloc(
+                    mipScale,
+                    depthBufferBits: DepthBits.None,
+                    colorFormat: m_DefaultHDRFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: TextureDimension.Tex2D,
+                    enableRandomWrite: false,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    bindTextureMS: false,
+                    useDynamicScale: false,
+                    memoryless: RenderTextureMemoryless.None,
+                    name: $"_BloomMipUp{i}");
+            }
         }
 
-        public void Cleanup() => m_Materials.Cleanup();
+        public void Cleanup()
+        {
+            m_Materials.Cleanup();
+            foreach (var handle in m_BloomMipDown)
+            {
+                handle.Release();
+            }
+            foreach (var handle in m_BloomMipUp)
+            {
+                handle.Release();
+            }
+        }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
         {
@@ -249,6 +305,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
+        private void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int passIndex = 0)
+        {
+            cmd.SetGlobalTexture(URPShaderIDs._SourceTex, source);
+            if (m_UseDrawProcedural)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(URPShaderIDs._ScaleBias, scaleBias);
+
+                CoreUtils.SetRenderTarget(cmd, destination, ClearFlag.None);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                cmd.Blit(source, destination, material, passIndex);
+            }
+        }
+
         private new void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
         {
             cmd.SetGlobalTexture(URPShaderIDs._SourceTex, source);
@@ -289,26 +362,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = m_Source;
-            RenderTargetIdentifier destination = -1;
+            RTHandle source = m_Source;
+            RTHandle destination = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // Utilities to simplify intermediate target management
-            RenderTargetIdentifier GetSource() => source;
+            RTHandle GetSource() => source;
 
-            RenderTargetIdentifier GetDestination()
+            RTHandle GetDestination()
             {
-                if (destination == -1)
+                if (destination.nameID == BuiltinRenderTextureType.CameraTarget)
                 {
-                    cmd.GetTemporaryRT(URPShaderIDs._TempTarget, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                    destination = URPShaderIDs._TempTarget;
+                    cmd.GetTemporaryRT(Shader.PropertyToID(m_TempTarget.name), GetCompatibleDescriptor(), FilterMode.Bilinear);
+                    destination = m_TempTarget;
                     tempTargetUsed = true;
                 }
                 else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
                 {
                     // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
-                    cmd.GetTemporaryRT(URPShaderIDs._TempTarget2, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                    destination = URPShaderIDs._TempTarget2;
+                    cmd.GetTemporaryRT(Shader.PropertyToID(m_TempTarget2.name), GetCompatibleDescriptor(), FilterMode.Bilinear);
+                    destination = m_TempTarget2;
                     tempTarget2Used = true;
                 }
 
@@ -319,6 +392,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Setup projection matrix for cmd.DrawMesh()
             cmd.SetGlobalMatrix(URPShaderIDs._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
+            cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
 
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
@@ -494,15 +568,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Cleanup
-                if (bloomActive)
-                    cmd.ReleaseTemporaryRT(URPShaderIDs._BloomMipUp[0]);
-
                 if (tempTargetUsed)
-                    cmd.ReleaseTemporaryRT(URPShaderIDs._TempTarget);
+                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_TempTarget.name));
 
                 if (tempTarget2Used)
-                    cmd.ReleaseTemporaryRT(URPShaderIDs._TempTarget2);
+                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_TempTarget2.name));
             }
+        }
+
+        private RTHandle BlitDstDiscardContent(CommandBuffer cmd, RTHandle rt)
+        {
+            // We set depth to DontCare because rt might be the source of PostProcessing used as a temporary target
+            // Source typically comes with a depth buffer and right now we don't have a way to only bind the color attachment of a RenderTargetIdentifier
+            CoreUtils.SetRenderTarget(cmd, rt, ClearFlag.None);
+            return rt;
         }
 
         private BuiltinRenderTextureType BlitDstDiscardContent(CommandBuffer cmd, RenderTargetIdentifier rt)
@@ -919,7 +998,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Bloom
 
-        void SetupBloom(CommandBuffer cmd, RenderTargetIdentifier source, Material uberMaterial)
+        void SetupBloom(CommandBuffer cmd, RTHandle source, Material uberMaterial)
         {
             // Start at half-res
             int tw = m_Descriptor.width >> 1;
@@ -929,7 +1008,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxSize = Mathf.Max(tw, th);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
             iterations -= m_Bloom.skipIterations.value;
-            int mipCount = Mathf.Clamp(iterations, 1, URPShaderIDs._BloomMipUp.Length);
+            int mipCount = Mathf.Clamp(iterations, 1, m_BloomMipUp.Length);
 
             // Pre-filtering parameters
             float clamp = m_Bloom.clamp.value;
@@ -944,25 +1023,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_UseRGBM);
 
             // Prefilter
-            var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
-            cmd.GetTemporaryRT(URPShaderIDs._BloomMipDown[0], desc, FilterMode.Bilinear);
-            cmd.GetTemporaryRT(URPShaderIDs._BloomMipUp[0], desc, FilterMode.Bilinear);
-            Blit(cmd, source, URPShaderIDs._BloomMipDown[0], bloomMaterial, 0);
+            Blit(cmd, source, m_BloomMipDown[0], bloomMaterial, 0);
 
             // Downsample - gaussian pyramid
-            int lastDown = URPShaderIDs._BloomMipDown[0];
+            var lastDown = m_BloomMipDown[0];
             for (int i = 1; i < mipCount; i++)
             {
-                tw = Mathf.Max(1, tw >> 1);
-                th = Mathf.Max(1, th >> 1);
-                int mipDown = URPShaderIDs._BloomMipDown[i];
-                int mipUp = URPShaderIDs._BloomMipUp[i];
-
-                desc.width = tw;
-                desc.height = th;
-
-                cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
+                var mipDown = m_BloomMipDown[i];
+                var mipUp = m_BloomMipUp[i];
 
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
@@ -976,19 +1044,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Upsample (bilinear by default, HQ filtering does bicubic instead
             for (int i = mipCount - 2; i >= 0; i--)
             {
-                int lowMip = (i == mipCount - 2) ? URPShaderIDs._BloomMipDown[i + 1] : URPShaderIDs._BloomMipUp[i + 1];
-                int highMip = URPShaderIDs._BloomMipDown[i];
-                int dst = URPShaderIDs._BloomMipUp[i];
+                var lowMip = (i == mipCount - 2) ? m_BloomMipDown[i + 1] : m_BloomMipUp[i + 1];
+                var highMip = m_BloomMipDown[i];
+                var dst = m_BloomMipUp[i];
 
                 cmd.SetGlobalTexture(URPShaderIDs._SourceTexLowMip, lowMip);
                 Blit(cmd, highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
-            }
-
-            // Cleanup
-            for (int i = 0; i < mipCount; i++)
-            {
-                cmd.ReleaseTemporaryRT(URPShaderIDs._BloomMipDown[i]);
-                if (i > 0) cmd.ReleaseTemporaryRT(URPShaderIDs._BloomMipUp[i]);
             }
 
             // Setup bloom on uber
@@ -1000,7 +1061,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             uberMaterial.SetVector(URPShaderIDs._Bloom_Params, bloomParams);
             uberMaterial.SetFloat(URPShaderIDs._Bloom_RGBM, m_UseRGBM ? 1f : 0f);
 
-            cmd.SetGlobalTexture(URPShaderIDs._Bloom_Texture, URPShaderIDs._BloomMipUp[0]);
+            cmd.SetGlobalTexture(URPShaderIDs._Bloom_Texture, m_BloomMipUp[0]);
 
             // Setup lens dirtiness on uber
             // Keep the aspect ratio correct & center the dirt texture, we don't want it to be
