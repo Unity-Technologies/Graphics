@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Exposure effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Exposure")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Exposure" + Documentation.endURL)]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -48,14 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the minimum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMin = new FloatParameter(-10f);
+        public FloatParameter limitMin = new FloatParameter(-1f);
 
         /// <summary>
         /// Sets the maximum value that the Scene exposure can be set to.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the maximum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMax = new FloatParameter(20f);
+        public FloatParameter limitMax = new FloatParameter(14f);
 
         /// <summary>
         /// Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.
@@ -121,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).
-        /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value. 
+        /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value.
         /// </summary>
         [Tooltip("Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).")]
         public TargetMidGrayParameter targetMidGray = new TargetMidGrayParameter(TargetMidGray.Grey125);
@@ -141,12 +142,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
         /// <summary>
-        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
         [Tooltip("All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMinIntensity = new FloatParameter(-30.0f);
         /// <summary>
-        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
         [Tooltip("All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMaxIntensity = new FloatParameter(30.0f);
@@ -233,11 +234,9 @@ namespace UnityEngine.Rendering.HighDefinition
         MaskWeighted,
 
         /// <summary>
-        /// Create a weight mask centered around the specified UV and with the desired parameters. 
+        /// Create a weight mask centered around the specified UV and with the desired parameters.
         /// </summary>
         ProceduralMask,
-
-
     }
 
     /// <summary>
@@ -328,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { }
+        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -370,6 +369,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) { }
+        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

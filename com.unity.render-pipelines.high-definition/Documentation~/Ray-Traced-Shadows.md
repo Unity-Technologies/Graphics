@@ -3,8 +3,8 @@
 Ray-traced shadows are shadows that HDRP generates by tracing rays of light from the following [Light](Light-Component.md) sources:
 
 - [Directional](#DirectionalLight)
-- [Point](#PointLight)
-- [Spot](#SpotLight)
+- [Point](#point-and-spot-light)
+- [Spot](#point-and-spot-light)
 - [Rectangle](#RectangleLight)
 
 When you enable ray-traced shadows in your HDRP Project, they replace shadow maps for opaque GameObjects.
@@ -115,11 +115,12 @@ Ray-traced shadows offer the possibility of semi-transparent shadows for Point L
 Ray-traced shadows offer an alternative to the [exponential variance shadow map](Glossary.md#ExponentialVarianceShadowMap) that Rectangle Lights use for opaque GameObjects.
 
 ![](Images/RayTracedShadows7.png)
-
 **Rectangle Light shadow map**
 
 ![](Images/RayTracedShadows8.png)
 **Ray-traced Rectangle Light shadows**
+
+**Note**: When rendering in [deferred mode](Forward-And-Deferred-Rendering.md), HDRP provides accurate ray-traced area light shadows for the [Lit](Lit-Shader.md) shader. When HDRP renders for any other shader, or for the Lit shader in forward mode, it uses an approximation to calculate ray-traced shadows for area lights. This approximation is not perfectly accurate, but does produce plausible results.
 
 ### Properties
 
@@ -128,3 +129,13 @@ Ray-traced shadows offer an alternative to the [exponential variance shadow map]
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this values increases execution time linearly. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
+
+
+## Limitations
+
+#### Double-sided shadows
+Ray-traced shadows do not support the **Two Sided** option for the Mesh Renderer's **Cast Shadows** property. To use double-sided shadows for a mesh, open the Mesh Renderer's Material in the Inspector and, in the **Surface Options** section, enable the **Double-Sided** property.
+
+#### Recursive rendering
+
+GameObjects HDRP renders using [recursive rendering](Ray-Tracing-Recursive-Rendering.md) cannot receive ray-traced shadows. If you enable both effects, HDRP renders rasterized [shadows](Shadows-in-HDRP.md) on recursively rendered GameObjects.

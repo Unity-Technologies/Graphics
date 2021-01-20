@@ -88,6 +88,12 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
+                manager.RegisterError("PositionDepthOperatorUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
-                    );
+                );
 
             s_WidgetStateMap = new Dictionary<Type, Type>();
 
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(attrType, false)
                     && !t.IsAbstract
-                    );
+                );
 
             s_WidgetDrawerMap = new Dictionary<Type, DebugUIDrawer>();
 
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering
         {
             var window = GetWindow<DebugWindow>();
             window.titleContent = new GUIContent("Debug");
-            if(OnDebugWindowToggled == null)
+            if (OnDebugWindowToggled == null)
                 OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
             open = true;
         }

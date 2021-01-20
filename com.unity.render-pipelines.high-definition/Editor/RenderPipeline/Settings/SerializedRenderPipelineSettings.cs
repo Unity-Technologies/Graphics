@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
         public SerializedProperty customBufferFormat;
+        public SerializedScalableSetting planarReflectionResolution;
 
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
@@ -66,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
         internal SerializedProperty supportProbeVolume;
+        internal SerializedProperty probeVolumeTextureSize;
 
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
@@ -77,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
         public SerializedLightingQualitySettings lightingQualitySettings;
-        internal SerializedGlobalProbeVolumeSettings probeVolumeSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -113,6 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
+            planarReflectionResolution      = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.planarReflectionResolution));
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
@@ -135,6 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
+            probeVolumeTextureSize          = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
@@ -147,7 +150,6 @@ namespace UnityEditor.Rendering.HighDefinition
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
-            probeVolumeSettings = new SerializedGlobalProbeVolumeSettings(root.Find((RenderPipelineSettings s) => s.probeVolumeSettings));
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));

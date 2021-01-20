@@ -18,12 +18,15 @@ namespace UnityEditor.ShaderGraph
         public abstract void GetActiveBlocks(ref TargetActiveBlockContext context);
         public abstract void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo);
 
-        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) { }
-        public virtual void ProcessPreviewMaterial(Material material) { }
+        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode) {}
+        public virtual void ProcessPreviewMaterial(Material material) {}
         public virtual object saveContext => null;
-        public virtual bool IsNodeAllowedByTarget(Type nodeType) => true;
+        public virtual bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            NeverAllowedByTargetAttribute never = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
+            return never == null;
+        }
 
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
-        
     }
 }

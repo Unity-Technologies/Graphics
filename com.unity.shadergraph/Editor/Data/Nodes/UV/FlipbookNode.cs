@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         const int UVSlotId = 0;
         const int WidthSlotId = 1;
         const int HeightSlotId = 2;
@@ -38,11 +37,11 @@ namespace UnityEditor.ShaderGraph
         {
             string invertText = string.Empty;
 
-            if(m_InvertX && m_InvertY)
+            if (m_InvertX && m_InvertY)
                 invertText = "InvertXY_";
-            else if(m_InvertX)
+            else if (m_InvertX)
                 invertText = "InvertX_";
-            else if(m_InvertY)
+            else if (m_InvertY)
                 invertText = "InvertY_";
 
             return $"Unity_Flipbook_{invertText}{concretePrecision.ToShaderString()}";
@@ -134,39 +133,38 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0} ({1} UV, {2} Width, {3} Height, {4} Tile, $precision2 Invert, out {5} Out)",
+                    GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(UVSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(WidthSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(HeightSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(TileSlotId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0} ({1} UV, {2} Width, {3} Height, {4} Tile, $precision2 Invert, out {5} Out)",
-                        GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(UVSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(WidthSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(HeightSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(TileSlotId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
+                    string offset;
+                    if (concretePrecision == ConcretePrecision.Half)
                     {
-                        string offset;
-                        if (concretePrecision == ConcretePrecision.Half)
-                        {
-                            offset = "0.00001h";
-                        }
-                        else
-                        {
-                            offset = "0.000001";
-                        }
-
-                        s.AppendLine("Tile = floor(fmod(Tile + " + offset + ", Width*Height));");
-                        s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
-
-                        AppendInvertSpecificLines(s);
-
-                        s.AppendLine("Out = (UV + $precision2(tileX, tileY)) * tileCount;");
+                        offset = "0.00001h";
                     }
-                });
+                    else
+                    {
+                        offset = "0.000001";
+                    }
+
+                    s.AppendLine("Tile = floor(fmod(Tile + " + offset + ", Width*Height));");
+                    s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
+
+                    AppendInvertSpecificLines(s);
+
+                    s.AppendLine("Out = (UV + $precision2(tileX, tileY)) * tileCount;");
+                }
+            });
         }
 
         private void AppendInvertSpecificLines(ShaderStringBuilder stringBuilder)
         {
-
             if (m_InvertX)
             {
                 stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");

@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
         }
@@ -46,7 +48,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 

@@ -11,13 +11,14 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    // Render all tiled-based deferred lights.      
+    // Render all tiled-based deferred lights.
     internal class DeferredPass : ScriptableRenderPass
     {
         DeferredLights m_DeferredLights;
 
         public DeferredPass(RenderPassEvent evt, DeferredLights deferredLights)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DeferredPass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
         }

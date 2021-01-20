@@ -22,10 +22,10 @@ namespace UnityEditor.VFX.UI
             {
                 m_Slider = target.GetFirstOfType<VFXBaseSliderField<T>>();
 
-                target.RegisterCallback<MouseDownEvent>(OnMouseDown,TrickleDown.TrickleDown);
+                target.RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
                 target.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
-
             }
+
             protected override void UnregisterCallbacksFromTarget()
             {
                 target.UnregisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
 
             void OnMouseMove(MouseMoveEvent e)
             {
-                if( !m_InDrag)
+                if (!m_InDrag)
                 {
                     m_InDrag = true;
                     m_Slider.ValueDragStarted();
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
 
             void OnMouseUp(MouseUpEvent e)
             {
-                if( m_InDrag)
+                if (m_InDrag)
                     m_Slider.ValueDragFinished();
                 else
                     target.UnregisterCallback<MouseMoveEvent>(OnMouseMove, TrickleDown.TrickleDown);

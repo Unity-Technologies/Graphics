@@ -24,8 +24,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ScleraLimbalRing(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 ScleraUV,
-            [Slot(1, Binding.None, 0, 0, 0, 0)] Vector3 ViewWS,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 PositionOS,
+            [Slot(1, Binding.None, 0, 0, 0, 0)] Vector3 ViewDirectionOS,
             [Slot(2, Binding.None, 0, 0, 0, 0)] Vector1 IrisRadius,
             [Slot(3, Binding.None, 0, 0, 0, 0)] Vector1 LimbalRingSize,
             [Slot(4, Binding.None, 0, 0, 0, 0)] Vector1 LimbalRingFade,
@@ -34,11 +34,11 @@ namespace UnityEditor.ShaderGraph
         {
             LimbalRingFactor = new Vector1();
             return
-                @"
+@"
                 {
-                    $precision NdotV = dot($precision3(0.0, 0.0, 1.0), ViewWS);
+                    $precision NdotV = dot($precision3(0.0, 0.0, 1.0), ViewDirectionOS);
                     // Compute the radius of the point inside the eye
-                    $precision scleraRadius = length(ScleraUV);
+                    $precision scleraRadius = length(PositionOS.xy);
                     LimbalRingFactor = scleraRadius > IrisRadius ? (scleraRadius > (LimbalRingSize + IrisRadius) ? 1.0 : lerp(0.5, 1.0, (scleraRadius - IrisRadius) / (LimbalRingSize))) : 1.0;
                     LimbalRingFactor = PositivePow(LimbalRingFactor, LimbalRingIntensity);
                     LimbalRingFactor = lerp(LimbalRingFactor, PositivePow(LimbalRingFactor, LimbalRingFade), 1.0 - NdotV);

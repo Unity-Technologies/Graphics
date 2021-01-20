@@ -28,11 +28,11 @@ namespace UnityEditor.VFX
     class VFXExpressionTextureHeight : VFXExpression
     {
         public VFXExpressionTextureHeight() : this(VFXTexture2DValue.Default)
-        { }
+        {}
 
         public VFXExpressionTextureHeight(VFXExpression texture)
             : base(Flags.InvalidOnGPU, new VFXExpression[1] { texture })
-        { }
+        {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.TextureHeight; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Uint32; } }
@@ -47,11 +47,11 @@ namespace UnityEditor.VFX
     class VFXExpressionTextureDepth : VFXExpression
     {
         public VFXExpressionTextureDepth() : this(VFXTexture2DValue.Default)
-        { }
+        {}
 
         public VFXExpressionTextureDepth(VFXExpression texture)
             : base(Flags.InvalidOnGPU, new VFXExpression[1] { texture })
-        { }
+        {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.TextureDepth; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Uint32; } }

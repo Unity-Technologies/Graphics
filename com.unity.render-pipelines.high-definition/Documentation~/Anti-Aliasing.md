@@ -17,7 +17,7 @@ To prevent aliasing, the High Definition Render Pipeline (HDRP) has multiple met
 
 ## Using anti-aliasing
 
-Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity. 
+Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity.
 
 <a name="FXAA"></a>
 
@@ -81,6 +81,7 @@ When you use MSAA, be aware of the following:
   1. [Post-processing](Post-Processing-Main.md).
   3. [Subsurface scattering](Subsurface-Scattering.md).
   3. Low Resolution Transparency.
+- Ray tracing does not support MSAA. If you use ray tracing in your project, you are unable to use MSAA.
 
 When you enable MSAA in your Unity Project, you must also enable it for your Cameras in their [Frame Settings](Frame-Settings.md). You can do this either globally or on individual Cameras. To enable MSAA globally, go to Project Settings > Frame Settings > HDRP Default Settings. To enable MSAA on a per-Camera basis, enable Forward Lit Shader Mode and then enable the MSAA within Forward checkbox. For information on where to find global and local Frame Settings, see the documentation on [Frame Settings](Frame-Settings.md).
 

@@ -44,15 +44,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SSRMaxRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
             /* Screen Space Global Illumination */
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 24;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 64;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 96;
 
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 3;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
 
@@ -123,10 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.2f;
 
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 3;
-
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
@@ -138,6 +134,23 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
+
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            RTRSmoothDenoising[(int)ScalableSettingLevelParameter.Level.High] = false;
+
+            // Fog
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Low] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Medium] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.High] = FogControl.Balance;
+
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Low] = 0.166f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.High] = 0.666f;
+
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Low] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Medium] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.High] = 0.50f;
         }
 
         internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
@@ -163,20 +176,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
 
         // Screen Space Global Illumination
-        [System.NonSerialized]
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
+        [NonSerialized]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's world space maximal radius.</summary>
+        [NonSerialized]
         public float[] SSGIRadius = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
+        [NonSerialized]
         public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination signal clamping value.</summary>
+        [NonSerialized]
         public float[] SSGIClampValue = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's filter size.</summary>
+        [NonSerialized]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
@@ -218,20 +231,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTRRayLength = new float[s_QualitySettingCount];
         /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
         public float[] RTRClampValue = new float[s_QualitySettingCount];
-        /// <summary>Radius for the up-sample pass.</summary>
-        public int[] RTRUpScaleRadius = new int[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>
         public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
+        /// <summary>Flag that defines smooth denoising status.</summary>
+        public bool[] RTRSmoothDenoising = new bool[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
-
+        /// <summary>Controls which control mode should be used to define the volumetric fog parameters.</summary>
+        public FogControl[] Fog_ControlMode = new FogControl[s_QualitySettingCount];
+        /// <summary>Controls the budget of the volumetric fog effect.</summary>
+        public float[] Fog_Budget = new float[s_QualitySettingCount];
+        /// <summary>Controls how the budget is shared between screen resolution and depth.</summary>
+        public float[] Fog_DepthRatio = new float[s_QualitySettingCount];
         // TODO: Shadows. This needs to be discussed further as there is an idiosyncracy here as we have different level of quality settings,
         //some for resolution per light (4 levels) some per volume (which are 3 levels everywhere). This needs to be discussed more.
-
-
     }
 }

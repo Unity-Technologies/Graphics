@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         {
             // Get existing open window or if none, make a new one:
             s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
-            s_Window.titleContent = new GUIContent("Graphics Compositor (Preview)");
+            s_Window.titleContent = new GUIContent("Graphics Compositor");
             s_Window.Show();
         }
 
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Repaint();
 
                 // [case 1266216] Ensure the game view gets repainted a few times per second even when we are not in play mode.
-                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data 
+                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data
                 if (!Application.isPlaying)
                 {
                     CompositionManager compositor = CompositionManager.GetInstance();
@@ -66,12 +66,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                         if (compositor.timeSinceLastRepaint > timeThreshold)
                         {
                             compositor.Repaint();
+#if UNITY_2021_1_OR_NEWER
+                            // [case 1290622] For version 2021.1 we have to explicitely request an update of the gameview with the following call
+                            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
                         }
                     }
-
                 }
             }
-                
         }
 
         void OnGUI()
@@ -108,13 +110,17 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
-            }
 
-            if (compositor)
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
+            }
+            else if (compositor && (compositor.enabled != enableCompositor))
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
-            else
+            else if (!compositor)
             {
                 return;
             }
@@ -125,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 {
                     if (compositor.outputCamera)
                     {
-                        if(compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
+                        if (compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
                         {
                             var cameraData = compositor.outputCamera.GetComponent<HDAdditionalCameraData>();
                             if (cameraData != null)
@@ -137,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
                         }
                     }
-                    
+
                     CoreUtils.Destroy(compositor);
                     return;
                 }
@@ -156,6 +162,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;
@@ -167,6 +178,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 if (m_Editor)
                 {
                     m_Editor.OnInspectorGUI();
+
+                    // Remember which layer was selected / drawn in the last draw call
+                    s_SelectionIndex = m_Editor.selectionIndex;
                 }
             }
             GUILayout.EndScrollView();
@@ -203,13 +217,23 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             m_Editor.CacheSerializedObjects();
             m_RequiresRedraw = true;
-            s_SelectionIndex = m_Editor.selectionIndex;
+
+            // After undo, set the selection index to the last shown layer, because the Unity Editor resets the value to the last layer in the list
+            m_Editor.defaultSelection = s_SelectionIndex;
+            m_Editor.selectionIndex = s_SelectionIndex;
+
 
             CompositionManager compositor = CompositionManager.GetInstance();
+            // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
+            if (compositor)
             {
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);
                 EditorUtility.SetDirty(compositor.profile);
+
+                // Clean-up existing cameras after undo, we will re-allocate the layer resources
+                CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans(compositor.layers);
+                compositor.DeleteLayerRTs();
                 compositor.UpdateLayerSetup();
             }
         }

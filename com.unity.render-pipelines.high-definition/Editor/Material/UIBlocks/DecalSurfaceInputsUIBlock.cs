@@ -12,9 +12,10 @@ using static UnityEditor.Rendering.HighDefinition.DecalSurfaceOptionsUIBlock.Sty
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>The UI block that represents the surface inputs for decal materials.</summary>
+    public class DecalSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
@@ -25,13 +26,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent normalOpacityChannelText = new GUIContent("Normal Opacity Channel", "Specifies the source this Material uses as opacity for its Normal Map.");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the smoothness of the decal.");
-            public static GUIContent metallicScaleText = new GUIContent("Metallic Scale", "Controls a scale factor for the metallic channel in the Mask Map.");
+            public static GUIContent metallicRemappingText = new GUIContent("Metallic Remapping", "Controls a remap for the metallic channel in the Mask Map.");
             public static GUIContent metallicText = new GUIContent("Metallic", "Controls the metallic of the decal.");
             public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
             public static GUIContent aoText = new GUIContent("Ambient Occlusion", "Controls the ambient occlusion of the decal.");
             public static GUIContent maskOpacityChannelText = new GUIContent("Mask Opacity Channel", "Specifies the source this Material uses as opacity for its Mask Map.");
             public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Controls the scale of the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
-            public static GUIContent opacityBlueScaleText = new GUIContent("Mask Opacity", "Controls the opacity of the Mask (Metallic, Ambient Occlusion, Smoothness). You can use this as opacity depending on the blend source you choose.");            
+            public static GUIContent opacityBlueScaleText = new GUIContent("Mask Opacity", "Controls the opacity of the Mask (Metallic, Ambient Occlusion, Smoothness). You can use this as opacity depending on the blend source you choose.");
             public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
             public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent maskMapText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
         enum BlendSource
         {
@@ -83,6 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty maskmapSmoothness = new MaterialProperty();
         const string kMaskmapSmoothness = "_MaskmapSmoothness";
 
+        MaterialProperty metallicRemapMin = new MaterialProperty();
+        const string kMetallicRemapMin = "_MetallicRemapMin";
+
+        MaterialProperty metallicRemapMax = new MaterialProperty();
+        const string kMetallicRemapMax = "_MetallicRemapMax";
+
         MaterialProperty AORemapMin = new MaterialProperty();
         const string kAORemapMin = "_AORemapMin";
 
@@ -94,9 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty smoothnessRemapMax = new MaterialProperty();
         const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
-
-        MaterialProperty metallicScale = new MaterialProperty();
-        const string kMetallicScale = "_MetallicScale";
 
 
         MaterialProperty AO = new MaterialProperty();
@@ -138,11 +142,18 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
-        public DecalSurfaceInputsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Constructs a DecalSurfaceInputsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state</param>
+        public DecalSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             baseColor = FindProperty(kBaseColor);
@@ -155,11 +166,12 @@ namespace UnityEditor.Rendering.HighDefinition
             maskmapMetal = FindProperty(kMaskmapMetal);
             maskmapAO = FindProperty(kMaskmapAO);
             maskmapSmoothness = FindProperty(kMaskmapSmoothness);
+            metallicRemapMin = FindProperty(kMetallicRemapMin);
+            metallicRemapMax = FindProperty(kMetallicRemapMax);
             AORemapMin = FindProperty(kAORemapMin);
             AORemapMax = FindProperty(kAORemapMax);
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin);
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax);
-            metallicScale = FindProperty(kMetallicScale);
             AO = FindProperty(kAO);
             smoothness = FindProperty(kSmoothness);
             metallic = FindProperty(kMetallic);
@@ -181,6 +193,9 @@ namespace UnityEditor.Rendering.HighDefinition
             instancing.boolValue = true;
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
@@ -209,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (materials.All(m => m.GetTexture(kNormalMap)))
             {
                 EditorGUI.indentLevel++;
-                
+
                 EditorGUI.BeginChangeCheck();
                 var normalBlendSrcValue = (int)normalBlendSrc.floatValue;
                 normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
@@ -225,7 +240,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (perChannelMask)
                 {
-                    materialEditor.ShaderProperty(metallicScale, Styles.metallicScaleText);
+                    float MetalRemapMinValue = metallicRemapMin.floatValue;
+                    float MetalRemapMaxValue = metallicRemapMax.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref MetalRemapMinValue, ref MetalRemapMaxValue, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        metallicRemapMin.floatValue = MetalRemapMinValue;
+                        metallicRemapMax.floatValue = MetalRemapMaxValue;
+                    }
 
                     float AORemapMinValue = AORemapMin.floatValue;
                     float AORemapMaxValue = AORemapMax.floatValue;

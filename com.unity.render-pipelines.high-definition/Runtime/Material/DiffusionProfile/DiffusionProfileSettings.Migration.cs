@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(mainProfile));
             SerializableGUIDs profiles = JsonUtility.FromJson<SerializableGUIDs>(importer.userData);
 
-            if (String.IsNullOrEmpty(profiles.assetGUIDs?[index]))
+            if (String.IsNullOrEmpty(profiles.assetGUIDs ? [index]))
             {
                 Debug.LogError("Could not upgrade diffusion profile reference in material " + mat + ": index " + index + " not found in main diffusion profile");
                 return;
@@ -171,13 +171,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     stencilGBufferRef |= (int)StencilUsage.SubsurfaceScattering;
                 }
 
-                if(mat.HasProperty("_ReceivesSSR") && mat.GetInt("_ReceivesSSR") == 1)
+                if (mat.HasProperty("_ReceivesSSR") && mat.GetInt("_ReceivesSSR") == 1)
                 {
                     stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
                     stencilRef |= (int)StencilUsage.TraceReflectionRay;
                     stencilGBufferMask |= (int)StencilUsage.TraceReflectionRay;
                     stencilGBufferRef |= (int)StencilUsage.TraceReflectionRay;
-
                 }
 
                 // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
@@ -226,6 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 EditorApplication.delayCall += UnityEditor.AssetDatabase.Refresh;
             }
         }
+
 #endif
     }
 }

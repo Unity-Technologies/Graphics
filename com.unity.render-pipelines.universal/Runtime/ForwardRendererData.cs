@@ -27,17 +27,11 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
-
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
-            public Shader tileDepthInfoPS;
-
-            [Reload("Shaders/Utils/TileDeferred.shader")]
-            public Shader tileDeferredPS;
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
@@ -49,7 +43,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -66,38 +59,38 @@ namespace UnityEngine.Rendering.Universal
 
         public LayerMask opaqueLayerMask
         {
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public LayerMask transparentLayerMask
         {
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public StencilStateData defaultStencilState
         {
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public bool shadowTransparentReceive
         {
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public RenderingMode renderingMode
         {
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
-		public bool accurateGbufferNormals
-		{
-        	get { throw new NotSupportedException(k_ErrorMessage); }
-        	set { throw new NotSupportedException(k_ErrorMessage); }
-		}
+        public bool accurateGbufferNormals
+        {
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
+        }
     }
 }

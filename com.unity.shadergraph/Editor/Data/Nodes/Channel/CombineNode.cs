@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Combine";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Combine", BindingFlags.Static | BindingFlags.NonPublic);

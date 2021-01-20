@@ -14,11 +14,12 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(15, Extension, -905)]
+    [ScriptedImporter(20, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -95,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                 messageManager.ClearAll();
             }
 
-            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
+            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
             ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
             ctx.SetMainObject(graphAsset);
 
@@ -190,9 +191,11 @@ namespace UnityEditor.ShaderGraph
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
+            asset.previewMode = graph.previewMode;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
+            asset.descendents.Sort();   // ensure deterministic order
 
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
@@ -201,16 +204,15 @@ namespace UnityEditor.ShaderGraph
                 if (node is SubGraphNode subGraphNode)
                 {
                     var subGraphGuid = subGraphNode.subGraphGuid;
-                    if (childrenSet.Add(subGraphGuid))
-                    {
-                        asset.children.Add(subGraphGuid);
-                    }
+                    childrenSet.Add(subGraphGuid);
                 }
 
                 if (node.hasError)
                 {
                     anyErrors = true;
                 }
+                asset.children = childrenSet.ToList();
+                asset.children.Sort(); // ensure deterministic order
             }
 
             if (!anyErrors && containsCircularDependency)
@@ -222,7 +224,7 @@ namespace UnityEditor.ShaderGraph
             if (anyErrors)
             {
                 asset.isValid = false;
-                registry.ProvideFunction(asset.functionName, sb => { });
+                registry.ProvideFunction(asset.functionName, sb => {});
                 return;
             }
 
@@ -236,6 +238,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // provide top level subgraph function
             registry.ProvideFunction(asset.functionName, sb =>
             {
                 GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
@@ -246,14 +249,14 @@ namespace UnityEditor.ShaderGraph
                 foreach (var prop in graph.properties)
                 {
                     prop.ValidateConcretePrecision(asset.graphPrecision);
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    arguments.Add(prop.GetPropertyAsArgumentString());
                 }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
                 // Now generate outputs
-                foreach (var output in outputSlots)
+                foreach (MaterialSlot output in outputSlots)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
                 // Vt Feedback arguments
@@ -296,7 +299,7 @@ namespace UnityEditor.ShaderGraph
             var collector = new PropertyCollector();
             foreach (var node in nodes)
             {
-                int previousPropertyCount = Math.Max(0, collector.properties.Count-1);
+                int previousPropertyCount = Math.Max(0, collector.properties.Count - 1);
 
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
 
@@ -321,10 +324,10 @@ namespace UnityEditor.ShaderGraph
         {
             var dependencyMap = new Dictionary<GUID, GUID[]>();
             AssetCollection tempAssetCollection = new AssetCollection();
-            using (var tempList = ListPool<GUID>.GetDisposable())
+            using (ListPool<GUID>.Get(out var tempList))
             {
                 GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
-                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList.value);
+                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);
             }
 
             descendentGuids = new HashSet<GUID>();
@@ -339,12 +342,12 @@ namespace UnityEditor.ShaderGraph
                 var assetPath = AssetDatabase.GUIDToAssetPath(rootAssetGUID);
                 if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(Extension, true, null))
                 {
+                    tempAssetCollection.Clear();
                     MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, tempAssetCollection);
 
                     var subgraphGUIDs = tempAssetCollection.assets.Where(asset => asset.Value.HasFlag(AssetCollection.Flags.IsSubGraph)).Select(asset => asset.Key).ToArray();
                     dependencyMap[rootAssetGUID] = subgraphGUIDs;
 
-                    tempAssetCollection.Clear();
                     foreach (var guid in subgraphGUIDs)
                     {
                         GatherDependencyMap(guid, dependencyMap, tempAssetCollection);

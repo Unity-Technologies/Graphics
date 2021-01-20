@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(CopyColorPass));
+
             m_SamplingMaterial = samplingMaterial;
             m_CopyColorMaterial = copyColorMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");

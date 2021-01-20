@@ -1,7 +1,7 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [GenerateHLSL]
-    public enum PbrSkyConfig
+    enum PbrSkyConfig
     {
         // Tiny
         GroundIrradianceTableSize = 256, // <N, L>

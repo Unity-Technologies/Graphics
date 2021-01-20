@@ -18,10 +18,10 @@ namespace UnityEditor.Rendering.Universal
     [MovedFrom("UnityEditor.Rendering.LWRP")]
     public class ForwardRendererDataEditor : ScriptableRendererDataEditor
     {
-    	public override void OnInspectorGUI()
-    	{
-    		throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead");
-    	}
+        public override void OnInspectorGUI()
+        {
+            throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead");
+        }
     }
 
     static partial class EditorUtils
@@ -78,9 +78,9 @@ namespace UnityEditor.Rendering.Universal
             // From this point on, we move to non-layout based code.
 
             var sliderRect = GUILayoutUtility.GetRect(GUIContent.none
-                    , s_CascadeSliderBG
-                    , GUILayout.Height(kSliderbarTopMargin + kSliderbarHeight + kSliderbarBottomMargin)
-                    , GUILayout.ExpandWidth(true));
+                , s_CascadeSliderBG
+                , GUILayout.Height(kSliderbarTopMargin + kSliderbarHeight + kSliderbarBottomMargin)
+                , GUILayout.ExpandWidth(true));
             GUI.Box(sliderRect, GUIContent.none);
 
             EditorGUILayout.EndHorizontal();

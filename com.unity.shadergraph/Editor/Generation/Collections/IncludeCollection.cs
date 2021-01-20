@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public IncludeCollection Add(IncludeCollection includes)
         {
-            foreach(IncludeCollection.Item item in includes)
+            foreach (IncludeCollection.Item item in includes)
             {
                 m_Items.Add(item);
             }
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public IncludeCollection Add(string include, IncludeLocation location, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(new IncludeDescriptor() { value = include, location = location }, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(new IncludeDescriptor() { value = include, location = location }, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

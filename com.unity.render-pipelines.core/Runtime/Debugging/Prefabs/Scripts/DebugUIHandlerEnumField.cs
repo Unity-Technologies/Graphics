@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.UI
                     //check if quickSeparators have not been constructed
                     //it is the case when not constructed with autoenum
                     var separators = m_Field.quickSeparators;
-                    if(separators == null)
+                    if (separators == null)
                     {
                         m_Field.InitQuickSeparators();
                         separators = m_Field.quickSeparators;
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.UI
 
                     int idxSup = 0;
                     for (; idxSup < separators.Length && index + 1 > separators[idxSup]; ++idxSup) ;
-                    if(idxSup == separators.Length)
+                    if (idxSup == separators.Length)
                     {
                         index = 0;
                     }
@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.UI
 
             if (index == 0)
             {
-                if(fast)
+                if (fast)
                 {
                     //check if quickSeparators have not been constructed
                     //it is thecase when not constructed with autoenum

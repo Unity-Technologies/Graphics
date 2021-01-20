@@ -30,7 +30,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
 
     uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
 
-    // Find min/max for this wave and store it in LDS. 
+    // Find min/max for this wave and store it in LDS.
     float waveMin = WaveActiveMin(motionVecLength);
     uint waveMax = WaveActiveMax(packedMotionVec);
 
@@ -41,7 +41,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
         gs_maxMotionVec[waveIDInGroup] = waveMax;
     }
 
-    // We have values for all the waves, let's sync. 
+    // We have values for all the waves, let's sync.
     GroupMemoryBarrierWithGroupSync();
 
     if (threadIdx == 0)

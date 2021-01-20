@@ -36,7 +36,6 @@ namespace UnityEditor.VFX.UI
                 OnNewController();
                 if (m_Controller != null)
                 {
-                    controller.model.RefreshErrors(controller.viewController.graph);
                     m_Controller.RegisterHandler(this);
                 }
             }
@@ -71,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
         static string UXMLResourceToPackage(string resourcePath)
         {
-            return VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/" + resourcePath + ".uxml";
+            return VisualEffectAssetEditorUtility.editorResourcesPath + "/" + resourcePath + ".uxml";
         }
 
         public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))

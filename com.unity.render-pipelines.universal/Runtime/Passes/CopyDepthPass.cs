@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = AllocateRT && !destination.HasInternalRenderTargetId();
+            this.AllocateRT = !destination.HasInternalRenderTargetId();
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)

@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Bloom
             BloomRes                    = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomRes);
             BloomHighFilteringQuality   = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityFiltering);
-            BloomHighPrefilteringQuality= root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityPrefiltering);
+            BloomHighPrefilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityPrefiltering);
 
             // Chromatic Aberration
             ChromaticAbMaxSamples       = root.Find((GlobalPostProcessingQualitySettings s) => s.ChromaticAberrationMaxSamples);

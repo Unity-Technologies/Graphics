@@ -4,11 +4,11 @@ using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DiffusionProfileDrawer : MaterialPropertyDrawer
+    class DiffusionProfileDrawer : MaterialPropertyDrawer
     {
         public override float GetPropertyHeight(MaterialProperty prop, string label, MaterialEditor editor) => 0;
 
-        public override void OnGUI (Rect position, MaterialProperty prop, String label, MaterialEditor editor)
+        public override void OnGUI(Rect position, MaterialProperty prop, String label, MaterialEditor editor)
         {
             // Find properties
             var assetProperty = MaterialEditor.GetMaterialProperty(editor.targets, prop.name + "_Asset");

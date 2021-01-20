@@ -3,7 +3,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;

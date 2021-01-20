@@ -3,7 +3,7 @@ The Contact Shadows [Volume Override](Volume-Components.md) specifies properties
 
 
 ## Enabling Contact Shadows
-[!include[](snippets/Volume-Override-Enable.md)]
+[!include[](snippets/Volume-Override-Enable-Override.md)]
 
 For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Shadows > Use Contact Shadows**.
@@ -23,6 +23,8 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 **Note**: A Light casts Contact Shadows for every Mesh Renderer that uses a Material that writes to the depth buffer. This is regardless of whether you enable or disable the **Cast Shadows** property on the Mesh Renderer. This means that you can disable **Cast Shadows** on small GameObjects/props and still have them cast Contact Shadows. This is good if you do not want HDRP to render these GameObjects in shadow maps. If you do not want this behavior, use Shader Graph to author a Material that does not write to the depth buffer.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-ContactShadows1.png)
@@ -38,10 +40,11 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 | __Max Distance__          | The distance from the Camera, in meters, at which HDRP begins to fade Contact Shadows out to zero. |
 | __Fade In Distance__ | The distance, in meters, over which HDRP fades Contact Shadows in when past the **Min Distance**. |
 | __Fade Out Distance__     | The distance, in meters, over which HDRP fades Contact Shadows out when at the __Max Distance__. |
-| __Sample Count__          | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
 | __Opacity__ |   Use the slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
-| **Ray Bias** | Controls the bias applied to the screen space ray cast to get contact shadows. Higher values can reduce self shadowing, however too high values might lead to peter-panning that can be especially undesirable with contact shadows. |
+| **Bias** | Controls the bias applied to the screen space ray cast to get contact shadows. Higher values can reduce self shadowing, however too high values might lead to peter-panning that can be especially undesirable with contact shadows. |
 | **Thickness** | Controls the thickness of the objects found along the ray, essentially thickening the contact shadows. It can be used to fill holes in the shadows, however might also lead to overly wide shadows. |
+| **Quality** | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
+| __Sample Count__ | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
 
 ## Details
 

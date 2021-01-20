@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.HDRP
             {
                 HDShaderUtils.ResetMaterialKeywords(mat);
             }
-            catch(ArgumentException) // Silently catch the 'Unknown shader' in case of non HDRP shaders
+            catch (ArgumentException) // Silently catch the 'Unknown shader' in case of non HDRP shaders
             {}
         }
     }

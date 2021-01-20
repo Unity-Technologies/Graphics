@@ -14,18 +14,19 @@ using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
-
     class ValueFilterEnumPropertyRMProvider : SimplePropertyRMProvider<VFXValueFilter>
     {
         bool m_NoEnum;
-        public ValueFilterEnumPropertyRMProvider(string name, System.Func<VFXValueFilter> getter, System.Action<VFXValueFilter> setter,bool noEnum) : base(name, getter, setter)
+        public ValueFilterEnumPropertyRMProvider(string name, System.Func<VFXValueFilter> getter, System.Action<VFXValueFilter> setter, bool noEnum) : base(name, getter, setter)
         {
             m_NoEnum = noEnum;
         }
-        public override IEnumerable<int>  filteredOutEnumerators {
+
+        public override IEnumerable<int>  filteredOutEnumerators
+        {
             get
             {
-            return m_NoEnum?new int[] {2 }:null;
+                return m_NoEnum ? new int[] {2 } : null;
             }
         }
     }
@@ -269,7 +270,7 @@ namespace  UnityEditor.VFX.UI
                             mustRelayout = true;
                         }
                     }
-                    else if(m_EnumProperty != null && m_EnumProperty.parent != null)
+                    else if (m_EnumProperty != null && m_EnumProperty.parent != null)
                     {
                         m_EnumProperty.RemoveFromHierarchy();
                     }
@@ -293,7 +294,7 @@ namespace  UnityEditor.VFX.UI
                     }
                 }
 
-                if( mustRelayout)
+                if (mustRelayout)
                     Relayout();
             }
             else

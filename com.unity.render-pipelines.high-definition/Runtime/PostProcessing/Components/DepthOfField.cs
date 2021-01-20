@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Depth-of-Field" + Documentation.endURL)]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -315,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) { }
+        public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -329,6 +330,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) { }
+        public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

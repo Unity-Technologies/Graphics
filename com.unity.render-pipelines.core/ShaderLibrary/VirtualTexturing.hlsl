@@ -32,9 +32,9 @@ struct VtInputParameters
 
 int VirtualTexturingLookup(
     in GraniteConstantBuffers grCB,
-	in GraniteTranslationTexture translationTable,
+    in GraniteTranslationTexture translationTable,
     in VtInputParameters input,
-	out GraniteLookupData graniteLookupData,
+    out GraniteLookupData graniteLookupData,
     out float4 resolveResult
 )
 {
@@ -48,8 +48,8 @@ int VirtualTexturingLookup(
 
     if (input.levelMode == VtLevel_Automatic)
     {
-	    dx = ddx(texCoord);
-	    dy = ddy(texCoord);
+        dx = ddx(texCoord);
+        dy = ddy(texCoord);
     }
     else if (input.levelMode == VtLevel_Bias)
     {
@@ -65,34 +65,34 @@ int VirtualTexturingLookup(
         else
         {
             dx = ddx(texCoord);
-            dy = ddy(texCoord);           
+            dy = ddy(texCoord);
         }
-    }    
+    }
     else if (input.levelMode == VtLevel_Derivatives)
     {
-	    dx = input.dx;
-	    dy = input.dy;
+        dx = input.dx;
+        dy = input.dy;
     }
     else /*input.levelMode == VtLevel_Lod*/
     {
-        //gra_TrilinearOffset ensures we do round-nearest for no-trilinear and 
+        //gra_TrilinearOffset ensures we do round-nearest for no-trilinear and
         //round-floor for trilinear.
-	    float clampedLevel = clamp(input.lodOrOffset + gra_TrilinearOffset, 0.0f, gra_NumLevels);
+        float clampedLevel = clamp(input.lodOrOffset + gra_TrilinearOffset, 0.0f, gra_NumLevels);
         mipLevel = floor(clampedLevel);
-	    dx = float2(frac(clampedLevel), 0.0f); // trilinear blend ratio
-	    dy = float2(0.0f,0.0f);
+        dx = float2(frac(clampedLevel), 0.0f); // trilinear blend ratio
+        dy = float2(0.0f,0.0f);
     }
-    
+
     // Transform the derivatives to atlas space if needed
     if (input.uvMode == VtUvSpace_Regular && input.levelMode != VtLevel_Lod)
     {
-	    dx = gra_Transform.zw * dx;
-	    dy = gra_Transform.zw * dy;
+        dx = gra_Transform.zw * dx;
+        dy = gra_Transform.zw * dy;
     }
 
     if (input.levelMode != VtLevel_Lod)
     {
-        mipLevel = GranitePrivate_CalcMiplevelAnisotropic(grCB.tilesetBuffer, grCB.streamingTextureBuffer, dx, dy);   
+        mipLevel = GranitePrivate_CalcMiplevelAnisotropic(grCB.tilesetBuffer, grCB.streamingTextureBuffer, dx, dy);
 
         // Simply add it here derivatives are wrong from this point onwards but not used anymore
         if ( input.sampleQuality == VtSampleQuality_Low && input.levelMode == VtLevel_Bias)
@@ -127,13 +127,13 @@ int VirtualTexturingLookup(
             texCoord = input.uv;
         }
 
-	    texCoord = Granite_Transform(gra_StreamingTextureCB, texCoord);        
+        texCoord = Granite_Transform(gra_StreamingTextureCB, texCoord);
     }
 
-	// calculate resolver data
-	float2 level0NumTiles = float2(gra_Level0NumTilesX, gra_Level0NumTilesX*gra_NumTilesYScale);
-	float2 virtualTilesUv = floor(texCoord * level0NumTiles * pow(0.5, mipLevel));
-	resolveResult = GranitePrivate_MakeResolveOutput(tsCB, virtualTilesUv, mipLevel);
+    // calculate resolver data
+    float2 level0NumTiles = float2(gra_Level0NumTilesX, gra_Level0NumTilesX*gra_NumTilesYScale);
+    float2 virtualTilesUv = floor(texCoord * level0NumTiles * pow(0.5, mipLevel));
+    resolveResult = GranitePrivate_MakeResolveOutput(tsCB, virtualTilesUv, mipLevel);
 
     float4 translationTableData;
     if (input.levelMode != VtLevel_Lod)
@@ -155,18 +155,18 @@ int VirtualTexturingLookup(
         // Note: this is equal for both anisotropic and linear sampling
         // We could use a sample bias here for 'auto' mip level detection
 #if (GRA_LOAD_INSTR==0)
-	    translationTableData = GranitePrivate_SampleLevel_Translation(translationTable, texCoord, mipLevel);
+        translationTableData = GranitePrivate_SampleLevel_Translation(translationTable, texCoord, mipLevel);
 #else
-	    translationTableData = GranitePrivate_Load(translationTable, gra_Int3(virtualTilesUv, mipLevel));
-#endif   
+        translationTableData = GranitePrivate_Load(translationTable, gra_Int3(virtualTilesUv, mipLevel));
+#endif
     }
 
-	graniteLookupData.translationTableData = translationTableData;
-	graniteLookupData.textureCoordinates = texCoord;
-	graniteLookupData.dX = dx;
-	graniteLookupData.dY = dy;
+    graniteLookupData.translationTableData = translationTableData;
+    graniteLookupData.textureCoordinates = texCoord;
+    graniteLookupData.dX = dx;
+    graniteLookupData.dY = dy;
 
-	return 1;
+    return 1;
 }
 
 int VirtualTexturingSample(
@@ -178,9 +178,9 @@ int VirtualTexturingSample(
     in int quality,
     out float4 result)
 {
-	// Convert from pixels to [0-1] and look up in the physical page texture
-	float2 deltaScale;
-	float3 cacheCoord = GranitePrivate_TranslateCoord(tsCB, graniteLookupData.textureCoordinates, graniteLookupData.translationTableData, layer, deltaScale);
+    // Convert from pixels to [0-1] and look up in the physical page texture
+    float2 deltaScale;
+    float3 cacheCoord = GranitePrivate_TranslateCoord(tsCB, graniteLookupData.textureCoordinates, graniteLookupData.translationTableData, layer, deltaScale);
 
     if ( levelMode != VtLevel_Lod )
     {
@@ -199,13 +199,13 @@ int VirtualTexturingSample(
             float2 sampDeltaX = graniteLookupData.dX*deltaScale;
             float2 sampDeltaY = graniteLookupData.dY*deltaScale;
 
-            result = GranitePrivate_SampleGradArray(cacheTexture, cacheCoord, sampDeltaX, sampDeltaY);      
+            result = GranitePrivate_SampleGradArray(cacheTexture, cacheCoord, sampDeltaX, sampDeltaY);
         }
     }
     else
     {
-	    result = GranitePrivate_SampleLevelArray(cacheTexture, cacheCoord, graniteLookupData.dX.x);      
+        result = GranitePrivate_SampleLevelArray(cacheTexture, cacheCoord, graniteLookupData.dX.x);
     }
 
-	return 1;
+    return 1;
 }

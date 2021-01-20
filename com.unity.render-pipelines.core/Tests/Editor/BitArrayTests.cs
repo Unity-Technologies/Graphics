@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(notA.humanizedData, GetLastHumanizedBits(notAHumanized, ba[0].capacity));
 
             //test indexer
-            foreach(uint index in getSetTestedIndexes.Where(i => i < ba[0].capacity))
+            foreach (uint index in getSetTestedIndexes.Where(i => i < ba[0].capacity))
             {
                 //test get
                 Assert.AreEqual(ba[1][index], (index & 1) == 0); //on a, odd value are false and even true

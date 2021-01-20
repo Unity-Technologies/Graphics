@@ -9,14 +9,14 @@ namespace UnityEngine.Rendering
     {
         /// <summary>
         /// Calibration constant (K) used for our virtual reflected light meter. Modifying this will lead to a change on how average scene luminance
-        /// gets mapped to exposure. 
+        /// gets mapped to exposure.
         /// </summary>
         static public float s_LightMeterCalibrationConstant = 12.5f;
 
         /// <summary>
         /// Factor used for our lens system w.r.t. exposure calculation. Modifying this will lead to a change on how linear exposure
         /// multipliers are computed from EV100 values (and viceversa). s_LensAttenuation models transmission attenuation and lens vignetting.
-        /// Note that according to the standard ISO 12232, a lens saturates at s_LensAttenuation = 0.78f (under ISO 100). 
+        /// Note that according to the standard ISO 12232, a lens saturates at s_LensAttenuation = 0.78f (under ISO 100).
         /// </summary>
         static public float s_LensAttenuation = 0.65f;
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering
             // The default is 12.5% as it is the closest to 12.7% in order to have
             // a middle gray at 18% with a sqrt(2) room for specular highlights
             // Note that this gives equivalent results as using an incident light meter
-            // with a calibration constant of C=314. 
+            // with a calibration constant of C=314.
             float K = s_LightMeterCalibrationConstant;
             return Mathf.Log(avgLuminance * 100f / K, 2f);
         }

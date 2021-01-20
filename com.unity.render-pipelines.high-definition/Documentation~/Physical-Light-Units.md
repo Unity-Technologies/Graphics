@@ -1,6 +1,8 @@
-# Physical Light units
+# Physical light units
 
 HDRP uses Physical Light Units (PLU) for its lighting. These units are based on real-life light measurements, like those you see on light bulb packaging or a photographic light meter. Note that for lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter).
+
+![](Images/HDRPTemplate-Banner1.png)
 
 ## Units
 
@@ -81,3 +83,9 @@ Architects use these approximate values as a guide when designing rooms and buil
 | 30                | City street at night.      |
 
 For more examples of indoor light levels see Archtoolbox’s web page on [Recommended Lighting Levels in Buildings](https://www.archtoolbox.com/materials-systems/electrical/recommended-lighting-levels-in-buildings.html).
+
+### Lighting and exposure diagram
+
+The following cheat sheet contains the color temperature values and light intensities of common real-world [Light](Light-Component.md) sources. It also contains [Exposure](Override-Exposure.md) values for different illumination scenarios.
+
+![](Images/LightCheatSheet.png)

@@ -133,7 +133,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as
     // surfaceData.normalWS is normalized:
     surfaceData.tangentWS = (fragInputs.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-    $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
+
+    $SurfaceDescription.TangentOS: surfaceData.tangentWS = TransformObjectToWorldNormal(surfaceDescription.TangentOS);
+    $SurfaceDescription.TangentTS: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.TangentTS, fragInputs.tangentToWorld);
+    $SurfaceDescription.TangentWS: surfaceData.tangentWS = surfaceDescription.TangentWS;
 
     surfaceData.bentNormalWS = float3(0.0, 0.0, 0.0); // Initialise bentNormalWS before decal to keep compiler quiet, will be override after decal.
 
@@ -151,7 +154,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     bentNormalWS = surfaceData.normalWS;
     $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-	surfaceData.bentNormalWS = bentNormalWS;
+    surfaceData.bentNormalWS = bentNormalWS;
 
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 

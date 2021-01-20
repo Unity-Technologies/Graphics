@@ -13,7 +13,7 @@ half3 GetViewDirectionTangentSpace(half4 tangentWS, half3 normalWS, half3 viewDi
     half crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0); // we do not need to multiple GetOddNegativeScale() here, as it is done in vertex shader
     half3 bitang = crossSign * cross(normalWS.xyz, tangentWS.xyz);
 
-    half3 WorldSpaceNormal = renormFactor * normalWS.xyz;		// we want a unit length Normal Vector node in shader graph
+    half3 WorldSpaceNormal = renormFactor * normalWS.xyz;       // we want a unit length Normal Vector node in shader graph
 
     // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
     // This is explained in section 2.2 in "surface gradient based bump mapping framework"
