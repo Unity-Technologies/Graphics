@@ -488,7 +488,7 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     #if FINAL_PASS
     // Return the final ratio
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = SU.y != 0.0 ? saturate(SU.x / SU.y) : 1.0;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(SU.y != 0.0 ? saturate(SU.x / SU.y) : 1.0, analyticValue, 0.0, 0.0);
     #else
     // Store the intermediate result
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(wSum != 0.0 ? SU / wSum : 0.0, analyticValue, noiseEstimate);
@@ -506,12 +506,13 @@ void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Grab the previous value stored in the buffer. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
     float2 inputValues = _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)].xy;
+    float currentAnalyticValue = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).x;
 
     // Compute the shadow value that we need to store
     float shadowValue = inputValues.y > 0.0 ? inputValues.x / inputValues.y : 0.0;
 
     // Only override when the mask is 1.0
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(shadowValue,shadowValue,shadowValue, 1.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(shadowValue, currentAnalyticValue, 0.0, 1.0);
 }
 
 RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);

@@ -1,10 +1,10 @@
 # One Minus (1-x)
 
-Menu Path : **Operator > Math > Arithmetic > One Minus (1-x)** 
+Menu Path : **Operator > Math > Arithmetic > One Minus (1-x)**
 
 The **One Minus** Operator calculates **1** minus the input value. For example, an input of 0.2 outputs 0.8 and an input of (0.3, 0.4, -5) outputs (0.7, 0.6, 6).
 
-This operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value of the same type as the input. 
+This operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value of the same type as the input.
 
 ## Operator properties
 

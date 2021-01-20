@@ -1,7 +1,6 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
-* [What's new](whats-new/urp-whats-new.md)
-  * [URP 10](whats-new/urp-whats-new-10.md)
+* [What's new in URP](whats-new/urp-whats-new.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
@@ -29,6 +28,7 @@
   * [Light component reference](light-component)
   * [Lighting Mode](urp-lighting-mode.md)
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
+  * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
   * [Render Type](camera-types-and-render-type.md)
@@ -77,7 +77,7 @@
   * [Shader stripping](shader-stripping.md)
   * [Writing custom shaders](writing-custom-shaders-urp.md)
     * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
-    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)    
+    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
@@ -99,12 +99,12 @@
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-    
+
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
 * [Building for consoles](Building-For-Consoles.md)
-  
+
 * [Frequently asked questions (FAQ)](faq.md)
 * [Known issues](known-issues.md)

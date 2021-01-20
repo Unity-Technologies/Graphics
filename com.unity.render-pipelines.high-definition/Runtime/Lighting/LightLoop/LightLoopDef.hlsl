@@ -62,6 +62,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.weight = 1.0;
     output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
     output.roughReflections = 1.0;
+    output.distanceBasedRoughness = 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -271,11 +272,24 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #else
-// Fallback case (mainly for raytracing right now)
+// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
+
+uint GetTileSize()
+{
+    return 1;
+}
+
+void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    start = 0;
+    lightCount = 0;
+    return;
+}
+
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -371,6 +385,13 @@ float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
     uint slot = shadowIndex / 4;
     uint channel = shadowIndex & 0x3;
     return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
+}
+
+float2 GetScreenSpaceShadowArea(PositionInputs posInput, uint shadowIndex)
+{
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return float2(LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel], LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel + 1]);
 }
 
 float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)

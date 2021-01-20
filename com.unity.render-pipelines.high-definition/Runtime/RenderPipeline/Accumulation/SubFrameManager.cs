@@ -32,16 +32,14 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Shutter settings
         float m_ShutterInterval = 0.0f;
-        bool  m_Centered = true;
         float m_ShutterFullyOpen = 0.0f;
         float m_ShutterBeginsClosing = 1.0f;
 
         AnimationCurve m_ShutterCurve;
 
         // Internal state
-        float m_OriginalTimeScale = 0;
+        float m_OriginalCaptureDeltaTime = 0;
         float m_OriginalFixedDeltaTime = 0;
-        bool  m_IsRenderingTheFirstFrame = true;
 
         // Per-camera data cache
         Dictionary<int, CameraData> m_CameraCache = new Dictionary<int, CameraData>();
@@ -114,21 +112,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AccumulationSamples = (uint)samples;
             m_ShutterInterval = samples > 1 ? shutterInterval : 0;
             m_IsRecording = true;
-            m_IsRenderingTheFirstFrame = true;
 
             Clear();
 
-            m_OriginalTimeScale = Time.timeScale;
+            m_OriginalCaptureDeltaTime = Time.captureDeltaTime;
+            Time.captureDeltaTime = m_OriginalCaptureDeltaTime / m_AccumulationSamples;
 
-            Time.timeScale = m_OriginalTimeScale * m_ShutterInterval / m_AccumulationSamples;
-
-            if (m_Centered)
-            {
-                Time.timeScale *= 0.5f;
-            }
-
+            // This is required for physics simulations
             m_OriginalFixedDeltaTime = Time.fixedDeltaTime;
-            Time.fixedDeltaTime = Time.captureDeltaTime * Time.timeScale;
+            Time.fixedDeltaTime = m_OriginalFixedDeltaTime / m_AccumulationSamples;
         }
 
         internal void BeginRecording(int samples, float shutterInterval, float shutterFullyOpen = 0.0f, float shutterBeginsClosing = 1.0f)
@@ -149,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EndRecording()
         {
             m_IsRecording = false;
-            Time.timeScale = m_OriginalTimeScale;
+            Time.captureDeltaTime = m_OriginalCaptureDeltaTime;
             Time.fixedDeltaTime = m_OriginalFixedDeltaTime;
             m_ShutterCurve = null;
         }
@@ -165,31 +157,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Reset();
             }
-            else if (maxIteration == m_AccumulationSamples - 1)
-            {
-                Time.timeScale = m_OriginalTimeScale * (1.0f - m_ShutterInterval);
-                m_IsRenderingTheFirstFrame = false;
-            }
-            else
-            {
-                Time.timeScale = m_OriginalTimeScale * m_ShutterInterval / m_AccumulationSamples;
-            }
-
-            if (m_Centered && m_IsRenderingTheFirstFrame)
-            {
-                Time.timeScale *= 0.5f;
-            }
-            Time.fixedDeltaTime = Time.captureDeltaTime * Time.timeScale;
         }
 
         // Helper function to compute the weight of a frame for a specific point in time
         float ShutterProfile(float time)
         {
-            // for the first frame we are missing the first half when doing centered mb
-            if (m_IsRenderingTheFirstFrame && m_Centered)
+            if (time > m_ShutterInterval)
             {
-                time = time * 0.5f + 0.5f;
+                return 0;
             }
+
+            // Scale the subframe time so the m_ShutterInterval spans between 0 and 1
+            time = time / m_ShutterInterval;
 
             // In case we have a curve profile, use this and return
             if (m_ShutterCurve != null)
@@ -310,17 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.accumulationCS.EnableKeyword("INPUT_FROM_RADIANCE_TEXTURE");
             }
             return parameters;
-        }
-
-        void RenderAccumulation(HDCamera hdCamera, RTHandle inputTexture, RTHandle outputTexture, bool needExposure, CommandBuffer cmd)
-        {
-            // Grab the history buffer
-            RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
-
-            bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
-            var parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
-            RenderAccumulation(parameters, inputTexture, outputTexture, history, cmd);
         }
 
         static void RenderAccumulation(in RenderAccumulationParameters parameters, RTHandle inputTexture, RTHandle outputTexture, RTHandle historyTexture, CommandBuffer cmd)

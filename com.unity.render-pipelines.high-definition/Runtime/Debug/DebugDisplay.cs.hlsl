@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef DEBUGDISPLAY_CS_HLSL
@@ -67,8 +67,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _MatcapMixAlbedo;
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
-    int _DebugProbeVolumeMode;
-    float3 _DebugDisplayPad0;
+    int _DebugDisplayPad0;
 CBUFFER_END
 
 
