@@ -911,7 +911,8 @@ namespace UnityEditor.ShaderGraph
             Vector1ShaderProperty outputIdProperty = null,
             IEnumerable<MaterialSlot> slots = null,
             string graphInputStructName = "SurfaceDescriptionInputs",
-            bool virtualTextureFeedback = false)
+            bool virtualTextureFeedback = false,
+            bool forcePreview = false)
         {
             if (graph == null)
                 return;
@@ -933,7 +934,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.currentNode = null;
 
                 GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
-                    surfaceDescriptionFunction, mode);
+                    surfaceDescriptionFunction, mode, forcePreview);
 
                 if (virtualTextureFeedback)
                 {
@@ -991,7 +992,8 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             IEnumerable<MaterialSlot> slots,
             ShaderStringBuilder surfaceDescriptionFunction,
-            GenerationMode mode)
+            GenerationMode mode,
+            bool forcePreview = false)
         {
             if (rootNode == null)
             {
@@ -1023,7 +1025,7 @@ namespace UnityEditor.ShaderGraph
                     surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite(surface.{hlslName})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id, "surface." + hlslName)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
-            else if (rootNode.hasPreview)
+            else if (rootNode.hasPreview || forcePreview)
             {
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)

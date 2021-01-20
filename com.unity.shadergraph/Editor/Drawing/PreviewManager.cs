@@ -158,6 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // SubGraphOutput nodes have their own previews, but will use the "Master" preview if they are the m_Graph.outputNode
             if (node is BlockNode)
             {
+
                 node.RegisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 m_NodesPropertyChanged.Add(node);
@@ -258,6 +259,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         result.Add(node);
 
+                        if (node is BlockNode bnode)
+                        {
+                            foreach (var cin in CustomInterpolatorUtils.GetCIBDependents(node as BlockNode))
+                                AddNextLevelNodesToWave(cin);
+                        }
+
                         // grab connected nodes in propagation direction, add them to the node wave
                         ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
                     }
@@ -321,13 +328,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = edge.inputSlot.node;
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
                     UpdateMasterPreview(ModificationScope.Topological);
-                else
-                {
-                    m_NodesShaderChanged.Add(node);
-                    //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
-                    //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
-                    m_NodesPropertyChanged.Add(node);
-                }
+
+                m_NodesShaderChanged.Add(node);
+                //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
+                //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
+                m_NodesPropertyChanged.Add(node);
+
                 m_TopologyDirty = true;
             }
             foreach (var edge in m_Graph.addedEdges)
@@ -337,8 +343,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if ((node is BlockNode) || (node is SubGraphOutputNode))
                         UpdateMasterPreview(ModificationScope.Topological);
-                    else
-                        m_NodesShaderChanged.Add(node);
+
+                    m_NodesShaderChanged.Add(node);
                     m_TopologyDirty = true;
                 }
             }

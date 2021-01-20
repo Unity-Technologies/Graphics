@@ -446,8 +446,12 @@ namespace UnityEditor.ShaderGraph
                 return null;
 
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
-            var fromSocketRef = edges[0].outputSlot;
-            var fromNode = fromSocketRef.node;
+            AbstractMaterialNode fromNode = null;
+            if (edges.Count() > 0)
+            { 
+                var fromSocketRef = edges[0].outputSlot;
+                fromNode = fromSocketRef.node;
+            }
             return fromNode;
         }
 
@@ -747,8 +751,8 @@ namespace UnityEditor.ShaderGraph
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;
-        }
 
+        }
         public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if (slot == null)

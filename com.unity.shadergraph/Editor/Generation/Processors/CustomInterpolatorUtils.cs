@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
 using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
@@ -43,8 +44,6 @@ namespace UnityEditor.ShaderGraph
             // Because SoA was used for the passStructs, we have to copy-clobber unless we want to write a bunch of intrusive code everywhere.
             var newPassStructs = new List<StructDescriptor>();
 
-            // aggregate the adds to minimize array modification later.
-            var aggMap = new Dictionary<string, List<FieldDescriptor>>();
             foreach (var ps in passStructs)
             {
                 var nSem = 0;
@@ -85,6 +84,77 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine($"{dstType} output = invary;");
                 GenerateCopyWriteBlock(customList, builder, "input", "output");
                 builder.AppendLine("return output;");
+            }
+        }
+
+
+        // PREVIEW
+        internal static Vector4 GetSlotValueAsVec4(MaterialSlot src)
+        {
+            Vector4 value = default;
+            switch(src)
+            {
+                case Vector1MaterialSlot a: value = new Vector4(a.value, 0, 0, 0); break;
+                case Vector2MaterialSlot b: value = b.value; break;
+                case Vector3MaterialSlot c: value = c.value; break;
+                case Vector4MaterialSlot d: value = d.value; break;
+            }
+            return value;
+        }
+
+        internal static SlotReference GetRerouteSlot(GraphData graphData, SlotReference cibInputSlot)
+        {
+            try { return graphData.GetEdges(cibInputSlot).First().outputSlot; }
+            catch { return default; }
+        }
+
+        // A-->CIB, CIN-->B ==> A-->B
+        internal static void Reroute(GraphData graphData, SlotReference rerouteSlot, SlotReference cinOutputSlot)
+        {
+            var cinOutEdges = graphData.GetEdges(cinOutputSlot);
+            foreach (var edge in cinOutEdges)
+            {
+                graphData.RemoveEdge(edge);
+                graphData.Connect(rerouteSlot, edge.inputSlot);
+            }
+        }
+
+        internal static IEnumerable<CustomInterpolatorNode> GetCIBDependents(BlockNode bnode)
+        {
+            return bnode?.owner?.GetNodes<CustomInterpolatorNode>().Where(cin => cin.e_targetBlockNode == bnode).ToList()
+                ?? new List<CustomInterpolatorNode>();
+        }
+
+        internal static void StripRedirectsAndCopy(GraphData graphData, AbstractMaterialNode outputNode,
+                                                   out GraphData result, out AbstractMaterialNode relativeOutputNode)
+        {
+            result = new GraphData();
+            var source = Serialization.MultiJson.Serialize(graphData);            
+            Serialization.MultiJson.Deserialize(result, source);
+            relativeOutputNode = result.GetNodeFromId(outputNode.objectId);
+
+            
+            foreach (var bnode in result.GetNodes<BlockNode>().Where(b => b.isCustomBlock))
+            {
+                foreach (var node in GetCIBDependents(bnode))
+                {
+                    var cinSlot = node.GetSlotReference(0);
+                    var cibSlot = node.e_targetBlockNode.GetSlotReference(0);
+                    var rerouteSlot = GetRerouteSlot(result, cibSlot);
+
+                    // CIB has no input node.
+                    if (rerouteSlot.Equals(default))
+                    {
+                        
+                    }
+                    else
+                    {
+                        if (relativeOutputNode == node)
+                            relativeOutputNode = rerouteSlot.node;
+
+                        Reroute(result, rerouteSlot, cinSlot);
+                    }
+                }
             }
         }
     }

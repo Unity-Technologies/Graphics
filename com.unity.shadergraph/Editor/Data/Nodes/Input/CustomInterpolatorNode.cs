@@ -102,8 +102,6 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", customBlockNodeName);
         }
 
-
-
         void BuildSlot()
         {
             switch (serializedType)

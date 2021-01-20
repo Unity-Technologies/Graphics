@@ -16,6 +16,9 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
+        GraphData m_originalGraph;
+        AbstractMaterialNode m_originalOutputNode;
+
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
         Target[] m_Targets;
@@ -33,10 +36,15 @@ namespace UnityEditor.ShaderGraph
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
-            m_GraphData = graphData;
-            m_OutputNode = outputNode;
+            m_originalGraph = m_GraphData = graphData;
+            m_originalOutputNode = m_OutputNode = outputNode;
             m_Mode = mode;
             m_Name = name;
+
+            if (m_OutputNode != null)
+            {
+                CustomInterpolatorUtils.StripRedirectsAndCopy(graphData, outputNode, out m_GraphData, out m_OutputNode);
+            }
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
@@ -638,7 +646,8 @@ namespace UnityEditor.ShaderGraph
                 null,
                 pixelSlots,
                 pixelGraphInputName,
-                pass.virtualTextureFeedback);
+                pass.virtualTextureFeedback,
+                m_originalOutputNode?.hasPreview ?? false);
 
             using (var pixelBuilder = new ShaderStringBuilder())
             {
