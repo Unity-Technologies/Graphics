@@ -1498,6 +1498,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        static void GetDoFResolutionScale(in DepthOfFieldParameters dofParameters, out float scale, out float resolutionScale)
+        {
+            scale = 1f / (float)dofParameters.resolution;
+            resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
+        }
+
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -1551,14 +1557,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
             float barrelClipping = dofParameters.physicalCameraBarrelClipping / 3f;
 
-            float scale = 1f / (float)dofParameters.resolution;
+            GetDoFResolutionScale(dofParameters, out float scale, out float resolutionScale);
             var screenScale = new Vector2(scale, scale);
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);
 
             cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)dofParameters.resolution, scale, 0f, 0f));
 
-            float resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
             int farSamples = dofParameters.farSampleCount;
             int nearSamples = dofParameters.nearSampleCount;
 

@@ -26,6 +26,9 @@ namespace UnityEditor.Rendering.PostProcessing
             {
                 var t = EditorUserBuildSettings.activeBuildTarget;
                 return t == BuildTarget.PS4
+#if UNITY_PS5
+                    || t == BuildTarget.PS5
+#endif
                     || t == BuildTarget.XboxOne
                     || t == BuildTarget.Switch;
             }
