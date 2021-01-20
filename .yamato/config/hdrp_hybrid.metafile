@@ -18,7 +18,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" 
+      - [all]: --extra-editor-arg="-xr-tests" 
       - [all]: --compilation-errors-as-warnings
   # - type: editmode
   #  utr_flags:
