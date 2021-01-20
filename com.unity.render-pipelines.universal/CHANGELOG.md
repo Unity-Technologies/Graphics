@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed shader keywords of main light shadow from toggling to enumerating.
 - Always use "High" quality normals, which normalizes the normal in pixel shader. "Low" quality normals looked too much like a bug.
 - Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
+- Optimized 2D performance by rendering straight to the backbuffer if possible
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 - Converted XR automated tests to use MockHMD.
 - Reduced the size of the fragment input struct of the Terrain and Forward lighting shaders.

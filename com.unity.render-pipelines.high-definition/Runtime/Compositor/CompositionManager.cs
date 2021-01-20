@@ -965,6 +965,5 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
-
     }
 }

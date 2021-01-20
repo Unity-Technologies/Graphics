@@ -17,8 +17,8 @@ editor_versions:
       updated_at: '2021-01-18 00:09:02.049359'
       version: ''
     linux:
-      revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
-      updated_at: '2021-01-18 00:09:02.049359'
+      revision: 453023b6d02d56c12563da02011e59faad0a1cca
+      updated_at: '2021-01-20 01:24:45.197749'
       version: ''
     macos:
       revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
@@ -38,8 +38,8 @@ editor_versions:
       updated_at: '2021-01-18 00:09:02.049359'
       version: ''
     linux:
-      revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
-      updated_at: '2021-01-18 00:09:02.049359'
+      revision: 453023b6d02d56c12563da02011e59faad0a1cca
+      updated_at: '2021-01-20 01:24:45.197749'
       version: ''
     macos:
       revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
@@ -59,8 +59,8 @@ editor_versions:
       updated_at: '2021-01-18 00:09:02.049359'
       version: ''
     linux:
-      revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
-      updated_at: '2021-01-18 00:09:02.049359'
+      revision: 453023b6d02d56c12563da02011e59faad0a1cca
+      updated_at: '2021-01-20 01:24:45.197749'
       version: ''
     macos:
       revision: 61ef5d59960a2c39d0875dfd6dbb8ef998714c18
