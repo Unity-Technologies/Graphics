@@ -24,14 +24,14 @@ namespace UnityEditor.VFX.PerformanceTest
         [OneTimeSetUp]
         public void Init()
         {
-            m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
+            m_PreviousAllowAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
+            UnityEditor.ShaderUtil.allowAsyncCompilation = false;
         }
 
         [OneTimeTearDown]
         public void Clear()
         {
-            ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+            UnityEditor.ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
         }
 #endif
 
@@ -170,19 +170,21 @@ namespace UnityEditor.VFX.PerformanceTest
 
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
+#if UNITY_EDITOR
         private bool m_PreviousAllowAsyncCompilation;
         [OneTimeSetUp]
         public void Init()
         {
             m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
+            UnityEditor.ShaderUtil.allowAsyncCompilation = false;
         }
 
         [OneTimeTearDown]
         public void Clear()
         {
-            ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+            UnityEditor.ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
         }
+#endif
 
         private IEnumerable<Type> GetVFXMemoryObjectTypes()
         {
