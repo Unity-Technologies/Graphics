@@ -109,16 +109,16 @@ namespace UnityEditor.ShaderGraph
             switch (serializedType)
             {
                 case BlockNode.CustomBlockType.Float:
-                    AddSlot(new Vector1MaterialSlot(0, "Out", "Out", SlotType.Output, default(float), ShaderStageCapability.Fragment), false);
+                    AddSlot(new Vector1MaterialSlot(0, "Out", "Out", SlotType.Output, default(float), ShaderStageCapability.Fragment));
                     break;
                 case BlockNode.CustomBlockType.Vector2:
-                    AddSlot(new Vector2MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector2), ShaderStageCapability.Fragment), false);
+                    AddSlot(new Vector2MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector2), ShaderStageCapability.Fragment));
                     break;
                 case BlockNode.CustomBlockType.Vector3:
-                    AddSlot(new Vector3MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector3), ShaderStageCapability.Fragment), false);
+                    AddSlot(new Vector3MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector3), ShaderStageCapability.Fragment));
                     break;
                 case BlockNode.CustomBlockType.Vector4:
-                    AddSlot(new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector4), ShaderStageCapability.Fragment), false);
+                    AddSlot(new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, default(Vector4), ShaderStageCapability.Fragment));
                     break;
             }
             RemoveSlotsNameNotMatching(new[] { 0 });
