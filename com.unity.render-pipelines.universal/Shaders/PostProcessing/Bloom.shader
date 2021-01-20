@@ -53,7 +53,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
 
         #if _BLOOM_HQ
             float texelSize = _SourceTex_TexelSize.x;

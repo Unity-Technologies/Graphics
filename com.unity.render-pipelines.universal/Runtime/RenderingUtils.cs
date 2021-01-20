@@ -229,6 +229,31 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static void Blit(CommandBuffer cmd,
+            RTHandle source,
+            RTHandle destination,
+            Material material,
+            int passIndex = 0,
+            bool useDrawProcedural = false)
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            if (useDrawProcedural)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
+                CoreUtils.SetRenderTarget(cmd, destination);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                CoreUtils.SetRenderTarget(cmd, destination);
+                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+            }
+        }
+
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
