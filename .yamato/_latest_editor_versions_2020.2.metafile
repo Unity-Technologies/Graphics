@@ -9,24 +9,24 @@ editor_version_names:
 editor_versions:
   2020_2_latest_internal:
     android:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     ios:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     linux:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     macos:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     windows:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
   2020_2_latest_public:
     android:
@@ -51,22 +51,22 @@ editor_versions:
       version: 2020.2.1f1
   2020_2_staging:
     android:
-      revision: a2b85e2d619667604d3e64ddf3cb8bd914f666b0
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 0378f257bc2d49ce93f24649b3d52c92e1398e0c
+      updated_at: '2021-01-19 00:09:35.315153'
       version: ''
     ios:
-      revision: a2b85e2d619667604d3e64ddf3cb8bd914f666b0
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 0378f257bc2d49ce93f24649b3d52c92e1398e0c
+      updated_at: '2021-01-19 00:09:35.315153'
       version: ''
     linux:
-      revision: a2b85e2d619667604d3e64ddf3cb8bd914f666b0
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 0378f257bc2d49ce93f24649b3d52c92e1398e0c
+      updated_at: '2021-01-19 00:09:35.315153'
       version: ''
     macos:
-      revision: a2b85e2d619667604d3e64ddf3cb8bd914f666b0
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 0378f257bc2d49ce93f24649b3d52c92e1398e0c
+      updated_at: '2021-01-19 00:09:35.315153'
       version: ''
     windows:
-      revision: a2b85e2d619667604d3e64ddf3cb8bd914f666b0
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 0378f257bc2d49ce93f24649b3d52c92e1398e0c
+      updated_at: '2021-01-19 00:09:35.315153'
       version: ''
