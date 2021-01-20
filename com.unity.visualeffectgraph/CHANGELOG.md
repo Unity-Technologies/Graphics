@@ -31,6 +31,7 @@ The version number for this package has increased due to a version update of a r
 - Prevent creation of subgraph containing only partial systems [Case 1284053](https://issuetracker.unity3d.com/product/unity/issues/guid/1284053/)
 - Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
 - VFXEventBinderBase throwing a null reference exception in runtime
+- Fix CameraFade for shadow maps [Case 1294073](https://fogbugz.unity3d.com/f/cases/1294073/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
