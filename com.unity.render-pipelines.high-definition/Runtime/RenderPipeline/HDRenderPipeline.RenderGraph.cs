@@ -271,6 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 passData.copyDepth = passData.copyDepth || hdCamera.isMainGameView; // Specific case of Debug.DrawLine and Debug.Ray
 #endif
+                passData.copyDepth = passData.copyDepth && !hdCamera.xr.enabled;
                 passData.copyDepthMaterial = m_CopyDepth;
                 passData.finalTarget = finalTarget;
                 passData.finalViewport = hdCamera.finalViewport;

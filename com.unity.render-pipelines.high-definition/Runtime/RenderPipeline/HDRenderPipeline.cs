@@ -2469,10 +2469,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XRDepthCopy)))
                 {
                     var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-                    var rtScale = depthBuffer.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale();
 
                     m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
-                    m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
+                    m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                     m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
 
                     cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
