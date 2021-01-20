@@ -129,11 +129,15 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        public CameraController(CameraState cameraState, DisplayWindow window, Action focused)
+        public CameraController(DisplayWindow window, Action focused)
         {
-            m_CameraState = cameraState;
             m_Window = window;
             m_Focused = focused;
+        }
+
+        public void UpdateCameraState(Context context, ViewIndex index)
+        {
+            m_CameraState = context.GetViewContent(index).camera;
         }
 
         private void ResetCameraControl()
@@ -458,14 +462,20 @@ namespace UnityEditor.Rendering.LookDev
         bool switchedDrag = false;
         bool switchedWheel = false;
 
-        public SwitchableCameraController(CameraState cameraStateFirstView, CameraState cameraStateSecondView, DisplayWindow window, Action<ViewIndex> focused)
-            : base(cameraStateFirstView, window, null)
+        public SwitchableCameraController(DisplayWindow window, Action<ViewIndex> focused)
+            : base(window, null)
         {
-            m_FirstView = cameraStateFirstView;
-            m_SecondView = cameraStateSecondView;
             m_CurrentViewIndex = ViewIndex.First;
 
             m_Focused = () => focused?.Invoke(m_CurrentViewIndex);
+        }
+
+        public void UpdateCameraState(Context context)
+        {
+            m_FirstView = context.GetViewContent(ViewIndex.First).camera;
+            m_SecondView = context.GetViewContent(ViewIndex.Second).camera;
+
+            m_CameraState = m_CurrentViewIndex == ViewIndex.First ? m_FirstView : m_SecondView;
         }
 
         void SwitchTo(ViewIndex index)

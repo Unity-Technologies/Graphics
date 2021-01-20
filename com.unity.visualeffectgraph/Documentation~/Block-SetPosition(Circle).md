@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Shape : Circle)**
 
-The **Set Position (Shape : Circle)** block calculates a position based on an input [ArcCircle](Type-ArcCircle.md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition. 
+The **Set Position (Shape : Circle)** block calculates a position based on an input [ArcCircle](Type-ArcCircle.md) and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 The Arc-Circle shape adds an arc property to the circle to determine its arc angle, in radians. setting an arc value of pi creates a half-circle.
 

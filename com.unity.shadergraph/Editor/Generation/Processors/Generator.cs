@@ -154,6 +154,11 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }
+
+                    foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
+                    {
+                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
+                    }
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
@@ -443,10 +448,26 @@ namespace UnityEditor.ShaderGraph
             {
                 if (pass.keywords != null)
                 {
+                    List<KeywordShaderStage> stages = new List<KeywordShaderStage>();
                     foreach (KeywordCollection.Item keyword in pass.keywords)
                     {
                         if (keyword.TestActive(activeFields))
-                            passKeywordBuilder.AppendLine(keyword.value);
+                        {
+                            if (keyword.descriptor.NeedsMultiStageDefinition(ref stages))
+                            {
+                                foreach (KeywordShaderStage stage in stages)
+                                {
+                                    // Override the stage for each one of the requested ones and append a line for each stage.
+                                    KeywordDescriptor descCopy = keyword.descriptor;
+                                    descCopy.stages = stage;
+                                    passKeywordBuilder.AppendLine(descCopy.ToDeclarationString());
+                                }
+                            }
+                            else
+                            {
+                                passKeywordBuilder.AppendLine(keyword.value);
+                            }
+                        }
                     }
                 }
 

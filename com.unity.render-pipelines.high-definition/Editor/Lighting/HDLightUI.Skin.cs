@@ -25,8 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Base (copy from LightEditor.cs)
             public readonly GUIContent outterAngle = new GUIContent("Outer Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
-            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Sets the width of the Cookie mask currently assigned to the Light.");
-            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Sets the height of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent cookieSize = new GUIContent("Size", "Sets the size of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which HDRP shrinks the shadow casting surfaces along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the active Camera's Near clipping Plane for rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
@@ -98,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data

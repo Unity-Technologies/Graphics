@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(17, Extension, -905)]
+    [ScriptedImporter(20, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -191,6 +191,7 @@ namespace UnityEditor.ShaderGraph
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
+            asset.previewMode = graph.previewMode;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
