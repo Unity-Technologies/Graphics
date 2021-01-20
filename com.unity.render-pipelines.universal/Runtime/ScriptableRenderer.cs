@@ -940,10 +940,11 @@ namespace UnityEngine.Rendering.Universal
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
-				if (!renderPass.overrideCameraTarget)
-                	m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
-				else
-					m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat);
+                if (!renderPass.overrideCameraTarget)
+                    m_ActiveColorAttachmentDescriptors[0] =
+                        new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                else
+                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0]);
 
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {

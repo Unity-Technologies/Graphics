@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -180,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal RenderTextureFormat renderTargetFormat { get; set; }
+        internal GraphicsFormat[] renderTargetFormat { get; set; }
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
@@ -201,6 +202,11 @@ namespace UnityEngine.Rendering.Universal
             renderTargetWidth = -1;
             renderTargetHeight = -1;
             renderTargetSampleCount = -1;
+            renderTargetFormat = new GraphicsFormat[]
+            {
+                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
+                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
+            };
             depthOnly = false;
 
             useNativeRenderPass = true;
@@ -255,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, int width = -1, int height = -1, int sampleCount = -1, bool depth = false, RenderTextureFormat format = RenderTextureFormat.ARGBHalf)
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, int width = -1, int height = -1, int sampleCount = -1, bool depth = false, GraphicsFormat format = GraphicsFormat.None)
         {
             overrideCameraTarget = true;
 
@@ -267,7 +273,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetHeight = height;
             renderTargetSampleCount = sampleCount;
             depthOnly = depth;
-            renderTargetFormat = format;
+            renderTargetFormat[0] = format;
         }
 
         /// <summary>

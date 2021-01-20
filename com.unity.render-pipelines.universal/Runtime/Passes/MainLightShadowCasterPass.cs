@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -118,7 +119,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                 m_ShadowmapHeight, k_ShadowmapBufferBits);
-            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_ShadowmapWidth, m_ShadowmapHeight, 1, true, RenderTextureFormat.Shadowmap);
+            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_ShadowmapWidth, m_ShadowmapHeight, 1, true, GraphicsFormat.ShadowAuto);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
