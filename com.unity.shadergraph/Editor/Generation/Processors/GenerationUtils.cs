@@ -122,6 +122,7 @@ namespace UnityEditor.ShaderGraph
                 fields = new FieldDescriptor[] { } };
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
+            int nPackedInterps = 0;
 
             foreach (FieldDescriptor subscript in shaderStruct.fields)
             {
@@ -166,23 +167,11 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        if (packedCounts[interpIndex] == 4)
-                        {
-                            var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", ShaderValueType.Float4,
-                                "INTERP" + interpIndex, "", StructFieldOptions.Static);
-                            packedSubscripts.Add(packedSubscript);
-                        }
+                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
+                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
+                        packedSubscripts.Add(packedSubscript);
                     }
                 }
-            }
-            var count = packedCounts.Count;
-            if (count != 0 && (packedCounts.Last() % 4 != 0))
-            {
-                var interpIndex = count-1;
-                
-                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", ShaderValueType.Float4,
-                    "INTERP" + interpIndex, "", StructFieldOptions.Static);
-                packedSubscripts.Add(packedSubscript);
             }
             packStruct.fields = packedSubscripts.ToArray();
         }
