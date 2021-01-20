@@ -997,7 +997,9 @@ namespace UnityEngine.Rendering.Universal
 
                     if (m_FirstTimeColorClear)
                     {
-                        m_FirstTimeColorClear = false;
+                        if (!renderPass.depthOnly)
+                            m_FirstTimeColorClear = false;
+                        
                         m_ActiveColorAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 0);
                         if (!isBlit)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
