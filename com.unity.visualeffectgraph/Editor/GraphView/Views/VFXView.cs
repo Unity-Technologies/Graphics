@@ -2166,6 +2166,9 @@ namespace UnityEditor.VFX.UI
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            if (controller == null || !IsAssetEditable())
+                return;
+
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
                 evt.target = this;
 
