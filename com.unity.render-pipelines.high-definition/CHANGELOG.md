@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with compositor's undo (cases 1305633, 1307170).
 - Fixed exception when changing the current render pipeline to from HDRP to universal (case 1306291).
 - Fixed an issue in shadergraph when switch from a RenderingPass (case 1307653)
+- Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
