@@ -145,8 +145,9 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             Rect pixelRect = cameraData.pixelRect;
-            float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
+            float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
+            float scaledCameraWidth = (float)pixelRect.width * renderScale;
+            float scaledCameraHeight = (float)pixelRect.height * renderScale;
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
 
