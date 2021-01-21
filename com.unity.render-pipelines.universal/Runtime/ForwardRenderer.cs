@@ -284,6 +284,8 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureCameraColorTarget(activeColorRenderTargetId);
             }
 
+            Shader.DisableKeyword("_DECAL");
+
             // Add render passes and gather the input requirements
             isCameraColorTargetValid = true;
             AddRenderPasses(ref renderingData);

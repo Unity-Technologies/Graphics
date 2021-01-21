@@ -94,6 +94,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
+#pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords
@@ -110,6 +111,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+            #pragma multi_compile _ _DECAL
 
             // -------------------------------------
             // Universal Pipeline keywords

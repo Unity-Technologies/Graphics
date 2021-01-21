@@ -6,6 +6,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
 
+#include "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Runtime/Decal/DecalUtilities.hlsl"
+//#define _DECAL
+
 #if defined(_DETAIL_MULX2) || defined(_DETAIL_SCALED)
 #define _DETAIL
 #endif
@@ -150,6 +154,37 @@ void ApplyPerPixelDisplacement(half3 viewDirTS, inout float2 uv)
     uv += ParallaxMapping(TEXTURE2D_ARGS(_ParallaxMap, sampler_ParallaxMap), viewDirTS, _Parallax, uv);
 #endif
 }
+
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout InputData inputData)
+{
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
+
+    // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
+    surfaceData.albedo.xyz = surfaceData.albedo.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+
+    // Always test the normal as we can have decompression artifact
+    if (decalSurfaceData.normalWS.w < 1.0)
+    {
+        inputData.normalWS.xyz = normalize(inputData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+    }
+
+#ifdef DECALS_4RT // only smoothness in 3RT mode
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    if (decalSurfaceData.MAOSBlend.x < 1.0)
+    {
+        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
+        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor * (1.0f - decalSurfaceData.MAOSBlend.x);
+    }
+#else
+    surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
+#endif
+
+    surfaceData.occlusion = surfaceData.occlusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
+#endif
+
+    surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
+}
+
 
 // Used for scaling detail albedo. Main features:
 // - Depending if detailAlbedo brightens or darkens, scale magnifies effect.

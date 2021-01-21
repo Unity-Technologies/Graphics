@@ -1,0 +1,266 @@
+Pass
+{ 
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
+    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+
+    // Defines
+    $Attributes.normalOS:               #define ATTRIBUTES_NEED_NORMAL
+    $Attributes.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
+    $Attributes.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
+    $Attributes.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
+    $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
+    $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
+    $Varyings.positionWS:           #define VARYINGS_NEED_POSITION_WS
+    $Varyings.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $Varyings.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
+    $Varyings.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
+    $Varyings.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
+    $Varyings.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
+    $Varyings.color:                #define VARYINGS_NEED_COLOR
+    
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
+    $splice(GraphDefines)
+
+    $splice(HybridV1InjectedBuiltinProperties)
+
+    // -- Properties used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
+
+    // TODO
+    struct FragInputs
+    {
+        // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
+        // xy: unormalized screen position (offset by 0.5), z: device depth, w: depth in view space
+        // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
+        float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
+        float3 positionRWS; // Relative camera space position
+        float4 texCoord0;
+        float4 texCoord1;
+        float4 texCoord2;
+        float4 texCoord3;
+        float4 color; // vertex color
+
+        // TODO: confirm with Morten following statement
+        // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).
+        // (xnormal for example take into account the interpolation when baking the normal and normalizing the tangent basis could cause distortion).
+        // When using tangentToWorld with surface gradient, it doesn't normalize the tangent/bitangent vector (We instead use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
+        // this mean that any usage of tangentToWorld[1] or tangentToWorld[2] outside of the context of normal map (like for POM) must normalize the TBN (TCHECK if this make any difference ?)
+        // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
+        float3x3 tangentToWorld;
+
+        uint primitiveID; // Only with fullscreen pass debug currently - not supported on all platforms
+
+        // For two sided lighting
+        bool isFrontFace;
+    };
+
+    FragInputs UnpackVaryingsToFragInputs(PackedVaryings packedInput)
+    {
+        Varyings input = UnpackVaryings(packedInput);
+
+        FragInputs fragInputs = (FragInputs)0;
+
+        fragInputs.positionSS = input.positionCS;
+
+        #ifdef VARYINGS_NEED_POSITION_WS
+        fragInputs.positionRWS = input.positionWS;
+        #endif
+
+        #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+        fragInputs.tangentToWorld = input.tangentToWorld;
+        #endif
+
+        #ifdef VARYINGS_NEED_TEXCOORD0
+        fragInputs.texCoord0 = input.texCoord0;
+        #endif
+
+        return fragInputs;
+    }
+
+    SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, float3 viewWS)
+    {
+        SurfaceDescriptionInputs output;
+        ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
+
+        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
+        #if defined(SHADER_STAGE_RAY_TRACING)
+        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) ObjectToWorld3x4());
+        #else
+        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
+        #endif
+        $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
+        $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
+        $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
+        $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
+        $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
+        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.tangentToWorld[1].xyz;
+        $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
+        $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
+        $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
+        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
+        $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
+        $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
+        $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          input.positionRWS;
+        $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
+        $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
+        $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+        $SurfaceDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(input.positionRWS);
+        $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+        $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
+        $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
+        $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;
+        $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         input.texCoord3;
+        $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+        $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
+        $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
+
+        return output;
+    }
+
+
+
+    // --------------------------------------------------
+    // Build Surface Data
+
+    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    {
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+            float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
+            float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
+            float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
+            fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
+            fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
+            fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
+            fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
+            fragInputs.positionRWS = fragInputs.positionRWS;
+            fragInputs.tangentToWorld[2].xyz = TransformObjectToWorldDir(float3(0, 1, 0));
+            fragInputs.tangentToWorld[1].xyz = TransformObjectToWorldDir(float3(0, 0, 1));
+        #else
+            #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+            #endif
+
+            float fadeFactor = 1.0;
+        #endif
+
+        SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+        // setup defaults -- these are used if the graph doesn't output a value
+        ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+
+        #ifdef _MATERIAL_AFFECTS_EMISSION
+            $SurfaceDescription.Emission:       surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
+        #endif
+
+        // copy across graph values, if defined
+        #ifdef _MATERIAL_AFFECTS_ALBEDO
+            $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = surfaceDescription.BaseColor;
+            $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
+        #endif
+
+        #ifdef _MATERIAL_AFFECTS_NORMAL
+            #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
+            #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
+                // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, fragInputs.tangentToWorld));
+            #endif
+
+            $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+        #else
+            #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.tangentToWorld));
+            #endif
+        #endif
+
+            // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
+        #ifdef _MATERIAL_AFFECTS_MASKMAP
+            $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
+            $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
+
+            #ifdef DECALS_4RT
+                $SurfaceDescription.Metallic:   surfaceData.mask.x = surfaceDescription.Metallic;
+                $SurfaceDescription.Occlusion:  surfaceData.mask.y = surfaceDescription.Occlusion;
+                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.x = surfaceDescription.MAOSAlpha * fadeFactor;
+                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.y = surfaceDescription.MAOSAlpha * fadeFactor;
+            #endif
+                                                      
+        #endif
+    }
+
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
+
+    ENDHLSL
+}
