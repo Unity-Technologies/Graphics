@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering
                         12,
                         18);
                     var enabled = cascade.borderHandleState == HandleState.Enabled;
-                    var borderPartitionColor = enabled ? kCascadeColors[i] : kDisabledColor;;
+                    var borderPartitionColor = enabled ? kCascadeColors[i] : kDisabledColor;
                     var delta = DrawSnatchWithHandle(borderPartitionHandleRect, cascadeWidth, borderPartitionColor, GetUpSnatchStyle(), enabled);
                     cascade.borderSize = Mathf.Clamp01(cascade.borderSize - delta);
 
