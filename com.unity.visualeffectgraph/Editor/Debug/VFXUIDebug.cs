@@ -211,15 +211,19 @@ namespace UnityEditor.VFX.UI
 
             public void OnVFXChange()
             {
-                if ((m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive) && m_DebugUI.m_VFX != null)
+                if (m_DebugUI.m_VFX != null)
                 {
-                    m_VFXCurves.Clear();
-                    m_TimeBarsOffsets.Clear();
-                    for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                    m_Pause = m_Stopped = m_DebugUI.m_VFX.pause;
+                    if (m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive)
                     {
-                        var toggle = m_DebugUI.m_SystemInfos[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
-                        var switchableCurve = new SwitchableCurve(m_DebugUI.m_GpuSystems[i], m_MaxPoints, toggle);
-                        m_VFXCurves.Add(switchableCurve);
+                        m_VFXCurves.Clear();
+                        m_TimeBarsOffsets.Clear();
+                        for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                        {
+                            var toggle = m_DebugUI.m_SystemInfos[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
+                            var switchableCurve = new SwitchableCurve(m_DebugUI.m_GpuSystems[i], m_MaxPoints, toggle);
+                            m_VFXCurves.Add(switchableCurve);
+                        }
                     }
                 }
             }
@@ -238,6 +242,8 @@ namespace UnityEditor.VFX.UI
                         m_Stopped = false;
                         break;
                     case Events.VFXReset:
+                        m_Stopped = false;
+                        m_Pause = false;
                         foreach (var curve in m_VFXCurves)
                             curve.ResetCurve();
                         m_TimeBarsOffsets.Clear();
