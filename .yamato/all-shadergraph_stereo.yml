@@ -10,7 +10,7 @@
 PR_ShaderGraph_Stereo_trunk:
     name: ShaderGraph_Stereo PR Job - trunk
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -28,7 +28,7 @@ Nightly_ShaderGraph_Stereo_trunk:
 PR_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: ShaderGraph_Stereo PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
