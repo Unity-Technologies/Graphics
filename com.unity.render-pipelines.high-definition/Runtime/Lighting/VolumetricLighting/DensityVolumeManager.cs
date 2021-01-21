@@ -105,12 +105,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
         {
             //Update volumes
-            bool animate = currentCam.animateMaterials;
+            float time = currentCam.time;
             foreach (DensityVolume volume in m_Volumes)
-                volume.PrepareParameters(animate, time);
+                volume.PrepareParameters(time);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
             {
