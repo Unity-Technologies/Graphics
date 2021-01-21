@@ -174,7 +174,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                     // considering we use a cover-style scale on the dirt texture the difference
                     // isn't massive so we chose to save a few ALUs here instead in case lens
                     // distortion is active.
-                    half3 dirt = SAMPLE_TEXTURE2D(_LensDirt_Texture, sampler_LinearClamp, uvDistorted * LensDirtScale + LensDirtOffset).xyz;
+                    half3 dirt = SAMPLE_TEXTURE2D(_LensDirt_Texture, sampler_LinearClamp, uvDistorted / _RTHandleScale.xy * LensDirtScale + LensDirtOffset).xyz;
                     dirt *= LensDirtIntensity;
                     color += dirt * bloom.xyz;
                 }
@@ -189,7 +189,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             UNITY_BRANCH
             if (VignetteIntensity > 0)
             {
-                color = ApplyVignette(color, uvDistorted, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);
+                color = ApplyVignette(color, uvDistorted, VignetteCenter * _RTHandleScale.xy, VignetteIntensity / _RTHandleScale.xy, VignetteRoundness, VignetteSmoothness, VignetteColor);
             }
 
             // Color grading is always enabled when post-processing/uber is active
