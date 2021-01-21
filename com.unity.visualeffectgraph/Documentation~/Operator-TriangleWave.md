@@ -1,6 +1,6 @@
 # Triangle Wave
 
-Menu Path : **Operator > Math > Wave > Triangle Wave** 
+Menu Path : **Operator > Math > Wave > Triangle Wave**
 
 The **Triangle Wave** Operator allows you to generate a value which linearly oscillates between a minimum and a maximum value based on a provided input and a set frequency.
 
