@@ -17,9 +17,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public enum CloudMapResolution
         {
-            R64x64 = 64,
-            R128x128 = 128,
-            R256x256 = 256
+            Low32x32 = 32,
+            Medium64x64 = 64,
+            High128x128 = 128,
+            Ultra256x256 = 256
         }
 
         // Cumulus
@@ -38,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         public Texture2D rainMap;
 
         // Output resolution
-        public CloudMapResolution outputResolution = CloudMapResolution.R128x128;
+        public CloudMapResolution outputResolution = CloudMapResolution.Medium64x64;
 
         // Output location
         public string outputLocation = "";
@@ -175,23 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             // Evaluate the cloud map
             cloudMapGenerator.Dispatch(kernel, outputRes / 8, outputRes / 8, 1);
-            /*
-            // Grab the next kernel
-            kernel = cloudMapGenerator.FindKernel("FilterCloudMap");
-            cloudMapGenerator.SetTexture(kernel, "_CloudMap", rTexture0);
-            cloudMapGenerator.SetTexture(kernel, "_CloudMapRW", rTexture1);
-            cloudMapGenerator.SetTexture(kernel, "_CloudMapBlurRW", rTexture2);
-            cloudMapGenerator.SetInt("_Resolution", outputRes);
-            cloudMapGenerator.Dispatch(kernel, outputRes / 8, outputRes / 8, 1);
 
-            // Grab the next kernel
-            kernel = cloudMapGenerator.FindKernel("BlurCloudMap");
-            cloudMapGenerator.SetTexture(kernel, "_CloudMap", rTexture1);
-            cloudMapGenerator.SetTexture(kernel, "_CloudMapBlur", rTexture2);
-            cloudMapGenerator.SetTexture(kernel, "_CloudMapRW", rTexture0);
-            cloudMapGenerator.SetInt("_Resolution", outputRes);
-            cloudMapGenerator.Dispatch(kernel, outputRes / 8, outputRes / 8, 1);
-            */
             // Copy the result into a tex2d then a tex3d
             RenderTexture prevActive = RenderTexture.active;
             RenderTexture.active = rTexture0;

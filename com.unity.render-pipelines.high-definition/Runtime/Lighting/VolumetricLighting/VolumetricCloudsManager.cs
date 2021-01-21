@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Build our default cloud map
             m_SparsePresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Sparse Texture" };
-            m_SparsePresetMap.SetPixel(0, 0, new Color(0.2f, 0.0f, 0.1875f, 1.0f));
+            m_SparsePresetMap.SetPixel(0, 0, new Color(0.2f, 0.0f, 0.5429687f, 1.0f));
             m_SparsePresetMap.Apply();
 
             m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
@@ -264,8 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
                     densityMultiplier = 0.3f;
-                    shapeFactor = 0.6f;
-                    erosionFactor = 0.7f;
+                    shapeFactor = 0.4f;
+                    erosionFactor = 0.6f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
