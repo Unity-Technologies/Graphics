@@ -229,6 +229,26 @@ uint ComputeTileBufferIndex(uint tile, uint category, uint eye)
     return ComputeTileBufferIndex(tile, category, eye, TILE_BUFFER_DIMS);
 }
 
+// Internal. Do not call directly.
+uint ComputeZBinBitArrayBufferIndex(uint zbin, uint category, uint eye)
+{
+    // Avoid indexing out of bounds (and crashing).
+    // Defensive programming to protect us from incorrect caller code.
+    zbin = min(zbin, Z_BIN_COUNT - 1);
+
+    // TODO: could be optimized/precomputed.
+    uint dwordOffset = s_BoundedEntityDwordOffsetPerCategory[category]; // Previous categories
+    uint dwordCount = s_BoundedEntityDwordCountPerCategory[category];  // Current category
+    uint dwordsPerBin = s_BoundedEntityDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]
+        + s_BoundedEntityDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]; // All categories
+
+    uint eyeOffset = Z_BIN_COUNT * dwordsPerBin * eye;
+    uint catOffset = Z_BIN_COUNT * dwordOffset; // category data is contiguous for all zbins, so to get to the start of current
+                                                // category we need to multiply its offset by total number of zbins.
+    uint zbinOffset = zbin * dwordCount;        // zbin index * dwords for this category
+    return eyeOffset + catOffset + zbinOffset;
+}
+
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL
 
 #endif // UNITY_TILINGANDBINNINGUTILITIES_INCLUDED

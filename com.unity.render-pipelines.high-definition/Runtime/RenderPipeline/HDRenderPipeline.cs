@@ -3132,6 +3132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle                    depthBuffer,
             ComputeBuffer               fineTileBuffer,
             ComputeBuffer               zBinBuffer,
+            ComputeBuffer               zBinBitArrayBuffer,
             bool                        opaque,
             ScriptableRenderContext     renderContext,
             CommandBuffer               cmd)
