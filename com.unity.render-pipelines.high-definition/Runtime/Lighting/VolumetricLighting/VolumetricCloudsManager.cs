@@ -127,6 +127,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudReprojectKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
             m_UpscaleAndCombineCloudsKernel = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds");
 
+            // Alocate all the texture initially
+            AllocatePresetTextures();
+        }
+
+        void AllocatePresetTextures()
+        {
             // Build our default cloud map
             m_SparsePresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Sparse Texture" };
             m_SparsePresetMap.SetPixel(0, 0, new Color(0.2f, 0.0f, 0.1875f, 1.0f));
@@ -222,6 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalWidth;
             public int finalHeight;
             public int viewCount;
+            public Vector2Int previousViewportSize;
 
             // Static textures
             public Texture3D worley128RGBA;
@@ -368,8 +375,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._IntermediateScreenSize.Set((float)parameters.intermediateWidth, (float)parameters.intermediateHeight, 1.0f / (float)parameters.intermediateWidth, 1.0f / (float)parameters.intermediateHeight);
             cb._TraceScreenSize.Set((float)parameters.traceWidth, (float)parameters.traceHeight, 1.0f / (float)parameters.traceWidth, 1.0f / (float)parameters.traceHeight);
 
-            cb._HistoryViewportSize = new Vector2(hdCamera.historyRTHandleProperties.previousViewportSize.x / 2, hdCamera.historyRTHandleProperties.previousViewportSize.y / 2);
-            cb._HistoryBufferSize = new Vector2(hdCamera.historyRTHandleProperties.previousRenderTargetSize.x / 2, hdCamera.historyRTHandleProperties.previousRenderTargetSize.y / 2);
             cb._DepthMipOffset = new Vector2(info.mipLevelOffsets[1].x, info.mipLevelOffsets[1].y);
 
             float absoluteCloudHighest = cb._HighestCloudAltitude + cb._EarthRadius;
@@ -384,6 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
         {
+            // Textures may become null if a new scene was loaded in the editor (and maybe other reasons).
+            if (m_SparsePresetMap == null || Object.ReferenceEquals(m_SparsePresetMap, null))
+                AllocatePresetTextures();
+
             switch (preset)
             {
                 case VolumetricClouds.CloudPresets.Sparse:
@@ -403,16 +412,20 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsParameters PrepareVolumetricCloudsParameters(HDCamera hdCamera, VolumetricClouds settings, HDUtils.PackedMipChainInfo info)
         {
             VolumetricCloudsParameters parameters = new VolumetricCloudsParameters();
+            // We need to make sure that the allocated size of the history buffers and the dispatch size are perfectly equal.
+            // The ideal approach would be to have a function for that returns the converted size from a viewport and texture size.
+            // but for now we do it like this.
             // Final resolution at which the effect should be exported
             parameters.finalWidth = hdCamera.actualWidth;
             parameters.finalHeight = hdCamera.actualHeight;
             // Intermediate resolution at which the effect is accumulated
-            parameters.intermediateWidth = hdCamera.actualWidth / 2;
-            parameters.intermediateHeight = hdCamera.actualHeight / 2;
+            parameters.intermediateWidth = Mathf.RoundToInt(0.5f * hdCamera.actualWidth);
+            parameters.intermediateHeight = Mathf.RoundToInt(0.5f * hdCamera.actualHeight);
             // Resolution at which the effect is traced
-            parameters.traceWidth = hdCamera.actualWidth / 4;
-            parameters.traceHeight = hdCamera.actualHeight / 4;
+            parameters.traceWidth = Mathf.RoundToInt(0.25f * hdCamera.actualWidth);
+            parameters.traceHeight = Mathf.RoundToInt(0.25f * hdCamera.actualHeight);
             parameters.viewCount = hdCamera.viewCount;
+            parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
 
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -460,6 +473,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the sampling textures
             BlueNoise.BindDitheredTextureSet(cmd, parameters.ditheredTextureSet);
+
+            // We need to make sure that the allocated size of the history buffers and the dispatch size are perfectly equal.
+            // The ideal approach would be to have a function for that returns the converted size from a viewport and texture size.
+            // but for now we do it like this.
+            Vector2Int previousViewportSize = previousHistory0Buffer.GetScaledSize(parameters.previousViewportSize);
+            parameters.cloudsCB._HistoryViewportSize = new Vector2(previousViewportSize.x, previousViewportSize.y);
+            parameters.cloudsCB._HistoryBufferSize = new Vector2(previousHistory0Buffer.rt.width, previousHistory0Buffer.rt.height);
 
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
