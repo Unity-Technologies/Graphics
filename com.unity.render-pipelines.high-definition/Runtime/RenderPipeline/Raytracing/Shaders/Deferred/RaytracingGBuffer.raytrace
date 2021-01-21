@@ -61,7 +61,9 @@ void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayl
         rayIntersection.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0);
         ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.gbuffer3.xyz);
     }
-    rayIntersection.t = -1.0;
+    // We output a negative value as we check the output _RaytracingDistanceBuffer later in the reflection deferred lighting compute
+    // to know if the gbuffer entry corresponds to an unlit material or a sky hit (and thus where no lighting is required to be computed).
+    rayIntersection.t = DEFERRED_RAY_DISTANCE_SKY;
 }
 
 struct PixelCoordinates

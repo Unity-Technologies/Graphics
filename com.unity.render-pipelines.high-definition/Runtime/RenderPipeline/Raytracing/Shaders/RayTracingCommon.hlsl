@@ -57,4 +57,19 @@ uint2 ComputeSourceCoordinates(uint2 halfResCoord, int frameIndex)
 {
     return halfResCoord * 2;
 }
+
+// These need to be negative for RayDistanceIndicatesHitSkyOrUnlit
+#define DEFERRED_RAY_DISTANCE_UNLIT (-1.0)
+#define DEFERRED_RAY_DISTANCE_SKY (-2.0)
+
+bool RayDistanceIndicatesHitSkyOrUnlit(float rayDistance)
+{
+    return(rayDistance < 0.0);
+}
+
+bool RayDistanceIndicatesHitSky(float rayDistance)
+{
+    return(rayDistance == DEFERRED_RAY_DISTANCE_SKY);
+}
+
 #endif // RAY_TRACING_COMMON_HLSL
