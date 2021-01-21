@@ -1,6 +1,32 @@
 project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
+  url: https://github.com/Unity-Technologies/BoatAttack.git
+  branch: '%BOAT_ATTACK_BRANCH%'
+  revision: '%BOAT_ATTACK_REVISION%'
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+    - 'unity-config project add dependency com.unity.addressables@1.16.7 --project-path .'
+    - 'unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .'
+    - 'unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .'
+    - 'unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .'
+    - 'unity-config project add testable com.unity.cli-project-setup  --project-path .'
+    - 'unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .'
+    - 'unity-config project add testable com.unity.test.metadata-manager  --project-path .'
+    - 'unity-config project add testable com.unity.testing.graphics-performance --project-path .'
+    - 'unity-config project add testable com.unity.render-pipelines.core  --project-path .'
+    - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
+    - 'unity-config project set project-update false --project-path .'
+  variables:
+    BOAT_ATTACK_BRANCH: master
+    BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
@@ -164,7 +190,7 @@ platforms:
       # default: package_ci_mac
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
@@ -172,7 +198,7 @@ platforms:
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
   - name: OSX
     apis:
