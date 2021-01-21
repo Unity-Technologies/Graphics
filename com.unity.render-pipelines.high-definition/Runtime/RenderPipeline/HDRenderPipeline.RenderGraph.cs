@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class RecursiveRenderingPrepassPassData
+        class RayTracingFlagMaskPassData
         {
             public FrameSettings frameSettings;
             public TextureHandle depthBuffer;
@@ -847,51 +847,35 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clear;
         }
 
-        void RenderRayTracingPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle flagMask, TextureHandle depthBuffer, bool clear)
+        TextureHandle RenderRayTracingFlagMask(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                return;
+                return renderGraph.defaultResources.blackTextureXR;
 
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             if (!recursiveSettings.enable.value)
-                return;
+                return renderGraph.defaultResources.blackTextureXR;
 
-            using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPrepassPassData>("Recursive Rendering Prepass", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingPrepass)))
+            // This pass will fill the flag mask texture. This will only tag pixels for recursive rendering for now.
+            // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a render target (But it require various headaches to work correctly).
+            using (var builder = renderGraph.AddRenderPass<RayTracingFlagMaskPassData>("RayTracing Flag Mask", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingFlagMask)))
             {
                 passData.frameSettings = hdCamera.frameSettings;
-                passData.depthBuffer = clear ? builder.UseDepthBuffer(depthBuffer, DepthAccess.Read) : builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.flagMask = builder.WriteTexture(flagMask);
-                passData.clear = clear;
-
-                // when clear is required, it mean we are before the recursive rendering call, otherwise it mean we are before the depth prepass
-                // As the pass before depth prepass write depth, we don't need to write it again during the second one, also the buffer is only clear at this time
-                // TODO: evaluate the usage of a stencil bit in the stencil buffer to save a rendertarget (But it require various headaches to work correctly).
-                if (clear)
-                {
-                    passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite)));
-                    passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes, stateBlock: m_DepthStateNoWrite)));
-                }
-                else
-                {
-                    passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
-                    passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames)));
-                }
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.flagMask = builder.UseColorBuffer(CreateFlagMaskTexture(renderGraph), 0);
+                passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, stateBlock: m_DepthStateNoWrite)));
+                passData.transparentRenderList = builder.UseRendererList(renderGraph.CreateRendererList(
+                    CreateTransparentRendererListDesc(cull, hdCamera.camera, m_RayTracingPrepassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes, stateBlock: m_DepthStateNoWrite)));
 
                 builder.SetRenderFunc(
-                    (RecursiveRenderingPrepassPassData data, RenderGraphContext context) =>
+                    (RayTracingFlagMaskPassData data, RenderGraphContext context) =>
                     {
-                        if (data.clear)
-                            CoreUtils.SetRenderTarget(context.cmd, data.flagMask, data.depthBuffer, clearFlag: ClearFlag.Color, Color.black);
-                        else
-                            CoreUtils.SetRenderTarget(context.cmd, data.flagMask, data.depthBuffer);
-
                         DrawOpaqueRendererList(context.renderContext, context.cmd, data.frameSettings, data.opaqueRenderList);
                         DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.transparentRenderList);
                     });
+
+                return passData.flagMask;
             }
         }
 
@@ -916,8 +900,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
-            RenderRayTracingPrepass(renderGraph, cullingResults, hdCamera, prepassOutput.flagMaskBuffer, prepassOutput.depthBuffer, true);
-            colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.flagMaskBuffer, rayCountTexture);
+            var flagMaskBuffer = RenderRayTracingFlagMask(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer);
+            colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, flagMaskBuffer, rayCountTexture);
 
             // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
