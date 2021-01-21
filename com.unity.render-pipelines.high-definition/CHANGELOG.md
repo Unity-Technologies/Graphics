@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for the PlayStation 5 platform.
+- Added spport for XboxSeries platform.
 
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
