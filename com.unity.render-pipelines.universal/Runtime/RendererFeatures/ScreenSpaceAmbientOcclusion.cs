@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTextureFinalTarget = new RenderTargetIdentifier(s_SSAOTextureFinalID, 0, CubemapFace.Unknown, -1);
             private RenderTextureDescriptor m_AOPassDescriptor;
             private RenderTextureDescriptor m_BlurPassesDescriptor;
-            private RenderTextureDescriptor m_FinalOutputDescriptor;
+            private RenderTextureDescriptor m_FinalDescriptor;
 
 
             // Constants
@@ -301,14 +301,14 @@ namespace UnityEngine.Rendering.Universal
                 m_BlurPassesDescriptor = descriptor;
                 m_BlurPassesDescriptor.colorFormat = RenderTextureFormat.ARGB32;
 
-                m_FinalOutputDescriptor = descriptor;
-                m_FinalOutputDescriptor.colorFormat = RenderTextureFormat.R8;
+                m_FinalDescriptor = descriptor;
+                m_FinalDescriptor.colorFormat = RenderTextureFormat.R8;
 
                 // Get temporary render textures
                 cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture2ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalOutputDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
