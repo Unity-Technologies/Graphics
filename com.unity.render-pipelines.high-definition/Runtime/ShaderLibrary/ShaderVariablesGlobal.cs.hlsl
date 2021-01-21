@@ -126,7 +126,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _NumTileClusteredX;
     uint _NumTileClusteredY;
     int _EnvSliceSize;
-    uint _ZBinCategorySortMask;
+    uint _Pad7;
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
