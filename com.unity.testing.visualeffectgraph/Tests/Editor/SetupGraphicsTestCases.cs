@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEngine.Scripting;
 using UnityEngine.TestTools;
 using UnityEngine.VFX;
 
@@ -13,6 +14,9 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     public void Setup()
     {
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup();
+
+        // Configure project for XR tests
+        Unity.Testing.XR.Editor.InjectMockHMD.SetupLoader();
 
         var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset AssetBundle");
 
