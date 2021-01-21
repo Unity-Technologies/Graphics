@@ -719,21 +719,6 @@ namespace UnityEditor.VFX
                 if (context.HasFeature(VFXOutputUpdate.Features.MotionVector))
                 {
                     uint sizePerElement = 12U * 4U;
-                    switch (context.output.taskType)
-                    {
-                        case VFXTaskType.ParticlePointOutput:
-                            sizePerElement = 2U * 4U;
-                            break;
-                        case VFXTaskType.ParticleLineOutput:
-                            sizePerElement = 4U * 4U;
-                            break;
-                        case VFXTaskType.ParticleTriangleOutput:
-                            sizePerElement = 6U * 4U;
-                            break;
-                        case VFXTaskType.ParticleQuadOutput:
-                            sizePerElement = 8U * 4U;
-                            break;
-                    }
                     // add previous frame index
                     sizePerElement += 4U;
                     int currentElementToVFXBufferMotionVector = outTemporaryBufferDescs.Count;
