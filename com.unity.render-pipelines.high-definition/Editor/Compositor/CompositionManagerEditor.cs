@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 if (m_layerList != null) m_layerList.index = Math.Min(value, m_layerList.count - 1);
             }
         }
-            
+
 
         void AddLayerOfTypeCallback(object type)
         {

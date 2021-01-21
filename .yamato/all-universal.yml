@@ -12,7 +12,7 @@ PR_Universal_trunk:
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -82,7 +82,7 @@ PR_Universal_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
