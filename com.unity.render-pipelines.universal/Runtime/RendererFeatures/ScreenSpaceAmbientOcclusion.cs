@@ -131,8 +131,10 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTextureFinalTarget = new RenderTargetIdentifier(s_SSAOTextureFinalID, 0, CubemapFace.Unknown, -1);
-            private RenderTextureDescriptor m_Descriptor;
-            private RenderTextureDescriptor m_FullResDescriptor;
+            private RenderTextureDescriptor m_AOPassDescriptor;
+            private RenderTextureDescriptor m_BlurPassesDescriptor;
+            private RenderTextureDescriptor m_FinalOutputDescriptor;
+
 
             // Constants
             private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
@@ -286,22 +288,27 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
+                // Set up the descriptors
+                RenderTextureDescriptor descriptor = cameraTargetDescriptor;
+                descriptor.msaaSamples = 1;
+                descriptor.depthBufferBits = 0;
+
+                m_AOPassDescriptor = descriptor;
+                m_AOPassDescriptor.width /= downsampleDivider;
+                m_AOPassDescriptor.height /= downsampleDivider;
+                m_AOPassDescriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+                m_BlurPassesDescriptor = descriptor;
+                m_BlurPassesDescriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+                m_FinalOutputDescriptor = descriptor;
+                m_FinalOutputDescriptor.colorFormat = RenderTextureFormat.R8;
+
                 // Get temporary render textures
-                m_FullResDescriptor = cameraTargetDescriptor;
-                m_FullResDescriptor.msaaSamples = 1;
-                m_FullResDescriptor.depthBufferBits = 0;
-
-                m_Descriptor.colorFormat = RenderTextureFormat.R8;
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FullResDescriptor, FilterMode.Bilinear);
-
-                m_FullResDescriptor.colorFormat = RenderTextureFormat.ARGB32;
-                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_FullResDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_FullResDescriptor, FilterMode.Bilinear);
-
-                m_Descriptor = m_FullResDescriptor;
-                m_Descriptor.width /= downsampleDivider;
-                m_Descriptor.height /= downsampleDivider;
-                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture2ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture3ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalOutputDescriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
@@ -324,7 +331,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
                     }
-                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+                    PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
@@ -332,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the Blur Passes
                     RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
 
-                    PostProcessUtils.SetSourceSize(cmd, m_FullResDescriptor);
+                    PostProcessUtils.SetSourceSize(cmd, m_BlurPassesDescriptor);
                     RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
                     RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTextureFinalTarget, ShaderPasses.BlurFinal);
 
