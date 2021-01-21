@@ -71,7 +71,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetFloat("_SurfaceType", 1.0f);
+                material.SetFloat("_Cutoff", .0f);
+                material.SetFloat("_AlphaCutoffEnable", 1.0f);
+                material.SetFloat("_AlphaCutoff", .0f);
+                material.SetFloat("_AlphaCutoffShadow", 1.0f);
+                material.SetFloat("_UseShadowThreshold", 1.0f);
             }
             else
             {
