@@ -152,14 +152,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ClearStencilBufferMaterial;
 
-        // Debug material
-        Material m_DebugViewMaterialGBuffer;
-        Material m_DebugViewMaterialGBufferShadowMask;
-        Material m_currentDebugViewMaterialGBuffer;
-        Material m_DebugDisplayLatlong;
-        Material m_DebugFullScreen;
-        Material m_DebugColorPicker;
-        Material m_DebugExposure;
         Material m_ErrorMaterial;
 
         Material m_Blit;
@@ -173,7 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Constant Buffers
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
-        ShaderVariablesDebugDisplay m_ShaderVariablesDebugDisplayCB = new ShaderVariablesDebugDisplay();
         ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
         // The current MSAA count
@@ -258,19 +249,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal SkyManager skyManager { get { return m_SkyManager; } }
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
 
-        // Debugging
-        DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
-#if ENABLE_VIRTUALTEXTURES
-        Material m_VTDebugBlit;
-#endif
-        /// <summary>
-        /// Debug display settings.
-        /// </summary>
-        public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
-        static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
-        internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
-        // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-        bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool                            m_IsDepthBufferCopyValid;
         RenderTexture                   m_TemporaryTargetForCubemaps;
@@ -286,18 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
-
-        internal bool showCascade
-        {
-            get => m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
-            set
-            {
-                if (value)
-                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
-                else
-                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
-            }
-        }
 
         // RENDER GRAPH
         RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
@@ -424,7 +390,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager = new VTBufferManager(asset);
-            m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
 #endif
 
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
@@ -442,7 +407,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearStencilBufferPS);
 
-            InitializeDebugMaterials();
+            InitializeDebug();
+
+            m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
+            m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
+            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
+
+            // With texture array enabled, we still need the normal blit version for other systems like atlas
+            if (TextureXR.useTexArray)
+            {
+                m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+                m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
+                m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
+                m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+            }
 
             m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
 
@@ -751,29 +729,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderGraph = null;
         }
 
-        void InitializeDebugMaterials()
-        {
-            m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
-            m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
-            m_DebugViewMaterialGBufferShadowMask.EnableKeyword("SHADOWS_SHADOWMASK");
-            m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayLatlongPS);
-            m_DebugFullScreen = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugFullScreenPS);
-            m_DebugColorPicker = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugColorPickerPS);
-            m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
-            m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-            m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
-            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
-
-            // With texture array enabled, we still need the normal blit version for other systems like atlas
-            if (TextureXR.useTexArray)
-            {
-                m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
-                m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
-            }
-        }
-
         void InitializeRenderStateBlocks()
         {
             m_DepthStateOpaque = new RenderStateBlock
@@ -842,14 +797,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager.Cleanup();
-            CoreUtils.Destroy(m_VTDebugBlit);
 #endif
-            CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
-            CoreUtils.Destroy(m_DebugViewMaterialGBufferShadowMask);
-            CoreUtils.Destroy(m_DebugDisplayLatlong);
-            CoreUtils.Destroy(m_DebugFullScreen);
-            CoreUtils.Destroy(m_DebugColorPicker);
-            CoreUtils.Destroy(m_DebugExposure);
+
+            CleanupDebug();
+
             CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_BlitTexArray);
             CoreUtils.Destroy(m_BlitTexArraySingleSlice);
@@ -2866,95 +2817,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.DispatchCompute(cs, parameters.accumulateKernel, HDUtils.DivRoundUp(parameters.width, 8), HDUtils.DivRoundUp(parameters.height, 8), parameters.viewCount);
                 }
-            }
-        }
-
-        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
-            // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
-            // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
-            // So we will enabled DEBUG_DISPLAY independently
-
-            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
-            // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multi-compile
-            CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
-
-            // Setting this all the time due to a strange bug that either reports a (globally) bound texture as not bound or where SetGlobalTexture doesn't behave as expected.
-            // As a workaround we bind it regardless of debug display. Eventually with
-            cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
-
-            m_ShaderVariablesGlobalCB._GlobalTessellationFactorMultiplier = (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw) ? 0.0f : 1.0f;
-
-            if (debugDisplayEnabledOrSceneLightingDisabled ||
-                m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None ||
-                m_CurrentDebugDisplaySettings.IsDebugExposureModeEnabled())
-            {
-                // This is for texture streaming
-                m_CurrentDebugDisplaySettings.UpdateMaterials();
-
-                var lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
-                var materialDebugSettings = m_CurrentDebugDisplaySettings.data.materialDebugSettings;
-                var debugAlbedo = new Vector4(lightingDebugSettings.overrideAlbedo ? 1.0f : 0.0f, lightingDebugSettings.overrideAlbedoValue.r, lightingDebugSettings.overrideAlbedoValue.g, lightingDebugSettings.overrideAlbedoValue.b);
-                var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
-                var debugNormal = new Vector4(lightingDebugSettings.overrideNormal ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);
-                var debugAmbientOcclusion = new Vector4(lightingDebugSettings.overrideAmbientOcclusion ? 1.0f : 0.0f, lightingDebugSettings.overrideAmbientOcclusionValue, 0.0f, 0.0f);
-                var debugSpecularColor = new Vector4(lightingDebugSettings.overrideSpecularColor ? 1.0f : 0.0f, lightingDebugSettings.overrideSpecularColorValue.r, lightingDebugSettings.overrideSpecularColorValue.g, lightingDebugSettings.overrideSpecularColorValue.b);
-                var debugEmissiveColor = new Vector4(lightingDebugSettings.overrideEmissiveColor ? 1.0f : 0.0f, lightingDebugSettings.overrideEmissiveColorValue.r, lightingDebugSettings.overrideEmissiveColorValue.g, lightingDebugSettings.overrideEmissiveColorValue.b);
-                var debugTrueMetalColor = new Vector4(materialDebugSettings.materialValidateTrueMetal ? 1.0f : 0.0f, materialDebugSettings.materialValidateTrueMetalColor.r, materialDebugSettings.materialValidateTrueMetalColor.g, materialDebugSettings.materialValidateTrueMetalColor.b);
-
-                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
-                if (CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
-                {
-                    debugLightingMode = DebugLightingMode.MatcapView;
-                }
-
-                ref var cb = ref m_ShaderVariablesDebugDisplayCB;
-
-                var debugMaterialIndices = m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes();
-                for (int i = 0; i < 11; ++i)
-                {
-                    cb._DebugViewMaterialArray[i * 4] = (uint)debugMaterialIndices[i]; // Only x component is used.
-                }
-                for (int i = 0; i < 32; ++i)
-                {
-                    for (int j = 0; j < 4; ++j)
-                        cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
-                }
-
-                cb._DebugLightingMode = (int)debugLightingMode;
-                cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
-                cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
-                cb._DebugMipMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode();
-                cb._DebugMipMapModeTerrainTexture = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture();
-                cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
-                cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
-
-#if UNITY_EDITOR
-                cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;
-                cb._MatcapViewScale = HDRenderPipelinePreferences.matcapViewScale;
-#else
-                cb._MatcapMixAlbedo = 0;
-                cb._MatcapViewScale = 1.0f;
-#endif
-                cb._DebugLightingAlbedo = debugAlbedo;
-                cb._DebugLightingSmoothness = debugSmoothness;
-                cb._DebugLightingNormal = debugNormal;
-                cb._DebugLightingAmbientOcclusion = debugAmbientOcclusion;
-                cb._DebugLightingSpecularColor = debugSpecularColor;
-                cb._DebugLightingEmissiveColor = debugEmissiveColor;
-                cb._DebugLightingMaterialValidateHighColor = materialDebugSettings.materialValidateHighColor;
-                cb._DebugLightingMaterialValidateLowColor = materialDebugSettings.materialValidateLowColor;
-                cb._DebugLightingMaterialValidatePureMetalColor = debugTrueMetalColor;
-
-                cb._MousePixelCoord = HDUtils.GetMouseCoordinates(hdCamera);
-                cb._MouseClickPixelCoord = HDUtils.GetMouseClickCoordinates(hdCamera);
-
-                cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
-
-                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
-
-                cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);
             }
         }
 
