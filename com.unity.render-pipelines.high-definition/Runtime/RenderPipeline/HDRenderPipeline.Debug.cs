@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         ComputeBuffer fullscreenBuffer = data.fullscreenBuffer;
 
-                        mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, inputFullScreenDebug);
+                        mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
                         mpb.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)data.debugDisplaySettings.data.fullScreenDebugMode);
                         if (data.debugDisplaySettings.data.enableDebugDepthRemap)
@@ -609,15 +609,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // featureVariants
                                 data.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
                                 data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
+                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
+                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
                                 data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, data.tileList);
                                 data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, data.dispatchIndirect);
                                 data.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
                                 data.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
                                 data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
                                 data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                                if (DeferredUseComputeAsPixel(hdCamera.frameSettings))
+                                if (DeferredUseComputeAsPixel(data.hdCamera.frameSettings))
                                     data.debugViewTilesMaterial.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
                                 else
                                     data.debugViewTilesMaterial.DisableKeyword("IS_DRAWPROCEDURALINDIRECT");
@@ -632,15 +632,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                             data.debugViewTilesMaterial.SetInt(HDShaderIDs._ClusterDebugMode, bUseClustered ? (int)lightingDebug.clusterDebugMode : (int)ClusterDebugMode.VisualizeOpaque);
                             data.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
-                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
                             data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? data.perVoxelLightList : data.lightList);
                             data.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
                             data.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (!bUseClustered && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                            if (!bUseClustered && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                                 data.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
                             else
                                 data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
