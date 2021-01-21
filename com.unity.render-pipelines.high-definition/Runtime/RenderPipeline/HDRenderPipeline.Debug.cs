@@ -31,34 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return fullScreenDebugEnabled || lightingDebugEnabled;
         }
 
-        struct DebugParameters
-        {
-            public DebugDisplaySettings debugDisplaySettings;
-            public HDCamera hdCamera;
-
-            public DebugOverlay debugOverlay;
-
-            // Exposure
-            public bool exposureDebugEnabled;
-            public Material debugExposureMaterial;
-        }
-
-        DebugParameters PrepareDebugParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
-        {
-            var parameters = new DebugParameters();
-
-            parameters.debugDisplaySettings = m_CurrentDebugDisplaySettings;
-            parameters.hdCamera = hdCamera;
-
-
-            parameters.exposureDebugEnabled = NeedExposureDebugMode(parameters.debugDisplaySettings);
-            parameters.debugExposureMaterial = m_DebugExposure;
-
-            parameters.debugOverlay = m_DebugOverlay;
-
-            return parameters;
-        }
-
         class TransparencyOverdrawPassData
         {
             public FrameSettings frameSettings;
@@ -636,7 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderDebugOverlays(RenderGraph                renderGraph,
+        void RenderDebugOverlays(RenderGraph    renderGraph,
             TextureHandle               colorBuffer,
             TextureHandle               depthBuffer,
             TextureHandle               depthPyramidTexture,
@@ -664,50 +636,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
         }
 
-        class RenderLightVolumesPassData
+        void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
         {
-            public DebugLightVolumes.RenderLightVolumesParameters   parameters;
-            // Render target that holds the light count in floating points
-            public TextureHandle                                    lightCountBuffer;
-            // Render target that holds the color accumulated value
-            public TextureHandle                                    colorAccumulationBuffer;
-            // The output texture of the debug
-            public TextureHandle                                    debugLightVolumesTexture;
-            // Required depth texture given that we render multiple render targets
-            public TextureHandle                                    depthBuffer;
-            public TextureHandle                                    destination;
-        }
-
-        static void RenderLightVolumes(RenderGraph renderGraph, in DebugParameters debugParameters, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults)
-        {
-            using (var builder = renderGraph.AddRenderPass<RenderLightVolumesPassData>("LightVolumes", out var passData))
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayLightVolumes)
             {
-                passData.parameters = s_lightVolumes.PrepareLightVolumeParameters(debugParameters.hdCamera, debugParameters.debugDisplaySettings.data.lightingDebugSettings, cullResults);
-                passData.lightCountBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeCount" });
-                passData.colorAccumulationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeColorAccumulation" });
-                passData.debugLightVolumesTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, enableRandomWrite = true, name = "LightVolumeDebugLightVolumesTexture" });
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.destination = builder.WriteTexture(destination);
-
-                builder.SetRenderFunc(
-                    (RenderLightVolumesPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderTargetIdentifier[] mrt = ctx.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
-                        mrt[0] = data.lightCountBuffer;
-                        mrt[1] = data.colorAccumulationBuffer;
-
-                        DebugLightVolumes.RenderLightVolumes(ctx.cmd,
-                            data.parameters,
-                            mrt, data.lightCountBuffer,
-                            data.colorAccumulationBuffer,
-                            data.debugLightVolumesTexture,
-                            data.depthBuffer,
-                            data.destination,
-                            ctx.renderGraphPool.GetTempMaterialPropertyBlock());
-                    });
+                s_lightVolumes.RenderLightVolumes(renderGraph, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, destination, depthBuffer, cullResults, hdCamera);
             }
         }
 
@@ -733,7 +666,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DebugExposureData
         {
-            public DebugParameters debugParameters;
+            public LightingDebugSettings lightingDebugSettings;
+            public HDCamera hdCamera;
+            public Material debugExposureMaterial;
+
             public Vector4 proceduralMeteringParams1;
             public Vector4 proceduralMeteringParams2;
             public TextureHandle colorBuffer;
@@ -747,13 +683,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer histogramBuffer;
         }
 
-        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, DebugParameters debugParameters, TextureHandle colorBuffer)
+        TextureHandle RenderExposureDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<DebugExposureData>("Debug Exposure", out var passData))
             {
                 m_PostProcessSystem.ComputeProceduralMeteringParams(hdCamera, out passData.proceduralMeteringParams1, out passData.proceduralMeteringParams2);
 
-                passData.debugParameters = debugParameters;
+                passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
+                passData.hdCamera = hdCamera;
+                passData.debugExposureMaterial = m_DebugExposure;
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -763,21 +701,90 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugExposureData = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetExposureDebugData()));
                 passData.customToneMapCurve = m_PostProcessSystem.GetCustomToneMapCurve();
                 passData.lutSize = m_PostProcessSystem.GetLutSize();
-                passData.histogramBuffer = debugParameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer();
+                passData.histogramBuffer = passData.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer();
 
                 builder.SetRenderFunc(
                     (DebugExposureData data, RenderGraphContext ctx) =>
                     {
-                        RenderExposureDebug(data.debugParameters, data.colorBuffer, data.debugFullScreenTexture,
-                            data.previousExposure,
-                            data.currentExposure,
-                            data.debugExposureData,
-                            data.output,
-                            data.customToneMapCurve,
-                            data.lutSize,
-                            data.proceduralMeteringParams1,
-                            data.proceduralMeteringParams2,
-                            data.histogramBuffer, ctx.cmd);
+                        // Grab exposure parameters
+                        var exposureSettings = data.hdCamera.volumeStack.GetComponent<Exposure>();
+
+                        Vector4 exposureParams = new Vector4(exposureSettings.compensation.value + data.lightingDebugSettings.debugExposure, exposureSettings.limitMin.value,
+                            exposureSettings.limitMax.value, 0f);
+
+                        Vector4 exposureVariants = new Vector4(1.0f, (int)exposureSettings.meteringMode.value, (int)exposureSettings.adaptationMode.value, 0.0f);
+                        Vector2 histogramFraction = exposureSettings.histogramPercentages.value / 100.0f;
+                        float evRange = exposureSettings.limitMax.value - exposureSettings.limitMin.value;
+                        float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
+                        float histBias = -exposureSettings.limitMin.value * histScale;
+                        Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._ProceduralMaskParams, data.proceduralMeteringParams1);
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._ProceduralMaskParams2, data.proceduralMeteringParams2);
+
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._HistogramExposureParams, histogramParams);
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._Variants, exposureVariants);
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureParams, exposureParams);
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+                        data.debugExposureMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
+                        data.debugExposureMaterial.SetTexture(HDShaderIDs._SourceTexture, data.colorBuffer);
+                        data.debugExposureMaterial.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.debugFullScreenTexture);
+                        data.debugExposureMaterial.SetTexture(HDShaderIDs._PreviousExposureTexture, data.previousExposure);
+                        data.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureTexture, data.currentExposure);
+                        data.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureWeightMask, exposureSettings.weightTextureMask.value);
+                        data.debugExposureMaterial.SetBuffer(HDShaderIDs._HistogramBuffer, data.histogramBuffer);
+
+
+                        int passIndex = 0;
+                        if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
+                        {
+                            passIndex = 1;
+                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(data.lightingDebugSettings.displayMaskOnly ? 1 : 0, 0, 0, 0));
+                        }
+                        if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                        {
+                            data.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureDebugTexture, data.debugExposureData);
+                            var tonemappingSettings = data.hdCamera.volumeStack.GetComponent<Tonemapping>();
+
+                            bool toneMapIsEnabled = data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
+                            var tonemappingMode = toneMapIsEnabled ? tonemappingSettings.mode.value : TonemappingMode.None;
+
+                            bool drawTonemapCurve = tonemappingMode != TonemappingMode.None &&
+                                data.lightingDebugSettings.showTonemapCurveAlongHistogramView;
+
+                            bool centerAroundMiddleGrey = data.lightingDebugSettings.centerHistogramAroundMiddleGrey;
+                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, 0));
+                            if (drawTonemapCurve)
+                            {
+                                if (tonemappingMode == TonemappingMode.Custom)
+                                {
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._CustomToneCurve, data.customToneMapCurve.uniforms.curve);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._ToeSegmentA, data.customToneMapCurve.uniforms.toeSegmentA);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._ToeSegmentB, data.customToneMapCurve.uniforms.toeSegmentB);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._MidSegmentA, data.customToneMapCurve.uniforms.midSegmentA);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._MidSegmentB, data.customToneMapCurve.uniforms.midSegmentB);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._ShoSegmentA, data.customToneMapCurve.uniforms.shoSegmentA);
+                                    data.debugExposureMaterial.SetVector(HDShaderIDs._ShoSegmentB, data.customToneMapCurve.uniforms.shoSegmentB);
+                                }
+                            }
+                            else if (tonemappingMode == TonemappingMode.External)
+                            {
+                                data.debugExposureMaterial.SetTexture(HDShaderIDs._LogLut3D, tonemappingSettings.lutTexture.value);
+                                data.debugExposureMaterial.SetVector(HDShaderIDs._LogLut3D_Params, new Vector4(1f / data.lutSize, data.lutSize - 1f, tonemappingSettings.lutContribution.value, 0f));
+                            }
+                            passIndex = 2;
+                        }
+                        if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+                        {
+                            bool finalImageRGBHisto = data.lightingDebugSettings.displayFinalImageHistogramAsRGB;
+
+                            data.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(0, 0, 0, finalImageRGBHisto ? 1 : 0));
+                            data.debugExposureMaterial.SetBuffer(HDShaderIDs._FullImageHistogram, data.histogramBuffer);
+                            passIndex = 3;
+                        }
+
+
+                        HDUtils.DrawFullScreen(ctx.cmd, data.debugExposureMaterial, data.output, null, passIndex);
                     });
 
                 return passData.output;
@@ -800,7 +807,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return colorBuffer;
 
             TextureHandle output = colorBuffer;
-            var debugParameters = PrepareDebugParameters(hdCamera, GetDepthBufferMipChainInfo());
 
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
             {
@@ -813,16 +819,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DebugFullScreenComputeBuffer = ComputeBufferHandle.nullHandle;
             }
 
-            if (debugParameters.exposureDebugEnabled)
-                output = RenderExposureDebug(renderGraph, hdCamera, debugParameters, colorBuffer);
+            if (NeedExposureDebugMode(m_CurrentDebugDisplaySettings))
+                output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
                 output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera);
 
-            if (debugParameters.debugDisplaySettings.data.lightingDebugSettings.displayLightVolumes)
-            {
-                RenderLightVolumes(renderGraph, debugParameters, output, depthBuffer, cullResults);
-            }
+            RenderLightVolumes(renderGraph, output, depthBuffer, cullResults, hdCamera);
 
             RenderDebugOverlays(renderGraph, output, depthBuffer, depthPyramidTexture, rayCountTexture, lightLists, shadowResult, hdCamera);
 
