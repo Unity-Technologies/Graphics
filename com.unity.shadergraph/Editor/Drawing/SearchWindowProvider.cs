@@ -183,7 +183,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
             {
                 var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
-                node.ConnectToCustomBlock(cibnode.value.customName);
+                node.ConnectToCustomBlock(cibnode.value);
                 AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
             }
 
@@ -430,7 +430,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (newNode is CustomInterpolatorNode cinode)
             {
                 cinode.owner = m_Graph;
-                cinode.ConnectToCustomBlock(((CustomInterpolatorNode)oldNode).customBlockNodeName);
+                cinode.ConnectToCustomBlockByName(((CustomInterpolatorNode)oldNode).customBlockNodeName);
                 cinode.owner = null;
             }
             return newNode;

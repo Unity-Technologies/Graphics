@@ -35,7 +35,25 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        internal void ConnectToCustomBlock(string customBlockName)
+        internal void ConnectToCustomBlock(BlockNode node)
+        {
+            if (e_targetBlockNode != null)
+            {
+                e_targetBlockNode.UnregisterCallback(OnCustomBlockModified);
+            }
+
+            if (node?.isCustomBlock ?? false)
+            {
+                name = node.customName + " (Custom Interpolator)";
+                customBlockNodeName = node.customName;
+                serializedType = node.customWidth;
+                BuildSlot();
+                node.RegisterCallback(OnCustomBlockModified);
+                // Maybe warn if they lack owners and weak-ref will be broken.
+            }
+        }
+
+        internal void ConnectToCustomBlockByName(string customBlockName)
         {
             // target shouldn't really change, but if it did- we need to unregister.
             if (e_targetBlockNode != null)
@@ -87,7 +105,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // our blockNode reference is somehow valid again after it wasn't,
                 // we can reconnect and everything should be restored.
-                ConnectToCustomBlock(customBlockNodeName);
+                ConnectToCustomBlockByName(customBlockNodeName);
             }
         }
 
