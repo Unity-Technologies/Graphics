@@ -574,7 +574,7 @@ namespace UnityEditor.VFX
                         if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.alphaClipping)
                         {
                             callSG.builder.AppendLine(
-@"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
+@"#if (USE_ALPHA_TEST || VFX_FEATURE_MOTION_VECTORS_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
 i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaClipThreshold_7;
 #endif");
                         }

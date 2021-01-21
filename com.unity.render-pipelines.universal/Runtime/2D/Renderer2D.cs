@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal class Renderer2D : ScriptableRenderer
     {
         Render2DLightingPass m_Render2DLightingPass;
+        PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         FinalBlitPass m_FinalBlitPass;
         Light2DCullResult m_LightCullResult;
 
@@ -40,11 +41,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
+            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRendering + 1);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
-#pragma warning disable 618 // Obsolete warning
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
-#pragma warning restore 618 // Obsolete warning
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -92,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
                     || cameraData.requireSrgbConversion
-                    || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
@@ -184,12 +183,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
-            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
-            m_Render2DLightingPass.Setup(hasValidDepth);
+            var needsDepth = m_CreateDepthTexture || (!m_CreateColorTexture && m_UseDepthStencilBuffer);
+            m_Render2DLightingPass.Setup(needsDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
-
-            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
@@ -214,6 +211,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
             }
+
+            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+                EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {

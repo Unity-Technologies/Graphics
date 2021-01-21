@@ -1540,7 +1540,7 @@ MonoBehaviour:
     UseBackBuffer: 0
     ImageResolution: 0
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
 --- !u!1 &1197103736
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,4 +25,3 @@ The **Deferred Fog** effect only appears in your [**Post-process Layer**](https:
 
 - Depth texture
 - Shader Model 3
-
