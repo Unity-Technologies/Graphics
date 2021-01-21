@@ -231,6 +231,8 @@ namespace UnityEditor.ShaderGraph
             var pixelSlots = new List<MaterialSlot>();
             var vertexSlots = new List<MaterialSlot>();
 
+            List<BlockFieldDescriptor> customFields = null;
+
             if (m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
@@ -281,9 +283,13 @@ namespace UnityEditor.ShaderGraph
                 // Mask blocks per pass
                 vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
                 pixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
+                customFields = CustomInterpolatorUtils.GetCustomFields(m_GraphData);
+                foreach (var cid in customFields)
+                    activeBlockContext.AddBlock(cid);
 
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
+                ProcessStackForPass(m_GraphData.vertexContext, customFields.ToArray(), vertexNodes, vertexSlots);
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.validPixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
@@ -318,8 +324,18 @@ namespace UnityEditor.ShaderGraph
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
-            // GET CUSTOM ACTIVE FIELDS HERE!
+            // Moved this up so that we can reuse the information to figure out which struct Descriptors
+            // should be populated by custom interpolators.
+            var passStructs = new List<StructDescriptor>();
+            passStructs.AddRange(pass.structs.Select(x => x.descriptor));
 
+            // GET CUSTOM ACTIVE FIELDS HERE!
+            if (customFields != null)
+            {
+                // generate custom interpolator field descriptors and inject them into the pass structs.
+                // We can use this list in place of pass references to ensure custom interpolation works properly.
+                passStructs = CustomInterpolatorUtils.GetActiveCustomFields(customFields, passStructs, activeFields.baseInstance);
+            }
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
 
@@ -478,15 +494,13 @@ namespace UnityEditor.ShaderGraph
             // -----------------------------
             // Generated structs and Packing code
             var interpolatorBuilder = new ShaderStringBuilder();
-            var passStructs = new List<StructDescriptor>();
 
-            if (pass.structs != null)
+            if (passStructs != null)
             {
-                passStructs.AddRange(pass.structs.Select(x => x.descriptor));
-
-                foreach (StructCollection.Item shaderStruct in pass.structs)
+                var packedStructs = new List<StructDescriptor>();
+                foreach (var shaderStruct in passStructs)
                 {
-                    if (shaderStruct.descriptor.packFields == false)
+                    if (shaderStruct.packFields == false)
                         continue; //skip structs that do not need interpolator packs
 
                     List<int> packedCounts = new List<int>();
@@ -499,7 +513,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -526,12 +540,13 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, activeFields.baseInstance, out interpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
-                    GenerationUtils.GeneratePackedStruct(shaderStruct.descriptor, activeFields, out packStruct);
-                    passStructs.Add(packStruct);
+                    GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);
+                    packedStructs.Add(packStruct);
                 }
+                passStructs.AddRange(packedStructs);
             }
             if (interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
@@ -594,6 +609,15 @@ namespace UnityEditor.ShaderGraph
                 vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
                 vertexBuilder.AppendNewLine();
                 vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+
+                if (activeFields.baseInstance.Contains(Fields.GraphCustomInterp) && customFields != null)
+                {
+                    CustomInterpolatorUtils.GenerateCopyWriteFunc(customFields, vertexBuilder, vertexGraphOutputName, "Varyings");
+
+                    var ciSdiBuilder = new ShaderStringBuilder();
+                    CustomInterpolatorUtils.GenerateCopyWriteBlock(customFields, ciSdiBuilder, "input", "output");
+                    spliceCommands.Add(CustomInterpolatorUtils.k_SpliceCommand, ciSdiBuilder.ToCodeBlock());
+                }
             }
 
             // Add to splice commands

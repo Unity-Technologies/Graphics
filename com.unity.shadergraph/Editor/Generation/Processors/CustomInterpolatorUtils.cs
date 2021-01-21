@@ -11,9 +11,11 @@ namespace UnityEditor.ShaderGraph
 {
     internal static class CustomInterpolatorUtils
     {
-        internal static string k_ShaderDescriptionInputs => "sgci_sdiEntry";
+        internal static string k_SpliceCommand => "sgci_sdiEntry";
         internal static string k_Semantic => "SGCI";
         internal static string k_CopyWrite => "SGCIPassThrough";
+        internal static string k_Define => "FEATURES_CUSTOM_INTERPOLATORS";
+        internal static string k_predecessor => "customInterpolators";
 
         internal static List<BlockFieldDescriptor> GetCustomFields(GraphData graphData)
         {
@@ -47,22 +49,29 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var ps in passStructs)
             {
-                var nSem = 0;
-                var agg = new List<FieldDescriptor>();
-                foreach (var bd in customList)
+                if (ps.populateWithCustomInterpolators)
                 {
-                    var tag = ps.name;
-                    var name = bd.name;
-                    var valtype = ShaderValueTypeFrom(bd.control);
-                    var semantic = k_Semantic + nSem;
-                    nSem++;
-                    var fd = new FieldDescriptor(tag, name, "", type: valtype, semantic: semantic, subscriptOptions: StructFieldOptions.Generated);
+                    var nSem = 0;
+                    var agg = new List<FieldDescriptor>();
+                    foreach (var bd in customList)
+                    {
+                        var tag = ps.name;
+                        var name = bd.name;
+                        var valtype = ShaderValueTypeFrom(bd.control);
+                        var semantic = k_Semantic + nSem;
+                        nSem++;
+                        var fd = new FieldDescriptor(tag, name, "", type: valtype, semantic: semantic, subscriptOptions: StructFieldOptions.Generated);
 
-                    agg.Add(fd);
-                    activeFields.AddAll(fd);
+                        agg.Add(fd);
+                        activeFields.AddAll(fd);
+                    }
+                    // grooosssss
+                    newPassStructs.Add(new StructDescriptor { name = ps.name, packFields = ps.packFields, fields = ps.fields.Union(agg).ToArray() });
                 }
-                // grooosssss
-                newPassStructs.Add(new StructDescriptor { name = ps.name, packFields = ps.packFields, fields = ps.fields.Union(agg).ToArray() });
+                else
+                {
+                    newPassStructs.Add(ps);
+                }
             }
 
             foreach (var bd in customList)

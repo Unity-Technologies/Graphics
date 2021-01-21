@@ -18,6 +18,10 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    
+    #if defined(FEATURES_CUSTOM_INTERPOLATORS)
+        output = SGCIPassThrough(output, vertexDescription);
+    #endif
 
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
