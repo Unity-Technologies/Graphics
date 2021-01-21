@@ -1870,6 +1870,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                             }
 
+                            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.clearPlanarReflectionProbeAtlas)
+                            {
+                                m_TextureCaches.reflectionPlanarProbeCache.Clear(cmd);
+                            }
+
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {

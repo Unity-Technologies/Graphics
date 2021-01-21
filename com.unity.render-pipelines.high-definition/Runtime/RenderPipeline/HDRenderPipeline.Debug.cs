@@ -651,16 +651,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderSkyReflectionOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
             RenderRayCountOverlay(renderGraph, hdCamera, colorBuffer, depthBuffer, rayCountTexture);
+
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayCookieAtlas)
                 RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.lightCookieManager.atlasTexture, (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.cookieAtlasMipLevel, "RenderCookieAtlasOverlay", HDProfileId.DisplayCookieAtlas);
 
-            //if (lightingDebug.clearPlanarReflectionProbeAtlas)
-            //{
-            //    parameters.planarProbeCache.Clear(cmd);
-            //}
-
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
                 RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.planarReflectionProbeMipLevel, "RenderPlanarProbeAtlasOverlay", HDProfileId.DisplayPlanarReflectionProbeAtlas);
+
             RenderDensityVolumeAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
