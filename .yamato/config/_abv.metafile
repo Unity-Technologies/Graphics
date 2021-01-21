@@ -23,7 +23,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: ShaderGraph
       platform: Win
@@ -31,7 +31,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: HDRP
       platform: Win
@@ -39,7 +39,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_HDRP
       platform: Win
@@ -47,7 +47,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_URP
       platform: Win
@@ -55,4 +55,4 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
