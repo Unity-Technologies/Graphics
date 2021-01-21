@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -55,12 +58,6 @@ MonoBehaviour:
   maximumHeight:
     m_OverrideState: 1
     m_Value: 2
-  albedo:
-    m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
     m_Value: 1
@@ -68,11 +65,12 @@ MonoBehaviour:
   enableVolumetricFog:
     m_OverrideState: 0
     m_Value: 0
-  anisotropy:
+  albedo:
     m_OverrideState: 0
-    m_Value: 0
-    min: -1
-    max: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
   globalLightProbeDimmer:
     m_OverrideState: 0
     m_Value: 1
@@ -82,11 +80,22 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 64
     min: 0.1
+  denoisingMode:
+    m_OverrideState: 0
+    m_Value: 2
+  anisotropy:
+    m_OverrideState: 0
+    m_Value: 0
+    min: -1
+    max: 1
   sliceDistributionUniformity:
     m_OverrideState: 0
     m_Value: 0.75
     min: 0
     max: 1
+  m_FogControlMode:
+    m_OverrideState: 0
+    m_Value: 0
   screenResolutionPercentage:
     m_OverrideState: 0
     m_Value: 12.5
@@ -97,7 +106,17 @@ MonoBehaviour:
     m_Value: 64
     min: 1
     max: 1024
-  filter:
+  m_VolumetricFogBudget:
+    m_OverrideState: 0
+    m_Value: 0.33
+    min: 0
+    max: 1
+  m_ResolutionDepthRatio:
+    m_OverrideState: 0
+    m_Value: 0.666
+    min: 0
+    max: 1
+  directionalLightsOnly:
     m_OverrideState: 0
     m_Value: 0
 --- !u!114 &-5719349156774603544
@@ -117,6 +136,9 @@ MonoBehaviour:
   skyType:
     m_OverrideState: 1
     m_Value: 1
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
@@ -292,19 +314,9 @@ MonoBehaviour:
     m_Value: 24
     min: 16
     max: 128
-  m_MaximalRadius:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 0.01
-    max: 50
   m_FullResolutionSS:
     m_OverrideState: 0
     m_Value: 1
-  m_ClampValueSS:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 0.01
-    max: 10
   m_FilterRadius:
     m_OverrideState: 0
     m_Value: 2
@@ -328,14 +340,13 @@ MonoBehaviour:
     max: 32
   bounceCount:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
     min: 1
     max: 31
   m_RayLength:
     m_OverrideState: 1
     m_Value: 2.2
     min: 0.001
-    max: 50
   m_ClampValue:
     m_OverrideState: 1
     m_Value: 0.83
@@ -363,8 +374,3 @@ MonoBehaviour:
   m_SecondDenoiserPass:
     m_OverrideState: 1
     m_Value: 1
-  m_SecondDenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.3
-    min: 0.001
-    max: 0.5
