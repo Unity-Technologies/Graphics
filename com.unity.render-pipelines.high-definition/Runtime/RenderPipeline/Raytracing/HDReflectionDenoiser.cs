@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Input buffer
         public RTHandle depthBuffer;
         public RTHandle normalBuffer;
+        public RenderTargetIdentifier clearCoatMaskBuffer;
         public RTHandle motionVectorBuffer;
         public RTHandle historyDepth;
 
@@ -130,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._SsrClearCoatMaskTexture, reflDenoiserResources.clearCoatMaskBuffer);
 
             // Output texture
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
@@ -149,6 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._SsrClearCoatMaskTexture, reflDenoiserResources.clearCoatMaskBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer1);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, parameters.reflectionFilterMapping);
             cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, numTilesX, numTilesY, parameters.viewCount);
@@ -158,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer1);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._SsrClearCoatMaskTexture, reflDenoiserResources.clearCoatMaskBuffer);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.noisyToOutputSignal);
             cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, parameters.reflectionFilterMapping);
             cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, numTilesX, numTilesY, parameters.viewCount);
@@ -169,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public TextureHandle historyDepth;
             public TextureHandle normalBuffer;
+            public TextureHandle clearCoatMaskBuffer;
             public TextureHandle motionVectorBuffer;
             public TextureHandle intermediateBuffer0;
             public TextureHandle intermediateBuffer1;
@@ -177,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
+            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatMaskBuffer, TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {
@@ -187,6 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                passData.clearCoatMaskBuffer = builder.ReadTexture(clearCoatMaskBuffer);
                 RTHandle depthT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 passData.historyDepth = depthT != null ? renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)) : renderGraph.defaultResources.blackTextureXR;
 
@@ -204,6 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     rtrDenoiseResources.depthBuffer = data.depthBuffer;
                     rtrDenoiseResources.historyDepth = data.historyDepth;
                     rtrDenoiseResources.normalBuffer = data.normalBuffer;
+                    rtrDenoiseResources.clearCoatMaskBuffer = data.clearCoatMaskBuffer;
                     rtrDenoiseResources.motionVectorBuffer = data.motionVectorBuffer;
                     rtrDenoiseResources.intermediateBuffer0 = data.intermediateBuffer0;
                     rtrDenoiseResources.intermediateBuffer1 = data.intermediateBuffer1;

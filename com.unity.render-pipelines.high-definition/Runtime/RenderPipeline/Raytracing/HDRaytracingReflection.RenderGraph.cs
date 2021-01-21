@@ -166,9 +166,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Denoise if required
             if (settings.denoise && !transparent)
             {
-                // Grab the history buffer
-                RTHandle reflectionHistory = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-
                 // Prepare the parameters and the resources
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, settings.fullResolution, true);
@@ -248,10 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Denoise if required
             if (settings.denoise && !transparent)
             {
-                // Grab the history buffer
-                RTHandle reflectionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
-
                 // Prepare the parameters and the resources
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, true, true);

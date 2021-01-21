@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingReflectionsTransparentFullResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsTransparentFullRes");
             m_RaytracingReflectionsTransparentHalfResKernel = reflectionShaderCS.FindKernel("RaytracingReflectionsTransparentHalfRes");
             m_ReflectionAdjustWeightKernel = reflectionBilateralFilterCS.FindKernel("ReflectionAdjustWeight");
+            m_ReflectionRescaleAndAdjustWeightKernel = reflectionBilateralFilterCS.FindKernel("ReflectionRescaleAndAdjustWeight");
             m_ReflectionUpscaleKernel = reflectionBilateralFilterCS.FindKernel("ReflectionUpscale");
         }
 
@@ -340,6 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool transparent;
             public float minSmoothness;
             public float smoothnessFadeStart;
+            public int historyAffectSmoothSurfaces;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -368,6 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtrQualityRenderingParameters.transparent = transparent;
             rtrQualityRenderingParameters.minSmoothness = settings.minSmoothness;
             rtrQualityRenderingParameters.smoothnessFadeStart = settings.smoothnessFadeStart;
+            rtrQualityRenderingParameters.historyAffectSmoothSurfaces = settings.affectSmoothSurfaces ? 1 : 0;
 
             // Other parameters
             rtrQualityRenderingParameters.accelerationStructure = RequestAccelerationStructure();
@@ -427,6 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(rtrQRenderingParameters.reflectionShader, HDShaderIDs._NormalBufferTexture, rtrQRenderingResources.normalBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, rtrQRenderingResources.stencilBuffer, RenderTextureSubElement.Stencil);
             cmd.SetRayTracingIntParams(rtrQRenderingParameters.reflectionShader, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+            cmd.SetRayTracingIntParams(rtrQRenderingParameters.reflectionShader, HDShaderIDs._AffectSmoothSurfaces, rtrQRenderingParameters.historyAffectSmoothSurfaces);
 
             // Set ray count texture
             cmd.SetRayTracingTextureParam(rtrQRenderingParameters.reflectionShader, HDShaderIDs._RayCountTexture, rtrQRenderingResources.rayCountTexture);
