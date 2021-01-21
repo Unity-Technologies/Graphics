@@ -114,7 +114,6 @@ namespace UnityEditor.VFX
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
 
-
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
         // IVFXSubRenderer interface
@@ -255,13 +254,13 @@ namespace UnityEditor.VFX
                             VFXNamedExpression mainTextureExp;
                             try
                             {
-                               mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") |  (o.name == "normalMap"));
+                                mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") |  (o.name == "normalMap"));
                             }
                             catch (InvalidOperationException)
                             {
                                 throw  new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map. ");
                             }
-                             yield return new VFXNamedExpression( new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
+                            yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
                         }
                         if (uvMode == UVMode.FlipbookMotionBlend)
                         {
@@ -324,7 +323,6 @@ namespace UnityEditor.VFX
                             if (flipbookLayout == FlipbookLayout.Texture2D)
                             {
                                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
-
                             }
 
                             if (uvMode == UVMode.FlipbookMotionBlend)
@@ -389,15 +387,32 @@ namespace UnityEditor.VFX
                         break;
                 }
 
+                if (hasMotionVector)
                 {
-                    if (hasMotionVector)
-                        if (isBlendModeOpaque)
-                            yield return "USE_MOTION_VECTORS_PASS";
-                        else
-                            yield return "WRITE_MOTION_VECTOR_IN_FORWARD";
-                    if (hasShadowCasting)
-                        yield return "USE_CAST_SHADOWS_PASS";
+                    yield return "VFX_FEATURE_MOTION_VECTORS";
+                    if (isBlendModeOpaque)
+                        yield return "USE_MOTION_VECTORS_PASS";
+                    else
+                        yield return "VFX_FEATURE_MOTION_VECTORS_FORWARD";
+                    switch (taskType)
+                    {
+                        case VFXTaskType.ParticleQuadOutput:
+                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 4";
+                            break;
+                        case VFXTaskType.ParticleTriangleOutput:
+                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 3";
+                            break;
+                        case VFXTaskType.ParticleLineOutput:
+                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 2";
+                            break;
+                        case VFXTaskType.ParticlePointOutput:
+                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 1";
+                            break;
+                    }
                 }
+
+                if (hasShadowCasting)
+                    yield return "USE_CAST_SHADOWS_PASS";
 
                 if (HasIndirectDraw())
                     yield return "VFX_HAS_INDIRECT_DRAW";
@@ -408,7 +423,7 @@ namespace UnityEditor.VFX
                     {
                         case UVMode.Flipbook:
                             yield return "USE_FLIPBOOK";
-                            if(flipbookLayout == FlipbookLayout.Texture2DArray)
+                            if (flipbookLayout == FlipbookLayout.Texture2DArray)
                                 yield return "USE_FLIPBOOK_ARRAY_LAYOUT";
                             break;
                         case UVMode.FlipbookBlend:
@@ -482,7 +497,7 @@ namespace UnityEditor.VFX
                     yield return "sort";
                     yield return "frustumCulling";
                 }
-                if(!usesFlipbook)
+                if (!usesFlipbook)
                 {
                     yield return "flipbookLayout";
                 }

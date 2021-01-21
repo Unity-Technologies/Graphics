@@ -145,7 +145,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.color = attributes.color;
-                o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+                o.normalWS = -GetViewForwardDir();
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
                 o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
                 return o;
