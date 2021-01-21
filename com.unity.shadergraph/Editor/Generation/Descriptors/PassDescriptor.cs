@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         public DefineCollection defines;
         public KeywordCollection keywords;
         public IncludeCollection includes;
+        public CIPOECollection cipoes;
 
         // Methods
         public bool Equals(PassDescriptor other)

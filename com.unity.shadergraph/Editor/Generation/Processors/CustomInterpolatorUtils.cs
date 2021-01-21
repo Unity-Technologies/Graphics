@@ -9,21 +9,144 @@ using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
-    internal static class CustomInterpolatorUtils
+    [GenerationAPI]
+    internal struct CIPOEDescriptor
     {
-        internal static string k_SpliceCommand => "sgci_sdiEntry";
+        // (C)ustom, (I)nterpolator, (P)oint, (o)f, (E)ntry
+        // pronounced KIPOE or SIPOE?
+        internal string srcName, dstName;
+        internal string srcType, dstType;
+        internal string funcName;
+
+        internal string spliceBlock;
+        internal string spliceCall;
+
+        internal static string k_sgSdiEntry = "sgci_sdiEntry";
+
+        internal bool generatesBlock => spliceBlock != null && srcName != null && dstName != null;
+        internal bool generatesCall => spliceCall != null && srcName != null && dstName != null && funcName != null;
+        internal bool generatesFunc => funcName != null && srcType != null && dstType != null;
+
+        internal CIPOEDescriptor CleanClone()
+        {
+            CIPOEDescriptor res = new CIPOEDescriptor();
+            res.srcName = srcName != null ? NodeUtils.ConvertToValidHLSLIdentifier(srcName) : null;
+            res.dstName = dstName != null ? NodeUtils.ConvertToValidHLSLIdentifier(dstName) : null;
+            res.srcType = srcType != null ? NodeUtils.ConvertToValidHLSLIdentifier(srcType) : null;
+            res.dstType = dstType != null ? NodeUtils.ConvertToValidHLSLIdentifier(dstType) : null;
+            res.funcName = funcName != null ? NodeUtils.ConvertToValidHLSLIdentifier(funcName) : null;
+            res.spliceBlock = spliceBlock != null ? NodeUtils.ConvertToValidHLSLIdentifier(spliceBlock) : null;
+            res.spliceCall = spliceCall != null ? NodeUtils.ConvertToValidHLSLIdentifier(spliceCall) : null;
+            return res;
+        }
+    }
+
+    [GenerationAPI]
+    internal class CIPOECollection : IEnumerable<CIPOECollection.Item>
+    {
+        public class Item
+        {
+            public CIPOEDescriptor descriptor { get; }
+
+            public Item(CIPOEDescriptor descriptor)
+            {
+                this.descriptor = descriptor;
+            }
+        }
+
+        readonly List<CIPOECollection.Item> m_Items;
+
+        public CIPOECollection()
+        {
+            m_Items = new List<CIPOECollection.Item>();
+        }
+
+        public CIPOECollection Add(CIPOECollection structs)
+        {
+            foreach (CIPOECollection.Item item in structs)
+            {
+                m_Items.Add(item);
+            }
+
+            return this;
+        }
+
+        public CIPOECollection Add(CIPOEDescriptor descriptor)
+        {
+            m_Items.Add(new CIPOECollection.Item(descriptor));
+            return this;
+        }
+
+        public IEnumerator<Item> GetEnumerator()
+        {
+            return m_Items.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    internal static class CustomInterpolatorUtils
+    {        
         internal static string k_Semantic => "SGCI";
-        internal static string k_CopyWrite => "SGCIPassThrough";
         internal static string k_Define => "FEATURES_CUSTOM_INTERPOLATORS";
-        internal static string k_predecessor => "customInterpolators";
+
+        static internal void ProcessCIPOE(
+            IEnumerable<CIPOEDescriptor> descs,
+            List<BlockFieldDescriptor> customFields,
+            Dictionary<string, string> spliceCommands,
+            ShaderStringBuilder funcBuilder)
+        {
+            // no work to do.
+            if (descs == null || customFields == null)
+                return;
+
+            // cache for func sigs to test for uniqueness.
+            HashSet<string> funcSet = new HashSet<string>();
+
+            foreach (var descIn in descs)
+            {
+                // sanitize the CIPOEDescriptor since it comes from client code
+                var desc = descIn.CleanClone();
+
+                // Funcs use a Copy-Write: "output = func(output, input);".
+                if (desc.generatesCall && (!spliceCommands?.ContainsKey(desc.spliceCall) ?? false))
+                    spliceCommands.Add(desc.spliceCall, $"{desc.dstName} = {desc.funcName}({desc.dstName}, {desc.srcName});");
+
+                // inline inject foreach customField: "output.varName = input.varName;"
+                if (desc.generatesBlock && (!spliceCommands?.ContainsKey(desc.spliceBlock) ?? false))
+                {
+                    var blockBuilder = new ShaderStringBuilder();
+                    GenerateCopyWriteBlock(customFields, blockBuilder, desc.dstName, desc.srcName);
+                    spliceCommands.Add(desc.spliceBlock, blockBuilder.ToCodeBlock());
+                }
+
+                // the function generated can be added to a global builder- for now that'll be the vertexBuilder
+                // in the vertex processing portion of the Generator
+                if (desc.generatesFunc && funcBuilder != null)
+                {
+                    var sig = $"{desc.funcName}({desc.dstType},{desc.srcType})";
+                    if (!funcSet.Contains(sig))
+                    {
+                        GenerateCopyWriteFunc(customFields, funcBuilder, desc.funcName, desc.dstType, desc.srcType);
+                        funcSet.Add(sig);
+                    }
+                }
+            }
+        }
+
 
         internal static List<BlockFieldDescriptor> GetCustomFields(GraphData graphData)
         {
+            // TODO: Can we combine this with GetActiveCustomFields? We still need the custom field list for CIPOE generation.
+
             // We don't care about the blocks if they aren't used-- so just get our CIN nodes to find out what's in use <__<.
             var usedList = graphData.GetNodes<CustomInterpolatorNode>().Select(cin => cin.e_targetBlockNode).Distinct();
             
 
-            // cache the custom bd's now for later steps involvign active fields-- this is filtered based on what is actually in use.
+            // cache the custom bd's now for later steps involving active fields-- this is filtered based on what is actually in use.
             return usedList.Where(b => b != null).Select(b => b.descriptor).ToList();
         }
 
@@ -58,9 +181,9 @@ namespace UnityEditor.ShaderGraph
                         var tag = ps.name;
                         var name = bd.name;
                         var valtype = ShaderValueTypeFrom(bd.control);
-                        var semantic = k_Semantic + nSem;
+                        var semantic = ps.packFields ? k_Semantic + nSem : "";
                         nSem++;
-                        var fd = new FieldDescriptor(tag, name, "", type: valtype, semantic: semantic, subscriptOptions: StructFieldOptions.Generated);
+                        var fd = new FieldDescriptor(tag, name, "", valtype, semantic: semantic, subscriptOptions: StructFieldOptions.Generated);
 
                         agg.Add(fd);
                         activeFields.AddAll(fd);
@@ -80,15 +203,15 @@ namespace UnityEditor.ShaderGraph
             return newPassStructs;
         }
 
-        internal static void GenerateCopyWriteBlock(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string src, string dst)
+        private static void GenerateCopyWriteBlock(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string dstName, string srcType)
         {
             foreach (var bd in customList)
-                builder.AppendLine($"{dst}.{bd.name} = {src}.{bd.name};");
+                builder.AppendLine($"{dstName}.{bd.name} = {srcType}.{bd.name};");
         }
 
-        internal static void GenerateCopyWriteFunc(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string srcType, string dstType)
+        private static void GenerateCopyWriteFunc(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string funcName, string dstType, string srcType)
         {
-            builder.AppendLine($"{dstType} {k_CopyWrite}({dstType} invary, {srcType} input)");
+            builder.AppendLine($"{dstType} {funcName}({dstType} invary, {srcType} input)");
             using (builder.BlockScope())
             {
                 builder.AppendLine($"{dstType} output = invary;");

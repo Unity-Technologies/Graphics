@@ -612,11 +612,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (activeFields.baseInstance.Contains(Fields.GraphCustomInterp) && customFields != null)
                 {
-                    CustomInterpolatorUtils.GenerateCopyWriteFunc(customFields, vertexBuilder, vertexGraphOutputName, "Varyings");
-
-                    var ciSdiBuilder = new ShaderStringBuilder();
-                    CustomInterpolatorUtils.GenerateCopyWriteBlock(customFields, ciSdiBuilder, "input", "output");
-                    spliceCommands.Add(CustomInterpolatorUtils.k_SpliceCommand, ciSdiBuilder.ToCodeBlock());
+                    CustomInterpolatorUtils.ProcessCIPOE(pass.cipoes.Select(e => e.descriptor), customFields, spliceCommands, vertexBuilder);
                 }
             }
 

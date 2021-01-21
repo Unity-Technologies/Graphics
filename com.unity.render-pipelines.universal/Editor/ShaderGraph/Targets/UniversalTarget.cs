@@ -359,6 +359,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
             includes = CoreIncludes.DepthOnly,
+
+            // Custom Interpolator Support
+            cipoes = CoreCIPOE.Common
         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
@@ -386,6 +389,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             pragmas = CorePragmas.Instanced,
             keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
+
+            // Custom Interpolator Support
+            cipoes = CoreCIPOE.Common
         };
     }
     #endregion
@@ -863,6 +869,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CoreFields
     {
         public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
+    }
+    #endregion
+
+    #region CIPOEDescriptors
+    static class CoreCIPOE
+    {
+        public static readonly CIPOECollection Common = new CIPOECollection
+        {
+            new CIPOEDescriptor
+            {
+                    // This will generate both block code to be injencted in the SurfaceDescriptionInputs
+                    // AND the function call in varyings. The descriptor can handle up to 3 related or unrelated generations,
+                    // but best practice is to split things up to avoid confusion.
+
+                    srcName = "output",                          // SG's default identifiers for SDI.
+                    dstName = "input",                           // SG's default identifiers for SDI.
+                    spliceBlock = CIPOEDescriptor.k_sgSdiEntry, // SG's default entry point for SDI.
+
+                    spliceCall = null,                           // the call is hardcoded in Varyings.hlsl, nothing to splice.
+                    srcType = "VertexDescription",               // Hardcoded in SG, is one of the input types for func generation.
+                    dstType = "Varyings",                        // hardcoded in Varyings.hlsl, needed to generate the function definition.
+                    funcName = "SGCIPassThrough",                // hardcoded in Varyings.hlsl
+            },
+        };
+
     }
     #endregion
 }
