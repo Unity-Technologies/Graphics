@@ -6,6 +6,7 @@
 #pragma kernel ClearShadowTexture
 #pragma kernel OutputShadowTexture OUTPUT_SHADOW_TEXTURE=OutputShadowTexture
 #pragma kernel OutputColorShadowTexture OUTPUT_SHADOW_TEXTURE=OutputColorShadowTexture COLOR_SHADOW
+#pragma kernel OutputSpecularShadowTexture OUTPUT_SHADOW_TEXTURE=OutputSpecularShadowTexture SPECULAR_SHADOW
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
@@ -172,7 +173,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         lightData = _LightDatas[_RaytracingTargetAreaLight];
 
         // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
-        if (!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
+        if (U < ANALYTIC_RADIANCE_THRESHOLD || !EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
         {
             // We want this to be flagged as a proper shadow, and not a 0/0 case
             _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
@@ -679,6 +680,8 @@ void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 // Slot in which a shadow texture should be copied
 int _RaytracingShadowSlot;
 float4 _RaytracingChannelMask;
+float4 _RaytracingChannelMask0;
+float4 _RaytracingChannelMask1;
 RWTexture2DArray<float4>     _ScreenSpaceShadowsTextureRW;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -699,6 +702,10 @@ void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // If this is a color shadow, then it is must be stored in the first three channels, override those but keeping the previous value in w
     previousShadowValues.xyz = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].xyz;
     _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = previousShadowValues;
+#elif defined(SPECULAR_SHADOW)
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues)
+                                                                    + _RaytracingChannelMask0 * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x
+                                                                    + _RaytracingChannelMask1 * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].y;
 #else
     // Otherwise we only override the channel we are interested in. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
     _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues)

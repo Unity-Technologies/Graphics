@@ -17,7 +17,7 @@ To prevent aliasing, the High Definition Render Pipeline (HDRP) has multiple met
 
 ## Using anti-aliasing
 
-Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity. 
+Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity.
 
 <a name="FXAA"></a>
 

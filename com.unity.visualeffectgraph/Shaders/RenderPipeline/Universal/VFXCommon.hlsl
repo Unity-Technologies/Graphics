@@ -77,6 +77,15 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+    return posWS - _WorldSpaceCameraPos.xyz;
+#else
+	return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return GetObjectToWorldMatrix();

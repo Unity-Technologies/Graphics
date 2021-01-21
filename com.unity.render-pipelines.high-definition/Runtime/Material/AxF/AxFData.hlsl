@@ -4,8 +4,12 @@
 // Gradients are now required:
 #define SURFACE_GRADIENT // Note: this affects Material/MaterialUtilities.hlsl's GetNormalWS() and makes it expect a surface gradient.
 
+// Obviously in SHADER_STAGE_RAY_TRACING, we don't have the on the fly tangent frame calculation because we don't have derivatives,
+// but we can still use surface gradients for the rest (ie can't use anything else than UV0 if using UVs, and the vertex interpolated TB)
+
 //to test #define FLAKES_TILE_BEFORE_SCALE
-#define AXF_REUSE_SCREEN_DDXDDY
+
+#define AXF_REUSE_SCREEN_DDXDDY // we generically plug the cone apprimation into the most general grad codepath so this is forced def in raytracing
 // ...ie use _GRAD sampling for everything and calculate those only one time:
 // offset doesn't change derivatives, and scales just scales them, so we can cache them.
 
@@ -16,13 +20,21 @@
 
 #define AXF_USES_RG_NORMAL_MAPS // else, RGB
 
+#define AXF_RAYTRACING_USE_CONE_TO_GRAD
+
+//#define AXF_RAYTRACING_CONE_TO_GRAD_SCALE (0.1)
+#define AXF_RAYTRACING_CONE_TO_GRAD_SCALE (_RayTracingTexFilteringScale)
+
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#endif
 
 //-----------------------------------------------------------------------------
 // Texture Mapping
@@ -35,19 +47,13 @@
 
 // Note: the scaling _Material_SO.xy should already be in texuv, but NOT the bias.
 #define AXF_TRANSFORM_TEXUV_BYNAME(texuv, name) ((texuv.xy) * name##_SO.xy + name##_SO.zw + _Material_SO.zw)
-#define AXF_GET_SINGE_SCALE_OFFSET(name) (name##_SO)
+#define AXF_GET_SINGLE_SCALE_OFFSET(name) (name##_SO)
+#define AXF_TEXSIZE_FROM_NAME(name) (name##_TexelSize.zw)
 #define AXF_TRANSFORM_TEXUV(texuv, scaleOffset) ((texuv.xy) * scaleOffset.xy + scaleOffset.zw + _Material_SO.zw)
 
 // Note: the scaling _Material_SO.xy should already be in ddx and ddy:
 #define AXF_SCALE_DDXDDY_BYNAME(vddx, name) ((vddx) * (name##_SO.xy))
 
-#if 0
-#define DDX(param) ddx_fine(param)
-#define DDY(param) ddy_fine(param)
-#else
-#define DDX(param) ddx(param)
-#define DDY(param) ddy(param)
-#endif
 
 struct TextureUVMapping
 {
@@ -67,18 +73,106 @@ struct TextureUVMapping
     float2 ddxBase;
     float2 ddyBase;
 #endif
+    float2 mainScales; // only used when raytracing as these need to be tracked, no pixel quads mean not possible to have ddx automatically get the effect of scalings multiplied in UVs
 
     float3 vertexNormalWS;
     float3 vertexTangentWS;
     float3 vertexBitangentWS;
 };
 
-void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
+//-----------------------------------------------------------------------------
+
+#if !defined(SHADER_STAGE_RAY_TRACING)
+
+#ifndef RayCone
+#define RayCone float // dummy type
+#endif
+
+// For AXF_DD*, in non raytracing context, only first param is used and these uvs can be prescaled
+#if 0
+#define AXF_DDX(uv, scales, rayCone, geomNormalWS, V) ddx_fine(uv)
+#define AXF_DDY(uv, scales, rayCone, geomNormalWS, V) ddy_fine(uv)
+#else
+#define AXF_DDX(uv, scales, rayCone, geomNormalWS, V) ddx(uv)
+#define AXF_DDY(uv, scales, rayCone, geomNormalWS, V) ddy(uv)
+#endif
+
+#define GETSURFACEANDBUILTINDATA_RAYCONE_PARAM ((RayCone)0)
+#define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) CALCULATE_TEXTURE2D_LOD(a,b,c)
+
+#else
+
+//-----------------------------------------------------------------------------
+//defined(SHADER_STAGE_RAY_TRACING)
+
+// we generically plug the cone apprimation into the most general grad codepath so this is needed in raytracing:
+#ifndef AXF_REUSE_SCREEN_DDXDDY
+#define AXF_REUSE_SCREEN_DDXDDY
+#endif
+
+//
+// Fake isotropic filtering grads as constants or from RayCone.
+//
+
+#define GETSURFACEANDBUILTINDATA_RAYCONE_PARAM (rayCone)
+
+#define AXF_RAYTRACING_DEFAULT_GRAD 0.001
+
+float2 AxFFakeDDX(real2 x) { return (float2)AXF_RAYTRACING_DEFAULT_GRAD; }
+
+
+#if !defined(AXF_RAYTRACING_USE_CONE_TO_GRAD)
+
+#define AXF_CALCULATE_TEXTURE2D_LOD(a,b,c,duvdx,duvdy,scales,texelSize,rayCone) (0)
+#define AXF_DDX(uv, scales, rayCone, geomNormalWS, V) AxFFakeDDX(uv)
+#define AXF_DDY(uv, scales, rayCone, geomNormalWS, V) AxFFakeDDX(uv)
+
+#else
+//
+//AXF_RAYTRACING_USE_CONE_TO_GRAD
+//
+
+float2 AxFDDXFromCone(float2 scales, RayCone rayCone, float3 geomNormalWS, float3 V)
 {
+    // Very simple for now, try to use normal vs view dir also
+    return scales * rayCone.width * AXF_RAYTRACING_CONE_TO_GRAD_SCALE * rcp( max(abs(dot(geomNormalWS, V)), 0.7) );
+    // rayCone is in worldspace unit: this is because the spread slope of a pixel is built from the FOV divided by camera resolution,
+    // and the slope scales the WS distance of the ray to get the cone (pixel footprint approximative) width.
+    // (actually the angle is used directly but tan(small angle) ~= small angle)
+}
+
+float AxFCalculateLODFromCone(float2 dUVdx, float2 dUVdy,float2 scales /* texture property specific compounded with main scales */, float2 texelSize, RayCone rayCone)
+{
+    // cone actually not required here, all its effects are dumped in the "derivatives" and sent to AXF_CALCULATE_TEXTURE2D_LOD
+    //Compiler will simplify this as dUVdx and dUVdy are all the same obviously, even component wise
+    float dSq = max(dot(dUVdx * texelSize.xy * scales.xy, dUVdx * texelSize.xy * scales.xy),
+                    dot(dUVdy * texelSize.xy * scales.xy, dUVdy * texelSize.xy * scales.xy));
+    float lodCustom = (0.5 * log2(dSq));
+    return lodCustom;
+}
+
+
+#define AXF_CALCULATE_TEXTURE2D_LOD(textureName, samplerName, coord2, dpdx, dpdy, scales, texelSize, rayCone) AxFCalculateLODFromCone(dpdx, dpdy, scales, texelSize, rayCone)
+
+
+#define AXF_DDX(uv, scales, rayCone, geomNormalWS, V) AxFDDXFromCone(scales, rayCone, geomNormalWS, V)
+#define AXF_DDY(uv, scales, rayCone, geomNormalWS, V) AxFDDXFromCone(scales, rayCone, geomNormalWS, V) // isotropic, one function used only
+
+#endif //#if !defined(AXF_RAYTRACING_USE_CONE_TO_GRAD)
+#endif //#if !defined(SHADER_STAGE_RAY_TRACING)
+//-----------------------------------------------------------------------------
+
+
+
+void InitTextureUVMapping(FragInputs input, float3 V, out TextureUVMapping uvMapping, RayCone rayCone)
+{
+    float3 geomNormalWS = input.tangentToWorld[2];
     float2 uvZY;
     float2 uvXZ;
     float2 uvXY;
     float2 uv3 = 0;
+    // Save main scalings, will be used for raytracing, optimized out otherwise
+    uvMapping.mainScales = _Material_SO.xy;
 
     // Set uv* variables above: they will contain a set of uv0...3 or a planar set:
 #if (defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR))
@@ -101,13 +195,13 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
     uvMapping.uvZY = uvZY * _Material_SO.xy;
     uvMapping.uvXZ = uvXZ * _Material_SO.xy;
     uvMapping.uvXY = uvXY * _Material_SO.xy;
-
-    uvMapping.ddxZY = DDX(uvMapping.uvZY);
-    uvMapping.ddyZY = DDY(uvMapping.uvZY);
-    uvMapping.ddxXZ = DDX(uvMapping.uvXZ);
-    uvMapping.ddyXZ = DDY(uvMapping.uvXZ);
-    uvMapping.ddxXY = DDX(uvMapping.uvXY);
-    uvMapping.ddyXY = DDY(uvMapping.uvXY);
+                                              // These 2 last params are ignored in rasterizer context, but the first is ignore in raytracing context
+    uvMapping.ddxZY = AXF_DDX(uvMapping.uvZY, _Material_SO.xy, rayCone, geomNormalWS, V); // Because in raytracing without derivatives, we can't prescale the UVs
+    uvMapping.ddyZY = AXF_DDY(uvMapping.uvZY, _Material_SO.xy, rayCone, geomNormalWS, V); // and thus consider the derivatives will be scaled
+    uvMapping.ddxXZ = AXF_DDX(uvMapping.uvXZ, _Material_SO.xy, rayCone, geomNormalWS, V); // so we must know the scalings explicitly in our custom ddx function.
+    uvMapping.ddyXZ = AXF_DDY(uvMapping.uvXZ, _Material_SO.xy, rayCone, geomNormalWS, V);
+    uvMapping.ddxXY = AXF_DDX(uvMapping.uvXY, _Material_SO.xy, rayCone, geomNormalWS, V);
+    uvMapping.ddyXY = AXF_DDY(uvMapping.uvXY, _Material_SO.xy, rayCone, geomNormalWS, V);
 
 #endif
 
@@ -131,8 +225,8 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
     // Apply AxF's main material tiling scale:
     uvMapping.uvBase *= _Material_SO.xy;
 
-    uvMapping.ddxBase = DDX(uvMapping.uvBase);
-    uvMapping.ddyBase = DDY(uvMapping.uvBase);
+    uvMapping.ddxBase = AXF_DDX(uvMapping.uvBase, _Material_SO.xy, rayCone, geomNormalWS, V);
+    uvMapping.ddyBase = AXF_DDY(uvMapping.uvBase, _Material_SO.xy, rayCone, geomNormalWS, V);
 
 #endif
 
@@ -189,7 +283,7 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
     bool useGrad = lodBiasOrGrad == 3;
     bool useCachedDdxDdy = false;
 #ifdef AXF_REUSE_SCREEN_DDXDDY
-    useCachedDdxDdy = false;
+    useCachedDdxDdy = true;
 #endif
 
 #ifdef _MAPPING_TRIPLANAR
@@ -352,16 +446,20 @@ float2 TileFlakesUV(float2 flakesUV)
 }
 
 
-void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceData)
+void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceData, RayCone rayCone)
 {
     surfaceData.flakesDdxZY = surfaceData.flakesDdyZY = surfaceData.flakesDdxXZ = surfaceData.flakesDdyXZ =
     surfaceData.flakesDdxXY = surfaceData.flakesDdyXY = 0;
+
+    float2 scales = AXF_GET_SINGLE_SCALE_OFFSET(_CarPaint2_BTFFlakeMap).xy; // this is used when raytracing: scales, texelSize, rayCone
+    float2 texelSize = AXF_TEXSIZE_FROM_NAME(_CarPaint2_BTFFlakeMap);
 
 #ifdef _MAPPING_TRIPLANAR
     float2 uv;
 
     uv = AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvZY, _CarPaint2_BTFFlakeMap);
-    surfaceData.flakesMipLevelZY = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
+    //surfaceData.flakesMipLevelZY = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
+    surfaceData.flakesMipLevelZY = AXF_CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv, uvMapping.ddxZY, uvMapping.ddyZY, scales, texelSize, rayCone);
 #ifndef FLAKES_TILE_BEFORE_SCALE
     surfaceData.flakesUVZY = TileFlakesUV(uv);
 #else
@@ -369,7 +467,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 
     uv = AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvXZ, _CarPaint2_BTFFlakeMap);
-    surfaceData.flakesMipLevelXZ = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
+    surfaceData.flakesMipLevelXZ = AXF_CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv, uvMapping.ddxXZ, uvMapping.ddyXZ, scales, texelSize, rayCone);
 #ifndef FLAKES_TILE_BEFORE_SCALE
     surfaceData.flakesUVXZ = TileFlakesUV(uv);
 #else
@@ -377,7 +475,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 
     uv = AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvXY, _CarPaint2_BTFFlakeMap);
-    surfaceData.flakesMipLevelXY = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
+    surfaceData.flakesMipLevelXY = AXF_CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv, uvMapping.ddxXY, uvMapping.ddyXY, scales, texelSize, rayCone);
 #ifndef FLAKES_TILE_BEFORE_SCALE
     surfaceData.flakesUVXY = TileFlakesUV(uv);
 #else
@@ -404,7 +502,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
     // and this planar coordinate set isn't necessarily ZY, we just reuse this field
     // as a common one.
     uv = AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvBase, _CarPaint2_BTFFlakeMap);
-    surfaceData.flakesMipLevelZY = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
+    surfaceData.flakesMipLevelZY = AXF_CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv, uvMapping.ddxBase, uvMapping.ddyBase, scales, texelSize, rayCone);
 #ifndef FLAKES_TILE_BEFORE_SCALE
     surfaceData.flakesUVZY = TileFlakesUV(uv);
 #else
@@ -423,6 +521,8 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
     surfaceData.flakesTriplanarWeights = 0;
 #endif
 }
+
+#ifndef SHADER_STAGE_RAY_TRACING
 
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)
 {
@@ -466,31 +566,18 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
 #endif
 }
 
-bool HasPhongTypeBRDF()
+#endif //...#ifndef SHADER_STAGE_RAY_TRACING
+
+
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
-    uint type = ((_SVBRDF_BRDFType >> 1) & 7);
-    return type == 1 || type == 4;
-}
 
-float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
-{
-    // For Blinn-Phong, AxF encodes specularLobe.xy as log2(shiniExp_xy) so
-    //     shiniExp = exp2(abs(specularLobe.xy))
-    // A good fit for a corresponding Beckmann roughness is
-    //     roughnessBeckmann^2 = 2 /(shiniExp + 2)
-    // See eg
-    // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
-    // http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
+#if !defined(SHADER_STAGE_RAY_TRACING)
+#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+#endif
+#endif
 
-    // We thus have
-    //     roughnessBeckmann = sqrt(2) * rsqrt(exp2(abs(specularLobe.xy)) + 2);
-    //     shiniExp = 2 * rcp(max(0.0001,(roughnessBeckmann*roughnessBeckmann))) - 2;
-
-    return (HasPhongTypeBRDF() ? (sqrt(2) * rsqrt(exp2(abs(specularLobe)) + 2)) : specularLobe);
-}
-
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
-{
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
@@ -501,13 +588,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Note that in uvMapping, the main scaling _Material_SO.xy has been applied:
     TextureUVMapping uvMapping;
-    InitTextureUVMapping(input, uvMapping);
+    InitTextureUVMapping(input, V, uvMapping, GETSURFACEANDBUILTINDATA_RAYCONE_PARAM);
     ZERO_INITIALIZE(SurfaceData, surfaceData);
+
+    // Needed for raytracing.
+    // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
+    // to have "V" (from -incidentDir)
+    surfaceData.viewWS = V;
 
     float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
 #ifdef _ALPHATEST_ON
-    // TODOTODO: Move alpha test earlier and test.
     float alphaCutoff = _AlphaCutoff;
 
     #if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
@@ -574,14 +665,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = input.tangentToWorld[2].xyz;
     GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
-    SetFlakesSurfaceData(uvMapping, surfaceData);
+    SetFlakesSurfaceData(uvMapping, surfaceData, GETSURFACEANDBUILTINDATA_RAYCONE_PARAM);
+
+    surfaceData.clearcoatColor = 1;
 
     // Useless for car paint BSDF
     surfaceData.specularColor = 0;
     surfaceData.fresnelF0 = 0;
     surfaceData.height_mm = 0;
     surfaceData.anisotropyAngle = 0;
-    surfaceData.clearcoatColor = 0;
 #endif
 
     // TODO
@@ -590,6 +682,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_BentNormalMap, sampler_BentNormalMap, UV0).xyz - 1.0, bentNormalWS, doubleSidedConstants);
 
     float perceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughness(surfaceData.specularLobe));
+    surfaceData.perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(perceptualRoughness);
 
     //TODO
 //#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
@@ -638,7 +731,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
 
-#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
+#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
     // Specular AA for geometric curvature
 
     surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
@@ -648,7 +741,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         // Not debug streaming information with AxF (this should never be stream)
@@ -673,4 +766,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+    RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

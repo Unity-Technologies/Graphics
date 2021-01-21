@@ -317,9 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         passData.source = builder.ReadTexture(source);
                         passData.parameters = PrepareApplyExposureParameters(hdCamera);
-                        RTHandle prevExp;
-                        GrabExposureHistoryTextures(hdCamera, out prevExp, out _);
-                        passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(prevExp));
+                        passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
                         passData.destination = builder.WriteTexture(dest);;
@@ -450,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.parameters = dofParameters;
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
-                    passData.nextCoC = builder.WriteTexture(builder.ReadTexture(nextCoCHandle));
+                    passData.nextCoC = builder.ReadWriteTexture(nextCoCHandle);
 
                     float scale = 1f / (float)passData.parameters.resolution;
                     var screenScale = new Vector2(scale, scale);
@@ -509,7 +507,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
 
-                        int passCount = Mathf.CeilToInt((passData.parameters.nearMaxBlur + 2f) / 4f);
+                        GetDoFResolutionScale(passData.parameters, out float unused, out float resolutionScale);
+                        float actualNearMaxBlur = passData.parameters.nearMaxBlur * resolutionScale;
+                        int passCount = Mathf.CeilToInt((actualNearMaxBlur + 2f) / 4f);
+
                         passData.dilationPingPongRT = TextureHandle.nullHandle;
                         if (passCount > 1)
                         {
