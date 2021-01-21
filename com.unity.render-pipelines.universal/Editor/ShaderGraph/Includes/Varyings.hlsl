@@ -6,7 +6,6 @@
     float3 _LightPosition;
 #endif
 
-
 Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -19,7 +18,6 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    output = SGCIPassThrough(output, vertexDescription);
 
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;

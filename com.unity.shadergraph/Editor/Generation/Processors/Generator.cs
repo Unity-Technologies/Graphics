@@ -16,9 +16,6 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
-        GraphData m_originalGraph;
-        AbstractMaterialNode m_originalOutputNode;
-
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
         Target[] m_Targets;
@@ -36,15 +33,10 @@ namespace UnityEditor.ShaderGraph
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
-            m_originalGraph = m_GraphData = graphData;
-            m_originalOutputNode = m_OutputNode = outputNode;
+            m_GraphData = graphData;
+            m_OutputNode = outputNode;
             m_Mode = mode;
             m_Name = name;
-
-            if (m_OutputNode != null)
-            {
-                CustomInterpolatorUtils.StripRedirectsAndCopy(graphData, outputNode, out m_GraphData, out m_OutputNode);
-            }
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
@@ -239,17 +231,11 @@ namespace UnityEditor.ShaderGraph
             var pixelSlots = new List<MaterialSlot>();
             var vertexSlots = new List<MaterialSlot>();
 
-            List<BlockFieldDescriptor> customFields = new List<BlockFieldDescriptor>();
-
             if (m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
                 var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
-
-                foreach(var bd in currentBlockDescriptors)
-                    if (bd.isCustom)
-                        activeBlockContext.AddBlock(bd);
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
@@ -296,11 +282,8 @@ namespace UnityEditor.ShaderGraph
                 vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
                 pixelNodes = Pool.ListPool<AbstractMaterialNode>.Get();
 
-                customFields = CustomInterpolatorUtils.GetCustomFields(m_GraphData);
-
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
-                ProcessStackForPass(m_GraphData.vertexContext, customFields.ToArray(), vertexNodes, vertexSlots);
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.validPixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
@@ -336,10 +319,6 @@ namespace UnityEditor.ShaderGraph
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
             // GET CUSTOM ACTIVE FIELDS HERE!
-            var passStructs = new List<StructDescriptor>();
-            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name != "Attributes" && x.name != "VertexDescriptionInputs"));
-            passStructs = CustomInterpolatorUtils.GetActiveCustomFields(customFields, passStructs, activeFields.baseInstance);
-            passStructs.AddRange(pass.structs?.Select(x => x.descriptor).Where(x => x.name == "Attributes" || x.name == "VertexDescriptionInputs"));
 
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
@@ -499,16 +478,15 @@ namespace UnityEditor.ShaderGraph
             // -----------------------------
             // Generated structs and Packing code
             var interpolatorBuilder = new ShaderStringBuilder();
-            var customIntPackingFunc = new ShaderStringBuilder();
+            var passStructs = new List<StructDescriptor>();
 
-            // GenerationUtils.GenerateCustomPackingFuncs(customIntPackingFunc, activeFields.baseInstance);
-
-            List<StructDescriptor> packedStructs = new List<StructDescriptor>();
             if (pass.structs != null)
             {
-                foreach (var shaderStruct in passStructs)
+                passStructs.AddRange(pass.structs.Select(x => x.descriptor));
+
+                foreach (StructCollection.Item shaderStruct in pass.structs)
                 {
-                    if (shaderStruct.packFields == false)
+                    if (shaderStruct.descriptor.packFields == false)
                         continue; //skip structs that do not need interpolator packs
 
                     List<int> packedCounts = new List<int>();
@@ -521,7 +499,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, instance, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -548,19 +526,15 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, activeFields.baseInstance, out interpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
-                    GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);
-                    packedStructs.Add(packStruct);
+                    GenerationUtils.GeneratePackedStruct(shaderStruct.descriptor, activeFields, out packStruct);
+                    passStructs.Add(packStruct);
                 }
-                passStructs.AddRange(packedStructs);
             }
             if (interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
-            { 
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
-            }
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
@@ -620,11 +594,6 @@ namespace UnityEditor.ShaderGraph
                 vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
                 vertexBuilder.AppendNewLine();
                 vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
-                vertexBuilder.AppendNewLine();
-
-                var sgciFunc = new ShaderStringBuilder();
-                CustomInterpolatorUtils.GenerateCopyWriteFunc(customFields, sgciFunc, "VertexDescription", "Varyings");
-                vertexBuilder.AppendLines(sgciFunc.ToString());
             }
 
             // Add to splice commands
@@ -662,8 +631,7 @@ namespace UnityEditor.ShaderGraph
                 null,
                 pixelSlots,
                 pixelGraphInputName,
-                pass.virtualTextureFeedback,
-                m_originalOutputNode?.hasPreview ?? false);
+                pass.virtualTextureFeedback);
 
             using (var pixelBuilder = new ShaderStringBuilder())
             {
@@ -846,7 +814,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // Process Template
-            var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, customFields, spliceCommands,
+            var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
                 isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());

@@ -44,7 +44,6 @@ namespace UnityEditor.ShaderGraph
         {
             // inputs
             ActiveFields activeFields;
-            List<BlockFieldDescriptor> customFields;
             Dictionary<string, string> namedFragments;
             string[] templatePaths;
             bool isDebug;
@@ -56,9 +55,8 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, List<BlockFieldDescriptor> customFields,  Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
-                this.customFields = customFields;
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
@@ -362,11 +360,6 @@ namespace UnityEditor.ShaderGraph
                         // continue parsing the rest of the line, starting with the first nonwhitespace character
                         cur = nonwhitespace;
                         return true;
-                    }
-                    else if (fieldName == CustomInterpolatorUtils.k_ShaderDescriptionInputs)
-                    {
-                        CustomInterpolatorUtils.GenerateCopyWriteBlock(customFields, result, "input", "output");
-                        return false;
                     }
                     else
                     {

@@ -530,7 +530,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 shaderPort.BringToFront();
                         }
                     }
-
                     break;
                 }
             }

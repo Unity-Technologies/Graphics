@@ -81,11 +81,14 @@ namespace UnityEditor.ShaderGraph
             {
                 if (bnode?.isCustomBlock ?? false)
                 {
-                    name = customBlockNodeName = bnode.customName;
+                    name = bnode.customName + " (Custom Interpolator)";
+                    customBlockNodeName = bnode.customName;
                     if (e_targetBlockNode != null && e_targetBlockNode.owner != null)
                     {
                         serializedType = e_targetBlockNode.customWidth;
                         BuildSlot();
+                        Dirty(ModificationScope.Node);
+                        Dirty(ModificationScope.Topological);
                     }
                 }
             }
@@ -146,7 +149,6 @@ namespace UnityEditor.ShaderGraph
             return $" float4(0,0,0,0) ";
         }
 
-
         void BuildSlot()
         {
             switch (serializedType)
@@ -168,14 +170,3 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
-
-
-
-//if (currentBlockNode == null)
-//{
-//    owner.AddValidationError(objectId, "Custom Interpolator Identifier not found.", ShaderCompilerMessageSeverity.Error);
-//}
-//else
-//{
-//    owner.ClearErrorsForNode(this);
-//}

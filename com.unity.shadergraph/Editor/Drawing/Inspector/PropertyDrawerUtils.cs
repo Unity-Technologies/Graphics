@@ -109,6 +109,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Name");
                         field.value = node.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));                        
                         updateNodeViewsCallback?.Invoke();
+                        node.Dirty(ModificationScope.Node);
+                        node.owner?.ValidateGraph();
                     });                    
                 });
                 parentElement.Add(propertyRow);  
@@ -129,6 +131,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Type");
                         node.customWidth = (BlockNode.CustomBlockType)evt.newValue;
                         updateNodeViewsCallback?.Invoke();
+                        node.Dirty(ModificationScope.Topological);
+                        node.owner?.ValidateGraph();
                     }); 
                 });
                 parentElement.Add(propertyRow);

@@ -262,9 +262,6 @@ namespace UnityEditor.ShaderGraph
             // TODO: Preserve the original slot's value and try to reapply after the slot is updated.
             AddSlotFromControlType(false);
 
-            if (oldName != name) Dirty(ModificationScope.Node);
-            if (oldWidth != width) Dirty(ModificationScope.Topological);
-
             owner?.ValidateGraph();
         }
 
