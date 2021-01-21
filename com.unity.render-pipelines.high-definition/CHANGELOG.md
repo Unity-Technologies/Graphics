@@ -73,6 +73,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a locale issue with the diffusion profile property values in ShaderGraph on PC where comma is the decimal separator.
 - Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -94,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 - Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
 - Change some light unit slider value ranges to better reflect the lighting scenario.
+- Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 
 ## [10.3.0] - 2020-12-01
 
