@@ -24,6 +24,7 @@
   * [Upgrading to URP 7.2.0](upgrade-guide-7-2-0.md)
   * [Upgrading from LWRP to URP](upgrade-lwrp-to-urp.md)
 * [Rendering](rendering-in-universalrp.md)
+  * [How to use Render Objects](renderer-features/how-to-custom-effect-render-objects.md)
 * [Lighting](lighting.md)
   * [Light component reference](light-component)
   * [Lighting Mode](urp-lighting-mode.md)
@@ -76,12 +77,11 @@
   * [Shader stripping](shader-stripping.md)
   * [Writing custom shaders](writing-custom-shaders-urp.md)
     * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
-    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)    
+    * [URP basic unlit shader](writing-shaders-urp-basic-unlit-structure.md)
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
   * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
-
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 
@@ -98,12 +98,12 @@
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-    
+
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 
 * [Building for consoles](Building-For-Consoles.md)
-  
+
 * [Frequently asked questions (FAQ)](faq.md)
 * [Known issues](known-issues.md)
