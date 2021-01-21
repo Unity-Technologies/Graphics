@@ -3421,7 +3421,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     #if HDRP_DEBUG_STATIC_POSTFX
                     int textureId = 0;
                     #else
-                    int textureId = Time.frameCount % blueNoiseTexture.depth;
+                    int textureId = (int)hdCamera.GetCameraFrameCount() % blueNoiseTexture.depth;
                     #endif
 
                     finalPassMaterial.EnableKeyword("DITHER");
