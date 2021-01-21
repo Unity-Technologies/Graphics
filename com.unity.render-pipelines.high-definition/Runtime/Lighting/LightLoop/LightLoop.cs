@@ -415,10 +415,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
-        public static int s_TileEntryLimit         = 256; // Shared by all categories (specifies the total allocation size)
         public static int s_CoarseTileSize         = 64;  // Pixels
         public static int s_FineTileSize           = 16;  // Pixels
-        public static int s_zBinCount            = 8192;
+        public static int s_zBinCount              = 8192;
         public static int s_MaxReflectionProbesPerPixel = 4;
     }
 
@@ -607,6 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxLightsOnScreen;
         int m_MaxEnvLightsOnScreen;
         int m_MaxPlanarReflectionOnScreen;
+        int m_TileEntryLimit;
 
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
@@ -723,17 +723,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool hasTileBuffers { get; private set; }
             public int maxLightCount { get; private set; }
             public int maxBoundedEntityCount { get; private set; }
+            public int tileEntryLimit { get; private set; }
 
-            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth, int maxLightCount, int maxBoundedEntityCount)
+            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth, int maxLightCount, int maxBoundedEntityCount, int tileEntryLimit)
             {
                 hasTileBuffers = allocateTileBuffers;
                 this.clusterNeedsDepth = clusterNeedsDepth;
                 this.maxLightCount = maxLightCount;
                 this.maxBoundedEntityCount = maxBoundedEntityCount;
+                this.tileEntryLimit = tileEntryLimit;
                 //globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxBoundedEntityCount)
+            public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount)
             {
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 {
@@ -743,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
 
                     /* Actually resolution-dependent buffers below. */
-                    int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+                    int elementsPerTile = HDUtils.DivRoundUp(tileEntryLimit, 32); // Each element is a DWORD
 
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
@@ -1089,6 +1091,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxEnvLightsOnScreen = lightLoopSettings.maxEnvLightsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
+            m_TileEntryLimit = lightLoopSettings.tileEntryLimit;
 
             // Cluster
             {
@@ -1139,7 +1142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BoundedEntityCollection    = new BoundedEntityCollection(xrViewCount, maxBoundedEntityCounts);
 
             // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
-            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen, maxBoundedEntityCount: m_BoundedEntityCollection.GetMaxEntityCount());
+            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen, maxBoundedEntityCount: m_BoundedEntityCollection.GetMaxEntityCount(), tileEntryLimit: m_TileEntryLimit);
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[8];
@@ -1329,7 +1332,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
-            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_BoundedEntityCollection.GetMaxEntityCount());
+            m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount);
         }
 
         void LightLoopReleaseResolutionDependentBuffers()
@@ -3974,11 +3977,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._BoundedEntityDwordOffsetPerCategory[i] = cb._BoundedEntityDwordOffsetPerCategory[i - 1] + cb._BoundedEntityDwordCountPerCategory[i - 1];
             }
 
-            int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+            int elementsPerTile = HDUtils.DivRoundUp(m_TileEntryLimit, 32); // Each element is a DWORD
             int dwordsRequired  = (int)cb._BoundedEntityDwordOffsetPerCategory[(int)BoundedEntityCategory.Count - 1]
                                 + (int)cb._BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count - 1];
 
-            Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption.");
+            Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption. Increase 'Tile entry limit' in the Lighting section of your HDRP asset.");
 
             cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);

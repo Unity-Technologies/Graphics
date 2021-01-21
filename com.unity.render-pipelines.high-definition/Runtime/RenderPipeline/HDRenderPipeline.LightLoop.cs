@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
 
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 1 * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
                 if (tileAndClusterData.clusterNeedsDepth)
@@ -207,12 +207,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     int viewCount             = m_MaxViewCount;
                     int maxBoundedEntityCount = tileAndClusterData.maxBoundedEntityCount;
+                    int tileEntryLimit        = m_TileEntryLimit;
 
                     passData.xyBoundsBuffer    = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" }); // {x_min, x_max, y_min, y_max}
                     passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
                     passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
 
-                    int elementsPerTile = HDUtils.DivRoundUp(TiledLightingConstants.s_TileEntryLimit, 32); // Each element is a DWORD
+                    int elementsPerTile = HDUtils.DivRoundUp(tileEntryLimit, 32); // Each element is a DWORD
 
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 

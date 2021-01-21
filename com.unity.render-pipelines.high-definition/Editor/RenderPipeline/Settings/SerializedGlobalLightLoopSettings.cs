@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
         public SerializedProperty maxLightsPerClusterCell;
+        public SerializedProperty tileEntryLimit;
         public SerializedProperty maxDensityVolumeSize;
         public SerializedProperty maxDensityVolumesOnScreen;
 
@@ -62,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
             maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
             maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
+            tileEntryLimit = root.Find((GlobalLightLoopSettings s) => s.tileEntryLimit);
 
             maxDensityVolumeSize = root.Find((GlobalLightLoopSettings s) => s.maxDensityVolumeSize);
             maxDensityVolumesOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDensityVolumesOnScreen);

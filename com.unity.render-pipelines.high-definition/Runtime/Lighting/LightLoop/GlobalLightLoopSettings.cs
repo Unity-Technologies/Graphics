@@ -166,6 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxLightsPerClusterCell = 8,
             maxDensityVolumeSize = DensityVolumeResolution.Resolution32,
             maxDensityVolumesOnScreen = 64, // 8MB texture atlas allocated by default
+            tileEntryLimit = 256,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -222,5 +223,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public DensityVolumeResolution maxDensityVolumeSize;
         /// <summary>Maximum number of density volumes at the same time on screen.</summary>
         public int maxDensityVolumesOnScreen;
+        /// <summary>Maximum number of bounded entities (total count summed over all entity categories) contained within a single screen tile.
+        /// Determines the memory budget of tiled lighting. For each category, the actual number of entities is rounded up to the nearest multiple of 32.
+        /// For instance, if you have 1 point light and 2 reflection probes, the limit must be RoundUp(1, 32) + RoundUp(2, 32) = 32 + 32 = 64.</summary>
+        public int tileEntryLimit;
     }
 }
