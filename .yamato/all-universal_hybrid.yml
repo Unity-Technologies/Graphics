@@ -14,11 +14,17 @@ PR_Universal_Hybrid_2020.2:
          rerun: on-new-revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_2020.2
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_Universal_Hybrid_2020.2:
     name: Nightly Universal_Hybrid - 2020.2
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.2
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_Universal_Hybrid_CUSTOM-REVISION:
     name: Universal_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
@@ -28,6 +34,8 @@ PR_Universal_Hybrid_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_Universal_Hybrid_CUSTOM-REVISION:
     name: Nightly Universal_Hybrid - CUSTOM-REVISION
     dependencies:
@@ -35,3 +43,5 @@ Nightly_Universal_Hybrid_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

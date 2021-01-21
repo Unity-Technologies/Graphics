@@ -24,6 +24,9 @@ PR_ShaderGraph_2020.2:
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_ShaderGraph_2020.2:
     name: Nightly ShaderGraph - 2020.2
     dependencies:
@@ -41,6 +44,9 @@ Nightly_ShaderGraph_2020.2:
          rerun: on-new-revision
       -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.2
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
@@ -60,6 +66,8 @@ PR_ShaderGraph_CUSTOM-REVISION:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
@@ -79,3 +87,5 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

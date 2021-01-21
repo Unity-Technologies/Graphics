@@ -16,11 +16,17 @@ PR_URPUpdate_2020.2:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_2020.2
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_URPUpdate_2020.2:
     name: Nightly URPUpdate - 2020.2
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2020.2
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:
@@ -32,6 +38,8 @@ PR_URPUpdate_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 Nightly_URPUpdate_CUSTOM-REVISION:
     name: Nightly URPUpdate - CUSTOM-REVISION
     dependencies:
@@ -39,3 +47,5 @@ Nightly_URPUpdate_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

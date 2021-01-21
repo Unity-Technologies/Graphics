@@ -21,7 +21,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_2020.2:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -55,7 +55,7 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_2020.2:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.2:
     name: Universal on iPhone_Metal_Standalone_cache_il2cpp_Linear on version 2020.2
     agent:
@@ -70,7 +70,7 @@ Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.2:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -104,7 +104,7 @@ Build_Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.2:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
 Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Universal on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -120,7 +120,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -157,7 +157,7 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
@@ -176,7 +176,7 @@ Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+                 ./utr --artifacts_path=test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -213,7 +213,7 @@ Build_Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
