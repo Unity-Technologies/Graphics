@@ -6,6 +6,7 @@
 StructuredBuffer<uint> _CoarseTileBuffer;
 StructuredBuffer<uint> _FineTileBuffer;
 StructuredBuffer<uint> _zBinBuffer;
+StructuredBuffer<uint> _zBinBitArrayBuffer;
 
 #ifdef USE_INDIRECT
     StructuredBuffer<uint> g_TileFeatureFlags;
