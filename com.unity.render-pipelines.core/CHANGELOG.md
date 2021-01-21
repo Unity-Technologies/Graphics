@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Support for the PlayStation 5 platform has been added.
 
 ### Fixed
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.

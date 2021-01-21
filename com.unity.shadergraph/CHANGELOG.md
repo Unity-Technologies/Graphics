@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed a broken link in the TOC to Main Preview
 - Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it [1291760]
 - Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
 - Fixed an issue where resizing the graph inspector window sometimes had unexpected results [1257036]
