@@ -57,6 +57,9 @@ EditorBuildSettings:
     path: Assets/Scenes/303_GlobalIlluminationQuality.unity
     guid: f307591c78b0e9746978e76d99bd938a
   - enabled: 1
+    path: Assets/Scenes/303_GlobalIlluminationQualityExposure.unity
+    guid: e70bf9fd006f6b84f9f543febdb384bb
+  - enabled: 1
     path: Assets/Scenes/304_GlobalIlluminationDenoised1.unity
     guid: 0db3dff8955342e42be12d7838614df9
   - enabled: 1
