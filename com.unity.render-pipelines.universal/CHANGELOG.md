@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
 - Fixed a case where overlay camera with output texture caused base camera not to render to screen. [case 1283225](https://issuetracker.unity3d.com/issues/game-view-renders-a-black-view-when-having-an-overlay-camera-which-had-output-texture-assigned-in-the-camera-stack)
-- Fixed an issue such that it is now posible to enqueue render passes at runtime.
+- Fixed an issue so it is now possible to enqueue render passes at runtime.
+- Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 
 ## [10.2.0] - 2020-10-19
 
