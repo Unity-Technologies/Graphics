@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
-  m_Name: 2D Renderer with Renderer Features
+  m_Name: 2D_Renderer_with_Renderer_Features
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: -1445063743672015800}
