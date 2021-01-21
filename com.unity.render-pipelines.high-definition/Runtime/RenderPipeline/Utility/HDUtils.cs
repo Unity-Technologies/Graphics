@@ -717,14 +717,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
-                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
-                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
-                    graphicDevice == GraphicsDeviceType.XboxOne ||
-                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
-                    graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan
-                    // Switch isn't supported currently (19.3)
-                    /* || graphicDevice == GraphicsDeviceType.Switch */);
+                graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.XboxOne ||
+                graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                graphicDevice == GraphicsDeviceType.Metal ||
+                graphicDevice == GraphicsDeviceType.Vulkan
+                // Switch isn't supported currently (19.3)
+                /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
 #if UNITY_EDITOR
@@ -732,16 +733,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-                    buildTarget == UnityEditor.BuildTarget.Stadia ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
-                    buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
-                    buildTarget == UnityEditor.BuildTarget.XboxOne ||
-                    buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
-                    // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
+                buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
+                buildTarget == UnityEditor.BuildTarget.Stadia ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
+                buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
+                buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                buildTarget == UnityEditor.BuildTarget.PS4 ||
+                buildTarget == UnityEditor.BuildTarget.PS5 ||
+                // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)

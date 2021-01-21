@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
 - Added light unit slider for automatic and automatic histrogram exposure limits.
 - Added View Bias for mesh decals.
+- Added support for the PlayStation 5 platform.
 
 ### Fixed
-- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches (case 1292501)
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
@@ -70,6 +70,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
 - Fixed error in Depth Of Field near radius blur calculation (case 1306228).
 - Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
+- Fixed some render texture leaks.
+- Fixed light gizmo showing shadow near plane when shadows are disabled.
+- Fixed path tracing alpha channel support (case 1304187).
+- Fixed shadow matte not working with ambient occlusion when MSAA is enabled
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
@@ -83,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the warning message for ray traced area shadows (case 1303410).
 - Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
 	
 ## [10.2.1] - 2020-11-30
 
