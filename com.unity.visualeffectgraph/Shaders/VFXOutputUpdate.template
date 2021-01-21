@@ -184,13 +184,13 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
 
 #if VFX_FEATURE_MOTION_VECTORS
-#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS) && !defined(UNITY_STEREO_INSTANCING_ENABLED)
                 uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 + 1);
 #else
                 uint elementToVFXBaseIndex = index * 13;
 #endif
                 elementToVFXBuffer.Store(elementToVFXBaseIndex++ << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
-#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS) && !defined(UNITY_STEREO_INSTANCING_ENABLED)
                 ${VFXMotionVectorVerts}
                 UNITY_UNROLL
                 for (int itIndexVert = 0; itIndexVert < VFX_FEATURE_MOTION_VECTORS_VERTS - 1; itIndexVert += 2)
@@ -209,7 +209,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                 UNITY_UNROLL
                 for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
                 {
-                    float4 value = elementToVFX[itIndexMatrixRow] * attributes.alive;
+                    float4 value = elementToVFX[itIndexMatrixRow];
                     elementToVFXBuffer.Store4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2, asuint(value));
                 }
 #endif
