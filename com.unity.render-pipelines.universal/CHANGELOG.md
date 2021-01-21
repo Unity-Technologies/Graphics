@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature.
+- Fixed an issue where soft particles did not work with orthographic projection. [case 1294607](https://issuetracker.unity3d.com/product/unity/issues/guid/1294607/)
+
 
 ## [11.0.0] - 2020-10-21
 ### Added
@@ -96,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 - Fixed SAMPLE_TEXTURECUBE_ARRAY_LOD macro when using OpenGL ES. [case 1285132](https://issuetracker.unity3d.com/issues/urp-android-error-sample-texturecube-array-lod-is-not-supported-on-gles-3-dot-0-when-using-cubemap-array-shader-shaders)
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
+- Fixed SpeedTree LOD fade functionality. [case 1198135]
 
 ## [10.2.0] - 2020-10-19
 
