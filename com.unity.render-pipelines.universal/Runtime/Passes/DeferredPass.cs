@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier depthAttachmentId = m_DeferredLights.DepthAttachmentIdentifier;
 
             // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(lightingAttachmentId, depthAttachmentId);
+            ConfigureTarget(lightingAttachmentId, depthAttachmentId, m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferLightingIndex));
         }
 
         // ScriptableRenderPass

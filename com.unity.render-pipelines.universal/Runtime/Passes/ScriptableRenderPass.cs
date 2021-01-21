@@ -230,10 +230,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format = GraphicsFormat.None)
         {
             m_DepthAttachment = depthAttachment;
-            ConfigureTarget(colorAttachment);
+            ConfigureTarget(colorAttachment, format);
         }
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats = null)
         {
             overrideCameraTarget = true;
 
@@ -253,6 +253,14 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
+
+            if (formats != null)
+            {
+                for (int i = 0; i < formats.Length; ++i)
+                {
+                    renderTargetFormat[i] = formats[i];
+                }
+            }
         }
 
         /// <summary>
@@ -261,13 +269,16 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, int width = -1, int height = -1, int sampleCount = -1, bool depth = false, GraphicsFormat format = GraphicsFormat.None)
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format = GraphicsFormat.None, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
         {
             overrideCameraTarget = true;
 
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            {
                 m_ColorAttachments[i] = 0;
+                renderTargetFormat[i] = GraphicsFormat.None;
+            }
 
             renderTargetWidth = width;
             renderTargetHeight = height;
