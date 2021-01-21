@@ -25,10 +25,12 @@ namespace UnityEditor.VFX
 
         public override bool supportsUV { get { return true; } }
 
-        public class OptionalInputProperties
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
 
         public class CustomUVInputProperties
@@ -43,7 +45,7 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
                 if (shaderGraph == null)
-                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                    properties = properties.Concat(optionalInputProperties);
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
                 return properties;

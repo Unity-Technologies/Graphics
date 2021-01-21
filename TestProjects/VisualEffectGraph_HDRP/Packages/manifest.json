@@ -5,14 +5,14 @@
         "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
         "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
         "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
+        "com.unity.shaderanalysis": "file:../../../com.unity.shaderanalysis",
         "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
         "com.unity.test-framework": "1.1.14",
-        "com.unity.test-framework.build": "0.0.1-preview.12",
-        "com.unity.test-framework.utp-reporter": "1.0.2-preview",
-        "com.unity.testframework.graphics": "7.7.1-preview",
         "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
         "com.unity.timeline": "1.2.9",
         "com.unity.ugui": "1.0.0",
+        "com.unity.testing.graphics-performance": "file:../../../com.unity.testing.graphics-performance",
         "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
         "com.unity.modules.ai": "1.0.0",
         "com.unity.modules.androidjni": "1.0.0",
@@ -49,7 +49,9 @@
     "disableProjectUpdate": true,
     "testables": [
         "com.unity.testing.visualeffectgraph",
+        "com.unity.testing.xr",
         "com.unity.render-pipelines.visualeffectgraph",
-        "com.unity.testframework.graphics"
+		"com.unity.testframework.graphics",
+		"com.unity.testing.graphics-performance"
     ]
 }
