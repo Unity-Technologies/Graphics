@@ -47,13 +47,13 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
         float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
     #else
         float flipBookSize = 1.0f;
-    #endif 
+    #endif
 #else
     #ifdef VFX_VARYING_FLIPBOOKSIZE
         float2 flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
     #else
         float2 flipBookSize = float2(1, 1);
-    #endif  
+    #endif
 #endif
 
 #ifdef VFX_VARYING_INVFLIPBOOKSIZE
@@ -184,4 +184,24 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
     #else
         return color;
     #endif
+}
+
+float3 VFXGetCameraWorldPosition()
+{
+    return unity_CameraToWorld._m03_m13_m23;
+}
+
+float3 VFXGetCameraWorldDirection()
+{
+    return unity_CameraToWorld._m02_m12_m22;
+}
+
+float4x4 VFXGetCameraToWorldMatrix()
+{
+    return unity_CameraToWorld;
+}
+
+float4x4 VFXGetWorldToCameraMatrix()
+{
+    return unity_WorldToCamera;
 }

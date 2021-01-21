@@ -278,25 +278,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
             {
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
+                ++EditorGUI.indentLevel;
 
-                    if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
-                        EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
 
-                    --EditorGUI.indentLevel;
-                }
-
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
+                --EditorGUI.indentLevel;
             }
-            else
-            {
-                EditorGUILayout.HelpBox(Styles.probeVolumeNotEnabled, MessageType.Warning);
-            }
+
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
         }
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -360,7 +353,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(message, MessageType.Info);
                 }
             }
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed, Styles.cubemapSizeContent);
 
             EditorGUILayout.Space();
 
@@ -1141,8 +1133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
-                AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);

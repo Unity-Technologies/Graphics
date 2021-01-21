@@ -107,8 +107,6 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	return o;
 }
 
-${VFXFragmentCommonFunctions}
-
 float3 VFXCubeGetLocalNormal(VFX_VARYING_PS_INPUTS i)
 {
 #ifdef VFX_VARYING_OFFSETS
