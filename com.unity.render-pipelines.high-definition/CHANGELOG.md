@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added light unit slider for automatic and automatic histrogram exposure limits.
 - Added View Bias for mesh decals.
 - Added support for the PlayStation 5 platform.
+- Added support for skinned motionvectors when using Hybrid Renderer
 
 ### Fixed
 - Fixed computation of geometric normal in path tracing (case 1293029).
