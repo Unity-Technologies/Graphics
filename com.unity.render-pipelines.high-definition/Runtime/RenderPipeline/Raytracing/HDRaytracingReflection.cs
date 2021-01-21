@@ -42,6 +42,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        static RTHandle ReflectionHistorySampleCountBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension,
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_ReflectionHistorySampleCountBuffer{1}", viewName, frameIndex));
+        }
+
         private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
@@ -210,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float minSmoothness;
             public float smoothnessFadeStart;
+            public int rayMissInWeight;
 
             // Other parameters
             public ComputeShader reflectionFilterCS;
@@ -228,6 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Requires parameters
             parameters.minSmoothness = settings.minSmoothness;
             parameters.smoothnessFadeStart = settings.smoothnessFadeStart;
+            parameters.rayMissInWeight = settings.skyHitsHaveZeroWeight.value ? 1 : 0;
 
             // Other parameters
             parameters.reflectionFilterCS = m_Asset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
@@ -252,6 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = parameters.minSmoothness;
             parameters.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = parameters.smoothnessFadeStart;
             ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
+            cmd.SetComputeIntParam(parameters.reflectionFilterCS, HDShaderIDs._RaytracingReflectionMissInWeight, parameters.rayMissInWeight);
 
             // Source input textures
             cmd.SetComputeTextureParam(parameters.reflectionFilterCS, parameters.adjustWeightKernel, HDShaderIDs._DepthTexture, resources.depthStencilBuffer);
@@ -335,6 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reflection evaluation parameters
             public float clampValue;
             public int reflectSky;
+            public int rayMissInWeight;
             public float rayLength;
             public int sampleCount;
             public int bounceCount;
@@ -364,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reflection evaluation parameters
             rtrQualityRenderingParameters.clampValue = settings.clampValue;
             rtrQualityRenderingParameters.reflectSky = settings.reflectSky.value ? 1 : 0;
+            rtrQualityRenderingParameters.rayMissInWeight = settings.skyHitsHaveZeroWeight.value ? 1 : 0; //todo
             rtrQualityRenderingParameters.rayLength = settings.rayLength;
             rtrQualityRenderingParameters.sampleCount = settings.sampleCount.value;
             rtrQualityRenderingParameters.bounceCount = settings.bounceCount.value;
@@ -430,6 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(rtrQRenderingParameters.reflectionShader, HDShaderIDs._NormalBufferTexture, rtrQRenderingResources.normalBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, rtrQRenderingResources.stencilBuffer, RenderTextureSubElement.Stencil);
             cmd.SetRayTracingIntParams(rtrQRenderingParameters.reflectionShader, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+            cmd.SetRayTracingIntParams(rtrQRenderingParameters.reflectionShader, HDShaderIDs._RaytracingReflectionMissInWeight, rtrQRenderingParameters.rayMissInWeight);
             cmd.SetRayTracingIntParams(rtrQRenderingParameters.reflectionShader, HDShaderIDs._AffectSmoothSurfaces, rtrQRenderingParameters.historyAffectSmoothSurfaces);
 
             // Set ray count texture

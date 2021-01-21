@@ -223,6 +223,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for reflection rays.
         /// </summary>
         public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        /// <summary>
+        /// When enabled, ray tracing flags sky hits as zero weight in the SSR buffer.
+        /// </summary>
+        public BoolParameter skyHitsHaveZeroWeight = new BoolParameter(false);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.

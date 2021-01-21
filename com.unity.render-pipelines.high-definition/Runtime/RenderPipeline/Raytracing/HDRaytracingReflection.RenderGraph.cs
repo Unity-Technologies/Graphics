@@ -144,6 +144,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReflectionHistoryBufferAllocatorFunction, 1);
         }
 
+        static RTHandle RequestRayTracedReflectionsHistorySampleCountTexture(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflectionSampleCount)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflectionSampleCount,
+                ReflectionHistorySampleCountBufferAllocatorFunction, 1);
+        }
+
         TextureHandle RenderReflectionsPerformance(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
             int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
@@ -169,9 +176,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Prepare the parameters and the resources
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, settings.fullResolution, true);
-                ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, settings.denoiserRadius, settings.fullResolution, true, settings.affectSmoothSurfaces);
+                ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, settings.denoiserRadius, settings.fullResolution, singleReflectionBounce: true, settings.affectSmoothSurfaces, settings.skyHitsHaveZeroWeight.value); // TODO settings.skyHitsHaveZeroWeight.value
+                //ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, settings.denoiserRadius, settings.fullResolution, singleReflectionBounce: true, settings.affectSmoothSurfaces, false); // TODO settings.skyHitsHaveZeroWeight.value
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                //RTHandle historySampleCount = settings.skyHitsHaveZeroWeight.value ? RequestRayTracedReflectionsHistorySampleCountTexture(hdCamera) : null;
+                RTHandle historySampleCount = RequestRayTracedReflectionsHistorySampleCountTexture(hdCamera);
+                // ...see DenoiseBuffer in HDReflectionDenoiser.cs : for now always alloc, guards in compute dont seem to work (TODO)
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal, historySampleCount);
                 PropagateRayTracedReflectionsHistoryValidity(hdCamera, settings.fullResolution, true);
             }
 
@@ -248,9 +259,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Prepare the parameters and the resources
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, true, true);
-                ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, settings.denoiserRadius, true, rtrQRenderingParameters.bounceCount == 1, settings.affectSmoothSurfaces);
+                ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, settings.denoiserRadius, true, rtrQRenderingParameters.bounceCount == 1, settings.affectSmoothSurfaces, settings.skyHitsHaveZeroWeight.value);
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                //RTHandle historySampleCount = settings.skyHitsHaveZeroWeight.value ? RequestRayTracedReflectionsHistorySampleCountTexture(hdCamera) : null;
+                RTHandle historySampleCount = RequestRayTracedReflectionsHistorySampleCountTexture(hdCamera);
+                // ...see DenoiseBuffer in HDReflectionDenoiser.cs : for now always alloc, guards in compute dont seem to work (TODO)
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal, historySampleCount);
                 PropagateRayTracedReflectionsHistoryValidity(hdCamera, true, true);
             }
 

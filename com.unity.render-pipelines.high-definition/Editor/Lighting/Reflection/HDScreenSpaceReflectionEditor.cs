@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Quality
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
+        SerializedDataParameter m_SkyHitsHaveZeroWeight;
 
         public override void OnEnable()
         {
@@ -72,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Quality
             m_SampleCount                   = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
+            m_SkyHitsHaveZeroWeight         = Unpack(o.Find(x => x.skyHitsHaveZeroWeight));
 
             base.OnEnable();
         }
@@ -90,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_ClampValueText = EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity.");
         static public readonly GUIContent k_SampleCountText = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections.");
         static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
+        static public readonly GUIContent k_SkyHitsHaveZeroWeight = EditorGUIUtility.TrTextContent("Sky Hits Use Pre-integrated Sky", "When enabled, primary sky reflections have no lighting weight in the reflection hierarchy and pre-integrated sky is used instead.");
         static public readonly GUIContent k_ModeText = EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used.");
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections.");
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
@@ -113,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
+                PropertyField(m_SkyHitsHaveZeroWeight, k_SkyHitsHaveZeroWeight);
             }
         }
 
@@ -135,6 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
+                PropertyField(m_SkyHitsHaveZeroWeight, k_SkyHitsHaveZeroWeight);
             }
         }
 
@@ -243,6 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.Save<bool>(m_Denoise);
                 settings.Save<int>(m_DenoiserRadius);
                 settings.Save<bool>(m_AffectsSmoothSurfaces);
+                // TODO: m_SkyHitsHaveZeroWeight ?
             }
             // SSR
             else
@@ -265,6 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<bool>(ref m_Denoise);
                 settings.TryLoad<int>(ref m_DenoiserRadius);
                 settings.TryLoad<bool>(ref m_AffectsSmoothSurfaces);
+                // TODO: m_SkyHitsHaveZeroWeight ?
             }
             // SSR
             else
@@ -285,6 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
                 CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
                 CopySetting(ref m_AffectsSmoothSurfaces, settings.lightingQualitySettings.RTRSmoothDenoising[level]);
+                // TODO: m_SkyHitsHaveZeroWeight ?
             }
             // SSR
             else
