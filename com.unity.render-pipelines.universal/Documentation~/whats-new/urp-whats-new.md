@@ -14,11 +14,15 @@ This section contains the overview of the new features in this release.
 
 This section contains the overview of the major improvements in this release.
 
-### TODO: Improvement 1
+### You can disable Post Processing for a specific URP asset
+
+The URP asset now has the Post Processing check box. This check box turns post-processing on (check box selected) or off (check box cleared) for the current URP asset.<br/>If you clear this check box, Unity excludes post-processing shaders and textures from the build, unless one of the following conditions is true:<ul><li>Other assets in the build refer to the assets related to post-processing.</li><li>A different URP asset has the Post Processing property enabled.</li></ul>
+
+![Post processing properties](../Images/whats-new/urp-11/urp-asset-post-processing.png)<br/>*Post processing section in the URP asset.*
 
 ## Issues resolved
 
-TODO: If we would like to highlight some particular fixes, list them here. 
+TODO: If we would like to highlight some particular fixes, list them here.
 
 For a complete list of issues resolved in URP 11, see the [Changelog](../../changelog/CHANGELOG.html).
 

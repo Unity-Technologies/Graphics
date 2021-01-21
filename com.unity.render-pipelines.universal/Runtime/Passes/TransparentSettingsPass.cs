@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.Universal
         const string m_ProfilerTag = "Transparent Settings Pass";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
-
         public TransparentSettingsPass(RenderPassEvent evt, bool shadowReceiveSupported)
         {
             base.profilingSampler = new ProfilingSampler(nameof(TransparentSettingsPass));

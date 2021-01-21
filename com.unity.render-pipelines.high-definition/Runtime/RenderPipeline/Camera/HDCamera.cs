@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             GlobalIllumination0,
             GlobalIllumination1,
+            RayTracedReflections,
             Count
         }
 
@@ -244,6 +245,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // XR multipass and instanced views are supported (see XRSystem)
         internal XRPass xr { get; private set; }
+
+        internal float deltaTime => time - lastTime;
 
         // Non oblique projection matrix (RHS)
         // TODO: this code is never used and not compatible with XR
@@ -341,6 +344,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
+
+        internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
 
         internal HDPhysicalCamera physicalParameters { get; private set; }
 
@@ -450,9 +455,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Different views/tabs may have different values of the "Animated Materials" setting.
             animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(aniCam);
-
-            time = animateMaterials ? hdrp.GetTime() : 0;
-            lastTime = animateMaterials ? hdrp.GetLastTime() : 0;
+            if (animateMaterials)
+            {
+                float newTime, deltaTime;
+#if UNITY_EDITOR
+                newTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+                deltaTime = Application.isPlaying ? Time.deltaTime : 0.033f;
+#else
+                newTime = Time.time;
+                deltaTime = Time.deltaTime;
+#endif
+                time = newTime;
+                lastTime = newTime - deltaTime;
+            }
+            else
+            {
+                time = 0;
+                lastTime = 0;
+            }
 
             // Make sure that the shadow history identification array is allocated and is at the right size
             if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
@@ -572,8 +592,8 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = false;
             cameraFrameCount++;
 
-            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
-            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
+            HDRenderPipeline.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -671,6 +691,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
+            => UpdateShaderVariablesGlobalCB(ref cb, (int)cameraFrameCount);
+
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
@@ -705,8 +728,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float ct = time;
             float pt = lastTime;
+#if UNITY_EDITOR
+            float dt = time - lastTime;
+            float sdt = dt;
+#else
             float dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
+#endif
 
             cb._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
             cb._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
@@ -798,30 +826,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.ReleaseBuffer(id);
         }
 
-        internal void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
-        {
-            if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
-                return;
-
-            // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
-            // Since recorder does not know about this, we need to send a texture of the right size.
-            cmd.GetTemporaryRT(m_RecorderTempRT, actualWidth, actualHeight, 0, FilterMode.Point, input.rt.graphicsFormat);
-
-            var blitMaterial = HDUtils.GetBlitMaterial(input.rt.dimension);
-
-            var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
-            Vector2 viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
-
-            m_RecorderPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, input);
-            m_RecorderPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, viewportScale);
-            m_RecorderPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-            cmd.SetRenderTarget(m_RecorderTempRT);
-            cmd.DrawProcedural(Matrix4x4.identity, blitMaterial, 0, MeshTopology.Triangles, 3, 1, m_RecorderPropertyBlock);
-
-            for (m_RecorderCaptureActions.Reset(); m_RecorderCaptureActions.MoveNext();)
-                m_RecorderCaptureActions.Current(m_RecorderTempRT, cmd);
-        }
-
         class ExecuteCaptureActionsPassData
         {
             public TextureHandle input;
@@ -871,6 +875,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDUtils.IsRegularPreviewCamera(camera))
             {
                 visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
+                visualSky.cloudSettings = null;
                 lightingSky = visualSky;
                 skyAmbientMode = SkyAmbientMode.Dynamic;
             }
@@ -880,6 +885,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
+                visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -887,7 +893,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
                 {
                     SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
-                    if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                    CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
+
+                    if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
+                        (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
                     {
                         // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                         // Resetting the visual sky hash will ensure that.
@@ -895,6 +904,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     m_LightingOverrideSky.skySettings = newSkyOverride;
+                    m_LightingOverrideSky.cloudSettings = newCloudOverride;
                     lightingSky = m_LightingOverrideSky;
                 }
                 else
@@ -1380,6 +1390,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Dispose()
         {
+            HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+
             VolumeManager.instance.DestroyStack(volumeStack);
 
             if (m_HistoryRTSystem != null)

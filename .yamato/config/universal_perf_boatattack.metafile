@@ -1,6 +1,32 @@
 project:
   name: URP_Performance_BoatAttack
   folder: BoatAttack
+  url: https://github.com/Unity-Technologies/BoatAttack.git
+  branch: '%BOAT_ATTACK_BRANCH%'
+  revision: '%BOAT_ATTACK_REVISION%'
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+    - 'unity-config project add dependency com.unity.addressables@1.16.7 --project-path .'
+    - 'unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .'
+    - 'unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .'
+    - 'unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .'
+    - 'unity-config project add testable com.unity.cli-project-setup  --project-path .'
+    - 'unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .'
+    - 'unity-config project add testable com.unity.test.metadata-manager  --project-path .'
+    - 'unity-config project add testable com.unity.testing.graphics-performance --project-path .'
+    - 'unity-config project add testable com.unity.render-pipelines.core  --project-path .'
+    - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
+    - 'unity-config project set project-update false --project-path .'
+  variables:
+    BOAT_ATTACK_BRANCH: master
+    BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
@@ -24,28 +50,28 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
     utr_repeat:
-      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersLow
         utr_flags_build:
         - [all]: --testfilter=Low
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
-      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersLow
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersMedium
         utr_flags_build:
         - [all]: --testfilter=Medium
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersMedium
-      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersMedium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]
         utr_flags:
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersHigh
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersHigh
         utr_flags_build:
-        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
-        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersHigh
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --testfilter=High
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=../../playersHigh
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -97,6 +123,8 @@ test_platforms:
       - apply: [Win_DX11, Win_DX12, Win_Vulkan]
         utr_flags:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -162,7 +190,7 @@ platforms:
       # default: package_ci_mac
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
@@ -170,7 +198,7 @@ platforms:
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
   - name: OSX
     apis:
@@ -179,7 +207,14 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
@@ -226,3 +261,15 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_BoatAttack
+      pr: true

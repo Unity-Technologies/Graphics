@@ -1,6 +1,6 @@
 # Load Texture2DArray
 
-Menu Path : **Operator > Sampling > Load Texture2DArray** 
+Menu Path : **Operator > Sampling > Load Texture2DArray**
 
 The **Load Texture2DArray** Operator reads a Texture2DArray’s texel value for specified coordinates and slice. This Operator returns the float4 texel value without any filtering.
 
