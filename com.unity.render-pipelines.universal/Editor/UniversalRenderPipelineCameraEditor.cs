@@ -258,6 +258,15 @@ namespace UnityEditor.Rendering.Universal
 
         GUIContent m_NameContent = new GUIContent();
 
+        bool IsNonBaseCameraDeferred(UniversalAdditionalCameraData additionalCameraData)
+        {
+            if (additionalCameraData.renderType == CameraRenderType.Base)
+                return false;
+
+            ScriptableRenderer renderer = additionalCameraData.scriptableRenderer;
+            return renderer is ForwardRenderer && ((ForwardRenderer)renderer).renderingMode == RenderingMode.Deferred;
+        }
+
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.height = EditorGUIUtility.singleLineHeight;
@@ -275,6 +284,15 @@ namespace UnityEditor.Rendering.Universal
                 {
                     warning = true;
                     warningInfo += "Not a supported type";
+                    if (!errorCameras.Contains(cam))
+                    {
+                        errorCameras.Add(cam);
+                    }
+                }
+                else if (IsNonBaseCameraDeferred(cam.gameObject.GetComponent<UniversalAdditionalCameraData>()))
+                {
+                    warning = true;
+                    warningInfo += "Deferred rendering mode is only allowed for the base camera";
                     if (!errorCameras.Contains(cam))
                     {
                         errorCameras.Add(cam);
@@ -535,20 +553,24 @@ namespace UnityEditor.Rendering.Universal
 
                 if (errorCameras.Any())
                 {
-                    string errorString = "These cameras are not of a valid type:\n";
-                    string validCameras = "";
+                    string errorString = "These cameras have invalid properties:\n";
                     foreach (var errorCamera in errorCameras)
                     {
-                        errorString += errorCamera.name + "\n";
+                        errorString += " - " + errorCamera.name + "\n";
                     }
 
+                    string validTypes = "";
                     foreach (var validCameraType in validCameraTypes)
                     {
-                        validCameras += validCameraType + "  ";
+                        validTypes += validCameraType + "  ";
                     }
-                    errorString += "Valid types are " + validCameras;
+                    errorString += "\nValid types are: " + validTypes;
+
+                    errorString += "\nOnly the base camera can use Deferred rendering mode.";
+
                     EditorGUILayout.HelpBox(errorString, MessageType.Warning);
                 }
+
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
