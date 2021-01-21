@@ -67,8 +67,8 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
 #define VERTS_PER_FACE     (4)
 
-#define IS_POW2(X)     (( (X) & ( (X) - 1 )) == 0)
-#define IS_NOT_POW2(X) (( (X) & ( (X) - 1 )) != 0)
+#define IS_POW2(X)     (( (X) & ( -1 + (X) )) == 0)
+#define IS_NOT_POW2(X) (( (X) & ( -1 + (X) )) != 0)
 
 // (Sep 16, 2020)
 // Improve the quality of generated code at the expense of readability.

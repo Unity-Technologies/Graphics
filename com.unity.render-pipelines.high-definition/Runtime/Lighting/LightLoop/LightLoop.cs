@@ -2572,36 +2572,37 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct BoundedEntitySortingKeyLayout
         {
             public const int k_EntityIndexBitCount = 16;
+            public const int k_EntitySpatialKeyBitCount = 20;
 
             public int categoryBitCount;
-            public int fixedPointLogDepthBitCount;
+            public int fixedPointSpatialKeyBitCount;
             public int lightTypeBitCount;
             public int indexBitCount;
             public int totalBitCount;
 
             public int categoryOffset;
-            public int fixedPointLogDepthOffset;
+            public int fixedPointSpatialKeyOffset;
             public int lightTypeOffset;
             public int indexOffset;
         }
 
-        internal static BoundedEntitySortingKeyLayout GeBoundedEntitySortingKeyLayoutLayout()
+        internal static BoundedEntitySortingKeyLayout GetBoundedEntitySortingKeyLayoutLayout()
         {
             BoundedEntitySortingKeyLayout layout;
 
             layout.categoryBitCount           = CeilLog2i((int)BoundedEntityCategory.Count);
-            layout.fixedPointLogDepthBitCount = 16;
+            layout.fixedPointSpatialKeyBitCount = BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount;
             layout.lightTypeBitCount          = CeilLog2i((int)GPULightType.Count);
             layout.indexBitCount              = BoundedEntitySortingKeyLayout.k_EntityIndexBitCount;
             layout.totalBitCount              = layout.categoryBitCount
-                + layout.fixedPointLogDepthBitCount
+                + layout.fixedPointSpatialKeyBitCount
                 + layout.lightTypeBitCount
                 + layout.indexBitCount;
             // LSB -> MSB.
             layout.indexOffset              = 0;
             layout.lightTypeOffset          = layout.indexBitCount              + layout.indexOffset;
-            layout.fixedPointLogDepthOffset = layout.lightTypeBitCount          + layout.lightTypeOffset;
-            layout.categoryOffset           = layout.fixedPointLogDepthBitCount + layout.fixedPointLogDepthOffset;
+            layout.fixedPointSpatialKeyOffset = layout.lightTypeBitCount          + layout.lightTypeOffset;
+            layout.categoryOffset           = layout.fixedPointSpatialKeyBitCount + layout.fixedPointSpatialKeyOffset;
 
             return layout;
         }
@@ -2609,14 +2610,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // 'lightType' is optional in case the entity is not a light.
         internal static ulong GenerateBoundedEntitySortingKey(int index, BoundedEntityCategory category, int fixedPointLogDepth, int lightType = 0)
         {
-            BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+            BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
 
             Debug.Assert(layout.totalBitCount <= 8 * sizeof(ulong));
             Debug.Assert(0 <= (int)category && (int)category < (int)BoundedEntityCategory.Count);
-            Debug.Assert(fixedPointLogDepth < (1 << layout.fixedPointLogDepthBitCount));
+            Debug.Assert(fixedPointLogDepth < (1 << layout.fixedPointSpatialKeyBitCount));
 
             ulong key = ((ulong)category           << layout.categoryOffset)
-                | ((ulong)fixedPointLogDepth << layout.fixedPointLogDepthOffset)
+                | ((ulong)fixedPointLogDepth << layout.fixedPointSpatialKeyOffset)
                 | ((ulong)lightType          << layout.lightTypeOffset)
                 | ((ulong)index              << layout.indexOffset);
 
@@ -2752,7 +2753,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
                         float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(light.light), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, d, (int)processedData.gpuLightType);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, processedData.lightCategory, key);
@@ -2858,7 +2859,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
 
                     // In 1. we have already classify and sorted the light, we need to use this sorted order here
                     ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
@@ -2952,9 +2953,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //Notes:
             // - 1+ term is to prevent having negative values in the log result
             // - 1000* is too keep 3 digit after the dot while we truncate the result later
-            // - 1048575 is 2^20-1 as we pack the result on 20bit later
             float boxVolume = 8f * bounds.extents.x * bounds.extents.y * bounds.extents.z;
-            uint  logVolume = (uint)Math.Max(0, Math.Min((int)(1000 * Mathf.Log(1 + boxVolume, 1.05f)), 1048575));
+            uint  logVolume = (uint)Math.Max(0, Math.Min((int)(1000 * Mathf.Log(1 + boxVolume, 1.05f)), (1 << BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount) - 1));
             return logVolume;
         }
 
@@ -3028,9 +3028,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     int xrViewCount = hdCamera.viewCount;
 
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
-                    {
-                        float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                    {                       
+                        int   d   = (int)CalculateProbeLogVolume(probe.bounds);  
                         ulong key = GenerateBoundedEntitySortingKey(probeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.CubemapReflection);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
@@ -3057,7 +3056,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
                         float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(planarProbeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.PlanarReflection);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
@@ -3083,7 +3082,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
 
                     // In 1. we have already classify and sorted the light, we need to use this sorted order here
                     ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
@@ -3201,7 +3200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             w = ComputeLinearDepth(centroidWS, hdCamera, viewIndex);
                         }
 
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, d);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.Decal, key);
@@ -3216,7 +3215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // The OBB is RWS.
                         float w   = ComputeLinearDepth(densityVolumes.data[densityVolumeIndex].center, hdCamera, viewIndex, forceRWS: true);
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(densityVolumeIndex, BoundedEntityCategory.DensityVolume, d);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.DensityVolume, key);
@@ -3260,7 +3259,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
-                        BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
 
                         ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
 
@@ -3305,7 +3304,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
-                        BoundedEntitySortingKeyLayout layout = GeBoundedEntitySortingKeyLayoutLayout();
+                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
 
                         ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
 
@@ -3411,7 +3410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader tileShader;
             public Vector2Int    coarseTileBufferDimensions;
             public Vector2Int    fineTileBufferDimensions;
-
+           
             // Big Tile
             public ComputeShader bigTilePrepassShader;
             public int bigTilePrepassKernel;
@@ -3461,6 +3460,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseTileBuffer;
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
+            public ComputeBuffer zBinBitArrayBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer; // Deferred
             public ComputeBuffer tileListBuffer;         // Deferred
             public ComputeBuffer dispatchIndirectBuffer; // Deferred
@@ -3553,8 +3553,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 var shader = parameters.zBinShader;
                 int kernel = 0;
 
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer, resources.wBoundsBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBuffer,    resources.zBinBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer,      resources.wBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
+                
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
@@ -3630,8 +3632,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (parameters.computeLightVariants)
                 {
                     parameters.classificationShader.EnableKeyword("LIGHT_CLASSIFICATION");
-                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
-                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
+                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
+                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
                 }
 
                 if (parameters.computeMaterialVariants)
@@ -3830,7 +3833,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tileShader                 = tileShader;
             parameters.coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             parameters.fineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
-
+               
             // Big tile prepass
             parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
             parameters.bigTilePrepassKernel = s_GenListPerBigTileKernel;
@@ -3971,6 +3974,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
+            cb._ZBinCategorySortMask = (1u << (int)BoundedEntityCategory.ReflectionProbe);
 
             // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
@@ -4196,6 +4200,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
+            public ComputeBuffer zBinBitArrayBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;
             public ComputeBuffer dispatchIndirectBuffer;
@@ -4205,8 +4210,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -4309,6 +4315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
@@ -4332,6 +4339,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
 
             // First, render split lighting.
             if (parameters.outputSplitLighting)

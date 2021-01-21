@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseTileBuffer;
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
+            public ComputeBufferHandle  zBinBitArrayBuffer;
             public ComputeBufferHandle tileFeatureFlagsBuffer; // Deferred
             public ComputeBufferHandle tileListBuffer;         // Deferred
             public ComputeBufferHandle dispatchIndirectBuffer; // Deferred
@@ -117,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             buildLightListResources.coarseTileBuffer       = data.output.coarseTileBuffer;
             buildLightListResources.fineTileBuffer         = data.output.fineTileBuffer;
             buildLightListResources.zBinBuffer             = data.output.zBinBuffer;
+            buildLightListResources.zBinBitArrayBuffer     = data.output.zBinBitArrayBuffer;
             buildLightListResources.tileFeatureFlagsBuffer = data.output.tileFeatureFlagsBuffer;
             buildLightListResources.tileListBuffer         = data.output.tileListBuffer;
             buildLightListResources.dispatchIndirectBuffer = data.output.dispatchIndirectBuffer;
@@ -214,6 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
 
                     int elementsPerTile = HDUtils.DivRoundUp(tileEntryLimit, 32); // Each element is a DWORD
+                    passData.output.zBinBitArrayBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * elementsPerTile * viewCount, sizeof(uint)) { name = "zBinBitArrayBuffer" }));  
 
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
@@ -332,6 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBufferHandle          fineTileBuffer;
             public ComputeBufferHandle          zBinBuffer;
+            public ComputeBufferHandle          zBinBitArrayBuffer;
             public ComputeBufferHandle          tileFeatureFlagsBuffer;
             public ComputeBufferHandle          tileListBuffer;
             public ComputeBufferHandle          dispatchIndirectBuffer;
@@ -390,6 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 /* TODO: we shouldn't be reading these buffers if tiled lighting or classification are disabled... */
                 passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
                 passData.zBinBuffer = builder.ReadComputeBuffer(lightLists.zBinBuffer);
+                passData.zBinBitArrayBuffer = builder.ReadComputeBuffer(lightLists.zBinBitArrayBuffer);
                 passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlagsBuffer);
                 passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileListBuffer);
                 passData.dispatchIndirectBuffer = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
@@ -410,6 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         resources.fineTileBuffer = data.fineTileBuffer;
                         resources.zBinBuffer = data.zBinBuffer;
+                        resources.zBinBitArrayBuffer = data.zBinBitArrayBuffer;
                         resources.tileFeatureFlagsBuffer = data.tileFeatureFlagsBuffer;
                         resources.tileListBuffer = data.tileListBuffer;
                         resources.dispatchIndirectBuffer = data.dispatchIndirectBuffer;
