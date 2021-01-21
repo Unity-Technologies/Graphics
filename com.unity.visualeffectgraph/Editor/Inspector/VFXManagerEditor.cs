@@ -89,6 +89,9 @@ class VFXManagerEditor : Editor
         if (vfxmanager == null)
             return;
 
+        if (!AssetDatabase.IsOpenForEdit(vfxmanager, StatusQueryOptions.UseCachedIfPossible))
+            return;
+
         SerializedObject obj = new SerializedObject(vfxmanager);
         bool shaderModified = false;
 
