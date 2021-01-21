@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Test
         float m_previousFixedTimeStep;
         float m_previousMaxDeltaTime;
 #if UNITY_EDITOR
-        bool m_previousAllowAsyncCompilation;
+        bool m_previousAsyncShaderCompilation;
 #endif
         [OneTimeSetUp]
         public void Init()
@@ -34,8 +34,8 @@ namespace UnityEngine.VFX.Test
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
 #if UNITY_EDITOR
-            m_previousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
+            m_previousAsyncShaderCompilation = EditorSettings.asyncShaderCompilation;
+            EditorSettings.asyncShaderCompilation = false;
 #endif
         }
 
@@ -178,7 +178,7 @@ namespace UnityEngine.VFX.Test
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
 #if UNITY_EDITOR
-            ShaderUtil.allowAsyncCompilation = m_previousAllowAsyncCompilation;
+            EditorSettings.asyncShaderCompilation = m_previousAsyncShaderCompilation;
 #endif
         }
     }
