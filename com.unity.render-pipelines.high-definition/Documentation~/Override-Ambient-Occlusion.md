@@ -4,7 +4,7 @@ The **Ambient Occlusion** override is a real-time, full-screen lighting effect a
 
 For information on how to use a Texture to specify ambient occlusion caused by details present in a GameObject's Material but not on it's surface geometry, see [Ambient Occlusion](Ambient-Occlusion.md).
 
-HDRP implements [ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing. 
+HDRP implements [ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
 
 ## Enabling Ambient Occlusion
 
@@ -19,7 +19,7 @@ The property to enable in your Frame Settings is: **Lighting > Screen Space Ambi
 **Ambient Occlusion** uses the [Volume](Volumes.md) framework, so to enable and modify **Ambient Occlusion** properties, you must add an **Ambient Occlusion** override to a [Volume](Volumes.md) in your Scene. To add **Ambient Occlusion** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Lighting** and click on **Ambient Occlusion**. 
+2. In the Inspector, navigate to **Add Override > Lighting** and click on **Ambient Occlusion**.
    HDRP now applies **Ambient Occlusion** to any Camera this Volume affects.
 
 [!include[](snippets/volume-override-api.md)]
