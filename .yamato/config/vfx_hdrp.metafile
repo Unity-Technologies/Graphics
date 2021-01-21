@@ -34,6 +34,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR_cache
     utr_flags:
+    - [all]: --testfilter="VFX.Test"
     - [all]: --extra-editor-arg="-xr-reuse-tests"
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
@@ -64,6 +65,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
     utr_flags_build:
+    - [all]: --testfilter="VFX.Test"
     - [all]: --timeout=3000
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
