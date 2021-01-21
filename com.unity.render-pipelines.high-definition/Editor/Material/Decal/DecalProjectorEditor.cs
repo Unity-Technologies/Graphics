@@ -294,7 +294,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                Vector3 centerStart = decalProjector.offset;
+                Vector3 centerStart = decalProjector.pivot;
                 boxHandle.center = centerStart;
                 boxHandle.size = decalProjector.size;
 
@@ -309,7 +309,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Undo.RecordObject(decalProjector, "Decal Projector Change");
 
                     decalProjector.size = boxHandle.size;
-                    decalProjector.offset += boxHandle.center - centerStart;
+                    decalProjector.pivot += boxHandle.center - centerStart;
 
                     Vector3 boundsSizeCurrentOS = boxHandle.size;
                     Vector3 boundsMinCurrentOS = boxHandle.size * -0.5f + boxHandle.center;
@@ -345,12 +345,12 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
             {
                 EditorGUI.BeginChangeCheck();
-                Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.offset.z, decalProjector.transform.rotation);
+                Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.pivot.z, decalProjector.transform.rotation);
                 if (EditorGUI.EndChangeCheck())
                 {
                     Undo.RecordObjects(new UnityEngine.Object[] { decalProjector, decalProjector.transform }, "Decal Projector Change");
 
-                    decalProjector.offset += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
+                    decalProjector.pivot += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                     decalProjector.transform.position = newPosition;
                 }
             }
@@ -358,7 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawUVHandles(DecalProjector decalProjector)
         {
-            using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.offset - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))
+            using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.pivot - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))
             {
                 Vector2 uvSize = new Vector2(
                     (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
@@ -418,14 +418,14 @@ namespace UnityEditor.Rendering.HighDefinition
             //draw them scale independent
             using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                boxHandle.center = decalProjector.offset;
+                boxHandle.center = decalProjector.pivot;
                 boxHandle.size = decalProjector.size;
                 bool isVolumeEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
                 bool isPivotEditMode = editMode == k_EditUVAndPivot;
                 boxHandle.DrawHull(isVolumeEditMode);
 
                 Vector3 pivot = Vector3.zero;
-                Vector3 projectedPivot = new Vector3(0, 0, decalProjector.offset.z - .5f * decalProjector.size.z);
+                Vector3 projectedPivot = new Vector3(0, 0, decalProjector.pivot.z - .5f * decalProjector.size.z);
 
                 if (isPivotEditMode)
                 {
@@ -438,7 +438,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 //draw UV and bolder edges
-                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(decalProjector.offset.x, decalProjector.offset.y, decalProjector.offset.z - .5f * decalProjector.size.z), decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(decalProjector.pivot.x, decalProjector.pivot.y, decalProjector.pivot.z - .5f * decalProjector.size.z), decalProjector.transform.rotation, Vector3.one)))
                 {
                     Vector2 UVSize = new Vector2(
                         (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
