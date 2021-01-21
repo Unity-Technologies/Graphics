@@ -458,3 +458,12 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS failure on scene
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Out of memory crash (FB: TBA)'
