@@ -16,6 +16,8 @@ nightly:
   extra_dependencies: # additional project jobs to run nightly
     - project: URP_Performance_BoatAttack
       pr: true
+    - project: URP_Performance_LostCrypt
+      pr: true
     - project: URPUpdate
       pr: true
     - project: HDRP_PerformanceTests

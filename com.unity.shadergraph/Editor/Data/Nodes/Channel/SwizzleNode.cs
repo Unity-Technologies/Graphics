@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
             //pass it to maskInput
             if (sgVersion < 1)
             {
-                LegacySwizzleChannelData.LegancySwizzleChannel(json, this);
+                LegacySwizzleChannelData.LegacySwizzleChannel(json, this);
                 ChangeVersion(1);
                 UpdateNodeAfterDeserialization();
             }
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
             public TextureChannel m_AlphaChannel;
 
 
-            public static void LegancySwizzleChannel(string json, SwizzleNode node)
+            public static void LegacySwizzleChannel(string json, SwizzleNode node)
             {
                 Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
                 {
