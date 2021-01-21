@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path tracing alpha channel support (case 1304187).
 - Fixed shadow matte not working with ambient occlusion when MSAA is enabled
 - Fixed issues with compositor's undo (cases 1305633, 1307170).
+- VFX : Debug material view incorrect depth test. (case 1293291)
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
