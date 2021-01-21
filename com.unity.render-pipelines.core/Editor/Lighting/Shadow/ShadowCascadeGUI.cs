@@ -7,11 +7,11 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class ShadowCascadeGUI
     {
-        private const string kPathToHorizontalGradientTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/HorizontalGradient.png";
-        private const string kPathToUpSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/UpSnatch.png";
-        private const string kPathToUpSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/UpSnatchFocused.png";
-        private const string kPathToDownSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/DownSnatch.png";
-        private const string kPathTDownSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Resources/DownSnatchFocused.png";
+        private const string kPathToHorizontalGradientTexture = "Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/HorizontalGradient.png";
+        private const string kPathToUpSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/UpSnatch.png";
+        private const string kPathToUpSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/UpSnatchFocused.png";
+        private const string kPathToDownSnatchTexture = "Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/DownSnatch.png";
+        private const string kPathTDownSnatchFocusedTexture = "Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/DownSnatchFocused.png";
 
         private const float kSliderbarMargin = 2.0f;
         private const float kSliderbarHeight = 28.0f;
