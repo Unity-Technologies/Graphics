@@ -198,7 +198,7 @@ Shader "HDRP/AxF"
 
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
-    #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -489,8 +489,8 @@ Shader "HDRP/AxF"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -637,7 +637,7 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
@@ -679,7 +679,7 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
@@ -719,7 +719,7 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFRayTracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingGBuffer.hlsl"
 
             ENDHLSL
