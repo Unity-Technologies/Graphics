@@ -390,6 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 passData.copyDepth = passData.copyDepth || hdCamera.isMainGameView; // Specific case of Debug.DrawLine and Debug.Ray
 #endif
+                passData.copyDepth = passData.copyDepth && !hdCamera.xr.enabled;
                 passData.copyDepthMaterial = m_CopyDepth;
                 passData.finalTarget = builder.WriteTexture(finalTarget);
                 passData.finalViewport = hdCamera.finalViewport;
@@ -425,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect             viewport;
             public TextureHandle    depthBuffer;
             public TextureHandle    output;
+            public float            dynamicResolutionScale;
         }
 
         void CopyXRDepth(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle output)
@@ -438,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewport = hdCamera.finalViewport;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.output = builder.WriteTexture(output);
+                    passData.dynamicResolutionScale = DynamicResolutionHandler.instance.GetCurrentScale();
 
                     builder.SetRenderFunc(
                     (CopyXRDepthPassData data, RenderGraphContext ctx) =>
@@ -445,9 +448,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         RTHandle depthRT = data.depthBuffer;
 
-                        mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
-                        mpb.SetVector(HDShaderIDs._BlitScaleBias, depthRT.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale());
-                        mpb.SetInt("_FlipY", 1);
+                            mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
+                            mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(data.dynamicResolutionScale, data.dynamicResolutionScale, 0.0f, 0.0f));
+                            mpb.SetInt("_FlipY", 1);
+
 
                         ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);
                         ctx.cmd.SetViewport(data.viewport);

@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a locale issue with the diffusion profile property values in ShaderGraph on PC where comma is the decimal separator.
 - Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
+- Fixed XR depth copy (case 1286908).
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
