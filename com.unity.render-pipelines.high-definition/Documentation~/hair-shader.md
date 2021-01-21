@@ -49,7 +49,7 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 | **Smoothness UV Scale Transform** | Sets the tiling rate (xy) and offsets (zw) for the Smoothness Mask Map. |
 | **Smoothness Min**                | Set the minimum smoothness for this Material.                |
 | **Smoothness Max**                | Set the maximum smoothness for this Material.                |
-| **Specular Color**                | Set the color of the primary specular highlight. This color also influences the secondary specular highlight color.|
+| **Specular Color**                | Set the representative color of the highlight which will be used to drive both the primary specular highlight color which is mainly monochrome and the secondary specular highlight color which is chromatic.|
 | **Specular Multiplier**           | Modifies the primary specular highlight by this multiplier.  |
 | **Specular Shift**                | Modifies the position of the primary specular highlight.     |
 | **Secondary Specular Multiplier** | Modifies the secondary specular highlight by this multiplier. |
