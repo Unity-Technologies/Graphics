@@ -17,7 +17,7 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: e6b6cac1cd594e246834d5cd95fb53fc, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 2
     XrSdk: 
     StereoModes: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 03934edd2bce5ca41b81a3b5d06f2947, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 2
     XrSdk: 
     StereoModes: 0
