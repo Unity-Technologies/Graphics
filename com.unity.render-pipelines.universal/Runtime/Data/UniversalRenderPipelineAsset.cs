@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
         Custom,
         StandardRenderer,
         _2DRenderer,
-        [Obsolete("ForwardRenderer has been renamed StandardRenderer. (UnityUpgradable) -> StandardRenderer", true)]
+        [Obsolete("ForwardRenderer has been renamed -> StandardRenderer (UnityUpgradable)", true)]
         ForwardRenderer = StandardRenderer,
     }
 

@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
-    [Obsolete("ForwardRenderer has been deprecated. Use StandardRenderer instead (UnityUpgradable) -> StandardRenderer", true)]
+    [Obsolete("ForwardRenderer has been deprecated -> StandardRenderer (UnityUpgradable)", true)]
     public sealed class ForwardRenderer : ScriptableRenderer
     {
         private static readonly string k_ErrorMessage = "ForwardRenderer has been deprecated. Use StandardRenderer instead";

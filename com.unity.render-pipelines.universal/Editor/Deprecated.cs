@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.LWRP
 
 namespace UnityEditor.Rendering.Universal
 {
-    [Obsolete("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead (UnityUpgradable) -> StandardRendererDataEditor", true)]
+    [Obsolete("ForwardRendererDataEditor has been deprecated. Use StandardRendererDataEditor instead -> StandardRendererDataEditor (UnityUpgradable)", true)]
     [MovedFrom("UnityEditor.Rendering.LWRP")]
     public class ForwardRendererDataEditor : ScriptableRendererDataEditor
     {
