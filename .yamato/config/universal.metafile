@@ -102,12 +102,6 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
