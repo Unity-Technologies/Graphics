@@ -6,7 +6,7 @@
 
 ## Adding a Secondary Texture
 
-In the Secondary Textures editor, select a Sprite to add Secondary Textures to. With a Sprite selected, the __Secondary Textures__ panel appears at the bottom right of the editor window. The panel displays the list of Secondary Textures currently assigned to the selected Sprite. To add a new Secondary Texture to the Sprite, select + at the bottom right of the list. 
+In the Secondary Textures editor, select a Sprite to add Secondary Textures to. With a Sprite selected, the __Secondary Textures__ panel appears at the bottom right of the editor window. The panel displays the list of Secondary Textures currently assigned to the selected Sprite. To add a new Secondary Texture to the Sprite, select + at the bottom right of the list.
 
 ![](Images/2D/ST_ListField.png)
 
@@ -39,4 +39,3 @@ To delete a Secondary Texture, select it from the list and then select - at the 
 Select __Apply__ at the top of the editor to save your entries. Invalid entries without a Name or an assigned Texture are automatically removed when changes are applied.
 
 ![](Images/2D/ST_Apply.png)
-
