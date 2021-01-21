@@ -68,6 +68,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light gizmo showing shadow near plane when shadows are disabled.
 - Fixed path tracing alpha channel support (case 1304187).
 - Fixed shadow matte not working with ambient occlusion when MSAA is enabled
+- Fixed an issue in shadergraph when switch from a RenderingPass (case 1307653)
+- Fixed LookDev environment library assignement after leaving playmode.
+- Fixed a locale issue with the diffusion profile property values in ShaderGraph on PC where comma is the decimal separator.
+- Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
+- Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
