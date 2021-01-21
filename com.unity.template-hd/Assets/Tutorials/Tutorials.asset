@@ -153,16 +153,6 @@ MonoBehaviour:
     Tutorial: {fileID: 11400000, guid: b8cf016225e75b64bafb9322aedd74dd, type: 2}
   - OrderInView: 26
     Heading:
-      m_Untranslated: Cinematics
-    Text:
-      m_Untranslated: 
-    LinkText: 
-    Url: 
-    AuthorizedUrl: 0
-    Image: {fileID: 2800000, guid: 7247a937d9e0c994491a80d845d90f83, type: 3}
-    Tutorial: {fileID: 11400000, guid: c01e4319c51e072499e7971738ab2748, type: 2}
-  - OrderInView: 28
-    Heading:
       m_Untranslated: Fog
     Text:
       m_Untranslated: 
@@ -171,7 +161,7 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 2800000, guid: 4c2596688b56ad9408d54eb7f7988a66, type: 3}
     Tutorial: {fileID: 11400000, guid: 9d614f6782108e74a86a3633362490da, type: 2}
-  - OrderInView: 30
+  - OrderInView: 28
     Heading:
       m_Untranslated: Density Volume
     Text:
@@ -181,7 +171,7 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 2800000, guid: 78a3d6c49f1c2e74c95bd052a569cc08, type: 3}
     Tutorial: {fileID: 11400000, guid: 2d4fd22e1b9ec5b4bbf9b0d3841fa6ef, type: 2}
-  - OrderInView: 32
+  - OrderInView: 30
     Heading:
       m_Untranslated: Light Layers
     Text:
@@ -191,7 +181,7 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 2800000, guid: 6f44c226a1eced34dbf1887898cb361f, type: 3}
     Tutorial: {fileID: 11400000, guid: dbf1444cb3f174246b015a9c9b4c5b1b, type: 2}
-  - OrderInView: 34
+  - OrderInView: 32
     Heading:
       m_Untranslated: Reflection Probes
     Text:
