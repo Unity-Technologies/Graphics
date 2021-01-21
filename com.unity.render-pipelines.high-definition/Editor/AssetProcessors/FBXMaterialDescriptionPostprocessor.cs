@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
-                material.EnableKeyword("_ALPHATEST_ON"); 
+                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                 material.SetFloat("_SurfaceType", 1.0f);
                 material.SetFloat("_Cutoff", .0f);
