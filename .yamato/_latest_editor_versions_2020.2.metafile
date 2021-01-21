@@ -9,24 +9,24 @@ editor_version_names:
 editor_versions:
   2020_2_latest_internal:
     android:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     ios:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     linux:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     macos:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
     windows:
-      revision: a2b85e2d6196
-      updated_at: '2021-01-06 23:45:55.158247'
+      revision: 5df06721f51d
+      updated_at: '2021-01-20 01:26:15.617702'
       version: 2020.2.2f1
   2020_2_latest_public:
     android:
@@ -51,22 +51,22 @@ editor_versions:
       version: 2020.2.1f1
   2020_2_staging:
     android:
-      revision: ea93086d7489deb71d65bbe9edf0b03e4823e35e
-      updated_at: '2021-01-14 00:41:28.385799'
+      revision: 2f32796736ca5c2b5ca56fce9299ec8c46503f90
+      updated_at: '2021-01-21 00:24:48.777990'
       version: ''
     ios:
-      revision: ea93086d7489deb71d65bbe9edf0b03e4823e35e
-      updated_at: '2021-01-14 00:41:28.385799'
+      revision: 2f32796736ca5c2b5ca56fce9299ec8c46503f90
+      updated_at: '2021-01-21 00:24:48.777990'
       version: ''
     linux:
-      revision: ea93086d7489deb71d65bbe9edf0b03e4823e35e
-      updated_at: '2021-01-14 00:41:28.385799'
+      revision: 2f32796736ca5c2b5ca56fce9299ec8c46503f90
+      updated_at: '2021-01-21 00:24:48.777990'
       version: ''
     macos:
-      revision: ea93086d7489deb71d65bbe9edf0b03e4823e35e
-      updated_at: '2021-01-14 00:41:28.385799'
+      revision: 2f32796736ca5c2b5ca56fce9299ec8c46503f90
+      updated_at: '2021-01-21 00:24:48.777990'
       version: ''
     windows:
-      revision: ea93086d7489deb71d65bbe9edf0b03e4823e35e
-      updated_at: '2021-01-14 00:41:28.385799'
+      revision: 2f32796736ca5c2b5ca56fce9299ec8c46503f90
+      updated_at: '2021-01-21 00:24:48.777990'
       version: ''

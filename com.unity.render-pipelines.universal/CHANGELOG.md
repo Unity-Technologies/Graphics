@@ -6,10 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.3.0] - 2020-11-16
 
+### Added
+- Added support for the PlayStation 5 platform.
+
 ### Fixed
 - Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 - Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
+- Fixed a case where overlay camera with output texture caused base camera not to render to screen. [case 1283225](https://issuetracker.unity3d.com/issues/game-view-renders-a-black-view-when-having-an-overlay-camera-which-had-output-texture-assigned-in-the-camera-stack)
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 
 ## [10.2.0] - 2020-10-19
