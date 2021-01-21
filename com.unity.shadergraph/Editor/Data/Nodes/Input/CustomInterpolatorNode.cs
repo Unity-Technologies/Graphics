@@ -15,15 +15,15 @@ namespace UnityEditor.ShaderGraph
     class CustomInterpolatorNode : AbstractMaterialNode
     {
         [SerializeField]
-        public string customBlockNodeName = "K_INVALID";
+        internal string customBlockNodeName = "K_INVALID";
 
         [SerializeField]
-        BlockNode.CustomBlockType serializedType = BlockNode.CustomBlockType.Vector4;
+        private BlockNode.CustomBlockType serializedType = BlockNode.CustomBlockType.Vector4;
 
         // preview should be the CI value.
         public override bool hasPreview { get { return true; } }
 
-        internal override bool ExposeToSearcher { get => false; }
+        internal override bool ExposeToSearcher { get => false; } // This is exposed in a special way.
 
         internal BlockNode e_targetBlockNode // weak indirection via customBlockNodeName
         {
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public void ConnectToCustomBlock(string customBlockName)
+        internal void ConnectToCustomBlock(string customBlockName)
         {
             // target shouldn't really change, but if it did- we need to unregister.
             if (e_targetBlockNode != null)
@@ -108,10 +108,13 @@ namespace UnityEditor.ShaderGraph
             // If the CIB uses an inlined value, it may as well be a constant. Let's just use that...
             if (inlineProp)
             {
-                var v = props[0].vector4Value;
+                Vector4 v = default;
+                if (props[0].propType != PropertyType.Float)
+                    v = props[0].vector4Value;
+
                 switch (props[0].propType)
                 {
-                    case PropertyType.Float: return $"{props[0].floatValue}";
+                    case PropertyType.Float:   return $" float1({props[0].floatValue}) ";
                     case PropertyType.Vector2: return $" float2({v.x},{v.y}) ";
                     case PropertyType.Vector3: return $" float3({v.x},{v.y},{v.z}) ";
                     case PropertyType.Vector4: return $" float4({v.x},{v.y},{v.z},{v.w}) ";

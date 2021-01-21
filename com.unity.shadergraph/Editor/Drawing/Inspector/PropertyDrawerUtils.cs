@@ -70,6 +70,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 parentElement.Add(propertyRow);
             }
 
+
+
             if (node is BlockNode bnode)
             {
                 AddCustomInterpolatorProperties(parentElement, bnode, setNodesAsDirtyCallback, updateNodeViewsCallback);
@@ -106,8 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         setNodesAsDirtyCallback?.Invoke();
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Name");
                         field.value = node.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));                        
-                        updateNodeViewsCallback?.Invoke();                   
-                        node.Dirty(ModificationScope.Graph);
+                        updateNodeViewsCallback?.Invoke();
                     });                    
                 });
                 parentElement.Add(propertyRow);  
@@ -128,7 +129,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Type");
                         node.customWidth = (BlockNode.CustomBlockType)evt.newValue;
                         updateNodeViewsCallback?.Invoke();
-                        node.Dirty(ModificationScope.Graph);
                     }); 
                 });
                 parentElement.Add(propertyRow);

@@ -27,25 +27,6 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         BlockFieldDescriptor m_Descriptor;
 
-
-        [SerializeField]
-        private uint m_TestProperty = 0;
-
-        public uint testProperty
-        {
-            get => m_TestProperty;
-            set => m_TestProperty = value;
-        }
-
-
-
-
-
-
-        public BlockNode()
-        {
-        }
-
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
 
@@ -72,7 +53,11 @@ namespace UnityEditor.ShaderGraph
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
             m_Descriptor = fieldDescriptor;
-            name = !isCustomBlock ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}" : $"{BlockFields.VertexDescription.name}.CustomInterpolator";
+
+            // custom blocks can be "copied" via a custom Field Descriptor, we'll use the CI name instead though.
+            name = !isCustomBlock
+                ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}"
+                : $"{BlockFields.VertexDescription.name}.{k_CustomBlockDefaultName}";
             
 
             // TODO: This exposes the MaterialSlot API
@@ -88,42 +73,42 @@ namespace UnityEditor.ShaderGraph
             AddSlotFromControlType();
         }
 
-        void AddSlotFromControlType()
+        private void AddSlotFromControlType(bool attemptToModifyExisting = true)
         {
-            // TODO: this should really just use callbacks like the CustomSlotBlockFieldDescriptor.. then we wouldn't need this switch to make a copy
+            // TODO: this should really just use callbacks like the CustomSlotBlockFieldDescriptor. then we wouldn't need this switch to make a copy
             var stageCapability = m_Descriptor.shaderStage.GetShaderStageCapability();
             switch (descriptor.control)
             {
                 case PositionControl positionControl:
-                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability), false);
+                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability), attemptToModifyExisting);
                     break;
                 case NormalControl normalControl:
-                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability), false);
+                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability), attemptToModifyExisting);
                     break;
                 case TangentControl tangentControl:
-                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability), false);
+                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability), attemptToModifyExisting);
                     break;
                 case VertexColorControl vertexColorControl:
-                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability), false);
+                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability), attemptToModifyExisting);
                     break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
-                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability), false);
+                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability), attemptToModifyExisting);
                     break;
                 case ColorRGBAControl colorRGBAControl:
-                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability), false);
+                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability), attemptToModifyExisting);
                     break;
                 case FloatControl floatControl:
-                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability), false);
+                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability), attemptToModifyExisting);
                     break;
                 case Vector2Control vector2Control:
-                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability), false);
+                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability), attemptToModifyExisting);
                     break;
                 case Vector3Control vector3Control:
-                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability), false);
+                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability), attemptToModifyExisting);
                     break;
                 case Vector4Control vector4Control:
-                    AddSlot(new Vector4MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector4Control.value, stageCapability), false);
+                    AddSlot(new Vector4MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector4Control.value, stageCapability), attemptToModifyExisting);
                     break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
@@ -239,12 +224,11 @@ namespace UnityEditor.ShaderGraph
         ///////////////////////////////////////////////////
         // Custom block stuff.
 
+        const string k_CustomBlockDefaultName = "CustomInterpolator";
+
         internal enum CustomBlockType { Float = 1, Vector2 = 2, Vector3 = 3, Vector4 = 4 }
 
-        internal bool isCustomBlock
-        {
-            get => m_Descriptor?.isCustom ?? false;
-        }
+        internal bool isCustomBlock { get => m_Descriptor?.isCustom ?? false; }
 
         internal string customName
         {
@@ -257,7 +241,33 @@ namespace UnityEditor.ShaderGraph
             get => (CustomBlockType)ControlToWidth(m_Descriptor.control);
             set => OnCustomBlockFieldModified(customName, value);
         }
-        
+
+        internal void InitCustomDefault()
+        {
+            Init(MakeCustomBlockField(k_CustomBlockDefaultName, CustomBlockType.Vector4));
+        }
+
+        private void OnCustomBlockFieldModified(string name, CustomBlockType width)
+        {
+            if (!isCustomBlock)
+            {
+                Debug.LogWarning(String.Format("{0} is not a custom interpolator.", this.name));
+                return;
+            }
+            var oldName = customName;
+            var oldWidth = customWidth;
+
+            m_Descriptor = MakeCustomBlockField(name, width);
+
+            // TODO: Preserve the original slot's value and try to reapply after the slot is updated.
+            AddSlotFromControlType(false);
+
+            if (oldName != name) Dirty(ModificationScope.Node);
+            if (oldWidth != width) Dirty(ModificationScope.Topological);
+
+            owner?.ValidateGraph();
+        }
+
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -276,34 +286,36 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override void OnAfterDeserialize()
-        {            
+        {
+            // flimsy, but concise
             if (m_SerializedDescriptor.Contains("#"))
             {
-                name = $"{BlockFields.VertexDescription.name}.CustomInterpolator";
-
-                string descName = "CustomInterpolator";
+                string descName = k_CustomBlockDefaultName;
                 CustomBlockType descWidth = CustomBlockType.Vector4;
                 var descTag = BlockFields.VertexDescription.name;
 
+                name = $"{descTag}.{descName}";
+                
                 var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
+
                 try   { descWidth = (CustomBlockType)int.Parse(wsplit[2]); }
                 catch
                 {
                     Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
                     descWidth = CustomBlockType.Vector4;
                 }
-                descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
 
                 IControl control;
-                try   { control = (IControl)m_Slots[0].value.InstantiateControl(); }
+                try   { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
                 catch { control = WidthToControl((int)descWidth); }
-                 
+                
+                descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
 
                 m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
             }
         }
 
-        private static BlockFieldDescriptor CreateCustomFieldDescriptor(string name, CustomBlockType width)
+        private static BlockFieldDescriptor MakeCustomBlockField(string name, CustomBlockType width)
         {
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
             var referenceName = name;
@@ -314,7 +326,7 @@ namespace UnityEditor.ShaderGraph
             return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
         }
 
-        static IControl WidthToControl(int width)
+        private static IControl WidthToControl(int width)
         {
             switch(width)
             {
@@ -326,7 +338,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static int ControlToWidth(IControl control)
+        private static int ControlToWidth(IControl control)
         {
             switch (control)
             {
@@ -336,25 +348,6 @@ namespace UnityEditor.ShaderGraph
                 case Vector4Control d: return 4;
                 default: return -1;
             }
-        }
-
-        internal void OnCustomBlockFieldModified(string name, CustomBlockType width)
-        {
-            if (!isCustomBlock)
-            {
-                Debug.LogWarning(String.Format("{0} is not a custom interpolator.", this.name));
-                return;
-            }
-
-            m_Descriptor = CreateCustomFieldDescriptor(name, width);
-            AddSlotFromControlType();
-            owner?.ValidateGraph();
-        }
-
-
-        internal void InitCustomDefault()
-        {
-            Init(CreateCustomFieldDescriptor("CustomInterpolator", CustomBlockType.Vector4));
         }
     }
 }
