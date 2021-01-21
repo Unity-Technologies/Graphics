@@ -173,7 +173,9 @@ uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint category, uint eye)
 // Use ComputeZBinBufferIndex for that purpose.
 uint ComputeZBinIndex(float linearDepth)
 {
-    float z = EncodeLogarithmicDepth(linearDepth, _ZBinBufferEncodingParams);
+    const float rcpFar = _ZBufferParams.w;
+
+    float z = linearDepth * rcpFar;
     z = saturate(z); // Clamp to the region between the near and the far planes
 
     return min((uint)(z * Z_BIN_COUNT), Z_BIN_COUNT - 1);

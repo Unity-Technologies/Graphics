@@ -208,8 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityDwordOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
 
-        public Vector4 _ZBinBufferEncodingParams;
-
         public Vector2Int _CoarseTileBufferDimensions;
         public Vector2Int _FineTileBufferDimensions;
 

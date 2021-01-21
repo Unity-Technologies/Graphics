@@ -972,23 +972,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
 
-        static Vector4 GetZBinBufferEncodingParams(HDCamera hdCamera)
-        {
-            // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
-            // n = 0.1. See ComputeFixedPointLogDepth.
-            float n = 0.1f;
-            float f = hdCamera.camera.farClipPlane; // Assume XR uses the same far plane for all views
-
-            f = Mathf.Max(f, 0.11f); // Avoid degenerate configurations
-
-            float x = n;
-            float z = 1 / x;
-            float y = Log2f(f * z);
-            float w = 1 / y;
-
-            return new Vector4(x, y, z, w);
-        }
-
         static Vector2Int GetCoarseTileBufferDimensions(HDCamera hdCamera)
         {
             int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_CoarseTileSize);
@@ -2565,20 +2548,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // 'w' is the linear depth (Z coordinate of the view-space position).
         // 'f' is the distance to the far plane.
         // We consider the distance to the near plane n ≈ 0, since that plane may be oblique.
-        static int ComputeFixedPointLogDepth(float w, float f, int numBits = 16)
+        static int ComputeFixedPointLinearDepth(float w, float f, int numBits = 16)
         {
-            // z = Log[w/n] / Log[f/n]
-            // Undefined for (w < n, so we must clamp). This should not significantly affect the efficiency of Z-binning.
-            // Still need the distance to the near plane in order for the math to work.
-            // Setting it too low will quickly consume the available bits. 0.1 is a safe value.
-            // See https://zero-radiance.github.io/post/z-buffer/
-            const float n = 0.1f;
-
-            f = Mathf.Max(f, 0.11f); // Avoid degenerate configurations
-            w = Mathf.Min(w, f);     // Make sure we are not trying to convert distance beyond the far plane.
-
-            float x = Mathf.Max(1, w * (1 / n));
-            float z = Log2f(x) / Log2f(f * (1 / n));
+            float z = Mathf.Clamp01(w/f);
 
             return Mathf.RoundToInt(z * ((1 << numBits) - 1));
         }
@@ -2766,7 +2738,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
                         float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(light.light), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(lightIndex, processedData.lightCategory, d, (int)processedData.gpuLightType);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, processedData.lightCategory, key);
@@ -3044,7 +3016,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
                         float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(probeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.CubemapReflection);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
@@ -3071,7 +3043,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
                         float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(planarProbeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.PlanarReflection);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
@@ -3215,7 +3187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             w = ComputeLinearDepth(centroidWS, hdCamera, viewIndex);
                         }
 
-                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, d);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.Decal, key);
@@ -3230,7 +3202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // The OBB is RWS.
                         float w   = ComputeLinearDepth(densityVolumes.data[densityVolumeIndex].center, hdCamera, viewIndex, forceRWS: true);
-                        int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
+                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(densityVolumeIndex, BoundedEntityCategory.DensityVolume, d);
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.DensityVolume, key);
@@ -3983,7 +3955,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption. Increase 'Tile entry limit' in the Lighting section of your HDRP asset.");
 
-            cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
 

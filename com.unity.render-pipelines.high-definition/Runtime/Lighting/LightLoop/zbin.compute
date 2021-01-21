@@ -26,21 +26,11 @@ RWStructuredBuffer<uint> _zBinBuffer; // {last << 16 | first}
 
 /* ------------------------------ Implementation ---------------------------- */
 
-float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
+float2 ComputeZBinLinearDepthBounds(uint bin, float farPlane)
 {
     float2 bBounds = float2(bin, bin + 1);
     float2 zBounds = saturate(bBounds * rcp(Z_BIN_COUNT));
-
-    float2 wBounds = float2(DecodeLogarithmicDepth(zBounds.x, encodingParams),
-                            DecodeLogarithmicDepth(zBounds.y, encodingParams));
-
-    // Reminder: Z-binning uses n=0.1 as the near plane.
-    // In case the actual near plane is closer (or is oblique),
-    // we must extend the first bin to include the lights
-    // that are very close to the camera.
-    // Note that this will not cause the lights behind the near plane
-    // to be included, since they have invalid AABBs.
-    wBounds.x = (bin == 0) ? 0 : wBounds.x;
+    float2 wBounds = zBounds * farPlane;
 
     return wBounds; // TODO: add epsilon for numerical robustness?
 }
@@ -82,7 +72,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     if (entityCount > 0) // Avoid wasted work
     {
-        const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, _ZBinBufferEncodingParams);
+        const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, rcp(_ZBufferParams.w));
         const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
 
         bool isEmpty = true;
