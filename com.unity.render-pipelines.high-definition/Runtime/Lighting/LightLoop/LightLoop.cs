@@ -3989,8 +3989,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
-            cb._ZBinCategorySortMask = (1u << (int)BoundedEntityCategory.ReflectionProbe);
-
+           
             // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
             cb._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
