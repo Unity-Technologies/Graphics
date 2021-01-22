@@ -237,9 +237,9 @@ namespace UnityEditor.VFX.Test
             var a = -1.5f;
             var b = 0.0f;
             var c = 0.2f;
-            var resultA = Mathf.Sign(a);
-            var resultB = Mathf.Sign(b);
-            var resultC = Mathf.Sign(c);
+            var resultA = (a < 0.0f) ? -1.0f : (a > 0.0f) ? 1.0f : 0.0f;
+            var resultB = (b < 0.0f) ? -1.0f : (b > 0.0f) ? 1.0f : 0.0f;
+            var resultC = (c < 0.0f) ? -1.0f : (c > 0.0f) ? 1.0f : 0.0f;
 
             var value_a = new VFXValue<float>(a);
             var value_b = new VFXValue<float>(b);
