@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for the PlayStation 5 platform.
+- Added pivot point manipulation for Decals (inspector and edit mode).
+- Added UV manipulation for Decals (edit mode).
+- Added color and intensity customization for Decals.
 
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
@@ -43,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 
 ### Changed
+- Removed the material pass probe volumes evaluation mode.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
