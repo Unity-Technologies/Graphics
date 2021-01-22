@@ -93,7 +93,7 @@ The settings in the previous section result in the self see-through effect for t
 
 * When performing the Opaque rendering pass of the URP Renderer, Unity renders all GameObjects belonging to the character with the `Character` Material and writes depth values to the Depth buffer. This happens before Unity starts executing the `DrawCharacterBehind` Renderer Feature, because, by default, new Render Objects Renderer Features have the value **AfterRenderingOpaques** in the **Event** property.
 
-    The **Event** property defines the order in which Unity executes Renderer Features. The event when URP Renderer draws GameObjects in the **Opaque Layer Mask** is the **BeforeRenderingOpaques** event. 
+    The **Event** property defines the injection point where Unity injects Render Passes from Renderer Features. The event when URP Renderer draws GameObjects in the **Opaque Layer Mask** is the **BeforeRenderingOpaques** event. 
 
 * When executing the `DrawCharacterBehind` Renderer Feature, Unity performs the depth test using the condition specified in the **Depth Test** property. In the following screenshot, a bigger capsule occludes part of the smaller capsule, and the depth test passes for that part of the smaller capsule. The Renderer Feature overrides the Material for that part.
 
