@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed XR depth copy (case 1286908).
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
