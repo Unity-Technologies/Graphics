@@ -174,10 +174,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 var shadowCaster = shadowCasters[i];
 
-                                if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (shadowCaster.IsLit(light))
                                 {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
+                                    if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                    {
+                                        if (shadowCaster.castsShadows)
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
+                                    }
                                 }
                             }
 
@@ -218,10 +221,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 var shadowCaster = shadowCasters[i];
 
-                                if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                if (shadowCaster.IsLit(light))
                                 {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 1);
+
+                                    if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                    {
+                                        if (shadowCaster.castsShadows)
+                                            cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 1);
+                                    }
                                 }
                             }
                         }

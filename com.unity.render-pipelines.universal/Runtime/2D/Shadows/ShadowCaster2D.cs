@@ -26,14 +26,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
-        internal Mesh mesh => m_Mesh;
-        internal Vector3[] shapePath => m_ShapePath;
+        internal BoundingSphere m_ProjectedBoundingSphere;
+
+        public Mesh mesh => m_Mesh;
+        public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
-
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -73,6 +74,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return allLayers;
+        }
+
+        internal bool IsLit(Light2D light)
+        {
+            Vector3 deltaPos = light.transform.position - m_ProjectedBoundingSphere.position;
+            float distanceSq = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+
+            return distanceSq <= (light.boundingSphere.radius + m_ProjectedBoundingSphere.radius);
         }
 
         internal bool IsShadowedLayer(int layer)
@@ -126,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -145,7 +154,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            {
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
             bool addedToNewGroup = ShadowCasterGroup2DManager.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);

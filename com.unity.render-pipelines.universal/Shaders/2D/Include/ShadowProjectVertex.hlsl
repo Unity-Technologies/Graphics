@@ -1,53 +1,50 @@
 #if !defined(SHADOW_PROJECT_VERTEX)
 #define SHADOW_PROJECT_VERTEX
 
-struct Attributes\
-{\
-    float3 vertex : POSITION;\
-    float4 tangent: TANGENT;\
-    float4 extrusion : COLOR;\
-};\
+#define SQUARE_ROOT_2 1.4142136f
 
-struct Varyings\
-{\
-    float4 vertex : SV_POSITION;\
-};\
+struct Attributes
+{
+    float3 vertex : POSITION;
+    float4 tangent: TANGENT;
+};
 
-uniform float3 _LightPos;\
+struct Varyings
+{
+    float4 vertex : SV_POSITION;
+};
+
+uniform float3 _LightPos;
 uniform float  _ShadowRadius;
 
 
 Varyings ProjectShadow(Attributes v)
 {
     Varyings o;
-    float3 vertexWS = TransformObjectToWorld(v.vertex);  // This should be in world space
-    float3 unnormalizedLightDir = _LightPos - vertexWS;
-    unnormalizedLightDir.z = 0;
+    float3 vertexWS0 = TransformObjectToWorld(float3(v.vertex.xy,0));  // This should be in world space
+    float3 vertexWS1 = TransformObjectToWorld(float3(v.tangent.zw,0));  // the tangent has 
+    float3 unnormalizedLightDir0 = _LightPos - vertexWS0;
+    float3 unnormalizedLightDir1 = _LightPos - vertexWS1;
+
+    float3 lightDir0   = normalize(unnormalizedLightDir0);
+    float3 lightDir1   = normalize(unnormalizedLightDir1);
+    float3 avgLightDir = normalize(lightDir0 + lightDir1);
 
     // Start of code to see if this point should be extruded
-    float3 lightDir = normalize(unnormalizedLightDir);
-    float3 shadowDir = -lightDir;
-    float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
 
-    // We need to solve to make sure our length will be long enough to be in our circle. Use similar triangles. h0/d0 = h1/d1 => h1 = d1 * h0 / d0 => h1 = radius * h0 / d0
-    // d0 is distance to the side (from the light)
-    // h0 is distance to the vertex (from the light). 
-    // d1 is the light radius
-    // h1 is the length of the projection (from the light)
-    // shadow length = h1 - h0
 
-    float h0 = length(float2(unnormalizedLightDir.x, unnormalizedLightDir.y));
-    float d0 = dot(unnormalizedLightDir, worldTangent);
-    float shadowLength = max((_ShadowRadius * h0 / d0) - d0, 0);
+    float shadowLength = _ShadowRadius / dot(-lightDir0, -avgLightDir);
+    
+    float3 normalWS = TransformObjectToWorldDir(float3(v.tangent.xy, 0));
+    
 
     // Tests to make sure the light is between 0-90 degrees to the normal. Will be one if it is, zero if not.
-    float sharedShadowTest = saturate(ceil(dot(lightDir, worldTangent)));
-    
-    //float3 sharedShadowOffset = sharedShadowTest * shadowLength * shadowDir;
-    float3 sharedShadowOffset = sharedShadowTest * shadowLength * shadowDir;
+    float3 shadowDir = -lightDir0;
+    float  shadowTest = dot(lightDir0, normalWS) < 0;
+    float3 shadowOffset = shadowTest * shadowLength * shadowDir;
 
     float3 position;
-    position = vertexWS + sharedShadowOffset;
+    position = shadowTest * (_LightPos + shadowOffset) + (1-shadowTest) * vertexWS0;
 
     o.vertex = TransformWorldToHClip(position);
 
