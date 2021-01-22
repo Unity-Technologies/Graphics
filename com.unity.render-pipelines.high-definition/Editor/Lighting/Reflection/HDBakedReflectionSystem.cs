@@ -441,7 +441,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // to update the texture.
             // updateCount is a transient data, so don't execute this code before the asset reload.
             {
-                UnityEngine.Random.InitState((int)(1000 * hdPipeline.GetTime()));
+                UnityEngine.Random.InitState((int)(1000 * EditorApplication.timeSinceStartup));
                 foreach (var probe in bakedProbes)
                 {
                     var c = UnityEngine.Random.Range(2, 10);

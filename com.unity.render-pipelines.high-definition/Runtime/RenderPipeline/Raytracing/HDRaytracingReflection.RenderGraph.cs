@@ -99,8 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsPerformance(RenderGraph renderGraph, HDCamera hdCamera,
-                                                    TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
-                                                    int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             // Pointer to the final result
             TextureHandle rtrResult;
@@ -179,8 +179,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsQuality(RenderGraph renderGraph, HDCamera hdCamera,
-                                            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
-                                            int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             TextureHandle rtrResult;
 
@@ -206,8 +206,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedReflections(RenderGraph renderGraph, HDCamera hdCamera,
-                                        TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
-                                        int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
@@ -223,12 +223,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (qualityMode)
                 rtreflResult = RenderReflectionsQuality(renderGraph, hdCamera,
-                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
-                                                    frameCount, shaderVariablesRaytracing, transparent);
+                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    shaderVariablesRaytracing, transparent);
             else
                 rtreflResult = RenderReflectionsPerformance(renderGraph, hdCamera,
-                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
-                                                    frameCount, shaderVariablesRaytracing, transparent);
+                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    shaderVariablesRaytracing, transparent);
 
             return rtreflResult;
         }
