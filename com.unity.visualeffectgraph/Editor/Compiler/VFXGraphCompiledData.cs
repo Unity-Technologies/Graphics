@@ -909,6 +909,14 @@ namespace UnityEditor.VFX
             return settings;
         }
 
+        Shader GetShaderAsset(VFXShaderSourceDesc[] shaderSources)
+        {
+            // TODO: Currently this just assumes one .shader output in a system, which is not always the case.
+            var shaderSource = shaderSources.FirstOrDefault(o => !o.compute);
+
+            return ShaderUtil.CreateShaderAsset(shaderSource.source);
+        }
+
         private class VFXImplicitContextOfExposedExpression : VFXContext
         {
             private VFXExpressionMapper mapper;
@@ -1125,6 +1133,11 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
                 {
+                    if (data is VFXDataParticle dataParticle)
+                    {
+                        dataParticle.shader = GetShaderAsset(shaderSources);
+                    }
+
                     data.FillDescs(VFXGraph.compileReporter, bufferDescs,
                         temporaryBufferDescs,
                         systemDescs,

@@ -193,6 +193,78 @@ namespace UnityEditor.VFX
 
     class VFXDataParticle : VFXData, ISpaceable
     {
+        // Transient material constructed based on the current shader.
+        // Utilized by the output inspector to re-use a material's inspector
+        // (And thus the handling of keyword, properties, render state).
+        private Material m_CachedMaterial = null;
+
+        internal event Action OnMaterialChange;
+
+        [SerializeField]
+        private Shader m_Shader;
+
+        public Shader shader
+        {
+            get => m_Shader;
+
+            set
+            {
+                DestroyCachedMaterial();
+                OnMaterialChange?.Invoke();
+                m_Shader = value;
+            }
+        }
+
+        static VFXEditorTaskDesc CreateMaterialTask(Material material)
+        {
+            var paramList = new List<VFXMapping>();
+
+            var keywords = new StringBuilder();
+            foreach (var k in material.shaderKeywords)
+            {
+                keywords.Append(k);
+                keywords.Append(' ');
+            }
+
+            // Hack: Extract the material information (keywords, properties) into VFXMappings.
+            //       These mappings will be applied to the internal C++ material.
+            //       This can be removed after the full material is serialized.
+            const int kKeywordID = 0x5a52714b;
+            paramList.Add(new VFXMapping(keywords.ToString(), kKeywordID));
+
+            // TODO: Properties
+
+            return new VFXEditorTaskDesc()
+            {
+                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
+                parameters = paramList.ToArray()
+            };
+        }
+
+        public Material GetOrCreateMaterial()
+        {
+            if (m_CachedMaterial == null && shader != null)
+            {
+                m_CachedMaterial = new Material(shader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+
+            return m_CachedMaterial;
+        }
+
+        private void DestroyCachedMaterial()
+        {
+            DestroyImmediate(m_CachedMaterial);
+            m_CachedMaterial = null;
+        }
+
+        public void OnDisable()
+        {
+            DestroyCachedMaterial();
+        }
+
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
 
         internal enum DataType
@@ -910,6 +982,13 @@ namespace UnityEditor.VFX
                             taskDescs.Add(sortTaskDesc);
                         }
                     }
+                }
+
+                if (context is VFXShaderGraphParticleOutput)
+                {
+                    var material = GetOrCreateMaterial();
+                    var materialTask = CreateMaterialTask(material);
+                    // taskDescs.Add(materialTask);
                 }
             }
 

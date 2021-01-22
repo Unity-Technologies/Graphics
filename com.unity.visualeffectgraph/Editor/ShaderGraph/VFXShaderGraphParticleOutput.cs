@@ -13,6 +13,82 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    [CustomEditor(typeof(VFXShaderGraphParticleOutput), true)]
+    [CanEditMultipleObjects]
+    class VFXShaderGraphParticleOutputEditor : VFXContextEditor
+    {
+        private MaterialEditor m_MaterialEditor = null;
+        private VFXDataParticle m_Data = null;
+
+        private bool m_RequireUpdateMaterialEditor = false;
+
+        private void RequireUpdateMaterialEditor() => m_RequireUpdateMaterialEditor = true;
+
+        protected new void OnEnable()
+        {
+            m_Data = (target as VFXContext)?.GetData() as VFXDataParticle;
+
+            UpdateMaterialEditor();
+
+            if (m_Data != null)
+                m_Data.OnMaterialChange += RequireUpdateMaterialEditor;
+
+            base.OnEnable();
+        }
+
+        protected new void OnDisable()
+        {
+            if (m_Data != null)
+                m_Data.OnMaterialChange -= RequireUpdateMaterialEditor;
+
+            DestroyImmediate(m_MaterialEditor);
+            base.OnDisable();
+        }
+
+        void UpdateMaterialEditor()
+        {
+            var material = m_Data.GetOrCreateMaterial();
+            m_MaterialEditor = (MaterialEditor)CreateEditor(material);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            if (m_RequireUpdateMaterialEditor)
+            {
+                UpdateMaterialEditor();
+                m_RequireUpdateMaterialEditor = false;
+            }
+
+            if (m_MaterialEditor != null)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                // Required to draw the header to draw OnInspectorGUI.
+                m_MaterialEditor.DrawHeader();
+                m_MaterialEditor.OnInspectorGUI();
+
+                // Configure the keywords + pass if a change was made.
+                // TODO: Currently this does nothing as the resetter is never found by HDRP (due to how we create the shader)
+                if (EditorGUI.EndChangeCheck())
+                    VFXLibrary.currentSRPBinder.SetupMaterial((Material)m_MaterialEditor.target);
+            }
+
+            // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
+
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
+                {
+                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                }
+            }
+
+            DisplaySummary();
+        }
+    }
+
     class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput
     {
         [SerializeField, VFXSetting]
