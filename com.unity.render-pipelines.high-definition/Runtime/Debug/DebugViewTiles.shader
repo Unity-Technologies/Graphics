@@ -57,6 +57,10 @@ Shader "Hidden/HDRP/DebugViewTiles"
             int _SelectedEntityCategory;
             int _SelectedEntityCategoryBudget;
 
+            int _BinnedDebugMode;
+            int _StartBucket;
+            int _EndBucket;
+
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;
 
@@ -202,23 +206,35 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // For debug shaders, Viewport can be at a non zero (x,y) but the pipeline render targets all starts at (0,0)
                 // input.positionCS in in pixel coordinate relative to the render target origin so they will be offsted compared to internal render textures
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
+                #define DEBUG_TILE_SIZE 16 // 8x8 is not visible in the debug menu, so we need to use 16x16 to display something, which is incorrect
                 uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
-
-                float depth = GetTileDepth(pixelCoord);
-
-                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
+                
+                int2 tileCoord = (float2)pixelCoord / DEBUG_TILE_SIZE;
+                int2 sampleCoord = tileCoord * DEBUG_TILE_SIZE + (DEBUG_TILE_SIZE / 2); // sample the middle of the DEBUG_TILE_SIZE area
+                float depth = GetTileDepth(sampleCoord);
+                PositionInputs posInput = GetPositionInput(sampleCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                int2 offsetInTile = pixelCoord - tileCoord * DEBUG_TILE_SIZE;
                 uint tile = ComputeTileIndex(posInput.positionSS);
-                uint zBin = ComputeZBinIndex(posInput.linearDepth);
+               
+                uint2 zBinRange;
+                if (_BinnedDebugMode == BINNEDDEBUGMODE_VISUALIZE_OPAQUE)
+                {
+                    zBinRange.x = ComputeZBinIndex(posInput.linearDepth);
+                    zBinRange.y = zBinRange.x;
+                }
+                else
+                {
+                    zBinRange.x = _StartBucket;
+                    zBinRange.y = _EndBucket;
+                }
 
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
-            #if defined(SHOW_LIGHT_CATEGORIES)
                 uint entityCount = 0;
-
+            #if defined(SHOW_LIGHT_CATEGORIES)
                 if (_SelectedEntityCategory < BOUNDEDENTITYCATEGORY_COUNT)
                 {
-                    EntityLookupParameters params = InitializeEntityLookup(tile, uint2(zBin, zBin), (uint)_SelectedEntityCategory);
+                    EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, (uint)_SelectedEntityCategory);
 
                     uint i = 0;
 
@@ -229,102 +245,71 @@ Shader "Hidden/HDRP/DebugViewTiles"
                         i++;
                     }
                 }
-
-                // These must not be too hard on the eyes...
-                const float hueRed     = 0;
-                const float hueBlue    = 240.0 / 360.0;
-                const float saturation = 0.5;
-                const float minValue   = 0.1;
-                const float maxValue   = 1;
-                const float opacity    = 0.75;
-
-                float hue   = lerp(hueBlue, hueRed, saturate(entityCount * rcp(_SelectedEntityCategoryBudget)));
-                float value = lerp(minValue, maxValue, saturate(zBin * rcp(Z_BIN_COUNT - 1)));
-
-                // TODO: have to apply a gamma ramp here, else I can't see a thing. Did we mess up?
-                result.rgb = pow(HsvToRgb(float3(hue, saturation, value)), 2.2);
-                result.a   = opacity;
+            #else
+                entityCount = input.variant;
             #endif
-/*
-                int n = 0;
-#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
-                for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
-                {
-                    uint mask = 1u << category;
-                    if (mask & _ViewTilesFlags)
-                    {
-                        uint start;
-                        uint count;
-                        GetCountAndStart(posInput, category, start, count);
-                        n += count;
-                    }
-                }
-                if (n == 0)
-                    n = -1;
-#else
-                n = input.variant;
-#endif
 
-
-#ifdef DISABLE_TILE_MODE
-                // Tile debug mode is not supported in MSAA (only cluster)
-                int maxLights = 32;
-                const int textSize = 23;
-                const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
-                if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
-                {
-                    float4 result2 = float4(.1,.1,.1,.9);
-
-                    uint2 unormCoord = input.positionCS.xy;
-                    float3 textColor = float3(0.5f, 0.5f, 0.5f);
-                    uint2 textLocation = uint2(0, 0);
-                    for (int i = 0; i < textSize; i++)
-                        DrawCharacter(text[i], textColor, unormCoord, textLocation, result2.rgb, 1, text[i] >= 97 ? 7 : 10);
-
-                    result = AlphaBlend(result, result2);
-                }
-#else
                 // Tile overlap counter
-                if (n >= 0)
+                if (entityCount > 0)
                 {
-                    result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
+                    result = OverlayHeatMap(pixelCoord.xy & (DEBUG_TILE_SIZE - 1), entityCount);
                 }
-
-#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
+             
+           
+#if defined(SHOW_LIGHT_CATEGORIES)
                 // Highlight selected tile
+                int2 mouseTileCoord = _MousePixelCoord.xy / DEBUG_TILE_SIZE;
                 if (all(mouseTileCoord == tileCoord))
                 {
-                    bool border = any(offsetInTile == 0 || offsetInTile == (int)GetTileSize() - 1);
+                    bool border = any(offsetInTile == 0 || offsetInTile == DEBUG_TILE_SIZE - 1);
                     float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
 
                 // Print light lists for selected tile at the bottom of the screen
                 int maxLights = 32;
-                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                if (tileCoord.y < BOUNDEDENTITYCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    float depthMouse = GetTileDepth(_MousePixelCoord.xy);
+                    uint2 sampleCoord = mouseTileCoord * DEBUG_TILE_SIZE + (DEBUG_TILE_SIZE / 2); // sample in the middle of DEBUG_TILE_SIZE area
+                    float depthMouse = GetTileDepth(sampleCoord);
 
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
+                    PositionInputs mousePosInput = GetPositionInput(sampleCoord, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                    uint tile = ComputeTileIndex(mousePosInput.positionSS);
+                    uint2 zBinRange;
+                    if (_BinnedDebugMode == BINNEDDEBUGMODE_VISUALIZE_OPAQUE)
+                    {
+                        zBinRange.x = ComputeZBinIndex(mousePosInput.linearDepth);
+                        zBinRange.y = zBinRange.x;
+                    }
+                    else
+                    {
+                        zBinRange.x = _StartBucket;
+                        zBinRange.y = _EndBucket;
+                    }
 
-                    uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
-                    uint start;
-                    uint count;
-
-                    GetCountAndStart(mousePosInput, category, start, count);
+                    uint category = (BOUNDEDENTITYCATEGORY_COUNT - 1) - tileCoord.y;
+                    int lightListIndex = tileCoord.x - 2;
+                    uint entityIndex = 0;
+                    int n = -1;
+                    int i = 0;
+                    entityCount = 0;
+                    EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, category);
+                    while (TryFindEntityIndex(i, params, entityIndex))
+                    {
+                        if (entityCount == lightListIndex)
+                        {
+                            n = entityIndex;
+                        }
+                        entityCount++;
+                        i++;
+                    }
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
-                    int lightListIndex = tileCoord.x - 2;
 
-                    int n = -1;
                     if(tileCoord.x == 0)
                     {
-                        n = (int)count;
-                    }
-                    else if(lightListIndex >= 0 && lightListIndex < (int)count)
-                    {
-                        n = FetchIndex(start, lightListIndex);
+                        n = (int)entityCount;
                     }
 
                     if (n >= 0)
@@ -338,8 +323,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     result = AlphaBlend(result, result2);
                 }
 #endif
-#endif
-*/
                 return result;
             }
 

@@ -340,6 +340,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MotionVectorTextureMS = Shader.PropertyToID("_MotionVectorTextureMS");
         public static readonly int _CameraDepthValuesTexture = Shader.PropertyToID("_CameraDepthValues");
 
+        // z-binning debug view properties
+        public static readonly int _BinnedDebugMode = Shader.PropertyToID("_BinnedDebugMode");
+        public static readonly int _StartBucket = Shader.PropertyToID("_StartBucket");
+        public static readonly int _EndBucket = Shader.PropertyToID("_EndBucket");
+
+
         public static readonly int[] _GBufferTexture =
         {
             Shader.PropertyToID("_GBufferTexture0"),
