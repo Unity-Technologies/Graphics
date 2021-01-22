@@ -40,9 +40,9 @@ MonoBehaviour:
         m_Untranslated: Who is this tutorial for?
       Text:
         m_Untranslated: "This tutorial is designed for intermediate users who already
-          know how to use Unity, but are new to the High Definition Rendering Pipeline.\r\n\r\nThe
+          know how to use Unity, but are new to the High Definition Rendering Pipeline.\n\nThe
           goal of this project is to help you understand HDRP\u2019s core features
-          and best practices for lighting and rendering.\r"
+          and best practices for lighting and rendering."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
