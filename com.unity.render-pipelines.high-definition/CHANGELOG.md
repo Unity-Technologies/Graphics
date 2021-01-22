@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
 - Added View Bias for mesh decals.
+- Added pivot point manipulation for Decals (inspector and edit mode).
+- Added UV manipulation for Decals (edit mode).
+- Added color and intensity customization for Decals.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -46,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the upscale radius from the RTR.
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
 - Changed the convergence time of ssgi to 16 frames and the preset value
+- Removed the material pass probe volumes evaluation mode.
 
 ## [10.3.0] - 2020-12-01
 
