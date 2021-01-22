@@ -4,6 +4,10 @@
 
 Samples a Cubemap and returns a Vector 4 color value for use in the shader. Requires a Direction (**Dir**) input in world space to sample the Cubemap. You can achieve a blurring effect by using the **LOD** input to sample at a different Level of Detail. You can also use the **Sampler** input to define a custom Sampler State.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
