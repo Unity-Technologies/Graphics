@@ -16,12 +16,16 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
     using UnityEditor;
 
+    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
+        // We do not want that GC frees the preferences that have been added, used to store their references
+        static readonly ConcurrentStack<object> s_ColorPref = new ConcurrentStack<object>();
+
         #region Volumes Gizmo Color
 
         static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.5f);
-        static Func<Color> GetColorPrefVolumeGizmoColor;
+        private static Func<Color> GetColorPrefVolumeGizmoColor;
 
         public static Color volumeGizmoColor => GetColorPrefVolumeGizmoColor();
 
@@ -36,11 +40,15 @@ namespace UnityEngine.Rendering
 
         static CoreRenderPipelinePreferences()
         {
-            GetColorPrefVolumeGizmoColor = RegisterSceneColor("Volume Gizmo", s_VolumeGizmoColorDefault);
+            GetColorPrefVolumeGizmoColor = RegisterPreferenceColor("Scene/Volume Gizmo", s_VolumeGizmoColorDefault);
         }
 
-        static readonly ConcurrentStack<object> s_ColorPref = new ConcurrentStack<object>();
-        internal static Func<Color> RegisterSceneColor(string name, Color defaultColor)
+        /// <summary>
+        /// This function provides a way of adding a <see cref="PrefColor"/> into the panel 'Preferences\Colors' />
+        /// </summary>
+        /// <param name="name">The name that the color will have on the panel, in form of 'group/name'</param>
+        /// <param name="defaultColor">Used for first time, and to restore the default value</param>
+        public static Func<Color> RegisterPreferenceColor(string name, Color defaultColor)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("You must give a valid name for the color property", nameof(name));
@@ -48,20 +56,18 @@ namespace UnityEngine.Rendering
             // PrefColor is the type to use to have a Color that is customizable inside the Preference/Colors panel.
             // Sadly it is internal so we must create it and grab color from it by reflection.
             Type prefColorType = typeof(Editor).Assembly.GetType("UnityEditor.PrefColor");
-
-            var colorPref = Activator.CreateInstance(prefColorType, $"Scene/{name}", defaultColor.r, defaultColor.g, defaultColor.b, defaultColor.a);
-
             PropertyInfo colorInfo = prefColorType.GetProperty("Color");
-            if (colorInfo == null)
-            {
-                Debug.LogError("Unable to find property `Color` on object `UnityEditor.PrefColor`");
-                return () => defaultColor;
-            }
 
+            var colorPref = Activator.CreateInstance(prefColorType, name, defaultColor.r, defaultColor.g, defaultColor.b, defaultColor.a);
             s_ColorPref.Push(colorPref);
 
             MemberExpression colorProperty = Expression.Property(Expression.Constant(colorPref, prefColorType), colorInfo);
 
+            // Make sure that the new preference color is being loaded into the Preference/Colors panel
+            MethodInfo loadMethod = prefColorType.GetMethod("Load");
+            loadMethod.Invoke(colorPref, null);
+
+            // Return the method to obtain the color
             return Expression.Lambda<Func<Color>>(colorProperty).Compile();
         }
     }
