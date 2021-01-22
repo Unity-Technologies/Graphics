@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering
             {
                 cascadeSizeSum += cascades[i].size;
             }
-            if (Mathf.Abs(cascadeSizeSum - 1f) > Mathf.Epsilon)
+            if (Mathf.Abs(cascadeSizeSum - 1f) > 0.01f)
             {
                 Debug.LogError($"Cascade total sum of size must be 1.0 (Currently it is {cascadeSizeSum}).");
 

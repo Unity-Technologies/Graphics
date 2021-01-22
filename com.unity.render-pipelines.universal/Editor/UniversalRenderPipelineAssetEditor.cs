@@ -492,7 +492,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
             if (useMetric)
             {
-                var lastCascadeSplitSize = (1.0f - shadowCascadeSplit[splitCount]) * baseMetric;
+                var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
                 float valueMetric = borderValue * lastCascadeSplitSize;
                 valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueMetric, 0f, lastCascadeSplitSize, null);
 
