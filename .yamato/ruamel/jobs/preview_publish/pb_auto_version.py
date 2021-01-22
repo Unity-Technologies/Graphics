@@ -39,9 +39,8 @@ class PreviewPublish_AutoVersionJob():
                         echo "Did not find any dependency to bump. Will not commit and push anything."
                     fi'''
                 )])
-        job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["com.unity.template-*/**/*.json"] AND NOT push.changes.all match ["com.unity.*/package.json"]')
+        if auto_version is True:
+            job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["com.unity.template-*/**/*.json"] AND NOT push.changes.all match ["com.unity.*/package.json"]')
         job.add_artifacts_packages()
-        # if auto_version is True:
-        #     job.add_trigger_integration_branch(target_branch)
         return job
     

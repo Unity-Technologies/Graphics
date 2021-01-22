@@ -14,5 +14,5 @@ all:
       all: true 
     - project: Universal_Stereo
       all: true
-#    - project: Universal_Hybrid
-#      all: true  
+    - project: Universal_Hybrid
+      all: true  

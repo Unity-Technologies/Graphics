@@ -1,0 +1,26 @@
+project:
+  name: Smoke_Test
+  folder: SRP_SmokeTest
+test_platforms:
+  - type: playmode
+  - type: editmode
+  - type: Standalone
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
+        
