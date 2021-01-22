@@ -10,6 +10,8 @@ This [Node](Node.md) is useful for sampling a **Texture** in the vertex [Shader 
 
 On platforms that do not support this operation, opaque black is returned instead.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
