@@ -48,7 +48,7 @@ MonoBehaviour:
           The glass is casting a shadow on the right lamp\r\n* The bottom part of
           the glass gets brighter\r\n\r\nTurn back Light layers On. In the next step,
           we will see how they were set up.\r\n\r\nNote: by default Light layers
-          are turned off for new projects\r"
+          are turned off for new projects\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

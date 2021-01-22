@@ -1,7 +1,19 @@
 {
   "dependencies": {
+    "com.unity.2d.sprite": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
+    "com.unity.2d.tilemap": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
     "com.unity.cinemachine": {
-      "version": "2.7.1",
+      "version": "2.6.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -22,7 +34,7 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.2",
+      "version": "2.0.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -31,35 +43,34 @@
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.3",
+      "version": "2.0.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.ide.vscode": {
-      "version": "1.2.3",
+      "version": "1.2.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.learn.iet-framework": {
-      "version": "1.2.0",
+      "version": "1.1.0-preview.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.editorcoroutines": "1.0.0",
-        "com.unity.settings-manager": "1.0.2"
+        "com.unity.editorcoroutines": "1.0.0"
       },
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
     "com.unity.learn.iet-framework.authoring": {
-      "version": "0.6.4-preview.1",
+      "version": "0.6.3-preview.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.learn.iet-framework": "1.1.0"
+        "com.unity.learn.iet-framework": "1.1.0-preview.2"
       },
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
@@ -76,10 +87,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0",
-        "com.unity.shadergraph": "11.0.0",
-        "com.unity.visualeffectgraph": "11.0.0",
-        "com.unity.render-pipelines.high-definition-config": "11.0.0"
+        "com.unity.render-pipelines.core": "10.1.0-preview.21",
+        "com.unity.shadergraph": "10.1.0-preview.21",
+        "com.unity.visualeffectgraph": "10.1.0-preview.21",
+        "com.unity.render-pipelines.high-definition-config": "10.1.0-preview.21"
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
@@ -87,18 +98,11 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0"
+        "com.unity.render-pipelines.core": "10.1.0-preview.21"
       }
     },
     "com.unity.searcher": {
       "version": "4.3.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
-    },
-    "com.unity.settings-manager": {
-      "version": "1.0.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -109,7 +113,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0",
+        "com.unity.render-pipelines.core": "10.1.0-preview.21",
         "com.unity.searcher": "4.3.1"
       }
     },
@@ -118,12 +122,11 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
-        "com.unity.cinemachine": "2.6.1",
-        "com.unity.render-pipelines.high-definition": "11.0.0"
+        "com.unity.render-pipelines.high-definition": "10.1.0-preview.21"
       }
     },
     "com.unity.test-framework": {
-      "version": "1.1.18",
+      "version": "1.1.16",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -133,8 +136,17 @@
       },
       "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
     },
+    "com.unity.textmeshpro": {
+      "version": "3.0.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      },
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
+    },
     "com.unity.timeline": {
-      "version": "1.4.4",
+      "version": "1.4.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -159,7 +171,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "11.0.0"
+        "com.unity.shadergraph": "10.1.0-preview.21"
       }
     },
     "com.unity.modules.ai": {

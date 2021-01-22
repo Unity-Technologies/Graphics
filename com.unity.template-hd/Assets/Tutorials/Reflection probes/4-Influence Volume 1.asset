@@ -39,13 +39,28 @@ MonoBehaviour:
       Title:
         m_Untranslated: Use Influence Volume as a Proxy Volume
       Text:
-        m_Untranslated: "The Check Box <b>Use Influence Volume as a Proxy Volume</b>
-          is to\r\nto ensure that the reflection is warped based on the camera position,
-          to ground the reflections with the environment.\r\n\r\n1. Select <b>Reflection
-          Provy Volume 3 Ceiling</b> under <b>Room 3</b> in the <i>Hierarchy</i>\r\n2.
-          In the Inspector window disable and enable <b>Use Influence Volume as a
-          Proxy Volume</b> Check Box\r\n\r\nYou can observe the effects of the warping
-          of the reflections on the reflective surfaces.\r"
+        m_Untranslated: 'The Check Box <b>Use Influence Volume as a Proxy Volume</b>
+          is to
+
+          to ensure that the reflection is warped based on the
+          camera position, to ground the reflections with the environment.
+
+          
+
+          1.
+          Select <b>Reflection Provy Volume 3 Ceiling</b> under <b>Room 3</b> in
+          the <i>Hierarchy</i>
+
+          2. In the Inspector window disable and
+          enable <b>Use Influence Volume as a Proxy Volume</b> Check Box
+
+          
+
+          You
+          can observe the effects of the warping of the reflections on the reflective
+          surfaces.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

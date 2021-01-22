@@ -49,7 +49,7 @@ MonoBehaviour:
           using the ranges of our slider.\r\n\r\n<b>Temperature</b> - The color of
           natural lights (sun and sky) and incandescent lamps can be defined by a
           color temperature in Kelvin. Look up the temperature of the light you want
-          to simulate on the web.\r"
+          to simulate on the web.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

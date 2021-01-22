@@ -39,17 +39,38 @@ MonoBehaviour:
       Title:
         m_Untranslated: Refraction model
       Text:
-        m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
-          algorithm to simulate light deviation and absorption within Materials.\r\n\r\nSelect
-          the glass by following the steps:\r\n1) In the <i>Hierarchy</i> window
-          expand <b>Props->Room 3->RoundTable_01->RoundTable_01_LOD0</b>\r\n2) Select
-          <b>RoundTable_GLass_01_LOD00</b> gameobject\r\n3) Go to <i>Inspector</i>
-          window -> expand the <i>Glass Dark_Mat  Material</i>\r\n4) The <b>Surface
-          Type</b> must be set to <b>Transparent</b>. This exposes the <b>Transparency
-          Inputs</b> section in the <i>Inspector</i>.\r\n5) Click the <b>Refraction
-          Model</b> drop-down and set the <b>Refraction Model</b> to None and back.\r\n\r\nRefraction
-          allows us to create this frosted glass effect which you can adjust using
-          the smoothness slider above.\r"
+        m_Untranslated: 'The High Definition Render Pipeline (HDRP) uses a refraction
+          algorithm to simulate light deviation and absorption within Materials.
+
+          
+
+          Select
+          the glass by following the steps:
+
+          1) In the <i>Hierarchy</i>
+          window expand <b>Props->Room 3->RoundTable_01->RoundTable_01_LOD0</b>
+
+          2)
+          Select <b>RoundTable_GLass_01_LOD00</b> gameobject
+
+          3) Go to
+          <i>Inspector</i> window -> expand the <i>Glass Dark_Mat  Material</i>
+
+          4)
+          The <b>Surface Type</b> must be set to <b>Transparent</b>. This exposes
+          the <b>Transparency Inputs</b> section in the <i>Inspector</i>.
+
+          5)
+          Click the <b>Refraction Model</b> drop-down and set the <b>Refraction Model</b>
+          to None and back.
+
+          
+
+          Refraction allows us to create
+          this frosted glass effect which you can adjust using the smoothness slider
+          above.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
