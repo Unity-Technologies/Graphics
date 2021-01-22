@@ -18,8 +18,6 @@ all_project_ci_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
-         rerun: on-new-revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
@@ -35,6 +33,8 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
+         rerun: on-new-revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal.yml#Nightly_Universal_trunk
@@ -42,8 +42,6 @@ all_project_ci_nightly_trunk:
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp_performancetests.yml#Nightly_HDRP_PerformanceTests_trunk
          rerun: on-new-revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
          rerun: on-new-revision
@@ -91,8 +89,6 @@ all_project_ci_CUSTOM-REVISION:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: always

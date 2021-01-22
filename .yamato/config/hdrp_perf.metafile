@@ -29,8 +29,6 @@ platforms:
     color_spaces:
       - Linear
 pr:
-  dependencies: []
-nightly:
   dependencies:
     - platform: Win
       api: DX11
@@ -39,3 +37,5 @@ nightly:
       test_platforms:
         - performance_memory
         # - performance_run_build
+nightly:
+  dependencies: []
