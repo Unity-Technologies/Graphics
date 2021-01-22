@@ -234,7 +234,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #if defined(SHOW_LIGHT_CATEGORIES)
                 if (_SelectedEntityCategory < BOUNDEDENTITYCATEGORY_COUNT)
                 {
-                    EntityLookupParameters params = InitializeEntityLookup(tile, uint2(zBin, zBin), (uint)_SelectedEntityCategory, _SelectedEntityCategory != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+                    EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, (uint)_SelectedEntityCategory, _SelectedEntityCategory != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
 
                     uint i = 0;
 
@@ -293,8 +293,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int n = -1;
                     int i = 0;
                     entityCount = 0;
-                    EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, category);
-                    while (TryFindEntityIndex(i, params, entityIndex))
+                    EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, category, category != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+                    while (TryFindEntityIndex(i, params, entityIndex, category != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE))
                     {
                         if (entityCount == lightListIndex)
                         {
