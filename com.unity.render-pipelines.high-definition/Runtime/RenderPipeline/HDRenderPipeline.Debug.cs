@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
-            public ComputeBufferHandle  zBinBitArrayBuffer;
+            public ComputeBufferHandle zBinBitArrayBuffer;
             public ComputeBufferHandle tileList;
             public ComputeBufferHandle dispatchIndirect;
 

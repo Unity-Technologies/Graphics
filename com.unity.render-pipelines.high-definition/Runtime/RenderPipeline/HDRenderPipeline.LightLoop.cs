@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseTileBuffer;
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
-            public ComputeBufferHandle  zBinBitArrayBuffer;
+            public ComputeBufferHandle zBinBitArrayBuffer;
             public ComputeBufferHandle tileFeatureFlagsBuffer; // Deferred
             public ComputeBufferHandle tileListBuffer;         // Deferred
             public ComputeBufferHandle dispatchIndirectBuffer; // Deferred

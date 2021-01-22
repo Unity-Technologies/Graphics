@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _NumTileClusteredX;
         public uint     _NumTileClusteredY;
         public int      _EnvSliceSize;
-        public uint     _Pad7; 
+        public float    _Pad7;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders

@@ -3409,7 +3409,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader tileShader;
             public Vector2Int    coarseTileBufferDimensions;
             public Vector2Int    fineTileBufferDimensions;
-           
+
             // Big Tile
             public ComputeShader bigTilePrepassShader;
             public int bigTilePrepassKernel;
@@ -3832,7 +3832,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tileShader                 = tileShader;
             parameters.coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             parameters.fineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
-               
+ 
             // Big tile prepass
             parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
             parameters.bigTilePrepassKernel = s_GenListPerBigTileKernel;
@@ -3973,7 +3973,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
             cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
-           
+ 
             // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
             cb._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);

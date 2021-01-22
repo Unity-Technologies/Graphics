@@ -203,7 +203,7 @@ struct EntityLookupParameters
 };
 
 // Internal. Do not call directly.
-EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSort)
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSorted)
 {
     EntityLookupParameters params;
     ZERO_INITIALIZE(EntityLookupParameters, params);
@@ -305,7 +305,7 @@ struct EntityLookupParameters
 };
 
 // Internal. Do not call directly.
-EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSort)
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSorted)
 {
     EntityLookupParameters params;
 
