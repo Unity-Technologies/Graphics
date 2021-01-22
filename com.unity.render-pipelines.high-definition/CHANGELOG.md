@@ -34,9 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 
-### Added
-- ClearFlag moved into the Unity Core module (Unity 2021.2). Stencil buffer can now be independently cleared from depth buffer.
 
 ## [11.0.0] - 2020-10-21
 
