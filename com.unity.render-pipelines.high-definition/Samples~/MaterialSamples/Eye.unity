@@ -161,7 +161,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "The diffusion profile has a world scale of 1 meter. This accommodates
+  m_text: "The diffusion profiles have a world scale of 1 meter. This accommodates
     for eyeballs that have a diameter of one meter.\n\nIn reality, eyeballs have
     a diameter of roughly 25mm. To use the diffusion profiles at a realistic scale
     you need to adjust the world scale in the diffusion profiles accordingly. \nTo
