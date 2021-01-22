@@ -103,7 +103,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Change some light unit slider value ranges to better reflect the lighting scenario.
-	
+- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+
 ## [10.2.1] - 2020-11-30
 
 ### Added
