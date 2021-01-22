@@ -497,7 +497,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UpdateDebugMode()
+        private void UpdateDebugMode()
         {
             switch (m_CurrentMode)
             {
@@ -516,7 +516,15 @@ namespace UnityEditor.VFX.UI
 
         private void UpdateDebugMode(VFXGraph graph)
         {
+            //Update now...
             UpdateDebugMode();
+
+            //.. but in some case, the onRuntimeDataChanged is called too soon, need to update twice
+            //because VFXUIDebug relies on VisualEffect : See m_VFX.GetParticleSystemNames
+            m_View.schedule.Execute(() =>
+            {
+                UpdateDebugMode();
+            }).ExecuteLater(0 /* next frame */);
         }
 
         void ClearDebugMode()
