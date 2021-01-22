@@ -107,12 +107,6 @@ pr:
       test_platforms:
         - Standalone
         - playmode_XR
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
 nightly:
   dependencies:
     - project: VFX_HDRP
@@ -123,10 +117,4 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
-        - playmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
         - playmode
