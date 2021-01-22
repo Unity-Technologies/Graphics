@@ -6,6 +6,8 @@ Converts a height map defined by input **Texture** into a normal map. UV values 
 
 The strength of the created normal map can be defined by inputs **Offset** and **Strength**, where **Offset** defines the maximum distance of a normal detail and **Strength** acts as a multiplier to the result.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |

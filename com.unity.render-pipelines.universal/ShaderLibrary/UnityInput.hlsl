@@ -149,12 +149,6 @@ float4   unity_StereoScaleOffset[2];
 CBUFFER_END
 #endif
 
-#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-CBUFFER_START(UnityStereoEyeIndices)
-    float4 unity_StereoEyeIndices[2];
-CBUFFER_END
-#endif
-
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
 // OVR_multiview
 // In order to convey this info over the DX compiler, we wrap it into a cbuffer.

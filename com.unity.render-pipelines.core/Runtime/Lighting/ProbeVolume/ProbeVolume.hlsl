@@ -93,6 +93,8 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float3 N, float3 backN, float
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
 {
     uvw = 0;
+    // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
+    bool hasValidUVW = true;
 
     APVConstants apvConst = LoadAPVConstants(apvRes.index);
     // transform into APV space
@@ -106,7 +108,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     if (any(abs(posRS) > float3(apvConst.indexDim / 2)))
 #endif
     {
-        return false;
+        hasValidUVW = false;
     }
 
     // convert to index
@@ -118,7 +120,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
     if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y))
     {
-        return false;
+        hasValidUVW = false;
     }
 
     index.y = posRS.y - yoffset;
@@ -132,7 +134,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)
     {
-        return false;
+        hasValidUVW = false;
     }
 
     // unpack pool idx
@@ -153,7 +155,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     offset *= 3.0 / (float3) apvConst.poolDim;      // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
-    return true;
+    return hasValidUVW;
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,

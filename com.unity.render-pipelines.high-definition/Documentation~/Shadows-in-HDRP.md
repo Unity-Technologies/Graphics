@@ -17,7 +17,7 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 - A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
 
 HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small portion of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md). To enable this feature, go the Shadow section of your Unity Project’s [HDRP Asset](HDRP-Asset.md) and enable the **Dynamic Rescale** property for the shadow atlas you want HDRP to dynamically rescale the shadow maps of.
-Note that HDRP does not support dynamic rescale for cached shadow maps. 
+Note that HDRP does not support dynamic rescale for cached shadow maps.
 
 ## Shadow atlases
 
@@ -75,7 +75,7 @@ To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Pro
 
 ### Specific settings in HDRP
 
-For flexible lighting setups, HDRP allows you to choose how you want the shadowmasks to behave for each individual Light. You can change the behavior of the shadowmask by changing a Light’s **Shadowmask Mode**. Set the Light’s **Mode** to **Mixed** to expose **Shadowmask Mode** in the **Shadow Map** drop-down of the **Shadows** section. 
+For flexible lighting setups, HDRP allows you to choose how you want the shadowmasks to behave for each individual Light. You can change the behavior of the shadowmask by changing a Light’s **Shadowmask Mode**. Set the Light’s **Mode** to **Mixed** to expose **Shadowmask Mode** in the **Shadow Map** drop-down of the **Shadows** section.
 
 <a name="ShadowmaskModes"></a>
 
@@ -111,11 +111,11 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
 
-As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option, select a [Light](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) and, in the **Shadow** section of its Inspector, enable **Update on light movement**. 
-You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if they need to perform an update in this mode. 
+As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option, select a [Light](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) and, in the **Shadow** section of its Inspector, enable **Update on light movement**.
+You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if they need to perform an update in this mode.
 
 ### Customising shadow caching
-HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this: 
+HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this:
 
 1. Select an HDRP Asset to view it in the Inspector.
 2. For punctual lights, go to **Lighting > Shadows > Punctual Light Shadows**. For area lights, go to **Lighting > Shadows > Area Light Shadows**.
@@ -130,7 +130,7 @@ If the shadow atlas is full when a Light requests a spot, the cached shadow mana
 
 
 After a Scene loads with all the already placed Lights, if you add a new Light with cached shadows to the Scene, HDRP tries to place it in order to fill the holes in the atlas. However, depending on the order of insertion, the atlas may be fragmented and the holes available are not enough to place the Light's shadow map in. In this case, you can defragment the atlas to allow for additional Lights. To do this, pass the target atlas into the following function: `HDCachedShadowManager.instance.DefragAtlas`
-Note that this causes HDRP to mark all the shadow maps in the atlas as dirty which means HDRP renders them the moment their parent Light becomes visible. 
+Note that this causes HDRP to mark all the shadow maps in the atlas as dirty which means HDRP renders them the moment their parent Light becomes visible.
 
 ### Preserving shadow atlas placement
 
@@ -139,7 +139,7 @@ If you plan to only temporarily set a Light's **Update Mode** to **Every Frame**
 
 ### Mixed Cached Shadow Maps
 
-For non-directional lights It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for. 
+For non-directional lights It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for.
 With this setup, HDRP renders static shadow casters into the shadow map depending on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. If the Update Mode is set to OnEnable, HDRP only renders static shadow casters when you enable the Light component. If the Update Mode is to OnDemand, HDRP only renders static shadow casters when you explicitly request an update.
 This setup is particularly useful if your environment consists of mostly static GameObjects and the lights do not move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
 
