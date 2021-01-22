@@ -46,7 +46,7 @@ MonoBehaviour:
           but slightly different.\r\n4) Hold the right mouse button and using WASD
           keys move around the scene.\r\n\r\nNotice how Unity imitates eyes adaptation
           to bright lights. At no point it\u2019s so bright or dark that you can
-          not see anything.\r\n"
+          not see anything.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

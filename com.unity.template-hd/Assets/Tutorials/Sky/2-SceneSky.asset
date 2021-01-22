@@ -39,53 +39,23 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore Sky setup
       Text:
-        m_Untranslated: '1) In the <i>Hierarchy</i> window select <b>Lighting->Volumes->Volume
-          Global</b>
-
-          2) Check the overrides in the <i>Inspector</i> window,
-          it has both Visual Environment and HDRI Sky
-
-          3) Disable either
-          Visual Environment or HDRI Sky. The sky turns gray in the scene view. Both
-          of the overrides are required to have a visible sky.
-
-          
-
-          <b>Visual
-          Environment</b> - Defines that the sky will be of type HDRI Sky.
-
-          
-
-          <b>HDRI
-          Sky</b> - Is used to customize specific sky properties such as texture
-          or exposure. A clear daylight sky exposure is roughly between 12 and 14
-          EV, or 15.000 and 25.000 lux
-
-          
-
-          4) Change the exposure
-          to 12 EV temporarily to see the effect.  Undo your change
-
-          5)
-          Open <b>Window->Rendering->Lighting->Environment</b>. Notice the same volume
-          and the type HDRI Sky is selected in the panel. Here we specify not only
-          what Sky to use for baking, but also what to use for ambient lighting if
-          no baked data exists.
-
-          
-
-          Currently setting  Static
-          Lighting Sky to none would not have any effect, because the scene lighting
-          is already baked.
-
-          
-
-          Note: If after disabling Visual
-          Environment the sky is still visible, it is worth checking the HDRP default
-          settings in Edit->Project Settings->HDRP Default Settings->Volume Components
-          to see if it exists there.
-
-'
+        m_Untranslated: "1) In the <i>Hierarchy</i> window select <b>Lighting->Volumes->Volume
+          Global</b>\r\n2) Check the overrides in the <i>Inspector</i> window, it
+          has both Visual Environment and HDRI Sky\r\n3) Disable either Visual Environment
+          or HDRI Sky. The sky turns gray in the scene view. Both of the overrides
+          are required to have a visible sky.\r\n\r\n<b>Visual Environment</b> -
+          Defines that the sky will be of type HDRI Sky.\r\n\r\n<b>HDRI Sky</b> -
+          Is used to customize specific sky properties such as texture or exposure.
+          A clear daylight sky exposure is roughly between 12 and 14 EV, or 15.000
+          and 25.000 lux\r\n\r\n4) Change the exposure to 12 EV temporarily to see
+          the effect.  Undo your change\r\n5) Open <b>Window->Rendering->Lighting->Environment</b>.
+          Notice the same volume and the type HDRI Sky is selected in the panel.
+          Here we specify not only what Sky to use for baking, but also what to use
+          for ambient lighting if no baked data exists.\r\n\r\nCurrently setting 
+          Static Lighting Sky to none would not have any effect, because the scene
+          lighting is already baked.\r\n\r\nNote: If after disabling Visual Environment
+          the sky is still visible, it is worth checking the HDRP default settings
+          in Edit->Project Settings->HDRP Default Settings->Volume Componen\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

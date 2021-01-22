@@ -39,14 +39,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Realtime Visual Special Effects
       Text:
-        m_Untranslated: 'Visual effects that are located in the Art/Particle folder
+        m_Untranslated: "Visual effects that are located in the Art/Particle folder
           are called Visual Effect Graphs. You can edit them using the Visual Effect
-          Graph window.
-
-          This node-based editor enables creators to design
-          advanced GPU-based effects.
-
-'
+          Graph window.\r\nThis node-based editor enables creators to design advanced
+          GPU-based effects.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

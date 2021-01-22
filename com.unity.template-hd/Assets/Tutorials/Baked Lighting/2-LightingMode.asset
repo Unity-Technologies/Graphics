@@ -47,7 +47,7 @@ MonoBehaviour:
           with real-time shadows. Can also be used to fully bake all lights and shadows
           to have a completely static scene.\r\n\r\nMore about<a href=\"https://docs.unity3d.com/2020.2/Documentation/Manual/lighting-mode.html\">Light
           Modes.</a>\r\n\r\nAlso worth mentioning that under Lightmapping Settings,
-          we use Progressive GPU (Preview) it is much faster than CPU.\r\n"
+          we use Progressive GPU (Preview) it is much faster than CPU.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -64,7 +64,7 @@ MonoBehaviour:
           picture.\r\n\r\nWhile it could be a lot to take in, simply remember that
           large groups of small objects could benefit from being static + receiving
           GI from light probes. See <a href=\"https://blogs.unity3d.com/2019/08/28/static-lighting-with-light-probes/\">here</a>
-          for more info about this use case.\r\n"
+          for more info about this use case.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

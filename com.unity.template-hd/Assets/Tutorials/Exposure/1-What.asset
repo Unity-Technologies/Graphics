@@ -39,36 +39,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: What is exposure?
       Text:
-        m_Untranslated: 'In HDRP, mastering Exposure is key to achieving believable
-          lighting.
-
-          
-
-          Exposure is the amount of lighting affecting
-          the sensor of a camera. Cameras, and your eyes, can automatically adapt
-          to the amount of light in the environment. However, like in real-life,
-          it is important to control the exposure of your HDRP cameras to prevent
-          over or under exposure.
-
-          
-
-          There are a few different
-          exposure modes in HDRP, the most notable are:
-
-          
-
-          <b>Fixed</b>
+        m_Untranslated: "In HDRP, mastering Exposure is key to achieving believable
+          lighting.\r\n\r\nExposure is the amount of lighting affecting the sensor
+          of a camera. Cameras, and your eyes, can automatically adapt to the amount
+          of light in the environment. However, like in real-life, it is important
+          to control the exposure of your HDRP cameras to prevent over or under exposure.\r\n\r\nThere
+          are a few different exposure modes in HDRP, the most notable are:\r\n\r\n<b>Fixed</b>
           - Allows you to manually set the Scene exposure. The camera does not  adapt
           to the lighting conditions when leaving or entering dark areas. It is commonly
-          used for set lighting, when lighting conditions remain constant.
-
-          
-
-          <b>Automatic
+          used for set lighting, when lighting conditions remain constant.\r\n\r\n<b>Automatic
           Histogram</b> - Simulates how a camera can automatically adapt to dynamic
-          lighting conditions.
-
-'
+          lighting conditions.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

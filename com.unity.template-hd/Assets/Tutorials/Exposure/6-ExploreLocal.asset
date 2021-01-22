@@ -39,36 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore local volume
       Text:
-        m_Untranslated: '1) Select Lighting->Volume Room 2
-
-          2) Take a
-          look at exposure settings.
-
-          
-
-          Only a few are used
-          because most of them are inherited from the Volume global
-
-          
-
-          3)
-          Uncheck <b>Limit Min</b> and <b>Limit Max</b>
-
-          4) Holding the
-          right mouse button, look at the green wall, and then at the cage.
-
-          5)
-          Now enable <b>Limit Min</b> and <b>Limit Max</b> and look around again.
-          Notice how the lighting is not changing so drastically.
-
-          
-
-          Limit
+        m_Untranslated: "1) Select Lighting->Volume Room 2\r\n2) Take a look at exposure
+          settings.\r\n\r\nOnly a few are used because most of them are inherited
+          from the Volume global\r\n\r\n3) Uncheck <b>Limit Min</b> and <b>Limit
+          Max</b>\r\n4) Holding the right mouse button, look at the green wall, and
+          then at the cage.\r\n5) Now enable <b>Limit Min</b> and <b>Limit Max</b>
+          and look around again. Notice how the lighting is not changing so drastically.\r\n\r\nLimit
           settings are key features of Automatic Exposure, allowing you to fine tune
           how dark or bright the pixels on the screen can be. Preventing huge brightness
-          fluctuations as we encountered in step 4.
-
-'
+          fluctuations as we encountered in step 4.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

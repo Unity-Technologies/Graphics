@@ -39,20 +39,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Reflection Probes
       Text:
-        m_Untranslated: 'A Reflection Probe works like a camera that captures a spherical
+        m_Untranslated: "A Reflection Probe works like a camera that captures a spherical
           view of its surroundings in all directions. The image is then stored as
           a Cubemap and used by nearby GameObjects as a reference for how they should
           reflect their surroundings. This helps reflective surfaces like Chrome
-          or shiny plastic reflect the scene correctly.
-
-          
-
-          You
-          can use multiple Reflection Probes in a Scene. Objects that move around
-          will blend between the Reflection Probes to reflect their surroundings
-          correctly.
-
-'
+          or shiny plastic reflect the scene correctly.\r\n\r\nYou can use multiple
+          Reflection Probes in a Scene. Objects that move around will blend between
+          the Reflection Probes to reflect their surroundings correctly.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

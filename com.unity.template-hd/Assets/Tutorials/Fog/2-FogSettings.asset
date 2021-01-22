@@ -58,7 +58,7 @@ MonoBehaviour:
           presets that aim to find a balance between quality and performance. Try
           changing it to High and back.\r\n\r\n<b>Directional Lights Only</b> - Enabling
           this option will increase performance even if other light types are already
-          not used for volumetric fog.\r\n"
+          not used for volumetric fog.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

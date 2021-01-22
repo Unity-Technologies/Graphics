@@ -39,25 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You have finished the <b>Exposure</b> tutorial. While it''s
+        m_Untranslated: "You have finished the <b>Exposure</b> tutorial. While it's
           not an easy task to get used to physically correct light values and exposure,
-          learning these topics can help you greatly when aiming for photorealism.
-
-          
-
-          Here
-          is a<a href="https://youtu.be/yqCHiZrgKzs?t=1026">video</a> tutorial on
-          the subject.
-
-          More info about Exposure can be found in our 
-          <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Exposure.html">documentation.</a>
-
-          
-
-          Note:
-          You do not need to save in order to follow other tutorials.
-
-'
+          learning these topics can help you greatly when aiming for photorealism.\r\n\r\nHere
+          is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=1026\">video</a> tutorial
+          on the subject.\r\nMore info about Exposure can be found in our  <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Exposure.html\">documentation.</a>\r\n\r\nNote:
+          You do not need to save in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
