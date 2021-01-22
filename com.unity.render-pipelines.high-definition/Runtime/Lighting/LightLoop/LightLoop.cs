@@ -420,7 +420,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_CoarseTileSize       = 64;  // Pixels
         public static int s_FineTileSize         = 8;   // Pixels
         public static int s_zBinCount            = 8192;
-        public static int s_MaxReflectionProbesPerPixel = 4;
     }
 
     [GenerateHLSL]
