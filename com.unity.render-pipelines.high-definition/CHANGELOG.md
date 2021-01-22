@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed case where material keywords would not get setup before usage.
 - Fixed shader warning in ReflectionDenoiser
+- Fixed XR depth copy (case 1286908).
 
 ## [7.5.2] - 2020-11-16
 
