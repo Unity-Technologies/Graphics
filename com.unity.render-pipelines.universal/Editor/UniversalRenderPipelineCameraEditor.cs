@@ -263,8 +263,8 @@ namespace UnityEditor.Rendering.Universal
             if (additionalCameraData.renderType == CameraRenderType.Base)
                 return false;
 
-            ScriptableRenderer renderer = additionalCameraData.scriptableRenderer;
-            return renderer is ForwardRenderer && ((ForwardRenderer)renderer).renderingMode == RenderingMode.Deferred;
+            ForwardRenderer renderer = additionalCameraData.scriptableRenderer as ForwardRenderer;
+            return renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
         }
 
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
