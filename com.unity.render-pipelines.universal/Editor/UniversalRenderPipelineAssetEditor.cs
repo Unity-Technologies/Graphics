@@ -447,11 +447,13 @@ namespace UnityEditor.Rendering.Universal
                 shadowCascadeSplit = new Vector4(m_ShadowCascade2SplitProp.floatValue, 1, 0, 0);
 
             float splitBias = 0.001f;
+            float invBaseMetric = baseMetric == 0 ? 0 : 1f / baseMetric;
 
             // Ensure correct split order
             shadowCascadeSplit[0] = Mathf.Clamp(shadowCascadeSplit[0], 0f, shadowCascadeSplit[1] - splitBias);
             shadowCascadeSplit[1] = Mathf.Clamp(shadowCascadeSplit[1], shadowCascadeSplit[0] + splitBias, shadowCascadeSplit[2] - splitBias);
             shadowCascadeSplit[2] = Mathf.Clamp(shadowCascadeSplit[2], shadowCascadeSplit[1] + splitBias, shadowCascadeSplit[3] - splitBias);
+
 
             EditorGUI.BeginChangeCheck();
             for (int i = 0; i < splitCount; ++i)
@@ -466,14 +468,14 @@ namespace UnityEditor.Rendering.Universal
                     float valueMetric = value * baseMetric;
                     valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueMetric, 0f, baseMetric, null);
 
-                    shadowCascadeSplit[i] = Mathf.Clamp(valueMetric / baseMetric, minimum, maximum);
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueMetric * invBaseMetric, minimum, maximum);
                 }
                 else
                 {
                     float valueProcentage = value * 100f;
                     valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueProcentage, 0f, 100f, null);
 
-                    shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage / 100f, minimum, maximum);
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage * 0.01f, minimum, maximum);
                 }
             }
 
@@ -493,17 +495,18 @@ namespace UnityEditor.Rendering.Universal
             if (useMetric)
             {
                 var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
+                var invLastCascadeSplitSize = lastCascadeSplitSize == 0 ? 0 : 1f / lastCascadeSplitSize;
                 float valueMetric = borderValue * lastCascadeSplitSize;
                 valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueMetric, 0f, lastCascadeSplitSize, null);
 
-                borderValue = valueMetric / lastCascadeSplitSize;
+                borderValue = valueMetric * invLastCascadeSplitSize;
             }
             else
             {
                 float valueProcentage = borderValue * 100f;
                 valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueProcentage, 0f, 100f, null);
 
-                borderValue = valueProcentage / 100f;
+                borderValue = valueProcentage * 0.01f;
             }
 
             if (EditorGUI.EndChangeCheck())

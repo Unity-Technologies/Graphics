@@ -95,11 +95,6 @@ namespace UnityEditor.Rendering
         public static void DrawCascades(ref Cascade[] cascades, bool useMetric, float baseMetric)
         {
             // Validate arguments
-            if (useMetric && baseMetric <= 0)
-            {
-                Debug.LogError($"Base metric must be greater than zero.");
-                return;
-            }
             if (cascades == null || cascades.Length == 0)
             {
                 Debug.LogError($"No cascades passed.");
