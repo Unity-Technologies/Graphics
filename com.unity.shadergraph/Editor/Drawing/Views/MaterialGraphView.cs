@@ -1006,6 +1006,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        // Contrary to the name this actually handles when the drop operation is performed
         void OnDragPerformEvent(DragPerformEvent e)
         {
             Vector2 localPos = (e.currentTarget as VisualElement).ChangeCoordinatesTo(contentViewContainer, e.localMousePosition);
@@ -1233,7 +1234,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
 
-            SGBlackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
+            SGBlackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().BlackboardController.Blackboard;
 
             // Get the position to insert the new shader inputs per section.
             List<int> indicies = MaterialGraphView.GetIndicesToInsert(blackboard);

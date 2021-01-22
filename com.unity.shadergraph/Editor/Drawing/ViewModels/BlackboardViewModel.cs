@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEditor;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardViewModel : ISGViewModel
     {
-        // TODO: Add commands from controller that views can use to bind to things that depend on them like buttons
-        // Thus a view model is not just data but also commands for functional aspects of the UI
         public GraphData Model { get; set; }
+        public VisualElement ParentView { get; set; }
+        public string Title { get; set; }
         public string Subtitle { get; set; }
         public Dictionary<string, IGraphDataAction> PropertyNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> DefaultKeywordNameToAddActionMap { get; set; }

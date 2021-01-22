@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System;
-
+using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
 
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
+using BlackboardItemController = UnityEditor.ShaderGraph.Drawing.ShaderInputViewController;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -19,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphData != null)
             {
                 // If type property is valid, create instance of that type
-                if (blackboardItemType != null)
+                if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
                     blackboardItemReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
                 // If type is null a direct override object must have been provided or else we are in an error-state
                 else if (blackboardItemReference == null)
@@ -35,10 +36,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action<GraphData> ModifyGraphDataAction => AddBlackboardItem;
 
-        // If this is provided, is a subclass of ShaderInput and is not null, then an object of this type is created to add
+        // If this is a subclass of ShaderInput and is not null, then an object of this type is created to add to blackboard
         public Type blackboardItemType { get; set; }
 
-        // If the type field above is null and this is provided, then it is directly used as the blackboard item to add to the graph
+        // If the type field above is null and this is provided, then it is directly used as the item to add to blackboard
         public BlackboardItem blackboardItemReference { get; set; }
     }
 
@@ -67,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         BlackboardItem m_ItemToRemove;
     }
 
-    class BlackboardController : SGViewController<BlackboardViewModel>
+    class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
     {
         // Type changes (adds/removes of Types) only happen after a full assmebly reload so its safe to make this stuff static (I think, confirm this assumption)
         static IList<Type> m_shaderInputTypes;
@@ -88,25 +89,39 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_shaderInputTypes = shaderInputTypes.ToList();
         }
-        VisualElement m_Blackboard;
+        IList<BlackboardItemController> m_BlackboardItemControllers = new List<BlackboardItemController>();
 
-        public BlackboardController(BlackboardViewModel inViewModel, GraphDataStore graphDataStore, VisualElement parentVisualElement)
-            : base(inViewModel, graphDataStore)
+        SGBlackboard m_Blackboard;
+
+        internal SGBlackboard Blackboard
+        {
+            get => m_Blackboard;
+            private set => m_Blackboard = value;
+        }
+
+        internal BlackboardController(GraphData model, BlackboardViewModel inViewModel, GraphDataStore graphDataStore)
+            : base(model, inViewModel, graphDataStore)
         {
             InitializeViewModel();
 
+            Blackboard = new SGBlackboard(ViewModel);
+            Blackboard.controller = this;
+
             // TODO: Change it so MoveItem isn't handled by the BlackboardController,
             // it'd be nice to have a BlackboardRowController that handled moving, deleting, updating etc after a BlackboardRow is created and its assigned that as its view
-            m_Blackboard = new SGBlackboard(ViewModel, parentVisualElement);
-
-            // TODO: VFXBlackboard owns a list of VFXBlackboardCategories, and handles the code for managing them being added, moved, removed etc
-            // That seems fine given that moving sections for instance is an operation that affects the whole blockboard so maybe that makes sense
+            foreach (var shaderInput in DataStore.State.properties)
+            {
+                var shaderInputViewModel = new ShaderInputViewModel();
+                var shaderInputViewController = new ShaderInputViewController(shaderInput, shaderInputViewModel, graphDataStore);
+                m_BlackboardItemControllers.Add(shaderInputViewController);
+                // TODO: How to communicate with child controllers?
+            }
         }
 
         void InitializeViewModel()
         {
             // Clear the view model
-            ViewModel.Reset();
+           iewModel.Reset();
 
             ViewModel.Subtitle = FormatPath(Model.path);
 
@@ -154,11 +169,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override void RequestModelChange(IGraphDataAction changeAction)
         {
-            GraphDataStore.Dispatch(changeAction);
+            DataStore.Dispatch(changeAction);
         }
 
+        // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
+
+            if (changeAction is AddBlackboardItemAction addBlackboardItemAction)
+            {
+                //CreateBlackboardRow(addBlackboardItemAction.blackboardItemReference);
+            }
+
             // Reconstruct view-model first
             // TODO: (would be cool to have some scoping here to see if the action was one that changed the UI or not, could avoid reconstructing the ViewModel based on that)
             InitializeViewModel();
@@ -174,8 +196,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // Called to respond to add blackboard item action in ModelChanged()
-        void AddBlackboardRow(ShaderInput shaderInput)
+        internal void CreateBlackboardRow(BlackboardItem newBlackboardItem)
+        {
+
+        }
+
+        void AddBlackboardRow(BlackboardItem blackboardItem)
         {
             // Create BlackboardRowController, give it a field view and Shader Input to manage
             // let it handle all the stuff that comes in AddInputRow()
@@ -202,6 +228,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return string.Join("/", newStrings.ToArray());
+        }
+
+        public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
+        {
+            return new BlackboardRow(new VisualElement(), null);
         }
 
         public override void ApplyChanges()

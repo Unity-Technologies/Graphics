@@ -51,17 +51,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
-        BlackboardProvider m_BlackboardProvider;
 
         BlackboardController m_BlackboardController;
 
+        internal BlackboardController BlackboardController => m_BlackboardController;
+
         ColorManager m_ColorManager;
         EditorWindow m_EditorWindow;
-
-        public BlackboardProvider blackboardProvider
-        {
-            get { return m_BlackboardProvider; }
-        }
 
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
@@ -100,10 +96,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string assetName
         {
-            get { return m_BlackboardProvider.assetName; }
+            get => m_AssetName;
             set
             {
-                m_BlackboardProvider.assetName = value;
+                m_AssetName = value;
+                // Also update blackboard title
+                m_BlackboardController.ViewModel.Title = value;
             }
         }
 
@@ -206,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
                 m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); });
                 // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions if so
-                m_GraphView.RegisterCallback<DragExitedEvent>(evt => { m_BlackboardProvider.blackboard.HideScrollBoundaryRegions(); });
+                m_GraphView.RegisterCallback<DragExitedEvent>(evt => { BlackboardController.Blackboard.HideScrollBoundaryRegions(); });
 
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
@@ -280,9 +278,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void CreateBlackboard()
         {
-            m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
+            //m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
 
-            m_BlackboardController = new BlackboardController(new BlackboardViewModel(), m_Graph.owner.graphDataStore, m_GraphView);
+            var blackboardViewModel = new BlackboardViewModel() { ParentView = graphView, Model = m_Graph, Title = assetName };
+            m_BlackboardController = new BlackboardController(m_Graph, blackboardViewModel, m_Graph.owner.graphDataStore);
         }
 
         void AddContexts()
@@ -349,9 +348,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                blackboardProvider.blackboard.ShowWindow();
+                BlackboardController.Blackboard.ShowWindow();
             else
-                blackboardProvider.blackboard.HideWindow();
+                BlackboardController.Blackboard.HideWindow();
 
             // Same for the inspector
             if (m_UserViewSettings.isInspectorVisible)
@@ -394,8 +393,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            m_InspectorView = new InspectorView(graphView);
-            m_GraphView.Add(m_InspectorView);
+            var inspectorViewModel = new InspectorViewModel() { ParentView = this };
+            m_InspectorView = new InspectorView(inspectorViewModel);
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -656,7 +655,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-            m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+            //m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
             if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();
@@ -1174,6 +1173,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();
+        string m_AssetName;
 
         void UpdateEdgeColors(HashSet<IShaderNodeView> nodeViews)
         {
@@ -1255,7 +1255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ApplyMasterPreviewLayout();
 
-            m_BlackboardProvider.blackboard.DeserializeLayout();
+            m_BlackboardController.Blackboard.DeserializeLayout();
 
             m_InspectorView.DeserializeLayout();
         }
@@ -1289,7 +1289,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
-            blackboardProvider.blackboard.ClampToParentLayout(m_GraphView.layout);
+            BlackboardController.Blackboard.ClampToParentLayout(m_GraphView.layout);
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 

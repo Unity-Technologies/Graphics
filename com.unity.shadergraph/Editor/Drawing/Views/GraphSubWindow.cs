@@ -11,26 +11,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         List<ISelectable> GetSelection { get; }
     }
 
-    class GraphSubWindow : GraphElement, ISGResizable, ISGControlledElement<SGViewController<ISGViewModel>>
+    class GraphSubWindow : GraphElement, ISGResizable
     {
-        // --- Begin ISGControlledElement implementation
-        public void OnControllerChanged(ref SGControllerChangedEvent e)
+        ISGViewModel m_ViewModel;
+
+        ISGViewModel ViewModel
         {
-
+            get => m_ViewModel;
+            set => m_ViewModel = value;
         }
-
-        public void OnControllerEvent(SGControllerEvent e)
-        {
-
-        }
-
-        public SGViewController<ISGViewModel> controller
-        {
-            get { return m_Controller; }
-        }
-        // --- ISGControlledElement implementation
-
-        SGViewController<ISGViewModel> m_Controller;
 
         Dragger m_Dragger;
 
@@ -66,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         public virtual string elementName => "";
         public virtual string windowTitle => "";
 
-        public VisualElement parentView
+        public VisualElement ParentView
         {
             get
             {
@@ -87,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             get
             {
-                if(parentView is ISelectionProvider selectionProvider)
+                if(ParentView is ISelectionProvider selectionProvider)
                     return selectionProvider.GetSelection;
 
                 Debug.Log("ERROR: GraphSubWindow: Was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");
@@ -217,10 +206,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
-        protected GraphSubWindow(VisualElement parentVisualElement) : base()
+        protected GraphSubWindow(ISGViewModel viewModel)
         {
-            m_ParentView = parentVisualElement;
-            parentView.Add(this);
+            ViewModel = viewModel;
+            m_ParentView = ViewModel.ParentView;
+            ParentView.Add(this);
 
             var styleSheet = Resources.Load<StyleSheet>($"Styles/{styleName}");
             // Setup VisualElement from Stylesheet and UXML file
@@ -362,7 +352,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         void OnMoveEnd(MouseUpEvent upEvent)
         {
-            windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentView.layout);
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, ParentView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();

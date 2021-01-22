@@ -18,8 +18,6 @@ namespace UnityEditor.ShaderGraph
         static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
 
-        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
-
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
 
@@ -60,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             UpdateReferenceNameResetMenu();
 
             // Set callback association for display name updates
-            m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
+            property.displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }
 
         public Node gvNode => this;
@@ -70,8 +68,6 @@ namespace UnityEditor.ShaderGraph
 
         [Inspectable("ShaderInput", null)]
         AbstractShaderProperty property => (node as PropertyNode)?.property;
-
-        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
 
         public object GetObjectToInspect()
         {
@@ -118,7 +114,6 @@ namespace UnityEditor.ShaderGraph
             {
                 property.displayName = newValue;
                 graph.SanitizeGraphInputName(property);
-                m_displayNameUpdateTrigger?.Invoke(newValue);
                 MarkNodesAsDirty(true, ModificationScope.Node);
             }
         }
@@ -336,20 +331,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // TODO: Replace this with something better instead of just replicating it as its pretty bad
+
         BlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
                 return null;
 
-            var blackboardProvider = graphView.blackboardProvider;
-            if (blackboardProvider == null)
+            var blackboardController = graphView.BlackboardController;
+            if (blackboardController == null)
                 return null;
 
             var propNode = (PropertyNode)node;
-            return blackboardProvider.GetBlackboardRow(propNode.property);
+            return blackboardController.GetBlackboardRow(propNode.property);
         }
 
+        // What the function above is needed for is essentially messaging other parties for hover highlighting behavior
+        // If we could replace that with events from a controller that wrapped this NodeView to a controller that wrapped a BlackboardRow...
         void OnMouseHover(EventBase evt)
         {
             var propRow = GetAssociatedBlackboardRow();

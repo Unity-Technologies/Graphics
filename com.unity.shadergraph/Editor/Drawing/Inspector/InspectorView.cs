@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 Debug.Log("Attempted to register property drawer: " + newPropertyDrawerType + " that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
-        public InspectorView(GraphView graphView) : base(graphView)
+        public InspectorView(InspectorViewModel viewModel) : base(viewModel)
         {
             m_GraphInspectorView = m_MainContainer.Q<TabbedView>("GraphInspectorView");
             m_GraphSettingsContainer = m_GraphInspectorView.Q<VisualElement>("GraphSettingsContainer");
@@ -142,12 +142,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // which for SG, is a representation of the settings in GraphData
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
-            var graphEditorView = parentView.GetFirstAncestorOfType<GraphEditorView>();
+            var graphEditorView = ParentView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
             contentContainer.Clear();
-            DrawInspectable(contentContainer, (IInspectable)parentView, m_graphSettingsPropertyDrawer);
+            DrawInspectable(contentContainer, (IInspectable)ParentView, m_graphSettingsPropertyDrawer);
             contentContainer.MarkDirtyRepaint();
         }
     }

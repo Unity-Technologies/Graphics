@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new SGBlackboard(new BlackboardViewModel(), associatedGraphView)
+            blackboard = new SGBlackboard(new BlackboardViewModel())
             {
                 subTitle = FormatPath(graph.path),
                 addItemRequested = AddItemRequested,
@@ -77,12 +77,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             m_DefaultPropertySection =  blackboard.Q<SGBlackboardSection>("propertySection");
             foreach (var property in graph.properties)
                 AddInputRow(property);
-            blackboard.Add(m_DefaultPropertySection);
 
             m_DefaultKeywordSection = blackboard.Q<SGBlackboardSection>("keywordSection");
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
-            blackboard.Add(m_DefaultKeywordSection);
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -451,6 +449,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 return null;
         }
 
+        // Move to field view
         void OnMouseHover(EventBase evt, ShaderInput input)
         {
             var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();

@@ -30,27 +30,61 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-    class SGBlackboard : GraphSubWindow
+    class SGBlackboard : GraphSubWindow, ISGControlledElement<BlackboardController>
     {
         VisualElement m_ScrollBoundaryTop;
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
 
-        BlackboardViewModel m_ViewModel;
 
-        public BlackboardViewModel ViewModel
+        // --- Begin ISGControlledElement implementation
+        public void OnControllerChanged(ref SGControllerChangedEvent e)
         {
-            get => m_ViewModel;
+
+        }
+
+        public void OnControllerEvent(SGControllerEvent e)
+        {
+
+        }
+
+        public BlackboardController controller
+        {
+            get => m_Controller;
             set
             {
-                if (m_ViewModel != value)
+                if (m_Controller != value)
                 {
-                    m_ViewModel = value;
+                    if (m_Controller != null)
+                    {
+                        m_Controller.UnregisterHandler(this);
+                    }
+                    Clear();
+                    m_Controller = value;
+
+                    if (m_Controller != null)
+                    {
+                        m_Controller.RegisterHandler(this);
+                    }
                 }
             }
         }
+        // --- ISGControlledElement implementation
 
-        // List of existing blackboard sections
+        BlackboardController m_Controller;
+
+        BlackboardViewModel m_ViewModel;
+
+        BlackboardViewModel ViewModel
+        {
+            get => m_ViewModel;
+            set => m_ViewModel = value;
+        }
+
+        readonly SGBlackboardSection m_DefaultPropertySection;
+        readonly SGBlackboardSection m_DefaultKeywordSection;
+
+        // List of user-made blackboard sections
         IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
 
         bool m_scrollToTop = false;
@@ -70,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GenericMenu m_AddPropertyMenu;
 
-        public SGBlackboard(BlackboardViewModel viewModel, VisualElement parentVisualElement) : base(parentVisualElement)
+        public SGBlackboard(BlackboardViewModel viewModel) : base(viewModel)
         {
             ViewModel = viewModel;
 
@@ -86,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShowAddPropertyMenu();
                 };
 
-            parentVisualElement.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+            ParentView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
 
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
@@ -107,12 +141,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             HideScrollBoundaryRegions();
 
             // Sets delegate association so scroll boundary regions are hidden when a blackboard property is dropped into graph
-            if (parentVisualElement is MaterialGraphView materialGraphView)
+            if (ParentView is MaterialGraphView materialGraphView)
                 materialGraphView.blackboardFieldDropDelegate = HideScrollBoundaryRegions;
 
             isWindowScrollable = true;
             isWindowResizable = true;
             focusable = true;
+
+            // Want to retain properties and keywords UI, but need to iterate through the GroupInfos, and create sections for each of those
+            // Then for each section, add the corresponding properties and keywords based on their GUIDs
+            m_DefaultPropertySection =  this.Q<SGBlackboardSection>("propertySection");
+            m_DefaultKeywordSection = this.Q<SGBlackboardSection>("keywordSection");
+
+            // TODO: Need to create a PropertyViewModel that is used to drive a BlackboardRow/FieldView
+            // Also, given how similar the NodeView and FieldView are, would be awesome if we could just unify the two and get rid of FieldView
+            // Then would theoretically also get the ability to connect properties from blackboard to node inputs directly
+            // (could handle in controller to create a new PropertyNodeView and connect that instead)
         }
 
         public void ShowScrollBoundaryRegions()
