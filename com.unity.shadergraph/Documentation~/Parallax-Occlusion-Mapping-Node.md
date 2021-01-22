@@ -4,6 +4,8 @@
 
 The Parallax Occlusion Mapping (POM) Node allows you to create a parallax effect that displaces a Material's UVs and depth to create the illusion of depth inside a Material.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Ports
 
 | Name | **Direction** | Type | Description |
