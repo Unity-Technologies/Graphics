@@ -41,7 +41,7 @@ class ForwardToStandardRendererPostprocessor : AssetPostprocessor
         Object[] allRPassets = Resources.FindObjectsOfTypeAll(typeof(RenderPipelineAsset));
         for (int i = 0; i < allRPassets.Length; i++)
         {
-            //Make some changes on the Pipline assets
+            //Make some changes on the Pipeline assets
             //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will complain about there is no Default Renderer asset
             SerializedObject soAsset = new SerializedObject(allRPassets[i]);
             SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
