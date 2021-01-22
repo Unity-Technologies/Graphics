@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.AssetImporters;
+using UnityEditor.Rendering.ShaderGraph;
 
 namespace UnityEditor.Rendering.MaterialVariants
 {
@@ -135,15 +136,12 @@ namespace UnityEditor.Rendering.MaterialVariants
             if (parent is MaterialVariant matVariant)
                 return matVariant.IsPropertyBlocked(propertyName);
 
-            /* TODO This is intended to check for locks at the ShaderGraph level, but wasn't working, so I'm commenting it out
-             * We'd need to find a way to store those locks that doesn't depend on the specific RP anyway
             if (parent is Shader shader)
             {
-                List<string> locks = HDMetaDataHelper.GetLocksFromMetaData(shader);
+                var locks = Metadata.GetLocksFromMetadata(shader);
                 if (locks != null)
                     return locks.Any(l => l == propertyName);
             }
-            */
 
             return false;
         }

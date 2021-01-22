@@ -16,6 +16,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     abstract class HDSubTarget : SubTarget<HDTarget>, IHasMetadata,
         IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>
     {
+        [SerializeField]
+        List<string> m_LockedProperties = new List<string>();
+
+        public List<string> lockedProperties
+        {
+            get => m_LockedProperties;
+            set => m_LockedProperties = value;
+        }
+
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
         protected bool m_MigrateFromOldSG; // Use only for the migration from early shader stack architecture to recent one
@@ -61,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
+            hdMetadata.lockedProperties = lockedProperties; // TODO Do conversion from SGProperty to MaterialProperty here
             return hdMetadata;
         }
 
@@ -198,7 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, null, null, target.lockedProperties);
+            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, null, null, lockedProperties);
             AddInspectorPropertyBlocks(gui);
             context.Add(gui);
         }
