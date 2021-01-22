@@ -30,12 +30,14 @@ public class HDRPShowLightCluster : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected)]
     static void DrawGizmoForMyScript(HDRPShowLightCluster comp, GizmoType gizmoType)
     {
 	    var cam = comp.cam;
         DrawFrustum(cam);
     }
+#endif
 
     static readonly Color widthColor = new Color(1, 0, 0, 0.4f);
     static readonly Color heightColor = new Color(0, 1, 0, 0.1f);
