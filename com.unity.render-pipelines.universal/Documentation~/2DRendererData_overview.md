@@ -35,6 +35,4 @@ Downsampling will reduce the texture resolution used by _CameraSortingLayerTextu
 
 ## Renderer Features
 
-The 2D Renderer supports Renderer Features. The setup for the features are called before any of the 2D built-in passes are queued.
-
-Please refer to the [Renderer Features](urp-renderer-feature) for more information.
+The 2D Renderer supports [URP Renderer Features](urp-renderer-features). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-features) documentation for more information.
