@@ -1,9 +1,16 @@
 using System.IO;
 using UnityEditor;
-using UnityEngine;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine
 {
+    [System.Serializable]
+    public enum SRPLensFlareBlendMode
+    {
+        Lerp,
+        Additive,
+        Premultiply
+    }
+
     /// <summary>
     /// Asset that define a set image of SRP-LensFlare-DataDriven
     /// </summary>
@@ -18,21 +25,32 @@ namespace UnityEditor.Rendering
         public SRPLensFlareDataElement()
         {
             Intensity = 1.0f;
+            Position = 0.5f;
             LensFlareTexture = null;
             SizeX = 0.1f;
             SizeY = 0.1f;
             Rotation = 0.0f;
             Tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
             Speed = 1.0f;
+            AutoRotate = false;
         }
 
+        [Range(0.0f, 1.0f)]
         public float Intensity;
+        //[Range(-1.0f, 1.0f)]
+        public float Position;
         public Texture LensFlareTexture;
+        //[Range(0.0f, 1.0f)]
         public float SizeX;
+        //[Range(0.0f, 1.0f)]
         public float SizeY;
+        [Range(0, 360)]
         public float Rotation;
         public Color Tint;
+        //[Range(0.0f, 1.0f)]
         public float Speed;
+        public SRPLensFlareBlendMode BlendMode;
+        public bool AutoRotate;
     }
 
     [System.Serializable]
@@ -40,9 +58,13 @@ namespace UnityEditor.Rendering
     {
         public float Intensity = 1.0f;
         public AnimationCurve ScaleCurve;
-        public System.Collections.Generic.List<SRPLensFlareDataElement> Elements;
+        [HideInInspector]
+        public Vector3 WorldPosition;
+        [SerializeField]
+        public SRPLensFlareDataElement[] Elements;
     }
 
+#if UNITY_EDITOR
     internal static class SRPLensFlareMenu
     {
         private static string GetSelectedAssetFolder()
@@ -113,4 +135,5 @@ namespace UnityEditor.Rendering
             Create(className, assetName, folder);
         }
     }
+#endif
 }

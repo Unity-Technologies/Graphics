@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.HighDefinition
             NeighborhoodBlending = 2
         }
 
-        GraphicsFormat m_ColorFormat            = GraphicsFormat.B10G11R11_UFloatPack32;
-        const GraphicsFormat k_CoCFormat        = GraphicsFormat.R16_SFloat;
-        const GraphicsFormat k_ExposureFormat   = GraphicsFormat.R32G32_SFloat;
+        GraphicsFormat m_ColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+        const GraphicsFormat k_CoCFormat = GraphicsFormat.R16_SFloat;
+        const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
         Material m_FinalPassMaterial;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
-        const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
+        const int k_HistogramBins = 128;   // Important! If this changes, need to change HistogramExposure.compute
         const int k_DebugImageHistogramBins = 256;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
@@ -53,6 +53,11 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_BokehIndirectCmd;
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
+
+        // Lens Flare Materials
+        Material m_LensFlareLerp;
+        Material m_LensFlareAdditive;
+        Material m_LensFlarePreMultiply;
 
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
@@ -155,6 +160,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
 
+            // Lens Flare
+            m_LensFlareLerp = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareLerpPS);
+            m_LensFlareAdditive = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareAdditivePS);
+            m_LensFlarePreMultiply = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlarePremultipliedPS);
+
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
             m_UseSafePath = SystemInfo.graphicsDeviceVendor
@@ -215,17 +225,23 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.Destroy(m_SMAAMaterial);
             CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.Destroy(m_LensFlareLerp);
+            CoreUtils.Destroy(m_LensFlareAdditive);
+            CoreUtils.Destroy(m_LensFlarePreMultiply);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
 
-            m_ExposureCurveTexture      = null;
-            m_InternalSpectralLut       = null;
-            m_FinalPassMaterial         = null;
-            m_ClearBlackMaterial        = null;
-            m_SMAAMaterial              = null;
-            m_TemporalAAMaterial        = null;
-            m_HistogramBuffer           = null;
+            m_ExposureCurveTexture = null;
+            m_InternalSpectralLut = null;
+            m_FinalPassMaterial = null;
+            m_ClearBlackMaterial = null;
+            m_SMAAMaterial = null;
+            m_TemporalAAMaterial = null;
+            m_LensFlareLerp = null;
+            m_LensFlareAdditive = null;
+            m_LensFlarePreMultiply = null;
+            m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
         }
@@ -254,46 +270,46 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
             var stack = camera.volumeStack;
-            m_Exposure                  = stack.GetComponent<Exposure>();
-            m_DepthOfField              = stack.GetComponent<DepthOfField>();
-            m_MotionBlur                = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
-            m_Bloom                     = stack.GetComponent<Bloom>();
-            m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
-            m_LensDistortion            = stack.GetComponent<LensDistortion>();
-            m_Vignette                  = stack.GetComponent<Vignette>();
-            m_Tonemapping               = stack.GetComponent<Tonemapping>();
-            m_WhiteBalance              = stack.GetComponent<WhiteBalance>();
-            m_ColorAdjustments          = stack.GetComponent<ColorAdjustments>();
-            m_ChannelMixer              = stack.GetComponent<ChannelMixer>();
-            m_SplitToning               = stack.GetComponent<SplitToning>();
-            m_LiftGammaGain             = stack.GetComponent<LiftGammaGain>();
+            m_Exposure = stack.GetComponent<Exposure>();
+            m_DepthOfField = stack.GetComponent<DepthOfField>();
+            m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_Bloom = stack.GetComponent<Bloom>();
+            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
+            m_LensDistortion = stack.GetComponent<LensDistortion>();
+            m_Vignette = stack.GetComponent<Vignette>();
+            m_Tonemapping = stack.GetComponent<Tonemapping>();
+            m_WhiteBalance = stack.GetComponent<WhiteBalance>();
+            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
+            m_ChannelMixer = stack.GetComponent<ChannelMixer>();
+            m_SplitToning = stack.GetComponent<SplitToning>();
+            m_LiftGammaGain = stack.GetComponent<LiftGammaGain>();
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
-            m_Curves                    = stack.GetComponent<ColorCurves>();
-            m_FilmGrain                 = stack.GetComponent<FilmGrain>();
-            m_PathTracing               = stack.GetComponent<PathTracing>();
+            m_Curves = stack.GetComponent<ColorCurves>();
+            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_PathTracing = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_ExposureControlFS     = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
-            m_StopNaNFS             = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
-            m_DepthOfFieldFS        = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
-            m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
-            m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
-            m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
-            m_LensFlareFS           = frameSettings.IsEnabled(FrameSettingsField.LensFlare);
+            m_ExposureControlFS = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+            m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
+            m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
+            m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
+            m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
+            m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_LensFlareFS = frameSettings.IsEnabled(FrameSettingsField.LensFlare);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
-            m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
-            m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
-            m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
-            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
-            m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
-            m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
-            m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
+            m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
+            m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
+            m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
+            m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering);
+            m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
-            m_AntialiasingFS        &= !m_PathTracing.enable.value;
+            m_AntialiasingFS &= !m_PathTracing.enable.value;
 
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -335,34 +351,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct UberPostParameters
         {
-            public ComputeShader    uberPostCS;
-            public int              uberPostKernel;
-            public bool             outputColorLog;
-            public int              width;
-            public int              height;
-            public int              viewCount;
+            public ComputeShader uberPostCS;
+            public int uberPostKernel;
+            public bool outputColorLog;
+            public int width;
+            public int height;
+            public int viewCount;
 
-            public Vector4          logLutSettings;
+            public Vector4 logLutSettings;
 
-            public Vector4          lensDistortionParams1;
-            public Vector4          lensDistortionParams2;
+            public Vector4 lensDistortionParams1;
+            public Vector4 lensDistortionParams2;
 
-            public Texture          spectralLut;
-            public Vector4          chromaticAberrationParameters;
+            public Texture spectralLut;
+            public Vector4 chromaticAberrationParameters;
 
-            public Vector4          vignetteParams1;
-            public Vector4          vignetteParams2;
-            public Vector4          vignetteColor;
-            public Texture          vignetteMask;
+            public Vector4 vignetteParams1;
+            public Vector4 vignetteParams2;
+            public Vector4 vignetteColor;
+            public Texture vignetteMask;
 
-            public Texture          bloomDirtTexture;
-            public Vector4          bloomParams;
-            public Vector4          bloomTint;
-            public Vector4          bloomBicubicParams;
-            public Vector4          bloomDirtTileOffset;
-            public Vector4          bloomThreshold;
+            public Texture bloomDirtTexture;
+            public Vector4 bloomParams;
+            public Vector4 bloomTint;
+            public Vector4 bloomBicubicParams;
+            public Vector4 bloomDirtTileOffset;
+            public Vector4 bloomThreshold;
 
-            public Vector4          alphaScaleBias;
+            public Vector4 alphaScaleBias;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
@@ -737,9 +753,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
         || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
-            #endif
+#endif
         ;
 
         public RTHandle GetExposureTexture(HDCamera camera)
@@ -925,7 +941,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var sourceTex = colorBuffer;
 
             kernel = exposureParameters.exposurePreparationKernel;
-            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants,  exposureParameters.exposureVariants);
+            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, exposureParameters.exposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParameters.exposureParams2);
@@ -2119,6 +2135,157 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
+            }
+        }
+
+        #endregion
+
+        #region Lens Flare
+        struct LensFlareElement
+        {
+            public Vector3 WorldPosition;
+            public Texture[] LensFlareTextures;
+            public float[] Positions;
+            public Vector2[] Sizes;
+            public float[] Rotations;
+            public Vector4[] Tints; // Tint*LocalIntensity*GlobalIntensity
+            public float[] Speeds;
+            public SRPLensFlareBlendMode[] BlendModes;
+            public bool[] AutoRotates;
+        }
+
+        struct LensFlareParameters
+        {
+            public Material lensFlareLerp;
+            public Material lensFlareAdditive;
+            public Material lensFlarePremultiply;
+            public LensFlareElement[] Elements;
+        }
+
+        LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
+        {
+            LensFlareParameters parameters = new LensFlareParameters();
+
+            parameters.lensFlareLerp = m_LensFlareLerp;
+            parameters.lensFlareAdditive = m_LensFlareAdditive;
+            parameters.lensFlarePremultiply = m_LensFlarePreMultiply;
+
+            SRPLensFlareCommon instance = SRPLensFlareCommon.Instance;
+
+            parameters.Elements = new LensFlareElement[instance.Data.Count];
+
+            int elemIdx = 0;
+            foreach (SRPLensFlareData data in instance.Data)
+            {
+                int currentIdx = 0;
+                parameters.Elements[elemIdx].Positions = new float[data.Elements.Length];
+                parameters.Elements[elemIdx].LensFlareTextures = new Texture[data.Elements.Length];
+                parameters.Elements[elemIdx].Sizes = new Vector2[data.Elements.Length];
+                parameters.Elements[elemIdx].Rotations = new float[data.Elements.Length];
+                parameters.Elements[elemIdx].Tints = new Vector4[data.Elements.Length];
+                parameters.Elements[elemIdx].Speeds = new float[data.Elements.Length];
+                parameters.Elements[elemIdx].BlendModes = new SRPLensFlareBlendMode[data.Elements.Length];
+                parameters.Elements[elemIdx].AutoRotates = new bool[data.Elements.Length];
+                foreach (SRPLensFlareDataElement element in data.Elements)
+                {
+                    if (element.LensFlareTexture != null)
+                    {
+                        parameters.Elements[elemIdx].WorldPosition = data.WorldPosition;
+                        parameters.Elements[elemIdx].Positions[currentIdx] = element.Position;
+                        parameters.Elements[elemIdx].LensFlareTextures[currentIdx] = element.LensFlareTexture;
+                        parameters.Elements[elemIdx].Sizes[currentIdx] = new Vector2(element.SizeX, element.SizeY);
+                        parameters.Elements[elemIdx].Rotations[currentIdx] = element.Rotation;
+                        parameters.Elements[elemIdx].Tints[currentIdx] = (new Vector4(element.Tint.r, element.Tint.g, element.Tint.b, element.Tint.a)) * element.Intensity * data.Intensity;
+                        parameters.Elements[elemIdx].Speeds[currentIdx] = element.Speed;
+                        parameters.Elements[elemIdx].BlendModes[currentIdx] = element.BlendMode;
+                        parameters.Elements[elemIdx].AutoRotates[currentIdx] = element.AutoRotate;
+
+                        ++currentIdx;
+                    }
+                }
+                ++elemIdx;
+            }
+
+            return parameters;
+        }
+
+        static void DoLensFlare(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
+        {
+            foreach (LensFlareElement element in parameters.Elements)
+            {
+                Vector2 viewportAdjustment = new Vector2((float)hdCam.actualWidth / source.rt.width, (float)hdCam.actualHeight / source.rt.height);
+                cmd.SetGlobalVector(HDShaderIDs._FlareViewportAdjustment, viewportAdjustment);
+
+                Camera cam = hdCam.camera;
+
+                Vector3 viewportPos = cam.WorldToViewportPoint(element.WorldPosition);
+                Vector2 screenPos = (Vector2)viewportPos;
+
+                Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(element.WorldPosition /*+ cam.transform.up * m_OcclusionRadius*/);
+                float occlusionRadius = (screenPos - occlusionRadiusEdgeScreenPos).magnitude * 2;
+                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
+
+                Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
+
+                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos * viewportAdjustment));
+                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, viewportPos.z);
+
+                Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
+                //if (paniniProjection.IsActive() && (cam.cameraType != CameraType.SceneView || PaniniProjectionSceneView.enabled))
+                //    screenPosPanini = DoPaniniProjection(screenPosPanini, hdcam, paniniProjection, inverse: true);
+                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
+
+                //var intensity = m_Intensity;
+                ////var coneOuter = m_Feather * m_ConeAngle;
+                ////var coneInner = m_ConeAngle - coneOuter;
+                //var angle = Vector3.Angle(transform.forward, -hdCam.camera.transform.forward);
+                ////var innerAngle = angle - coneInner;
+                ////intensity *= Mathf.SmoothStep(1, 0, innerAngle / coneOuter);
+                //cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, intensity);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, 1.0f);
+
+                //cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionManual, m_OcclusionMode == OcclusionMode.Manual ? m_OcclusionManual : -1f);
+
+                //cmd.SetRenderTarget(source);
+
+                cmd.CopyTexture(source, target);
+
+                CoreUtils.SetRenderTarget(cmd, target);
+                for (int i = 0; i < element.LensFlareTextures.Length; ++i)
+                {
+                    if (element.LensFlareTextures[i] == null)
+                        continue;
+
+                    Texture texture = element.LensFlareTextures[i];
+                    float position = element.Positions[i];
+                    Vector2 size = element.Sizes[i];
+                    float rotation = element.Rotations[i];
+                    Vector4 tint = element.Tints[i]; // Tint*LocalIntensity*GlobalIntensity
+                    float speed = element.Speeds[i];
+                    SRPLensFlareBlendMode blendMode = element.BlendModes[i];
+                    bool autoRotate = element.AutoRotates[i];
+
+                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.LensFlareTextures[i]);
+
+                    cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
+                    if (autoRotate)
+                        rotation = rotation == 0.0f ? -360.0f : -rotation;
+                    rotation *= Mathf.Deg2Rad;
+
+                    Vector4 data = new Vector4(position, rotation, size.x, size.y);
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData, data);
+                    cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, speed);
+
+                    //cmd.Draw(m_Mesh, Matrix4x4.identity, flare.material, 0, 0);
+                    //HDUtils.DrawFullScreen(cmd, parameters.lensFlareAdditive, target);
+
+                    if (blendMode == SRPLensFlareBlendMode.Lerp)
+                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareLerp, 0, MeshTopology.Quads, 6, 1, null);
+                    else if (blendMode == SRPLensFlareBlendMode.Additive)
+                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareAdditive, 0, MeshTopology.Quads, 6, 1, null);
+                    else
+                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlarePremultiply, 0, MeshTopology.Quads, 6, 1, null);
+                }
             }
         }
 

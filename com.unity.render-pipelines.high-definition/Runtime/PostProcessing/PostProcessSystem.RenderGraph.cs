@@ -86,6 +86,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
         }
 
+        class LensFlareData
+        {
+            public LensFlareParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
         class MotionBlurData
         {
             public MotionBlurParameters parameters;
@@ -639,6 +646,31 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        TextureHandle LensFlarePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            //if (m_LensFlareFS)
+            if (SRPLensFlareCommon.Instance.Data.Count > 0)
+            {
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlare)))
+                {
+                    passData.source = builder.ReadTexture(source);
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
+                    passData.destination = builder.WriteTexture(dest);
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            DoLensFlare(data.parameters, hdCamera, ctx.cmd, data.source, data.destination);
+                        });
+
+                    source = passData.destination;
+                }
+            }
+
+            return source;
+        }
+
         TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectors, TextureHandle source)
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
@@ -1023,6 +1055,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
+
+                // Lens Flare between DepthOfField and MotionBlur
+                // MotionBlur with accumulation can "print" on sensor as sharp but can still be
+                // accumulated with MotionBlur with Accumulation
+                source = LensFlarePass(renderGraph, hdCamera, source);
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
