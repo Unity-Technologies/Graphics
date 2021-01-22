@@ -6,6 +6,8 @@ Samples a Cubemap and returns a Vector 4 color value for use in the shader. Requ
 
 If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
