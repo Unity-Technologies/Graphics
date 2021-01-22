@@ -16,7 +16,7 @@ See also: [How to use the Render Objects Renderer Feature](renderer-features/how
 
 | Property | Description |
 |:-|:-|
-| **Name** | The name of the feature. |
+| **Name** | Use this field to edit the name of the feature. |
 | **Event** | The event in the URP queue when Unity executes this Renderer Feature. |
 | **Filters** | Settings that let you configure which objects this Renderer Feature renders. |
 | Queue | Select whether the feature renders opaque or transparent objects. |
