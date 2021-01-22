@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             Button upgradeButton = new Button(upgradeAction) { text = buttonText , tooltip = deprecationText};
-            if (!ShaderGraphPreferences.allowDeprecatedBehaviors)
+            if (!ShaderGraphPreferences.allowDeprecatedBehaviors || messageType == MessageType.Info)
             {
                 HelpBoxRow help = new HelpBoxRow(messageType);
                 var label = new Label(labelText)
