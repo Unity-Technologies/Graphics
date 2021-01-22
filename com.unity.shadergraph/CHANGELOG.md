@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
 - Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 
 ## [10.2.0] - 2020-10-19
 
