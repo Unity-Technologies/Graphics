@@ -1815,8 +1815,8 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // we leave some room in the hierarchyWeight so there is possibility to use the fallback probes later called in EvaluateBSDF_Env().
     // The drawback is that the coat will still be evaluated by those, possibly incorrectly adding again coat lighting.
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        //reflectionHierarchyWeight  *= 1 - Sq(1-F);
-        reflectionHierarchyWeight  *= F;
+        //reflectionHierarchyWeight  *= 1 - Sq(1 - F * bsdfData.coatMask);
+        reflectionHierarchyWeight  *= F * bsdfData.coatMask;
 
     return lighting;
 }
