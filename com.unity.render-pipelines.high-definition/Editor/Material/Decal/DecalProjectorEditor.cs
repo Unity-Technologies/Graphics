@@ -665,6 +665,7 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (editMode)
             {
                 case k_EditShapePreservingUV:
+                case k_EditUVAndPivot:
                     targetMode = k_EditShapeWithoutPreservingUV;
                     break;
                 case k_EditShapeWithoutPreservingUV:
