@@ -6,7 +6,7 @@ using UnityEngine.TestTools;
 
 public class PreBuildStep : IPrebuildSetup
 {
-    List<string> ScenesToNotBuild = new List<string> {"035_Shader_TerrainShaders", };
+    List<string> ScenesToNotBuild = new List<string> {"035_Shader_TerrainShaders", "132_DetailMapping"};
     public void Setup()
     {
         BuildTarget buildTarget = EditorUserBuildSettings.activeBuildTarget;
