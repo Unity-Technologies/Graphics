@@ -5,10 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
+### Added
+- Added View Vector node to mimic old behavior of View Direction node in URP.
 
 ### Fixed
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed GC allocations from XR occlusion mesh when using multipass.
+- Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 
 ## [11.0.0] - 2020-10-21
 ### Added
@@ -51,7 +54,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 - Converted XR automated tests to use MockHMD.
 - Reduced the size of the fragment input struct of the Terrain and Forward lighting shaders.
-- Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 
 ### Fixed
 - Fixed an issue where additional lights would not render with WebGL 1
