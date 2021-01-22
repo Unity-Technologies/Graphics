@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
 - VFXEventBinderBase throwing a null reference exception in runtime
 - Fix CameraFade for shadow maps [Case 1294073](https://fogbugz.unity3d.com/f/cases/1294073/)
+- Modified Sign operator node output for float when input is 0.0f [Case 1299922](https://fogbugz.unity3d.com/f/cases/1299922/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
