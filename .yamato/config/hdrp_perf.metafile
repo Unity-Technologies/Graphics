@@ -38,4 +38,6 @@ pr:
         - performance_memory
         # - performance_run_build
 nightly:
-  dependencies: []
+  dependencies:
+    - project: HDRP_PerformanceTests
+      pr: true

@@ -17,7 +17,9 @@ PR_HDRP_PerformanceTests_trunk:
         TEST_FILTER: .*
 Nightly_HDRP_PerformanceTests_trunk:
     name: Nightly HDRP_PerformanceTests - trunk
-    dependencies: []
+    dependencies:
+      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
+         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -32,7 +34,9 @@ PR_HDRP_PerformanceTests_CUSTOM-REVISION:
         TEST_FILTER: .*
 Nightly_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: Nightly HDRP_PerformanceTests - CUSTOM-REVISION
-    dependencies: []
+    dependencies:
+      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_CUSTOM-REVISION
+         rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
