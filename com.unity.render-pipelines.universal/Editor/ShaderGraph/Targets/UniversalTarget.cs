@@ -883,8 +883,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // AND the function call in varyings. The descriptor can handle up to 3 related or unrelated generations,
                     // but best practice is to split things up to avoid confusion.
 
-                    srcName = "output",                          // SG's default identifiers for SDI.
-                    dstName = "input",                           // SG's default identifiers for SDI.
+                    srcName = "input",                          // SG's default identifiers for SDI.
+                    dstName = "output",                         // SG's default identifiers for SDI.
                     spliceBlock = CIPOEDescriptor.k_sgSdiEntry, // SG's default entry point for SDI.
 
                     spliceCall = null,                           // the call is hardcoded in Varyings.hlsl, nothing to splice.

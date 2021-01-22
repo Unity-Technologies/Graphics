@@ -203,10 +203,10 @@ namespace UnityEditor.ShaderGraph
             return newPassStructs;
         }
 
-        private static void GenerateCopyWriteBlock(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string dstName, string srcType)
+        private static void GenerateCopyWriteBlock(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string dstName, string srcName)
         {
             foreach (var bd in customList)
-                builder.AppendLine($"{dstName}.{bd.name} = {srcType}.{bd.name};");
+                builder.AppendLine($"{dstName}.{bd.name} = {srcName}.{bd.name};");
         }
 
         private static void GenerateCopyWriteFunc(List<BlockFieldDescriptor> customList, ShaderStringBuilder builder, string funcName, string dstType, string srcType)
