@@ -105,8 +105,8 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
-        - playmode_XR_cache
+        - Standalone
+        - playmode_XR
     - platform: Win
       api: DX12
       build_config: mono
