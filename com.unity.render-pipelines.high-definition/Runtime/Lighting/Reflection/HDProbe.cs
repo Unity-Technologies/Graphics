@@ -160,7 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                bool hasEverRendered = lastRenderedFrame != int.MinValue;
                 return hasEverRendered && hasValidTexture;
             }
         }
@@ -482,16 +481,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
-        internal int lastRenderedFrame { get; private set; } = int.MinValue;
+        internal bool hasEverRendered { get; private set; } = false;
 
-        internal void SetIsRendered(int frame)
+        internal void SetIsRendered()
         {
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
             m_WasRenderedSinceLastOnDemandRequest = true;
             wasRenderedAfterOnEnable = true;
-            lastRenderedFrame = frame;
+            hasEverRendered = true;
         }
 
         // API

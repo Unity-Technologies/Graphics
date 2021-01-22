@@ -59,11 +59,12 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy;
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
                 if (_FlipY)
                 {
                     output.texcoord.y = 1.0 - output.texcoord.y;
                 }
+                output.texcoord *= _BlitScaleBias.xy;
                 return output;
             }
 

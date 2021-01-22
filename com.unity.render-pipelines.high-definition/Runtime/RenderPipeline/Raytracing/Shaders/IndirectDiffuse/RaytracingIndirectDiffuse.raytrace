@@ -90,12 +90,12 @@ void RayGenIntegration()
         int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIndex;
 
     	// Generate the new sample (follwing values of the sequence)
-        float2 sample;
-        sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
-        sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+        float2 theSample;
+        theSample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+        theSample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
         // Importance sample with a cosine lobe
-        float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
+        float3 sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, normalData.normalWS);
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
@@ -135,7 +135,7 @@ void RayGenIntegration()
     finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
 
     // Convert back to HSV space
-    finalColor = HsvToRgb(finalColor) * GetInverseCurrentExposureMultiplier();
+    finalColor = HsvToRgb(finalColor);
     // We store the sampled color and the weight that shall be used for it (1.0f)
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0f);
 }

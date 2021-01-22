@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new RenderAOParameters();
 
@@ -386,6 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float invHalfTanFOV = -camera.mainViewConstants.projMatrix[1, 1];
             float aspectRatio = parameters.runningRes.y / parameters.runningRes.x;
+            uint frameCount = camera.GetCameraFrameCount();
 
             cb._AOParams0 = new Vector4(
                 parameters.fullResolution ? 0.0f : 1.0f,
@@ -637,7 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
 
                     var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
+                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
                         RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);

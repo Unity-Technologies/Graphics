@@ -2115,9 +2115,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float nearMaxBlur = dofParameters.nearMaxBlur * resolutionScale;
 
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
-            // because these don't use the same RTHandle system as the global one we'll have a
-            // different scale than _RTHandleScale so we need to handle our own
-            var cocHistoryScale = RTHandles.rtHandleProperties.rtHandleScale;
+            // because these don't use the same RTHandleScale as the global one, we need to use
+            // the RTHandleScale of the history RTHandles
+            var cocHistoryScale = taaEnabled ? dofParameters.camera.historyRTHandleProperties.rtHandleScale : RTHandles.rtHandleProperties.rtHandleScale;
 
             ComputeShader cs;
             int kernel;
@@ -4038,7 +4038,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     #if HDRP_DEBUG_STATIC_POSTFX
                     int textureId = 0;
                     #else
-                    int textureId = Time.frameCount % blueNoiseTexture.depth;
+                    int textureId = (int)hdCamera.GetCameraFrameCount() % blueNoiseTexture.depth;
                     #endif
 
                     finalPassMaterial.EnableKeyword("DITHER");
