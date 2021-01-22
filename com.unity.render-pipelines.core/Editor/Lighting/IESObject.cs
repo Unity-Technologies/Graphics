@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering
         IESResolution4096 = 4096
     }
 
+
     /// <summary>
     /// Common class to store metadata of an IES file
     /// </summary>
