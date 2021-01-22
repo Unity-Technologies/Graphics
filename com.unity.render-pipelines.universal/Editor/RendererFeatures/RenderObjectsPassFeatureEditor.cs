@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private SerializedProperty m_WriteDepth;
         private SerializedProperty m_DepthState;
         //Stencil props
-        private SerializedProperty m_OverrideStencil;
+        private SerializedProperty m_StencilSettings;
         //Caemra props
         private SerializedProperty m_CameraSettings;
         private SerializedProperty m_OverrideCamera;
@@ -117,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_DepthState = property.FindPropertyRelative("depthCompareFunction");
 
             //Stencil
-            m_OverrideStencil = property.FindPropertyRelative("stencilSettings");
+            m_StencilSettings = property.FindPropertyRelative("stencilSettings");
 
             //Camera
             m_CameraSettings = property.FindPropertyRelative("cameraSettings");
@@ -169,8 +169,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 DoDepthOverride(ref rect);
                 rect.y += Styles.defaultLineSpace;
                 //Override stencil
-                EditorGUI.PropertyField(rect, m_OverrideStencil);
-                rect.y += EditorGUI.GetPropertyHeight(m_OverrideStencil);
+                EditorGUI.PropertyField(rect, m_StencilSettings);
+                rect.y += EditorGUI.GetPropertyHeight(m_StencilSettings);
                 //Override camera
                 DoCameraOverride(ref rect);
                 rect.y += Styles.defaultLineSpace;
@@ -274,7 +274,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
                 height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
-                height += EditorGUI.GetPropertyHeight(m_OverrideStencil);
+                height += EditorGUI.GetPropertyHeight(m_StencilSettings);
                 height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);
             }
 

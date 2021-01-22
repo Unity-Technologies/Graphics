@@ -1,6 +1,6 @@
 # High Definition Render Pipeline Wizard
 
-The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wizard** to help you configure your Unity Project so that it is compatible with HDRP. 
+The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wizard** to help you configure your Unity Project so that it is compatible with HDRP.
 
 To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
 
@@ -35,7 +35,7 @@ Your Unity Project must adhere to all the configuration tests in this section fo
 There are three tabs that you can use to set up your HDRP Project for different use cases.
 * [HDRP](#HDRPTab): Use this tab to set up a default HDRP Project.
 * [HDRP + VR](#VRTab): Use this tab to set up your HDRP Project and enable support for virtual reality.
-* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing. 
+* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing.
 
 <a name="HDRPTab"></a>
 
