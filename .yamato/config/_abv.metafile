@@ -53,7 +53,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: VFX_URP
       platform: Win
