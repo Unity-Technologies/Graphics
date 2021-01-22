@@ -21,10 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - New View Lighting Tool, a component which allow to setup light in the camera space
-
-## Added
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
-
 
 ## [10.2.0] - 2020-10-19
 
