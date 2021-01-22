@@ -112,13 +112,13 @@ Varyings vert(Attributes input)
     //// position and rotate
     float angle = flareData.y;
     // negative stands for: also rotate to face the light
-    if (angle < 0)
+    if (angle > 0)
     {
         angle = -angle;
         float2 dir = normalize(screenPos);
         angle += atan2(dir.y, dir.x) + 1.57079632675; // arbitrary, we need V to face the source, not U;
     }
-    angle *= _OcclusionRadius;
+    //angle *= _OcclusionRadius;
 
     float2 local = output.positionCS.xy * flareData.zw;
     local = float2(

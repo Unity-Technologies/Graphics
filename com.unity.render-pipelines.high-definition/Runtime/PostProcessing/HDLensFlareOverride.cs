@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [ExecuteInEditMode]
-    [AddComponentMenu("Rendering/HD Lens Flare Override")]
+    [AddComponentMenu("Rendering/HD Lens Flare Source Override")]
     public class HDLensFlareOverride : MonoBehaviour
     {
         public SRPLensFlareData LensFlareData;
