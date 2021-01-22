@@ -71,8 +71,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ViewVectorObject(
-    [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
-    [Slot(0, Binding.None)] out Vector3 Out)
+            [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
+            [Slot(0, Binding.None)] out Vector3 Out)
         {
             Out = new Vector3();
             return
@@ -89,8 +89,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ViewVectorView(
-    [Slot(2, Binding.ViewSpacePosition, true, ShaderStageCapability.All)] Vector3 ViewSpacePosition,
-    [Slot(0, Binding.None)] out Vector3 Out)
+            [Slot(2, Binding.ViewSpacePosition, true, ShaderStageCapability.All)] Vector3 ViewSpacePosition,
+            [Slot(0, Binding.None)] out Vector3 Out)
         {
             Out = new Vector3();
             return
@@ -108,11 +108,9 @@ namespace UnityEditor.ShaderGraph
 ";
         }
 
-
-
         static string Unity_ViewVectorWorld(
-    [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
-    [Slot(0, Binding.None)] out Vector3 Out)
+            [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
+            [Slot(0, Binding.None)] out Vector3 Out)
         {
             Out = new Vector3();
             return
@@ -128,11 +126,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_ViewVectorTangent(
-    [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
-    [Slot(4, Binding.WorldSpaceTangent, true, ShaderStageCapability.All)] Vector3 WorldSpaceTangent,
-    [Slot(5, Binding.WorldSpaceBitangent, true, ShaderStageCapability.All)] Vector3 WorldSpaceBitangent,
-    [Slot(6, Binding.WorldSpaceNormal, true, ShaderStageCapability.All)] Vector3 WorldSpaceNormal,
-    [Slot(0, Binding.None)] out Vector3 Out)
+            [Slot(3, Binding.WorldSpacePosition, true, ShaderStageCapability.All)] Vector3 WorldSpacePosition,
+            [Slot(4, Binding.WorldSpaceTangent, true, ShaderStageCapability.All)] Vector3 WorldSpaceTangent,
+            [Slot(5, Binding.WorldSpaceBitangent, true, ShaderStageCapability.All)] Vector3 WorldSpaceBitangent,
+            [Slot(6, Binding.WorldSpaceNormal, true, ShaderStageCapability.All)] Vector3 WorldSpaceNormal,
+            [Slot(0, Binding.None)] out Vector3 Out)
         {
             Out = new Vector3();
             return
@@ -148,8 +146,5 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-
-
-
     }
 }

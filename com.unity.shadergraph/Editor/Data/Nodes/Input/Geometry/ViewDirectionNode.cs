@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             base.ValidateNode();
-            if(sgVersion == 0)
+            if (sgVersion == 0)
             {
                 owner.AddValidationError(objectId, "Node behavior was changed. See inspector for details", Rendering.ShaderCompilerMessageSeverity.Warning);
             }
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             buttonText = null;
             labelText = null;
             messageType = MessageType.Warning;
-            if(sgVersion == 0)
+            if (sgVersion == 0)
             {
                 deprecationString = "The View Direction node has changed behavior in 2021.2. Please see documentation for more info.";
                 buttonText = "Dismiss";

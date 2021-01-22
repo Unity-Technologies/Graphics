@@ -19,7 +19,7 @@ HelpBoxRow > #container > #content {
     justify-content: center;
 }
 
-HelpBoxRow 
+HelpBoxRow
 {
     white-space: normal;
 }

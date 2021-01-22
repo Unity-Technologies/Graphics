@@ -441,7 +441,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node.sgVersion < node.latestVersion)
                 {
-                    if(node is IHasCustomDeprecationMessage customDeprecationMessage)
+                    if (node is IHasCustomDeprecationMessage customDeprecationMessage)
                     {
                         title = customDeprecationMessage.GetCustomDeprecationLabel();
                     }

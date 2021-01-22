@@ -55,11 +55,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
                     $"documentation for more information.";
             }
-            if(buttonText == null)
+            if (buttonText == null)
             {
                 buttonText = "Update";
             }
-            if(labelText == null)
+            if (labelText == null)
             {
                 labelText = "DEPRECATED: Hover for info";
             }
