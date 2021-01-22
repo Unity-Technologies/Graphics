@@ -143,12 +143,6 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
@@ -233,16 +227,3 @@ nightly:
       test_platforms:
         - playmode_cache
         # - playmode_XR_cache
-    - platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-        # - playmode_XR_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache

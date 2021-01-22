@@ -112,25 +112,6 @@ pr:
       color_space: Linear
       test_platforms:
         - editmode 
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone_cache
-        - playmode_cache
-    - platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
     - project: ShaderGraph_Stereo
       pr: true
 nightly:
@@ -146,17 +127,4 @@ nightly:
       test_platforms:
         - editmode
         - playmode_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode_cache
-    - platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone_cache
     

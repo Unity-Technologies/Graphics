@@ -111,10 +111,3 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone_cache
-        - playmode_cache
