@@ -215,7 +215,7 @@ EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint c
     {
         uint zbinDword = 0;
         // fetch zbin
-        if (depthSort) // sorted by depth, can use the min,max index per zbin optimization
+        if (depthSorted) // sorted by depth, can use the min,max index per zbin optimization
         {
             const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
             const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
