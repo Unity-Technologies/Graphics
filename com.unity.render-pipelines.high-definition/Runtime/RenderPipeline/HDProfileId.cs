@@ -96,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
         VolumetricCloudsUpscaleAndCombine,
+        VolumetricCloudsShadow,
 
         // RT Cluster
         RaytracingBuildCluster,

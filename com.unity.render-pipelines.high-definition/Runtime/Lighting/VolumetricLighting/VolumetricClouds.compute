@@ -1,6 +1,7 @@
 #pragma kernel RenderClouds
 #pragma kernel ReprojectClouds
 #pragma kernel UpscaleAndCombineClouds
+#pragma kernel ComputeVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 
@@ -11,9 +12,9 @@
 // The number of octaves for the multi-scattering
 #define NUM_MULTI_SCATTERING_OCTAVES 2
 // Bias in the light sample distribution to exagerate the darkening effect of the clouds
-#define WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR 1.25f
+#define WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR 1.5f
 // The number of times the low frequency noise is repeated
-#define CLOUD_SCALE_FACTOR 4.0
+#define CLOUD_SCALE_FACTOR 5.0
 // The number of times the high frequency noise is repeated
 #define EROSION_SCALE_FACTOR 75.0
 // Global offset to the high frequency noise
@@ -1003,4 +1004,75 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
 
     // If this is a background pixel, we want the cloud value, otherwise we do not.
     _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = lerp(currentColor, currentColor * currentClouds.a + float4(currentClouds.xyz, 0.0), cloudFlag);
+}
+
+RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
+
+[numthreads(8, 8, 1)]
+void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
+
+    if (currentCoords.x == 0.0 || currentCoords.y == 0.0 || currentCoords.x == (_ShadowCookieResolution - 1) || currentCoords.y == (_ShadowCookieResolution - 1))
+    {
+        _VolumetricCloudsShadowRW[currentCoords.xy] = _ShadowFallbackValue;
+        return;
+    }
+
+    // First we compute the location of the shadow plane in the planet coordinate system
+    float3 shadowPlaneOrigin = _SunDirection * (_HighestCloudAltitude + _EarthRadius);
+    float3 shadowPlaneNormal = -_SunDirection;
+
+    // Here the plane is guaranteed to intersect, we don't need to test the result
+    float t;
+    IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection, shadowPlaneOrigin, shadowPlaneNormal, t);
+
+    // Compute the position of the shadow plane
+    float3 shadowCookieCenter = float3(0, _EarthRadius, 0) + t * _SunDirection;
+
+    // Compute the normalized coordinate on the shadow plane
+    float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
+
+    // Compute the origin of the ray properties  in the planet space
+    float3 rayOrigin = (normalizedCoord.x * _SunRight + normalizedCoord.y * _SunUp) * _ShadowRegionSize + shadowCookieCenter;
+    float3 rayDirection = -_SunDirection;
+
+    // Compute the attenuation
+    float3 transmittance = 1.0f;
+
+    // Intersect the outer sphere
+    float2 intersectionO, intersectionI;
+    int numIntersectionO = RaySphereIntersection(rayOrigin, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
+    int numIntersectionI = RaySphereIntersection(rayOrigin, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
+    if (numIntersectionO != 0 && numIntersectionI != 0)
+    {
+        // Compute the integration range
+        float startDistance = intersectionO.x;
+        float totalDistance = intersectionI.x - intersectionO.x;
+
+        float stepSize = totalDistance / 10;
+
+        for (int i = 1; i <= 8; ++i)
+        {
+            // Compute the sphere intersection position
+            float3 positionWS = rayOrigin + rayDirection * (intersectionO.x + stepSize * i);
+
+            // Get the coverage at intersection point
+            CloudCoverageData cloudCoverageData;
+            GetCloudCoverageData(positionWS, cloudCoverageData);
+
+            // Compute the cloud density
+            CloudProperties cloudProperties;
+            EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
+            if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
+            {
+                // Apply the extinction
+                const float3 mediaExtinction = _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT;
+                const float currentStepExtinction = exp(-mediaExtinction * stepSize);
+                transmittance *= currentStepExtinction;
+            }
+        }
+    }
+
+    _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
 }

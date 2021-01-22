@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum CloudControl
         {
             Simple,
-            Custom,
+            Advanced,
             Manual
         }
 
@@ -50,6 +50,29 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
             public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) {}
+        }
+
+        public enum CloudShadowResolution
+        {
+            VeryLow = 64,
+            Low = 128,
+            Medium = 256,
+            High = 512,
+            Count = 4,
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudShadowResolutionParameter : VolumeParameter<CloudShadowResolution>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudShadowResolutionParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) {}
         }
 
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
@@ -127,6 +150,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Global temporal accumulation factor.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        [Tooltip("Enable/Disable the volumetric clouds shadow.")]
+        public BoolParameter shadow = new BoolParameter(false);
+
+        [Tooltip("Controls the resolution of the volumetric clouds shadow map.")]
+        public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium);
+
+        [Tooltip("Controls the size of the volumetric clouds shadow in kilometers.")]
+        public MinFloatParameter shadowSize = new MinFloatParameter(16000.0f, 1000.0f);
+
+        [Tooltip("Controls the intensity of the volumetric clouds shadow.")]
+        public ClampedFloatParameter shadowIntensity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        [Tooltip("Controls value that is used to fallback on when the volumetric clouds shadow is not define.")]
+        public ClampedFloatParameter shadowFallbackValue = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         public VolumetricClouds()
         {

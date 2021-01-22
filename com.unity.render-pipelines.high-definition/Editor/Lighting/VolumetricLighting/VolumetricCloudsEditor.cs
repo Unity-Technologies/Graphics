@@ -34,6 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShapeWindSpeedMultiplier;
         SerializedDataParameter m_ErosionWindSpeedMultiplier;
         SerializedDataParameter m_TemporalAccumulationFactor;
+        SerializedDataParameter m_Shadow;
+        SerializedDataParameter m_ShadowResolution;
+        SerializedDataParameter m_ShadowSize;
+        SerializedDataParameter m_ShadowIntensity;
+        SerializedDataParameter m_ShadowFallbackValue;
 
         public override bool hasAdvancedMode => true;
 
@@ -66,6 +71,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShapeWindSpeedMultiplier = Unpack(o.Find(x => x.shapeWindSpeedMultiplier));
             m_ErosionWindSpeedMultiplier = Unpack(o.Find(x => x.erosionWindSpeedMultiplier));
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
+            m_Shadow = Unpack(o.Find(x => x.shadow));
+            m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
+            m_ShadowSize = Unpack(o.Find(x => x.shadowSize));
+            m_ShadowIntensity = Unpack(o.Find(x => x.shadowIntensity));
+            m_ShadowFallbackValue = Unpack(o.Find(x => x.shadowFallbackValue));
         }
 
         public override void OnInspectorGUI()
@@ -111,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumetricClouds.CloudControl controlMode = (VolumetricClouds.CloudControl)m_CloudControl.value.enumValueIndex;
 
                 bool needsIntendation = false;
-                if (controlMode == VolumetricClouds.CloudControl.Custom)
+                if (controlMode == VolumetricClouds.CloudControl.Advanced)
                 {
                     PropertyField(m_CloudMap);
                 }
@@ -163,6 +173,21 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ScatteringTint);
                     PropertyField(m_PowderEffectIntensity);
                     PropertyField(m_MultiScattering);
+                }
+            }
+
+            EditorGUILayout.LabelField("Shadows", EditorStyles.miniLabel);
+            {
+                PropertyField(m_Shadow);
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_ShadowResolution);
+                    if (isInAdvancedMode)
+                    {
+                        PropertyField(m_ShadowIntensity);
+                        PropertyField(m_ShadowSize);
+                        PropertyField(m_ShadowFallbackValue);
+                    }
                 }
             }
         }

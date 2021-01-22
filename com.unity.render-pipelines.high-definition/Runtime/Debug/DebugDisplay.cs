@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Volumetric Clouds
         VolumetricClouds,
+        VolumetricCloudsShadow,
 
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,

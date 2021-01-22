@@ -172,6 +172,18 @@ bool RaySphereIntersection(float3 start, float3 dir, float radius)
     //return ((-b - sqrtD) > 0.0 || (-b + sqrtD) > 0.0);
 }
 
+bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
+{
+    float denom = dot(normal, ray_dir);
+    if (abs(denom) > 1e-6)
+    {
+        float3 d = pos - ray_origin;
+        t = dot(d, normal) / denom;
+        return (t >= 0);
+    }
+    return false;
+}
+
 float ConvertCloudDepth(float3 position)
 {
     float4 hClip = TransformWorldToHClip(position);
