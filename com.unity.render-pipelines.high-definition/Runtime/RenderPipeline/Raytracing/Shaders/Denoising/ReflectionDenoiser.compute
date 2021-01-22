@@ -98,7 +98,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // Read and decode the normal data
     NormalData normalData;
     DecodeFromNormalBuffer(geometryCoords, normalData);
-    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, mainCoord);
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, geometryCoords);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 
     // Read the depth and velocity vectors
@@ -267,11 +267,11 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         result = color;
     }
 
-    float finalColorW = MISS_RATIO_IN_WEIGHT ? color.w : LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w;
+    float finalColorW = MISS_RATIO_IN_WEIGHT ? result.w : LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w;
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result.xyz * GetInverseCurrentExposureMultiplier(), finalColorW);
     if (DEBUG_SHOW_WEIGHTS_ONLY)
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4((float3)(color.w)*GetInverseCurrentExposureMultiplier(), color.w);
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4((float3)(result.w)*GetInverseCurrentExposureMultiplier(), result.w);
     _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = sampleCount;
 }
 
