@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine($"{dstType} output = invary;");
-                GenerateCopyWriteBlock(customList, builder, "input", "output");
+                GenerateCopyWriteBlock(customList, builder, "output", "input");
                 builder.AppendLine("return output;");
             }
         }
