@@ -902,21 +902,26 @@ namespace UnityEngine.Rendering.Universal
                             SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
 
-                    if (renderPass.useNativeRenderPass)
-                    {
-                        for (int i = 0; i < validColorBuffersCount; ++i)
-                        {
-                            m_ActiveColorAttachmentDescriptors[i] =
-                                new AttachmentDescriptor(renderPass.renderTargetFormat[i] != GraphicsFormat.None ? renderPass.renderTargetFormat[i] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
-                            m_ActiveColorAttachmentDescriptors[i].ConfigureTarget(renderPass.colorAttachments[i], false, true);
-                            m_ActiveColorAttachmentDescriptors[i].ConfigureClear(Color.black, 1.0f, 0);
-                        }
+                }
 
-                        m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, false, true);
-                        m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+                if (renderPass.useNativeRenderPass)
+                {
+                    if (cameraData.renderType == CameraRenderType.Overlay)
                         m_FirstTimeColorClear = false;
+                    for (int i = 0; i < validColorBuffersCount; ++i)
+                    {
+                        m_ActiveColorAttachmentDescriptors[i] =
+                            new AttachmentDescriptor(renderPass.renderTargetFormat[i] != GraphicsFormat.None ? renderPass.renderTargetFormat[i] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
+                        m_ActiveColorAttachmentDescriptors[i].ConfigureTarget(renderPass.colorAttachments[i], false, true);
+                        if (needCustomCameraColorClear)
+                            m_ActiveColorAttachmentDescriptors[i].ConfigureClear(Color.black, 1.0f, 0);
                     }
+
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, false, true);
+                    if (needCustomCameraDepthClear)
+                        m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+                    m_FirstTimeColorClear = false;
                 }
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
@@ -975,11 +980,6 @@ namespace UnityEngine.Rendering.Universal
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
-                if (!renderPass.overrideCameraTarget)
-                    m_ActiveColorAttachmentDescriptors[0] =
-                        new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
-                else
-                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
 
                 if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {
@@ -1018,8 +1018,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Keep all the Native RenderPass stuff here
 
+                if (!renderPass.overrideCameraTarget)
+                    m_ActiveColorAttachmentDescriptors[0] =
+                        new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                else
+                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
                     //zzz
-
+					if (cameraData.renderType == CameraRenderType.Overlay)
+						m_FirstTimeColorClear = false;
 					bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
