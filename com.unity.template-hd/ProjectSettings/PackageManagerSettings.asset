@@ -9,14 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 13964, guid: 0000000000000000e000000000000000, type: 0}
+  m_Script: {fileID: 0}
   m_Name: 
-  m_EditorClassIdentifier: 
-  m_EnablePreviewPackages: 1
+  m_EditorClassIdentifier: UnityEditor.PackageManagerUIModule:UnityEditor.PackageManager.UI.Internal:PackageManagerProjectSettings
+  m_EnablePreReleasePackages: 0
   m_EnablePackageDependencies: 0
   m_AdvancedSettingsExpanded: 1
   m_ScopedRegistriesSettingsExpanded: 1
-  oneTimeWarningShown: 1
+  m_SeeAllPackageVersions: 0
+  oneTimeWarningShown: 0
   m_Registries:
   - m_Id: main
     m_Name: 
@@ -41,3 +42,4 @@ MonoBehaviour:
     m_Scopes:
     - 
     m_SelectedScopeIndex: 0
+  m_LoadAssets: 0

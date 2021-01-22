@@ -51,7 +51,7 @@ MonoBehaviour:
           for a relatively dark room such as Room 3. Therefore, a <b>Local</b>volume
           for Room 3 has been created, with dedicated exposure settings, among others.\r\n\r\nAs
           soon as you move the camera outside <b>Volume Room 3</b>, the settings
-          that were applied to this room won\u2019t be applied anymore to the camera.\r\n"
+          that were applied to this room won\u2019t be applied anymore to the camera.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

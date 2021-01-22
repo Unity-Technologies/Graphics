@@ -49,7 +49,7 @@ MonoBehaviour:
           lighting falls on the warm side of the color temperature range, and white
           balance is a way to adjust the perception of white color in a scene.\r\n\r\nThe
           opposite effect can be applied to an outdoor scene with a blue sky, which
-          tends to have a slight blue color cast.\r\n"
+          tends to have a slight blue color cast.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

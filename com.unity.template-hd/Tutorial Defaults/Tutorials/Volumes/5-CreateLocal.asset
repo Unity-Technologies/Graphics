@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: 5-CreateLocal
+  m_EditorClassIdentifier: 
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 2800000, guid: 87c9e64be0ef6e04c93ace37734e5bb9, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+    - m_Type: 0
+      Title:
+        m_Untranslated: Create a local volume
+      Text:
+        m_Untranslated: "Now let\u2019s create a local volume to bring back the color,
+          but only when the camera gets close to the tree cage.\r\n\r\n1) Go to <b>GameObject->Volume->Box
+          Volume</b>\r\n2) Select it and hit F to focus view. The green bounding
+          box shows the influence area.\r\n3) Move the game object close to the tree
+          cage <b>X:28 Y:2 Z:-1</b>\r\n4) In the <i>Inspector</i> set <b>Size</b>
+          to<b> X:2 Y:2 Z:2</b>\r\n5) Click <b>New</b> to create a new  profile\r\n6)
+          Click <b>Add Override</b>\r\n7) Choose <b>Post-processing->Color adjustments</b>\r\n8)
+          Enable <b>Saturation</b>\r\n9) Set the Saturation value to <b>0</b>, which
+          is the default value\r\n10) Leave and enter the <b>Box Volume</b>. Notice
+          how our local volume is overriding the global one from the previous step.
+          However, the transition is very harsh\r\n11) In this case, we want a smooth
+          transition. To achieve this we will be using the <b>Blend Distance</b>
+          parameter. Set its value to 5\r\n12) Leave and enter the area again. See
+          how the saturation smoothly blends between -100 and 0 values\r\n\r\nOptionally,
+          experiment by adding more overrides to the Click <b>Box Volume</b>\r\n"
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+  m_CameraSettings:
+    m_CameraMode: 0
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 0
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
+  m_CompletedSound: {fileID: 0}
+  m_autoAdvance: 0
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
+    m_PersistentCalls:
+      m_Calls: []
