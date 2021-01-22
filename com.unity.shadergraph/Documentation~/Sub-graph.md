@@ -9,6 +9,8 @@ A Sub Graph is a special type of Shader Graph, which you can reference from insi
 
 For information about the components of a Sub Graph, see [Sub Graph Asset](Sub-graph-Asset).
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 ## Output Node
 
 ![](images/SubGraph-Output-Node.png)
