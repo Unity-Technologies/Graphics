@@ -106,7 +106,7 @@ void RayGenIntegration()
     // which could even end up not sampling at all (eg under surface) or being an outlier.
     // This will show as sharp "speckles" (because the surface is smooth) when we don't have history accumulation (ie when _AffectSmoothSurfaces == 0)
     // 
-    // TODO: In the case we use AllowReflectionDenoiserHistoryAccumulation to escape sampling, is _AffectSmoothSurfaces even useful then?
+    // TODO: In the case we use SkipReflectionDenoiserHistoryAccumulation to escape sampling, is _AffectSmoothSurfaces even useful then?
     // ie if accumulation gave too much ghosting for smooth surfaces, then systematically disable it (_AffectSmoothSurfaces == 0), but dont sample 
     // here either (ie check allowSampling = AllowReflectionDenoiserHistoryAccumulation) like done now.
 
