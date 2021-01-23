@@ -1517,6 +1517,8 @@ namespace UnityEditor.ShaderGraph
                     m_ParentGroupChanges.Remove(groupChange);
                 }
             }
+
+            ValidateCustomBlockLimit();
         }
 
         public void AddValidationError(string id, string errorMessage,
@@ -2361,6 +2363,26 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        internal void ValidateCustomBlockLimit()
+        {
+            int limit = 32;
+            int warn = 16;
+            int total = 0;
+            foreach (var cib in vertexContext.blocks.Where(jb=>jb.value.isCustomBlock).Select(b=>b.value))
+            {
+                ClearErrorsForNode(cib);
+                if (total > limit)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as d3d).");
+                }
+                else if (total > warn)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as WebGL).", ShaderCompilerMessageSeverity.Warning);
+                }
+                total += (int)cib.customWidth;
+            }
         }
     }
 
