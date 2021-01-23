@@ -56,6 +56,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 #else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
+    DecalSurfaceData surfaceData;
     float clipValue = 1.0;
     float angleFadeFactor = 1.0;
 
@@ -87,7 +88,6 @@ void Frag(  PackedVaryingsToPS packedInput,
         clipValue -= 2.0; // helper lanes will be clipped
     }
 
-    DecalSurfaceData surfaceData;
     // call clip as early as possible
 #ifndef SHADER_API_METAL
     // Calling clip here instead of inside the condition above shouldn't make any performance difference
