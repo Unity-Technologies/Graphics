@@ -16,7 +16,10 @@ namespace UnityEngine.Rendering
         Depth = 2,
         /// <summary>Clear the stencil buffer.</summary>
         Stencil = 4,
-
+        /// <summary>Clear the depth and stencil buffers.</summary>
+        DepthStencil = Depth | Stencil,
+        /// <summary>Clear the color and stencil buffers.</summary>
+        ColorStencil = Color | Stencil,
         /// <summary>Clear both color, depth and stencil buffers.</summary>
         All = Color | Depth | Stencil
     }
