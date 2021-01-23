@@ -33,6 +33,33 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: a43874f539bb5494e86fdea5ac9df469, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f62791cf7ace7534680a0f9c461be164, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -70,6 +97,15 @@ MonoBehaviour:
     Reason: Memory allocation test failed, 5 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: ac9787fadf0b4ed4391bee6ba1d8e213, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 21d198bbbf9143d40b227ad2fe71706f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -77,6 +113,15 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 'linux: inconclusive / out of memory on yamato'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2fb467d07511ad0498c47a86eb170d71, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: b8090c44833d0a842bcd90e27dc43b6b, type: 3}
@@ -97,6 +142,42 @@ MonoBehaviour:
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 359ded33a047fd540b5e19a98547f5e2, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: b03383077f153b7439af7708ebe1155a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 3b6ce72f472558240a2a8d61a932c6d0, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e64d4cbd26924f44cb8ecf945d8f899a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -104,15 +185,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Memory allocation test failed, 2 allocations detected.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Cause a black screen on first frame
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
@@ -124,6 +196,15 @@ MonoBehaviour:
     Reason: black screen  on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Cause a black screen on first frame
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: ed84243e5c418844f87509bf80fdd919, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -133,10 +214,19 @@ MonoBehaviour:
     Reason: cause swap chain error on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
+    - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -145,7 +235,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -251,6 +341,15 @@ MonoBehaviour:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 356a32d71c5170b4ea18c8b7a80b0f47, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 134ab13db8156a14891996196de4cf63, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
