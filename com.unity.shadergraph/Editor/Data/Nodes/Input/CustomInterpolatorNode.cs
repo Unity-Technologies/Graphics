@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
             if (generationMode == GenerationMode.ForReals)
                 return base.GetOutputForSlot(fromSocketRef, valueType, generationMode);
 
-            var sourceSlot = FindSourceSlot();
+            var sourceSlot = FindSourceSlot(out var found);
             var width = 0;
             var outWidth = (int)serializedType;
 
@@ -189,14 +189,22 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector4: width = 4; break;
             }
             
-
-            var result = sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview);
+            var result = found ? sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview) : GetVariableNameForSlot(0);
             return CustomInterpolatorUtils.ConvertVector(result, outWidth, width);
         }
 
-        SlotReference FindSourceSlot()
+        SlotReference FindSourceSlot(out bool found)
         {
-            return owner.GetEdges(e_targetBlockNode).First().outputSlot;
+            try
+            {
+                found = true;
+                return owner.GetEdges(e_targetBlockNode).First().outputSlot;
+            }
+            catch
+            {
+                found = false;
+                return default;
+            }
         }
     }
 }
