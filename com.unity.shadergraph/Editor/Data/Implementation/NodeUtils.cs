@@ -136,6 +136,11 @@ namespace UnityEditor.Graphing
                 }
             }
 
+            if (node is CustomInterpolatorNode cin && cin.e_targetBlockNode != null)
+            {
+                DepthFirstCollectNodesFromNode(nodeList, cin.e_targetBlockNode);
+            }
+
             if (includeSelf == IncludeSelf.Include && node.isActive)
                 nodeList.Add(node);
         }

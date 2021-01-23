@@ -168,5 +168,35 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveSlotsNameNotMatching(new[] { 0 });
         }
+
+
+        protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
+        {
+            if (generationMode == GenerationMode.ForReals)
+                return base.GetOutputForSlot(fromSocketRef, valueType, generationMode);
+
+            var sourceSlot = FindSourceSlot();
+            var width = 0;
+            var outWidth = (int)serializedType;
+
+            // this is flimsy- but given that CIN and CIB are strictly vector types, the edge filtering might protect us here.
+            switch (valueType)
+            {
+                case ConcreteSlotValueType.Boolean:
+                case ConcreteSlotValueType.Vector1: width = 1; break;
+                case ConcreteSlotValueType.Vector2: width = 2; break;
+                case ConcreteSlotValueType.Vector3: width = 3; break;
+                case ConcreteSlotValueType.Vector4: width = 4; break;
+            }
+            
+
+            var result = sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview);
+            return CustomInterpolatorUtils.ConvertVector(result, outWidth, width);
+        }
+
+        SlotReference FindSourceSlot()
+        {
+            return owner.GetEdges(e_targetBlockNode).First().outputSlot;
+        }
     }
 }

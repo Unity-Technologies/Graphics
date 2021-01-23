@@ -566,7 +566,17 @@ namespace UnityEditor.ShaderGraph
 
         internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
         {
-            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            string rawOutput;
+            if (node is CustomInterpolatorNode cin)
+            {
+                // GetVariableNameForSlot (below) has no preview options, which CIN needs to properly reroute to CIB's input.
+                var slot = cin.GetSlotReference(outputSlotId);
+                rawOutput = cin.GetOutputForSlot(slot, slot.slot.concreteValueType, GenerationMode.Preview);
+            }
+            else
+            {
+                rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            }
             return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
         }
 

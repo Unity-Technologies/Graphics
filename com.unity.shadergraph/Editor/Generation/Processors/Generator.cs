@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
 
             if (outputNode != null)
             {
-                CustomInterpolatorUtils.StripRedirectsAndCopy(graphData, outputNode, out m_GraphData, out m_OutputNode);
+                // CustomInterpolatorUtils.StripRedirectsAndCopy(graphData, outputNode, out m_GraphData, out m_OutputNode);
             }
 
             m_Mode = mode;
