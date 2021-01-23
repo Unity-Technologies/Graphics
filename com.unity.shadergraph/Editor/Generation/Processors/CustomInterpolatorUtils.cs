@@ -258,6 +258,44 @@ namespace UnityEditor.ShaderGraph
                 ?? new List<CustomInterpolatorNode>();
         }
 
+        internal static string ConvertVector(string name, int fromLen, int toLen)
+        {
+            if (fromLen == toLen)
+                return name;
+
+            var key = new char[] { 'x', 'y', 'z', 'w' };
+
+            string begin = $"float{toLen}({name}.";
+            var mid = "";
+            string end = ")";
+
+            if (toLen == 4)
+            {
+                // We assume homogenous coordinates for some reason.
+                end = ", 1.0)";
+                toLen -= 1;
+            }
+
+            if (fromLen == 1)
+            {
+                // we expand floats for each component for some reason.
+                fromLen = toLen;
+                key = new char[] { 'x', 'x', 'x' };
+            }
+
+            // expand the swizzle
+            int swizzLen = Math.Min(fromLen, toLen);
+            for (int i = 0; i < swizzLen; ++i)
+                mid += key[i];
+
+            // fill gaps            
+            for (int i = fromLen; i < toLen; ++i)
+                mid += ", 0.0";
+
+            // float<toLen>(<name>.<swizz>, <gap...>, 1.0)"
+            return $"({begin}{mid}{end})";
+        }
+
         internal static void StripRedirectsAndCopy(GraphData graphData, AbstractMaterialNode outputNode,
                                                    out GraphData result, out AbstractMaterialNode relativeOutputNode)
         {
@@ -266,36 +304,33 @@ namespace UnityEditor.ShaderGraph
             Serialization.MultiJson.Deserialize(result, source);
             relativeOutputNode = result.GetNodeFromId(outputNode.objectId);
 
-            
-            foreach (var bnode in result.GetNodes<BlockNode>().Where(b => b.isCustomBlock))
+            List<RerouterNode> rerouters = new List<RerouterNode>();
+
+            foreach(var cin in result.GetNodes<CustomInterpolatorNode>())
             {
-                foreach (var node in GetCIBDependents(bnode))
+                var cib = cin.e_targetBlockNode;
+                if (cib != null)
                 {
-                    var cinSlot = node.GetSlotReference(0);
-                    var cibSlot = node.e_targetBlockNode.GetSlotReference(0);
-                    var rerouteSlot = GetRerouteSlot(result, cibSlot);
-
-                    
-                    if (rerouteSlot.Equals(default))
+                    var fromList = result.GetEdges(cib);
+                    if (fromList.Any())
                     {
-                        // CIB has no input node.
-                        // CIN, in preview node, needs to generate different code,
-                        // but get GetVariableNameForSlot does not consider generation mode.
-
-                        // Two issues-- The Material Property Block is filled up by Original Graph.
-                        // CIN can't switch it's generation based on Generation mode
-                            // Modify GetVariableNameForSlot to include a generation mode
-                            // Then we could inline a float4 based on block's current property value.                            
-                    }
-                    else
-                    {
-                        if (relativeOutputNode == node)
-                            relativeOutputNode = rerouteSlot.node;
-
-                        Reroute(result, rerouteSlot, cinSlot);
+                        var from = fromList.First().outputSlot;
+                        var toList = result.GetEdges(cin).Select(s => s.inputSlot).ToList();
+                        var rerouter = RerouterNode.Create(from, toList, cib.customWidth);
+                        rerouters.Add(rerouter);
+                        if (cin == relativeOutputNode)
+                            relativeOutputNode = rerouter;
                     }
                 }
             }
+
+            foreach(var node in rerouters)
+            {
+                // Does this break up all the connections correctly?
+                node.ApplyReroute(result);
+            }
+
+            result.ValidateGraph();
         }
     }
 }
