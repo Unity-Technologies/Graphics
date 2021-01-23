@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector1: width = 1; break;
                 case ConcreteSlotValueType.Vector2: width = 2; break;
                 case ConcreteSlotValueType.Vector3: width = 3; break;
-                case ConcreteSlotValueType.Vector4: width = 4; break;
+                default: width = 4; break;
             }
 
 

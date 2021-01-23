@@ -583,7 +583,7 @@ namespace UnityEditor.ShaderGraph
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
+                    return string.Format("half4({0}.x, {0}.x, {0}.x, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector2:
                     return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector3:
