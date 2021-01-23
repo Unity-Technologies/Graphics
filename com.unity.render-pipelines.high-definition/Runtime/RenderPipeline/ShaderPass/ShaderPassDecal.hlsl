@@ -56,7 +56,6 @@ void Frag(  PackedVaryingsToPS packedInput,
 #else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
-    DecalSurfaceData surfaceData;
     float clipValue = 1.0;
     float angleFadeFactor = 1.0;
 
@@ -88,6 +87,7 @@ void Frag(  PackedVaryingsToPS packedInput,
         clipValue -= 2.0; // helper lanes will be clipped
     }
 
+    DecalSurfaceData surfaceData;
     // call clip as early as possible
 #ifndef SHADER_API_METAL
     // Calling clip here instead of inside the condition above shouldn't make any performance difference
@@ -99,6 +99,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     // we discard during decal projection, or we get artifacts along the
     // edges of the projection(any partial quads get bad partial derivatives
     //regardless of whether they are computed implicitly or explicitly).
+    ZERO_INITIALIZE(DecalPrepassData, material); // Require to quiet compiler warning with Metal
     if (clipValue > 0.0)
     {
 #endif
