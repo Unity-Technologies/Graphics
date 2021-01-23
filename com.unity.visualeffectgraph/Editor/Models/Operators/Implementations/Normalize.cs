@@ -1,9 +1,25 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
+    class SafeNormalizationVariantProvider : VariantProvider
+    {
+        protected override sealed Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "safeNormalize", new object[]{true, false} }
+                };
+            }
+        }
+    }
+
+
+    [VFXInfo(category = "Math/Vector", variantProvider = typeof(SafeNormalizationVariantProvider))]
     class Normalize : VFXOperatorNumericUniform
     {
         public class InputProperties
@@ -11,11 +27,18 @@ namespace UnityEditor.VFX.Operator
             public Vector3 x = Vector3.one;
         }
 
-        protected override sealed string operatorName { get { return "Normalize"; } }
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies if the operator should check if the vector to be normalized is a vero vector.")]
+        bool safeNormalize = false;
+
+
+        protected override sealed string operatorName { get {return  safeNormalize ?  "Safe Normalize" :  "Normalize"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
+            if(safeNormalize)
+                return new[] { VFXOperatorUtility.SafeNormalize(inputExpression[0]) };
+            else
+                return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
         }
 
         protected override sealed ValidTypeRule typeFilter
