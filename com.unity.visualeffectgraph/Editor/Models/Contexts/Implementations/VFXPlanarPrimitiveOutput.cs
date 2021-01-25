@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                 return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
             }
         }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                     properties = properties.Concat(optionalInputProperties);
 
                 if (primitiveType == VFXPrimitiveType.Octagon)
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             }
