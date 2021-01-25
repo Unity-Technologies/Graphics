@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 ## Fixed
 - An existing link can be remade.
+- Use alphabetical order in type list in blackboard "+" button [Case 1304109](https://issuetracker.unity3d.com/product/unity/issues/guid/1304109/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
