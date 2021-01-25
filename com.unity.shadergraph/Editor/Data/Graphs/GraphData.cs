@@ -784,11 +784,12 @@ namespace UnityEditor.ShaderGraph
         {
             // Set Blocks as active based on supported Block list
             //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
+            bool disableCI = activeTargets.All(at => at.ignoreCustomInterpolators);
             foreach (var vertexBlock in vertexContext.blocks)
             {
                 if (vertexBlock.value?.isCustomBlock == true)
-                {
-                    vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
+                {                    
+                    vertexBlock.value.SetOverrideActiveState(disableCI ? AbstractMaterialNode.ActiveState.ExplicitInactive : AbstractMaterialNode.ActiveState.ExplicitActive);
                 }
                 else if (vertexBlock.value?.descriptor?.isUnknown == true)
                 {

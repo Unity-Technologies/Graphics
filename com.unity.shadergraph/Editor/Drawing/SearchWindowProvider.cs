@@ -68,6 +68,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
 
+            bool hideCI = m_Graph.activeTargets.All(at => at.ignoreCustomInterpolators);
+
             if (target is ContextView contextView)
             {
                 // Iterate all BlockFieldDescriptors currently cached on GraphData
@@ -96,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 SortEntries(nodeEntries);
 
-                if (contextView.contextData.shaderStage == ShaderStage.Vertex)
+                if (contextView.contextData.shaderStage == ShaderStage.Vertex && !hideCI)
                 {
                     var customBlockNodeStub = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     customBlockNodeStub.InitCustomDefault();
@@ -180,11 +182,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
-            foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
+            if (!hideCI)
             {
-                var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
-                node.ConnectToCustomBlock(cibnode.value);
-                AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
+                foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
+                {
+                    var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
+                    node.ConnectToCustomBlock(cibnode.value);
+                    AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
+                }
             }
 
             SortEntries(nodeEntries);
