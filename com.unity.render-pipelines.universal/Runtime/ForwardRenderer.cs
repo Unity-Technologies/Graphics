@@ -531,6 +531,10 @@ namespace UnityEngine.Rendering.Universal
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
                 var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
 
+                //Ensure no passes from the forward render after postprocessing are enquede at this point.
+                activeRenderPassQueue
+                    .FindAll(x => x.renderPassEvent > RenderPassEvent.AfterRenderingPostProcessing)
+                    .ForEach(x => { if (!x.overrideCameraTarget) { x.ConfigureTarget(sourceForFinalPass.Identifier()); } });
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
