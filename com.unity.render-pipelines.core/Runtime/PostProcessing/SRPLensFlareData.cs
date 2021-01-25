@@ -27,8 +27,8 @@ namespace UnityEngine
             Intensity = 1.0f;
             Position = 0.5f;
             LensFlareTexture = null;
-            SizeX = 0.1f;
-            SizeY = 0.1f;
+            Size = 1.0f;
+            AspectRatio = 1.0f;
             Rotation = 0.0f;
             Tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
             Speed = 1.0f;
@@ -41,9 +41,9 @@ namespace UnityEngine
         public float Position;
         public Texture LensFlareTexture;
         //[Range(0.0f, 1.0f)]
-        public float SizeX;
+        public float Size;
         //[Range(0.0f, 1.0f)]
-        public float SizeY;
+        public float AspectRatio;
         [Range(0, 360)]
         public float Rotation;
         public Color Tint;

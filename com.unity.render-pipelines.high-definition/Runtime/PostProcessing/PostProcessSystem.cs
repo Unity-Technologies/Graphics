@@ -2193,7 +2193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.Elements[elemIdx].WorldPosition = data.WorldPosition;
                         parameters.Elements[elemIdx].Positions[currentIdx] = element.Position;
                         parameters.Elements[elemIdx].LensFlareTextures[currentIdx] = element.LensFlareTexture;
-                        parameters.Elements[elemIdx].Sizes[currentIdx] = new Vector2(element.SizeX, element.SizeY);
+                        parameters.Elements[elemIdx].Sizes[currentIdx] = new Vector2(element.Size, element.Size * element.AspectRatio);
                         parameters.Elements[elemIdx].Rotations[currentIdx] = element.Rotation;
                         parameters.Elements[elemIdx].Tints[currentIdx] = (new Vector4(element.Tint.r, element.Tint.g, element.Tint.b, element.Tint.a)) * element.Intensity * data.Intensity;
                         parameters.Elements[elemIdx].Speeds[currentIdx] = element.Speed;
@@ -2268,7 +2268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.LensFlareTextures[i]);
 
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
-                    if (autoRotate)
+                    if (!autoRotate)
                         rotation = rotation == 0.0f ? -360.0f : -rotation;
                     //rotation = rotation == 0.0f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
