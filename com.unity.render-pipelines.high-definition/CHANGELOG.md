@@ -76,6 +76,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow matte not working with ambient occlusion when MSAA is enabled
 - Fixed issues with compositor's undo (cases 1305633, 1307170).
 - VFX : Debug material view incorrect depth test. (case 1293291)
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
+- Fixed exception when changing the current render pipeline to from HDRP to universal (case 1306291).
+- Fixed an issue in shadergraph when switch from a RenderingPass (case 1307653)
+- Fixed LookDev environment library assignement after leaving playmode.
+- Fixed a locale issue with the diffusion profile property values in ShaderGraph on PC where comma is the decimal separator.
+- Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
+- Fixed Quality Level set to the last one of the list after a Build (case 1307450)
+- Fixed XR depth copy (case 1286908).
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
@@ -90,7 +100,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 - Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
-	
+- Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
+- Change some light unit slider value ranges to better reflect the lighting scenario.
+- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+
 ## [10.2.1] - 2020-11-30
 
 ### Added
