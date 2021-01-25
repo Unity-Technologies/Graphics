@@ -10,7 +10,7 @@ float ComputeHeightFogMultiplier(float height)
     return ComputeHeightFogMultiplier(height, _HeightFogBaseHeight, _HeightFogExponents);
 }
 
-bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout float pdf, out bool sampleLocalLights)
+bool SampleVolumeScatteringPosition(inout float theSample, inout float t, inout float pdf, out bool sampleLocalLights)
 {
     sampleLocalLights = false;
 
@@ -28,14 +28,14 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     if (localWeight < 0.0)
         return false;
 
-    sampleLocalLights = sample < localWeight;
+    sampleLocalLights = theSample < localWeight;
     if (sampleLocalLights)
     {
         tMax = min(tMax, tFog);
         if (tMin >= tMax)
             return false;
 
-        sample /= localWeight;
+        theSample /= localWeight;
         pdfVol *= localWeight;
     }
     else
@@ -43,8 +43,8 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
         tMin = 0.0;
         tMax = tFog;
 
-        sample -= localWeight;
-        sample /= 1.0 - localWeight;
+        theSample -= localWeight;
+        theSample /= 1.0 - localWeight;
         pdfVol *= 1.0 - localWeight;
     }
 #else
@@ -57,11 +57,11 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     const float transmittanceTMax = max(exp(-tMax * sigmaT), 0.01);
     const float transmittanceThreshold = t < FLT_MAX ? 1.0 - min(0.5, transmittanceTMax) : 1.0;
 
-    if (sample >= transmittanceThreshold)
+    if (theSample >= transmittanceThreshold)
     {
         // Re-scale the sample
-        sample -= transmittanceThreshold;
-        sample /= 1.0 - transmittanceThreshold;
+        theSample -= transmittanceThreshold;
+        theSample /= 1.0 - transmittanceThreshold;
 
         // Adjust the pdf
         pdf *= 1.0 - transmittanceThreshold;
@@ -70,7 +70,7 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     }
 
     // Re-scale the sample
-    sample /= transmittanceThreshold;
+    theSample /= transmittanceThreshold;
 
     // Adjust the pdf
     pdf *= pdfVol * transmittanceThreshold;
@@ -79,7 +79,7 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     {
         // Linear sampling
         float deltaT = tMax - tMin;
-        t = tMin + sample * deltaT;
+        t = tMin + theSample * deltaT;
 
         // Adjust the pdf
         pdf /= deltaT;
@@ -87,7 +87,7 @@ bool SampleVolumeScatteringPosition(inout float sample, inout float t, inout flo
     else
     {
         // Exponential sampling
-        float transmittance = transmittanceTMax + sample * (1.0 - transmittanceTMax);
+        float transmittance = transmittanceTMax + theSample * (1.0 - transmittanceTMax);
         t = -log(transmittance) / sigmaT;
 
         // Adjust the pdf

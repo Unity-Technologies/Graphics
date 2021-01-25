@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+- Adjusted and expanded Swizzle Node article as reviewed by docs editorial. (DOC-2695)
+- Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property [1281831]
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed a broken link in the TOC to Main Preview
 - Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it [1291760]
 - Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
 - Fixed an issue where resizing the graph inspector window sometimes had unexpected results [1257036]
@@ -34,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
 - Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 
 ## [10.2.0] - 2020-10-19
 

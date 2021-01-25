@@ -270,19 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = new RenderStateCollection{ CoreRenderStates.DepthOnly };
-
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 1 (normal buffer)
-                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
-                }
-
+                var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
                 return renderState;
             }
 
@@ -349,11 +337,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             DefineCollection GenerateDefines()
             {
                 if (!supportLighting)
-                    return null;
+                {
+                    // For shadow matte (unlit SG only) we need to enable write normal buffer
+                    return CoreDefines.MotionVectorUnlit;
+                }
 
                 var defines = new DefineCollection { Defines.raytracingDefault };
 
-                //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
+                // TODO: do a #define WRITE_NORMAL_BUFFER for motion vector in forward only material case instead of a multi-compile
                 // if (supportForward)
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
@@ -366,18 +357,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var renderState = new RenderStateCollection();
                 renderState.Add(CoreRenderStates.MotionVectors);
-    
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 2 (normal buffer)
-                    // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 2"));
-                }
-
                 return renderState;
             }
 
@@ -582,17 +561,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         Pass = "Replace",
                     }) },
                 };
-
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 1 (normal buffer)
-                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
-                }
 
                 return renderState;
             }
