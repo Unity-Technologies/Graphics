@@ -76,6 +76,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        internal override bool ignoreCustomInterpolators => false;
+
         public UniversalTarget()
         {
             displayName = "Universal";
