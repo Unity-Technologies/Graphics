@@ -251,7 +251,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
-        readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
 
         // Debugging
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
@@ -423,7 +422,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
-            m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset, defaultResources);
 
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -497,8 +495,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
                 InitPathTracing();
-
-                m_AmbientOcclusionSystem.InitRaytracing(this);
+                InitRayTracingAmbientOcclusion();
             }
 
             // Initialize the SSGI structures
@@ -982,7 +979,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
-            m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariableGlobalAmbientOcclusion(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
@@ -1023,7 +1020,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
 
-                m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = m_AmbientOcclusionSystem.EvaluateSpecularOcclusionFlag(hdCamera);
+                m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = EvaluateSpecularOcclusionFlag(hdCamera);
             }
             else
             {
