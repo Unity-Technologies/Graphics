@@ -133,7 +133,6 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "maskMap", new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
-
             }
         }
         protected IEnumerable<VFXPropertyWithValue> normalMapsProperties
