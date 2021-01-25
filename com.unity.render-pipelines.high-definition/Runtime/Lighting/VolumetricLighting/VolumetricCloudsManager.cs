@@ -385,8 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the theta angle for the wind direction
             float theta = settings.windRotation.value / 180.0f * Mathf.PI;
             cb._WindDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
-            // Conversion  from km/h to m/s  is the 0.277778f factor
-            cb._WindVector = cb._WindDirection * settings.globalWindSpeed.value * hdCamera.time * 0.277778f;
+            cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
 
             cb._GlobalWindSpeed = settings.globalWindSpeed.value;
             cb._LargeWindSpeed = settings.cloudMapWindSpeedMultiplier.value;
@@ -666,6 +665,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
+        {
+            if (hdCamera.volumetricCloudsAnimationData.lastTime == -1.0f)
+            {
+                // This is the first frame for the system
+                hdCamera.volumetricCloudsAnimationData.lastTime = hdCamera.time;
+                hdCamera.volumetricCloudsAnimationData.cloudOffset = Vector2.zero;
+            }
+            else
+            {
+                // Compute the delta time
+                float delaTime = hdCamera.time - hdCamera.volumetricCloudsAnimationData.lastTime;
+
+                // Compute the theta angle for the wind direction
+                float theta = settings.windRotation.value / 180.0f * Mathf.PI;
+
+                // Compute the wind direction
+                Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
+
+                // Conversion  from km/h to m/s  is the 0.277778f factor
+                Vector2 windVector = windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
+
+                // Animate the offset
+                hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
+
+                // Update the time
+                hdCamera.volumetricCloudsAnimationData.lastTime = hdCamera.time;
+            }
+        }
+
         void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, HDUtils.PackedMipChainInfo info)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -674,6 +703,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!settings.enable.value || hdCamera.camera.cameraType == CameraType.Reflection)
                 return;
 
+            // Make sure the volumetric clouds are animated properly
+            UpdateVolumetricClouds(hdCamera, in settings);
+
+            // Render the clouds
             TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting, info);
         }
 
@@ -732,7 +765,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the parameters that we are interested in
             directionalLightData.right = sunLight.transform.right * 2 / Mathf.Max(shadowSize.x, 0.001f);
             directionalLightData.up = sunLight.transform.up * 2 / Mathf.Max(shadowSize.y, 0.001f);
-            directionalLightData.positionRWS = Vector3.zero;
+            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y, 0.0f);
 
             // Return the overridden light data
             return directionalLightData;
