@@ -179,6 +179,8 @@ namespace UnityEngine.Rendering.Universal
         internal int renderTargetSampleCount { get; set; }
         internal bool depthOnly { get; set; }
 
+        internal int sceneIndex { get; set; }
+
         internal bool useNativeRenderPass { get; set; }
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }

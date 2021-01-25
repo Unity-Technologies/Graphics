@@ -480,6 +480,21 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        internal int firstPassIndex { get; set; }
+        internal int lastPassIndex { get; set; }
+
+        internal void SetupSceneInfo()
+        {
+            firstPassIndex = 0;
+            lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
+
+            // Make sure the list is already sorted!
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+            {
+                m_ActiveRenderPassQueue[i].sceneIndex = i;
+            }
+        }
+
         /// <summary>
         /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
         /// </summary>
@@ -520,6 +535,9 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
+                SetupSceneInfo();
+
+                // to configure the targets we need to call ConfigureTarget which is called in ExecuteRenderPass()...
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
                 using (new ProfilingScope(cmd, Profiling.setupLights))
@@ -754,8 +772,10 @@ namespace UnityEngine.Rendering.Universal
 
                 int validColorBuffersCount = (int)RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
 
-                bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
-                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isBlit;
+                bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+
+                bool isLastPassToBB = isLastPass && (renderPass.colorAttachment == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
+                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isLastPassToBB;
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
 
@@ -775,7 +795,7 @@ namespace UnityEngine.Rendering.Universal
                     ? renderPass.renderTargetSampleCount
                     :
 #if UNITY_EDITOR
-                    !isBlit ? sampleCount : 1;
+                    !isLastPassToBB ? sampleCount : 1;
 #else
                     sampleCount;
 #endif
@@ -1026,7 +1046,9 @@ namespace UnityEngine.Rendering.Universal
                     //zzz
 					if (cameraData.renderType == CameraRenderType.Overlay)
 						m_FirstTimeColorClear = false;
-					bool isBlit = renderPass.GetType().Name == "FinalBlitPass";
+
+                    bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+                    bool isLastPassToBB = isLastPass && (renderPass.colorAttachment == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
                     var destTarget = (renderPass.depthOnly ||
@@ -1051,12 +1073,12 @@ namespace UnityEngine.Rendering.Universal
                             m_FirstTimeColorClear = false;
 
                         m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
-                        if (!isBlit)
+                        if (!isLastPassToBB)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                     }
 
 
-                    if ( !isBlit && samples > 1)
+                    if ( !isLastPassToBB && samples > 1)
                     {
                         m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
                     }
