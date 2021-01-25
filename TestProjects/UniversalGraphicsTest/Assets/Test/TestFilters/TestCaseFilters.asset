@@ -170,35 +170,8 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
-    XrSdk: None
-    StereoModes: 0
-    Reason: Needs fixing in OpenGL
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 19
-    GraphicsDevice: 21
+    BuildPlatform: 38
+    GraphicsDevice: 22
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1304675
@@ -215,11 +188,47 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 22
+    BuildPlatform: 19
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Out of memory crash (FB: 1304672)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
@@ -417,20 +426,11 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
     StereoModes: 0
-    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS tracked regression (scene 111 - 1256906)
+    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
@@ -444,11 +444,20 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
     StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
+    Reason: iOS tracked regression (scene 111 - 1256906)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
@@ -552,20 +561,20 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
-    XrSdk: None
-    StereoModes: 0
-    Reason: Needs fixing in OpenGL
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
-    ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
