@@ -18,18 +18,18 @@ namespace UnityEditor.VFX.PerformanceTest
     {
         const int k_BuildTimeout = 600 * 1000;
 
-        private bool m_PreviousAllowAsyncCompilation;
+        private bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
         public void Init()
         {
-            m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
+            m_PreviousAsyncShaderCompilation = EditorSettings.asyncShaderCompilation;
+            EditorSettings.asyncShaderCompilation = false;
         }
 
         [OneTimeTearDown]
         public void Clear()
         {
-            ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+            EditorSettings.asyncShaderCompilation = m_PreviousAsyncShaderCompilation;
         }
 
         static IEnumerable<string> allVisualEffectAsset

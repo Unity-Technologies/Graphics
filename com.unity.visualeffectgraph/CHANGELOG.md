@@ -5,16 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+## Fixed
+- An existing link can be remade.
 
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 - Added support for Texture2D Arrays in Flipbooks
-
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
@@ -32,6 +30,7 @@ The version number for this package has increased due to a version update of a r
 - Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
 - VFXEventBinderBase throwing a null reference exception in runtime
 - Fix CameraFade for shadow maps [Case 1294073](https://fogbugz.unity3d.com/f/cases/1294073/)
+- Modified Sign operator node output for float when input is 0.0f [Case 1299922](https://fogbugz.unity3d.com/f/cases/1299922/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
