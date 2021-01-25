@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for the PlayStation 5 platform.
+- Added pivot point manipulation for Decals (inspector and edit mode).
+- Added UV manipulation for Decals (edit mode).
+- Added color and intensity customization for Decals.
 
 ### Fixed
 - Fixed GC allocations from XR occlusion mesh when using multipass.
@@ -40,11 +43,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed XR depth copy (case 1286908).
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 
 ### Changed
+- Removed the material pass probe volumes evaluation mode.
 - Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
+- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
 
 ## [11.0.0] - 2020-10-21
 
@@ -1595,7 +1601,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed xrInstancing flag in RTHandles (replaced by TextureXR.slices and TextureXR.dimensions)
 - Refactor the HDRenderPipeline and lightloop code to preprare for high level rendergraph
 - Removed the **Back Then Front Rendering** option in the fabric Master Node settings. Enabling this option previously did nothing.
-- Shader type Real translates to FP16 precision on Nintendo Switch.
+- Changed shader type Real to translate to FP16 precision on some platforms.
 - Shader framework refactor: Introduce CBSDF, EvaluateBSDF, IsNonZeroBSDF to replace BSDF functions
 - Shader framework refactor:  GetBSDFAngles, LightEvaluation and SurfaceShading functions
 - Replace ComputeMicroShadowing by GetAmbientOcclusionForMicroShadowing
@@ -1946,7 +1952,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals with stereo rendering
 - Fixed sky with stereo rendering
 - Fixed flip logic for postprocessing + VR
-- Fixed copyStencilBuffer pass for Switch
+- Fixed copyStencilBuffer pass for some specific platforms
 - Fixed point light shadow map culling that wasn't taking into account far plane
 - Fixed usage of SSR with transparent on all master node
 - Fixed SSR and microshadowing on fabric material
@@ -2015,7 +2021,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ### Changed
-- ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
+- ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster.
 - Removing the simple lightloop used by the simple lit shader
 - Whole refactor of reflection system: Planar and reflection probe
 - Separated Passthrough from other RenderingPath
@@ -2032,7 +2038,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader code refactor: Move pragma definition of vertex and pixel shader inside pass + Move SURFACE_GRADIENT definition in XXXData.hlsl
 - Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
 - Upgraded FrameSettings workflow, DebugMenu and Inspector part relative to it
-- Update build light list shader code to support 32 threads in wavefronts on Switch
+- Update build light list shader code to support 32 threads in wavefronts on some platforms
 - LayeredLit layers' foldout are now grouped in one main foldout per layer
 - Shadow alpha clip can now be enabled on lit shader and haor shader enven for opaque
 - Temporal Antialiasing optimization for Xbox One X
@@ -2403,7 +2409,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
 - Fix contact shadows applied on transmission
 - Fix issue with forward opaque lit shader variant being removed by the shader preprocessor
-- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
+- Fixed compilation errors on platforms with limited XRSetting support.
 - Fixed apply range attenuation option on punctual light
 - Fixed issue with color temperature not take correctly into account with static lighting
 - Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
