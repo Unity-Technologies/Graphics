@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
             globalEventAttributes.Clear();
 
             IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
+            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner || o.contextType == VFXContextType.Event))
             {
                 var attributesToStoreFromOutputContext = context.outputContexts.Select(o => o.GetData()).Where(o => o != null)
                     .SelectMany(o => o.GetAttributes().Where(a => (a.mode & VFXAttributeMode.ReadSource) != 0));
