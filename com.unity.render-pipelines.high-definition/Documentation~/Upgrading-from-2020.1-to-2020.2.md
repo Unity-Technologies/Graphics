@@ -21,7 +21,7 @@ From 10.x, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Fo
 
 ## Menu
 
-From 10.x, various HDRP menu items in **Assets > Create > Shader** have been rename to **HD Render Pipeline** for consistency.
+From 10.x, various HDRP menu items in **Assets > Create > Shader** have been renamed to **HD Render Pipeline** for consistency.
 
 ## Decal
 
@@ -257,4 +257,4 @@ We recommend to put all the diffusion profiles used in your project in the HDRP 
 
 Previously, in the Motion Blur volume component the camera rotation clamp was always active such that by default the part of the motion vector derived from camera rotation was clamped differently. This can create confusion due to changes in motion vectors that are relative to camera. 
 
-From 2020.2, the camera rotation clamp option is not the default, but needs to be selected as an option under the **Camera Clamp Mode** setting. Moreover, additional clamping controls on camera influence on motion blur are available under the same setting. 
+From 2020.2, the camera rotation clamp option is not the default, but needs to be selected as an option under the **Camera Clamp Mode** setting. Moreover, additional clamping controls on camera influence on motion blur are available under the same setting.
