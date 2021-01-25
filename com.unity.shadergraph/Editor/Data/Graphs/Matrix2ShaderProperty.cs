@@ -45,9 +45,7 @@ namespace UnityEditor.ShaderGraph
             return new Matrix2ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
 

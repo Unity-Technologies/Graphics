@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._preChangeValueCallback("Change Reference Name");
 
                         if (evt.newValue != shaderInput.referenceName)
-                            shaderInput.SetOverrideReferenceNameAndSanitize(evt.newValue, graphData);
+                            shaderInput.SetReferenceNameAndSanitizeForGraph(graphData, evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                         {
@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void AddShaderInputOptionsToContextMenu(ShaderInput shaderInput, ContextualMenuPopulateEvent evt)
         {
-            if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+            if (shaderInput.isRenamable && !string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                 evt.menu.AppendAction(
                     "Reset Reference",
                     e => { ResetReferenceName(); },

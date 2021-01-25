@@ -96,12 +96,8 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 sgVersion = sgVersion,
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 colorMode = colorMode,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

@@ -107,7 +107,8 @@ namespace UnityEditor.ShaderGraph
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
             // Checks if the reference name has been overridden and appends menu action to reset it, if so
-            if (!string.IsNullOrEmpty(property.overrideReferenceName))
+            if (property.isRenamable &&
+                !string.IsNullOrEmpty(property.overrideReferenceName))
             {
                 evt.menu.AppendAction(
                     "Reset Reference",

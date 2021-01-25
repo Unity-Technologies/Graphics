@@ -1183,7 +1183,23 @@ namespace UnityEditor.ShaderGraph
             collector.CalculateKeywordPermutations();
         }
 
+        // adds the input to the graph, and sanitizes the names appropriately
         public void AddGraphInput(ShaderInput input, int index = -1)
+        {
+            if (input == null)
+                return;
+
+            // sanitize the display name
+            input.SetDisplayNameAndSanitizeForGraph(this);
+
+            // sanitize the reference name
+            input.SetReferenceNameAndSanitizeForGraph(this);
+
+            AddGraphInputNoSanitization(input, index);
+        }
+
+        // just adds the input to the graph, does not fix colliding or illegal names
+        internal void AddGraphInputNoSanitization(ShaderInput input, int index = -1)
         {
             if (input == null)
                 return;
@@ -1286,56 +1302,73 @@ namespace UnityEditor.ShaderGraph
             return sanitizedName;
         }
 
-        public string DeduplicateGraphInputReferenceName(ShaderInput input, string newName)
+        public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            if (string.IsNullOrEmpty(newName))
-                newName = "_";
-
-            string name = newName.Trim();
-            if (string.IsNullOrEmpty(name))
-                name = "_";
-
-            if (Regex.IsMatch(name, @"^\d+"))
-                name = "_" + name;
-
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
 
             switch (input)
             {
                 case AbstractShaderProperty property:
-                    return GraphUtil.DeduplicateName(properties.Where(p => p != property).Select(p => p.referenceName), "{0}_{1}", name);
+                {
+                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
+                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName));
+                    sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
+                }
+                break;
                 case ShaderKeyword keyword:
-                    name = name.ToUpper();
-                    return GraphUtil.DeduplicateName(keywords.Where(p => p != input).Select(p => p.referenceName), "{0}_{1}", name.ToUpper());
+                {
+                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
+                    sanitizedName = sanitizedName.ToUpper();
+                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName));
+                    sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
+                }
+                break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            return sanitizedName;
         }
 
-        public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
+        // copies the ShaderInput, and adds it to the graph with proper name sanitization, returning the copy
+        public ShaderInput AddCopyOfShaderInput(ShaderInput source, int insertIndex = -1)
         {
-            if (string.IsNullOrEmpty(newName))
-                return;
+            ShaderInput copy = source.Copy();
 
-            string name = newName.Trim();
-            if (string.IsNullOrEmpty(name))
-                return;
+            // some ShaderInputs cannot be copied (unknown types)
+            if (copy == null)
+                return null;
 
-            if (Regex.IsMatch(name, @"^\d+"))
-                name = "_" + name;
+            // copy common properties that should always be copied over
+            copy.generatePropertyBlock = source.generatePropertyBlock;      // the exposed toggle
 
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            switch (input)
+            if ((source is AbstractShaderProperty sourceProp) && (copy is AbstractShaderProperty copyProp))
             {
-                case AbstractShaderProperty property:
-                    property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p != property).Select(p => p.referenceName), "{0}_{1}", name);
-                    break;
-                case ShaderKeyword keyword:
-                    keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                copyProp.hidden = sourceProp.hidden;
+                copyProp.precision = sourceProp.precision;
+                copyProp.overrideHLSLDeclaration = sourceProp.overrideHLSLDeclaration;
+                copyProp.hlslDeclarationOverride = sourceProp.hlslDeclarationOverride;
             }
+
+            // sanitize the display name (we let the .Copy() function actually copy the display name over)
+            copy.SetDisplayNameAndSanitizeForGraph(this);
+
+            // copy and sanitize the reference name (must do this after the display name, so the default is correct)
+            if (source.IsUsingNewDefaultRefName())
+            {
+                // if source was using new default, we can just rely on the default for the copy we made.
+                // the code above has already handled collisions properly for the default,
+                // and it will assign the same name as the source if there are no collisions.
+                // Also it will result better names chosen when there are collisions.
+            }
+            else
+            {
+                // when the source is using an old default, we set it as an override
+                copy.SetReferenceNameAndSanitizeForGraph(this, source.referenceName);
+            }
+
+            AddGraphInputNoSanitization(copy, insertIndex);
+
+            return copy;
         }
 
         public void RemoveGraphInput(ShaderInput input)
@@ -1585,11 +1618,11 @@ namespace UnityEditor.ShaderGraph
             }
             foreach (var otherProperty in other.properties)
             {
-                AddGraphInput(otherProperty);
+                AddGraphInputNoSanitization(otherProperty);
             }
             foreach (var otherKeyword in other.keywords)
             {
-                AddGraphInput(otherKeyword);
+                AddGraphInputNoSanitization(otherKeyword);
             }
 
             other.ValidateGraph();
@@ -1792,8 +1825,6 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        keywordNode.keyword.SetDisplayNameAndSanitizeForGraph(this);
-                        SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
                         AddGraphInput(keywordNode.keyword);
                     }
 

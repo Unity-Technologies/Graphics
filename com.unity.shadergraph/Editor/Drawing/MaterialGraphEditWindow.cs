@@ -716,10 +716,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Always copy deserialized keyword inputs
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
-                var copiedInput = (ShaderKeyword)keyword.Copy();
-                copiedInput.SetDisplayNameAndSanitizeForGraph(subGraph);
-                subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
-                subGraph.AddGraphInput(copiedInput);
+                var copiedInput = (ShaderKeyword)subGraph.AddCopyOfShaderInput(keyword);
 
                 // Update the keyword nodes that depends on the copied keyword
                 var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keyword == keyword);

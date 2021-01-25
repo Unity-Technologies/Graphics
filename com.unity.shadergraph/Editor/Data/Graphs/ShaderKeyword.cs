@@ -189,14 +189,12 @@ namespace UnityEditor.ShaderGraph
             return new ShaderKeyword()
             {
                 displayName = displayName,
-                overrideReferenceName = overrideReferenceName,
-                generatePropertyBlock = generatePropertyBlock,
+                value = value,
                 isBuiltIn = isBuiltIn,
                 keywordType = keywordType,
                 keywordDefinition = keywordDefinition,
                 keywordScope = keywordScope,
                 entries = entries,
-                value = value,
             };
         }
     }

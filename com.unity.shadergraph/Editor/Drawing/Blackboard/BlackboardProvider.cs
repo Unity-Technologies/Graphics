@@ -262,7 +262,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
             else
             {
-                gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => AddInputRow(keyword.Copy(), true));
+                gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => AddInputRow(m_Graph.AddCopyOfShaderInput(keyword)));
             }
         }
 
@@ -336,15 +336,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
         Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
 
-        void AddInputRow(ShaderInput input, bool create = false, int index = -1)
+        void AddInputRow(ShaderInput input, bool addToGraph = false, int index = -1)
         {
             if (m_InputRows.ContainsKey(input))
                 return;
 
-            if (create)
+            if (addToGraph)
             {
-                input.SetDisplayNameAndSanitizeForGraph(m_Graph);
+                m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
+
+                // this pathway is mostly used for adding newly inputs to the graph
+                // so this is setting up the default state for those inputs
+                // here we flag it exposed, if the input type is exposable
                 input.generatePropertyBlock = input.isExposable;
+
+                m_Graph.AddGraphInput(input);       // TODO: index after currently selected property
             }
 
             BlackboardFieldView field = null;
@@ -416,17 +422,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
             m_InputRows[input] = row;
 
-            if (!create)
+            if (!addToGraph)
             {
                 m_InputRows[input].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.objectId}.isExpanded", false);
             }
             else
             {
                 row.expanded = true;
-                m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
-                m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
-
                 if (input as ShaderKeyword != null)
                 {
                     m_Graph.OnKeywordChangedNoValidate();

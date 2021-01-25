@@ -81,11 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return new DiffusionProfileShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

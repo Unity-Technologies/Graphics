@@ -48,32 +48,48 @@ namespace UnityEditor.ShaderGraph.Internal
         // also calls the update trigger to update other bits of the graph UI that use the name
         internal void SetDisplayNameAndSanitizeForGraph(GraphData graphData, string desiredName = null)
         {
+            string originalDisplayName = displayName;
+
             // if no desired name passed in, sanitize the current name
             if (desiredName == null)
-                desiredName = m_Name;
+                desiredName = originalDisplayName;
 
             var sanitizedName = graphData.SanitizeGraphInputName(this, desiredName);
-            bool changed = (m_Name != sanitizedName);
+            bool changed = (originalDisplayName != sanitizedName);
 
-            m_Name = sanitizedName;
+            // only assign if it was changed
+            if (changed)
+                m_Name = sanitizedName;
 
-            // if the name changed, also update the default reference name
-            if (changed && String.IsNullOrEmpty(overrideReferenceName))
-                UpdateDefaultReferenceName(graphData);
+            // update the default reference name
+            UpdateDefaultReferenceName(graphData);
 
             // Updates any views associated with this input so that display names stay up to date
             // NOTE: we call this even when the name has not changed, because there may be fields
             // that were user-edited and still have the temporary desired name -- those must update
             if (m_displayNameUpdateTrigger != null)
             {
-                Debug.Log("m_displayNameUpdateTrigger.Invoke(" + m_Name + ")");
                 m_displayNameUpdateTrigger.Invoke(m_Name);
             }
         }
 
-        internal void SetOverrideReferenceNameAndSanitize(string desiredRefName, GraphData graphData)
+        internal void SetReferenceNameAndSanitizeForGraph(GraphData graphData, string desiredRefName = null)
         {
-            graphData.SanitizeGraphInputReferenceName(this, desiredRefName);
+            string originalRefName = referenceName;
+
+            // if no desired ref name, use the current name
+            if (string.IsNullOrEmpty(desiredRefName))
+                desiredRefName = originalRefName;
+
+            // sanitize and deduplicate the desired name
+            var sanitizedRefName = graphData.SanitizeGraphInputReferenceName(this, desiredRefName);
+
+            // check if the final result is different from the current name
+            bool changed = (originalRefName != sanitizedRefName);
+
+            // if changed, then set the new name up as an override
+            if (changed)
+                overrideReferenceName = sanitizedRefName;
         }
 
         // resets the reference name to a "default" value (deduplicated against existing reference names)
@@ -81,21 +97,25 @@ namespace UnityEditor.ShaderGraph.Internal
         internal string ResetReferenceName(GraphData graphData)
         {
             overrideReferenceName = null;
-            UpdateDefaultReferenceName(graphData);
+
+            // because we are clearing an override, we must force a sanitization pass on the default ref name
+            // as there may now be collisions that didn't previously exist
+            UpdateDefaultReferenceName(graphData, true);
+
             return referenceName;
         }
 
-        internal void UpdateDefaultReferenceName(GraphData graphData)
+        internal void UpdateDefaultReferenceName(GraphData graphData, bool forceSanitize = false)
         {
             if (m_DefaultRefNameVersion <= 0)
                 return; // old version is updated in the getter
 
             var dispName = displayName;
-            if (string.IsNullOrEmpty(m_DefaultReferenceName) ||
+            if (forceSanitize ||
+                string.IsNullOrEmpty(m_DefaultReferenceName) ||
                 (m_RefNameGeneratedByDisplayName != dispName))
             {
-                var hlslName = NodeUtils.ConvertToValidHLSLIdentifier(dispName, NodeUtils.IsShaderLabKeyWord);
-                m_DefaultReferenceName = graphData.DeduplicateGraphInputReferenceName(this, hlslName);
+                m_DefaultReferenceName = graphData.SanitizeGraphInputReferenceName(this, dispName);
                 m_RefNameGeneratedByDisplayName = dispName;
             }
         }
@@ -154,13 +174,19 @@ namespace UnityEditor.ShaderGraph.Internal
             return string.IsNullOrEmpty(overrideReferenceName) && (m_DefaultRefNameVersion == 0);
         }
 
+        // returns true if this shader input is CURRENTLY using the new default reference name
+        public bool IsUsingNewDefaultRefName()
+        {
+            return string.IsNullOrEmpty(overrideReferenceName) && (m_DefaultRefNameVersion >= 1);
+        }
+
         // upgrades the default reference name to use the new naming scheme
         internal string UpgradeDefaultReferenceName(GraphData graphData)
         {
             m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
             m_DefaultReferenceName = null;
             m_RefNameGeneratedByDisplayName = null;
-            UpdateDefaultReferenceName(graphData);
+            UpdateDefaultReferenceName(graphData, true);  // make sure to sanitize the new default
             return referenceName;
         }
 
@@ -185,6 +211,8 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
         internal abstract bool isExposable { get; }
         internal virtual bool isAlwaysExposed => false;
+
+        // should we allow the UI to rename the display and reference names?
         internal abstract bool isRenamable { get; }
 
         internal abstract ShaderInput Copy();

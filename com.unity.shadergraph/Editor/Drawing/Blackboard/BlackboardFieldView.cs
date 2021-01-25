@@ -145,7 +145,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
             // Checks if the reference name has been overridden and appends menu action to reset it, if so
-            if (!string.IsNullOrEmpty(m_Input.overrideReferenceName))
+            if (m_Input.isRenamable &&
+                !string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
                 evt.menu.AppendAction(
                     "Reset Reference",
