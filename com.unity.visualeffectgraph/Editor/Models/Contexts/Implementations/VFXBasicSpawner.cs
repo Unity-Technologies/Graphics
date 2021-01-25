@@ -227,9 +227,9 @@ namespace UnityEditor.VFX
         {
             get
             {
+                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadWrite);
                 foreach (var attribute in base.attributes)
                     yield return attribute;
-                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadWrite);
             }
         }
 
