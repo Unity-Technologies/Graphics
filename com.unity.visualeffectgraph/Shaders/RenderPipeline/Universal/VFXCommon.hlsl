@@ -82,7 +82,7 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 #if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
     return posWS - _WorldSpaceCameraPos.xyz;
 #else
-	return posWS;
+    return posWS;
 #endif
 }
 
