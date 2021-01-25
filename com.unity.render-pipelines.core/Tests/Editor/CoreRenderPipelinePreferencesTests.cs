@@ -2,7 +2,6 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering
 {
-
     public class CoreRenderPipelinePreferencesTests
     {
         [Test]
