@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature.
+- Fixed material upgrader to run in batch mode [case 1305402]
 
 ## [10.2.0] - 2020-10-19
 
