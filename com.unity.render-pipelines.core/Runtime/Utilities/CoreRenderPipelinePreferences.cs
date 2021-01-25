@@ -44,10 +44,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Adds a <see cref="PrefColor"/> into the <b>Preferences > Colors</b> panel./>
+        /// Adds a <see cref="PrefColor"/> into the **Preferences > Colors** panel./>
         /// </summary>
-        /// <param name="name">The name the color has in the <b>Colors</b> panel. This is in the format of 'group/name'.</param>
-        /// <param name="defaultColor">The initial color to use for the new entry in the <b>Colors</b> panel. This is also the value Unity uses when it resets the colors to their defaults.</param>
+        /// <param name="name">The name the color has in the **Colors** panel. This is in the format of 'group/name'.</param>
+        /// <param name="defaultColor">The initial color to use for the new entry in the **Colors** panel. This is also the value Unity uses when it resets the colors to their defaults.</param>
         public static Func<Color> RegisterPreferenceColor(string name, Color defaultColor)
         {
             if (string.IsNullOrEmpty(name))
