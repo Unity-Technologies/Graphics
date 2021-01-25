@@ -122,6 +122,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         const int k_LatestDefaultRefNameVersion = 1;
 
+        // this is used to know whether this shader input is using the "old" default reference naming scheme (0)
+        // or the new default reference namming scheme (1)
         [SerializeField]
         int m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
 
