@@ -19,6 +19,10 @@ Currently, the only publicly accessible variables in the `ShaderVariablesGlobal`
 
 From 10.x, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Forward** Frame Setting is enabled by default.
 
+## Menu
+
+From 10.x, various HDRP sub menu in Assets/Create/Shader have been rename to HD Render Pipeline for consistency.
+
 ## Decal
 
 From 10.x, decals no longer require a full Depth Prepass. HDRP only renders Materials with **Receive Decals** enabled during the Depth Prepass. Unless other options force it.
@@ -26,6 +30,12 @@ From 10.x, decals no longer require a full Depth Prepass. HDRP only renders Mate
 From 10.x, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
 
 ## Lighting
+
+From 10.x, HDRP enable Reflector for Spotlight by default. This option is still false by default when creating a Spotlight from Script.
+
+From 10.x, HDRP disable [Backplate](Override-HDRI-Sky.md) from rendering of lighting cubemap as it is not compatible.
+
+From 10.x, HDRP disable [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md), [Screen Space Global Illumination](Override-Screen-Space-GI.md), [Screen Space Reflection](Override-Screen-Space-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md) and [Volumetric Reprojection](Override-Fog.md) with reflection probe as they are not working correctly.
 
 From 10.x, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
