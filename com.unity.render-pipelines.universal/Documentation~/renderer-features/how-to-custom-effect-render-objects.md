@@ -68,7 +68,7 @@ Follow these steps to create a Renderer Feature to draw the character behind Gam
 
     ![Create new Layer called Character](../Images/how-to-render-objects/rendobj-new-layer-character.png)
 
-4. In the `DrawCharacterBehind` Renderer Feature, in **Filters** > **Layer Mask**, select `Character`. With this setting, this Renderer Feature renders GameObjects only in the Layer `Character`. 
+4. In the `DrawCharacterBehind` Renderer Feature, in **Filters** > **Layer Mask**, select `Character`. With this setting, this Renderer Feature renders GameObjects only in the Layer `Character`.
 
 5. In **Overrides** > **Material**, select the `CharacterBehindObjects` Material.
 
@@ -78,11 +78,11 @@ Follow these steps to create a Renderer Feature to draw the character behind Gam
 
 6. The intended behavior is that the Renderer Feature renders the character with the `CharacterBehindObjects` Material only when the character is behind other GameObjects.
 
-    To achieve this, select the **Depth** check box, and set the **Depth Test** property to **Greater**. 
+    To achieve this, select the **Depth** check box, and set the **Depth Test** property to **Greater**.
 
     ![Set Depth Test to Greater](../Images/how-to-render-objects/rendobj-depth-greater.png)
 
-With these settings, Unity renders the character with the `CharacterBehindObjects` Material only when the character is behind another GameObject. However, Unity also renders parts of the character using the `CharacterBehindObjects` Material, because some parts of the character occlude the character itself.    
+With these settings, Unity renders the character with the `CharacterBehindObjects` Material only when the character is behind another GameObject. However, Unity also renders parts of the character using the `CharacterBehindObjects` Material, because some parts of the character occlude the character itself.
 
 ![Unity renders parts of the character using the `CharacterBehindObjects` Material](../Images/how-to-render-objects/character-depth-test-greater.gif)
 
@@ -93,7 +93,7 @@ The settings in the previous section result in the self see-through effect for t
 
 * When performing the Opaque rendering pass of the URP Renderer, Unity renders all GameObjects belonging to the character with the `Character` Material and writes depth values to the Depth buffer. This happens before Unity starts executing the `DrawCharacterBehind` Renderer Feature, because, by default, new Render Objects Renderer Features have the value **AfterRenderingOpaques** in the **Event** property.
 
-    The **Event** property defines the injection point where Unity injects Render Passes from the Render Objects Renderer Feature. The event when URP Renderer draws GameObjects in the **Opaque Layer Mask** is the **BeforeRenderingOpaques** event. 
+    The **Event** property defines the injection point where Unity injects Render Passes from the Render Objects Renderer Feature. The event when URP Renderer draws GameObjects in the **Opaque Layer Mask** is the **BeforeRenderingOpaques** event.
 
 * When executing the `DrawCharacterBehind` Renderer Feature, Unity performs the depth test using the condition specified in the **Depth Test** property. In the following screenshot, a bigger capsule occludes part of the smaller capsule, and the depth test passes for that part of the smaller capsule. The Renderer Feature overrides the Material for that part.
 
@@ -107,16 +107,16 @@ The following steps describe how to avoid such behavior and ensure that Unity dr
 
     Now Unity does not render the character unless it's behind a GameObject.
 
-    ![Unity does not render the character unless it's behind an object](../Images/how-to-render-objects/rendobj-character-only-behind.png)    
+    ![Unity does not render the character unless it's behind an object](../Images/how-to-render-objects/rendobj-character-only-behind.png)
 
-2. Add a new Render Objects Renderer Feature, and call it `Character`. 
+2. Add a new Render Objects Renderer Feature, and call it `Character`.
 
 3. In the `Character` Renderer Feature, in **Filters** > **Layer Mask**, select the `Character` Layer.
 
     ![](../Images/how-to-render-objects/rendobj-render-objects-character.png)
 
     Now Unity renders the character with the `Character` Material even when the character is behind GameObjects.
-    
+
     This happens because the `DrawCharacterBehind` Renderer Feature writes values to the depth buffer. When Unity executes the `Character` Renderer Feature, the pixels on the character appear to be in front of the pixels that Unity has drawn previously, and Unity draws on top of those pixels.
 
 4. In the `DrawCharacterBehind` Renderer Feature, In **Overrides** > **Depth**, clear the **Write Depth** check box. With this setting, the `DrawCharacterBehind` Renderer Feature does not make changes to the depth buffer and the `Character` Renderer Feature does not draw the character when it's behind GameObjects.
@@ -136,4 +136,3 @@ With the extra `Character` Renderer Feature, Unity renders GameObjects as follow
 3. The `Character` Renderer Feature draws parts of the character that are in front of other GameObjects. This happens in the **AfterRenderingOpaques** event, and after executing the `DrawCharacterBehind` Renderer Feature.
 
 To see another use case of the Render Objects Renderer Feature, refer to the **Object Occlusion** Scene in the [Universal Rendering Examples](https://github.com/Unity-Technologies/UniversalRenderingExamples) project.
-
