@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
-            context.AddField(Fields.GraphCustomInterp);
+            
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip, alphaClip);
             context.AddField(Fields.DoubleSided, twoSided);
