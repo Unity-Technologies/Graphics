@@ -30,7 +30,6 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
-
             }
         }
 
@@ -45,7 +44,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                     properties = properties.Concat(optionalInputProperties);
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
@@ -58,7 +57,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");

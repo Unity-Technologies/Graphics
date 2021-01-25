@@ -188,16 +188,15 @@ uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
     {
         // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
         s_elementIdx = WaveActiveMin(v_elementIdx);
-        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
-        if (s_elementIdx == -1)
-        {
-            return -1;
-        }
     }
-    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-    // However, we are certain at this point that the index is scalar.
-    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+    // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+    // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin.
+    // If that's not the case we make sure the index is put into a scalar register.
+    if (s_elementIdx != -1)
+    {
+        s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+    }
+
 #endif
     return s_elementIdx;
 }

@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
 
         protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) {}
 
-        protected virtual bool allowTextures { get { return shaderGraph == null; } }
+        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; }}
 
         public class HDRPLitInputProperties
         {
@@ -133,7 +133,6 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "maskMap", new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
-
             }
         }
         protected IEnumerable<VFXPropertyWithValue> normalMapsProperties
@@ -165,7 +164,7 @@ namespace UnityEditor.VFX
             public Color emissiveColor = Color.black;
         }
 
-        protected override bool needsExposureWeight { get { return shaderGraph == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }
+        protected override bool needsExposureWeight { get { return GetOrRefreshShaderGraphObject() == null && ((colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap); } }
 
         protected override bool bypassExposure { get { return false; } }
 
@@ -181,7 +180,7 @@ namespace UnityEditor.VFX
             {
                 var properties = base.inputProperties;
 
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                 {
                     properties = properties.Concat(PropertiesFromType("HDRPLitInputProperties"));
                     properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
@@ -218,7 +217,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "smoothness");
 
@@ -281,7 +280,7 @@ namespace UnityEditor.VFX
 
                 yield return "HDRP_LIT";
 
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                     switch (materialType)
                     {
                         case MaterialType.Standard:
@@ -344,7 +343,7 @@ namespace UnityEditor.VFX
                         yield return "HDRP_USE_EMISSIVE_MAP";
                 }
 
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                 {
                     if ((colorMode & ColorMode.BaseColor) != 0)
                         yield return "HDRP_USE_BASE_COLOR";
@@ -363,7 +362,7 @@ namespace UnityEditor.VFX
                 if (onlyAmbientLighting && !isBlendModeOpaque)
                     yield return "USE_ONLY_AMBIENT_LIGHTING";
 
-                if (isBlendModeOpaque && (shaderGraph != null || (materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)))
+                if (isBlendModeOpaque && (GetOrRefreshShaderGraphObject() != null || (materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)))
                     yield return "IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE";
             }
         }
@@ -401,7 +400,7 @@ namespace UnityEditor.VFX
                     yield return "alphaMask";
                 }
 
-                if (shaderGraph != null)
+                if (GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return "materialType";
                     yield return "useEmissive";
@@ -445,7 +444,7 @@ namespace UnityEditor.VFX
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
                 var forwardPassName = new VFXShaderWriter();
-                forwardPassName.Write(shaderGraph == null && (materialType == MaterialType.SimpleLit || materialType == MaterialType.SimpleLitTranslucent) ? "ForwardOnly" : "Forward");
+                forwardPassName.Write(GetOrRefreshShaderGraphObject() == null && (materialType == MaterialType.SimpleLit || materialType == MaterialType.SimpleLitTranslucent) ? "ForwardOnly" : "Forward");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardPassName}", forwardPassName);
             }
         }

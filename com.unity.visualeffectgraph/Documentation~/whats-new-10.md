@@ -36,7 +36,7 @@ For more information about this feature, see [Output Particle Mesh](Context-Outp
 
 ![](Images/banner-mesh-sampling.png)
 
-Spawn particles directly from meshes. This enables you to quickly spawn particles in more complex shapes directly from meshes without the need to first bake their positions into a [point cache](PointCaches.md). 
+Spawn particles directly from meshes. This enables you to quickly spawn particles in more complex shapes directly from meshes without the need to first bake their positions into a [point cache](PointCaches.md).
 
 You can sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator.
 
