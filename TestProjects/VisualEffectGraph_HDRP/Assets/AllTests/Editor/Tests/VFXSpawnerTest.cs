@@ -102,6 +102,52 @@ namespace UnityEditor.VFX.Test
             yield return null;
         }
 
+        //Cover case 1122404
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Set_Really_High_SpawnRate()
+        {
+            yield return new EnterPlayMode();
+
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+
+            var reallyBigFloat = 3e+38f;
+            CreateAssetAndComponent(reallyBigFloat, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var init = graph.children.OfType<VFXBasicInitialize>().First();
+            var setLifetime = ScriptableObject.CreateInstance<SetAttribute>();
+            setLifetime.SetSettingValue("attribute", "lifetime"); //Issue 1122404 only occurs when hasKill
+            setLifetime.inputSlots[0].value = 1.0f;
+            init.AddChild(setLifetime);
+
+            var update = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(update);
+
+            init.LinkTo(update);
+            update.LinkTo(graph.children.OfType<VFXPlanarPrimitiveOutput>().First());
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            int maxFrame = 256;
+            while (vfxComponent.culled && --maxFrame > 0)
+                yield return null;
+            Assert.IsTrue(maxFrame > 0);
+
+            //Assertion failed on expression: 'nbGroups.x > 0 && nbGroups.y > 0' is logged before 1122404 resolution.
+            yield return null;
+
+            var spawnSystems = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnSystems);
+            var spawnState = vfxComponent.GetSpawnSystemInfo(spawnSystems[0]);
+            Assert.IsTrue(spawnState.spawnCount >= reallyBigFloat * 0.01f);
+
+            var spawnCountCastInt = (int)spawnState.spawnCount; //expecting an overflow
+            Assert.IsTrue(spawnCountCastInt < 0);
+
+            yield return new ExitPlayMode();
+
+        }
 
         static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
 
