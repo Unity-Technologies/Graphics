@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             string finalResult = "";
 
             // If cib is inactive (or doesn't exist), then we default to black (as is the case for other nodes).
-            if (!isActive)
+            if (!isActive || CustomInterpolatorUtils.generatorSkipFlag)
             {
                 finalResult = CustomInterpolatorUtils.ConvertVector("$precision4(0,0,0,0)", 4, toWidth);
             }

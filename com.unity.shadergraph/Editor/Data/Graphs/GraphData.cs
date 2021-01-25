@@ -2367,21 +2367,29 @@ namespace UnityEditor.ShaderGraph
 
         internal void ValidateCustomBlockLimit()
         {
-            int limit = 32;
-            int warn = 16;
+            // how many channels are _probably_ used by the target?
+            // 7 is the default here.
+            int padding = (3 + m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max()) * 4;
+
+            int d3dSupport = 32 * 4 - padding; // 32 is standard expected for modern systems and D3D.
+            int chromeSupport = 15 * 4 - padding;  // 15 is for chrome's implementation of WebGL.
+            // int lowSupport = 15 * 4 - padding;  // 10 is some other limitation Unity recognizes.
+            // int minSupport = 8 * 4 - padding; // If interpolators are supported, 8 is the bare minimum we can expect.
             int total = 0;
+
+            // warn based the interpolators location in the block list.
             foreach (var cib in vertexContext.blocks.Where(jb=>jb.value.isCustomBlock).Select(b=>b.value))
             {
                 ClearErrorsForNode(cib);
-                if (total > limit)
-                {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as d3d).");
-                }
-                else if (total > warn)
-                {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as WebGL).", ShaderCompilerMessageSeverity.Warning);
-                }
                 total += (int)cib.customWidth;
+                if (total > d3dSupport)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as Direct3D).");
+                }
+                else if (total > chromeSupport)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as Chrome's WebGL).", ShaderCompilerMessageSeverity.Warning);
+                }
             }
         }
     }

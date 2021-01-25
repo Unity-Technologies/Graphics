@@ -223,6 +223,16 @@ namespace UnityEditor.ShaderGraph
 
             // --------------------------------------------------
             // Setup
+            
+            // If any of these cases are true, custom Interpolators will not work for this pass.
+            // Have to use a global flag here to avoid disrupting a lot of assumptions generation makes (Eg. we can't enable/disable nodes per pass or manipulate graph state <__<).
+            CustomInterpolatorUtils.generatorSkipFlag = m_Mode
+                == GenerationMode.ForReals
+                && (!activeFields.baseInstance.Contains(Fields.GraphCustomInterp)
+                    || pass.cipoes == null
+                    || pass.cipoes.Count() == 0
+                    || m_Targets[targetIndex].ignoreCustomInterpolators);
+
 
             // Initiailize Collectors
             var propertyCollector = new PropertyCollector();
@@ -844,6 +854,9 @@ namespace UnityEditor.ShaderGraph
                 isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
+
+            // Turn off the skip flag so other passes can work correctly.
+            CustomInterpolatorUtils.generatorSkipFlag = false;
         }
     }
 }

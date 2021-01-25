@@ -93,6 +93,9 @@ namespace UnityEditor.ShaderGraph
         internal static string k_Semantic => "SGCI";
         internal static string k_Define => "FEATURES_CUSTOM_INTERPOLATORS";
 
+
+        internal static bool generatorSkipFlag  = false;
+
         static internal void ProcessCIPOE(
             IEnumerable<CIPOEDescriptor> descs,
             List<BlockFieldDescriptor> customFields,
