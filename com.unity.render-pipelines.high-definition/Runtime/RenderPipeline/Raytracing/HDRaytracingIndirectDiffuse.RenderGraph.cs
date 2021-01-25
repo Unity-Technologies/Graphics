@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderIndirectDiffusePerformance(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
-            int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
+            ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             // Pointer to the final result
             TextureHandle rtgiResult;
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderIndirectDiffuseQuality(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
-            int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
+            ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderRayTracedIndirectDiffuse(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, Texture skyTexture, TextureHandle rayCountTexture,
-            int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
+            ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
@@ -286,11 +286,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (qualityMode)
                 rtreflResult = RenderIndirectDiffuseQuality(renderGraph, hdCamera,
                     depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, skyTexture,
-                    frameCount, shaderVariablesRaytracing);
+                    shaderVariablesRaytracing);
             else
                 rtreflResult = RenderIndirectDiffusePerformance(renderGraph, hdCamera,
                     depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, skyTexture,
-                    frameCount, shaderVariablesRaytracing);
+                    shaderVariablesRaytracing);
 
             return rtreflResult;
         }
