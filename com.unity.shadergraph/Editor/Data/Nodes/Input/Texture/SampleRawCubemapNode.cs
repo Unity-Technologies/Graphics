@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             var normalSlot = FindInputSlot<MaterialSlot>(NormalInputId);
             var edgesNormal = owner.GetEdges(normalSlot.slotReference);
             if (!edgesNormal.Any())
-                return CoordinateSpace.Object.ToNeededCoordinateSpace();
+                return CoordinateSpace.World.ToNeededCoordinateSpace();
             else
                 return NeededCoordinateSpace.None;
         }

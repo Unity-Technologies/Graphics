@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed XR depth copy (case 1286908).
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
@@ -101,7 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed backplate from rendering of lighting cubemap as it did not really work conceptually and caused artefacts.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Change some light unit slider value ranges to better reflect the lighting scenario.
-	
+- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+
 ## [10.2.1] - 2020-11-30
 
 ### Added
