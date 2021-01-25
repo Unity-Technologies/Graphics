@@ -58,8 +58,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Low = 128,
             Medium = 256,
             High = 512,
-            Count = 4,
         }
+        /// <summary> </summary>
+        public const int CloudShadowResolutionCount = 4;
 
         /// <summary>
         /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
@@ -157,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the resolution of the volumetric clouds shadow map.")]
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium);
 
-        [Tooltip("Controls the size of the volumetric clouds shadow in kilometers.")]
+        [Tooltip("Controls the size of the volumetric clouds shadow in meters.")]
         public MinFloatParameter shadowSize = new MinFloatParameter(16000.0f, 1000.0f);
 
         [Tooltip("Controls the intensity of the volumetric clouds shadow.")]

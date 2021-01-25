@@ -996,14 +996,13 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     lowD[4] = pixelRegion[PLUS_3].pixelDepth;
 
     float4 currentClouds = BilUpColor5(depthValue, lowD, lowC);
-    float cloudFlag = 1.0f;
 
     // De-tonemap the inscattering value
     currentClouds.xyz *= rcp(1.0 - currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
     // If this is a background pixel, we want the cloud value, otherwise we do not.
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = lerp(currentColor, currentColor * currentClouds.a + float4(currentClouds.xyz, 0.0), cloudFlag);
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
 }
 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);
@@ -1028,13 +1027,13 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
-    float3 shadowCookieCenter = float3(0, _EarthRadius, 0) + t * _SunDirection;
+    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius, _WorldSpaceCameraPos.z) + t * _SunDirection;
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
 
     // Compute the origin of the ray properties  in the planet space
-    float3 rayOrigin = (normalizedCoord.x * _SunRight + normalizedCoord.y * _SunUp) * _ShadowRegionSize + shadowCookieCenter;
+    float3 rayOrigin = (normalizedCoord.x * _SunRight * _ShadowRegionSize.x + normalizedCoord.y * _SunUp * _ShadowRegionSize.y) + shadowCookieCenter;
     float3 rayDirection = -_SunDirection;
 
     // Compute the attenuation

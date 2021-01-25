@@ -216,7 +216,7 @@ float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float 
 #define PLUS_0 1
 #define PLUS_1 3
 #define PLUS_2 5
-#define PLUS_3 4
+#define PLUS_3 7
 #define PLUS_WEIGHT 0.083286
 #define CROSS_0 0
 #define CROSS_1 2

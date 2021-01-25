@@ -83,11 +83,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Accumulation", EditorStyles.miniLabel);
             {
                 PropertyField(m_TemporalAccumulationFactor);
             }
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
             PropertyField(m_EarthRadiusMultiplier);
             if (isInAdvancedMode)
@@ -100,6 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_LowestCloudAltitude);
             PropertyField(m_HighestCloudAltitude);
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
             PropertyField(m_GlobalWindSpeed);
             if (isInAdvancedMode)
@@ -113,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Density", EditorStyles.miniLabel);
             PropertyField(m_CloudControl);
 
@@ -161,12 +165,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 PropertyField(m_AmbientLightProbeDimmer);
+
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Quality", EditorStyles.miniLabel);
                 {
                     PropertyField(m_NumPrimarySteps);
                     PropertyField(m_NumLightSteps);
                 }
 
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
                 {
                     PropertyField(m_ScatteringDirection);
@@ -176,6 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Shadows", EditorStyles.miniLabel);
             {
                 PropertyField(m_Shadow);
