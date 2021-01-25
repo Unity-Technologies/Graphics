@@ -222,6 +222,18 @@ namespace UnityEditor.ShaderGraph
 
 
         // PREVIEW
+        internal static int SlotTypeToWidth(ConcreteSlotValueType valueType)
+        {
+            switch (valueType)
+            {
+                case ConcreteSlotValueType.Boolean:
+                case ConcreteSlotValueType.Vector1: return 1;
+                case ConcreteSlotValueType.Vector2: return 2;
+                case ConcreteSlotValueType.Vector3: return 3;
+                default: return 4;
+            }
+        }
+
         internal static Vector4 GetSlotValueAsVec4(MaterialSlot src)
         {
             Vector4 value = default;
@@ -265,7 +277,7 @@ namespace UnityEditor.ShaderGraph
 
             var key = new char[] { 'x', 'y', 'z', 'w' };
 
-            string begin = $"float{toLen}({name}.";
+            string begin = $"$precision{toLen}({name}.";
             var mid = "";
             string end = ")";
 

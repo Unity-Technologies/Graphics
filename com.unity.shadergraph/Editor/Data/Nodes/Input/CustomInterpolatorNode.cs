@@ -119,35 +119,6 @@ namespace UnityEditor.ShaderGraph
             base.UpdateNodeAfterDeserialization();
         }
 
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            List<PreviewProperty> props = new List<PreviewProperty>();
-
-            e_targetBlockNode?.CollectPreviewMaterialProperties(props);
-            bool inlineProp = e_targetBlockNode?.GetInputNodeFromSlot(0) == null && props.Count != 0;
-
-            // If the CIB uses an inlined value, it may as well be a constant. Let's just use that...
-            if (inlineProp)
-            {
-                Vector4 v = default;
-                if (props[0].propType != PropertyType.Float)
-                    v = props[0].vector4Value;
-
-                switch (props[0].propType)
-                {
-                    case PropertyType.Float:   return $" float1({props[0].floatValue}) ";
-                    case PropertyType.Vector2: return $" float2({v.x},{v.y}) ";
-                    case PropertyType.Vector3: return $" float3({v.x},{v.y},{v.z}) ";
-                    case PropertyType.Vector4: return $" float4({v.x},{v.y},{v.z},{v.w}) ";
-                }
-            }
-            else if (e_targetBlockNode != null)
-            {
-                return string.Format("IN.{0}", customBlockNodeName);
-            }
-
-            return $" float4(0,0,0,0) ";
-        }
 
         void BuildSlot()
         {
@@ -170,27 +141,75 @@ namespace UnityEditor.ShaderGraph
         }
 
 
+        public override string GetVariableNameForSlot(int slotid)
+        {
+            // Awkward case where current preview generation code does not use the Output for the all/isfinite preview for self.
+            // GetOutputForSlot does _not_ make use of GetVariableNameForSlot in any way, so this is just to prevent disrupting
+            // any existing expected behavior in the preview.
+            return "float4(1,0,1,1)";
+        }
+
         protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
-            if (generationMode == GenerationMode.ForReals)
-                return base.GetOutputForSlot(fromSocketRef, valueType, generationMode);
+            // check to see if we can inline a value.
+            List<PreviewProperty> props = new List<PreviewProperty>();
+            e_targetBlockNode?.CollectPreviewMaterialProperties(props);
 
-            var sourceSlot = FindSourceSlot(out var found);
-            var width = 0;
-            var outWidth = (int)serializedType;
+            // if the cib is inActive, this node still might be in an active branch.
+            bool isActive = e_targetBlockNode?.isActive ?? false;
 
-            // this is flimsy- but given that CIN and CIB are strictly vector types, the edge filtering might protect us here.
-            switch (valueType)
+            // if the cib has no input node, we can use the input property to inline a magic value.
+            bool canInline = e_targetBlockNode?.GetInputNodeFromSlot(0) == null && props.Count != 0;
+
+            // vector width of target slot
+            int toWidth = CustomInterpolatorUtils.SlotTypeToWidth(valueType);
+
+            string finalResult = "";
+
+            // If cib is inactive (or doesn't exist), then we default to black (as is the case for other nodes).
+            if (!isActive)
             {
-                case ConcreteSlotValueType.Boolean:
-                case ConcreteSlotValueType.Vector1: width = 1; break;
-                case ConcreteSlotValueType.Vector2: width = 2; break;
-                case ConcreteSlotValueType.Vector3: width = 3; break;
-                case ConcreteSlotValueType.Vector4: width = 4; break;
+                finalResult = CustomInterpolatorUtils.ConvertVector("$precision4(0,0,0,0)", 4, toWidth);
             }
-            
-            var result = found ? sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview) : GetVariableNameForSlot(0);
-            return CustomInterpolatorUtils.ConvertVector(result, outWidth, width);
+            // cib has no input; we can directly use the inline value instead.
+            else if (canInline)
+            {
+                Vector4 v = default;
+                if (props[0].propType != PropertyType.Float)
+                    v = props[0].vector4Value;
+
+                int outWidth = 4;
+                string result;
+                switch (props[0].propType)
+                {
+                    case PropertyType.Float:
+                        result = $" $precision1({props[0].floatValue}) ";
+                        outWidth = 1;
+                        break;
+                    default:
+                        result = $" $precision4({v.x},{v.y},{v.z},{v.w}) ";
+                        outWidth = 4;
+                        break;
+                }
+                finalResult = CustomInterpolatorUtils.ConvertVector(result, outWidth, toWidth);
+            }
+            // If we made it this far, then cib is in a valid and meaningful configuration in the SDI struct.
+            else if (generationMode == GenerationMode.ForReals)
+            {
+                // pull directly out of the SDI and just use it.
+                var result = string.Format("IN.{0}", customBlockNodeName);
+                finalResult = CustomInterpolatorUtils.ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
+            }
+            // Preview doesn't support CI, but we can fake it by asking the cib's source input for it's value instead.
+            else if (generationMode == GenerationMode.Preview)
+            {
+                var sourceSlot = FindSourceSlot(out var found);
+                // CIB's type needs to constrain the incoming value (eg. vec2(out)->float(cib) | float(cin)->vec2(in))
+                // If we didn't do this next line, we'd get vec2(out)->vec2(in), which would ignore the truncation in the preview.
+                var result = sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview);
+                finalResult = CustomInterpolatorUtils.ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
+            }
+            return finalResult.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
         }
 
         SlotReference FindSourceSlot(out bool found)
