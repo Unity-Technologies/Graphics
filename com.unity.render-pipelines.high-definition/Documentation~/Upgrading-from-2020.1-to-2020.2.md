@@ -21,7 +21,7 @@ From 10.x, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Fo
 
 ## Menu
 
-From 10.x, various HDRP sub menu in Assets/Create/Shader have been rename to HD Render Pipeline for consistency.
+From 10.x, various HDRP menu items in **Assets > Create > Shader** have been rename to **HD Render Pipeline** for consistency.
 
 ## Decal
 
@@ -31,11 +31,11 @@ From 10.x, you can use the Decal Layers system which makes use of the **Renderin
 
 ## Lighting
 
-From 10.x, HDRP enable Reflector for Spotlight by default. This option is still false by default when creating a Spotlight from Script.
+From 10.x, when you create a Spot Light from the Editor menu, HDRP now enables the **Reflector** property by default. Note that, if you create a Spot Light via a C# script, this property is disabled.
 
-From 10.x, HDRP disable [Backplate](Override-HDRI-Sky.md) from rendering of lighting cubemap as it is not compatible.
+From 10.x, HDRP disables [Backplate](Override-HDRI-Sky.md) rendering for lighting cubemaps that are not compatible.
 
-From 10.x, HDRP disable [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md), [Screen Space Global Illumination](Override-Screen-Space-GI.md), [Screen Space Reflection](Override-Screen-Space-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md) and [Volumetric Reprojection](Override-Fog.md) with reflection probe as they are not working correctly.
+From 10.x, [Screen Space Ambient Occlusion](Override-Ambient-Occlusion.md), [Screen Space Global Illumination](Override-Screen-Space-GI.md), [Screen Space Reflection](Override-Screen-Space-Reflection.md), [Ray Tracing Effects](Ray-Tracing-Getting-Started.md), and [Volumetric Reprojection](Override-Fog.md) do not interact with Reflection Probes as they do not work correctly.
 
 From 10.x, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
