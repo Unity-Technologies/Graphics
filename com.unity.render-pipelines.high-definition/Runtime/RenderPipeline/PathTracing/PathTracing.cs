@@ -289,8 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, parameters.lightCluster.GetLightDatas());
 
             // Set the data for the ray miss
-            cmd.SetRayTracingIntParam(parameters.pathTracingShader, HDShaderIDs._RaytracingCameraSkyEnabled, parameters.cameraData.skyEnabled ? 1 : 0);
-            cmd.SetRayTracingVectorParam(parameters.pathTracingShader, HDShaderIDs._RaytracingCameraClearColor, parameters.backgroundColor);
             cmd.SetRayTracingTextureParam(parameters.pathTracingShader, HDShaderIDs._SkyTexture, parameters.skyReflection);
 
             // Additional data for path tracing

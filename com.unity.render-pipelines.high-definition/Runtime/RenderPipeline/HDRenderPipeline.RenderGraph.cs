@@ -93,6 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.viewCount == 1)
                 {
+                    // FIXME: call to be refined
+                    RenderSky(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, false);
                     colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
                 }
                 else
@@ -1145,7 +1147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public SkyManager           skyManager;
         }
 
-        void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
+        void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture, bool computeFog = true)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
@@ -1171,7 +1173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
                         data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
 
-                        if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
+                        if (computeFog && Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                         {
                             var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                             data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));

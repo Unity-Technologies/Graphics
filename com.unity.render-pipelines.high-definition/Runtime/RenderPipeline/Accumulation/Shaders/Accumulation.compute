@@ -55,18 +55,25 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     exposureMultiplier.xyz = (_AccumulationNeedsExposure != 0) ? GetCurrentExposureMultiplier() : 1.0;
     exposureMultiplier.w = 1.0;
 
+#ifdef INPUT_FROM_RADIANCE_TEXTURE
+        float4 color, colorBg = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+#else
+        float4 color, colorBg = 0.0;
+#endif
+
     // Have we reached max sampling?
     uint sampleCount = _AccumulationFrameIndex;
     if (sampleCount >= _AccumulationNumSamples)
     {
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
+        color = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color + (1.0 - color.w) * colorBg;
     }
     else
     {
 #ifdef INPUT_FROM_RADIANCE_TEXTURE
-        float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #else
-        float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #endif
 
         if (sampleCount++)
@@ -80,6 +87,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, color.xyz);
 
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color + (1.0 - color.w) * colorBg;
     }
 }

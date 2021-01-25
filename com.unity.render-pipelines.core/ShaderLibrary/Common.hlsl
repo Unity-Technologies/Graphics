@@ -162,8 +162,8 @@
 #include "Packages/com.unity.render-pipelines.xboxone/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PS4)
 #include "Packages/com.unity.render-pipelines.ps4/ShaderLibrary/API/PSSL.hlsl"
-#elif defined(SHADER_API_PS5)
-#include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/PSSL.hlsl"
+//#elif defined(SHADER_API_PS5)
+//#include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
