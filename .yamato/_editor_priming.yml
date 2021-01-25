@@ -11,7 +11,7 @@ editor:priming:CUSTOM-REVISION:macos:
     name: '[CUSTOM-REVISION,macos] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -30,7 +30,7 @@ editor:priming:test_min_editor:macos:
     name: '[Min_Editor,macos] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -49,7 +49,7 @@ editor:priming:CUSTOM-REVISION:android:
     name: '[CUSTOM-REVISION,android] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -68,7 +68,7 @@ editor:priming:test_min_editor:android:
     name: '[Min_Editor,android] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -87,7 +87,7 @@ editor:priming:CUSTOM-REVISION:windows:
     name: '[CUSTOM-REVISION,windows] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -106,7 +106,7 @@ editor:priming:test_min_editor:windows:
     name: '[Min_Editor,windows] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -125,7 +125,7 @@ editor:priming:CUSTOM-REVISION:linux:
     name: '[CUSTOM-REVISION,linux] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -144,7 +144,7 @@ editor:priming:test_min_editor:linux:
     name: '[Min_Editor,linux] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -163,7 +163,7 @@ editor:priming:CUSTOM-REVISION:ios:
     name: '[CUSTOM-REVISION,ios] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -182,7 +182,7 @@ editor:priming:test_min_editor:ios:
     name: '[Min_Editor,ios] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin

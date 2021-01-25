@@ -340,7 +340,7 @@ platforms:
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image:  package-ci/ubuntu:stable
     flavor: b1.small  
   package_ci_ubuntu_large:
     type: Unity::VM
