@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Fixed an issue so it is now possible to enqueue render passes at runtime.
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
+- Fixed material upgrader to run in batch mode [case 1305402]
 
 ## [10.2.0] - 2020-10-19
 
