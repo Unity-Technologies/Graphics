@@ -1067,7 +1067,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             {
                 // Apply the extinction
                 const float3 mediaExtinction = _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT;
-                const float currentStepExtinction = exp(-mediaExtinction * stepSize);
+                const float3 currentStepExtinction = exp(-mediaExtinction * stepSize);
                 transmittance *= currentStepExtinction;
             }
         }
