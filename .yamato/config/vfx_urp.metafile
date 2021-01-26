@@ -45,7 +45,38 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      playmode:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      playmode_cache:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_cache:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
