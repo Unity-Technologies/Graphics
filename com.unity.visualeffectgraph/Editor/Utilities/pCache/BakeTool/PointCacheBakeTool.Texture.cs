@@ -43,8 +43,8 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
                 if (GUILayout.Button("Save to pCache file..."))
                 {
-                    string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Texture.name, "pcache", "Save PCache");
-                    if (fileName != null)
+                    var fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Texture.name, "pcache", "Save PCache");
+                    if (!string.IsNullOrEmpty(fileName))
                     {
                         PCache file = new PCache();
                         file.AddVector3Property("position");
