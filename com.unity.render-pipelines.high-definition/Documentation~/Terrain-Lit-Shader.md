@@ -40,7 +40,6 @@ If you use the **Paint Holes** tool on your terrain, make sure to enable the **T
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Enable Height-based Blend** | Specifies whether HDRP should only render the Terrain Layer with the greatest height value for a particular pixel. When enabled, HDRP takes the height values from the blue channel of the **Mask Map** Texture. When disabled, HDRP blends the Terrain Layers based on the weights painted in the control map Textures. |
 | **- Height Transition**       | Controls how much HDRP blends the terrain if multiple Terrain Layers are approximately the same height. |
 | **Enable Per-pixel Normal**   | Specifies whether HDRP should sample the normal map Texture on a per-pixel level.  When enabled, Unity preserves more geometry details for distant terrain parts. Unity generates a geometry normal map at runtime from the heightmap, rather than the Mesh geometry. This means you can have high-resolution Mesh normals, even if your Mesh is low resolution. It only works if you enable **Draw Instanced** on the terrain. |
 | **Specular Occlusion Mode**   | Sets the mode that HDRP uses to calculate specular occlusion. <br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From Ambient Occlusion**: Calculates specular occlusion from the ambient occlusion map and the Camera's view direction. |
