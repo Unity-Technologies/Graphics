@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma multi_compile_local_fragment BILINEAR NEAREST_DEPTH
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -40,7 +40,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #define DEBUG_EDGE 0
 #endif
 
-
+#if SHADER_STAGE_FRAGMENT
         float4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -102,9 +102,10 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #endif
             }
         #endif
+        
 
         }
-
+#endif
     ENDHLSL
 
     SubShader

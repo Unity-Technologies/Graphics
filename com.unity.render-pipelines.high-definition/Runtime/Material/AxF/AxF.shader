@@ -272,7 +272,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -310,7 +310,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -349,7 +349,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -389,7 +389,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -434,7 +434,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -481,7 +481,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -551,7 +551,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -580,7 +580,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
