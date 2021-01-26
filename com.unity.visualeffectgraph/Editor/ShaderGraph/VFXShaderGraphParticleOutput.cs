@@ -51,16 +51,20 @@ namespace UnityEditor.VFX
                 m_RequireUpdateMaterialEditor = false;
             }
 
+            EditorGUI.BeginChangeCheck();
+
             if (m_MaterialEditor != null)
             {
                 // Required to draw the header to draw OnInspectorGUI.
                 m_MaterialEditor.DrawHeader();
+
+                // NOTE: This will correctly handle the configuration of keyword and pass setup.
                 m_MaterialEditor.OnInspectorGUI();
             }
 
             // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
 
-            if (serializedObject.ApplyModifiedProperties())
+            if (serializedObject.ApplyModifiedProperties() || EditorGUI.EndChangeCheck())
             {
                 foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
                 {
