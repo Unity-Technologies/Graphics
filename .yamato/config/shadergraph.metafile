@@ -34,7 +34,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 expression_trigger: 
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:

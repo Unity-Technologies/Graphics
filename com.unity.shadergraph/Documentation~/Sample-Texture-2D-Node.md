@@ -8,7 +8,7 @@ To use the **Sample Texture 2D Node** to sample a normal map, set the **Type** d
 
 NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md). To sample a **Texture 2D** in the **Vertex** [Shader Stage](Shader-Stage.md) use a [Sample Texture 2D LOD Node](Sample-Texture-2D-LOD-Node.md) instead.
 
-If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
 
 ## Ports
 

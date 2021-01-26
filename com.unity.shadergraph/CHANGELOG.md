@@ -27,7 +27,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
-- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed rounded rectangle shape not rendering correctly on some platforms.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 - Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
