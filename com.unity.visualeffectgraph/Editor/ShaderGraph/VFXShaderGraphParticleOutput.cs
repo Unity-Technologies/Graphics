@@ -30,32 +30,22 @@ namespace UnityEditor.VFX
 
             UpdateMaterialEditor();
 
-            if (m_Data != null)
-                m_Data.OnMaterialChange += RequireUpdateMaterialEditor;
-
             base.OnEnable();
         }
 
         protected new void OnDisable()
         {
-            if (m_Data != null)
-                m_Data.OnMaterialChange -= RequireUpdateMaterialEditor;
-
             DestroyImmediate(m_MaterialEditor);
             base.OnDisable();
         }
 
-        void UpdateMaterialEditor()
-        {
-            var material = m_Data.GetOrCreateMaterial();
-            m_MaterialEditor = (MaterialEditor)CreateEditor(material);
-        }
+        void UpdateMaterialEditor() => m_MaterialEditor = (MaterialEditor)CreateEditor(m_Data.editorMaterial);
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            if (m_RequireUpdateMaterialEditor)
+            if (m_RequireUpdateMaterialEditor || m_MaterialEditor == null)
             {
                 UpdateMaterialEditor();
                 m_RequireUpdateMaterialEditor = false;
@@ -63,16 +53,9 @@ namespace UnityEditor.VFX
 
             if (m_MaterialEditor != null)
             {
-                EditorGUI.BeginChangeCheck();
-
                 // Required to draw the header to draw OnInspectorGUI.
                 m_MaterialEditor.DrawHeader();
                 m_MaterialEditor.OnInspectorGUI();
-
-                // Configure the keywords + pass if a change was made.
-                // TODO: Currently this does nothing as the resetter is never found by HDRP (due to how we create the shader)
-                if (EditorGUI.EndChangeCheck())
-                    VFXLibrary.currentSRPBinder.SetupMaterial((Material)m_MaterialEditor.target);
             }
 
             // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)

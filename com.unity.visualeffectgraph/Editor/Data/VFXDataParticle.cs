@@ -191,16 +191,144 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
-    class VFXDataParticle : VFXData, ISpaceable
+    [Serializable]
+    class TruncatedMaterial : ISerializationCallbackReceiver
     {
-        // Transient material constructed based on the current shader.
-        // Utilized by the output inspector to re-use a material's inspector
-        // (And thus the handling of keyword, properties, render state).
-        private Material m_CachedMaterial = null;
+        [NonSerialized]
+        Dictionary<string, bool>  m_KeywordMap = new Dictionary<string, bool>();
 
-        internal event Action OnMaterialChange;
+        [NonSerialized]
+        Dictionary<string, float> m_FloatMap   = new Dictionary<string, float>();
+
+        public void Set(Material material)
+        {
+            var shader = material.shader;
+
+            void Set<K, V>(Dictionary<K, V> dict, K key, V value)
+            {
+                if (dict.ContainsKey(key))
+                    dict[key] = value;
+                else
+                    dict.Add(key, value);
+            }
+
+            foreach (var k in ShaderUtil.GetShaderLocalKeywords(shader))
+                Set(m_KeywordMap, k, material.IsKeywordEnabled(k));
+
+            for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+            {
+                var name = ShaderUtil.GetPropertyName(shader, i);
+                var type = ShaderUtil.GetPropertyType(shader, i);
+
+                switch (type)
+                {
+                    case ShaderUtil.ShaderPropertyType.Float:
+                    {
+                        if (material.HasFloat(name))
+                            Set(m_FloatMap, name, material.GetFloat(name));
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Construct a full material with the provided shader.
+        // Fills the material with the cached properties and keywords.
+        public Material Get(Shader shader)
+        {
+            var material = new Material(shader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            void SetKeyword(string keyword, bool state)
+            {
+                if (state)
+                    material.EnableKeyword(keyword);
+                else
+                    material.DisableKeyword(keyword);
+            }
+
+            foreach (var k in ShaderUtil.GetShaderLocalKeywords(shader))
+            {
+                if (m_KeywordMap.TryGetValue(k, out var value))
+                    SetKeyword(k, value);
+            }
+
+            for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+            {
+                var name = ShaderUtil.GetPropertyName(shader, i);
+                var type = ShaderUtil.GetPropertyType(shader, i);
+
+                switch (type)
+                {
+                    case ShaderUtil.ShaderPropertyType.Float:
+                    {
+                        if (m_FloatMap.TryGetValue(name, out var value))
+                            material.SetFloat(name, value);
+                    }
+                    break;
+                }
+            }
+
+            return material;
+        }
 
         [SerializeField]
+        private List<string> m_KeywordKey = new List<string>();
+
+        [SerializeField]
+        private List<bool>   m_KeywordVal = new List<bool>();
+
+        [SerializeField]
+        private List<string> m_FloatKey   = new List<string>();
+
+        [SerializeField]
+        private List<float>  m_FloatVal   = new List<float>();
+
+        public void OnBeforeSerialize()
+        {
+            m_KeywordKey.Clear();
+            m_KeywordVal.Clear();
+            foreach (var kvp in m_KeywordMap)
+            {
+                m_KeywordKey.Add(kvp.Key);
+                m_KeywordVal.Add(kvp.Value);
+            }
+
+            m_FloatKey.Clear();
+            m_FloatVal.Clear();
+            foreach (var kvp in m_FloatMap)
+            {
+                m_FloatKey.Add(kvp.Key);
+                m_FloatVal.Add(kvp.Value);
+            }
+        }
+
+        public void OnAfterDeserialize()
+        {
+            m_KeywordMap = new Dictionary<string, bool>();
+            for (int i = 0; i != Math.Min(m_KeywordKey.Count, m_KeywordVal.Count); i++)
+                m_KeywordMap.Add(m_KeywordKey[i], m_KeywordVal[i]);
+
+            m_FloatMap = new Dictionary<string, float>();
+            for (int i = 0; i != Math.Min(m_KeywordKey.Count, m_KeywordVal.Count); i++)
+                m_FloatMap.Add(m_FloatKey[i], m_FloatVal[i]);
+        }
+    }
+
+    class VFXDataParticle : VFXData, ISpaceable, ISerializationCallbackReceiver
+    {
+        [SerializeField]
+        private int m_ShaderHash;
+
+        public int shaderHash
+        {
+            get => m_ShaderHash;
+            set => m_ShaderHash = value;
+        }
+
+        [NonSerialized]
         private Shader m_Shader;
 
         public Shader shader
@@ -209,11 +337,71 @@ namespace UnityEditor.VFX
 
             set
             {
-                DestroyCachedMaterial();
-                OnMaterialChange?.Invoke();
                 m_Shader = value;
+                DestroyEditorMaterial();
             }
         }
+
+        // Maintain a truncated version of material to serialize just the
+        // keywords and properties that define the render state.
+        [SerializeField]
+        private TruncatedMaterial m_RuntimeMaterial = new TruncatedMaterial();
+
+        public TruncatedMaterial runtimeMaterial
+        {
+            get
+            {
+                // if (m_RuntimeMaterial == null)
+                //     m_RuntimeMaterial = CreateInstance<TruncatedMaterial>();
+
+                return m_RuntimeMaterial;
+            }
+        }
+
+        // Transient material used to call the correct material inspector,
+        // which controls the SRP specific render state configuration.
+        [NonSerialized]
+        private Material m_EditorMaterial;
+
+        public Material editorMaterial
+        {
+            get
+            {
+                if (m_EditorMaterial == null && m_Shader != null)
+                    SyncEditorMaterial();
+
+                return m_EditorMaterial;
+            }
+
+            private set => m_EditorMaterial = value;
+        }
+
+        void SyncRuntimeMaterial()
+        {
+            if (editorMaterial == null)
+                return;
+
+            runtimeMaterial.Set(editorMaterial);
+        }
+
+        void SyncEditorMaterial()
+        {
+            if (shader == null)
+                return;
+
+            editorMaterial = runtimeMaterial.Get(shader);
+        }
+
+        private void DestroyEditorMaterial()
+        {
+            DestroyImmediate(m_EditorMaterial);
+            m_EditorMaterial = null;
+        }
+
+        public void OnBeforeSerialize() => SyncRuntimeMaterial();
+        public void OnAfterDeserialize() {}
+
+        private void OnDisable() => DestroyEditorMaterial();
 
         static VFXEditorTaskDesc CreateMaterialTask(Material material)
         {
@@ -239,30 +427,6 @@ namespace UnityEditor.VFX
                 type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
                 parameters = paramList.ToArray()
             };
-        }
-
-        public Material GetOrCreateMaterial()
-        {
-            if (m_CachedMaterial == null && shader != null)
-            {
-                m_CachedMaterial = new Material(shader)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                };
-            }
-
-            return m_CachedMaterial;
-        }
-
-        private void DestroyCachedMaterial()
-        {
-            DestroyImmediate(m_CachedMaterial);
-            m_CachedMaterial = null;
-        }
-
-        public void OnDisable()
-        {
-            DestroyCachedMaterial();
         }
 
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
@@ -986,8 +1150,8 @@ namespace UnityEditor.VFX
 
                 if (context is VFXShaderGraphParticleOutput)
                 {
-                    var material = GetOrCreateMaterial();
-                    var materialTask = CreateMaterialTask(material);
+                    SyncRuntimeMaterial();
+                    var materialTask = CreateMaterialTask(editorMaterial);
                     // taskDescs.Add(materialTask);
                 }
             }

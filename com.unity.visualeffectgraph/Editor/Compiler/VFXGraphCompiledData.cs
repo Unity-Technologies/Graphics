@@ -909,12 +909,24 @@ namespace UnityEditor.VFX
             return settings;
         }
 
-        Shader GetShaderAsset(VFXShaderSourceDesc[] shaderSources)
+        void TrySetShader(VFXData data, VFXShaderSourceDesc[] shaderSources)
         {
+            if (!(data is VFXDataParticle dataParticle))
+                return;
+
             // TODO: Currently this just assumes one .shader output in a system, which is not always the case.
             var shaderSource = shaderSources.FirstOrDefault(o => !o.compute);
 
-            return ShaderUtil.CreateShaderAsset(shaderSource.source);
+            // TODO: Confirm this is the best way to compare two shaders source.
+            var shaderHash = shaderSource.GetHashCode();
+
+            // Nothing to do if the shader is assigned and the contents are the same.
+            if (dataParticle.shader != null &&
+                dataParticle.shaderHash == shaderHash)
+                return;
+
+            dataParticle.shader = ShaderUtil.CreateShaderAsset(shaderSource.source);
+            dataParticle.shaderHash = shaderHash;
         }
 
         private class VFXImplicitContextOfExposedExpression : VFXContext
@@ -1133,10 +1145,7 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
                 {
-                    if (data is VFXDataParticle dataParticle)
-                    {
-                        dataParticle.shader = GetShaderAsset(shaderSources);
-                    }
+                    TrySetShader(data, shaderSources);
 
                     data.FillDescs(VFXGraph.compileReporter, bufferDescs,
                         temporaryBufferDescs,
