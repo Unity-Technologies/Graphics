@@ -123,16 +123,16 @@ test_platforms:
       
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
     commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <turn_off_firewall>
-      - [all]: <setup_utr>
-      - [all]: <call_utr>
-      - [Android_OpenGLES3, Android_Vulkan]: <kill_server>
+      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+      - [all]: <platform.commands.setup_utr>
+      - [all]: <platform.commands.call_utr>
+      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.kill_server>
     commands_build:
-      - [all]: <unity_downloader_cli>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <turn_off_firewall>
-      - [all]: <setup_utr>
-      - [all]: <call_utr>
+      - [all]: <platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+      - [all]: <platform.commands.setup_utr>
+      - [all]: <platform.commands.call_utr>
   - type: playmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER% 
@@ -158,10 +158,10 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
     commands:
-      - [all]: <unity_downloader_cli>
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <turn_off_firewall>
-      - [all]: <setup_utr>
-      - [all]: <call_utr>
+      - [all]: <platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <platform.commands.turn_off_firewall>
+      - [all]: <platform.commands.setup_utr>
+      - [all]: <platform.commands.call_utr>
       
   - type: editmode
     utr_flags:
@@ -197,10 +197,10 @@ test_platforms:
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
-      - [all]: <unity_downloader_cli>
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <turn_off_firewall>
-      - [all]: <setup_utr>
-      - [all]: <call_utr>
+      - [all]: <platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <platform.commands.turn_off_firewall>
+      - [all]: <platform.commands.setup_utr>
+      - [all]: <platform.commands.call_utr>
 
 platforms:
   Win:
@@ -259,7 +259,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: graphics-foundation/mac-10.15:latest
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -359,7 +359,7 @@ platforms:
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
-                utr
+                utr <UTR_FLAGS>
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli -u {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
@@ -369,7 +369,7 @@ platforms:
           - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
           - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
         kill_server: 
-          -start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
 
   iPhone:
     name: iPhone

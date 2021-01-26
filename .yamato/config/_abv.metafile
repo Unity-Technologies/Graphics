@@ -10,6 +10,8 @@ abv:
       pr: true
     - project: VFX_URP
       pr: true
+  expression_trigger:
+    expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'  
 weekly:
   dependencies: 
     []
@@ -25,7 +27,15 @@ nightly:
       nightly: true
     - project: VFX_URP
       nightly: true
-trunk_verification:
+    - project: URP_Performance_BoatAttack
+      pr: true
+    - project: URP_Performance_LostCrypt
+      pr: true
+    - project: URPUpdate
+      pr: true
+    - project: HDRP_PerformanceTests
+      pr: true
+trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
       platform: Win
@@ -33,7 +43,7 @@ trunk_verification:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: ShaderGraph
       platform: Win
@@ -41,7 +51,7 @@ trunk_verification:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: HDRP
       platform: Win
@@ -49,7 +59,7 @@ trunk_verification:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_HDRP
       platform: Win
@@ -57,7 +67,7 @@ trunk_verification:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_URP
       platform: Win
@@ -65,4 +75,4 @@ trunk_verification:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
