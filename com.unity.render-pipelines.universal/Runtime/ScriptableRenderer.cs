@@ -766,7 +766,7 @@ namespace UnityEngine.Rendering.Universal
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
 
-            if (renderPass.useNativeRenderPass)
+            if (renderPass.useNativeRenderPass && cameraData.cameraType == CameraType.Game)
             {
                 // Keep all the Native RenderPass stuff here
 
@@ -907,7 +907,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Clear camera color render-target separately from the rest of the render-targets.
 
-                    if ((cameraClearFlag & ClearFlag.Color) != 0 && !renderPass.useNativeRenderPass)
+                    if ((cameraClearFlag & ClearFlag.Color) != 0 && (!renderPass.useNativeRenderPass || cameraData.cameraType != CameraType.Game))
                         SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
@@ -926,13 +926,13 @@ namespace UnityEngine.Rendering.Universal
 
                         if (writeIndex != otherTargetsCount)
                             Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
-                        if (!renderPass.useNativeRenderPass)
+                        if (!renderPass.useNativeRenderPass || cameraData.cameraType != CameraType.Game)
                             SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
 
                 }
 
-                if (renderPass.useNativeRenderPass)
+                if (renderPass.useNativeRenderPass && cameraData.cameraType == CameraType.Game)
                 {
                     if (cameraData.renderType == CameraRenderType.Overlay)
                         m_FirstTimeColorClear = false;
@@ -968,7 +968,7 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < rtCount; ++i)
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
 
-                        if (!renderPass.useNativeRenderPass)
+                        if (!renderPass.useNativeRenderPass || cameraData.cameraType != CameraType.Game)
                             SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
 
                     #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1042,7 +1042,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                if (renderPass.useNativeRenderPass)
+                if (renderPass.useNativeRenderPass && cameraData.cameraType == CameraType.Game)
                 {
                     // Keep all the Native RenderPass stuff here
 
