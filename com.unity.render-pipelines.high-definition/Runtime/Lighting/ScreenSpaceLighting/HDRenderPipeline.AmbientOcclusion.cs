@@ -5,10 +5,10 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        private bool m_AOHistoryReady = false;
-        private bool m_AORunningFullRes = false;
+        bool m_AOHistoryReady = false;
+        bool m_AORunningFullRes = false;
 
-        internal float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
+        float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
         {
             AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
@@ -18,27 +18,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 1.0f;
         }
 
-        internal bool IsAmbientOcclusionActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        bool IsAmbientOcclusionActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         struct RenderAOParameters
         {
-            public ComputeShader    gtaoCS;
-            public int              gtaoKernel;
-            public ComputeShader    spatialDenoiseAOCS;
-            public int              denoiseKernelSpatial;
-            public ComputeShader    temporalDenoiseAOCS;
-            public int              denoiseKernelTemporal;
-            public ComputeShader    copyHistoryAOCS;
-            public int              denoiseKernelCopyHistory;
-            public ComputeShader    upsampleAndBlurAOCS;
-            public int              upsampleAndBlurKernel;
-            public int              upsampleAOKernel;
-
             public Vector2          runningRes;
             public int              viewCount;
-            public bool             historyReady;
-            public int              outputWidth;
-            public int              outputHeight;
             public bool             fullResolution;
             public bool             runAsync;
             public bool             temporalAccumulation;
@@ -68,6 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._AOBufferSize = new Vector4(camera.actualWidth * 0.5f, camera.actualHeight * 0.5f, 2.0f / camera.actualWidth, 2.0f / camera.actualHeight);
             }
 
+            parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+
+            parameters.viewCount = camera.viewCount;
+            parameters.runAsync = camera.frameSettings.SSAORunsAsync();
             float invHalfTanFOV = -camera.mainViewConstants.projMatrix[1, 1];
             float aspectRatio = parameters.runningRes.y / parameters.runningRes.x;
             uint frameCount = camera.GetCameraFrameCount();
@@ -139,55 +128,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FirstTwoDepthMipOffsets = new Vector4(depthMipInfo.mipLevelOffsets[1].x, depthMipInfo.mipLevelOffsets[1].y, depthMipInfo.mipLevelOffsets[2].x, depthMipInfo.mipLevelOffsets[2].y);
 
             parameters.bilateralUpsample = settings.bilateralUpsample;
-            parameters.gtaoCS = defaultResources.shaders.GTAOCS;
-            parameters.gtaoCS.shaderKeywords = null;
             parameters.temporalAccumulation = settings.temporalAccumulation.value && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
-            if (parameters.temporalAccumulation)
-            {
-                parameters.gtaoCS.EnableKeyword("TEMPORAL");
-            }
-            if (parameters.fullResolution)
-            {
-                parameters.gtaoCS.EnableKeyword("FULL_RES");
-            }
-            else
-            {
-                parameters.gtaoCS.EnableKeyword("HALF_RES");
-            }
-
-            parameters.gtaoKernel = parameters.gtaoCS.FindKernel("GTAOMain");
-
-            parameters.upsampleAndBlurAOCS = defaultResources.shaders.GTAOBlurAndUpsample;
-
-            parameters.spatialDenoiseAOCS = defaultResources.shaders.GTAOSpatialDenoiseCS;
-            parameters.spatialDenoiseAOCS.shaderKeywords = null;
-            if (parameters.temporalAccumulation)
-                parameters.spatialDenoiseAOCS.EnableKeyword("TO_TEMPORAL");
-            parameters.denoiseKernelSpatial = parameters.spatialDenoiseAOCS.FindKernel("SpatialDenoise");
-
-            parameters.temporalDenoiseAOCS = defaultResources.shaders.GTAOTemporalDenoiseCS;
-            parameters.temporalDenoiseAOCS.shaderKeywords = null;
-            if (parameters.fullResolution)
-                parameters.temporalDenoiseAOCS.EnableKeyword("FULL_RES");
-            else
-                parameters.temporalDenoiseAOCS.EnableKeyword("HALF_RES");
-
-            parameters.denoiseKernelTemporal = parameters.temporalDenoiseAOCS.FindKernel("TemporalDenoise");
-
-            parameters.copyHistoryAOCS = defaultResources.shaders.GTAOCopyHistoryCS;
-            parameters.denoiseKernelCopyHistory = parameters.copyHistoryAOCS.FindKernel("GTAODenoise_CopyHistory");
-
-            parameters.upsampleAndBlurKernel = parameters.upsampleAndBlurAOCS.FindKernel("BlurUpsample");
-            parameters.upsampleAOKernel = parameters.upsampleAndBlurAOCS.FindKernel(settings.bilateralUpsample ? "BilateralUpsampling" : "BoxUpsampling");
-
-            parameters.outputWidth = camera.actualWidth;
-            parameters.outputHeight = camera.actualHeight;
-
             parameters.viewCount = camera.viewCount;
-            parameters.historyReady = m_AOHistoryReady;
-            m_AOHistoryReady = true; // assumes that if this is called, then render is done as well.
-
             parameters.runAsync = camera.frameSettings.SSAORunsAsync();
 
             return parameters;
@@ -198,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
         }
 
-        TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
+        TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -241,12 +184,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 result = renderGraph.defaultResources.blackTextureXR;
             }
+
+            PushFullScreenDebugTexture(m_RenderGraph, result, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
+
             return result;
         }
 
         class RenderAOPassData
         {
             public RenderAOParameters parameters;
+
+            public ComputeShader gtaoCS;
+            public int gtaoKernel;
+
             public TextureHandle packedData;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
@@ -258,9 +208,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(parameters.runAsync);
 
+                passData.parameters = parameters;
+                passData.gtaoCS = defaultResources.shaders.GTAOCS;
+                passData.gtaoCS.shaderKeywords = null;
+
+                if (parameters.temporalAccumulation)
+                    passData.gtaoCS.EnableKeyword("TEMPORAL");
+                if (parameters.fullResolution)
+                    passData.gtaoCS.EnableKeyword("FULL_RES");
+                else
+                    passData.gtaoCS.EnableKeyword("HALF_RES");
+
+                passData.gtaoKernel = passData.gtaoCS.FindKernel("GTAOMain");
+
                 float scaleFactor = parameters.fullResolution ? 1.0f : 0.5f;
 
-                passData.parameters = parameters;
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
@@ -269,7 +231,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderAOPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderAO(data.parameters, data.packedData, data.depthPyramid, data.normalBuffer, ctx.cmd);
+                        ConstantBuffer.Push(ctx.cmd, data.parameters.cb, data.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+                        ctx.cmd.SetComputeTextureParam(data.gtaoCS, data.gtaoKernel, HDShaderIDs._AOPackedData, data.packedData);
+                        ctx.cmd.SetComputeTextureParam(data.gtaoCS, data.gtaoKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.gtaoCS, data.gtaoKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+
+                        const int groupSizeX = 8;
+                        const int groupSizeY = 8;
+                        int threadGroupX = ((int)data.parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                        int threadGroupY = ((int)data.parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
+
+                        ctx.cmd.DispatchCompute(data.gtaoCS, data.gtaoKernel, threadGroupX, threadGroupY, data.parameters.viewCount);
                     });
 
                 return passData.packedData;
@@ -279,6 +251,15 @@ namespace UnityEngine.Rendering.HighDefinition
         class DenoiseAOPassData
         {
             public RenderAOParameters parameters;
+
+            public ComputeShader spatialDenoiseAOCS;
+            public int denoiseKernelSpatial;
+            public ComputeShader temporalDenoiseAOCS;
+            public int denoiseKernelTemporal;
+            public ComputeShader copyHistoryAOCS;
+            public int denoiseKernelCopyHistory;
+            public bool historyReady;
+
             public TextureHandle packedData;
             public TextureHandle packedDataBlurred;
             public TextureHandle currentHistory;
@@ -304,6 +285,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 float scaleFactor = parameters.fullResolution ? 1.0f : 0.5f;
 
                 passData.parameters = parameters;
+
+                passData.spatialDenoiseAOCS = defaultResources.shaders.GTAOSpatialDenoiseCS;
+                passData.spatialDenoiseAOCS.shaderKeywords = null;
+                if (parameters.temporalAccumulation)
+                    passData.spatialDenoiseAOCS.EnableKeyword("TO_TEMPORAL");
+                passData.denoiseKernelSpatial = passData.spatialDenoiseAOCS.FindKernel("SpatialDenoise");
+
+                passData.temporalDenoiseAOCS = defaultResources.shaders.GTAOTemporalDenoiseCS;
+                passData.temporalDenoiseAOCS.shaderKeywords = null;
+                if (parameters.fullResolution)
+                    passData.temporalDenoiseAOCS.EnableKeyword("FULL_RES");
+                else
+                    passData.temporalDenoiseAOCS.EnableKeyword("HALF_RES");
+                passData.denoiseKernelTemporal = passData.temporalDenoiseAOCS.FindKernel("TemporalDenoise");
+
+                passData.copyHistoryAOCS = defaultResources.shaders.GTAOCopyHistoryCS;
+                passData.denoiseKernelCopyHistory = passData.copyHistoryAOCS.FindKernel("GTAODenoise_CopyHistory");
+                passData.historyReady = m_AOHistoryReady;
+                m_AOHistoryReady = true; // assumes that if this is called, then render is done as well.
+
                 passData.packedData = builder.ReadTexture(aoPackedData);
                 if (parameters.temporalAccumulation)
                 {
@@ -325,14 +326,51 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DenoiseAOPassData data, RenderGraphContext ctx) =>
                     {
-                        DenoiseAO(data.parameters,
-                            data.packedData,
-                            data.packedDataBlurred,
-                            data.currentHistory,
-                            data.outputHistory,
-                            data.motionVectors,
-                            data.denoiseOutput,
-                            ctx.cmd);
+                        const int groupSizeX = 8;
+                        const int groupSizeY = 8;
+                        int threadGroupX = ((int)data.parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                        int threadGroupY = ((int)data.parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
+
+                        if (data.parameters.temporalAccumulation || data.parameters.fullResolution)
+                        {
+                            var blurCS = data.spatialDenoiseAOCS;
+                            ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(ctx.cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+
+                            // Spatial
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelSpatial, HDShaderIDs._AOPackedData, data.packedData);
+                            if (data.parameters.temporalAccumulation)
+                            {
+                                ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, data.packedDataBlurred);
+                            }
+                            else
+                            {
+                                ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, data.outputHistory);
+                            }
+
+                            ctx.cmd.DispatchCompute(blurCS, data.denoiseKernelSpatial, threadGroupX, threadGroupY, data.parameters.viewCount);
+                        }
+
+                        if (data.parameters.temporalAccumulation)
+                        {
+                            if (!data.historyReady)
+                            {
+                                ctx.cmd.SetComputeTextureParam(data.copyHistoryAOCS, data.denoiseKernelCopyHistory, HDShaderIDs._InputTexture, data.packedData);
+                                ctx.cmd.SetComputeTextureParam(data.copyHistoryAOCS, data.denoiseKernelCopyHistory, HDShaderIDs._OutputTexture, data.currentHistory);
+                                ctx.cmd.DispatchCompute(data.copyHistoryAOCS, data.denoiseKernelCopyHistory, threadGroupX, threadGroupY, data.parameters.viewCount);
+                            }
+
+                            var blurCS = data.temporalDenoiseAOCS;
+                            ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(ctx.cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+
+                            // Temporal
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._AOPackedData, data.packedData);
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._AOPackedBlurred, data.packedDataBlurred);
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._AOPackedHistory, data.currentHistory);
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._AOOutputHistory, data.outputHistory);
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectors);
+                            ctx.cmd.SetComputeTextureParam(blurCS, data.denoiseKernelTemporal, HDShaderIDs._OcclusionTexture, data.denoiseOutput);
+                            ctx.cmd.DispatchCompute(blurCS, data.denoiseKernelTemporal, threadGroupX, threadGroupY, data.parameters.viewCount);
+                        }
                     });
 
                 if (parameters.fullResolution)
@@ -345,6 +383,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class UpsampleAOPassData
         {
             public RenderAOParameters parameters;
+
+            public ComputeShader upsampleAndBlurAOCS;
+            public int upsampleAndBlurKernel;
+            public int upsampleAOKernel;
+
             public TextureHandle depthTexture;
             public TextureHandle input;
             public TextureHandle output;
@@ -357,6 +400,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(parameters.runAsync);
 
                 passData.parameters = parameters;
+                passData.upsampleAndBlurAOCS = defaultResources.shaders.GTAOBlurAndUpsample;
+                passData.upsampleAndBlurKernel = passData.upsampleAndBlurAOCS.FindKernel("BlurUpsample");
+                passData.upsampleAOKernel = passData.upsampleAndBlurAOCS.FindKernel(parameters.bilateralUpsample ? "BilateralUpsampling" : "BoxUpsampling");
                 passData.input = builder.ReadTexture(input);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.output = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph));
@@ -365,120 +411,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     (UpsampleAOPassData data, RenderGraphContext ctx) =>
                     {
                         UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
+
+                        bool blurAndUpsample = !data.parameters.temporalAccumulation;
+
+                        ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(ctx.cmd, data.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
+
+                        if (blurAndUpsample)
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._AOPackedData, data.input);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._OcclusionTexture, data.output);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
+
+                            const int groupSizeX = 8;
+                            const int groupSizeY = 8;
+                            int threadGroupX = ((int)(data.parameters.runningRes.x) + (groupSizeX - 1)) / groupSizeX;
+                            int threadGroupY = ((int)(data.parameters.runningRes.y) + (groupSizeY - 1)) / groupSizeY;
+                            ctx.cmd.DispatchCompute(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, threadGroupX, threadGroupY, data.parameters.viewCount);
+                        }
+                        else
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._AOPackedData, data.input);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._OcclusionTexture, data.output);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
+
+                            const int groupSizeX = 8;
+                            const int groupSizeY = 8;
+                            int threadGroupX = ((int)data.parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
+                            int threadGroupY = ((int)data.parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
+                            ctx.cmd.DispatchCompute(data.upsampleAndBlurAOCS, data.upsampleAOKernel, threadGroupX, threadGroupY, data.parameters.viewCount);
+                        }
                     });
 
                 return passData.output;
-            }
-        }
-
-        static void RenderAO(in RenderAOParameters      parameters,
-            RTHandle                packedDataTexture,
-            RTHandle                depthTexture,
-            RTHandle                normalBuffer,
-            CommandBuffer           cmd)
-        {
-            ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
-            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
-            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._NormalBufferTexture, normalBuffer);
-            cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
-
-            const int groupSizeX = 8;
-            const int groupSizeY = 8;
-            int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
-            int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
-
-            cmd.DispatchCompute(parameters.gtaoCS, parameters.gtaoKernel, threadGroupX, threadGroupY, parameters.viewCount);
-        }
-
-        static void DenoiseAO(in RenderAOParameters   parameters,
-            RTHandle                packedDataTex,
-            RTHandle                packedDataBlurredTex,
-            RTHandle                packedHistoryTex,
-            RTHandle                packedHistoryOutputTex,
-            RTHandle                motionVectors,
-            RTHandle                aoOutputTex,
-            CommandBuffer           cmd)
-        {
-            const int groupSizeX = 8;
-            const int groupSizeY = 8;
-            int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
-            int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
-
-            if (parameters.temporalAccumulation || parameters.fullResolution)
-            {
-                var blurCS = parameters.spatialDenoiseAOCS;
-                ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
-
-                // Spatial
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedData, packedDataTex);
-                if (parameters.temporalAccumulation)
-                {
-                    cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
-                }
-                else
-                {
-                    cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelSpatial, HDShaderIDs._OcclusionTexture, aoOutputTex);
-                }
-
-                cmd.DispatchCompute(blurCS, parameters.denoiseKernelSpatial, threadGroupX, threadGroupY, parameters.viewCount);
-            }
-
-            if (parameters.temporalAccumulation)
-            {
-                if (!parameters.historyReady)
-                {
-                    cmd.SetComputeTextureParam(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._InputTexture, packedDataTex);
-                    cmd.SetComputeTextureParam(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, HDShaderIDs._OutputTexture, packedHistoryTex);
-                    cmd.DispatchCompute(parameters.copyHistoryAOCS, parameters.denoiseKernelCopyHistory, threadGroupX, threadGroupY, parameters.viewCount);
-                }
-
-                var blurCS = parameters.temporalDenoiseAOCS;
-                ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, blurCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
-
-                // Temporal
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedData, packedDataTex);
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedBlurred, packedDataBlurredTex);
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOPackedHistory, packedHistoryTex);
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._AOOutputHistory, packedHistoryOutputTex);
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._CameraMotionVectorsTexture, motionVectors);
-                cmd.SetComputeTextureParam(blurCS, parameters.denoiseKernelTemporal, HDShaderIDs._OcclusionTexture, aoOutputTex);
-                cmd.DispatchCompute(blurCS, parameters.denoiseKernelTemporal, threadGroupX, threadGroupY, parameters.viewCount);
-            }
-        }
-
-        static void UpsampleAO(in RenderAOParameters   parameters,
-            RTHandle                depthTexture,
-            RTHandle                input,
-            RTHandle                output,
-            CommandBuffer           cmd)
-        {
-            bool blurAndUpsample = !parameters.temporalAccumulation;
-
-            ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(cmd, parameters.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
-
-            if (blurAndUpsample)
-            {
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, HDShaderIDs._AOPackedData, input);
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, HDShaderIDs._OcclusionTexture, output);
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
-
-                const int groupSizeX = 8;
-                const int groupSizeY = 8;
-                int threadGroupX = ((int)(parameters.runningRes.x) + (groupSizeX - 1)) / groupSizeX;
-                int threadGroupY = ((int)(parameters.runningRes.y) + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(parameters.upsampleAndBlurAOCS, parameters.upsampleAndBlurKernel, threadGroupX, threadGroupY, parameters.viewCount);
-            }
-            else
-            {
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, HDShaderIDs._AOPackedData, input);
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, HDShaderIDs._OcclusionTexture, output);
-                cmd.SetComputeTextureParam(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
-
-                const int groupSizeX = 8;
-                const int groupSizeY = 8;
-                int threadGroupX = ((int)parameters.runningRes.x + (groupSizeX - 1)) / groupSizeX;
-                int threadGroupY = ((int)parameters.runningRes.y + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(parameters.upsampleAndBlurAOCS, parameters.upsampleAOKernel, threadGroupX, threadGroupY, parameters.viewCount);
             }
         }
 
