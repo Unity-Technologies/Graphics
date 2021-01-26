@@ -44,6 +44,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed XR depth copy (case 1286908).
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
+- VFX: Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Debug material view incorrect depth test. (case 1293291)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -73,10 +76,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed probe volumes debug views.
 - Fixed ShaderGraph Decal material not showing exposed properties.
-- VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - Fixed couple samplers that had the wrong name in raytracing code
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
-- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed the default background color for previews to use the original color.
@@ -97,7 +98,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
 - Fixed issue with an empty index buffer not being released.
-- VFX : Debug material view incorrect depth test. (case 1293291)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -188,7 +188,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
-- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
