@@ -63,7 +63,8 @@ ShaderGraph_Win_Vulkan_playmode_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -90,7 +91,8 @@ ShaderGraph_Win_Vulkan_playmode_cache_mono_Linear_trunk:
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -253,7 +255,8 @@ ShaderGraph_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -284,7 +287,8 @@ ShaderGraph_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
