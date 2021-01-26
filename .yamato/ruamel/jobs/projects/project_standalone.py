@@ -4,6 +4,7 @@ from ..shared.constants import get_editor_revision
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 from .project_standalone_build import Project_StandaloneBuildJob
+import copy
 
 class Project_StandaloneJob():
     
@@ -24,14 +25,15 @@ class Project_StandaloneJob():
     
     def get_job_definition(self, project, editor, platform, api, test_platform, build_job, build_config, color_space):
 
-        project_folder = project.get("folder_standalone", project["folder"])
+        project_copy = copy.deepcopy(dict(project))
+        project_copy["folder"] = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone', "") 
-        job = _job(project, test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
+        job = _job(project_copy, test_platform["name"], editor, platform, api, cmd(project_copy, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
 
         if build_job is not None:
 
             job.add_dependencies([{
-                    'path' : f'{project_filepath_specific(project["name"], platform["name"], api["name"])}#{build_job.job_id}',
+                    'path' : f'{project_filepath_specific(project_copy["name"], platform["name"], api["name"])}#{build_job.job_id}',
                     'rerun' : f'{editor["rerun_strategy"]}'
                 }])
             

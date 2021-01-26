@@ -6,7 +6,35 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger: 
+  expression: 'pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -24,6 +52,7 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
+          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -33,28 +62,69 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
+          - name: Standalone_cache
       - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
       - Linear
-all:
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+          - name: playmode_cache
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+  - name: Android
+    apis:
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+          - name: playmode_cache
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+          - name: playmode_cache
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: DX11
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-    - project: ShaderGraph_Stereo
-      all: true  
+        - Standalone_cache
     - platform: OSX
       api: OpenGLCore
       build_config: mono
       color_space: Linear
       test_platforms:
         - editmode 
-
-
+    - project: ShaderGraph_Stereo
+      pr: true
+nightly:
+  dependencies:
+    - project: ShaderGraph
+      pr: true
+    - project: ShaderGraph_Stereo
+      nightly: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode_cache
+    

@@ -10,11 +10,49 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
       - [iPhone_Metal]: --timeout=1800
   - type: playmode
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: editmode
   - type: playmode
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
+  - type: playmode
+    name: playmode_XR_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-xr-tests"
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+    utr_flags_build:
+    - [all]: --timeout=6000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger:
+  expression: 'pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -33,7 +71,9 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
+          - name: playmode_XR_cache
           - name: Standalone
+          - name: Standalone_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -43,10 +83,13 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
+          - name: Standalone_cache
           - name: playmode_XR
+          - name: playmode_XR_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
+          - name: playmode_XR_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -58,11 +101,15 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
+          - name: playmode_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
+          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
@@ -74,35 +121,109 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
+          - name: playmode_cache
     build_configs:
       - name: il2cpp
     color_spaces:
       - Linear
-all:
+pr:
   dependencies:
     - platform: Win
       api: DX11
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - Standalone_cache
+        - playmode_XR_cache
         - editmode
-        - playmode
-        - playmode_XR
-#    - platform: OSX
-#      api: Metal
-#      build_config: mono
-#      color_space: Linear
-#      test_platforms:
-#        # - Standalone
-#        - playmode
-#    - platform: OSX
-#      api: OpenGLCore
-#      build_config: mono
-#      color_space: Linear
-#      test_platforms:
-#        - editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone_cache
+        - playmode_cache
+    - platform: OSX
+      api: OpenGLCore
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
     - project: Universal_Stereo
-      all: true
+      pr: true
     - project: Universal_Hybrid
-      all: true
+      pr: true
+    - project: VFX_URP
+      pr: true
+    - project: ShaderGraph
+      pr: true
+nightly:
+  dependencies:
+    - project: Universal
+      pr: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: Universal_Hybrid
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        # - playmode_XR_cache

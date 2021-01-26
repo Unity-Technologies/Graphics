@@ -7,8 +7,8 @@
 
 ---
 
-All_URP_Performance_BoatAttack_2020.2:
-    name: All URP_Performance_BoatAttack CI - 2020.2
+PR_URP_Performance_BoatAttack_2020.2:
+    name: URP_Performance_BoatAttack PR Job - 2020.2
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2020.2
          rerun: on-new-revision
@@ -39,10 +39,22 @@ All_URP_Performance_BoatAttack_2020.2:
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_2020.2
          rerun: on-new-revision
     variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
-All_URP_Performance_BoatAttack_CUSTOM-REVISION:
-    name: All URP_Performance_BoatAttack CI - CUSTOM-REVISION
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+Nightly_URP_Performance_BoatAttack_2020.2:
+    name: Nightly URP_Performance_BoatAttack - 2020.2
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_2020.2
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -74,5 +86,18 @@ All_URP_Performance_BoatAttack_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
+    name: Nightly URP_Performance_BoatAttack - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c

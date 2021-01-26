@@ -7,19 +7,41 @@
 
 ---
 
-All_ShaderGraph_Stereo_2020.2:
-    name: All ShaderGraph_Stereo CI - 2020.2
+PR_ShaderGraph_Stereo_2020.2:
+    name: ShaderGraph_Stereo PR Job - 2020.2
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2
          rerun: on-new-revision
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_2020.2
          rerun: on-new-revision
-All_ShaderGraph_Stereo_CUSTOM-REVISION:
-    name: All ShaderGraph_Stereo CI - CUSTOM-REVISION
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_ShaderGraph_Stereo_2020.2:
+    name: Nightly ShaderGraph_Stereo - 2020.2
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2020.2
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+PR_ShaderGraph_Stereo_CUSTOM-REVISION:
+    name: ShaderGraph_Stereo PR Job - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_ShaderGraph_Stereo_CUSTOM-REVISION:
+    name: Nightly ShaderGraph_Stereo - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
