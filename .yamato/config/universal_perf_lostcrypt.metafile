@@ -2,8 +2,8 @@ project:
   name: URP_Performance_LostCrypt
   folder: 2d-sara
   variables:
-    BOAT_ATTACK_BRANCH: master
-    BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+    LOST_CRYPT_BRANCH: 21.2/urp-perf-test
+    LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
 
 reuse_blocks:
   unity_config:
