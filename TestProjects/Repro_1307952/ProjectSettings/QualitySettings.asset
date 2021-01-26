@@ -26,8 +26,8 @@ QualitySettings:
     softVegetation: 0
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 0
-    vSyncCount: 0
-    lodBias: 2
+    vSyncCount: 1
+    lodBias: 1
     maximumLODLevel: 0
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1
@@ -40,11 +40,7 @@ QualitySettings:
     asyncUploadBufferSize: 4
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 11400000, guid: fd50c53f1776b274eb5501638092a182,
-      type: 2}
+    customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms: []
   m_PerPlatformDefaultQuality:
-    Android: 0
-    PS4: 0
     Standalone: 0
-    iPhone: 0
