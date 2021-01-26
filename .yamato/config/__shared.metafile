@@ -43,6 +43,7 @@ test_platforms:
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       - [all]: --reruncount=2
+      - [all]: --zero-tests-are-ok=1
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -56,7 +57,7 @@ test_platforms:
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+      - [OSX_Metal]: --editor-location=.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
 
@@ -109,6 +110,8 @@ test_platforms:
 
   - type: playmode
     utr_flags:
+      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --reruncount=2
@@ -132,6 +135,8 @@ test_platforms:
 
   - type: editmode
     utr_flags:
+      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -202,7 +207,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: graphics-foundation/mac-10.15:latest
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -255,11 +260,11 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
 non_project_agents:
   cds_ops_ubuntu_small:
