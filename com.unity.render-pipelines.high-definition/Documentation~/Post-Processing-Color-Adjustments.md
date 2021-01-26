@@ -9,6 +9,8 @@ Use this effect to tweak the overall tone, brightness, and contrast of the final
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Color Adjustments**. HDRP now applies **Color Adjustments** to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingColorAdjustments1.png)

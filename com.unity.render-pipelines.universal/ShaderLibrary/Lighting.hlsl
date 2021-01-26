@@ -54,6 +54,28 @@ struct Light
     half    shadowAttenuation;
 };
 
+// WebGL1 does not support the variable conditioned for loops used for additional lights
+#if !defined(_USE_WEBGL1_LIGHTS) && defined(UNITY_PLATFORM_WEBGL) && !defined(SHADER_API_GLES3)
+    #define _USE_WEBGL1_LIGHTS 1
+    #define _WEBGL1_MAX_LIGHTS 8
+#else
+    #define _USE_WEBGL1_LIGHTS 0
+#endif
+
+#if !_USE_WEBGL1_LIGHTS
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
+
+    #define LIGHT_LOOP_END }
+#else
+    // WebGL 1 doesn't support variable for loop conditions
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    for (int lightIndex = 0; lightIndex < _WEBGL1_MAX_LIGHTS; ++lightIndex) { \
+        if (lightIndex >= (int)lightCount) break;
+
+    #define LIGHT_LOOP_END }
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                        Attenuation Functions                               /
 ///////////////////////////////////////////////////////////////////////////////
@@ -451,7 +473,7 @@ return specularTerm;
 half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     // Can still do compile-time optimisation.
-    // If no compile-time optimized, extra overhead if branch taken is around +2.5% on Switch, -10% if not taken.
+    // If no compile-time optimized, extra overhead if branch taken is around +2.5% on some untethered platforms, -10% if not taken.
     [branch] if (!specularHighlightsOff)
     {
         half specularTerm = DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
@@ -802,12 +824,11 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
     uint lightsCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < lightsCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(lightsCount)
         Light light = GetAdditionalLight(lightIndex, positionWS);
         half3 lightColor = light.color * light.distanceAttenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
-    }
+    LIGHT_LOOP_END
 #endif
 
     return vertexLightColor;
@@ -864,8 +885,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -874,7 +894,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                          light,
                                          inputData.normalWS, inputData.viewDirectionWS,
                                          surfaceData.clearCoatMask, specularHighlightsOff);
-    }
+    LIGHT_LOOP_END
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -929,8 +949,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
-    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    {
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
             light.color *= aoFactor.directAmbientOcclusion;
@@ -938,7 +957,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
-    }
+    LIGHT_LOOP_END
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX

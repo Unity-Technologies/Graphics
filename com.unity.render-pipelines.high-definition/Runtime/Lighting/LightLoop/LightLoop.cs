@@ -65,7 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Punctual,
         Area,
         Env,
-        ProbeVolume,
         Decal,
         DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
@@ -245,9 +244,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint         _DecalIndexShift;
 
         public uint         _DensityVolumeIndexShift;
-        public uint         _ProbeVolumeIndexShift;
         public uint         _Pad0_SVLL;
         public uint         _Pad1_SVLL;
+        public uint         _Pad2_SVLL;
     }
 
     internal struct ProcessedLightData
@@ -498,8 +497,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 public List<SFiniteLightBound> bounds;
                 public List<LightVolumeData> lightVolumes;
-                public List<SFiniteLightBound> probeVolumesBounds;
-                public List<LightVolumeData> probeVolumesLightVolumes;
             }
 
             public List<LightsPerView> lightsPerView;
@@ -516,8 +513,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     lightsPerView[i].bounds.Clear();
                     lightsPerView[i].lightVolumes.Clear();
-                    lightsPerView[i].probeVolumesBounds.Clear();
-                    lightsPerView[i].probeVolumesLightVolumes.Clear();
                 }
             }
 
@@ -530,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)
                 {
-                    lightsPerView.Add(new LightsPerView { bounds = new List<SFiniteLightBound>(), lightVolumes = new List<LightVolumeData>(), probeVolumesBounds = new List<SFiniteLightBound>(), probeVolumesLightVolumes = new List<LightVolumeData>() });
+                    lightsPerView.Add(new LightsPerView { bounds = new List<SFiniteLightBound>(), lightVolumes = new List<LightVolumeData>() });
                 }
             }
         }
@@ -606,9 +601,9 @@ namespace UnityEngine.Rendering.HighDefinition
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
 #if !UNITY_EDITOR && UNITY_SWITCH
-        const int k_Log2NumClusters = 5;     // accepted range is from 0 to 5 (NR_THREADS is set to 32 on Switch). NumClusters is 1<<g_iLog2NumClusters
+        const int k_Log2NumClusters = 5;     // accepted range is from 0 to 5 (NR_THREADS is set to 32). NumClusters is 1<<g_iLog2NumClusters
 #else
-        const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64 on other platforms). NumClusters is 1<<g_iLog2NumClusters
+        const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64). NumClusters is 1<<g_iLog2NumClusters
 #endif
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClusterScale;
@@ -892,7 +887,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
                 ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
             }
@@ -975,7 +970,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We need to verify and flush any pending asset loading for probe volume.
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
                 ProbeReferenceVolume.instance.PerformPendingOperations();
             }
@@ -3213,11 +3208,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
             cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
             cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
-
-            int probeVolumeIndexShift = (ShaderConfig.s_EnableProbeVolumes == 1)
-                ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
-                : 0;
-            cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
 
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;
