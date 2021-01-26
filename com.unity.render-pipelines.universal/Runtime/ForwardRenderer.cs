@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_NormalsTexture;
         RenderTargetHandle[] m_GBufferHandles;
         RenderTargetHandle m_OpaqueColor;
-		RenderTargetHandle m_ResolveTexture;
+        RenderTargetHandle m_ResolveTexture;
         // For tiled-deferred shading.
         RenderTargetHandle m_DepthInfoTexture;
         RenderTargetHandle m_TileDepthInfoTexture;
@@ -194,8 +194,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
-
-			m_ResolveTexture.Init("_CameraResolveTexture");
+            m_ResolveTexture.Init("_CameraResolveTexture");
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -350,7 +349,6 @@ namespace UnityEngine.Rendering.Universal
                 // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate textures to ensure they match)
                 createDepthTexture |= createColorTexture;
                 createColorTexture = createDepthTexture;
-
             }
 //#endif
 
@@ -362,6 +360,7 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
             }
 #endif
+
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
@@ -384,8 +383,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign camera targets (color and depth)
             {
-                    //CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, true);
-
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();
 
