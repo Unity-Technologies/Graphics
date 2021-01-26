@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 
 ### Fixed
-- Fixed a case where shadow fade was clipped to early.
+- Fixed a case where shadow fade was clipped too early.
 
 ### Changed
 - Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
