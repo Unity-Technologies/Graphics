@@ -89,7 +89,7 @@ public class AovRecorder : MonoBehaviour
                     bufferId => m_TmpRT,
                     (cmd, textures, customPassTextures, properties) =>
                     {
-                        // callback to read back the AOV data and write them to disk 
+                        // callback to read back the AOV data and write them to disk
                         if (textures.Count > 0)
                         {
                             m_ReadBackTexture = m_ReadBackTexture ?? new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGBAFloat, false);
