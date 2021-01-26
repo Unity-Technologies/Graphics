@@ -69,8 +69,8 @@ namespace UnityEditor.Rendering
             miniLabelButton.onNormal = activeState;
             miniLabelButton.onActive = activeState;
 
-            paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-            paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
+            paneOptionsIconDark = CoreEditorUtils.LoadIcon("Builtin Skins/DarkSkin/Images", "pane options", ".png");
+            paneOptionsIconLight = CoreEditorUtils.LoadIcon("Builtin Skins/LightSkin/Images", "pane options", ".png");
 
             m_LightThemeBackgroundColor = new Color(0.7843138f, 0.7843138f, 0.7843138f, 1.0f);
             m_LightThemeBackgroundHighlightColor = new Color32(174, 174, 174, 255);
