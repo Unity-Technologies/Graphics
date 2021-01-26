@@ -775,7 +775,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isLastPass = renderPass.sceneIndex == lastPassIndex;
 
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
-                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isLastPassToBB;
+                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
 
@@ -801,7 +801,7 @@ namespace UnityEngine.Rendering.Universal
                     isLastPassToBB ? QualitySettings.antiAliasing : sampleCount;
 #endif
 
-                if (isLastPassToBB && !cameraData.isDefaultViewport)
+                if ((isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)) && !cameraData.isDefaultViewport)
                 {
                     if (cameraData.camera.rect.width != 1)
                         width = (int)(width / cameraData.camera.rect.width);
@@ -1102,7 +1102,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
 
-                    if ( !isLastPassToBB && samples > 1)
+                    if (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)) && samples > 1)
                     {
                         m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
                     }
