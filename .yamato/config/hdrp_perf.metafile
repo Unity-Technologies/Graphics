@@ -1,33 +1,94 @@
 project:
   name: HDRP_PerformanceTests
   folder: HDRP_PerformanceTests
+  unity_config_commands:
+    - 'unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .'
+    - 'unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .'
+    - 'unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .'
+    - 'unity-config project add dependency com.unity.addressables@1.16.7 --project-path .'
+    - 'unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .'
+    - 'unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .'
+    - 'unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .'
+    - 'unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .'
+    - 'unity-config project add testable com.unity.cli-project-setup  --project-path .'
+    - 'unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .'
+    - 'unity-config project add testable com.unity.test.metadata-manager  --project-path .'
+    - 'unity-config project add testable com.unity.testing.graphics-performance --project-path .'
+    - 'unity-config project add testable com.unity.render-pipelines.core  --project-path .'
+    - 'unity-config project add testable unity.graphictests.performance.universal  --project-path .'
+    - 'unity-config project set project-update false --project-path .'
+expression_trigger: 
+  expression: ""
 test_platforms:
-  - type: playmode
-    name: performance_memory
+  - type: Standalone
+    name: performance_playmode_runtime
+    is_performance: True
     utr_flags:
-      - [all]: --testfilter=Memory
+      - [all]: --report-performance-data
       - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
-      - [all]: --timeout=2400
-      - [all]: --platform=StandaloneWindows64
-      - [all]: --loglevel=verbose
+      - [iPhone_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      #- [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
+  - type: playmode
+    name: performance_playmode_editor
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      #- [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
   - type: editmode
-    name: performance_run_build
+    name: performance_build_editmode
+    is_performance: True
     utr_flags:
       - [all]: --testfilter=Build
+      - [all]: --report-performance-data
       - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
-      - [all]: --timeout=2400
-      - [all]: --platform=editmode
-      - [all]: --loglevel=verbose
-expression_trigger:
-  expression: ""
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      #- [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
 platforms:
   - name: Win
     apis:
       - name: DX11
+      - name: DX12
     build_configs:
       - name: il2cpp
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+        model: rtx2080
 pr:
   dependencies:
     - platform: Win
@@ -35,8 +96,9 @@ pr:
       build_config: il2cpp
       color_space: Linear
       test_platforms:
-        - performance_memory
-        # - performance_run_build
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
 nightly:
   dependencies:
     - project: HDRP_PerformanceTests

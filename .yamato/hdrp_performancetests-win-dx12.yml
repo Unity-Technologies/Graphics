@@ -7,8 +7,8 @@
 
 ---
 
-HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_trunk:
-    name: HDRP_PerformanceTests on Win_DX11_performance_playmode_runtime_il2cpp_Linear on version trunk
+HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: HDRP_PerformanceTests on Win_DX12_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -27,10 +27,10 @@ HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_trunk
+      -  path: .yamato/hdrp_performancetests-win-dx12.yml#Build_HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_trunk:
-    name: Build HDRP_PerformanceTests on Win_DX11_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
+Build_HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: Build HDRP_PerformanceTests on Win_DX12_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -70,7 +70,7 @@ Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -79,8 +79,8 @@ Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_
         players:
             paths:
               -  "players*/**"
-HDRP_PerformanceTests_Win_DX11_performance_playmode_editor_il2cpp_Linear_trunk:
-    name: HDRP_PerformanceTests on Win_DX11_performance_playmode_editor_il2cpp_Linear on version trunk
+HDRP_PerformanceTests_Win_DX12_performance_playmode_editor_il2cpp_Linear_trunk:
+    name: HDRP_PerformanceTests on Win_DX12_performance_playmode_editor_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -121,15 +121,15 @@ HDRP_PerformanceTests_Win_DX11_performance_playmode_editor_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
-HDRP_PerformanceTests_Win_DX11_performance_build_editmode_il2cpp_Linear_trunk:
-    name: HDRP_PerformanceTests on Win_DX11_performance_build_editmode_il2cpp_Linear on version trunk
+HDRP_PerformanceTests_Win_DX12_performance_build_editmode_il2cpp_Linear_trunk:
+    name: HDRP_PerformanceTests on Win_DX12_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -170,15 +170,15 @@ HDRP_PerformanceTests_Win_DX11_performance_build_editmode_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
-HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
-    name: HDRP_PerformanceTests on Win_DX11_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
+HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: HDRP_PerformanceTests on Win_DX12_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -200,10 +200,10 @@ HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_CUSTOM
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_performancetests-win-dx12.yml#Build_HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build HDRP_PerformanceTests on Win_DX11_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
+Build_HDRP_PerformanceTests_Win_DX12_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build HDRP_PerformanceTests on Win_DX12_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -244,7 +244,7 @@ Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -256,8 +256,8 @@ Build_HDRP_PerformanceTests_Win_DX11_performance_playmode_runtime_il2cpp_Linear_
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_PerformanceTests_Win_DX11_performance_playmode_editor_il2cpp_Linear_CUSTOM-REVISION:
-    name: HDRP_PerformanceTests on Win_DX11_performance_playmode_editor_il2cpp_Linear on version CUSTOM-REVISION
+HDRP_PerformanceTests_Win_DX12_performance_playmode_editor_il2cpp_Linear_CUSTOM-REVISION:
+    name: HDRP_PerformanceTests on Win_DX12_performance_playmode_editor_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -299,7 +299,7 @@ HDRP_PerformanceTests_Win_DX11_performance_playmode_editor_il2cpp_Linear_CUSTOM-
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -309,8 +309,8 @@ HDRP_PerformanceTests_Win_DX11_performance_playmode_editor_il2cpp_Linear_CUSTOM-
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-HDRP_PerformanceTests_Win_DX11_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
-    name: HDRP_PerformanceTests on Win_DX11_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
+HDRP_PerformanceTests_Win_DX12_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: HDRP_PerformanceTests on Win_DX12_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -352,7 +352,7 @@ HDRP_PerformanceTests_Win_DX11_performance_build_editmode_il2cpp_Linear_CUSTOM-R
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --zero-tests-are-ok=1
+                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.high-definition" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
