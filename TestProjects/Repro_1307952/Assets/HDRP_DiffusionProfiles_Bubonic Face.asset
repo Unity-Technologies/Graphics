@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
-  m_Name: FoliageDiffusionProfile
+  m_Name: HDRP_DiffusionProfiles_Bubonic Face
   m_EditorClassIdentifier: 
-  m_Version: 1
   profile:
-    scatteringDistance: {r: 0.7568628, g: 0.7019608, b: 0.24313727, a: 1}
-    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    scatteringDistance: {r: 7.2784314, g: 7.2784314, b: 7.2784314, a: 1}
+    transmissionTint: {r: 0.25098044, g: 0.07095782, b: 0, a: 1}
     texturingMode: 0
     transmissionMode: 1
-    thicknessRemap: {x: 0, y: 0.2873168}
-    worldScale: 1
+    thicknessRemap: {x: 0, y: 0}
+    worldScale: 0.9
     ior: 1.4
-    hash: 1081692787
+    hash: 1080186057
+  m_Version: 1
