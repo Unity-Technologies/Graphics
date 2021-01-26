@@ -68,4 +68,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0008_LightClusters.unity
     guid: f7ce05ee759ced64691ef69cb09d911b
+  - enabled: 1
+    path: Assets/Scenes/Timings/0009_DistortionRefraction.unity
+    guid: 8ee3e9899640483479abaf0c4f2c8998
   m_configObjects: {}
