@@ -67,7 +67,6 @@ float4      _CascadeShadowSplitSpheres1;
 float4      _CascadeShadowSplitSpheres2;
 float4      _CascadeShadowSplitSpheres3;
 float4      _CascadeShadowSplitSphereRadii;
-float4      _CascadeShadowSplitSphereLast;  // (xyz: lastShadowCascadeSphere, w: 0)
 half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
@@ -348,26 +347,10 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
 
 half GetMainLightShadowFade(float3 positionWS)
 {
-    // This code computes distance between capsule and point.
-    // Finally distance is used with shadow fade scale and bias to compute shadow fade blend value.
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
-    float3 shadowFadeCenter = _CascadeShadowSplitSphereLast.xyz;
-    float3 worldSpaceCameraOppositeDir = -UNITY_MATRIX_V[2].xyz; // Move it to other property for faster access?
-
-    // Here we treat problem as finding shortest distance between line segment and point.
-
-    float3 lineDir = worldSpaceCameraOppositeDir;
-    float3 lineCenter = shadowFadeCenter;
-
-    float3 lineToPoint = positionWS - lineCenter;
-
-    // Find shortest vector between line and point
-    float distanceFromLineCenter = min(dot(lineDir, lineToPoint), 0);
-    float3 offsetFromLineCenter = lineDir * distanceFromLineCenter;
-    float3 shortestLineToPoint = lineToPoint - offsetFromLineCenter;
-
-    float distanceSq = dot(shortestLineToPoint, shortestLineToPoint);
-    half fade = saturate(distanceSq * _MainLightShadowParams.z + _MainLightShadowParams.w);
+    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
     return fade;
 }
 
