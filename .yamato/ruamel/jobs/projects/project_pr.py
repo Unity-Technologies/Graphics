@@ -36,7 +36,8 @@ class Project_PRJob():
         job.set_name(f'{project["name"]} PR Job - {editor["name"]}')
         job.add_dependencies(dependencies)
         if expression_trigger != "":
-            job.set_trigger_on_expression(expression_trigger)
+            if editor["track"] != "CUSTOM-REVISION":
+                job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         job.add_var_custom('UTR_VERSION', dss("current"))
         job.add_var_custom('TEST_FILTER', '.*')
