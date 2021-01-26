@@ -27,7 +27,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
           set /p GIT_REVISIONDATE=<revdate.tmp
           echo %GIT_REVISIONDATE%
           del revdate.tmp
-          utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+          utr --artifacts_path=TestProjects/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -53,7 +53,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
           set /p GIT_REVISIONDATE=<revdate.tmp
           echo %GIT_REVISIONDATE%
           del revdate.tmp
-          utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+          utr --artifacts_path=TestProjects/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -80,7 +80,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
           set /p GIT_REVISIONDATE=<revdate.tmp
           echo %GIT_REVISIONDATE%
           del revdate.tmp
-          utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+          utr --artifacts_path=TestProjects/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -110,7 +110,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
           set /p GIT_REVISIONDATE=<revdate.tmp
           echo %GIT_REVISIONDATE%
           del revdate.tmp
-          utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=. --zero-tests-are-ok=1
+          utr --artifacts_path=TestProjects/BoatAttack-19-4/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/BoatAttack-19-4 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
