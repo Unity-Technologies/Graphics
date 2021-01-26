@@ -797,8 +797,10 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                     !isLastPassToBB ? sampleCount : 1;
 #else
-                    sampleCount;
+                    //In mase MSAA is disabled on camera, we need to still check the QualitySettings, as backbuffer will be created with that setting in mind
+                    isLastPassToBB ? QualitySettings.antiAliasing : sampleCount;
 #endif
+
                 if (isLastPassToBB && !cameraData.isDefaultViewport)
                 {
                     if (cameraData.camera.rect.width != 1)
