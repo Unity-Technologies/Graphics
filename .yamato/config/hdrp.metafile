@@ -61,7 +61,6 @@ platforms:
     color_spaces:
       - Linear
     agents_project:
-      # default: package_ci_mac
       default:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable

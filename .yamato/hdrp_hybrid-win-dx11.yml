@@ -11,8 +11,9 @@ HDRP_Hybrid_Win_DX11_playmode_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -38,8 +39,9 @@ HDRP_Hybrid_Win_DX11_playmode_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_playmode_cache_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -65,8 +67,9 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -92,8 +95,9 @@ HDRP_Hybrid_Win_DX11_playmode_XR_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_playmode_XR_cache_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -119,8 +123,9 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -140,7 +145,7 @@ Build_HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build HDRP_Hybrid on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -170,8 +175,9 @@ HDRP_Hybrid_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX11_Standalone_cache_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -191,7 +197,7 @@ Build_HDRP_Hybrid_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: Build HDRP_Hybrid on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -221,8 +227,9 @@ HDRP_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -252,8 +259,9 @@ HDRP_Hybrid_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -283,8 +291,9 @@ HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -314,8 +323,9 @@ HDRP_Hybrid_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -345,8 +355,9 @@ HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -369,7 +380,7 @@ Build_HDRP_Hybrid_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_Hybrid on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -403,8 +414,9 @@ HDRP_Hybrid_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX11_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
@@ -427,7 +439,7 @@ Build_HDRP_Hybrid_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_Hybrid on Win_DX11_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
