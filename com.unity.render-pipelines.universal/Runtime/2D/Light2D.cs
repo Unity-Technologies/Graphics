@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 using UnityEngine.U2D;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -61,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
-
+		
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
@@ -120,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal int GetTopMostLitLayer()
         {
-            var largestIndex = Int32.MinValue;
+            var largestIndex = -1;
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
@@ -130,13 +133,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
-                        largestIndex = layers[layer].value;
+                        largestIndex = i;
                         largestLayer = layer;
                     }
                 }
             }
 
-            return largestIndex;
+            if (largestIndex >= 0)
+                return m_ApplyToSortingLayers[largestIndex];
+            else
+                return -1;
         }
 
         internal void UpdateMesh()
@@ -176,14 +182,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLitLayer(int layer)
         {
-            if (m_ApplyToSortingLayers == null)
-                return false;
-
-            for(var i = 0; i < m_ApplyToSortingLayers.Length; i++)
-                if (m_ApplyToSortingLayers[i] == layer)
-                    return true;
-
-            return false;
+            return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
         private void Awake()

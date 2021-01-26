@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
-                onCreated?.Invoke(instance);
+                onCreated(instance);
             }
         }
 

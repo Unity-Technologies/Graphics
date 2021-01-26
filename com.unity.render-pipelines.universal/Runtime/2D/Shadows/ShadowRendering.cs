@@ -35,9 +35,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
         }
 
-        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
+        private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int blendStyleIndex)
         {
-            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightRenderTextureScale, 0.01f, 1.0f);
+            var renderTextureScale = Mathf.Clamp(pass.rendererData.lightBlendStyles[blendStyleIndex].renderTextureScale, 0.01f, 1.0f);
             var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
             var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (shadowIntensity > 0)
             {
-                CreateShadowRenderTexture(pass, renderingData, cmdBuffer);
+                CreateShadowRenderTexture(pass, renderingData, cmdBuffer, light.blendStyleIndex);
 
                 cmdBuffer.SetRenderTarget(pass.rendererData.shadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         if (shadowCasters != null)
                         {
-                            // Draw the shadow casting group first, then draw the silhouettes..
+                            // Draw the shadow casting group first, then draw the silhouttes..
                             for (var i = 0; i < shadowCasters.Count; i++)
                             {
                                 var shadowCaster = shadowCasters[i];
