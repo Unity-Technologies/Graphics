@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
         /// <param name="loop">Should the curve automatically loop in the given <paramref name="bounds"/>?</param>
         /// <param name="bounds">The boundaries of the curve.</param>
         public TextureCurve(AnimationCurve baseCurve, float zeroValue, bool loop, in Vector2 bounds)
-            : this(baseCurve.keys, zeroValue, loop, bounds) { }
+            : this(baseCurve.keys, zeroValue, loop, bounds) {}
 
         /// <summary>
         /// Creates a new <see cref="TextureCurve"/> from an arbitrary number of keyframes.
@@ -250,8 +250,11 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
+        /// <summary>
+        /// Release implementation.
+        /// </summary>
         public override void Release() => m_Value.Release();
 
         // TODO: TextureCurve interpolation

@@ -6,6 +6,7 @@ using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
+using UnityEditor.Graphs;
 
 namespace UnityEditor.VFX
 {
@@ -75,15 +76,6 @@ namespace UnityEditor.VFX
             }
 
             var allReduced = expressionContext.BuildAllReduced();
-            if (forbiddenFlags != VFXExpression.Flags.None)
-            {
-                var check = allReduced.Any(e => e.IsAny(forbiddenFlags));
-                if (check)
-                {
-                    //TODO: Provide an error in GUI when feedback is possible
-                    throw new InvalidOperationException("Invalid expression usage while compiling");
-                }
-            }
 
             m_Expressions.UnionWith(allReduced);
 

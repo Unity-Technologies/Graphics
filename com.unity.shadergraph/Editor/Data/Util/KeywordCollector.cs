@@ -20,23 +20,23 @@ namespace UnityEditor.ShaderGraph
         {
             if (keywords.Any(x => x.referenceName == chunk.referenceName))
                 return;
-            
+
             keywords.Add(chunk);
         }
 
         public void GetKeywordsDeclaration(ShaderStringBuilder builder, GenerationMode mode)
         {
-            if(keywords.Count == 0)
+            if (keywords.Count == 0)
                 return;
 
             // Declare keywords
             foreach (var keyword in keywords)
             {
                 // Hardcode active keywords in preview to reduce compiled variants
-                if(mode == GenerationMode.Preview)
+                if (mode == GenerationMode.Preview)
                 {
                     string declaration = keyword.GetKeywordPreviewDeclarationString();
-                    if(!string.IsNullOrEmpty(declaration))
+                    if (!string.IsNullOrEmpty(declaration))
                     {
                         builder.AppendLine(declaration);
                     }
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
                 else
                 {
                     string declaration = keyword.GetKeywordDeclarationString();
-                    if(!string.IsNullOrEmpty(declaration))
+                    if (!string.IsNullOrEmpty(declaration))
                     {
                         builder.AppendLine(declaration);
                     }
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
 
             // Initialize current permutation
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
-            for(int i = 0; i < keywords.Count; i++)
+            for (int i = 0; i < keywords.Count; i++)
             {
                 currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
             }
@@ -74,18 +74,18 @@ namespace UnityEditor.ShaderGraph
 
         void PermuteKeywords(List<ShaderKeyword> keywords, List<KeyValuePair<ShaderKeyword, int>> currentPermutation, int currentIndex)
         {
-            if(currentIndex == keywords.Count)
+            if (currentIndex == keywords.Count)
                 return;
 
             // Iterate each possible keyword at the current index
             int entryCount = keywords[currentIndex].keywordType == KeywordType.Enum ? keywords[currentIndex].entries.Count : 2;
-            for(int i = 0; i < entryCount; i++)
+            for (int i = 0; i < entryCount; i++)
             {
                 // Set the index in the current permutation to the correct value
                 currentPermutation[currentIndex] = new KeyValuePair<ShaderKeyword, int>(keywords[currentIndex], i);
 
                 // If the current index is the last keyword we are finished with this permutation
-                if(currentIndex == keywords.Count - 1)
+                if (currentIndex == keywords.Count - 1)
                 {
                     permutations.Add(currentPermutation);
                 }

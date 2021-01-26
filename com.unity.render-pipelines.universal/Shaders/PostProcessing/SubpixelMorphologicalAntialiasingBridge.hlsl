@@ -47,7 +47,7 @@ struct VaryingsEdge
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsEdge VertEdge(FullscreenAttributes input)
+VaryingsEdge VertEdge(Attributes input)
 {
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -57,7 +57,7 @@ VaryingsEdge VertEdge(FullscreenAttributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAAEdgeDetectionVS(output.uv, output.offsets);
     return output;
 }
@@ -80,7 +80,7 @@ struct VaryingsBlend
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsBlend VertBlend(FullscreenAttributes input)
+VaryingsBlend VertBlend(Attributes input)
 {
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -90,7 +90,7 @@ VaryingsBlend VertBlend(FullscreenAttributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAABlendingWeightCalculationVS(output.uv, output.pixcoord, output.offsets);
     return output;
 }
@@ -112,7 +112,7 @@ struct VaryingsNeighbor
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsNeighbor VertNeighbor(FullscreenAttributes input)
+VaryingsNeighbor VertNeighbor(Attributes input)
 {
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -122,7 +122,7 @@ VaryingsNeighbor VertNeighbor(FullscreenAttributes input)
 #else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-#endif  
+#endif
     SMAANeighborhoodBlendingVS(output.uv, output.offset);
     return output;
 }

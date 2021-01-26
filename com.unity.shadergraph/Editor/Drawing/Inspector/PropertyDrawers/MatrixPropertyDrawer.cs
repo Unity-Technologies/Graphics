@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(Matrix4x4))]
     class MatrixPropertyDrawer : IPropertyDrawer
@@ -66,7 +64,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 matrix2Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector2PropertyDrawer.CreateGUI(
                 newValue =>
@@ -136,7 +134,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 matrix3Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector3PropertyDrawer.CreateGUI(
                 newValue =>
@@ -238,7 +236,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 matrix4Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
@@ -366,7 +364,7 @@ namespace Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Matrix4x4) propertyInfo.GetValue(actualObject),
+                (Matrix4x4)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

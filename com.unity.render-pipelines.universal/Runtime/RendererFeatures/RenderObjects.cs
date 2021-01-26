@@ -5,14 +5,14 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]public enum RenderQueueType
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public enum RenderQueueType
     {
         Opaque,
         Transparent,
     }
 
     [ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]public class RenderObjects : ScriptableRendererFeature
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]
         public class RenderObjectsSettings
@@ -65,6 +65,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;
+
+            // Render Objects pass doesn't support events before rendering prepasses.
+            // The camera is not setup before this point and all rendering is monoscopic.
+            // Events before BeforeRenderingPrepasses should be used for input texture passes (shadow map, LUT, etc) that doesn't depend on the camera.
+            // These events are filtering in the UI, but we still should prevent users from changing it from code or
+            // by changing the serialized data.
+            if (settings.Event < RenderPassEvent.BeforeRenderingPrePasses)
+                settings.Event = RenderPassEvent.BeforeRenderingPrePasses;
+
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
 
@@ -86,4 +95,3 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
     }
 }
-

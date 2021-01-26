@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<ForwardRendererData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
+
 #endif
 
         [Serializable, ReloadGroup]
@@ -40,17 +42,22 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
+            public Shader stencilDeferredPS;
+
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/MaterialError.shader")]
+            public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -62,21 +69,18 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
+        [SerializeField] bool m_AccurateGbufferNormals = false;
+        //[SerializeField] bool m_TiledDeferredShading = false;
 
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
+                ReloadAllNullProperties();
             }
-#endif
             return new ForwardRenderer(this);
         }
 
@@ -129,6 +133,45 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Rendering mode.
+        /// </summary>
+        public RenderingMode renderingMode
+        {
+            get => m_RenderingMode;
+            set
+            {
+                SetDirty();
+                m_RenderingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
+        /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
+        /// </summary>
+        public bool accurateGbufferNormals
+        {
+            get => m_AccurateGbufferNormals;
+            set
+            {
+                SetDirty();
+                m_AccurateGbufferNormals = value;
+            }
+        }
+
+        /*
+        public bool tiledDeferredShading
+        {
+            get => m_TiledDeferredShading;
+            set
+            {
+                SetDirty();
+                m_TiledDeferredShading = value;
+            }
+        }
+        */
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -140,9 +183,13 @@ namespace UnityEngine.Rendering.Universal
             if (shaders == null)
                 return;
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif

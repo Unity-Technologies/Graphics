@@ -1,27 +1,110 @@
-from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_unity_downloader_cli_cmd, get_timeout
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
+from ...shared.utr_utils import  get_repeated_utr_calls,switch_var_sign
 
-def _cmd_base(project_folder, components):
+
+def _cmd_base(project, platform, editor):
     return []
 
+def cmd_editmode(project, platform, api, test_platform, editor, build_config, color_space):
+    
+    base = [
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity/unity/unity-downloader-cli',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr'
+     ]
 
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
-    raise Exception('iPhone: only standalone available')
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}'''))
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
-    return [
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',        
-        f'chmod +x ./utr',
-        f'./utr --suite=playmode --platform=iOS --player-load-path={PATH_PLAYERS} --artifacts_path={PATH_TEST_RESULTS}'
-    ]
+    base = add_project_commands(project) + base
+    return base
+
+def cmd_playmode(project, platform, api, test_platform, editor, build_config, color_space):
+
+    base = [
+        f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+        f'brew install unity-downloader-cli',
+        f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr'
+     ]
+
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}'''))
+    
+    base = add_project_commands(project) + base
+    return base
+
+def cmd_standalone(project, platform, api, test_platform, editor, build_config, color_space):
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL} --output utr',
+        f'chmod +x ./utr'
+     ]
+
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}'''))
+     
+    return base
 
         
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    components = platform["components"]
-    return [
-        f'pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade',
-        f'unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])}  --wait --published-only',
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',
-        f'chmod +x ./utr',
-        f'./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject={TEST_PROJECTS_DIR}/{project_folder} --player-save-path={PATH_PLAYERS} --artifacts_path={PATH_TEST_RESULTS} --build-only'
-     ]
+def cmd_standalone_build(project, platform, api, test_platform, editor, build_config, color_space):
+
+    if "Performance" not in project["name"]:
+        base = [
+            f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+            f'brew install unity/unity/unity-downloader-cli',
+            f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
+            f'curl -s {UTR_INSTALL_URL} --output utr',
+            f'chmod +x ./utr'
+        ]
+    else:
+        base = [
+            f'pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade',
+            f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
+            f'curl -s {UTR_INSTALL_URL} --output utr',
+            f'chmod +x ./utr'
+        ]
+    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"], utr_flags_key="utr_flags_build")
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}'''))
+    
+
+    base = add_project_commands(project) + base
+    return base
+
+
+def add_project_commands(project):
+    cmds = []
+    if project.get("url"):
+        cmds.extend([
+            f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} {TEST_PROJECTS_DIR}/{project["folder"]}',
+            f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
+        ])
+    if project.get("unity_config_commands"):
+        cmds.extend([
+            f'brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git',
+            f'brew install unity-config',
+        ])
+        for unity_config in project["unity_config_commands"]:
+            cmds.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && {unity_config}')
+    return cmds

@@ -44,15 +44,15 @@
 #define TEXTURE3D(textureName)                Texture3D textureName
 
 #define TEXTURE2D_FLOAT(textureName)          Texture2D_float textureName
-#define TEXTURE2D_ARRAY_FLOAT(textureName)    Texture2DArray textureName    // no support to _float on Array, it's being added
+#define TEXTURE2D_ARRAY_FLOAT(textureName)    Texture2DArray_float textureName
 #define TEXTURECUBE_FLOAT(textureName)        TextureCube_float textureName
-#define TEXTURECUBE_ARRAY_FLOAT(textureName)  TextureCubeArray textureName  // no support to _float on Array, it's being added
+#define TEXTURECUBE_ARRAY_FLOAT(textureName)  TextureCubeArray_float textureName
 #define TEXTURE3D_FLOAT(textureName)          Texture3D_float textureName
 
 #define TEXTURE2D_HALF(textureName)           Texture2D_half textureName
-#define TEXTURE2D_ARRAY_HALF(textureName)     Texture2DArray textureName    // no support to _float on Array, it's being added
+#define TEXTURE2D_ARRAY_HALF(textureName)     Texture2DArray_half textureName
 #define TEXTURECUBE_HALF(textureName)         TextureCube_half textureName
-#define TEXTURECUBE_ARRAY_HALF(textureName)   TextureCubeArray textureName  // no support to _float on Array, it's being added
+#define TEXTURECUBE_ARRAY_HALF(textureName)   TextureCubeArray_half textureName
 #define TEXTURE3D_HALF(textureName)           Texture3D_half textureName
 
 #define TEXTURE2D_SHADOW(textureName)         TEXTURE2D(textureName)

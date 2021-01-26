@@ -18,26 +18,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is HairMasterNode1 hairMasterNode))
+            if (!(masterNode is HairMasterNode1 hairMasterNode))
                 return false;
+
+            m_MigrateFromOldSG = true;
 
             // Set data
             systemData.surfaceType = (SurfaceType)hairMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hairMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = hairMasterNode.m_AlphaTest;
-            systemData.transparentDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
-            systemData.transparentDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hairMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hairMasterNode.m_DoubleSidedMode;
             systemData.transparentZWrite = hairMasterNode.m_ZWrite;
             systemData.transparentCullMode = hairMasterNode.m_transparentCullMode;
             systemData.zTest = hairMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
             systemData.dotsInstancing = hairMasterNode.m_DOTSInstancing;
             systemData.materialNeedsUpdateHash = hairMasterNode.m_MaterialNeedsUpdateHash;
 
+            builtinData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
+            builtinData.transparentDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
+            builtinData.transparentDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             builtinData.transparencyFog = hairMasterNode.m_TransparencyFog;
             builtinData.transparentWritesMotionVec = hairMasterNode.m_TransparentWritesMotionVec;
             builtinData.addPrecomputedVelocity = hairMasterNode.m_AddPrecomputedVelocity;
@@ -53,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.specularAA = hairMasterNode.m_SpecularAA;
             lightingData.specularOcclusionMode = hairMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hairMasterNode.m_overrideBakedGI;
-            
+
             hairData.materialType = (HairData.MaterialType)hairMasterNode.m_MaterialType;
             hairData.useLightFacingNormal = hairMasterNode.m_UseLightFacingNormal;
             target.customEditorGUI = hairMasterNode.m_OverrideEnabled ? hairMasterNode.m_ShaderGUIOverride : "";
@@ -89,16 +91,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Legacy master node slots have additional slot conditions, test them here
             bool AdditionalSlotMaskTests(HairMasterNode1.SlotMask slotMask)
             {
-                switch(slotMask)
+                switch (slotMask)
                 {
                     case HairMasterNode1.SlotMask.SpecularOcclusion:
                         return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
                     case HairMasterNode1.SlotMask.AlphaClipThreshold:
                         return systemData.alphaTest;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPrepass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPrepass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.transparentDepthPostpass;
+                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && builtinData.transparentDepthPostpass;
                     case HairMasterNode1.SlotMask.AlphaClipThresholdShadow:
                         return systemData.alphaTest && builtinData.alphaTestShadow;
                     default:
@@ -108,37 +110,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Set blockmap
             blockMap = new Dictionary<BlockFieldDescriptor, int>();
-            foreach(HairMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HairMasterNode1.SlotMask)))
+            foreach (HairMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HairMasterNode1.SlotMask)))
             {
-                if(hairMasterNode.MaterialTypeUsesSlotMask(slotMask))
+                if (hairMasterNode.MaterialTypeUsesSlotMask(slotMask))
                 {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
+                    if (!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
                         continue;
 
-                    if(!AdditionalSlotMaskTests(slotMask))
+                    if (!AdditionalSlotMaskTests(slotMask))
                         continue;
-                    
+
                     var slotId = Mathf.Log((int)slotMask, 2);
                     blockMap.Add(blockFieldDescriptor, (int)slotId);
                 }
             }
 
             // Specular AA
-            if(lightingData.specularAA)
+            if (lightingData.specularAA)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, HairMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, HairMasterNode1.SpecularAAThresholdSlotId);
             }
 
             // Override Baked GI
-            if(lightingData.overrideBakedGI)
+            if (lightingData.overrideBakedGI)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, HairMasterNode1.LightingSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, HairMasterNode1.BackLightingSlotId);
             }
 
             // Depth Offset
-            if(builtinData.depthOffset)
+            if (builtinData.depthOffset)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, HairMasterNode1.DepthOffsetSlotId);
             }

@@ -28,6 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_RenderSchedule = EditorGUIUtility.TrTextContent("Render Schedule", "A list of layers and sub-layers in the scene. Layers are drawn from top to bottom.");
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
+            static public readonly string k_ShaderWarning = "You must specify a composition graph to see an output from the compositor.";
+
+            static public readonly GUIStyle k_HeaderStyle = new GUIStyle(EditorStyles.helpBox) { fontSize = CompositorStyle.k_HeaderFontSize };
         }
 
         ReorderableList m_layerList;
@@ -45,15 +48,29 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         public bool isDirty => m_IsEditorDirty;
 
+        public int defaultSelection = -1;
+        public int selectionIndex
+        {
+            get => m_layerList != null ? m_layerList.index : -1;
+            set
+            {
+                if (m_layerList != null) m_layerList.index = Math.Min(value, m_layerList.count - 1);
+            }
+        }
+
+
         void AddLayerOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
             m_SerializedProperties.layerList.serializedObject.Update();
+            m_compositionManager.DeleteLayerRTs();
             m_compositionManager.UpdateLayerSetup();
         }
 
         void AddFilterOfTypeCallback(object type)
         {
+            Undo.RecordObject(m_compositionManager, "Add input filter");
             m_compositionManager.AddInputFilterAtLayer(CompositionFilter.Create((CompositionFilter.FilterType)type), m_layerList.index);
             m_SerializedProperties.layerList.serializedObject.Update();
             CacheSerializedObjects();
@@ -64,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             ShaderPropertyUI.Draw(m_SerializedShaderProperties);
         }
 
-        bool CacheSerializedObjects()
+        public bool CacheSerializedObjects()
         {
             try
             {
@@ -74,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 return false;
             }
-            
+
             m_SerializedLayerProperties = new List<SerializedCompositionLayer>();
             m_SerializedShaderProperties = new List<SerializedShaderProperty>();
 
@@ -115,9 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 return;
             }
 
-            var headerStyle = EditorStyles.helpBox;
-            headerStyle.fontSize = 14;
-
             // Cache the serialized property fields
             if (m_IsEditorDirty || m_SerializedProperties == null)
             {
@@ -155,6 +169,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 m_IsEditorDirty = true;
                 shaderChange = true;
             }
+            if (m_compositionManager.shader == null)
+            {
+                EditorGUILayout.Space(5);
+                EditorGUILayout.HelpBox(Styles.k_ShaderWarning, MessageType.Error);
+            }
 
             EditorGUILayout.PropertyField(m_SerializedProperties.displayNumber);
 
@@ -182,6 +201,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 var serializedLayerList = m_SerializedProperties.layerList;
                 m_layerList = new ReorderableList(m_SerializedProperties.compositorSO, serializedLayerList, true, false, true, true);
 
+                // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor)
+                if (defaultSelection >= 0)
+                {
+                    m_layerList.index = Math.Min(defaultSelection, m_layerList.count - 1);
+                }
+
                 m_layerList.drawHeaderCallback = (Rect rect) =>
                 {
                 };
@@ -201,7 +226,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     m_IsEditorDirty = true;
 
                     m_compositionManager.ReorderChildren(oldIndex, newIndex);
-                    m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex);
+                    if (!m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex))
+                    {
+                        // The new position is invalid, so set the currently selected layer to the old/starting position s
+                        m_layerList.index = oldIndex;
+                    }
                 };
 
                 m_layerList.elementHeightCallback = (index) =>
@@ -228,6 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 m_layerList.onRemoveCallback = (list) =>
                 {
+                    Undo.RecordObject(m_compositionManager, "Remove compositor sublayer");
                     m_compositionManager.RemoveLayerAtIndex(list.index);
                     m_IsEditorDirty = true;
                     EditorUtility.SetDirty(m_compositionManager.profile);
@@ -251,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(Styles.k_RenderSchedule, headerStyle);
+            EditorGUILayout.LabelField(Styles.k_RenderSchedule, Styles.k_HeaderStyle);
             m_layerList.DoLayoutList();
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
@@ -265,18 +295,18 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 height += m_SerializedLayerProperties[m_layerList.index].GetPropertiesHeight();
             }
 
-            var rectagle = EditorGUILayout.BeginVertical(GUILayout.Height(height));
+            var rectangle = EditorGUILayout.BeginVertical(GUILayout.Height(height));
 
             EditorGUI.BeginChangeCheck();
             if (m_layerList.index >= 0)
             {
-                EditorGUILayout.LabelField(Styles.k_Properties, headerStyle);
+                EditorGUILayout.LabelField(Styles.k_Properties, Styles.k_HeaderStyle);
 
-                rectagle.y += EditorGUIUtility.singleLineHeight * 1.5f;
-                rectagle.x += 5;
-                rectagle.width -= 10;
+                rectangle.y += EditorGUIUtility.singleLineHeight * 1.5f;
+                rectangle.x += 5;
+                rectangle.width -= 10;
                 var serializedProperties = m_SerializedLayerProperties[m_layerList.index];
-                DrawLayerProperties(rectagle, serializedProperties, m_layerList.index, null);
+                DrawLayerProperties(rectangle, serializedProperties, m_layerList.index, null);
             }
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
@@ -290,16 +320,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 m_SerializedProperties.ApplyModifiedProperties();
             }
 
-            if (m_compositionManager.shader == null)
-            {
-                CompositionUtils.LoadDefaultCompositionGraph(m_compositionManager);
-                shaderChange = true;
-            }
-
             if (shaderChange)
             {
                 // This needs to run after m_SerializedProperties.ApplyModifiedProperties
                 CompositionUtils.LoadOrCreateCompositionProfileAsset(m_compositionManager);
+                m_compositionManager.SetupCompositionMaterial();
+                CompositionUtils.SetDefaultLayers(m_compositionManager);
             }
 
             if (cameraChange)
@@ -313,10 +339,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(m_compositionManager);
                 EditorUtility.SetDirty(m_compositionManager.profile);
+                m_compositionManager.DeleteLayerRTs();
                 m_compositionManager.UpdateLayerSetup();
             }
         }
- 
+
         void DrawLayerProperties(Rect rect, SerializedCompositionLayer serializedProperties, int layerIndex, RenderTexture preview = null)
         {
             if (serializedProperties == null)
@@ -347,7 +374,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     m_filterList.drawElementCallback = (Rect r, int index, bool isActive, bool isFocused) =>
                     {
                         if (index < m_SerializedLayerProperties[m_layerList.index].filterList.Count)
-                        { 
+                        {
                             var serializedFilter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             CompositionFilterUI.Draw(r, serializedFilter);
                         }
@@ -373,15 +400,12 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             var filter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             return filter.GetHeight();
                         }
-                        return 0;
+                        return CompositorStyle.k_Spacing;
                     };
                 }
 
                 CompositionLayerUI.DrawStackedLayerProperties(rect, serializedProperties, m_filterList);
             }
         }
-
     }
 }
-
-

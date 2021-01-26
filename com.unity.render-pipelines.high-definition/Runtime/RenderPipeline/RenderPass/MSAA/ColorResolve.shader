@@ -33,9 +33,40 @@ Shader "Hidden/HDRP/ColorResolve"
             return output;
         }
 
+        float ResolveWeight(float4 color, float totalSampleCount)
+        {
+            const float boxFilterWeight = rcp(totalSampleCount);
+            float toneMapWeight = rcp(1.0f + Luminance(color.xyz));
+
+            return boxFilterWeight * toneMapWeight;
+        }
+
+        float InverseToneMapWeight(float4 color)
+        {
+            return rcp(1.0f - Luminance(color.xyz));
+        }
+
         float4 LoadColorTextureMS(float2 pixelCoords, uint sampleIndex)
         {
             return LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, pixelCoords, sampleIndex);
+        }
+
+        float4 Resolve(Varyings input, int sampleCount)
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            int2 pixelCoords = int2(input.texcoord);
+
+            float4 finalVal = 0;
+            for (int i = 0; i < sampleCount; ++i)
+            {
+                float4 currSample = (LoadColorTextureMS(pixelCoords, i));
+                finalVal.rgb += currSample.rgb * ResolveWeight(currSample, sampleCount);
+                finalVal.a += currSample.a * rcp(sampleCount);
+            }
+
+            finalVal.xyz *= InverseToneMapWeight(finalVal);
+
+            return finalVal;
         }
 
         float4 Frag1X(Varyings input) : SV_Target
@@ -47,28 +78,19 @@ Shader "Hidden/HDRP/ColorResolve"
 
         float4 Frag2X(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(input.texcoord);
-            return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))) * 0.5f);
+            return Resolve(input, 2);
         }
 
         float4 Frag4X(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(input.texcoord);
-            return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))
-                                    + FastTonemap(LoadColorTextureMS(pixelCoords, 2)) + FastTonemap(LoadColorTextureMS(pixelCoords, 3))) * 0.25f);
+            return Resolve(input, 4);
         }
 
         float4 Frag8X(Varyings input) : SV_Target
         {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(input.texcoord);
-            return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))
-                                    + FastTonemap(LoadColorTextureMS(pixelCoords, 2)) + FastTonemap(LoadColorTextureMS(pixelCoords, 3))
-                                    + FastTonemap(LoadColorTextureMS(pixelCoords, 4)) + FastTonemap(LoadColorTextureMS(pixelCoords, 5))
-                                    + FastTonemap(LoadColorTextureMS(pixelCoords, 6)) + FastTonemap(LoadColorTextureMS(pixelCoords, 7))) * 0.125f);
+            return Resolve(input, 8);
         }
+
     ENDHLSL
     SubShader
     {

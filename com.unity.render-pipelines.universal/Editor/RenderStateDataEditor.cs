@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Pass", "What happens to the stencil value when passing.");
 
             public static readonly GUIContent stencilFail =
-                new GUIContent("Fail", "What happens the the stencil value when failing.");
+                new GUIContent("Fail", "What happens to the stencil value when failing.");
 
             public static readonly GUIContent stencilZFail =
-                new GUIContent("Z Fail", "What happens the the stencil value when failing Z testing.");
+                new GUIContent("Z Fail", "What happens to the stencil value when failing Z testing.");
         }
 
         //Stencil rendering
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
         {
-            if(!m_properties.Contains(property.serializedObject))
+            if (!m_properties.Contains(property.serializedObject))
                 Init(property);
 
             rect.height = EditorGUIUtility.singleLineHeight;
@@ -90,8 +90,11 @@ namespace UnityEditor.Rendering.Universal
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (m_OverrideStencil != null && m_OverrideStencil.boolValue)
-                return EditorUtils.Styles.defaultLineSpace * 6;
+            if (m_properties.Contains(property.serializedObject))
+            {
+                if (m_OverrideStencil != null && m_OverrideStencil.boolValue)
+                    return EditorUtils.Styles.defaultLineSpace * 6;
+            }
             return EditorUtils.Styles.defaultLineSpace * 1;
         }
     }

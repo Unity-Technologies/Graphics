@@ -1,4 +1,5 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
+from ruamel.yaml.scalarstring import PreservedScalarString as pss
 from ..shared.namer import pb_job_id_auto_version
 from ..shared.yml_job import YMLJob
 from ..shared.constants import NPM_UPMCI_INSTALL_URL
@@ -22,10 +23,24 @@ class PreviewPublish_AutoVersionJob():
         job.add_commands([
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci utils auto-version bump {bump_packages_args}',
-                f'upm-ci utils auto-version commit --push'])
-        job.add_trigger_integration_branch(target_branch)
+                f'upm-ci utils auto-version commit --push',
+                f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition',
+                f'python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal',
+                pss(f'''
+                    git diff --quiet
+                    if [[ $? != 0 ]]; then
+                        git config --global user.name "noreply@unity3d.com"
+                        git config --global user.email "noreply@unity3d.com"
+                        git add ./com.unity.template-*
+                        git checkout {target_branch}
+                        git commit -m "[Automation] Auto-bump template dependencies"
+                        git push origin {target_branch}
+                    else
+                        echo "Did not find any dependency to bump. Will not commit and push anything."
+                    fi'''
+                )])
+        if auto_version is True:
+            job.set_trigger_on_expression(f'push.branch eq "{target_branch}" AND NOT push.changes.all match ["com.unity.template-*/**/*.json"] AND NOT push.changes.all match ["com.unity.*/package.json"]')
         job.add_artifacts_packages()
-        # if auto_version is True:
-        #     job.add_trigger_integration_branch(target_branch)
         return job
     

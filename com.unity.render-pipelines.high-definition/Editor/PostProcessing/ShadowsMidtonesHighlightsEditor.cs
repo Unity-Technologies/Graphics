@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighlightsEnd;
 
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
-        
+
         // Curve drawing utilities
         Rect m_CurveRect;
         Material m_Material;
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ShadowsMidtonesHighlights>(serializedObject);
-            
+
             m_Shadows         = Unpack(o.Find(x => x.shadows));
             m_Midtones        = Unpack(o.Find(x => x.midtones));
             m_Highlights      = Unpack(o.Find(x => x.highlights));
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
             EditorGUILayout.Space();
-            
+
             EditorGUILayout.LabelField("Highlight Limits", EditorStyles.miniLabel);
             PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);

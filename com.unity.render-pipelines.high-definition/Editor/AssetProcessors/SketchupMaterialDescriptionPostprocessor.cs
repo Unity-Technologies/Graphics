@@ -1,5 +1,7 @@
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -21,6 +23,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+                return;
+
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
             if (lowerCasePath != ".skp")
                 return;
@@ -35,23 +41,23 @@ namespace UnityEditor.Rendering.HighDefinition
             TexturePropertyDescription textureProperty;
 
             material.SetShaderPassEnabled("DistortionVectors", false);
-            material.SetShaderPassEnabled("TransparentDepthPrepass",false);
+            material.SetShaderPassEnabled("TransparentDepthPrepass", false);
             material.SetShaderPassEnabled("TransparentDepthPostpass", false);
             material.SetShaderPassEnabled("TransparentBackface", false);
             material.SetShaderPassEnabled("MOTIONVECTORS", false);
 
-			if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BaseColorMap", material, textureProperty);
                 SetMaterialTextureProperty("_MainTex", material, textureProperty);
-				var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 material.SetColor("_BaseColor", color);
                 material.SetColor("_Color", color);
             }
-			else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
+            else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
             {
-				Color diffuseColor = vectorProperty;
-				diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
+                Color diffuseColor = vectorProperty;
+                diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
                 material.SetColor("_BaseColor", diffuseColor);
                 material.SetColor("_Color", diffuseColor);
             }
@@ -60,12 +66,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 material.SetInt("_ZWrite", 0);
+                material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_ALPHA");
+                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetFloat("_SurfaceType", 1.0f);
+                material.SetFloat("_Cutoff", .0f);
+                material.SetFloat("_AlphaCutoffEnable", 1.0f);
+                material.SetFloat("_AlphaCutoff", .0f);
+                material.SetFloat("_AlphaCutoffShadow", 1.0f);
+                material.SetFloat("_UseShadowThreshold", 1.0f);
             }
             else
             {
@@ -84,4 +97,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -127,6 +127,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_8bf4d33332b044ac91c436fd1724672f_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_93a4424a21524ceb9d3f64dc657f2e55_Texture_1:
         m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -137,6 +141,18 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_DAF57972_Texture_1:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_a67dbd7b748841668c4c95a6a1669d77_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_c19b950905ca4cf0b666591198ad5a19_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_c3d062a394a84326947e076dc06b3e49_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
@@ -268,7 +284,6 @@ Material:
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
     - _SubsurfaceMask: 1
-    - _SupportDecals: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1

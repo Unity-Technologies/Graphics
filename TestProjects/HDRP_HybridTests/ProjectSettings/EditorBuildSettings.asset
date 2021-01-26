@@ -41,4 +41,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/TestSkinnedMeshes.unity
     guid: b2fdac4989956904b89357094bed6e1f
+  - enabled: 1
+    path: Assets/SampleScenes/TestLightmaps.unity
+    guid: 531e5884400ca304fb30cc39c76c5536
+  - enabled: 1
+    path: Assets/SampleScenes/TestLightmaps/subscene.unity
+    guid: 9e1f59d94514a6a43a68a765edf749a9
   m_configObjects: {}

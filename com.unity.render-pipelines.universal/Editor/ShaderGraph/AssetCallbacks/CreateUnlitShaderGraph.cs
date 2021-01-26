@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
@@ -11,15 +11,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
             target.TrySetActiveSubTarget(typeof(UniversalUnlitSubTarget));
 
-            var blockDescriptors = new [] 
-            { 
+            var blockDescriptors = new[]
+            {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }
     }
 }

@@ -76,16 +76,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 return size - densityVolume.parameters.m_EditorUniformFade * 2f * Vector3.one;
         }
 
-        [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DensityVolume densityVolume, GizmoType gizmoType)
         {
+            if (s_BlendBox == null || s_BlendBox.Equals(null)
+                || s_ShapeBox == null || s_ShapeBox.Equals(null))
+                return;
+
             using (new Handles.DrawingScope(Matrix4x4.TRS(densityVolume.transform.position, densityVolume.transform.rotation, Vector3.one)))
             {
                 // Blend box
                 s_BlendBox.center = CenterBlendLocalPosition(densityVolume);
                 s_BlendBox.size = BlendSize(densityVolume);
                 Color baseColor = densityVolume.parameters.albedo;
-                baseColor.a = 8/255f;
+                baseColor.a = 8 / 255f;
                 s_BlendBox.baseColor = baseColor;
                 s_BlendBox.DrawHull(EditMode.editMode == k_EditBlend);
 
@@ -177,12 +181,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,
                                 newSize.y < 0.00001 ? 0 : previousPositiveFade.y * previousSize.y / newSize.y,
                                 newSize.z < 0.00001 ? 0 : previousPositiveFade.z * previousSize.z / newSize.z
-                                );
+                            );
                             Vector3 newNegativeFade = new Vector3(
                                 newSize.x < 0.00001 ? 0 : previousNegativeFade.x * previousSize.x / newSize.x,
                                 newSize.y < 0.00001 ? 0 : previousNegativeFade.y * previousSize.y / newSize.y,
                                 newSize.z < 0.00001 ? 0 : previousNegativeFade.z * previousSize.z / newSize.z
-                                );
+                            );
                             for (int axeIndex = 0; axeIndex < 3; ++axeIndex)
                             {
                                 if (newPositiveFade[axeIndex] + newNegativeFade[axeIndex] > 1)
@@ -220,12 +224,10 @@ namespace UnityEditor.Rendering.HighDefinition
                             else
                             {
                                 densityVolume.parameters.positiveFade =
-                                    densityVolume.parameters.negativeFade =
-                                    new Vector3(
-                                        newSize.x > 0.00001 ? (newSize.x - newUniformFade) / newSize.x : 0f,
-                                        newSize.y > 0.00001 ? (newSize.y - newUniformFade) / newSize.y : 0f,
-                                        newSize.z > 0.00001 ? (newSize.z - newUniformFade) / newSize.z : 0f
-                                    );
+                                    densityVolume.parameters.negativeFade = new Vector3(
+                                        1.0f - (newSize.x > 0.00000001 ? (newSize.x - newUniformFade) / newSize.x : 0f),
+                                        1.0f - (newSize.y > 0.00000001 ? (newSize.y - newUniformFade) / newSize.y : 0f),
+                                        1.0f - (newSize.z > 0.00000001 ? (newSize.z - newUniformFade) / newSize.z : 0f));
                             }
 
                             Vector3 delta = densityVolume.transform.rotation * s_ShapeBox.center - densityVolume.transform.position;

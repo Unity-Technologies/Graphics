@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static class HDFields
     {
-#region Tags
+        #region Tags
         public const string kMaterial = "Material";
         public const string kDots = "Dots";
         public const string kSpecular = "Specular";
@@ -12,9 +12,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string kDistortion = "Distortion";
         public const string kShaderPass = "ShaderPass";
         public const string kSubShader = "SubShader";
-#endregion
+        #endregion
 
-#region Fields
+        #region Fields
         // Material
         public static FieldDescriptor Anisotropy =              new FieldDescriptor(kMaterial, "Anisotropy", "_MATERIAL_FEATURE_TRANSMISSION 1");
         public static FieldDescriptor Iridescence =             new FieldDescriptor(kMaterial, "Iridescence", "_MATERIAL_FEATURE_TRANSMISSION 1");
@@ -53,7 +53,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");
         public static FieldDescriptor AmbientOcclusion =        new FieldDescriptor(string.Empty, "AmbientOcclusion", "_AMBIENT_OCCLUSION 1");
         public static FieldDescriptor CoatMask =                new FieldDescriptor(string.Empty, "CoatMask", "_COAT_MASK 1");
-        public static FieldDescriptor Tangent =                 new FieldDescriptor(string.Empty, "Tangent", "_TANGENT 1");
         public static FieldDescriptor LightingGI =              new FieldDescriptor(string.Empty, "LightingGI", "_LIGHTING_GI 1");
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
@@ -63,6 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
 
-#endregion
+        #endregion
     }
 }

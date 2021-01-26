@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -103,6 +103,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_1c53e78705a6478ca328bd83f4f1c050_Texture_1:
+        m_Texture: {fileID: 2800000, guid: aed9f348a004bff4987b87e0f1c072ec, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_4ad1c5757f9e46cf98987aeeb2710731_Texture_1:
         m_Texture: {fileID: 2800000, guid: aed9f348a004bff4987b87e0f1c072ec, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -119,6 +123,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_716a0c9ccb4944b9af3e840c01c0adb4_Texture_1:
+        m_Texture: {fileID: 2800000, guid: aed9f348a004bff4987b87e0f1c072ec, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_7468AC98_Texture_1:
         m_Texture: {fileID: 2800000, guid: 4f1015d86699e824f808554286b883b6, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -131,11 +139,19 @@ Material:
         m_Texture: {fileID: 2800000, guid: aed9f348a004bff4987b87e0f1c072ec, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_cf40f50b461f4a409762a0b4262005e0_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_f478ca3114b44229b36f9d7fa41d3d8a_Texture_1:
         m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_f62ffc6990434899bb5d49621c1ef4fa_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f897a6a861b64ca5aed08ab602292db0_Texture_1:
         m_Texture: {fileID: 2800000, guid: 4b1f9f1b31bb3dd42aad46703e1da91b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -268,7 +284,6 @@ Material:
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
     - _SubsurfaceMask: 1
-    - _SupportDecals: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1

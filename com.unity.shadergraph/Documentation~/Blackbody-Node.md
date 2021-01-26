@@ -2,16 +2,16 @@
 
 ## Description
 
-Samples a **Gradient** that simulates the effect of black body radiation. 
+Samples a **Gradient** that simulates the effect of black body radiation.
 The calculations in this node are based on data gathered by Mitchell Charity.
-This node outputs color in linear RGB space and preforms the conversion using a D65 whitepoint and a CIE 1964 10 degree color space. 
+This node outputs color in linear RGB space and preforms the conversion using a D65 whitepoint and a CIE 1964 10 degree color space.
 For more information, see [What color is a blackbody?](http://www.vendian.org/mncharity/dir3/blackbody/)
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Temperature      | Input | Vector 1 | None | Temperature or temperature map in Kelvin to sample.  |
+| Temperature      | Input | Float    | None | Temperature or temperature map in Kelvin to sample.  |
 | Out | Output      |    Vector 3 | None | Intensity represented by color in Vector 3. |
 
 ## Generated Code Example

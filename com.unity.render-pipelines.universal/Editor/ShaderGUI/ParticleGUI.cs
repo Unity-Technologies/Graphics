@@ -3,6 +3,7 @@ using UnityEditorInternal;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
@@ -63,9 +64,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static string streamPositionText = "Position (POSITION.xyz)";
             public static string streamNormalText = "Normal (NORMAL.xyz)";
             public static string streamColorText = "Color (COLOR.xyzw)";
+            public static string streamColorInstancedText = "Color (INSTANCED0.xyzw)";
             public static string streamUVText = "UV (TEXCOORD0.xy)";
             public static string streamUV2Text = "UV2 (TEXCOORD0.zw)";
             public static string streamAnimBlendText = "AnimBlend (TEXCOORD1.x)";
+            public static string streamAnimFrameText = "AnimFrame (INSTANCED1.x)";
             public static string streamTangentText = "Tangent (TANGENT.xyzw)";
 
             public static GUIContent streamApplyToAllSystemsText = new GUIContent("Fix Now",
@@ -115,7 +118,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static void SetupMaterialWithColorMode(Material material)
         {
-            var colorMode = (ColorMode) material.GetFloat("_ColorMode");
+            var colorMode = (ColorMode)material.GetFloat("_ColorMode");
 
             switch (colorMode)
             {
@@ -158,8 +161,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
-            if(!hasZWrite)
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
+            if (!hasZWrite)
             {
                 // Soft Particles
                 {
@@ -176,6 +179,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     if (enabled >= 0.5f)
                     {
+                        UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+                        if (urpAsset != null && !urpAsset.supportsCameraDepthTexture)
+                        {
+                            GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                            warnStyle.fontStyle = FontStyle.BoldAndItalic;
+                            warnStyle.wordWrap = true;
+                            EditorGUILayout.HelpBox("Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", MessageType.Warning);
+                        }
+
                         EditorGUI.indentLevel++;
                         BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
                             properties.softParticlesNearFadeDistance,
@@ -234,7 +246,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.showMixedValue = properties.distortionStrength.hasMixedValue;
                         var blend = EditorGUILayout.Slider(Styles.distortionBlend, properties.distortionBlend.floatValue, 0f, 1f);
-                        if(EditorGUI.EndChangeCheck())
+                        if (EditorGUI.EndChangeCheck())
                             properties.distortionBlend.floatValue = blend;
                         EditorGUI.indentLevel--;
                     }
@@ -250,8 +262,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Display list of streams required to make this shader work
             bool useNormalMap = false;
             bool useFlipbookBlending = (material.GetFloat("_FlipbookBlending") > 0.0f);
-            if(material.HasProperty("_BumpMap"))
+            if (material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
+
+            bool useGPUInstancing = ShaderUtil.HasProceduralInstancing(material.shader);
+            if (useGPUInstancing && renderers.Count > 0)
+            {
+                if (!renderers[0].enableGPUInstancing || renderers[0].renderMode != ParticleSystemRenderMode.Mesh)
+                    useGPUInstancing = false;
+            }
 
             // Build the list of expected vertex streams
             List<ParticleSystemVertexStream> streams = new List<ParticleSystemVertexStream>();
@@ -272,11 +291,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
 
             streams.Add(ParticleSystemVertexStream.Color);
-            streamList.Add(Styles.streamColorText);
+            streamList.Add(useGPUInstancing ? Styles.streamColorInstancedText : Styles.streamColorText);
             streams.Add(ParticleSystemVertexStream.UV);
             streamList.Add(Styles.streamUVText);
 
-            if (useFlipbookBlending)
+            List<ParticleSystemVertexStream> instancedStreams = new List<ParticleSystemVertexStream>(streams);
+
+            if (useGPUInstancing)
+            {
+                instancedStreams.Add(ParticleSystemVertexStream.AnimFrame);
+                streamList.Add(Styles.streamAnimFrameText);
+            }
+            else if (useFlipbookBlending && !useGPUInstancing)
             {
                 streams.Add(ParticleSystemVertexStream.UV2);
                 streamList.Add(Styles.streamUV2Text);
@@ -298,7 +324,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             foreach (ParticleSystemRenderer renderer in renderers)
             {
                 renderer.GetActiveVertexStreams(rendererStreams);
-                if (!rendererStreams.SequenceEqual(streams))
+
+                bool streamsValid;
+                if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
+                    streamsValid = CompareVertexStreams(rendererStreams, instancedStreams);
+                else
+                    streamsValid = CompareVertexStreams(rendererStreams, instancedStreams);
+
+                if (!streamsValid)
                     Warnings += "-" + renderer.name + "\n";
             }
 
@@ -314,10 +347,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     foreach (ParticleSystemRenderer renderer in renderers)
                     {
-                        renderer.SetActiveVertexStreams(streams);
+                        if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh && renderer.supportsMeshInstancing)
+                            renderer.SetActiveVertexStreams(instancedStreams);
+                        else
+                            renderer.SetActiveVertexStreams(streams);
                     }
                 }
             }
+        }
+
+        private static bool CompareVertexStreams(IEnumerable<ParticleSystemVertexStream> a, IEnumerable<ParticleSystemVertexStream> b)
+        {
+            var differenceA = a.Except(b);
+            var differenceB = b.Except(a);
+            var difference = differenceA.Union(differenceB).Distinct();
+            if (!difference.Any())
+                return true;
+            // If normals are the only difference, ignore them, because the default particle streams include normals, to make it easy for users to switch between lit and unlit
+            if (difference.Count() == 1)
+            {
+                if (difference.First() == ParticleSystemVertexStream.Normal)
+                    return true;
+            }
+            return false;
         }
 
         public static void SetMaterialKeywords(Material material)
@@ -327,7 +379,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Is the material transparent, this is set in BaseShaderGUI
             bool isTransparent = material.GetTag("RenderType", false) == "Transparent";
             // Z write doesn't work with distortion/fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
 
             // Flipbook blending
             if (material.HasProperty("_FlipbookBlending"))

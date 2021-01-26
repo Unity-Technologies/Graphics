@@ -12,7 +12,7 @@ To use shadowmasks in HDRP, you must set up your Project to support them. To do 
    2. Select a Level (for example, Medium) then, in the Shadows section, set the Shadowmask Mode to Distance Shadowmask.
    3. Do this for every Quality Level.
 
-3. Enable the Shadowmask property in your Unity Project’s [HDRP Asset](HDRP-Asset.html):
+3. Enable the Shadowmask property in your Unity Project’s [HDRP Asset](HDRP-Asset.md):
 
 4. 1. In the Project window, select an HDRP Asset to view in the Inspector.
    2. Go to the Lighting section and then to Shadow.
@@ -29,9 +29,9 @@ To use shadowmasks in HDRP, you must set up your Project to support them. To do 
    2. In the Frame Settings section, set Default Frame Settings For to Camera.
    3. In the Lighting section, enable Shadowmask.
 
-9. Optionally, you can make your [Reflection Probes](Reflection-Probes-Intro.html) use shadowmask for baked or real-time reflections. To do this, follow the same instructions as in step 3, but set Default Frame Settings For to Baked Or Custom Reflection or Realtime Reflection.
+9. Optionally, you can make your [Reflection Probes](Reflection-Probes-Intro.md) use shadowmask for baked or real-time reflections. To do this, follow the same instructions as in step 3, but set Default Frame Settings For to Baked Or Custom Reflection or Realtime Reflection.
 
-Now, on a [Light](Light-Component.html), when you select the Mixed mode. The lightmapper precomputes Shadowmasks for static GameObject that the Light affects.
+Now, on a [Light](Light-Component.md), when you select the Mixed mode. The lightmapper precomputes Shadowmasks for static GameObject that the Light affects.
 
 ## Shadowmask mode
 
@@ -39,7 +39,7 @@ To allow for flexible lighting setups, HDRP lets you choose the behaviour of the
 
 | Shadowmask Mode     | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
-| Distance Shadowmask | Makes the Light cast real-time shadows for all GameObjects when the distance between the Camera and the Light is less than the Fade Distance. If you can not see this property, expose [more options](More-Options.html) for the Shadows section. When the distance between the Light and the Camera is greater than the Fade Distance, HDRP stops calculating real-time shadows for the Light. Instead, it uses shadowmasks for static GameObjects, and non-static GameObjects do not cast shadows. Directional Lights don't use Fade Distance, instead they use the current [Max Shadow Distance](Override-Shadows.html). |
+| Distance Shadowmask | Makes the Light cast real-time shadows for all GameObjects when the distance between the Camera and the Light is less than the Fade Distance. If you can not see this property, expose [more options](More-Options.md) for the Shadows section. When the distance between the Light and the Camera is greater than the Fade Distance, HDRP stops calculating real-time shadows for the Light. Instead, it uses shadowmasks for static GameObjects, and non-static GameObjects do not cast shadows. Directional Lights don't use Fade Distance, instead they use the current [Max Shadow Distance](Override-Shadows.md). |
 | Shadowmask          | Makes the Light cast real-time shadows for non-static GameObjects only. It then combines these shadows with shadowmasks for static GameObjects when the distance between the Camera and the Light is less than the Fade Distance. When the distance between the Light and the Camera is greater than the Fade Distance, HDRP stops calculating real-time shadows for the Light. It uses shadowmasks for static GameObjects and non-static GameObjects do not cast shadows. |
 
 ## Details

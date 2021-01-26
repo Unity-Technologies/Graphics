@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdrp = HDRenderPipeline.defaultAsset;
                 int res  = (int)FGDTexture.Resolution;
 
-                switch(index)
+                switch (index)
                 {
                     case FGDIndex.FGD_GGXAndDisneyDiffuse:
                         m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.preIntegratedFGD_GGXDisneyDiffusePS);

@@ -153,12 +153,13 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
     type: 2}
+  m_LensAttenuation: 0
   m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 139549384114013
-      data2: 4539628425463136256
+      data2: 4539628425463136264
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -227,6 +228,15 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 3
     supportDecals: 1
+    supportDecalLayers: 1
+    decalLayerName0: Decal Layer default
+    decalLayerName1: Decal Layer 1
+    decalLayerName2: Decal Layer 2
+    decalLayerName3: Decal Layer 3
+    decalLayerName4: Decal Layer 4
+    decalLayerName5: Decal Layer 5
+    decalLayerName6: Decal Layer 6
+    decalLayerName7: Decal Layer 7
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 0
@@ -236,11 +246,8 @@ MonoBehaviour:
     supportRayTracing: 0
     supportedRayTracingMode: 3
     probeVolumeSettings:
-      atlasWidth: 128
-      atlasHeight: 128
-      atlasDepth: 512
-      atlasOctahedralDepthWidth: 2048
-      atlasOctahedralDepthHeight: 2048
+      atlasResolution: 128
+      atlasOctahedralDepthResolution: 2048
     lightLoopSettings:
       cookieAtlasSize: 8192
       cookieFormat: 74
@@ -251,7 +258,6 @@ MonoBehaviour:
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
-      planarReflectionCacheCompressed: 0
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -392,6 +398,26 @@ MonoBehaviour:
       - 0.33
       - 0.33
       - 0.5
+      RTRMinSmoothness:
+      - 0.6
+      - 0.4
+      - 0
+      RTRSmoothnessFadeStart:
+      - 0.7
+      - 0.5
+      - 0
+      RTRRayLength:
+      - 50
+      - 50
+      - 50
+      RTRClampValue:
+      - 0.8
+      - 1
+      - 1.2
+      RTRUpScaleRadius: 040000000400000003000000
+      RTRFullResolution: 000001
+      RTRDenoise: 010101
+      RTRDenoiserRadius: 080000000c00000010000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0

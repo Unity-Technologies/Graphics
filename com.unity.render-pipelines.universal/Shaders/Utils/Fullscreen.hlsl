@@ -4,8 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 #if _USE_DRAW_PROCEDURAL
-float4 _ScaleBias;
-
 void GetProceduralQuad(in uint vertexID, out float4 positionCS, out float2 uv)
 {
     positionCS = GetQuadVertexPosition(vertexID);
@@ -14,7 +12,7 @@ void GetProceduralQuad(in uint vertexID, out float4 positionCS, out float2 uv)
 }
 #endif
 
-struct FullscreenAttributes
+struct Attributes
 {
 #if _USE_DRAW_PROCEDURAL
     uint vertexID     : SV_VertexID;
@@ -25,16 +23,16 @@ struct FullscreenAttributes
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct FullscreenVaryings
+struct Varyings
 {
     float4 positionCS : SV_POSITION;
     float2 uv         : TEXCOORD0;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-FullscreenVaryings FullscreenVert(FullscreenAttributes input)
+Varyings FullscreenVert(Attributes input)
 {
-    FullscreenVaryings output;
+    Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
@@ -48,6 +46,11 @@ FullscreenVaryings FullscreenVert(FullscreenAttributes input)
 #endif
 
     return output;
+}
+
+Varyings Vert(Attributes input)
+{
+    return FullscreenVert(input);
 }
 
 #endif

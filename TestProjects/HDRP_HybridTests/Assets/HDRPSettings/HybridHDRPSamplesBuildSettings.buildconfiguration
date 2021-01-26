@@ -4,7 +4,8 @@
         {
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "HybridHDRPSamples",
-            "CompanyName": "UnityGraphics"
+            "CompanyName": "UnityGraphics",
+            "Version": "1.0.0"
         },
         {
             "$type": "Unity.Build.Common.SceneList, Unity.Build",
@@ -57,6 +58,10 @@
                 },
                 {
                     "Scene": "GlobalObjectId_V1-1-b2fdac4989956904b89357094bed6e1f-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-531e5884400ca304fb30cc39c76c5536-102900000-0",
                     "AutoLoad": false
                 }
             ]

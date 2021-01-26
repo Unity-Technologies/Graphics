@@ -277,6 +277,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
         if (_EnableVolumetricFog != 0)
         {
+            bool doBiquadraticReconstruction = _VolumetricFilteringEnabled == 0; // Only if filtering is disabled.
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
                                          fogFragDist,
@@ -285,7 +286,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
                                          _VBufferLightingViewportLimit.xyz,
                                          _VBufferDistanceEncodingParams,
                                          _VBufferDistanceDecodingParams,
-                                         true, true, false);
+                                         true, doBiquadraticReconstruction, false);
 
             // TODO: add some slowly animated noise (dither?) to the reconstructed value.
             // TODO: re-enable tone mapping after implementing pre-exposure.
