@@ -122,8 +122,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         const int k_LatestDefaultRefNameVersion = 1;
 
-        // this is used to know whether this shader input is using the "old" default reference naming scheme (0)
-        // or the new default reference namming scheme (1)
+        // this is used to know whether this shader input is using:
+        // 0) the "old" default reference naming scheme (type + GUID)
+        // 1) the new default reference naming scheme (make it similar to the display name)
         [SerializeField]
         int m_DefaultRefNameVersion = k_LatestDefaultRefNameVersion;
 
@@ -131,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string m_RefNameGeneratedByDisplayName; // used to tell what was the display name used to generate the default reference name
 
         [SerializeField]
-        string m_DefaultReferenceName;      // NOTE: this can be NULL for old graphs, or newly created properties
+        string m_DefaultReferenceName;          // NOTE: this can be NULL for old graphs, or newly created properties
 
         public string referenceName
         {
@@ -147,8 +148,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     }
                     else // version 1
                     {
-                        if (m_DefaultReferenceName == null)
-                            Debug.Log("Default Reference Name is NULL for " + displayName);
+                        // default reference name is updated elsewhere in the new naming scheme
                         return m_DefaultReferenceName;
                     }
                 }
@@ -158,6 +158,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override void OnBeforeDeserialize()
         {
+            // if serialization doesn't write to m_DefaultRefNameVersion, then it is an old shader input, and should use the old default naming scheme
             m_DefaultRefNameVersion = 0;
             base.OnBeforeDeserialize();
         }
@@ -214,7 +215,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract bool isExposable { get; }
         internal virtual bool isAlwaysExposed => false;
 
-        // should we allow the UI to rename the display and reference names?
+        // this controls whether the UI allows the user to rename the display and reference names
         internal abstract bool isRenamable { get; }
 
         internal abstract ShaderInput Copy();
