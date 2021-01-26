@@ -91,5 +91,3 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	return o;
 }
-
-${VFXFragmentCommonFunctions}

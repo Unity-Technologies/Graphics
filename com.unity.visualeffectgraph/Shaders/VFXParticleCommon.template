@@ -78,8 +78,6 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"${VFXEnd}
-
 ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT

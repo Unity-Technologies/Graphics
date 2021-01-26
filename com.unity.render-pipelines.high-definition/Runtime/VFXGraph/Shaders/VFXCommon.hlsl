@@ -82,6 +82,15 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return GetObjectToWorldMatrix();
@@ -175,3 +184,18 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 #endif
 }
 #endif
+
+
+CBUFFER_START(UnityPerCameraRare)
+    float4 unity_CameraWorldClipPlanes[6];
+
+#if !defined(USING_STEREO_MATRICES)
+    // Projection matrices of the camera. Note that this might be different from projection matrix
+    // that is set right now, e.g. while rendering shadows the matrices below are still the projection
+    // of original camera.
+    float4x4 unity_CameraProjection;
+    float4x4 unity_CameraInvProjection;
+    float4x4 unity_WorldToCamera;
+    float4x4 unity_CameraToWorld;
+#endif
+CBUFFER_END

@@ -32,5 +32,5 @@ To make HDRP render motion vectors for transparent Materials:
 
 ![](Images/MotionVectors2.png)
 
-When transparent objects write motion vectors on a given pixel, they replace that pixel’s previous motion vectors. This is particularly useful for Materials that use alpha clipping, such as hair. 
+When transparent objects write motion vectors on a given pixel, they replace that pixel’s previous motion vectors. This is particularly useful for Materials that use alpha clipping, such as hair.
 If you use motion blur in conjunction with transparent GameObjects, be aware that motion blur also uses depth information. This means that you should make the Material write depth information too. To do this, go to **Surface Options** and enable the **Transparent Depth Postpass** checkbox.

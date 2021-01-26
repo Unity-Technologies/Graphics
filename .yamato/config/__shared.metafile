@@ -50,47 +50,47 @@ test_platforms:
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
-      
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players 
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players
-      
+
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-        
-      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+
+      - [OSX_Metal]: --editor-location=.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
-      - [OSX_Metal]: --testfilter=%TEST_FILTER% 
-     
+      - [OSX_Metal]: --testfilter=%TEST_FILTER%
+
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto  
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>" 
-      
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
-      
+
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      
+
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
-      
+
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-      
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
-      
+
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
       - [iPhone]: --timeout=1800
@@ -101,63 +101,63 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
       - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
       - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
-      
+
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
-      
+
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
-  
+
   - type: playmode
     utr_flags:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=playmode
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --reruncount=2
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
-      
+
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      
+
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
-      
+
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-      
+
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
-      
+
   - type: editmode
     utr_flags:
-      - [all]: --testfilter=%TEST_FILTER% 
+      - [all]: --testfilter=%TEST_FILTER%
       - [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       - [all]: --reruncount=2
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       - [iPhone_Metal]: --platform=iOS
-      
+
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      
+
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
-      
+
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
-      
+
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
@@ -168,7 +168,7 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
-      
+
 platforms:
   Win:
     name: Win
@@ -209,7 +209,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
+        image: graphics-foundation/mac-10.15:latest
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -262,16 +262,16 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image: package-ci/ubuntu:stable
     flavor: b1.small
   package_ci_ubuntu_large:
     type: Unity::VM

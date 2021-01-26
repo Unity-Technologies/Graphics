@@ -151,7 +151,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
-    float _Pad8;
+    float _SpecularOcclusionBlend;
     float _Pad9;
 CBUFFER_END
 

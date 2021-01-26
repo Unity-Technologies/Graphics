@@ -4,14 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2021-01-11
+
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
-
-### Fixed
-- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed ACES tonemapping for platforms defaulting to lower precision, by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+
+### Added
+- New View Lighting Tool, a component which allow to setup light in the camera space
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
 
 ## [10.2.0] - 2020-10-19
 

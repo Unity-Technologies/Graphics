@@ -9,7 +9,7 @@ The Post-processing anti-aliasing algorithms are image-based, which is useful wh
 The Post-processing stack offers the following anti-aliasing modes:
 
 - [**Fast Approximate Anti-aliasing (FXAA)**](#fast-approximate-anti-aliasing); a fast algorithm for mobile and platforms that don’t support motion vectors.
-- [**Subpixel Morphological Anti-aliasing (SMAA)**](#subpixel-morphological-anti-aliasing); a high-quality but slower algorithm for mobile and platforms that don’t support motion vectors. 
+- [**Subpixel Morphological Anti-aliasing (SMAA)**](#subpixel-morphological-anti-aliasing); a high-quality but slower algorithm for mobile and platforms that don’t support motion vectors.
 - [**Temporal Anti-aliasing (TAA)**](#temporal-anti-aliasing); an advanced technique which requires motion vectors. Ideal for desktop and console platforms.
 
 Each mode is set per-camera in the **Post-process Layer** component.
@@ -33,7 +33,7 @@ Each mode is set per-camera in the **Post-process Layer** component.
 
 ### Performance
 
-Enable `Fast Mode` if you are developing for mobile or Nintendo Switch to get a performance boost. It will also provide a small boost for PlayStation 4 and Xbox One development. `Fast Mode` does not provide any extra benefits for desktop GPUs. In this case regular mode should be used for added visual quality.
+Enable `Fast Mode` if you are developing for mobile devices to get a performance boost. It will also provide a small boost for consoles. `Fast Mode` does not provide any extra benefits for desktop GPUs. In this case regular mode should be used for added visual quality.
 
 ### Requirements
 

@@ -1,6 +1,6 @@
 # Sample Texture2D
 
-Menu Path : **Operator > Sampling > Sample Texture2D** 
+Menu Path : **Operator > Sampling > Sample Texture2D**
 
 The **Sample Texture2D** Operator samples a Texture2D for a specified UV and Mip level. This Operator uses the same **Filter Mode** and **Wrap Mode** as the input texture’s [import settings](https://docs.unity3d.com/Manual/class-TextureImporter.html).
 
