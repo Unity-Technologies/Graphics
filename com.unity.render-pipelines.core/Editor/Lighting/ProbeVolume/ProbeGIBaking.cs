@@ -166,40 +166,52 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < numProbes; ++i)
                 {
-                    Vector4[] channels = new Vector4[3];
-
                     int j = bakingCells[c].probeIndices[i];
-
-                    // compare to SphericalHarmonicsL2::GetShaderConstantsFromNormalizedSH
-                    channels[0] = new Vector4(sh[j][0, 3], sh[j][0, 1], sh[j][0, 2], sh[j][0, 0]);
-                    channels[1] = new Vector4(sh[j][1, 3], sh[j][1, 1], sh[j][1, 2], sh[j][1, 0]);
-                    channels[2] = new Vector4(sh[j][2, 3], sh[j][2, 1], sh[j][2, 2], sh[j][2, 0]);
+                    SphericalHarmonicsL2 shv = sh[j];
 
                     // It can be shown that |L1_i| <= |2*L0|
                     // Precomputed Global Illumination in Frostbite by Yuriy O'Donnell.
                     // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
-                    //
-                    // So divide by L0 brings us to [-2, 2],
-                    // divide by 4 brings us to [-0.5, 0.5],
-                    // and plus by 0.5 brings us to [0, 1].
-                    for (int channel = 0; channel < 3; ++channel)
+                    for (int rgb = 0; rgb < 3; ++rgb)
                     {
-                        var l0 = channels[channel][3];
+                        var l0 = sh[j][rgb, 0];
 
-                        if (l0 != 0.0f)
-                        {
-                            for (int axis = 0; axis < 3; ++axis)
-                            {
-                                channels[channel][axis] = channels[channel][axis] / (l0 * 4.0f) + 0.5f;
-                                Debug.Assert(channels[channel][axis] >= 0.0f && channels[channel][axis] <= 1.0f);
-                            }
-                        }
+                        if (l0 == 0.0f)
+                            continue;
+
+                        // TODO: Enlarging range by 2 because we're using irradiance probes. Need to derive correct factors and remove this.
+                        // Compare ProbeVolume.hlsl
+                        l0 *= 2.0f;
+
+                        // L_1^m
+                        shv[rgb, 1] = sh[j][rgb, 1] / (l0 * 2.0f) + 0.5f;
+                        shv[rgb, 2] = sh[j][rgb, 2] / (l0 * 2.0f) + 0.5f;
+                        shv[rgb, 3] = sh[j][rgb, 3] / (l0 * 2.0f) + 0.5f;
+                        
+                        // L_2^-2
+                        shv[rgb, 4] = sh[j][rgb, 4] / (l0 * 3.75f) + 0.5f;
+
+                        // L_2^-1
+                        shv[rgb, 5] = sh[j][rgb, 5] / (l0 * 3.75f) + 0.5f;
+
+                        // L_2^0
+                        shv[rgb, 6] = sh[j][rgb, 6] / (l0 * 0.3125f * 4) + 0.5f;
+
+                        // L_2^1
+                        shv[rgb, 7] = sh[j][rgb, 7] / (l0 * 3.75f) + 0.5f;
+
+                        // L_2^2
+                        shv[rgb, 8] = sh[j][rgb, 8] / (l0 * 0.9375f) + 0.5f;
+
+                        // Assert coefficient range
+                        for (int coeff = 1; coeff < 9; ++coeff)
+                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
                     }
 
-                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(channels[0].w, channels[1].w, channels[2].w));
-                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(channels[0].x, channels[0].y, channels[0].z));
-                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(channels[1].x, channels[1].y, channels[1].z));
-                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(channels[2].x, channels[2].y, channels[2].z));
+                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
+                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(shv[0, 3], shv[0, 1], shv[0, 2]));
+                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
+                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
                     cell.validity[i] = validity[j];
                 }

@@ -79,12 +79,31 @@ APVConstants LoadAPVConstants( StructuredBuffer<int> index )
 
 float3 DecodeSH(float l0, float3 l1)
 {
-    return (l1 - 0.5) * 4.0 * l0;
+    // TODO: Enlarging range by 2 because we're using irradiance probes. Need to derive correct factors and remove this.
+    // Compare ProbeGIBaking.cs
+    return (l1 - 0.5f) * 2.0f * l0 * 2.0f;
 }
 
-float4 DecodeSH(float l0, float4 l1)
+void DecodeSH_L2(float l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float4 l2_C)
 {
-    return (l1 - 0.5) * 4.0 * l0;
+    l2_R.x = (l2_R.x - 0.5) * 3.75f   * l0;
+    l2_R.y = (l2_R.y - 0.5) * 3.75f   * l0;
+    l2_R.z = (l2_R.z - 0.5) * 3.75f   * l0;
+    l2_R.w = (l2_R.w - 0.5) * 3.75f   * l0;
+                                            
+    l2_G.x = (l2_G.x - 0.5) * 3.75f   * l0;
+    l2_G.y = (l2_G.y - 0.5) * 3.75f   * l0;
+    l2_G.z = (l2_G.z - 0.5) * 0.3125f * l0;
+    l2_G.w = (l2_G.w - 0.5) * 3.75f   * l0;
+                                            
+    l2_B.x = (l2_B.x - 0.5) * 3.75f   * l0;
+    l2_B.y = (l2_B.y - 0.5) * 3.75f   * l0;
+    l2_B.z = (l2_B.z - 0.5) * 0.3125f * l0;
+    l2_B.w = (l2_B.w - 0.5) * 3.75f   * l0;
+                                            
+    l2_C.x = (l2_C.x - 0.5) * 0.9375f * l0;
+    l2_C.y = (l2_C.y - 0.5) * 0.9375f * l0;
+    l2_C.z = (l2_C.z - 0.5) * 0.9375f * l0;
 }
 
 #define APV_USE_BASE_OFFSET
@@ -125,6 +144,8 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float
     float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
 
     float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+
+    DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
     diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
     backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
