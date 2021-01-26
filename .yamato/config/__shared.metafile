@@ -235,7 +235,7 @@ platforms:
                 utr <UTR_FLAGS>
         unity_downloader_cli: 
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+          - unity-downloader-cli {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
         turn_off_firewall: 
           - NetSh Advfirewall set allprofiles state off
   
@@ -278,7 +278,7 @@ platforms:
                 exit $UTR_RESULT
         unity_downloader_cli:
           - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
+          - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       [OpenGlCore]:
         setup_utr:
           - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
@@ -288,7 +288,7 @@ platforms:
         unity_downloader_cli:
           - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - brew install unity-downloader-cli
-          - unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
+          - unity-downloader-cli {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
 
 
   Linux:
@@ -322,7 +322,7 @@ platforms:
           - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
           - sudo apt update
           - sudo apt install unity-downloader-cli
-          - sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
+          - sudo unity-downloader-cli {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
       
 
   Android:
@@ -356,7 +356,7 @@ platforms:
                 utr <UTR_FLAGS>
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          - unity-downloader-cli -u {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+          - unity-downloader-cli {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
         turn_off_firewall: 
           - NetSh Advfirewall set allprofiles state off
         connect_bokken:
@@ -393,7 +393,7 @@ platforms:
         unity_downloader_cli:
           - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
           - brew install unity/unity/unity-downloader-cli
-          - unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+          - unity-downloader-cli {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
