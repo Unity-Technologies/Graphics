@@ -280,53 +280,11 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         }
     #endif
 
-        // Weight in the upper 20 bits, index in the lower 12 bits.
-        uint envLightWeightsAndIndices[MAX_REFLECTION_PROBES_PER_PIXEL];
-        ZERO_INITIALIZE_ARRAY(uint, envLightWeightsAndIndices, MAX_REFLECTION_PROBES_PER_PIXEL);
-
         EntityLookupParameters params = InitializeReflectionProbeLookup(tile, zBin);
-
         i = 0;
-
         EnvLightData envLightData;
         uint         envLightIndex;
-        while (TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
-        {
-            uint weight         = 1048575 - envLightData.logVolume; // Small volume -> high weight
-            uint indexAndWeight = (weight << 12) | envLightIndex;
-
-            // Insertion sort. We retain at most MAX_REFLECTION_PROBES_PER_PIXEL probes (based on their weight).
-            for (uint j = 0; j < MAX_REFLECTION_PROBES_PER_PIXEL; j++)
-            {
-                uint arrayElementWeight = envLightWeightsAndIndices[j] >> 12;
-
-                if (arrayElementWeight < weight)
-                {
-                    // Rotate the sub-array [j, last] to the right.
-                    for (uint k = MAX_REFLECTION_PROBES_PER_PIXEL - 1; k > j; k--)
-                    {
-                        envLightWeightsAndIndices[k] = envLightWeightsAndIndices[k - 1];
-                    }
-
-                    // Perform the insertion.
-                    envLightWeightsAndIndices[j] = indexAndWeight;
-                    break;
-                }
-            }
-
-            i++;
-        }
-
-        // Do not index out of bounds.
-        const uint envLightCount = min(i, MAX_REFLECTION_PROBES_PER_PIXEL);
-
-        if (envLightCount > 0)
-        {
-            uint firstIndex = envLightWeightsAndIndices[0] & ((1 << 12) - 1);
-
-            envLightData = LoadReflectionProbeDataUnsafe(firstIndex);
-        }
-        else
+        if(!TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
         {
             envLightData = InitSkyEnvLightData(0);
         }
@@ -340,12 +298,11 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
+            params = InitializeReflectionProbeLookup(tile, zBin);
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-            for (i = 0; i < envLightCount; i++)
+            while (TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
             {
-                uint envLightIndex = envLightWeightsAndIndices[i] & ((1 << 12) - 1);
-
                 envLightData = LoadReflectionProbeDataUnsafe(envLightIndex);
 
                 if (reflectionHierarchyWeight < 1.0)
@@ -361,6 +318,7 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
                 {
                     EVALUATE_BSDF_ENV(envLightData, REFRACTION, refraction);
                 }
+                i++;
             }
         }
 

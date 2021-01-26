@@ -208,13 +208,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     int viewCount             = m_MaxViewCount;
                     int maxBoundedEntityCount = tileAndClusterData.maxBoundedEntityCount;
                     int tileEntryLimit        = m_TileEntryLimit;
+                    int elementsPerTile = HDUtils.DivRoundUp(tileEntryLimit, 32); // Each element is a DWORD
 
                     passData.xyBoundsBuffer    = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" }); // {x_min, x_max, y_min, y_max}
                     passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
-                    passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
-
-                    int elementsPerTile = HDUtils.DivRoundUp(tileEntryLimit, 32); // Each element is a DWORD
-
+                    passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * elementsPerTile * viewCount, sizeof(uint)) { name = "zBinBuffer" }));
+       
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
                     // The tile buffer is a bit field with 1 bit per entity.

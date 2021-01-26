@@ -149,12 +149,6 @@ uint ComputeEntityBoundsBufferIndex(uint globalEntityIndex, uint eye)
     return IndexFromCoordinate(uint2(globalEntityIndex, eye), _BoundedEntityCount);
 }
 
-uint ComputeZBinBufferIndex(uint zBin, uint category, uint eye)
-{
-    return IndexFromCoordinate(uint3(zBin, category, eye),
-                               uint2(Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
-}
-
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
@@ -162,6 +156,8 @@ static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT]      =
 static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]       = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityDwordCountPerCategory;
 static uint s_BoundedEntityDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityDwordOffsetPerCategory;
+static uint s_BoundedEntityZBinDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityZBinDwordCountPerCategory;
+static uint s_BoundedEntityZBinDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityZBinDwordOffsetPerCategory;
 
 uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint category, uint eye)
 {
@@ -229,6 +225,26 @@ uint ComputeTileBufferIndex(uint tile, uint category, uint eye, uint2 tileBuffer
 uint ComputeTileBufferIndex(uint tile, uint category, uint eye)
 {
     return ComputeTileBufferIndex(tile, category, eye, TILE_BUFFER_DIMS);
+}
+
+// Internal. Do not call directly.
+uint ComputeZBinBufferIndex(uint zbin, uint category, uint eye)
+{
+    // Avoid indexing out of bounds (and crashing).
+    // Defensive programming to protect us from incorrect caller code.
+    zbin = min(zbin, Z_BIN_COUNT - 1);
+
+    // TODO: could be optimized/precomputed.
+    uint dwordOffset = s_BoundedEntityZBinDwordOffsetPerCategory[category]; // Previous categories
+    uint dwordCount = s_BoundedEntityZBinDwordCountPerCategory[category];  // Current category
+    uint dwordsPerBin = s_BoundedEntityZBinDwordOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]
+        + s_BoundedEntityZBinDwordCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT - 1]; // All categories
+
+    uint eyeOffset = Z_BIN_COUNT * dwordsPerBin * eye;
+    uint catOffset = Z_BIN_COUNT * dwordOffset; // category data is contiguous for all zbins, so to get to the start of current
+                                                // category we need to multiply its offset by total number of zbins.
+    uint zbinOffset = zbin * dwordCount;        // zbin index * dwords for this category
+    return eyeOffset + catOffset + zbinOffset;
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL

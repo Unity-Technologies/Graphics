@@ -18,9 +18,11 @@ StructuredBuffer<float2> _wBoundsBuffer; // {w_min, w_max}
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
 // The size of the buffer can be computed as follows:
-// Z_BIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
-// For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
-RWStructuredBuffer<uint> _zBinBuffer; // {last << 16 | first}
+// Z_BIN_COUNT * s_TileEntryLimit / 32 * EYE_COUNT * sizeof(UINT).
+// For example (1080p): 8192 * 256 / 32 * 1 * 4 = 256KiB
+// For categories that can be depth sorted there is a single DWORD per zbin
+// where last and first entity indices packed as follows {last << 16 | first}
+RWStructuredBuffer<uint> _zBinBuffer; 
 
 /* ------------------------------ Utilities --------------------------------- */
 
@@ -55,64 +57,89 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
     const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
-    // Imagine that we have n entities in this category.
-    // In this case, entity indices would be in the range [0, n - 1].
-    // Entities are (approximately) sorted by the z-coordinate.
-    // "Classically" (as per Drobot's presentation), if entities with indices
-    // in the closed interval [a, b] overlap the bin, we store {a, b}.
-    // If no entities overlap the bin, we store {65535, 0}.
-    // For queries over z-ranges, this method has a disadvantage, since if the bin is empty,
-    // we have no information about the entities that surround the bin.
-    // What we would like to store instead is (signed) indices {left, right} = {a - 1, b + 1}.
-    // This means we include the largest index (on the left) before we add anything to the bin
-    // and the smallest index (on the right) after we are done adding everything to the bin
-    // (or we just went past the bin without adding anything).
-    // In practice, we iterate over [a, b], but the important part is how we compute these numbers.
-    int left = -1, right = (int)entityCount;
-
     if (entityCount > 0) // Avoid wasted work
     {
         const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, rcp(_ZBufferParams.w));
         const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
+		
+		if (cat == BOUNDEDENTITYCATEGORY_REFLECTION_PROBE) // not sorted by depth
+		{
+			const uint ZBinBufferOffset = ComputeZBinBufferIndex(bin, cat, eye);
+			uint  entityOffset = 0;
+			uint  entityMask = 0;
+			for (uint i = 0; i < entityCount; i++)
+			{
+				uint newEntityOffset = i / 32;
+				if (newEntityOffset > entityOffset)
+				{
+					_zBinBuffer[ZBinBufferOffset + entityOffset] = entityMask;
+					entityMask = 0;
+					entityOffset = newEntityOffset;
+				}
+				float2 entityBounds = _wBoundsBuffer[inputStart + i];
+				// !((entityBounds.y < binBounds.x) || (binBounds.y < entityBounds.x))
+				if ((entityBounds.y >= binBounds.x) && (binBounds.y >= entityBounds.x)) // overlap
+				{
+					entityMask |= (1 << i);
+				}
+			}
+			// make sure we store the last dword
+			_zBinBuffer[ZBinBufferOffset + entityOffset] = entityMask;
+		}
+		else //sorted by depth
+		{
+			// Imagine that we have n entities in this category.
+			// In this case, entity indices would be in the range [0, n - 1].
+			// Entities are (approximately) sorted by the z-coordinate.
+			// "Classically" (as per Drobot's presentation), if entities with indices
+			// in the closed interval [a, b] overlap the bin, we store {a, b}.
+			// If no entities overlap the bin, we store {65535, 0}.
+			// For queries over z-ranges, this method has a disadvantage, since if the bin is empty,
+			// we have no information about the entities that surround the bin.
+			// What we would like to store instead is (signed) indices {left, right} = {a - 1, b + 1}.
+			// This means we include the largest index (on the left) before we add anything to the bin
+			// and the smallest index (on the right) after we are done adding everything to the bin
+			// (or we just went past the bin without adding anything).
+			// In practice, we iterate over [a, b], but the important part is how we compute these numbers.
+			int left = -1, right = (int)entityCount;
+			bool isEmpty = true;
 
-        bool isEmpty = true;
+			// The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
+			// Therefore, it will be slow if 'n' is large.
+			// TODO: we should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+			// TODO: unroll.
+			for (uint i = 0; i < entityCount; i++)
+			{
+				float2 entityBounds = _wBoundsBuffer[inputStart + i];
 
-        // The algorithm is O(n * m) where 'n' is the entity count and 'm' is bin count.
-        // Therefore, it will be slow if 'n' is large.
-        // TODO: we should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
-        // TODO: unroll.
-        for (uint i = 0; i < entityCount; i++)
-        {
-            float2 entityBounds = _wBoundsBuffer[inputStart + i];
+				if (entityBounds.y < binBounds.x)
+				{
+					// No overlap (entity on the left of the bin).
+					left = isEmpty ? (int)i : left;
+				}
+				else if (binBounds.y < entityBounds.x)
+				{
+					// No overlap (entity on the right of the bin).
+					right = min((int)i, right);
+				}
+				else
+				{
+					// Overlap.
+					isEmpty = false;
+					right = (int)i + 1;
+				}
+			}
+			uint outputIndex = ComputeZBinBufferIndex(bin, cat, eye);
 
-            if (entityBounds.y < binBounds.x)
-            {
-                // No overlap (entity on the left of the bin).
-                left = isEmpty ? (int)i : left;
-            }
-            else if (binBounds.y < entityBounds.x)
-            {
-                // No overlap (entity on the right of the bin).
-                right = min((int)i, right);
-            }
-            else
-            {
-                // Overlap.
-                isEmpty = false;
-                right   = (int)i + 1;
-            }
-        }
+			// Before (open interval):
+			// left >= -1, right >= 0.
+			uint first = (uint)(left + 1);
+			uint last = (uint)(right - 1); // -1 becomes 0xFFFF
+			// After (closed interval):
+			// first >= 0, last >= -1.
+			uint outputRange = (last << 16) | first;
+
+			_zBinBuffer[outputIndex] = outputRange;
+		}
     }
-
-    uint outputIndex = ComputeZBinBufferIndex(bin, cat, eye);
-
-    // Before (open interval):
-    // left >= -1, right >= 0.
-    uint first = (uint)(left  + 1);
-    uint last  = (uint)(right - 1); // -1 becomes 0xFFFF
-    // After (closed interval):
-    // first >= 0, last >= -1.
-    uint outputRange = (last << 16) | first;
-
-    _zBinBuffer[outputIndex] = outputRange;
 }
