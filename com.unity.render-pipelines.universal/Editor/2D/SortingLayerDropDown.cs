@@ -105,12 +105,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Rect position = EditorGUI.PrefixLabel(totalPosition, actualLabel);
 
             m_ApplyToSortingLayersList.Clear();
-            int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
-            for (int i = 0; i < applyToSortingLayersSize; ++i)
+
+            if (!m_ApplyToSortingLayers.hasMultipleDifferentValues)
             {
-                int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
-                if (SortingLayer.IsValid(layerID))
-                    m_ApplyToSortingLayersList.Add(layerID);
+                int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
+                for (int i = 0; i < applyToSortingLayersSize; ++i)
+                {
+                    int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
+                    if (SortingLayer.IsValid(layerID))
+                        m_ApplyToSortingLayersList.Add(layerID);
+                }
             }
 
             GUIContent selectedLayers;
