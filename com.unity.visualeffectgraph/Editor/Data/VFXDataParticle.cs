@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
         {
             var shader = material.shader;
 
-            void Set<K, V>(Dictionary<K, V> dict, K key, V value)
+            static void SetValue<K, V>(IDictionary<K, V> dict, K key, V value)
             {
                 if (dict.ContainsKey(key))
                     dict[key] = value;
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
             }
 
             foreach (var k in ShaderUtil.GetShaderLocalKeywords(shader))
-                Set(m_KeywordMap, k, material.IsKeywordEnabled(k));
+                SetValue(m_KeywordMap, k, material.IsKeywordEnabled(k));
 
             for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
             {
@@ -225,7 +225,7 @@ namespace UnityEditor.VFX
                     case ShaderUtil.ShaderPropertyType.Float:
                     {
                         if (material.HasFloat(name))
-                            Set(m_FloatMap, name, material.GetFloat(name));
+                            SetValue(m_FloatMap, name, material.GetFloat(name));
                     }
                     break;
                 }
@@ -286,7 +286,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private List<float>  m_FloatVal   = new List<float>();
 
-        public void OnBeforeSerialize()
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
             m_KeywordKey.Clear();
             m_KeywordVal.Clear();
@@ -305,7 +305,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void OnAfterDeserialize()
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             m_KeywordMap = new Dictionary<string, bool>();
             for (int i = 0; i != Math.Min(m_KeywordKey.Count, m_KeywordVal.Count); i++)
@@ -347,16 +347,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private TruncatedMaterial m_RuntimeMaterial = new TruncatedMaterial();
 
-        public TruncatedMaterial runtimeMaterial
-        {
-            get
-            {
-                // if (m_RuntimeMaterial == null)
-                //     m_RuntimeMaterial = CreateInstance<TruncatedMaterial>();
-
-                return m_RuntimeMaterial;
-            }
-        }
+        public TruncatedMaterial runtimeMaterial => m_RuntimeMaterial;
 
         // Transient material used to call the correct material inspector,
         // which controls the SRP specific render state configuration.

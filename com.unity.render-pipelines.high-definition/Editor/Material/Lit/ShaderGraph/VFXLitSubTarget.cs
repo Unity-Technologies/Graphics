@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
 
+        protected override string customInspector => "Rendering.HighDefinition.VFXShaderGraphGUI";
+
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             var baseSubShaderDescriptor = new SubShaderDescriptor
