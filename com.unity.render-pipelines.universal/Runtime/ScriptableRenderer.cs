@@ -808,7 +808,7 @@ namespace UnityEngine.Rendering.Universal
                     if (cameraData.camera.rect.height != 1)
                         height = (int)(height / cameraData.camera.rect.height);
                 }
-                context.BeginRenderPass(width, height, sampleCount, attachments,
+                context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
                     useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
                 attachments.Dispose();
                 var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? validColorBuffersCount : 0, Allocator.Temp);
@@ -934,10 +934,16 @@ namespace UnityEngine.Rendering.Universal
 
                 if (renderPass.useNativeRenderPass)
                 {
+                    // TODO: move this logic in the preprocessing of the scene and cache the results
+                    bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+                    bool isLastPassToBB = false;
+
                     if (cameraData.renderType == CameraRenderType.Overlay)
                         m_FirstTimeColorClear = false;
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
+                        isLastPassToBB |= isLastPass && (renderPass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
+
                         m_ActiveColorAttachmentDescriptors[i] =
                             new AttachmentDescriptor(renderPass.renderTargetFormat[i] != GraphicsFormat.None ? renderPass.renderTargetFormat[i] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
                         m_ActiveColorAttachmentDescriptors[i].ConfigureTarget(renderPass.colorAttachments[i], false, true);
@@ -946,7 +952,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, false, true);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, false, !isLastPassToBB);
                     if (needCustomCameraDepthClear)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                     m_FirstTimeColorClear = false;
@@ -1066,6 +1072,7 @@ namespace UnityEngine.Rendering.Universal
                             ? new RenderTargetIdentifier(cameraData.targetTexture)
                             : RenderTargetHandle.CameraTarget.Identifier());
 
+                    // TODO: move this logic in the preprocessing of the scene and cache the results
                     bool isLastPassToBB = isLastPass && (destTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
 
                     m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(destTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
