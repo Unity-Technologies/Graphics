@@ -495,8 +495,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.frameSettings = frameSettings;
 
             /* TODO: we shouldn't be reading these buffers if tiled lighting is disabled... */
-            data.fineTileBuffer     = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
-            data.zBinBuffer         = builder.ReadComputeBuffer(lightLists.zBinBuffer);
+            data.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+            data.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
 
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
