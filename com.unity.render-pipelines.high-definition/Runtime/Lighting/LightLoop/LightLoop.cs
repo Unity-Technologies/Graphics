@@ -3185,23 +3185,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int decalIndex = 0; decalIndex < decalCount; decalIndex++)
                 {
-                    Vector3 centroidVS = DecalSystem.m_Bounds[decalIndex].center; // Computed for the first eye, I guess? Confirm...
-
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
-                        float w = centroidVS.z;
-
-                        if (viewIndex > 0) // This is quite suboptimal...
-                        {
-                            Matrix4x4 viewMatrixEye0 = GetWorldToViewMatrix(hdCamera, 0); // Non-RWS
-                            Vector3   centroidWS     = viewMatrixEye0.inverse.MultiplyPoint(centroidVS);
-
-                            w = ComputeLinearDepth(centroidWS, hdCamera, viewIndex);
-                        }
-
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
-                        ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, d);
-
+                        // decals are not spatially sorted, use their index in the data array to preserve draw order 
+                        ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, decalIndex);
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.Decal, key);
                     }
                 }
@@ -3906,6 +3893,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TileAndClusterData       tileAndClusterData;
         }
 
+        private bool IsDepthSorted(BoundedEntityCategory category)
+        {
+            return (category != BoundedEntityCategory.ReflectionProbe) && (category != BoundedEntityCategory.Decal);
+        }
+
         unsafe void UpdateShaderVariablesGlobalLightLoop(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             // Atlases
@@ -3951,7 +3943,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
                 cb._BoundedEntityDwordCountPerCategory[i] = (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
                 // depth sorted categories only use 1 DWORD with start and end indices compressed into 32 bits.
-                cb._BoundedEntityZBinDwordCountPerCategory[i] = (i == (int)BoundedEntityCategory.ReflectionProbe) ? (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32) : 1;
+                cb._BoundedEntityZBinDwordCountPerCategory[i] = IsDepthSorted((BoundedEntityCategory)i) ? 1 : (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
             }
 
             cb._BoundedEntityOffsetPerCategory[0] = 0;

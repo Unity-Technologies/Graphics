@@ -204,20 +204,20 @@ struct EntityLookupParameters
 };
 
 // Internal. Do not call directly.
-EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSorted)
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
 {
     EntityLookupParameters params;
     ZERO_INITIALIZE(EntityLookupParameters, params);
 
     params.dwordIndex = 0;
     params.dwordCount = s_BoundedEntityDwordCountPerCategory[category];
-    params.depthSorted = depthSorted;
+    params.depthSorted = IsDepthSorted(category);
 
     if (params.dwordCount > 0)
     {
         uint zbinDword = 0;
         // fetch zbin
-        if (depthSorted) // sorted by depth, can use the min,max index per zbin optimization
+        if (IsDepthSorted(category)) // sorted by depth, can use the min,max index per zbin optimization
         {
             const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
             const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
@@ -307,7 +307,7 @@ struct EntityLookupParameters
 };
 
 // Internal. Do not call directly.
-EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category, bool depthSorted)
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
 {
     EntityLookupParameters params;
 
@@ -357,13 +357,13 @@ uint TryFindEntityIndex(uint i, inout EntityLookupParameters params, out uint en
 // Only call this once (outside the loop).
 EntityLookupParameters InitializePunctualLightLookup(uint tile, uint zBin)
 {
-    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, true);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
 }
 
 // Only call this once (outside the loop).
 EntityLookupParameters InitializePunctualLightLookup(uint tile, uint2 zBinRange)
 {
-    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, true);
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
 }
 
 bool TryLoadPunctualLightData(uint i, inout EntityLookupParameters params, out LightData data)
@@ -385,13 +385,13 @@ bool TryLoadPunctualLightData(uint i, inout EntityLookupParameters params, out L
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeAreaLightLookup(uint tile, uint zBin)
 {
-    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_AREA_LIGHT, true);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_AREA_LIGHT);
 }
 
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeAreaLightLookup(uint tile, uint2 zBinRange)
 {
-    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT, true);
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT);
 }
 
 bool TryLoadAreaLightData(uint i, inout EntityLookupParameters params, out LightData data)
@@ -413,13 +413,13 @@ bool TryLoadAreaLightData(uint i, inout EntityLookupParameters params, out Light
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint zBin)
 {
-    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, false);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
 }
 
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint2 zBinRange)
 {
-    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, false);
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
 }
 
 bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out EnvLightData data, out uint entityIndex)
@@ -440,13 +440,13 @@ bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeDecalLookup(uint tile, uint zBin)
 {
-    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DECAL, true);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DECAL);
 }
 
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeDecalLookup(uint tile, uint2 zBinRange)
 {
-    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL, true);
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL);
 }
 
 bool TryLoadDecalData(uint i, inout EntityLookupParameters params, out DecalData data)
@@ -468,13 +468,13 @@ bool TryLoadDecalData(uint i, inout EntityLookupParameters params, out DecalData
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint zBin)
 {
-    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, true);
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
 }
 
 // Only call this once (outside the loop).
 EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint2 zBinRange)
 {
-    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, true);
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
 }
 
 bool TryLoadDensityVolumeData(uint i, inout EntityLookupParameters params, out DensityVolumeData data)
