@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified Sign operator node output for float when input is 0.0f [Case 1299922](https://fogbugz.unity3d.com/f/cases/1299922/)
 - An existing link can be remade.
 - Use alphabetical order in type list in blackboard "+" button [Case 1304109](https://issuetracker.unity3d.com/product/unity/issues/guid/1304109/)
+- pCache: Unexpected ditable field in Mesh Statistics, Save & Cancel pCache, error trying to access not readable texture [Case 1122417](https://issuetracker.unity3d.com/product/unity/issues/guid/1122417/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
