@@ -194,7 +194,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeBufferHandle fineTileBuffer;
             public ComputeBufferHandle zBinBuffer;
-            public ComputeBufferHandle zBinBitArrayBuffer;
             public ComputeBufferHandle tileList;
             public ComputeBufferHandle dispatchIndirect;
 
@@ -231,7 +230,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
                     passData.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
-                    passData.zBinBitArrayBuffer = builder.ReadComputeBuffer(lightLists.zBinBitArrayBuffer);
                 }
 
                 builder.SetRenderFunc(

@@ -18,15 +18,11 @@ StructuredBuffer<float2> _wBoundsBuffer; // {w_min, w_max}
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
 // The size of the buffer can be computed as follows:
-// Z_BIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
-// For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
-RWStructuredBuffer<uint> _zBinBuffer; // {last << 16 | first}
-
-// For categories with custom sort
-// The size of the buffer can be computed as follows:
 // Z_BIN_COUNT * s_TileEntryLimit / 32 * EYE_COUNT * sizeof(UINT).
 // For example (1080p): 8192 * 256 / 32 * 1 * 4 = 256KiB
-RWStructuredBuffer<uint> _zBinBitArrayBuffer; 
+// For categories that can be depth sorted there is a single DWORD per zbin
+// where last and first entity indices packed as follows {last << 16 | first}
+RWStructuredBuffer<uint> _zBinBuffer; 
 
 /* ------------------------------ Utilities --------------------------------- */
 
@@ -68,7 +64,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 		
 		if (cat == BOUNDEDENTITYCATEGORY_REFLECTION_PROBE) // not sorted by depth
 		{
-			const uint   ZBinBitArrayBufferOffset = ComputeZBinBitArrayBufferIndex(bin, cat, eye);
+			const uint ZBinBufferOffset = ComputeZBinBufferIndex(bin, cat, eye);
 			uint  entityOffset = 0;
 			uint  entityMask = 0;
 			for (uint i = 0; i < entityCount; i++)
@@ -76,7 +72,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 				uint newEntityOffset = i / 32;
 				if (newEntityOffset > entityOffset)
 				{
-					_zBinBitArrayBuffer[ZBinBitArrayBufferOffset + entityOffset] = entityMask;
+					_zBinBuffer[ZBinBufferOffset + entityOffset] = entityMask;
 					entityMask = 0;
 					entityOffset = newEntityOffset;
 				}
@@ -88,7 +84,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 				}
 			}
 			// make sure we store the last dword
-			_zBinBitArrayBuffer[ZBinBitArrayBufferOffset + entityOffset] = entityMask;
+			_zBinBuffer[ZBinBufferOffset + entityOffset] = entityMask;
 		}
 		else //sorted by depth
 		{

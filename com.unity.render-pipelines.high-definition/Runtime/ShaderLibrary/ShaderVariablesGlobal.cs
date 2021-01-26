@@ -207,6 +207,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed uint _BoundedEntityDwordCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
         [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
         public fixed uint _BoundedEntityDwordOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+        // ZBin needs separate count and offset since depth sorted categories can be compressed
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityZBinDwordCountPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
+        [HLSLArray(((int)BoundedEntityCategory.Count + 3) / 4, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityZBinDwordOffsetPerCategory[(((int)BoundedEntityCategory.Count + 3) / 4) * 4];
 
         public Vector2Int _CoarseTileBufferDimensions;
         public Vector2Int _FineTileBufferDimensions;

@@ -239,7 +239,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint i = 0;
 
                     uint unused;
-                    while (TryFindEntityIndex(i, params, unused, _SelectedEntityCategory != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE))
+                    while (TryFindEntityIndex(i, params, unused))
                     {
                         entityCount++;
                         i++;
@@ -294,7 +294,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int i = 0;
                     entityCount = 0;
                     EntityLookupParameters params = InitializeEntityLookup(tile, zBinRange, category, category != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
-                    while (TryFindEntityIndex(i, params, entityIndex, category != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE))
+                    while (TryFindEntityIndex(i, params, entityIndex))
                     {
                         if (entityCount == lightListIndex)
                         {

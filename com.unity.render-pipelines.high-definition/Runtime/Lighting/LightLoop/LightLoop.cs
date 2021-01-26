@@ -2585,7 +2585,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int indexOffset;
         }
 
-        internal static BoundedEntitySortingKeyLayout GetBoundedEntitySortingKeyLayoutLayout()
+        internal static BoundedEntitySortingKeyLayout GetBoundedEntitySortingKeyLayout()
         {
             BoundedEntitySortingKeyLayout layout;
 
@@ -2609,7 +2609,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // 'lightType' is optional in case the entity is not a light.
         internal static ulong GenerateBoundedEntitySortingKey(int index, BoundedEntityCategory category, int fixedPointLogDepth, int lightType = 0)
         {
-            BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
+            BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayout();
 
             Debug.Assert(layout.totalBitCount <= 8 * sizeof(ulong));
             Debug.Assert(0 <= (int)category && (int)category < (int)BoundedEntityCategory.Count);
@@ -2858,7 +2858,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
+                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayout();
 
                     // In 1. we have already classify and sorted the light, we need to use this sorted order here
                     ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
@@ -3081,7 +3081,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                 {
-                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
+                    BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayout();
 
                     // In 1. we have already classify and sorted the light, we need to use this sorted order here
                     ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
@@ -3258,7 +3258,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
-                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
+                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayout();
 
                         ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
 
@@ -3303,7 +3303,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int sortIndex = start; sortIndex < (start + count); ++sortIndex)
                     {
-                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayoutLayout();
+                        BoundedEntitySortingKeyLayout layout = GetBoundedEntitySortingKeyLayout();
 
                         ulong sortKey = m_BoundedEntityCollection.GetEntitySortKey(viewIndex, sortIndex);
 
@@ -3459,7 +3459,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseTileBuffer;
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
-            public ComputeBuffer zBinBitArrayBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer; // Deferred
             public ComputeBuffer tileListBuffer;         // Deferred
             public ComputeBuffer dispatchIndirectBuffer; // Deferred
@@ -3554,9 +3553,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._wBoundsBuffer,      resources.wBoundsBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
                 
-
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
                 const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
@@ -3633,7 +3630,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.classificationShader.EnableKeyword("LIGHT_CLASSIFICATION");
                     cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
                     cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
-                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
                 }
 
                 if (parameters.computeMaterialVariants)
@@ -3954,6 +3950,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
                 cb._BoundedEntityDwordCountPerCategory[i] = (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
+                // depth sorted categories only use 1 DWORD with start and end indices compressed into 32 bits.
+                cb._BoundedEntityZBinDwordCountPerCategory[i] = (i == (int)BoundedEntityCategory.ReflectionProbe) ? (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32) : 1;
             }
 
             cb._BoundedEntityOffsetPerCategory[0] = 0;
@@ -3963,6 +3961,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
                 cb._BoundedEntityDwordOffsetPerCategory[i] = cb._BoundedEntityDwordOffsetPerCategory[i - 1] + cb._BoundedEntityDwordCountPerCategory[i - 1];
+                cb._BoundedEntityZBinDwordOffsetPerCategory[i] = cb._BoundedEntityZBinDwordOffsetPerCategory[i - 1] + cb._BoundedEntityZBinDwordCountPerCategory[i - 1];
             }
 
             int elementsPerTile = HDUtils.DivRoundUp(m_TileEntryLimit, 32); // Each element is a DWORD
@@ -4198,7 +4197,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
-            public ComputeBuffer zBinBitArrayBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;
             public ComputeBuffer dispatchIndirectBuffer;
@@ -4210,7 +4208,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,         resources.zBinBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -4313,7 +4310,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
@@ -4337,7 +4333,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
-            cmd.SetGlobalBuffer(HDShaderIDs._zBinBitArrayBuffer, resources.zBinBitArrayBuffer);
 
             // First, render split lighting.
             if (parameters.outputSplitLighting)
