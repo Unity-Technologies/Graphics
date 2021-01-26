@@ -32,11 +32,6 @@ If you use the **Paint Holes** tool on your terrain, make sure to enable the **T
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
+| **Enable Height-based Blend** | Specifies whether URP should only render the Terrain Layer with the greatest height value for a particular pixel. When enabled, URP takes the height values from the blue channel of the **Mask Map** Texture. When disabled, HDRP blends the Terrain Layers based on the weights painted in the control map Textures. URP automatically ignores this feature when more than four Terrain Layers are on the Terrain. When this option is disabled and the Terrain Lit Shader Material is assigned to a Terrain, URP will provide an additional option to enable **Opacity as Density Blend** for each on each Terrain Layer that is added to that Terrain in the Paint Texture Tool Inspector. |
 | **- Height Transition**       | Controls how much URP blends the terrain if multiple Terrain Layers are approximately the same height. |
 | **Enable Per-pixel Normal**   | Specifies whether URP should sample the normal map Texture on a per-pixel level.  When enabled, Unity preserves more geometry details for distant terrain parts. Unity generates a geometry normal map at runtime from the heightmap, rather than the Mesh geometry. This means you can have high-resolution Mesh normals, even if your Mesh is low resolution. It only works if you enable **Draw Instanced** on the terrain. |
-
-### Advanced Options
-
-| **Property**              | **Description**                                              |
-| ------------------------- | ------------------------------------------------------------ |
-| **Enable GPU Instancing** | Enable the checkbox to tell URP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. URP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
