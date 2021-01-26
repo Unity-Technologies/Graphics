@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="Styles/content.uss" />
+    <ui:VisualElement name="Root" style="margin: 2px; flex-direction: row; margin: 4px; min-width: auto; min-height: auto;">
+        <ui:VisualElement style="flex-direction: column; justify-content: flex-start; flex-grow: 1; min-width: 200px; max-width: none; min-height: 300px;">
+            <ui:Label text="Timings" name="Header" class="category-header" style="font-size: 14px;" />
+            <ui:Label text="Frame times" name="FrameTimes" class="category-header" />
+            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                <ui:Label text="CPU frame duration" name="Label" />
+                <ui:Label text="16.6ms" name="CpuFrameTime" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                <ui:Label text="GPU frame duration" name="Label" />
+                <ui:Label text="14.0ms" name="GpuFrameTime" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                <ui:Label text="Full frame duration" name="Label" />
+                <ui:Label text="16.6ms" name="TotalFrameTime" />
+            </ui:VisualElement>
+            <ui:Label text="GPU categories" name="GPUCategories" class="category-header" />
+            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
+                <ui:Foldout text="Opaque" />
+                <ui:Label text="1.25ms" />
+            </ui:VisualElement>
+            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
+                <ui:Foldout text="Deferred Lighting" />
+                <ui:Label text="1.25ms" />
+            </ui:VisualElement>
+            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
+                <ui:Foldout text="PostProcess" />
+                <ui:Label text="1.25ms" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-direction: column; flex-grow: 3; min-width: 200px; margin: 4px;">
+            <ui:Label text="Graph" name="Header" class="category-header" style="font-size: 14px;" />
+            <ui:IMGUIContainer name="GraphContainer" style="height: 200px; flex-grow: 1; min-height: 200px; max-height: 200px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

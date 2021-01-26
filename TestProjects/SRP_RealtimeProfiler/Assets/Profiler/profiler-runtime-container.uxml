@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="Styles/runtime-container.uss" />
+    <ui:Template name="ContentTemplate" src="profiler-content.uxml"/>
+    <ui:VisualElement name="Container">
+        <ui:Instance name="Content" template="ContentTemplate"/>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59db50dea4e43b042ba63605012274c8, type: 3}
+  m_Name: Text StyleSheet
+  m_EditorClassIdentifier: 
+  m_StyleList:
+  - m_Name: Normal
+    m_HashCode: -1183493901
+    m_OpeningDefinition: 
+    m_ClosingDefinition: 
+    m_OpeningTagArray: 
+    m_ClosingTagArray: 
+    m_OpeningTagUnicodeArray: 
+    m_ClosingTagUnicodeArray: 
+  - m_Name: Link
+    m_HashCode: 2656128
+    m_OpeningDefinition: <color=#0000FF><u>
+    m_ClosingDefinition: </u></color>
+    m_OpeningTagArray: 3c000000630000006f0000006c0000006f000000720000003d000000230000003000000030000000300000003000000046000000460000003e0000003c000000750000003e000000
+    m_ClosingTagArray: 3c0000002f000000750000003e0000003c0000002f000000630000006f0000006c0000006f000000720000003e000000
+    m_OpeningTagUnicodeArray: 3c000000630000006f0000006c0000006f000000720000003d000000230000003000000030000000300000003000000046000000460000003e0000003c000000750000003e000000
+    m_ClosingTagUnicodeArray: 3c0000002f000000750000003e0000003c0000002f000000630000006f0000006c0000006f000000720000003e000000
