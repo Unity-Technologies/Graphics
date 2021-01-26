@@ -774,7 +774,7 @@ namespace UnityEngine.Rendering.Universal
 
                 bool isLastPass = renderPass.sceneIndex == lastPassIndex;
 
-                bool isLastPassToBB = isLastPass && (renderPass.colorAttachment == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
+                bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
                 bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && !isLastPassToBB;
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
