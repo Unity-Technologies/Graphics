@@ -1056,21 +1056,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveColorAttachmentDescriptors[0] =
                         new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
                 else
-                {
-                    GraphicsFormat hdrFormat = GraphicsFormat.None;
-                    if (cameraData.isHdrEnabled)
-                    {
-                        if (!Graphics.preserveFramebufferAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
-                        hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                        else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
-                            hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                        else
-                            hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
-                    }
-
-                    var defaultFormat = cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : defaultFormat);
-                }
+                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
                     //zzz
 					if (cameraData.renderType == CameraRenderType.Overlay)
 						m_FirstTimeColorClear = false;
