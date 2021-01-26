@@ -6,7 +6,7 @@ class Project_PRJob():
 
     def __init__(self, project, editor, expression_trigger, dependencies_in_all):
         self.project = project
-        self.job_id = project_job_id_pr(project, editor["name"])
+        self.job_id = project_job_id_pr(project["name"], editor["name"])
         self.yml = self.get_job_definition(project, editor, expression_trigger, dependencies_in_all).get_yml()
 
 
@@ -15,7 +15,7 @@ class Project_PRJob():
         # define dependencies
         dependencies = []
         for dep in dependencies_in_all:
-            project_dep = dep.get('project', project)
+            project_dep = dep.get('project', project["name"])
 
             if dep.get("pr"):
                 dependencies.append({
@@ -33,15 +33,15 @@ class Project_PRJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'{project} PR Job - {editor["name"]}')
+        job.set_name(f'{project["name"]} PR Job - {editor["name"]}')
         job.add_dependencies(dependencies)
         if expression_trigger != "" and editor["name"].lower() != "custom-revision":
             job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         job.add_var_custom('UTR_VERSION', dss("current"))
         job.add_var_custom('TEST_FILTER', '.*')
-        if project == "URP_Performance_BoatAttack":
-            job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-            job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
+        if project.get('variables'):
+            for key,value in project.get('variables').items():
+                job.add_var_custom(key,value)
         return job
 
