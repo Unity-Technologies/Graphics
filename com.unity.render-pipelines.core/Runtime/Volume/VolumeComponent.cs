@@ -81,7 +81,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Extracts all the <see cref="VolumeParameter"/>s defined in this class and nested classes.
         /// </summary>
-        static void GetParameters(object o, List<VolumeParameter> parameters)
+        /// <param name="o">The object to find the parameters</param>
+        /// <param name="parameters">The list filled with the parameters.</param>
+        /// <param name="filter">If you want to filter the parameters</param>
+        internal static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter = null)
         {
             if (o == null)
                 return;
@@ -93,9 +96,12 @@ namespace UnityEngine.Rendering
             foreach (var field in fields)
             {
                 if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                    parameters.Add((VolumeParameter)field.GetValue(o));
+                {
+                    if (filter?.Invoke(field) ?? true)
+                        parameters.Add((VolumeParameter)field.GetValue(o));
+                }
                 else if (!field.FieldType.IsArray && field.FieldType.IsClass)
-                    GetParameters(field.GetValue(o), parameters);
+                    FindParameters(field.GetValue(o), parameters, filter);
             }
         }
 
@@ -109,7 +115,7 @@ namespace UnityEngine.Rendering
         {
             // Automatically grab all fields of type VolumeParameter for this instance
             var fields = new List<VolumeParameter>();
-            GetParameters(this, fields);
+            FindParameters(this, fields);
             parameters = fields.AsReadOnly();
 
             foreach (var parameter in parameters)
@@ -195,10 +201,14 @@ namespace UnityEngine.Rendering
         /// <param name="state">The value to set the state of the overrides to.</param>
         public void SetAllOverridesTo(bool state)
         {
-            SetAllOverridesTo(parameters, state);
+            SetOverridesTo(parameters, state);
         }
 
-        void SetAllOverridesTo(IEnumerable<VolumeParameter> enumerable, bool state)
+        /// <summary>
+        /// Sets the override state of the given parameters on this component to a given value.
+        /// </summary>
+        /// <param name="state">The value to set the state of the overrides to.</param>
+        internal void SetOverridesTo(IEnumerable<VolumeParameter> enumerable, bool state)
         {
             foreach (var prop in enumerable)
             {
@@ -213,7 +223,7 @@ namespace UnityEngine.Rendering
                             .GetValue(prop, null);
 
                     if (innerParams != null)
-                        SetAllOverridesTo(innerParams, state);
+                        SetOverridesTo(innerParams, state);
                 }
             }
         }
