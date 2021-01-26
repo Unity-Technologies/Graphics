@@ -1073,9 +1073,9 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
 
                     if (cameraData.cameraTargetDescriptor.msaaSamples == 1 && passDepthAttachment == BuiltinRenderTextureType.CameraTarget)
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.Depth, !m_FirstTimeColorClear , !isLastPassToBB);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(cameraData.targetTexture != null ? m_CameraDepthTarget : BuiltinRenderTextureType.Depth, !m_FirstTimeColorClear , !isLastPassToBB);
                     else
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment,!m_FirstTimeColorClear , !isLastPassToBB);
+                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(cameraData.targetTexture != null ? m_CameraDepthTarget : passDepthAttachment,!m_FirstTimeColorClear , !isLastPassToBB);
 
                     if (m_FirstTimeColorClear)
                     {
