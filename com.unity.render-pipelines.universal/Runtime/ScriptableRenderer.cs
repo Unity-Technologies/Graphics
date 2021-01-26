@@ -1056,7 +1056,7 @@ namespace UnityEngine.Rendering.Universal
 						m_FirstTimeColorClear = false;
 
                     bool isLastPass = renderPass.sceneIndex == lastPassIndex;
-                    bool isLastPassToBB = isLastPass && (renderPass.colorAttachment == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
+
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
                     var destTarget = (renderPass.depthOnly ||
@@ -1065,6 +1065,8 @@ namespace UnityEngine.Rendering.Universal
                         : (cameraData.targetTexture != null
                             ? new RenderTargetIdentifier(cameraData.targetTexture)
                             : RenderTargetHandle.CameraTarget.Identifier());
+
+                    bool isLastPassToBB = isLastPass && (destTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
 
                     m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(destTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
 
