@@ -83,9 +83,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal bool IsLit(Light2D light)
         {
             Vector3 deltaPos = light.transform.position - m_ProjectedBoundingSphere.position;
-            float distanceSq = deltaPos.x * deltaPos.x + deltaPos.y * deltaPos.y;
+            float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
             return distanceSq <= (light.boundingSphere.radius + m_ProjectedBoundingSphere.radius);
+           
+            Debug.DrawLine(light.transform.position, light.transform.position + new Vector3(distanceSq, 0), Color.magenta, 10);
+            Debug.DrawLine(m_ProjectedBoundingSphere.position, m_ProjectedBoundingSphere.position + new Vector3(m_ProjectedBoundingSphere.radius, 0), Color.magenta, 10);
+
+            return true;
         }
 
         internal bool IsShadowedLayer(int layer)

@@ -29,8 +29,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int pathLength = shapePath.Length;
             for (int i = 0; i < pathLength; i++)
             {
-                vertices.Add(shapePath[i]);
+                Vector3 vertex = shapePath[i];
+                vertices.Add(vertex);
                 normals.Add(Vector3.zero);
+
+                if (minX > vertex.x)
+                    minX = vertex.x;
+                if (maxX < vertex.x)
+                    maxX = vertex.x;
+
+                if (minY > vertex.y)
+                    minY = vertex.y;
+                if (maxY < vertex.y)
+                    maxY = vertex.y;
             }
 
             // Add extrusion vertices, normals, and triangles

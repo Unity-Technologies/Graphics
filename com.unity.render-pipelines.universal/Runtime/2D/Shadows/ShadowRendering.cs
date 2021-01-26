@@ -4,6 +4,10 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+
+    // TODO: Culling of shadow casters, rotate color channels for shadow casting, check get material functions.
+
+
     internal static class ShadowRendering
     {
         private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
