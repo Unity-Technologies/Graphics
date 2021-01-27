@@ -223,7 +223,7 @@ platforms:
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
     commands:
-      [DX11, DX12, Vulkan]:
+      [DX11, DX12, Vulkan, '']:
         setup_utr:
           - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
         call_utr:
