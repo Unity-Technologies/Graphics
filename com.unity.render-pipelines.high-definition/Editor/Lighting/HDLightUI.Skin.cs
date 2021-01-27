@@ -141,8 +141,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
             public readonly GUIContent distanceBasedFiltering = new GUIContent("Distance Based Denoising", "This defines if the denoiser should use the distance to the occluder to improve the filtering.");
-            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the light will cast a semi transparent ray traced shadow.");
-            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the directional light will cast a ray traced colored shadow.");
+            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the opacity of shadow casters will be taken into account when generating the shadow.");
+            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the opacity and transmittance color of shadow casters will be taken into account when generating the shadow.");
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");

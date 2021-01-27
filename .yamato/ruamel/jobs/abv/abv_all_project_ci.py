@@ -19,12 +19,12 @@ class ABV_AllProjectCiJob():
 
         for project in projects:
             dependencies.append({
-                'path': f'{project_filepath_all(project["name"])}#{project_job_id_all(project["name"], editor["name"])}',
+                'path': f'{project_filepath_all(project["name"])}#{project_job_id_pr(project["name"], editor["name"])}',
                 'rerun': editor["rerun_strategy"]})
 
         # construct job
         job = YMLJob()
-        job.set_name(f'_ABV for SRP repository - {editor["name"]}')
+        job.set_name(f'_ABV for SRP repository (all PR jobs) - {editor["name"]}')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["track"])
         # (Temporarily?) disable automatic runs of the ABV for PRs

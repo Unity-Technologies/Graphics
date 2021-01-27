@@ -13,7 +13,7 @@ To find the Forward Renderer asset that a URP asset is using:
 1. Select a URP asset.
 
 2. In the Renderer List section, click a renderer item or the vertical ellipsis icon (&vellip;) next to a renderer.
-    
+
     ![How to find the Forward Renderer asset](Images/urp-assets/find-renderer.png)
 
 When you create a new project using the Universal Render Pipeline template, the Forward Renderer asset is in the following location:
@@ -72,5 +72,3 @@ This section contains the list of Renderer Features assigned to the selected Ren
 For information on how to add a Renderer Feature, see [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
 URP contains the pre-built Renderer Feature called [Render Objects](urp-renderer-feature.md#render-objects-renderer-feature).
-
-
