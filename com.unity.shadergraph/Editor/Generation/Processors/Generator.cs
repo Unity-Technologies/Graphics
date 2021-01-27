@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph
                 !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0); // PreviewNodes don't need to skip.
 
             CustomInterpolatorUtils.generatorNodeOnly = m_OutputNode != null;
-            CISubGen customInterpSubGen = new CISubGen(m_OutputNode != null);
+            CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
 
             // Initiailize Collectors
             var propertyCollector = new PropertyCollector();

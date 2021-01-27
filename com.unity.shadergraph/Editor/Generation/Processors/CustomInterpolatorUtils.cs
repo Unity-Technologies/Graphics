@@ -14,21 +14,25 @@ namespace UnityEditor.ShaderGraph
         internal static bool generatorSkipFlag = false;
         internal static bool generatorNodeOnly = false;
 
-        internal static IEnumerable<CustomInterpolatorNode> GetCIBDependents(BlockNode bnode)
+        internal static IEnumerable<CustomInterpolatorNode> GetCustomBlockNodeDependents(BlockNode bnode)
         {
             return bnode?.owner?.GetNodes<CustomInterpolatorNode>().Where(cin => cin.e_targetBlockNode == bnode).ToList()
                 ?? new List<CustomInterpolatorNode>();
         }
     }
- 
-    internal class CISubGen
+
+    internal class CustomInterpSubGen
     {
-        #region descriptor
-        internal static readonly string k_splicePreInclude = "sgci_PreInclude";
-        internal static readonly string k_splicePrePacking = "sgci_PrePacking";
-        internal static readonly string k_splicePreSurface = "sgci_PreSurface";
-        internal static readonly string k_splicePreVertex = "sgci_PreVertex";
-        internal static readonly string k_spliceCopyToSDI = "sgci_CopyToSDI";
+    #region descriptor
+        [GenerationAPI]
+        internal static class Splice
+        {
+            internal static string k_splicePreInclude => "sgci_PreInclude";
+            internal static string k_splicePrePacking => "sgci_PrePacking";
+            internal static string k_splicePreSurface => "sgci_PreSurface";
+            internal static string k_splicePreVertex => "sgci_PreVertex";
+            internal static string k_spliceCopyToSDI => "sgci_CopyToSDI";
+        }
 
         [GenerationAPI]
         internal struct Descriptor
@@ -64,20 +68,20 @@ namespace UnityEditor.ShaderGraph
             public IEnumerator<Item> GetEnumerator() { return m_Items.GetEnumerator(); }
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
         }
-        #endregion
+    #endregion
 
         private List<BlockNode> customBlockNodes;
         private bool isNodePreview;
         private Dictionary<string, ShaderStringBuilder> spliceCommandBuffer;
 
-        internal CISubGen(bool isNodePreview)
+        internal CustomInterpSubGen(bool isNodePreview)
         {
             this.isNodePreview = isNodePreview;
             customBlockNodes = new List<BlockNode>();
             spliceCommandBuffer = new Dictionary<String, ShaderStringBuilder>();
         }
 
-        #region GeneratorEntryPoints
+    #region GeneratorEntryPoints
         internal void ProcessExistingStackData(List<AbstractMaterialNode> vertexNodes, List<MaterialSlot> vertexSlots, List<AbstractMaterialNode> pixelNodes, IActiveFieldsSet activeFields)
         {
             if (CustomInterpolatorUtils.generatorSkipFlag)
@@ -109,7 +113,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     activeFields.AddAll(cin.e_targetBlockNode.descriptor); // Make New FieldDescriptor for VertexDescription
                     customBlockNodes.Add(cin.e_targetBlockNode);
+
+                    // vertex nodes should not require hierarchical insertion, but if they do (master preview is failing)-- use the "InsertAntecedent" solve above.
                     vertexNodes.AddRange(anties);
+
                     vertexNodes.Add(cin.e_targetBlockNode);
                     vertexSlots.Add(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0));
                 }

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         public DefineCollection defines;
         public KeywordCollection keywords;
         public IncludeCollection includes;
-        public CISubGen.Collection customInterpolators;
+        public CustomInterpSubGen.Collection customInterpolators;
 
         // Methods
         public bool Equals(PassDescriptor other)
