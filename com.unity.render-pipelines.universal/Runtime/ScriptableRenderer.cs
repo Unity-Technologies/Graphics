@@ -1071,9 +1071,6 @@ namespace UnityEngine.Rendering.Universal
                     var defaultFormat = cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                     m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : defaultFormat);
                 }
-                    //zzz
-					if (cameraData.renderType == CameraRenderType.Overlay)
-						m_FirstTimeColorClear = false;
 
                     bool isLastPass = renderPass.sceneIndex == lastPassIndex;
 
@@ -1100,14 +1097,14 @@ namespace UnityEngine.Rendering.Universal
 
                     if (m_FirstTimeColorClear)
                     {
-                        if (!renderPass.depthOnly)
-                            m_FirstTimeColorClear = false;
-
-                        m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
+                        // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
+                        if (cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly)
+                            m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
                         if (!isLastPassToBB)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+                        if (!renderPass.depthOnly)
+                            m_FirstTimeColorClear = false;
                     }
-
 
                     if (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)) && samples > 1)
                     {
