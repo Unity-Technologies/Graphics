@@ -4,16 +4,16 @@ project:
 
 reuse_blocks:
   setup_with_utr:
-    - [all]: <platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-    - [all]: <platform.commands.setup_utr>
-    - [all]: <platform.commands.call_utr>
+    - [all]: <shared.platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.call_utr>
   setup_without_utr:
-    - [all]: <platform.commands.unity_downloader_cli>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-    - [all]: <platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.setup_utr>
   cache_server:
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
@@ -25,17 +25,17 @@ reuse_blocks:
 test_platforms:
   - type: Standalone
     commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      - [all]: <platform.commands.setup_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - [OSX_Metal]: --timeout=2400
-      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.kill_server>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --timeout=3000
   
@@ -46,7 +46,7 @@ test_platforms:
     name: playmode_cache
     commands: 
       - <reuse_blocks.setup_without_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.cache_server>
   
@@ -58,14 +58,14 @@ test_platforms:
     name: playmode_XR
     commands: 
       - <reuse_blocks.setup_without_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-tests"
   - type: playmode
     name: playmode_XR_cache
     commands: 
       - <reuse_blocks.setup_without_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-tests"
           - <reuse_blocks.cache_server>
@@ -73,17 +73,17 @@ test_platforms:
   - type: Standalone
     name: Standalone_cache
     commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <platform.commands.turn_off_firewall>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      - [all]: <platform.commands.setup_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.cache_server>
-      - [Android_OpenGLES3, Android_Vulkan]: <platform.commands.kill_server>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
-      - [all]: <platform.commands.call_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --timeout=3000
           - <reuse_blocks.cache_server>
