@@ -1,4 +1,10 @@
-The following are 2D related features that utilize the __Universal Render Pipeline__(URP):
+
+The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D Scene through core Unity components such as the Sprite Renderer, and 2D Light components that act as 2D counterparts to familiar 3D Light components.
+
+These tools are designed to integrate seamlessly with 2D Renderers such as the Sprite Renderer, Tilemap Renderer, and Sprite Shape Renderer. This system of tools and components are optimized for mobile systems, and for running on multiple platforms.
+
+
+-older content subject to change-
 
 When using URP with the **2D Renderer** selected, the **Light 2D** component introduces a way to apply 2D optimized lighting to Sprites.
 
