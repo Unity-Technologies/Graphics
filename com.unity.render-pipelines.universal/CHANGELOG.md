@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
 
 ### Changed
-- ForwardRenderer is renamed StandardRenderer and now supports both forward and deferred render modes.
+- The Forward Renderer asset is renamed to the Standard Renderer asset. The Standard Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 
 ### Fixed
 - Fixed an issue where the CapturePass would not capture the post processing effects.
