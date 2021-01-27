@@ -49,6 +49,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -100,6 +102,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_PerformanceTests_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -131,6 +135,8 @@ VFX_URP_Win_Vulkan_playmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -159,6 +165,8 @@ VFX_URP_Win_Vulkan_playmode_cache_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -186,6 +194,8 @@ VFX_URP_Win_Vulkan_playmode_PerformanceTests_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -213,6 +223,8 @@ VFX_URP_Win_Vulkan_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -240,6 +252,8 @@ VFX_URP_Win_Vulkan_editmode_PerformanceTests_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -288,6 +302,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --timeout=3000
     artifacts:
         logs:
@@ -343,6 +359,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -401,6 +419,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -436,6 +456,8 @@ VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -468,6 +490,8 @@ VFX_URP_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -499,6 +523,8 @@ VFX_URP_Win_Vulkan_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -530,6 +556,8 @@ VFX_URP_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -561,6 +589,8 @@ VFX_URP_Win_Vulkan_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -616,6 +646,8 @@ Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/VisualEffectGraph_URP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --timeout=3000
     artifacts:
         logs:
