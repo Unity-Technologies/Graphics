@@ -931,6 +931,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 || gtype == GraphicsDeviceType.GameCoreScarlett 
                 || gtype == GraphicsDeviceType.GameCoreXboxOne 
                 || gtype == GraphicsDeviceType.XboxOne
+                || gtype == GraphicsDeviceType.XboxOneD3D12
                 );
         }
 
