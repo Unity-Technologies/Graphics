@@ -8,7 +8,7 @@ When you open a Shader Graph, the **Graph Inspector** displays the **[Graph Sett
 
 Select a node in the graph to display settings available for that node in the **Graph Inspector**. Settings available for that node appear in the **Node Settings** tab of the Graph Inspector. For example, if you select a Property node either in the graph or the [Blackboard](Blackboard.md), the **Node Settings** tab displays attributes of the Property that you can edit.
 
-![](images/InternalInspectorBlackboardProperty.png) 
+![](images/InternalInspectorBlackboardProperty.png)
 
 Graph elements that currently work with the Graph Inspector:
 

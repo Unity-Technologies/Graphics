@@ -18,7 +18,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -27,6 +27,35 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
+    name: HDRP_Hybrid on OSX_Metal_playmode_cache_mono_Linear on version trunk
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -47,7 +76,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -55,7 +84,36 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_trunk:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR_cache_mono_Linear on version trunk
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -76,7 +134,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -84,7 +142,36 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=2400 --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=2400 --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
+    name: HDRP_Hybrid on OSX_Metal_Standalone_cache_mono_Linear on version trunk
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=1200 --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -106,7 +193,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -115,6 +202,39 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -139,7 +259,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -147,7 +267,40 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -172,7 +325,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
       -  chmod +x TestProjects/HDRP_HybridTests/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
@@ -180,7 +333,40 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=2400 --zero-tests-are-ok=1"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=2400 --zero-tests-are-ok=1"
+                 UTR_RESULT=$? 
+                 mkdir -p TestProjects/HDRP_HybridTests/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/HDRP_HybridTests/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on OSX_Metal_Standalone_cache_mono_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/HDRP_HybridTests/utr
+      -  chmod +x TestProjects/HDRP_HybridTests/utr
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  |5-
+
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --timeout=1200 --zero-tests-are-ok=1"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/

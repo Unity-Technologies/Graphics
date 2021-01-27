@@ -1,6 +1,6 @@
 # Modulo
 
-Menu Path : **Operator > Math > Arithmetic > Modulo**  
+Menu Path : **Operator > Math > Arithmetic > Modulo**
 
 The **Modulo** Operator divides the first input by the second input and calculates the remainder. For example, an input of 4.5 % 1.5 outputs 0, an input of 8 % 3 outputs 2, and an input of (4, 8, 4) % (2, 3, 3) outputs (0, 2, 1).
 

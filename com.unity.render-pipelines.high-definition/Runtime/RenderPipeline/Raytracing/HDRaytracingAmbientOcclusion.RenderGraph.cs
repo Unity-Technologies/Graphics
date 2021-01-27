@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDRaytracingAmbientOcclusion
     {
-        public TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
+        public TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 

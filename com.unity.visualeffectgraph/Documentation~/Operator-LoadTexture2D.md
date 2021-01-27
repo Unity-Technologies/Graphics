@@ -1,6 +1,6 @@
 # Load Texture2D
 
-Menu Path : **Operator > Sampling > Load Texture2D** 
+Menu Path : **Operator > Sampling > Load Texture2D**
 
 The **Load Texture2D** Operator allows you to read a Texture2D texel value for specified coordinates and mip level. This Operator returns the float4 texel value without any filtering.
 
