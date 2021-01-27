@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 probe.settings.type,
                 SceneObjectIDMap.GetOrCreateSceneObjectID(
                     probe.gameObject, SceneObjectCategory.ReflectionProbe
-                ),
+                    ),
                 probe.gameObject.scene
             );
         }

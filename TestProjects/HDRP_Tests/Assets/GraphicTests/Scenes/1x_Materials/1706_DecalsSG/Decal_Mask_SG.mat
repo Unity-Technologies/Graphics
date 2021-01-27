@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -23,7 +23,7 @@ Material:
   m_Name: Decal_Mask_SG
   m_Shader: {fileID: -6465566751694194690, guid: a4c5a42ac90183c4db7293dd284ac118,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _MATERIAL_AFFECTS_MASKMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -127,6 +127,9 @@ Material:
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
+    - _AffectAO: 1
+    - _AffectMetal: 1
+    - _AffectSmoothness: 1
     - _AlbedoAffectEmissive: 0
     - _AlbedoMode: 0
     - _AlphaCutoff: 0.5
@@ -140,10 +143,14 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DecalBlend: 1
+    - _DecalColorMask0: 0
+    - _DecalColorMask1: 0
+    - _DecalColorMask2: 15
+    - _DecalColorMask3: 12
     - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
-    - _DecalStencilRef: 8
-    - _DecalStencilWriteMask: 8
+    - _DecalStencilRef: 16
+    - _DecalStencilWriteMask: 16
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1

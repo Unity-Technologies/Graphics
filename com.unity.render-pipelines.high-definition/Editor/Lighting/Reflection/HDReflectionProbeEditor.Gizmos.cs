@@ -30,9 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Gizmos_CapturePoint(ReflectionProbe target)
         {
-            if(sphere == null)
+            if (sphere == null)
                 sphere = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            if(material == null)
+            if (material == null)
                 material = new Material(Shader.Find("Debug/ReflectionProbePreview"));
             var probe = target.GetComponent<HDAdditionalReflectionData>();
             var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);

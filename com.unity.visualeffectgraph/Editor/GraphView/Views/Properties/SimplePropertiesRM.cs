@@ -45,40 +45,31 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector4PropertyRM : SimpleVFXUIPropertyRM<VFXVector4Field, Vector4>
-    {
-        public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {
-        }
-
-        public override float GetPreferredControlWidth()
-        {
-            return 224;
-        }
-    }
-
     class Matrix4x4PropertyRM : SimpleVFXUIPropertyRM<VFXMatrix4x4Field, Matrix4x4>
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_FieldParent.style.flexDirection = FlexDirection.Row;
+
+            fieldControl.onValueDragFinished = () => ValueDragFinished();
+            fieldControl.onValueDragStarted = () => ValueDragStarted();
         }
 
         public override float GetPreferredControlWidth()
         {
             return 260;
         }
-    }
 
-    class Vector2PropertyRM : SimpleVFXUIPropertyRM<VFXVector2Field, Vector2>
-    {
-        public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        protected void ValueDragFinished()
         {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
         }
 
-        public override float GetPreferredControlWidth()
+        protected void ValueDragStarted()
         {
-            return 120;
+            m_Provider.StartLiveModification();
         }
     }
 

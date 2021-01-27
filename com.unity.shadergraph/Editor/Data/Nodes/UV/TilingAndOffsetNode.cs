@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Tiling And Offset";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_TilingAndOffset", BindingFlags.Static | BindingFlags.NonPublic);
@@ -25,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
             return
-                @"
+@"
 {
     Out = UV * Tiling + Offset;
 }

@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public Vector4 value;
         public Vector2 rangeLimits;
         public ShaderPropertyFlags flags;
+        public bool canBeUsedAsRT;
 
         public static ShaderProperty Create(Shader shader, Material material, int index)
         {
@@ -20,6 +21,17 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 sp.propertyType = shader.GetPropertyType(index);
                 sp.flags = shader.GetPropertyFlags(index);
                 sp.value = Vector4.zero;
+
+                sp.canBeUsedAsRT = false;
+                if (sp.propertyType == ShaderPropertyType.Texture)
+                {
+                    // Detect if this property corresponds to a virtual texture stack (we cannot render on those)
+                    shader.FindTextureStack(index, out string stackName, out int layerIndex);
+                    sp.canBeUsedAsRT = (stackName.Length == 0);
+
+                    // Only 2D textures can be used as layers (no cube maps, 3d textures, etc)
+                    sp.canBeUsedAsRT &= (shader.GetPropertyTextureDimension(index) == TextureDimension.Tex2D);
+                }
 
                 if (sp.propertyType == ShaderPropertyType.Range)
                 {

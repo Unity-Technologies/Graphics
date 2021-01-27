@@ -89,10 +89,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            if(m_matrix != TransformationMatrixType.None)
+            if (m_matrix != TransformationMatrixType.None)
             {
                 m_MatrixType = m_MatrixUpgrade[m_matrix];
                 m_matrix = TransformationMatrixType.None;

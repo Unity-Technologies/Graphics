@@ -1,114 +1,133 @@
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class DensityVolumeManager
     {
-        static private DensityVolumeManager _instance = null;
+        public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
+        static DensityVolumeManager m_Manager;
         public static DensityVolumeManager manager
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new DensityVolumeManager();
-                }
-                return _instance;
+                if (m_Manager == null)
+                    m_Manager = new DensityVolumeManager();
+                return m_Manager;
             }
         }
 
-        public Texture3DAtlas volumeAtlas = null;
-        private bool atlasNeedsRefresh = false;
-
-        //TODO: hardcoded size....:-(
-        public static int volumeTextureSize = 32;
-
-        private DensityVolumeManager()
+        Texture3DAtlas m_VolumeAtlas = null;
+        public Texture3DAtlas volumeAtlas
         {
-            volumes = new List<DensityVolume>();
+            get
+            {
+                if (m_VolumeAtlas == null)
+                {
+                    var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
+                    // Prevent allocating too big textures:
+                    int elementCount = Texture3DAtlas.GetMaxElementCountForWeightInByte(
+                        HDRenderPipeline.k_MaxCacheSize,
+                        (int)settings.maxDensityVolumeSize,
+                        settings.maxDensityVolumesOnScreen,
+                        densityVolumeAtlasFormat,
+                        true
+                    );
 
-            volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxDensityVolumesOnScreen);
+
+                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, elementCount);
+
+                    // When HDRP is initialized and this atlas created, some density volume may have been initialized before so we add them here.
+                    foreach (var volume in m_Volumes)
+                    {
+                        if (volume.parameters.volumeMask != null)
+                            AddTextureIntoAtlas(volume.parameters.volumeMask);
+                    }
+                }
+
+                return m_VolumeAtlas;
+            }
         }
 
-        private List<DensityVolume> volumes = null;
+        List<DensityVolume> m_Volumes = null;
+
+        DensityVolumeManager()
+        {
+            m_Volumes = new List<DensityVolume>();
+        }
 
         public void RegisterVolume(DensityVolume volume)
         {
-            volumes.Add(volume);
+            m_Volumes.Add(volume);
 
-            volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
+            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // we avoid doing operations on the atlas.
+            // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+                return;
 
             if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.AddTexture(volume.parameters.volumeMask);
+                if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
+                {
+                    AddTextureIntoAtlas(volume.parameters.volumeMask);
+                }
             }
+        }
+
+        internal void AddTextureIntoAtlas(Texture volumeTexture)
+        {
+            if (!volumeAtlas.AddTexture(volumeTexture))
+                Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
         }
 
         public void DeRegisterVolume(DensityVolume volume)
         {
-            if (volumes.Contains(volume))
-            {
-                volumes.Remove(volume);
-            }
+            if (m_Volumes.Contains(volume))
+                m_Volumes.Remove(volume);
 
-            volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
+            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // we avoid doing operations on the atlas.
+            // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
+            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+                return;
 
             if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+                // Avoid to alloc the atlas to remove a texture if it's not allocated yet.
+                if (m_VolumeAtlas != null)
+                    volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
             }
-
-            //Upon removal we have to refresh the texture list.
-            TriggerVolumeAtlasRefresh();
         }
 
-        public bool ContainsVolume(DensityVolume volume) => volumes.Contains(volume);
+        public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
         {
             //Update volumes
-            bool animate = currentCam.animateMaterials;
-            foreach (DensityVolume volume in volumes)
+            float time = currentCam.time;
+            foreach (DensityVolume volume in m_Volumes)
+                volume.PrepareParameters(time);
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
             {
-                volume.PrepareParameters(animate, time);
+                volumeAtlas.Update(cmd);
             }
 
-            if (atlasNeedsRefresh)
-            {
-                atlasNeedsRefresh = false;
-                VolumeAtlasRefresh();
-            }
-
-            volumeAtlas.GenerateAtlas(cmd);
-
-            return volumes;
+            return m_Volumes;
         }
 
-        private void VolumeAtlasRefresh()
+        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle density volume components
+        internal void ReleaseAtlas()
         {
-            volumeAtlas.ClearTextures();
-            foreach (DensityVolume volume in volumes)
+            // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.
+            if (m_VolumeAtlas != null)
             {
-                if (volume.parameters.volumeMask != null)
-                {
-                    volumeAtlas.AddTexture(volume.parameters.volumeMask);
-                }
-            }
-        }
-
-        public void TriggerVolumeAtlasRefresh()
-        {
-            atlasNeedsRefresh = true;
-        }
-
-        private void AtlasUpdated()
-        {
-            foreach (DensityVolume volume in volumes)
-            {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
+                volumeAtlas.Release();
+                m_VolumeAtlas = null;
             }
         }
     }

@@ -877,6 +877,11 @@ PrefabInstance:
       propertyPath: renderGraphCompatible
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: xrCompatible
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &719009298
@@ -1098,7 +1103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9ad82d3a5300af40a7a6a9927907436, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 0
+  settingType: 1
   gBuffer: 0
   fullScreenDebugMode: 1
   lightlayers: 1

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -107,11 +107,23 @@ Material:
         m_Texture: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_104cbfc9f9bd4cdea38df4e14bd2e133_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 4f1015d86699e824f808554286b883b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_205425C8_Texture_1:
         m_Texture: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_303d7490b0a544039cbe326b33b1cd91_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 4f1015d86699e824f808554286b883b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_540d444f98294ca9b40ca4f418e14c73_Texture_1:
+        m_Texture: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_8d65c413eae04f8a98b508c7c5ec8728_Texture_1:
         m_Texture: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -129,6 +141,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_f0aa69cd75b442d98933be7768ff74f3_Texture_1:
         m_Texture: {fileID: 2800000, guid: 4f1015d86699e824f808554286b883b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f95047bdec2141d586943a3c6a180f5d_Texture_1:
+        m_Texture: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
@@ -260,7 +276,6 @@ Material:
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
     - _SubsurfaceMask: 1
-    - _SupportDecals: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1

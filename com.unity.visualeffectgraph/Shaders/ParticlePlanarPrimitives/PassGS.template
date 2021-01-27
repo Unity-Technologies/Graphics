@@ -2,6 +2,8 @@
 #pragma vertex vert
 #pragma geometry geom
 
+#define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
+
 uint vert(uint id : SV_VertexID) : TEXCOORD0
 {
 	return id;
@@ -39,9 +41,20 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	
+#if VFX_NON_UNIFORM_SCALE
+	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		size3);
+#else
+	float3x3 elementToVFX_N = (float3x3)elementToVFX;
+#endif
+	
 	#ifdef VFX_VARYING_NORMAL
 	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
-	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
+	o.VFX_VARYING_NORMAL = normalFlip * normalize(TransformNormalVFXToWorld(normalize(-transpose(elementToVFX_N)[2].xyz)));
 	#endif
 	#ifdef VFX_VARYING_TANGENT
 	o.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));

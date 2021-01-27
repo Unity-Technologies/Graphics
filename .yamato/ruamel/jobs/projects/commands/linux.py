@@ -1,30 +1,72 @@
-from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ...shared.constants import TEST_PROJECTS_DIR,PATH_UNITY_REVISION, PATH_TEST_RESULTS, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
+from ...shared.utr_utils import get_repeated_utr_calls, switch_var_sign
 
-def _cmd_base(project_folder, components):
-    return [ 
-        f'sudo -H pip install --upgrade pip',
-        f'sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
-        f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && sudo unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])} --wait --published-only'
+
+def _cmd_base(project, platform, utr_calls, editor):
+    base = [ 
+        f'curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -',
+        f'sudo sh -c "echo \'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main\' > /etc/apt/sources.list.d/unity.list"',
+        f'sudo apt update',
+        f'sudo apt install unity-downloader-cli',
+        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
+        f'chmod +x {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && sudo unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
-
-
-def cmd_not_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
-    base.extend([ 
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && DISPLAY=:0.0 ./utr {test_platform_args} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
-     ])
-    base[-1] += f' --extra-editor-arg="{platform["apis"][api]}"' if (api != "" and platform["apis"][api] != None)  else ''
+    for utr_args in utr_calls:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && DISPLAY=:0.0 ./utr {" ".join(utr_args)}')
     return base
 
-def cmd_standalone(project_folder, platform, api, test_platform_args):
-    base = _cmd_base(project_folder, platform["components"])
-    base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && DISPLAY=:0.0 ./utr {test_platform_args}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{api}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}'
-      ])
+
+def cmd_editmode(project, platform, api, test_platform, editor, build_config, color_space):
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    base = _cmd_base(project, platform, utr_calls, editor)
+    base = add_project_commands(project) + base
+
     return base
 
-def cmd_standalone_build(project_folder, platform, api, test_platform_args):
-    raise Exception('linux: standalone_split set to true but build commands not specified')
 
+def cmd_playmode(project, platform, api, test_platform, editor, build_config, color_space):
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    base = _cmd_base(project, platform, utr_calls, editor)
+    base = add_project_commands(project) + base
+
+    return base
+
+
+def cmd_standalone(project, platform, api, test_platform, editor, build_config, color_space):
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project["folder"]}/utr',
+        f'chmod +x {TEST_PROJECTS_DIR}/{project["folder"]}/utr'        ]
+    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
+    for utr_args in utr_calls:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && ./utr {" ".join(utr_args)}')
+    return base
+
+
+def cmd_standalone_build(project, platform, api, test_platform, editor, build_config, color_space):
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"], utr_flags_key="utr_flags_build")
+
+    base = _cmd_base(project, platform, utr_calls, editor)
+    base = add_project_commands(project) + base
+    return base
+
+
+def add_project_commands(project):
+    cmds = []
+    if project.get("url"):
+        cmds.extend([
+            f'git clone {project["url"]} -b {switch_var_sign(project["branch"])} {TEST_PROJECTS_DIR}/{project["folder"]}',
+            f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && git checkout {switch_var_sign(project["revision"])}'
+        ])
+    if project.get("unity_config_commands"):
+        cmds.extend([
+            f'curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -',
+            f'sudo sh -c "echo \'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main\' > /etc/apt/sources.list.d/unity.list"',
+            f'sudo apt update',
+            f'sudo apt install -y unity-config',
+        ])
+        for unity_config in project["unity_config_commands"]:
+            cmds.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && {unity_config}')
+    return cmds

@@ -6,5 +6,5 @@ The guides in this section describe how to create an sRGB-targeting CUBE file wi
 
 The current guides cover the following software:
 
-- [Adobe Photoshop](LUT-Authoring-Photoshop.html).
-- [DaVinci Resolve](LUT-Authoring-Resolve.html).
+- [Adobe Photoshop](LUT-Authoring-Photoshop.md).
+- [DaVinci Resolve](LUT-Authoring-Resolve.md).

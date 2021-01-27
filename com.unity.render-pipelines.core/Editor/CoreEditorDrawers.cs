@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering
         /// <param name="data">The data used</param>
         /// <param name="owner">The editor rendering</param>
         public delegate void SwitchEnabler(TData data, Editor owner);
-        
+
         /// <summary>Delegate that must be used to select sub object for data for drawing</summary>
         /// <typeparam name="T2Data">The type of the sub object used for data</typeparam>
         /// <param name="data">The data used</param>
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering
         public static readonly IDrawer space = Group((data, owner) => EditorGUILayout.Space());
 
         /// <summary> Use it when IDrawer required but no operation should be done </summary>
-        public static readonly IDrawer noop = Group((data, owner) => { });
+        public static readonly IDrawer noop = Group((data, owner) => {});
 
         /// <summary>
         /// Conditioned drawer that will only be drawn if its enabler function is null or return true
@@ -308,7 +308,7 @@ namespace UnityEditor.Rendering
             CoreEditorDrawer<T2Data>.ActionDrawer[] m_SourceDrawers;
 
             public SelectDrawerInternal(DataSelect<T2Data> dataSelect,
-                params CoreEditorDrawer<T2Data>.ActionDrawer[] otherDrawers)
+                                        params CoreEditorDrawer<T2Data>.ActionDrawer[] otherDrawers)
             {
                 m_SourceDrawers = otherDrawers;
                 m_DataSelect = dataSelect;
@@ -355,7 +355,7 @@ namespace UnityEditor.Rendering
         {
             return FoldoutGroup(EditorGUIUtility.TrTextContent(title), mask, state, contentDrawers);
         }
-        
+
         /// <summary> Create an IDrawer foldout header using an ExpandedState </summary>
         /// <typeparam name="TEnum">Type of the mask used</typeparam>
         /// <typeparam name="TState">Type of the persistent state</typeparam>
@@ -563,7 +563,7 @@ namespace UnityEditor.Rendering
             return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, isAdvanced, switchAdvanced,
                 normalContent,
                 Conditional((serialized, owner) => isAdvanced(serialized, owner) && foldoutState[foldoutMask], advancedContent).Draw
-                );
+            );
         }
     }
 

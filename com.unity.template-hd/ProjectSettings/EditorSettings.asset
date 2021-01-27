@@ -25,7 +25,7 @@ EditorSettings:
   m_EnterPlayModeOptionsEnabled: 0
   m_EnterPlayModeOptions: 3
   m_UseLegacyProbeSampleCount: 0
-  m_SerializeInlineMappingsOnOneLine: 0
+  m_SerializeInlineMappingsOnOneLine: 1
   m_DisableCookiesInLightmapper: 0
   m_AssetPipelineMode: 1
   m_CacheServerMode: 0

@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingGBuffer,
         RaytracingSubSurface,
         PathTracing,
-        Constant
+        Constant,
+        FullScreenDebug,
     }
 }

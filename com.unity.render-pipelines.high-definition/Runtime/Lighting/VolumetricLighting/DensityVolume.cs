@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float     anisotropy;   // . Not currently available for density volumes
 
         /// <summary>Texture containing density values.</summary>
-        public Texture3D volumeMask;
+        public Texture   volumeMask;
         /// <summary>Scrolling speed of the density texture.</summary>
         public Vector3   textureScrollingSpeed;
         /// <summary>Tiling rate of the density texture.</summary>
@@ -47,11 +47,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float     distanceFadeStart;
         /// <summary>Distance at which density fading ends.</summary>
         public float     distanceFadeEnd;
-        [SerializeField]
-        internal int     textureIndex;
         /// <summary>Allows translation of the tiling density texture.</summary>
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
         public Vector3   textureOffset;
+
+        /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
+        public DensityVolumeFalloffMode falloffMode;
+
+        /// <summary>Minimum fog distance you can set in the meanFreePath parameter</summary>
+        internal const float kMinFogDistance = 0.05f;
 
         /// <summary>Constructor.</summary>
         /// <param name="color">Single scattering albedo.</param>
@@ -64,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
             anisotropy            = _anisotropy;
 
             volumeMask            = null;
-            textureIndex          = -1;
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;
             textureOffset         = textureScrollingSpeed;
@@ -78,19 +81,20 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeStart     = 10000;
             distanceFadeEnd       = 10000;
 
+            falloffMode          = DensityVolumeFalloffMode.Linear;
+
             m_EditorPositiveFade = Vector3.zero;
             m_EditorNegativeFade = Vector3.zero;
             m_EditorUniformFade  = 0;
             m_EditorAdvancedFade = false;
         }
 
-        internal void Update(bool animate, float time)
+        internal void Update(float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
             {
-                float animationTime = animate ? time : 0.0f;
-                textureOffset = (textureScrollingSpeed * animationTime);
+                textureOffset = (textureScrollingSpeed * time);
                 // Switch from right-handed to left-handed coordinate system.
                 textureOffset.x = -textureOffset.x;
                 textureOffset.y = -textureOffset.y;
@@ -104,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             albedo.b = Mathf.Clamp01(albedo.b);
             albedo.a = 1.0f;
 
-            meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
+            meanFreePath = Mathf.Clamp(meanFreePath, kMinFogDistance, float.MaxValue);
 
             anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
 
@@ -119,9 +123,16 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeEngineData data = new DensityVolumeEngineData();
 
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-            data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
+            data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
 
-            data.textureIndex   = textureIndex;
+            var atlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
+            data.atlasOffset    = DensityVolumeManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
+            data.atlasOffset.x /= (float)atlas.width;
+            data.atlasOffset.y /= (float)atlas.height;
+            data.atlasOffset.z /= (float)atlas.volumeDepth;
+            data.useVolumeMask  = volumeMask != null ? 1 : 0;
+            float volumeMaskSize = volumeMask != null ? (float)volumeMask.width : 0.0f; // Volume Mask Textures are always cubic
+            data.maskSize = new Vector4(volumeMaskSize / atlas.width, volumeMaskSize / atlas.height, volumeMaskSize / atlas.volumeDepth, volumeMaskSize);
             data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 
@@ -138,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
             data.invertFade = invertFade ? 1 : 0;
+            data.falloffMode = falloffMode;
 
             float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
 
@@ -157,23 +169,38 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Density volume parameters.</summary>
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
-        private Texture3D previousVolumeMask = null;
+        private Texture previousVolumeMask = null;
+#if UNITY_EDITOR
+        private int volumeMaskHash = 0;
+#endif
 
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
-        internal void PrepareParameters(bool animate, float time)
+        internal void PrepareParameters(float time)
         {
             //Texture has been updated notify the manager
-            if (previousVolumeMask != parameters.volumeMask)
+            bool updated = previousVolumeMask != parameters.volumeMask;
+#if UNITY_EDITOR
+            int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
+            updated |= newMaskHash != volumeMaskHash;
+#endif
+
+            if (updated)
             {
+                if (parameters.volumeMask != null)
+                    DensityVolumeManager.manager.AddTextureIntoAtlas(parameters.volumeMask);
+
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
+#if UNITY_EDITOR
+                volumeMaskHash = newMaskHash;
+#endif
             }
 
-            parameters.Update(animate, time);
+            parameters.Update(time);
         }
 
         private void NotifyUpdatedTexure()
@@ -190,12 +217,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // Handle scene visibility
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDensityVolumeVisibility;
 #endif
         }
 
 #if UNITY_EDITOR
-        void UpdateDecalVisibility()
+        void UpdateDensityVolumeVisibility()
         {
             if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
             {
@@ -208,6 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     DensityVolumeManager.manager.RegisterVolume(this);
             }
         }
+
 #endif
 
         private void OnDisable()
@@ -215,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeManager.manager.DeRegisterVolume(this);
 
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDensityVolumeVisibility;
 #endif
         }
 

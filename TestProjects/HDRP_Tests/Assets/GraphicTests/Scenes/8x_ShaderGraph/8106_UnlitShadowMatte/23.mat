@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -99,12 +99,24 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_3e3e3e7c642e465499a1a9084f857f88_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_64084bbc88804804a6b3484510842566_Texture_1:
         m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_7893f965c96d424c93b8ce9b4cdad6cf_Texture_1:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_892aac4cbac541ca8bd5d9126bb96728_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_922fd791371147c08fba6ffe8ecec711_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_94317f7616a747f6a290318bcc10826b_Texture_1:
@@ -128,6 +140,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_a5c447b9be4b4074b0a8f7f4246924cc_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_aef2b2f9df394aca806385d20b3847d0_Texture_1:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -260,7 +276,6 @@ Material:
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
     - _SubsurfaceMask: 1
-    - _SupportDecals: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1

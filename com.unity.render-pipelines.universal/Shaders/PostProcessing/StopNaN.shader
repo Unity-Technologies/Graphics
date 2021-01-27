@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/Stop NaN"
 {
     HLSLINCLUDE
+        #pragma exclude_renderers gles
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
         #pragma exclude_renderers gles
         #pragma target 3.5
@@ -12,7 +13,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
 
         TEXTURE2D_X(_SourceTex);
 
-        half4 Frag(FullscreenVaryings input) : SV_Target
+        half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(input.uv)).xyz;

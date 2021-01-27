@@ -1,3 +1,4 @@
+
 #ifndef UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 #define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
@@ -24,8 +25,8 @@ SAMPLER(sampler_TerrainHolesTexture);
 
 void ClipHoles(float2 uv)
 {
-	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-	clip(hole == 0.0f ? -1 : 1);
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    clip(hole == 0.0f ? -1 : 1);
 }
 #endif
 
@@ -46,16 +47,20 @@ struct Varyings
 #endif
 
 #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
-    float3 normal                   : TEXCOORD3;
-    float3 viewDir                  : TEXCOORD4;
+    half3 normal                    : TEXCOORD3;
+    half3 viewDir                   : TEXCOORD4;
     half3 vertexSH                  : TEXCOORD5; // SH
 #endif
 
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+#else
+    half  fogFactor                 : TEXCOORD6;
+#endif
     float3 positionWS               : TEXCOORD7;
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD8;
@@ -104,10 +109,16 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
     input.fogCoord = IN.fogFactorAndVertexLight.x;
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+#else
+    input.fogCoord = IN.fogFactor;
+#endif
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -284,8 +295,12 @@ Varyings SplatmapVert(Attributes v)
     o.viewDir = viewDirWS;
     o.vertexSH = SampleSH(o.normal);
 #endif
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
     o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes.positionCS.z);
     o.fogFactorAndVertexLight.yzw = VertexLighting(Attributes.positionWS, o.normal.xyz);
+#else
+    o.fogFactor = ComputeFogFactor(Attributes.positionCS.z);
+#endif
     o.positionWS = Attributes.positionWS;
     o.clipPos = Attributes.positionCS;
 
@@ -327,6 +342,7 @@ FragmentOutput SplatmapFragment(Varyings IN)
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
@@ -374,7 +390,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-
     half alpha = weight;
 #endif
 
@@ -385,19 +400,26 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
-    
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
+    // Baked lighting.
     half4 color;
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-
-    color.rgb += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
     color.a = alpha;
+    SplatmapFinalColor(color, inputData.fogCoord);
 
-    SplatmapFinalColor(color, inputData.fogCoord); 
+    // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+    // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+    // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.albedo.rgb *= alpha;
+    brdfData.diffuse.rgb *= alpha;
+    brdfData.specular.rgb *= alpha;
+    brdfData.reflectivity *= alpha;
+    inputData.normalWS = inputData.normalWS * alpha;
+    smoothness *= alpha;
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
+    return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb, occlusion);
 
 #else
 
@@ -411,15 +433,18 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
 // Shadow pass
 
-// x: global clip space bias, y: normal world space bias
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 float3 _LightDirection;
+float3 _LightPosition;
 
 struct AttributesLean
 {
     float4 position     : POSITION;
     float3 normalOS       : NORMAL;
 #ifdef _ALPHATEST_ON
-	float2 texcoord     : TEXCOORD0;
+    float2 texcoord     : TEXCOORD0;
 #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -442,27 +467,33 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
 
-    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
 #if UNITY_REVERSED_Z
-    clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #else
-    clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
+    clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
 #endif
 
-	o.clipPos = clipPos;
+    o.clipPos = clipPos;
 
 #ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
+    o.texcoord = v.texcoord;
 #endif
 
-	return o;
+    return o;
 }
 
 half4 ShadowPassFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
-	ClipHoles(IN.texcoord);
+    ClipHoles(IN.texcoord);
 #endif
     return 0;
 }
@@ -477,21 +508,99 @@ VaryingsLean DepthOnlyVertex(AttributesLean v)
     TerrainInstancing(v.position, v.normalOS);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
 #ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
+    o.texcoord = v.texcoord;
 #endif
-	return o;
+    return o;
 }
 
 half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
-	ClipHoles(IN.texcoord);
+    ClipHoles(IN.texcoord);
 #endif
 #ifdef SCENESELECTIONPASS
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     return half4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif
     return 0;
+}
+
+
+// DepthNormal pass
+struct AttributesDepthNormal
+{
+    float4 positionOS : POSITION;
+    float3 normalOS : NORMAL;
+    float2 texcoord : TEXCOORD0;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct VaryingsDepthNormal
+{
+    float4 uvMainAndLM              : TEXCOORD0; // xy: control, zw: lightmap
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        float4 uvSplat01                : TEXCOORD1; // xy: splat0, zw: splat1
+        float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
+    #endif
+
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+        float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+        float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    #else
+        float3 normal                   : TEXCOORD3;
+    #endif
+
+    float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
+{
+    VaryingsDepthNormal o = (VaryingsDepthNormal)0;
+
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    TerrainInstancing(v.positionOS, v.normalOS, v.texcoord);
+
+    VertexPositionInputs Attributes = GetVertexPositionInputs(v.positionOS.xyz);
+
+    o.uvMainAndLM.xy = v.texcoord;
+    o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
+        o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
+        o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
+        o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
+    #endif
+
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
+        #if !SHADER_HINT_NICE_QUALITY
+            viewDirWS = SafeNormalize(viewDirWS);
+        #endif
+        float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
+        VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
+
+        o.normal = half4(normalInput.normalWS, viewDirWS.x);
+        o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
+        o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
+    #else
+        o.normal = TransformObjectToWorldNormal(v.normalOS);
+    #endif
+
+    o.clipPos = Attributes.positionCS;
+    return o;
+}
+
+half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
+{
+    #ifdef _ALPHATEST_ON
+        ClipHoles(IN.uvMainAndLM.xy);
+    #endif
+
+    half3 normalWS = NormalizeNormalPerPixel(IN.normal.xyz);
+    return half4(normalWS, 0.0);
 }
 
 #endif

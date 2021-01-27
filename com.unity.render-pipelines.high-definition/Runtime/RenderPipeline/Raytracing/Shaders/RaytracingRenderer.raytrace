@@ -60,14 +60,12 @@ void RayGenRenderer()
 
 	// Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
-	// Compute the incident vector on the surfaces
-	float3 incidentWS = normalize(posInput.positionWS - _WorldSpaceCameraPos);
+	float3 originWS = GetPrimaryCameraPosition();
+	float3 incidentWS = normalize(posInput.positionWS - originWS);
 	
 	// Create the ray descriptor for this pixel
 	RayDesc rayDescriptor;
-	rayDescriptor.Origin = _WorldSpaceCameraPos;
+	rayDescriptor.Origin = originWS;
 	rayDescriptor.Direction = incidentWS;
 	rayDescriptor.TMin = _RaytracingCameraNearPlane;
 	rayDescriptor.TMax = _RaytracingRayMaxLength;

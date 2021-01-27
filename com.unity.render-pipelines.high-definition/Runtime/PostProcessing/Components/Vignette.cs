@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Vignette effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Vignette" + Documentation.endURL)]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -102,6 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public VignetteModeParameter(VignetteMode value, bool overrideState = false) : base(value, overrideState) { }
+        public VignetteModeParameter(VignetteMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

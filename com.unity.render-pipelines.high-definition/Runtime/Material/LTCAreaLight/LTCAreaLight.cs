@@ -55,9 +55,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
                 // Column 8 contains only ones.
                 pixels[i] = new Color(Mathf.Min(clampValue, (float)LUTTransformInv[i, 0]),
-                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 2]),
-                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 4]),
-                        Mathf.Min(clampValue, (float)LUTTransformInv[i, 6]));
+                    Mathf.Min(clampValue, (float)LUTTransformInv[i, 2]),
+                    Mathf.Min(clampValue, (float)LUTTransformInv[i, 4]),
+                    Mathf.Min(clampValue, (float)LUTTransformInv[i, 6]));
             }
 
             tex.SetPixels(pixels, arrayElement);

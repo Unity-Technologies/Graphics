@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return (exponent << 23) | mantissa;
         }
 
-        static uint GenerateUniqueHash(DiffusionProfileSettings asset)
+        static internal uint GenerateUniqueHash(DiffusionProfileSettings asset)
         {
             uint hash = GetDiffusionProfileHash(asset);
 

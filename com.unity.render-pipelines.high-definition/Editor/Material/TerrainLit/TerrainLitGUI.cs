@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -34,14 +34,14 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< AdvancedOptionsUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
 
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
@@ -65,12 +65,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent defaultValues = new GUIContent("Channel Default Values");
             public readonly GUIContent metallic = new GUIContent("R: Metallic");
             public readonly GUIContent ao = new GUIContent("G: AO");
-            public readonly GUIContent height = new GUIContent("B: Height");
-            public readonly GUIContent heightParametrization = new GUIContent("Parametrization");
-            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude (cm)");
-            public readonly GUIContent heightBase = new GUIContent("Base (cm)");
-            public readonly GUIContent heightMin = new GUIContent("Min (cm)");
-            public readonly GUIContent heightMax = new GUIContent("Max (cm)");
+            public readonly GUIContent height = new GUIContent("B: Height", "Specifies the Height Map for this Material.");
+            public readonly GUIContent heightParametrization = new GUIContent("Parametrization", "Specifies the parametrization method for the Height Map.");
+            public readonly GUIContent heightAmplitude = new GUIContent("Amplitude", "Sets the amplitude of the Height Map (in centimeters).");
+            public readonly GUIContent heightBase = new GUIContent("Base", "Controls the base of the Height Map (between 0 and 1).");
+            public readonly GUIContent heightMin = new GUIContent("Min", "Sets the minimum value in the Height Map (in centimeters).");
+            public readonly GUIContent heightMax = new GUIContent("Max", "Sets the maximum value in the Height Map (in centimeters).");
             public readonly GUIContent heightCm = new GUIContent("B: Height (cm)");
             public readonly GUIContent smoothness = new GUIContent("A: Smoothness");
         }
@@ -129,12 +129,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupTerrainLitKeywordsAndPass(Material material)
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                        : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             // TODO: planar/triplannar support
@@ -311,8 +311,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             float amplitude = Mathf.Max(maskMapRemapMax.z - maskMapRemapMin.z, Mathf.Epsilon); // to avoid divide by zero
                             float heightBase = -maskMapRemapMin.z / amplitude;
                             amplitude = EditorGUILayout.FloatField(styles.heightAmplitude, amplitude * 100) / 100;
-                            heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase * 100) / 100;
-                            maskMapRemapMin.z = heightBase * amplitude;
+                            heightBase = EditorGUILayout.Slider(styles.heightBase, heightBase, 0.0f, 1.0f);
+                            maskMapRemapMin.z = -heightBase * amplitude;
                             maskMapRemapMax.z = (1 - heightBase) * amplitude;
                         }
                         else
@@ -374,6 +374,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupTerrainLitKeywordsAndPass(material);
     }
 } // namespace UnityEditor

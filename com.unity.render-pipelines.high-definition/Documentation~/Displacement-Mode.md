@@ -32,7 +32,7 @@ The options in the **Displacement Mode** drop-down change depending on the Shade
 | **Lock with object scale**           | Enable the checkbox to alter the height of the displacement using the **Scale** of the **Transform**. This allows you to preserve the ratio between the amplitude of the displacement and the **Scale** of the **Transform**. |
 | **Lock with height map tiling rate** | Enable the checkbox to alter the amplitude of the displacement using the tiling of the **Height Map**. This allows you to preserve the ratio between the amplitude of the displacement and the scale of the **Height Map** Texture. |
 
-#### Pixel Displacement 
+#### Pixel Displacement
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
@@ -41,7 +41,7 @@ The options in the **Displacement Mode** drop-down change depending on the Shade
 | **Fading mip level start** | Use the slider to set the mip level at which the pixel displacement effect begins to fade out. |
 | **Primitive length**       | The length of the Mesh (in meters) on which Unity applies the displacement mapping. |
 | **Primitive width**        | The width of the Mesh (in meters) on which Unity applies the displacement mapping. |
-| **Depth Offset**           | Enable the checkbox to modify the depth buffer according to the displacement. This allows effects that use the depth buffer ([Contact Shadows](Override-Contact-Shadows.html) for example) to capture pixel displacement details. |
+| **Depth Offset**           | Enable the checkbox to modify the depth buffer according to the displacement. This allows effects that use the depth buffer ([Contact Shadows](Override-Contact-Shadows.md) for example) to capture pixel displacement details. |
 
 ### Surface Inputs
 

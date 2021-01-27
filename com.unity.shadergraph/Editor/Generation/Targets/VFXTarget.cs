@@ -1,8 +1,12 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -17,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         bool m_AlphaTest = false;
-        
+
         public VFXTarget()
         {
             displayName = "Visual Effect";
@@ -36,7 +40,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
         }
@@ -47,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return true;
+            return base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -57,23 +61,30 @@ namespace UnityEditor.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           lit);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness,         lit);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           lit);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, alphaTest);
+        }
+
+        enum MaterialMode
+        {
+            Unlit,
+            Lit
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Lit", new Toggle() { value = m_Lit }, (evt) =>
+            context.AddProperty("Material", new EnumField(MaterialMode.Unlit) { value = m_Lit ? MaterialMode.Lit : MaterialMode.Unlit }, evt =>
             {
-                if (Equals(m_Lit, evt.newValue))
+                var newLit = (MaterialMode)evt.newValue == MaterialMode.Lit;
+                if (Equals(m_Lit, newLit))
                     return;
 
-                registerUndo("Change Lit");
-                m_Lit = evt.newValue;
+                registerUndo("Change Material Lit");
+                m_Lit = newLit;
                 onChange();
             });
 
-            context.AddProperty("Alpha Test", new Toggle() { value = m_AlphaTest }, (evt) =>
+            context.AddProperty("Alpha Clipping", new Toggle() { value = m_AlphaTest }, (evt) =>
             {
                 if (Equals(m_AlphaTest, evt.newValue))
                     return;
@@ -98,7 +109,7 @@ namespace UnityEditor.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
+            if (!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
                 return false;
 
             lit = vfxMasterNode.m_Lit;
@@ -120,7 +131,7 @@ namespace UnityEditor.ShaderGraph
 
             blockMap.Add(BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId);
 
-            if(alphaTest)
+            if (alphaTest)
             {
                 blockMap.Add(BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId);
             }
@@ -134,3 +145,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif

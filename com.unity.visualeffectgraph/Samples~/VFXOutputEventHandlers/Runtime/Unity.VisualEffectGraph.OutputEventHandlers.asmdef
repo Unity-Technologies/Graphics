@@ -1,0 +1,39 @@
+{
+    "name": "VFXGraph.OutputEventHandlers",
+    "rootNamespace": "",
+    "references": [
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Cinemachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "10.0.0-preview.1",
+            "define": "VFX_OUTPUTEVENT_HDRP_10_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "2.6.0",
+            "define": "VFX_OUTPUTEVENT_CINEMACHINE_2_6_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "VFX_OUTPUTEVENT_PHYSICS"
+        },
+        {
+            "name": "com.unity.modules.audio",
+            "expression": "1.0.0",
+            "define": "VFX_OUTPUTEVENT_AUDIO"
+        }
+    ],
+    "noEngineReferences": false
+}

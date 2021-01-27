@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 public class DebugViewController : MonoBehaviour
 {
-    public enum SettingType { Material, Rendering }
+    public enum SettingType { Material, Lighting, Rendering }
     public SettingType settingType = SettingType.Material;
 
     [Header("Material")]
@@ -17,6 +17,7 @@ public class DebugViewController : MonoBehaviour
     [Header("Rendering")]
     [SerializeField] int fullScreenDebugMode = 0;
 
+    [Header("Lighting")]
     [SerializeField] bool lightlayers = false;
 
     [ContextMenu("Set Debug View")]
@@ -29,16 +30,15 @@ public class DebugViewController : MonoBehaviour
             case SettingType.Material:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
                 break;
+            case SettingType.Lighting:
+                hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(lightlayers);
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
+                break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) fullScreenDebugMode);
                 break;
         }
 
-        if (lightlayers)
-        {
-            hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(true);
-            hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
-        }
     }
 
     void OnDestroy()

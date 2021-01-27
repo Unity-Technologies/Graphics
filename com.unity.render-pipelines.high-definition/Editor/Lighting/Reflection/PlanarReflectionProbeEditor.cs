@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
         public static Material GUITextureBlit2SRGBMaterial
-                => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+            => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
 
         const float k_PreviewHeight = 128;
 
@@ -74,10 +74,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 var row = i / rowSize;
                 var col = i % rowSize;
                 var itemRect = new Rect(
-                        r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
-                        r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
-                        size.x,
-                        size.y);
+                    r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
+                    r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
+                    size.x,
+                    size.y);
 
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, 1);
@@ -91,15 +91,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (s_MipMapLow == null)
                 InitIcons();
 
-            int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
-
             GUILayout.Box(s_ExposureLow, s_PreLabel, GUILayout.MaxWidth(20));
             previewExposure = GUILayout.HorizontalSlider(previewExposure, -20f, 20f, GUILayout.MaxWidth(80));
             GUILayout.Space(5);
 
-// For now we don't display the mip level slider because they are black. The convolution of the probe
-// texture is made in the atlas and so is not available in the texture we have here.
+            // For now we don't display the mip level slider because they are black. The convolution of the probe
+            // texture is made in the atlas and so is not available in the texture we have here.
 #if false
+            int mipmapCount = m_PreviewedTextures.Count > 0 ? m_PreviewedTextures[0].mipmapCount : 1;
+
             GUILayout.Box(s_MipMapHigh, s_PreLabel, GUILayout.MaxWidth(20));
             mipLevelPreview = GUILayout.HorizontalSlider(mipLevelPreview, 0, mipmapCount, GUILayout.MaxWidth(80));
             GUILayout.Box(s_MipMapLow, s_PreLabel, GUILayout.MaxWidth(20));
@@ -270,7 +270,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // When a user creates a new mirror, the capture position is at the exact position of the mirror mesh.
             // We need to offset slightly the gizmo to avoid a Z-fight in that case, as it looks like a bug
             // for users discovering the planar reflection.
-            var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace + Vector3.up * 0.001f;
+            var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace;
+            mirrorPositionProxySpace += settings.proxySettings.mirrorRotationProxySpace * Vector3.forward * 0.001f;
 
             var mirrorPosition = proxyToWorld.MultiplyPoint(mirrorPositionProxySpace);
             var mirrorRotation = (proxyToWorld.rotation * settings.proxySettings.mirrorRotationProxySpace * Quaternion.Euler(0, 180, 0)).normalized;
@@ -326,17 +327,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 | ProbeSettingsFields.frustumAutomaticScale
                 | ProbeSettingsFields.frustumViewerScale
                 | ProbeSettingsFields.frustumFixedValue
-                | ProbeSettingsFields.resolution,
+                | ProbeSettingsFields.resolution
+                | ProbeSettingsFields.roughReflections,
             camera = new CameraSettingsOverride
             {
                 camera = (CameraSettingsFields)(-1) & ~(
-                   CameraSettingsFields.flipYMode
-                   | CameraSettingsFields.frustumAspect
-                   | CameraSettingsFields.cullingInvertFaceCulling
-                   | CameraSettingsFields.frustumMode
-                   | CameraSettingsFields.frustumProjectionMatrix
-                   | CameraSettingsFields.frustumFieldOfView
-               )
+                    CameraSettingsFields.flipYMode
+                    | CameraSettingsFields.frustumAspect
+                    | CameraSettingsFields.cullingInvertFaceCulling
+                    | CameraSettingsFields.frustumMode
+                    | CameraSettingsFields.frustumProjectionMatrix
+                    | CameraSettingsFields.frustumFieldOfView
+                )
             }
         };
 

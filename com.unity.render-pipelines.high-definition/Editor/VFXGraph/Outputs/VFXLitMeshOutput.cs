@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput
+    class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
         public override string name { get { return "Output Particle Lit Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
@@ -15,6 +15,30 @@ namespace UnityEditor.VFX
         public override bool implementsMotionVector { get { return true; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), Tooltip("Specifies the number of different meshes (up to 4). Mesh per particle can be specified with the meshIndex attribute."), SerializeField]
+        private uint MeshCount = 1;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, screen space LOD is used to determine with meshIndex to use per particle."), SerializeField]
+        private bool lod = false;
+        public uint meshCount => HasStrips(true) ? 1 : MeshCount;
+
+        public override VFXOutputUpdate.Features outputUpdateFeatures
+        {
+            get
+            {
+                VFXOutputUpdate.Features features = base.outputUpdateFeatures;
+                if (!HasStrips(true)) // TODO make it compatible with strips
+                {
+                    if (MeshCount > 1)
+                        features |= VFXOutputUpdate.Features.MultiMesh;
+                    if (lod)
+                        features |= VFXOutputUpdate.Features.LOD;
+                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                        features |= VFXOutputUpdate.Features.Sort;
+                }
+                return features;
+            }
+        }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -45,12 +69,32 @@ namespace UnityEditor.VFX
             }
         }
 
-        public class InputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
-            [Tooltip("Specifies the mesh used to render the particle.")]
-            public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
-            public uint subMeshMask = 0xffffffff;
+            get
+            {
+                foreach (var property in base.inputProperties)
+                    yield return property;
+
+                foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, outputUpdateFeatures))
+                    yield return property;
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var s in base.filteredOutSettings)
+                    yield return s;
+
+                // TODO Add a experimental bool to setting attribute
+                if (!VFXViewPreference.displayExperimentalOperator)
+                {
+                    yield return "MeshCount";
+                    yield return "lod";
+                }
+            }
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -61,8 +105,8 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    mapper.AddExpression(inputSlots.First(s => s.name == "mesh").GetExpression(), "mesh", -1);
-                    mapper.AddExpression(inputSlots.First(s => s.name == "subMeshMask").GetExpression(), "subMeshMask", -1);
+                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(MeshCount))
+                        mapper.AddExpression(inputSlots.First(s => s.name == name).GetExpression(), name, -1);
                     break;
                 }
                 default:

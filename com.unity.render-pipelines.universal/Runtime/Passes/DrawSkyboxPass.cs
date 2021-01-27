@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public DrawSkyboxPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
+
             renderPassEvent = evt;
         }
 
@@ -31,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
                     CommandBuffer cmd = CommandBufferPool.Get();
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(Application.platform == RuntimePlatform.Android ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
+                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
@@ -41,8 +43,12 @@ namespace UnityEngine.Rendering.Universal
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     context.ExecuteCommandBuffer(cmd);
-
+                    // We do not need to submit here due to special handling of stereo matricies in core.
+                    // context.Submit();
                     CommandBufferPool.Release(cmd);
+
+                    renderingData.cameraData.camera.ResetStereoProjectionMatrices();
+                    renderingData.cameraData.camera.ResetStereoViewMatrices();
                 }
                 else
                 {
@@ -50,6 +56,11 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
 
                     context.DrawSkybox(renderingData.cameraData.camera);
+                    // Submit and execute the skybox pass before resetting the matrices
+                    context.Submit();
+
+                    renderingData.cameraData.camera.ResetProjectionMatrix();
+                    renderingData.cameraData.camera.ResetWorldToCameraMatrix();
                 }
             }
             else

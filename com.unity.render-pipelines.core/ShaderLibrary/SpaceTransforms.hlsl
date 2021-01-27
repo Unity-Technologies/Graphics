@@ -1,6 +1,8 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
+// Caution: For HDRP, adding a function in this file requires adding the appropriate #define in PickingSpaceTransforms.hlsl
+
 // Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
@@ -49,17 +51,28 @@ float3 GetCameraRelativePositionWS(float3 positionWS)
 
 real GetOddNegativeScale()
 {
-    return unity_WorldTransformParams.w;
+    // FIXME: We should be able to just return unity_WorldTransformParams.w, but it is not
+    // properly set at the moment, when doing ray-tracing; once this has been fixed in cpp,
+    // we can revert back to the former implementation.
+    return unity_WorldTransformParams.w >= 0.0 ? 1.0 : -1.0;
 }
 
 float3 TransformObjectToWorld(float3 positionOS)
 {
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    return mul(ObjectToWorld3x4(), float4(positionOS, 1.0)).xyz;
+    #else
     return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
+    #endif
 }
 
 float3 TransformWorldToObject(float3 positionWS)
 {
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    return mul(WorldToObject3x4(), float4(positionWS, 1.0)).xyz;
+    #else
     return mul(GetWorldToObjectMatrix(), float4(positionWS, 1.0)).xyz;
+    #endif
 }
 
 float3 TransformWorldToView(float3 positionWS)
@@ -89,7 +102,11 @@ float4 TransformWViewToHClip(float3 positionVS)
 // Normalize to support uniform scaling
 float3 TransformObjectToWorldDir(float3 dirOS, bool doNormalize = true)
 {
+    #ifndef SHADER_STAGE_RAY_TRACING
     float3 dirWS = mul((float3x3)GetObjectToWorldMatrix(), dirOS);
+    #else
+    float3 dirWS = mul((float3x3)ObjectToWorld3x4(), dirOS);
+    #endif
     if (doNormalize)
         return SafeNormalize(dirWS);
 
@@ -99,7 +116,11 @@ float3 TransformObjectToWorldDir(float3 dirOS, bool doNormalize = true)
 // Normalize to support uniform scaling
 float3 TransformWorldToObjectDir(float3 dirWS, bool doNormalize = true)
 {
+    #ifndef SHADER_STAGE_RAY_TRACING
     float3 dirOS = mul((float3x3)GetWorldToObjectMatrix(), dirWS);
+    #else
+    float3 dirOS = mul((float3x3)WorldToObject3x4(), dirWS);
+    #endif
     if (doNormalize)
         return normalize(dirOS);
 

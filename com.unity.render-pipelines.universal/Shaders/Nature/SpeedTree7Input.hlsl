@@ -24,4 +24,6 @@
     sampler2D _DetailTex;
 #endif
 
+#define _Surface 0.0 // Speed Trees are always opaque
+
 #endif

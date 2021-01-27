@@ -74,6 +74,18 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
         }
 
+        internal static void SetSourceSize(CommandBuffer cmd, RenderTextureDescriptor desc)
+        {
+            float width = desc.width;
+            float height = desc.height;
+            if (desc.useDynamicScale)
+            {
+                width *= ScalableBufferManager.widthScaleFactor;
+                height *= ScalableBufferManager.heightScaleFactor;
+            }
+            cmd.SetGlobalVector(ShaderConstants._SourceSize, new Vector4(width, height, 1.0f / width, 1.0f / height));
+        }
+
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants
         {
@@ -83,6 +95,8 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int _BlueNoise_Texture = Shader.PropertyToID("_BlueNoise_Texture");
             public static readonly int _Dithering_Params  = Shader.PropertyToID("_Dithering_Params");
+
+            public static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
         }
     }
 }

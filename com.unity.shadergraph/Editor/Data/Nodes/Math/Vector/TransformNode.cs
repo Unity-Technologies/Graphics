@@ -51,7 +51,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         [SerializeField]
         CoordinateSpaceConversion m_Conversion = new CoordinateSpaceConversion(CoordinateSpace.Object, CoordinateSpace.World);
 
@@ -238,14 +237,14 @@ namespace UnityEditor.ShaderGraph
             else if (requiresTangentTransform)
                 sb.AppendLine(string.Format("$precision3x3 {0} = $precision3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal);", targetTransformString, tangentTransformSpace));
             sb.AppendLine("{0} {1} = {2};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
-                    GetVariableNameForSlot(OutputSlotId),
-                    transformString);
+                GetVariableNameForSlot(OutputSlotId),
+                transformString);
         }
 
         bool RequiresWorldSpaceTangentTransform()
         {
             if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
-                || conversion.from == CoordinateSpace.AbsoluteWorld 
+                || conversion.from == CoordinateSpace.AbsoluteWorld
                 || conversion.from == CoordinateSpace.Object && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.Tangent)
                 return true;

@@ -7,7 +7,7 @@
 
 // Attributes
 #define REQUIRE_TANGENT_TO_WORLD defined(_PIXEL_DISPLACEMENT)
-#define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_DISPLACEMENT)
+#define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_DISPLACEMENT) || defined(WRITE_DECAL_BUFFER)
 #define REQUIRE_VERTEX_COLOR (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || (defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))))
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
@@ -16,7 +16,7 @@
 #if REQUIRE_NORMAL
 #define ATTRIBUTES_NEED_NORMAL
 #endif
-#if REQUIRE_TANGENT_TO_WORLD
+#if REQUIRE_TANGENT_TO_WORLD || defined(WRITE_DECAL_BUFFER)
 #define ATTRIBUTES_NEED_TANGENT
 #endif
 #if REQUIRE_VERTEX_COLOR
@@ -42,7 +42,7 @@
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
 #define VARYINGS_NEED_POSITION_WS // Can be require if we have planar or triplanar distortion
 
-#if REQUIRE_TANGENT_TO_WORLD
+#if REQUIRE_TANGENT_TO_WORLD || defined(WRITE_DECAL_BUFFER)
 #define VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 
