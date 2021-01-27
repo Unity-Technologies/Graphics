@@ -202,6 +202,9 @@ namespace UnityEditor.Rendering
         public void Repaint()
         {
             m_Inspector.Repaint();
+            // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
+            // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
+            SettingsService.RepaintAllSettingsWindow();
         }
 
         internal void InitAdditionalPropertiesPreference()
