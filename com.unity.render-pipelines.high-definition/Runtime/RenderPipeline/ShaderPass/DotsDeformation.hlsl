@@ -1,6 +1,3 @@
-#ifndef SKINNING_INCLUDED
-#define SKINNING_INCLUDED
-
 #if defined(DOTS_INSTANCING_ON)
 struct DeformedVertexData
 {
@@ -61,7 +58,4 @@ void DOTS_Deformation_MotionVecPass(inout float3 currPos, inout float3 prevPos, 
         prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
     }
 }
-#endif
-
-
 #endif
