@@ -299,13 +299,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
 
             // Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes
-            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
-            {
-                foreach (var cin in CustomInterpolatorUtils.GetCIBDependents(bnode))
-                {
-                    action(cin);
-                }
-            }
+            //if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
+            //{
+            //    foreach (var cin in CustomInterpolatorUtils.GetCIBDependents(bnode))
+            //    {
+            //        action(cin);
+            //    }
+            //}
         }
 
         public void HandleGraphChanges()

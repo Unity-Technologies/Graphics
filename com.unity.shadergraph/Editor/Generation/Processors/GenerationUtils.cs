@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
+                    if (subscript.HasSemantic() || subscript.HasPreprocessor() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -166,11 +166,13 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
-                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
-                        packedSubscripts.Add(packedSubscript);
                     }
                 }
+            }
+            for(int i = 0; i < packedCounts.Count(); ++i)
+            {
+                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float"+packedCounts[i], "TEXCOORD" + i, "", StructFieldOptions.Static);
+                packedSubscripts.Add(packedSubscript);
             }
             packStruct.fields = packedSubscripts.ToArray();
         }

@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             public static PassDescriptor Forward = new PassDescriptor
@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
         }
         #endregion

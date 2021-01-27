@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = UnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
         }
         #endregion

@@ -363,7 +363,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = CoreIncludes.DepthOnly,
 
             // Custom Interpolator Support
-            cipoes = CoreCIPOE.Common
+            customInterpolators = CoreCISubGen.Common
         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = CoreIncludes.ShadowCaster,
 
             // Custom Interpolator Support
-            cipoes = CoreCIPOE.Common
+            customInterpolators = CoreCISubGen.Common
         };
     }
     #endregion
@@ -874,28 +874,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
     #endregion
 
-    #region CIPOEDescriptors
-    static class CoreCIPOE
+    #region CISubGenDescriptors
+
+    static class CoreCISubGen
     {
-        public static readonly CIPOECollection Common = new CIPOECollection
+        public static readonly CISubGen.Collection Common = new CISubGen.Collection
         {
-            new CIPOEDescriptor
-            {
-                    // This will generate both block code to be injencted in the SurfaceDescriptionInputs
-                    // AND the function call in varyings. The descriptor can handle up to 3 related or unrelated generations,
-                    // but best practice is to split things up to avoid confusion.
-
-                    srcName = "input",                          // SG's default identifiers for SDI.
-                    dstName = "output",                         // SG's default identifiers for SDI.
-                    spliceBlock = CIPOEDescriptor.k_sgSdiEntry, // SG's default entry point for SDI.
-
-                    spliceCall = null,                           // the call is hardcoded in Varyings.hlsl, nothing to splice.
-                    srcType = "VertexDescription",               // Hardcoded in SG, is one of the input types for func generation.
-                    dstType = "Varyings",                        // hardcoded in Varyings.hlsl, needed to generate the function definition.
-                    funcName = "SGCIPassThrough",                // hardcoded in Varyings.hlsl
-            },
+            CISubGen.Descriptor.MakeBlock("sgci_CopyToSDI", "output", "input"),
+            CISubGen.Descriptor.MakeFunc("sgci_PreSurface", "sgci_PassThroughFunc", "Varyings", "VertexDescription", "SGCI_VARYPASSTHROUGH_FUNC")
         };
-
     }
     #endregion
 }

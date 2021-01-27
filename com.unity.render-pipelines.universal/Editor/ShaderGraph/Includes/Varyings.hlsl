@@ -18,9 +18,9 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
-    #if defined(FEATURES_CUSTOM_INTERPOLATORS)
-        output = SGCIPassThrough(output, vertexDescription);
+
+    #if defined(SGCI_VARYPASSTHROUGH_FUNC)
+        sgci_PassThroughFunc(output, vertexDescription);
     #endif
 
     // Assign modified vertex attributes

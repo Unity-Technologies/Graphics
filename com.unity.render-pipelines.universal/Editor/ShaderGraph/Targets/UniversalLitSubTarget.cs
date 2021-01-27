@@ -387,7 +387,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.Forward,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             public static PassDescriptor ForwardOnly = new PassDescriptor
@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.Forward,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             // Deferred only in SM4.5, MRT not supported in GLES2
@@ -449,7 +449,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.GBuffer,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             public static PassDescriptor Meta = new PassDescriptor()
@@ -479,7 +479,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes.Meta,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             public static readonly PassDescriptor _2D = new PassDescriptor()
@@ -506,7 +506,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = LitIncludes._2D,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
 
             public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = CoreIncludes.DepthNormalsOnly,
 
                 // Custom Interpolator Support
-                cipoes = CoreCIPOE.Common
+                customInterpolators = CoreCISubGen.Common
             };
         }
         #endregion

@@ -162,14 +162,14 @@ namespace UnityEditor.ShaderGraph
             bool canInline = e_targetBlockNode?.GetInputNodeFromSlot(0) == null && props.Count != 0;
 
             // vector width of target slot
-            int toWidth = CustomInterpolatorUtils.SlotTypeToWidth(valueType);
+            int toWidth = SlotTypeToWidth(valueType);
 
             string finalResult = "";
 
             // If cib is inactive (or doesn't exist), then we default to black (as is the case for other nodes).
             if (!isActive || CustomInterpolatorUtils.generatorSkipFlag)
             {
-                finalResult = CustomInterpolatorUtils.ConvertVector("$precision4(0,0,0,0)", 4, toWidth);
+                finalResult = ConvertVector("$precision4(0,0,0,0)", 4, toWidth);
             }
             // cib has no input; we can directly use the inline value instead.
             else if (canInline)
@@ -191,24 +191,25 @@ namespace UnityEditor.ShaderGraph
                         outWidth = 4;
                         break;
                 }
-                finalResult = CustomInterpolatorUtils.ConvertVector(result, outWidth, toWidth);
+                finalResult = ConvertVector(result, outWidth, toWidth);
             }
-            // If we made it this far, then cib is in a valid and meaningful configuration in the SDI struct.
-            else if (generationMode == GenerationMode.ForReals)
-            {
-                // pull directly out of the SDI and just use it.
-                var result = string.Format("IN.{0}", customBlockNodeName);
-                finalResult = CustomInterpolatorUtils.ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
-            }
-            // Preview doesn't support CI, but we can fake it by asking the cib's source input for it's value instead.
-            else if (generationMode == GenerationMode.Preview)
+            // Preview Node doesn't support CI, but we can fake it by asking the cib's source input for it's value instead.
+            else if (CustomInterpolatorUtils.generatorNodeOnly)
             {
                 var sourceSlot = FindSourceSlot(out var found);
                 // CIB's type needs to constrain the incoming value (eg. vec2(out)->float(cib) | float(cin)->vec2(in))
                 // If we didn't do this next line, we'd get vec2(out)->vec2(in), which would ignore the truncation in the preview.
                 var result = sourceSlot.node.GetOutputForSlot(sourceSlot, FindSlot<MaterialSlot>(0).concreteValueType, GenerationMode.Preview);
-                finalResult = CustomInterpolatorUtils.ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
+                finalResult = ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
             }
+            // If we made it this far, then cib is in a valid and meaningful configuration in the SDI struct.
+            else
+            {
+                // pull directly out of the SDI and just use it.
+                var result = string.Format("IN.{0}", customBlockNodeName);
+                finalResult = ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
+            }
+
             return finalResult.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
         }
 
@@ -224,6 +225,56 @@ namespace UnityEditor.ShaderGraph
                 found = false;
                 return default;
             }
+        }
+
+
+        private static int SlotTypeToWidth(ConcreteSlotValueType valueType)
+        {
+            switch (valueType)
+            {
+                case ConcreteSlotValueType.Boolean:
+                case ConcreteSlotValueType.Vector1: return 1;
+                case ConcreteSlotValueType.Vector2: return 2;
+                case ConcreteSlotValueType.Vector3: return 3;
+                default: return 4;
+            }
+        }
+        private static string ConvertVector(string name, int fromLen, int toLen)
+        {
+            if (fromLen == toLen)
+                return name;
+
+            var key = new char[] { 'x', 'y', 'z', 'w' };
+
+            string begin = $"$precision{toLen}({name}.";
+            var mid = "";
+            string end = ")";
+
+            if (toLen == 4)
+            {
+                // We assume homogenous coordinates for some reason.
+                end = ", 1.0)";
+                toLen -= 1;
+            }
+
+            if (fromLen == 1)
+            {
+                // we expand floats for each component for some reason.
+                fromLen = toLen;
+                key = new char[] { 'x', 'x', 'x' };
+            }
+
+            // expand the swizzle
+            int swizzLen = Math.Min(fromLen, toLen);
+            for (int i = 0; i < swizzLen; ++i)
+                mid += key[i];
+
+            // fill gaps            
+            for (int i = fromLen; i < toLen; ++i)
+                mid += ", 0.0";
+
+            // float<toLen>(<name>.<swizz>, <gap...>, 1.0)"
+            return $"({begin}{mid}{end})";
         }
     }
 }
