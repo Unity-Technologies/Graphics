@@ -105,6 +105,9 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     name: URP_Performance_LostCrypt on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
@@ -265,6 +268,9 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always

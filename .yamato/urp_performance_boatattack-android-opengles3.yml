@@ -105,6 +105,9 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk:
     name: URP_Performance_BoatAttack on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
@@ -265,6 +268,9 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always

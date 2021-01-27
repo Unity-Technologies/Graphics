@@ -62,6 +62,9 @@ Build_Universal_Win_DX11_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 Universal_Win_DX11_playmode_mono_Linear_trunk:
     name: Universal on Win_DX11_playmode_mono_Linear on version trunk
     agent:
@@ -256,6 +259,9 @@ Build_Universal_Win_DX11_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -315,6 +321,9 @@ Build_Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
@@ -536,6 +545,9 @@ Build_Universal_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always

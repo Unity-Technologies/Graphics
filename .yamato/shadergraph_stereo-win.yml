@@ -58,6 +58,9 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
     name: ShaderGraph_Stereo on Win__editmode_mono_Linear on version trunk
     agent:
@@ -134,6 +137,9 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -189,6 +195,9 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
@@ -276,6 +285,9 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always

@@ -55,6 +55,9 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     name: Universal on iPhone_Metal_Standalone_cache_il2cpp_Linear on version trunk
     agent:
@@ -103,6 +106,9 @@ Build_Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Universal on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -155,6 +161,9 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
          rerun: always
@@ -210,6 +219,9 @@ Build_Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
          rerun: always

@@ -61,6 +61,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_Standalone_PerformanceTests_mono_Linear on version trunk
     agent:
@@ -115,6 +118,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version trunk
     agent:
@@ -357,6 +363,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
 VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -415,6 +424,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
@@ -476,6 +488,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
@@ -753,6 +768,9 @@ Build_VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
+        players:
+            paths:
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
