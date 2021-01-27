@@ -22,12 +22,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
+      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -48,12 +43,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
+      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -75,12 +65,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
+      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -105,12 +90,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
+      -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

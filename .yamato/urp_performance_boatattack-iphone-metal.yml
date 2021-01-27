@@ -24,10 +24,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -78,10 +78,10 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -129,10 +129,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -156,10 +156,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -213,10 +213,10 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -268,10 +268,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-            ./utr
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
