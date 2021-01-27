@@ -31,9 +31,7 @@ void DOTS_Deformation(inout AttributesMesh input)
 #endif
     }
 }
-#endif
 
-#if defined(DOTS_INSTANCING_ON)
 // position only for motion vec vs
 void DOTS_Deformation_MotionVecPass(inout float3 currPos, inout float3 prevPos, uint vertexID)
 {
