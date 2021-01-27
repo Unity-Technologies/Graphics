@@ -41,7 +41,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 enableRandomWrite: m_RenderTextureDescriptor.enableRandomWrite,
                 useMipMap: m_RenderTextureDescriptor.useMipMap,
                 autoGenerateMips: m_RenderTextureDescriptor.autoGenerateMips,
-                msaaSamples: (MSAASamples)m_RenderTextureDescriptor.msaaSamples,
                 useDynamicScale: m_RenderTextureDescriptor.useDynamicScale,
                 memoryless: m_RenderTextureDescriptor.memoryless,
                 name: "_ScreenSpaceShadowmapTexture");
