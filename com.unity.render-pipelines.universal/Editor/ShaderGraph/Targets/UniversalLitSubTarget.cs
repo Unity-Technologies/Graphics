@@ -103,8 +103,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(UniversalFields.NormalDropOffWS,       normalDropOffSpace == NormalDropOffSpace.World);
             context.AddField(UniversalFields.SpecularSetup,         workflowMode == WorkflowMode.Specular);
             context.AddField(UniversalFields.Normal,                descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
-                                                                    descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
-                                                                    descs.Contains(BlockFields.SurfaceDescription.NormalWS));
+                descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                descs.Contains(BlockFields.SurfaceDescription.NormalWS));
             // Complex Lit
 
             // Template Predicates

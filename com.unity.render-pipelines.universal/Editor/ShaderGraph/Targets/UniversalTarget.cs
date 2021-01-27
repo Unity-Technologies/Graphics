@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
-        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]{"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
         public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
@@ -247,7 +247,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 customEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
