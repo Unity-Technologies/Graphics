@@ -108,9 +108,9 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
         float3 deformedPrevPos = inputPass.previousPositionOS;
-#if defined(DOTS_SKINNING)
-        //Skin even if force no motion?
-        DOTS_Deformation_MotionVecPass(inputMesh.positionOS, deformedPrevPos, inputMesh.vertexID);
+
+#if defined(DOTS_INSTANCING_ON)
+       DOTS_Deformation_MotionVecPass(inputMesh.positionOS, deformedPrevPos, inputMesh.vertexID);
 #endif
         float3 effectivePositionOS = (hasDeformation) ? deformedPrevPos : inputMesh.positionOS;
 
