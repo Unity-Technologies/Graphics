@@ -1,4 +1,4 @@
-# What's new in URP 11.0
+# What's new in URP 11
 
 This section contains information about new features, improvements, and issues fixed in URP 11.0.
 
@@ -8,7 +8,11 @@ For a complete list of changes made in URP 11, refer to the [Changelog](../../ch
 
 This section contains the overview of the new features in this release.
 
-### TODO: Feature 1
+### Point Light shadows in URP
+
+URP 11 adds support for Point Light shadows. Point Light shadows help you to create more realistic simulation of local sources of light, such as lamps, torches, campfires, etc.
+
+![Point Light shadows](../Images/whats-new/urp-11/whats-new-point-light-shadows.png)
 
 ## Improvements
 
@@ -18,11 +22,9 @@ This section contains the overview of the major improvements in this release.
 
 The URP asset now has the Post Processing check box. This check box turns post-processing on (check box selected) or off (check box cleared) for the current URP asset.<br/>If you clear this check box, Unity excludes post-processing shaders and textures from the build, unless one of the following conditions is true:<ul><li>Other assets in the build refer to the assets related to post-processing.</li><li>A different URP asset has the Post Processing property enabled.</li></ul>
 
-![Post processing properties](../Images/whats-new/urp-11/urp-asset-post-processing.png)<br/>*Post processing section in the URP asset.*
+![Post processing properties](../Images/whats-new/urp-11/urp-asset-post-processing.png)
 
 ## Issues resolved
-
-TODO: If we would like to highlight some particular fixes, list them here.
 
 For a complete list of issues resolved in URP 11, see the [Changelog](../../changelog/CHANGELOG.html).
 
