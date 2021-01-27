@@ -54,6 +54,10 @@ MonoBehaviour:
       sceneLabels: Simple
       scenePath: Assets/Scenes/Timings/0009_DistortionRefraction.unity
       enabled: 1
+    - scene: 0010_SSS
+      sceneLabels: Default
+      scenePath: Assets/Scenes/Timings/0010_SSS.unity
+      enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
