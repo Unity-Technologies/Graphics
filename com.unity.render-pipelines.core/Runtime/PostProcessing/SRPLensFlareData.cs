@@ -20,11 +20,11 @@ namespace UnityEngine
     //[DisallowMultipleComponent]
     //[HelpURL(UnityEditor.Rendering.Documentation.baseURL + UnityEditor.Rendering.Documentation.version + UnityEditor.Rendering.Documentation.subURL + "SRP-LensFlare" + Rendering.Documentation.endURL)]
     [System.Serializable]
-    public sealed class SRPLensFlareDataElement
+    public sealed class SRPLensFlareDataElement //: ScriptableObject
     {
         public SRPLensFlareDataElement()
         {
-            Intensity = 1.0f;
+            LocalIntensity = 1.0f;
             Position = 0.5f;
             LensFlareTexture = null;
             Size = 1.0f;
@@ -36,7 +36,7 @@ namespace UnityEngine
         }
 
         [Range(0.0f, 1.0f)]
-        public float Intensity;
+        public float LocalIntensity;
         //[Range(-1.0f, 1.0f)]
         public float Position;
         public Texture LensFlareTexture;
@@ -56,7 +56,7 @@ namespace UnityEngine
     [System.Serializable]
     public sealed class SRPLensFlareData : ScriptableObject
     {
-        public float Intensity = 1.0f;
+        public float GlobalIntensity = 1.0f;
         public AnimationCurve ScaleCurve;
         [HideInInspector]
         public Vector3 WorldPosition;

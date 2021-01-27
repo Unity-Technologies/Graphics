@@ -2188,14 +2188,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.Elements[elemIdx].AutoRotates = new bool[data.Elements.Length];
                 foreach (SRPLensFlareDataElement element in data.Elements)
                 {
-                    if (element.LensFlareTexture != null)
+                    if (element != null && element.LensFlareTexture != null)
                     {
                         parameters.Elements[elemIdx].WorldPosition = data.WorldPosition;
                         parameters.Elements[elemIdx].Positions[currentIdx] = element.Position;
                         parameters.Elements[elemIdx].LensFlareTextures[currentIdx] = element.LensFlareTexture;
                         parameters.Elements[elemIdx].Sizes[currentIdx] = new Vector2(element.Size, element.Size * element.AspectRatio);
                         parameters.Elements[elemIdx].Rotations[currentIdx] = element.Rotation;
-                        parameters.Elements[elemIdx].Tints[currentIdx] = (new Vector4(element.Tint.r, element.Tint.g, element.Tint.b, element.Tint.a)) * element.Intensity * data.Intensity;
+                        parameters.Elements[elemIdx].Tints[currentIdx] = (new Vector4(element.Tint.r, element.Tint.g, element.Tint.b, element.Tint.a)) * element.LocalIntensity * data.GlobalIntensity;
                         parameters.Elements[elemIdx].Speeds[currentIdx] = element.Speed;
                         parameters.Elements[elemIdx].BlendModes[currentIdx] = element.BlendMode;
                         parameters.Elements[elemIdx].AutoRotates[currentIdx] = element.AutoRotate;
@@ -2213,7 +2213,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foreach (LensFlareElement element in parameters.Elements)
             {
-                Vector2 viewportAdjustment = new Vector2((float)hdCam.actualWidth / source.rt.width, (float)hdCam.actualHeight / source.rt.height);
+                //Vector2 viewportAdjustment = new Vector2((float)hdCam.actualWidth / source.rt.width, (float)hdCam.actualHeight / source.rt.height);
+                Vector2 viewportAdjustment = new Vector2(1.0f, 1.0f);
                 cmd.SetGlobalVector(HDShaderIDs._FlareViewportAdjustment, viewportAdjustment);
 
                 Camera cam = hdCam.camera;
@@ -2227,7 +2228,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
 
-                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos * viewportAdjustment));
+                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos * viewportAdjustment));
+                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, viewportPos.z);
 
                 Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
@@ -2242,7 +2244,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ////var innerAngle = angle - coneInner;
                 ////intensity *= Mathf.SmoothStep(1, 0, innerAngle / coneOuter);
                 //cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, intensity);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, 1.0f);
+                //cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, 1.0f);
 
                 //cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionManual, m_OcclusionMode == OcclusionMode.Manual ? m_OcclusionManual : -1f);
 
@@ -2265,27 +2267,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     SRPLensFlareBlendMode blendMode = element.BlendModes[i];
                     bool autoRotate = element.AutoRotates[i];
 
+                    Material usedMaterial = null;
+                    if (blendMode == SRPLensFlareBlendMode.Lerp)
+                        usedMaterial = parameters.lensFlareLerp;
+                    else if (blendMode == SRPLensFlareBlendMode.Additive)
+                        usedMaterial = parameters.lensFlareAdditive;
+                    else
+                        usedMaterial = parameters.lensFlarePremultiply;
+
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.LensFlareTextures[i]);
 
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
-                    if (!autoRotate)
+                    if (autoRotate)
                         rotation = rotation == 0.0f ? -360.0f : -rotation;
                     //rotation = rotation == 0.0f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
 
                     Vector4 data = new Vector4(position, rotation, size.x, size.y);
                     cmd.SetGlobalVector(HDShaderIDs._FlareData, data);
+                    //cmd.SetVect
+                    //usedMaterial.SetVector(HDShaderIDs._FlareData, data);
+                    //usedMaterial.SetFloat(HDShaderIDs._FlareOcclusionRadius, speed);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, speed);
 
                     //cmd.Draw(m_Mesh, Matrix4x4.identity, flare.material, 0, 0);
                     //HDUtils.DrawFullScreen(cmd, parameters.lensFlareAdditive, target);
 
-                    if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareLerp, 0, MeshTopology.Quads, 6, 1, null);
-                    else if (blendMode == SRPLensFlareBlendMode.Additive)
-                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareAdditive, 0, MeshTopology.Quads, 6, 1, null);
-                    else
-                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlarePremultiply, 0, MeshTopology.Quads, 6, 1, null);
+                    cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                 }
             }
         }

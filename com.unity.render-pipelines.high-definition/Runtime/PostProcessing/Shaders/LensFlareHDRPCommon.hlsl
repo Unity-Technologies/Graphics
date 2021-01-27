@@ -88,19 +88,30 @@ Varyings vert(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    //float ratio = (_RTHandleScale.x / _RTHandleScale.y);
+    //float ratio = _ScreenParams.x / _ScreenParams.y;
+    //float screenRatio = _ScreenSize.x / _ScreenSize.y;
+    float screenRatio = (_ScreenSize.x) / (_ScreenSize.y);
+    //float flareRatio = _FlareData.z / _FlareData.w;
+    float flareRatio = _FlareData.z / _FlareData.w;
+    float ratio = screenRatio / flareRatio;
+    //cameraAspectRatio / imageAspectRatio
     // From [0, 1] => [-1, 1]
-    output.positionCS = float4(2.0f, 2.0f, 1.0f, 1.0f) * (GetQuadVertexPosition(input.vertexID) - float4(0.5f, 0.5f, 0.0f, 0.0));
+    //output.positionCS = float4(2.0f, 2.0f, 1.0f, 1.0f) * (GetQuadVertexPosition(input.vertexID) * float4(_FlareData.z / ratio, _FlareData.w, 1.0f, 1.0f) - float4(0.5f, 0.5f, 0.0f, 0.0));
+    //output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_FlareData.z / ratio, _FlareData.w, 1.0f, 1.0f) - float4(0.5f, 0.5f, 0.0f, 0.0);
+    output.positionCS = float4(2.0f, 2.0f, 1.0f, 1.0f) * (GetQuadVertexPosition(input.vertexID) - float4(0.5f, 0.5f, 0.0f, 0.0)) * float4(_FlareData.z, _FlareData.w * ratio, 1.0f, 1.0f);
     output.texcoord = GetQuadTexCoord(input.vertexID);
 
     float4 flareData = _FlareData;
     float2 screenPos = _FlareScreenPosPanini;
 
-    if (_FlareDepth < 0)
-        flareData.zw = float2(0.0f, 0.0f);
+    //if (_FlareDepth < 0)
+    //    flareData.zw = float2(0.0f, 0.0f);
 
     float radius = _OcclusionRadius;
 
-    float ratio = _ScreenParams.x / _ScreenParams.y;
+    //float ratio = _ScreenParams.x / _ScreenParams.y;
 
     float occlusion = _OcclusionManual;
     //if (occlusion < 0.0f)
@@ -112,7 +123,7 @@ Varyings vert(Attributes input)
     //// position and rotate
     float angle = flareData.y;
     // negative stands for: also rotate to face the light
-    if (angle > 0)
+    if (abs(angle) > 0)
     {
         angle = -angle;
         float2 dir = normalize(screenPos);
@@ -121,19 +132,22 @@ Varyings vert(Attributes input)
     //angle *= _OcclusionRadius;
 
     float2 local = output.positionCS.xy * flareData.zw;
-    local = float2(
-        local.x * cos(angle) + local.y * (-sin(angle)),
-        local.x * sin(angle) + local.y * cos(angle));
+    local = float2( local.x * cos(angle) - local.y * sin(angle),
+                    local.x * sin(angle) + local.y * cos(angle));
 
+    local.xy /= flareData.zw;
     // adjust to correct ratio
-    local.x /= ratio;
+    //local.x /= flareData.w / flareData.z;
+    //local.x /= ( _RTHandleScale.y / _RTHandleScale.x );
+    //local.x *= (_RTHandleScale.x / _RTHandleScale.y);
 
     float2 rayOffset = -screenPos * flareData.x * _OcclusionRadius;
     //output.positionCS.w = v.positionCS.w;
     output.positionCS.xy = screenPos - local + rayOffset;
 
     // This is equivalent to doing the adjustment in the [0, 1] range with flipped Y
-    output.positionCS.x = (output.positionCS.x + 1) * _ViewportAdjustment.x - 1;
+    //output.positionCS.x = (output.positionCS.x + 1) * _ViewportAdjustment.x - 1;
+    //output.positionCS.x = (output.positionCS.x);
     //output.positionCS.y = (output.positionCS.y - 1) * _ViewportAdjustment.y + 1;
 
     //output.positionCS.z = 1;
