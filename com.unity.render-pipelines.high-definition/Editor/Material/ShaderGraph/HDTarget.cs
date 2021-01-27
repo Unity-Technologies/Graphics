@@ -948,8 +948,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
         public const string kPassFullScreenDebug = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassFullScreenDebug.hlsl";
-        public const string kSkinning = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/Skinning.hlsl";
-
+        
         public static IncludeCollection MinimalCorePregraph = new IncludeCollection
         {
             { kShaderVariables, IncludeLocation.Pregraph },
@@ -1339,15 +1338,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Multi Bounce Indirect",
             referenceName = "MULTI_BOUNCE_INDIRECT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-        
-        public static KeywordDescriptor SkinningDefine = new KeywordDescriptor()
-        {
-            displayName = "Dots Skinning",
-            referenceName = "DOTS_SKINNING",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
