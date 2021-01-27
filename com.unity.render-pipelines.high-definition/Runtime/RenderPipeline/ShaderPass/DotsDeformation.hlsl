@@ -11,8 +11,7 @@ uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
 
 void DOTS_Deformation(inout AttributesMesh input)
 {
-    // x = curr frame index
-    // y = prev frame index
+    // x,y = current and previous frame indices
     // z = deformation check (0 = no deformation, 1 = has deformation)
     // w = skinned motion vectors
     const int4 deformProperty = asint(unity_ComputeMeshIndex);
@@ -21,7 +20,7 @@ void DOTS_Deformation(inout AttributesMesh input)
     {
         const int streamIndex = _HybridDeformedVertexStreamIndex;
         const int startIndex = deformProperty[streamIndex];
-        const DeformedVertexData vertexData = _DeformedMeshData[startIndex + input.vertexID]; //if vertexid defined
+        const DeformedVertexData vertexData = _DeformedMeshData[startIndex + input.vertexID];
 
         input.positionOS = vertexData.Position;
 #ifdef ATTRIBUTES_NEED_NORMAL
@@ -34,27 +33,27 @@ void DOTS_Deformation(inout AttributesMesh input)
 }
 #endif
 
-//LBS Node not supported (skinning in vertex shader)
-
 #if defined(DOTS_INSTANCING_ON)
 // position only for motion vec vs
 void DOTS_Deformation_MotionVecPass(inout float3 currPos, inout float3 prevPos, uint vertexID)
 {
-    // x = curr frame index
-    // y = prev frame index
+    // x,y = current and previous frame indices
     // z = deformation check (0 = no deformation, 1 = has deformation)
     // w = skinned motion vectors
     const int4 deformProperty = asint(unity_ComputeMeshIndex);
-    const int doSkinning = deformProperty.w;
-    if (doSkinning == 1)
+    const int computeSkin = deformProperty.z;
+    if (computeSkin == 1)
     {
         const int currStreamIndex = _HybridDeformedVertexStreamIndex;
-		const int prevStreamIndex = (currStreamIndex + 1) % 2;
-
         const int currMeshStart = deformProperty[currStreamIndex];
-        const int prevMeshStart = deformProperty[prevStreamIndex];
-
         currPos = _DeformedMeshData[currMeshStart + vertexID].Position;
+    }
+
+    const int skinMotionVec = deformProperty.w;
+    if (skinMotionVec == 1)
+    {
+        const int prevStreamIndex = (_HybridDeformedVertexStreamIndex + 1) % 2;
+        const int prevMeshStart = deformProperty[prevStreamIndex];
         prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
     }
 }
