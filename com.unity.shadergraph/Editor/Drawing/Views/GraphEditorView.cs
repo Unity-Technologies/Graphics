@@ -393,7 +393,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            var inspectorViewModel = new InspectorViewModel() { ParentView = this };
+            var inspectorViewModel = new InspectorViewModel() { ParentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
         }
 

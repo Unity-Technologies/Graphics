@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ScrollBoundaryTop;
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
-
+        TextField m_PathLabelTextField;
 
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -69,6 +69,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
         }
+
+        SGController ISGControlledElement.controller => m_Controller;
+
         // --- ISGControlledElement implementation
 
         BlackboardController m_Controller;
@@ -87,8 +90,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         // List of user-made blackboard sections
         IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
 
-        bool m_scrollToTop = false;
-        bool m_scrollToBottom = false;
+        bool m_ScrollToTop = false;
+        bool m_ScrollToBottom = false;
+        bool m_EditPathCancelled = false;
         bool m_IsFieldBeingDragged = false;
 
         const int k_DraggedPropertyScrollSpeed = 6;
@@ -121,6 +125,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
 
             ParentView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
+
+            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
+            this.RegisterCallback<MouseUpEvent>(evt =>
+            {
+                m_DefaultPropertySection.OnDragActionCanceled();
+                m_DefaultKeywordSection.OnDragActionCanceled();
+            });
+
+            this.RegisterCallback<DragExitedEvent>(evt =>
+            {
+                m_DefaultPropertySection.OnDragActionCanceled();
+                m_DefaultKeywordSection.OnDragActionCanceled();
+            });
+
+            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+
+            m_PathLabelTextField = new TextField { visible = false };
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
 
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
@@ -189,37 +212,37 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_IsFieldBeingDragged)
             {
-                m_scrollToTop = true;
-                m_scrollToBottom = false;
+                m_ScrollToTop = true;
+                m_ScrollToBottom = false;
             }
         }
 
         void ScrollRegionTopLeave(MouseLeaveEvent mouseLeaveEvent)
         {
             if (m_IsFieldBeingDragged)
-                m_scrollToTop = false;
+                m_ScrollToTop = false;
         }
 
         void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
             {
-                m_scrollToBottom = true;
-                m_scrollToTop = false;
+                m_ScrollToBottom = true;
+                m_ScrollToTop = false;
             }
         }
 
         void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
         {
             if (m_IsFieldBeingDragged)
-                m_scrollToBottom = false;
+                m_ScrollToBottom = false;
         }
 
         void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
         {
-            if (m_scrollToTop)
+            if (m_ScrollToTop)
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y - k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
-            else if (m_scrollToBottom)
+            else if (m_ScrollToBottom)
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
         }
 
@@ -270,6 +293,61 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ShowAddPropertyMenu()
         {
             m_AddPropertyMenu.ShowAsContext();
+        }
+
+        void OnMouseDownEvent(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            {
+                StartEditingPath();
+                evt.PreventDefault();
+            }
+        }
+
+        void StartEditingPath()
+        {
+            m_SubTitleLabel.visible = false;
+            m_PathLabelTextField.visible = true;
+            m_PathLabelTextField.value = m_SubTitleLabel.text;
+            m_PathLabelTextField.Q("unity-text-input").Focus();
+            m_PathLabelTextField.SelectAll();
+        }
+
+        void OnPathTextFieldKeyPressed(KeyDownEvent evt)
+        {
+            switch (evt.keyCode)
+            {
+                case KeyCode.Escape:
+                    m_EditPathCancelled = true;
+                    m_PathLabelTextField.Q("unity-text-input").Blur();
+                    break;
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    m_PathLabelTextField.Q("unity-text-input").Blur();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnEditPathTextFinished()
+        {
+            m_SubTitleLabel.visible = true;
+            m_PathLabelTextField.visible = false;
+
+            var newPath = m_PathLabelTextField.text;
+            if (!m_EditPathCancelled && (newPath != m_SubTitleLabel.text))
+            {
+                newPath = BlackboardUtils.SanitizePath(newPath);
+            }
+
+            var pathChangeAction = new ChangeGraphPathAction();
+            pathChangeAction.NewGraphPath = newPath;
+            // Request graph path change action
+            ViewModel.RequestModelChangeAction(pathChangeAction);
+
+            m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
+            m_EditPathCancelled = false;
         }
     }
 }

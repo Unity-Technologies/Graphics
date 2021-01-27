@@ -20,27 +20,45 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphData != null)
             {
                 // If type property is valid, create instance of that type
-                if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
-                    blackboardItemReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+                if (BlackboardItemType != null && BlackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
+                    BlackboardItemReference = (BlackboardItem)Activator.CreateInstance(BlackboardItemType, true);
                 // If type is null a direct override object must have been provided or else we are in an error-state
-                else if (blackboardItemReference == null)
+                else if (BlackboardItemReference == null)
                 {
                     Debug.Log("ERROR: BlackboardController: Unable to complete Add Blackboard Item action.");
                     return;
                 }
 
+                m_GraphData.SanitizeGraphInputName(BlackboardItemReference);
+                BlackboardItemReference.generatePropertyBlock = BlackboardItemReference.isExposable;
+
                 m_GraphData.owner.RegisterCompleteObjectUndo("Add Blackboard Item");
-                m_GraphData.AddGraphInput(blackboardItemReference);
+                m_GraphData.AddGraphInput(BlackboardItemReference);
             }
         }
 
         public Action<GraphData> ModifyGraphDataAction => AddBlackboardItem;
 
         // If this is a subclass of ShaderInput and is not null, then an object of this type is created to add to blackboard
-        public Type blackboardItemType { get; set; }
+        public Type BlackboardItemType { get; set; }
 
         // If the type field above is null and this is provided, then it is directly used as the item to add to blackboard
-        public BlackboardItem blackboardItemReference { get; set; }
+        public BlackboardItem BlackboardItemReference { get; set; }
+    }
+
+	class ChangeGraphPathAction : IGraphDataAction
+    {
+		void ChangeGraphPath(GraphData m_GraphData)
+		{
+            if (m_GraphData != null)
+            {
+                m_GraphData.path = NewGraphPath;
+            }
+		}
+
+        public Action<GraphData> ModifyGraphDataAction => ChangeGraphPath;
+
+		public string NewGraphPath { get; set; }
     }
 
     class MoveBlackboardItemAction : IGraphDataAction
@@ -66,6 +84,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action<GraphData> ModifyGraphDataAction => RemoveBlackboardItem;
 
         BlackboardItem m_ItemToRemove;
+    }
+
+	class RenameBlackboardItemAction : IGraphDataAction
+    {
+        void RenameBlackboardItem(GraphData m_GraphData)
+        {
+
+        }
+
+        public Action<GraphData> ModifyGraphDataAction => RenameBlackboardItem;
+
+        public BlackboardItem BlackboardItemToRename { get; set; }
+
+		public string NewItemName { get; set; }
+
     }
 
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
@@ -111,19 +144,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             // it'd be nice to have a BlackboardRowController that handled moving, deleting, updating etc after a BlackboardRow is created and its assigned that as its view
             foreach (var shaderInput in DataStore.State.properties)
             {
-                var shaderInputViewModel = new ShaderInputViewModel();
-                var shaderInputViewController = new ShaderInputViewController(shaderInput, shaderInputViewModel, graphDataStore);
-                m_BlackboardItemControllers.Add(shaderInputViewController);
-                // TODO: How to communicate with child controllers?
+                CreateBlackboardRow(shaderInput);
             }
         }
 
         void InitializeViewModel()
         {
             // Clear the view model
-           iewModel.Reset();
+            ViewModel.Reset();
 
-            ViewModel.Subtitle = FormatPath(Model.path);
+            ViewModel.Subtitle =  BlackboardUtils.FormatPath(Model.path);
 
             // TODO: Could all this below data be static in the view model as well? Can't really see it ever changing at runtime
             // All of this stuff seems static and driven by attributes so it would seem to be compile-time defined, could definitely be an option
@@ -138,18 +168,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var info = Attribute.GetCustomAttribute(shaderInputType, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 string name = info?.name ?? ObjectNames.NicifyVariableName(shaderInputType.Name.Replace("ShaderProperty", ""));
 
-                ViewModel.PropertyNameToAddActionMap.Add(name, new AddBlackboardItemAction() { blackboardItemType = shaderInputType });
+                ViewModel.PropertyNameToAddActionMap.Add(name, new AddBlackboardItemAction() { BlackboardItemType = shaderInputType });
 
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
-                    ViewModel.PropertyNameToAddActionMap.Add("Color (Deprecated)", new AddBlackboardItemAction() { blackboardItemReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion) });
+                    ViewModel.PropertyNameToAddActionMap.Add("Color (Deprecated)", new AddBlackboardItemAction() { BlackboardItemReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion) });
                 }
+
             }
 
             // Default Keywords next
-            ViewModel.DefaultKeywordNameToAddActionMap.Add("Boolean",  new AddBlackboardItemAction() { blackboardItemReference = new ShaderKeyword(KeywordType.Boolean) });
-            ViewModel.DefaultKeywordNameToAddActionMap.Add("Enum",  new AddBlackboardItemAction() { blackboardItemReference = new ShaderKeyword(KeywordType.Enum) });
+            ViewModel.DefaultKeywordNameToAddActionMap.Add("Boolean",  new AddBlackboardItemAction() { BlackboardItemReference = new ShaderKeyword(KeywordType.Boolean) });
+            ViewModel.DefaultKeywordNameToAddActionMap.Add("Enum",  new AddBlackboardItemAction() { BlackboardItemReference = new ShaderKeyword(KeywordType.Enum) });
 
             // Built-In Keywords last
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
@@ -162,9 +193,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    ViewModel.BuiltInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddBlackboardItemAction() { blackboardItemReference = keyword.Copy() });
+                    ViewModel.BuiltInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddBlackboardItemAction() { BlackboardItemReference = keyword.Copy() });
                 }
             }
+
+			ViewModel.RequestModelChangeAction = this.RequestModelChange;
         }
 
         protected override void RequestModelChange(IGraphDataAction changeAction)
@@ -175,10 +208,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
-
             if (changeAction is AddBlackboardItemAction addBlackboardItemAction)
             {
-                //CreateBlackboardRow(addBlackboardItemAction.blackboardItemReference);
+                CreateBlackboardRow(addBlackboardItemAction.BlackboardItemReference);
             }
 
             // Reconstruct view-model first
@@ -196,38 +228,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        internal void CreateBlackboardRow(BlackboardItem newBlackboardItem)
+        // Creates controller, view and view model for a blackboard item and adds the view to the blackboard
+        void CreateBlackboardRow(BlackboardItem shaderInput)
         {
-
-        }
-
-        void AddBlackboardRow(BlackboardItem blackboardItem)
-        {
-            // Create BlackboardRowController, give it a field view and Shader Input to manage
-            // let it handle all the stuff that comes in AddInputRow()
-        }
-
-        static string FormatPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                return "—";
-            return path;
-        }
-
-        static string SanitizePath(string path)
-        {
-            var splitString = path.Split('/');
-            List<string> newStrings = new List<string>();
-            foreach (string s in splitString)
+            var shaderInputViewModel = new ShaderInputViewModel()
             {
-                var str = s.Trim();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    newStrings.Add(str);
-                }
-            }
-
-            return string.Join("/", newStrings.ToArray());
+                Model = this.Model,
+                ParentView = this.Blackboard
+            };
+            var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
+            m_BlackboardItemControllers.Add(blackboardItemController);
         }
 
         public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)

@@ -10,12 +10,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement ParentView { get; set; }
 
-        bool IsInputExposed { get; set; }
+        internal bool IsInputExposed { get; set; }
 
-        string InputName { get; set; }
+        internal string InputName { get; set; }
 
-        string InputTypeName { get; set; }
+        internal string InputTypeName { get; set; }
 
+        internal Action<IGraphDataAction> RequestModelChangeAction { get; set; }
         public void Reset()
         {
         }

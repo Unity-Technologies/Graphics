@@ -103,7 +103,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                                    string text,
                                    string typeText) : base(icon, text, typeText)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
             this.name = "blackboardFieldView";

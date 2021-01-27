@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Dictionary<string, IGraphDataAction> DefaultKeywordNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> BuiltInKeywordNameToAddActionMap { get; set; }
 
+        public Action<IGraphDataAction> RequestModelChangeAction { get; set; }
+
         // Can't add disbled keywords, so don't need an add action
         public List<string> DisabledKeywordNameList { get; set; }
 

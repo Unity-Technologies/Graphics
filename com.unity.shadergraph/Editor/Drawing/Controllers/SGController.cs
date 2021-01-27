@@ -149,10 +149,9 @@ namespace UnityEditor.ShaderGraph
 
         protected SGController(T model, GraphDataStore dataStore)
         {
-            Model = model;
+            m_Model = model;
             m_DataStore = dataStore;
             DataStore.Subscribe += ModelChanged;
-            ModelChanged(DataStore.State, DummyChange);
         }
 
         protected abstract void RequestModelChange(IGraphDataAction changeAction);
@@ -160,11 +159,7 @@ namespace UnityEditor.ShaderGraph
         protected abstract void ModelChanged(GraphData graphData, IGraphDataAction changeAction);
 
         T m_Model;
-        public T Model
-        {
-            get => m_Model;
-            set => m_Model = value;
-        }
+        public T Model => m_Model;
     }
 
     abstract class SGViewController<ModelType, ViewModelType> : SGController<ModelType>
@@ -172,6 +167,8 @@ namespace UnityEditor.ShaderGraph
         protected SGViewController(ModelType model, ViewModelType viewModel, GraphDataStore graphDataStore) : base(model, graphDataStore)
         {
             m_ViewModel = viewModel;
+            // Need ViewModel to be initialized before we call ModelChanged() [as view model might need to update]
+            ModelChanged(DataStore.State, DummyChange);
         }
 
         // Holds data specific to the views this controller is responsible for
