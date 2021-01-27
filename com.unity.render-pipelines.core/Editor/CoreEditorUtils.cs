@@ -447,7 +447,7 @@ namespace UnityEditor.Rendering
 
             // Context menu
             var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
-            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, contextMenuIcon.width, contextMenuIcon.height);
+            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, 16, 16);
 
             if (contextAction == null && hasMoreOptions != null)
             {
