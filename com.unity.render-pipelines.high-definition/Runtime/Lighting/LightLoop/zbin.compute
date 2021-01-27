@@ -62,7 +62,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, rcp(_ZBufferParams.w));
         const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
 		
-		if (cat == BOUNDEDENTITYCATEGORY_REFLECTION_PROBE) // not sorted by depth
+		if (!IsDepthSorted(cat)) // not sorted by depth
 		{
 			const uint ZBinBufferOffset = ComputeZBinBufferIndex(bin, cat, eye);
 			uint  entityOffset = 0;

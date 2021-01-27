@@ -149,6 +149,11 @@ uint ComputeEntityBoundsBufferIndex(uint globalEntityIndex, uint eye)
     return IndexFromCoordinate(uint2(globalEntityIndex, eye), _BoundedEntityCount);
 }
 
+bool IsDepthSorted(uint category)
+{
+    return (category != BOUNDEDENTITYCATEGORY_REFLECTION_PROBE) && (category != BOUNDEDENTITYCATEGORY_DECAL);
+}
+
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
