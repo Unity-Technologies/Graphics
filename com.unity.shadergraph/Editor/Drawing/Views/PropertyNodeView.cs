@@ -34,10 +34,7 @@ namespace UnityEditor.ShaderGraph
             userData = node;
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
-            var graph = node.owner as GraphData;
-            var property = node.property;
-            var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-            this.icon = icon;
+            UpdateIcon();
 
             // Setting the position of the node, otherwise it ends up in the center of the canvas
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -101,7 +98,7 @@ namespace UnityEditor.ShaderGraph
         void ChangeExposedField(bool newValue)
         {
             property.generatePropertyBlock = newValue;
-            icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            UpdateIcon();
         }
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
@@ -229,6 +226,15 @@ namespace UnityEditor.ShaderGraph
             return port != null && port.slot.slotReference.Equals(slot);
         }
 
+        void UpdateIcon()
+        {
+            var graph = node?.owner as GraphData;
+            if ((graph != null) && (property != null))
+                icon = (graph.isSubGraph || property.isExposed) ? BlackboardProvider.exposedIcon : null;
+            else
+                icon = null;
+        }
+
         public void OnModified(ModificationScope scope)
         {
             //disconnected property nodes are always active
@@ -239,13 +245,7 @@ namespace UnityEditor.ShaderGraph
 
             if (scope == ModificationScope.Graph)
             {
-                // changing the icon to be exposed or not
-                var propNode = (PropertyNode)node;
-                var graph = node.owner as GraphData;
-                var property = propNode.property;
-
-                var icon = property.generatePropertyBlock ? exposedIcon : null;
-                this.icon = icon;
+                UpdateIcon();
             }
 
             if (scope == ModificationScope.Topological || scope == ModificationScope.Node)

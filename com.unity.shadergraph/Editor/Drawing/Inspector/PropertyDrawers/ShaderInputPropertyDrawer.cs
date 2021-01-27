@@ -51,6 +51,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         ShaderInput shaderInput;
 
+        Toggle exposedToggle;
+        VisualElement keywordScopeField;
+
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -102,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
+            UpdateEnableState();
             return propertySheet;
         }
 
@@ -125,10 +129,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._exposedFieldChangedCallback(evt.isOn);
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
-                    new ToggleData(shaderInput.generatePropertyBlock),
+                    new ToggleData(shaderInput.isExposed),
                     "Exposed",
-                    out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
+                    out var exposedToggleVisualElement));
+                exposedToggle = exposedToggleVisualElement as Toggle;
+            }
+        }
+
+        void UpdateEnableState()
+        {
+            // some changes may change the exposed state
+            exposedToggle.SetValueWithoutNotify(shaderInput.isExposed);
+            exposedToggle?.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
+            if (shaderInput is ShaderKeyword keyword)
+            {
+                keywordScopeField?.SetEnabled(!keyword.isBuiltIn && (keyword.keywordDefinition != KeywordDefinition.Predefined));
+                this._exposedFieldChangedCallback(keyword.generatePropertyBlock); // change exposed icon appropriately
             }
         }
 
@@ -1065,6 +1081,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     if (keyword.keywordDefinition == (KeywordDefinition)newValue)
                         return;
                     keyword.keywordDefinition = (KeywordDefinition)newValue;
+                    UpdateEnableState();
                 },
                 keyword.keywordDefinition,
                 "Definition",
@@ -1073,7 +1090,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             typeField.SetEnabled(!keyword.isBuiltIn);
 
-            if (keyword.keywordDefinition != KeywordDefinition.Predefined)
             {
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
                     newValue =>
@@ -1086,9 +1102,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     keyword.keywordScope,
                     "Scope",
                     KeywordScope.Local,
-                    out var scopeField));
-
-                scopeField.SetEnabled(!keyword.isBuiltIn);
+                    out keywordScopeField));
             }
 
             switch (keyword.keywordType)
@@ -1100,6 +1114,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     BuildEnumKeywordField(propertySheet, keyword);
                     break;
             }
+
+            BuildExposedField(propertySheet);
         }
 
         void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)

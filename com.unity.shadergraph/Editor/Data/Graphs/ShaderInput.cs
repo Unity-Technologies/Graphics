@@ -205,13 +205,16 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         bool m_GeneratePropertyBlock = true;
 
-        internal bool generatePropertyBlock
+        internal bool generatePropertyBlock     // this is basically the "exposed" toggle
         {
             get => m_GeneratePropertyBlock;
             set => m_GeneratePropertyBlock = value;
         }
 
+        internal bool isExposed => isExposable && generatePropertyBlock;
+
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
+
         internal abstract bool isExposable { get; }
         internal virtual bool isAlwaysExposed => false;
 

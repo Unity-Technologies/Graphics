@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         void ChangeExposedField(bool newValue)
         {
             m_Input.generatePropertyBlock = newValue;
-            icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            icon = (m_Graph.isSubGraph || m_Input.isExposed) ? BlackboardProvider.exposedIcon : null;
         }
 
         void UpdateDisplayNameText(string newDisplayName)

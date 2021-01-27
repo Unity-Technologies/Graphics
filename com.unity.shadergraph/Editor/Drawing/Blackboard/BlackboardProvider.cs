@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 case AbstractShaderProperty property:
                 {
-                    var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || property.isExposed) ? exposedIcon : null;
                     field = new BlackboardFieldView(m_Graph, property, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     property.onBeforeVersionChange += (_) => m_Graph.owner.RegisterCompleteObjectUndo($"Change {property.displayName} Version");
@@ -385,7 +385,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 }
                 case ShaderKeyword keyword:
                 {
-                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
+                    var icon = (m_Graph.isSubGraph || keyword.isExposed) ? exposedIcon : null;
 
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
