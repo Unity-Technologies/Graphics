@@ -85,12 +85,13 @@ TEXTURE2D_X(_MaxZMaskTexture);
 #if PRE_FILTER_LIGHT_LIST
 
 #if defined(UNITY_COMPILER_DXC)
-    //Temporary workaround for a DXC bug where the min funcion (and possibly others) used with constants produces the
-    // error: "variable length arrays are not supported" when used to declare array sizes like for gs_localLightList
+    // Temporary workaround for a DXC bug https://github.com/microsoft/DirectXShaderCompiler/issues/3355
+    // where the min funcion (and certain others) used with constants produces the error: "variable length
+    // arrays are not supported" when used to declare array sizes like for gs_localLightList
     #define MIN_DXC_WORKAROUND(a, b) (a) < (b) ? (a) : (b)
 #else
-    //Note: the above workaround produces the error: "array dimensions must be literal scalar expressions" with FXC
-    //which is why implementation is branched on the compiler
+    // Note: the above workaround produces the error: "array dimensions must be literal scalar expressions" with FXC
+    // which is why this preprocessor branch keeps the old implementation
     #define MIN_DXC_WORKAROUND(a, b) min((a), (b))
 #endif // UNITY_COMPILER_DXC
 
