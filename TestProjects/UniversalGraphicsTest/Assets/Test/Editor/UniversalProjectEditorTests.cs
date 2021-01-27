@@ -22,7 +22,7 @@ public class UniversalProjectEditorTests
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
             LightingSettings lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(path);
-            Assert.IsTrue(!lightingSettings.bakedGI || lightingSettings.filteringMode == LightingSettings.FilterMode.None,
+            Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.Enlighten || !lightingSettings.bakedGI || lightingSettings.filteringMode == LightingSettings.FilterMode.None,
                 $"Lighting settings ({path}) have baked GI with filter mode enabled. It is recommended to turn of filter mode to reduce halo effect (If you still want to use it please contact URP team first).");
         }
     }
