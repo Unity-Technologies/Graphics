@@ -692,7 +692,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
-            { Pragma.DX11Debug },
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
