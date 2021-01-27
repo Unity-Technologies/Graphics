@@ -79,6 +79,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --timeout=1200
       -  |5-
 
@@ -86,6 +88,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --timeout=1200
       -  |5-
 
@@ -93,6 +97,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -149,6 +155,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_trunk
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -156,6 +164,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_trunk
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -163,6 +173,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_trunk
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -216,6 +228,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -223,6 +237,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -230,6 +246,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -312,6 +330,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --timeout=1200
       -  |5-
 
@@ -319,6 +339,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --timeout=1200
       -  |5-
 
@@ -326,6 +348,8 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=../../playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -386,6 +410,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -393,6 +419,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -400,6 +428,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -457,6 +487,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -464,6 +496,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=. --zero-tests-are-ok=1
       -  |5-
 
@@ -471,6 +505,8 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
+      -  |5-
+
                   cd TestProjects/2d-sara && utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=. --zero-tests-are-ok=1
     artifacts:
         logs:
