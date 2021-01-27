@@ -1,7 +1,3 @@
-#if ENABLE_HYBRID_RENDERER_V2 //TODO: find way to not add to all passes manually?
- #define AddSkinDefineAndInclude
-#endif
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,30 +92,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = GenerateDefines(),
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                requiredFields = GenerateRequiredFields(),
-#endif
             };
 
-#if AddSkinDefineAndInclude
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                {
-                    HDStructFields.AttributesMesh.vertexID
-                };
-            }
-#endif
+
 
             DefineCollection GenerateDefines()
             {
                 return new DefineCollection
                 {
                     CoreDefines.ScenePicking,
-#if AddSkinDefineAndInclude
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
                 };
             }
 
@@ -132,9 +113,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -160,30 +138,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = GenerateDefines(),
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                requiredFields = GenerateRequiredFields(),
-#endif
             };
 
-#if AddSkinDefineAndInclude
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                {
-                    HDStructFields.AttributesMesh.vertexID
-                };
-            }
-#endif
+
 
             DefineCollection GenerateDefines()
             {
                 return new DefineCollection
                 {
                     CoreDefines.SceneSelection,
-#if AddSkinDefineAndInclude
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
                 };
             }
 
@@ -202,9 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -238,30 +198,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                requiredFields = GenerateFields(),
-                defines = GenerateDefines()
-#endif
             };
 
-#if AddSkinDefineAndInclude
-            FieldCollection GenerateFields()
-            {
-                return new FieldCollection
-                {
-                    HDStructFields.AttributesMesh.vertexID
-                };
-            }
-
-            DefineCollection GenerateDefines()
-            {
-                return new DefineCollection
-                {
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-                };
-            }
-#endif
 
             IncludeCollection GenerateIncludes()
             {
@@ -278,9 +216,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -309,31 +244,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = GenerateDefines(),
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                 requiredFields = GenerateRequiredFields(),
-#endif
+                requiredFields = CoreRequiredFields.Meta,
             };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                {
-                    CoreRequiredFields.Meta,
-#if AddSkinDefineAndInclude
-                    HDStructFields.AttributesMesh.vertexID
-#endif
-                };
-            }
-
             DefineCollection GenerateDefines()
             {
                 return new DefineCollection
                 {
                     CoreDefines.ShaderGraphRaytracingDefault,
-#if AddSkinDefineAndInclude
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
                 };
             }
 
@@ -352,9 +269,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassLightTransport, IncludeLocation.Postgraph);
 
                 return includes;
@@ -388,10 +302,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new DefineCollection
                 {
                     supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
-#if AddSkinDefineAndInclude
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
                 };
 
             }
@@ -425,9 +335,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDStructFields.AttributesMesh.color,
                     HDStructFields.AttributesMesh.uv2,
                     HDStructFields.AttributesMesh.uv3,
-#if AddSkinDefineAndInclude
-                    HDStructFields.AttributesMesh.vertexID,
-#endif
                     HDStructFields.FragInputs.tangentToWorld,
                     HDStructFields.FragInputs.positionRWS,
                     HDStructFields.FragInputs.texCoord1,
@@ -449,9 +356,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportLighting)
                     includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -477,19 +381,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
-                requiredFields = GenerateRequiredFields(),
+                requiredFields = CoreRequiredFields.LitFull,
             };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                {
-                    CoreRequiredFields.LitFull,
-#if AddSkinDefineAndInclude
-                    HDStructFields.AttributesMesh.vertexID
-#endif
-                };
-            }
 
             DefineCollection GenerateDefines()
             {
@@ -506,10 +399,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
                 // }               
-#if AddSkinDefineAndInclude
-                 defines.Add(CoreKeywordDescriptors.SkinningDefine, 1);
-                 //defines.Add(CoreKeywordDescriptors.ComputeSkinningDefine, 1);
-#endif
                 return defines;
             }
 
@@ -548,9 +437,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                 includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassMotionVectors, IncludeLocation.Postgraph);
 
                 return includes;
@@ -720,29 +606,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = GenerateDefines(),
                 includes = GenerateIncludes(),
-                requiredFields = GenerateRequiredFields(),
+                requiredFields = TransparentDepthPrepassFields,
             };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                            {
-                    TransparentDepthPrepassFields,
-#if AddSkinDefineAndInclude
-                                HDStructFields.AttributesMesh.vertexID
-#endif
-                            };
-            }
 
             DefineCollection GenerateDefines()
             {
                 return new DefineCollection
                 {
                     CoreDefines.TransparentDepthPrepass,
- #if AddSkinDefineAndInclude
-                            { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
- #endif
                 };
             }
 
@@ -780,9 +651,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -883,7 +751,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = DepthOnlyFields,
+                requiredFields = CoreRequiredFields.LitFull,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = DepthOnlyDefines,
@@ -892,22 +760,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 
-        public static FieldCollection DepthOnlyFields = new FieldCollection
-        {
-            CoreRequiredFields.LitFull,
-#if AddSkinDefineAndInclude
-            HDStructFields.AttributesMesh.vertexID
-#endif
-        };
-
-
         public static DefineCollection DepthOnlyDefines = new DefineCollection
         {
              CoreDefines.ShaderGraphRaytracingDefault,
-#if AddSkinDefineAndInclude
-             { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
         };
 
         public static IncludeCollection DepthOnlyIncludes = new IncludeCollection
@@ -919,9 +774,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
             { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-#if AddSkinDefineAndInclude
-            { CoreIncludes.kSkinning, IncludeLocation.Pregraph },
-#endif
             { CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph },
         };
 
@@ -945,7 +797,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = GBufferFields,
+                requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = GBufferRenderState,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = GBufferDefines,
@@ -956,21 +808,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 
-        public static FieldCollection GBufferFields = new FieldCollection
-        {
-            CoreRequiredFields.LitMinimal,
-                    #if AddSkinDefineAndInclude
-            HDStructFields.AttributesMesh.vertexID
-                    #endif
-        };
-
         public static DefineCollection GBufferDefines = new DefineCollection
          {
                 CoreDefines.ShaderGraphRaytracingDefault,
-#if AddSkinDefineAndInclude
-                { CoreKeywordDescriptors.SkinningDefine, 1 },
-                   // { CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
          };
 
 
@@ -988,9 +828,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
             { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-                    #if AddSkinDefineAndInclude
-            { CoreIncludes.kSkinning, IncludeLocation.Pregraph },
-                    #endif
             { CoreIncludes.kPassGBuffer, IncludeLocation.Postgraph },
         };
 
@@ -1022,7 +859,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = ForwardFields,
+                requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
@@ -1032,21 +869,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 
-        public static FieldCollection ForwardFields = new FieldCollection
-        {
-            CoreRequiredFields.LitMinimal,
-#if AddSkinDefineAndInclude
-            HDStructFields.AttributesMesh.vertexID
-#endif
-        };
-
         public static DefineCollection ForwardDefines = new DefineCollection
         {
             CoreDefines.Forward,
-#if AddSkinDefineAndInclude
-            { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
         };
 
         public static IncludeCollection ForwardIncludes = new IncludeCollection
@@ -1061,9 +886,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
             { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-                    #if AddSkinDefineAndInclude
-            { CoreIncludes.kSkinning, IncludeLocation.Pregraph },
-                    #endif
             { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
         };
 
@@ -1086,26 +908,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.Basic,
                 defines = LitRayTracingPrepassDefines,
                 includes = RayTracingPrepassIncludes,
-#if AddSkinDefineAndInclude
-                requiredFields = LitRayTracingFields,
-#endif
             };
         }
-
-#if AddSkinDefineAndInclude
-        public static FieldCollection LitRayTracingFields = new FieldCollection
-        {
-            HDStructFields.AttributesMesh.vertexID
-        };
-#endif
+        
 
         public static DefineCollection LitRayTracingPrepassDefines = new DefineCollection
         {
             CoreDefines.ShaderGraphRaytracingDefault,
-#if AddSkinDefineAndInclude
-            { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
         };
 
         public static IncludeCollection RayTracingPrepassIncludes = new IncludeCollection
@@ -1117,9 +926,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
             { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-                    #if AddSkinDefineAndInclude
-            { CoreIncludes.kSkinning, IncludeLocation.Pregraph },
-                    #endif
             { CoreIncludes.kPassConstant, IncludeLocation.Postgraph },
         };
 
@@ -1155,30 +961,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 keywords = supportLighting ? IndirectDiffuseKeywordCollection : null,
                 defines = GenerateDefines(),
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                requiredFields = GenerateRequiredFields(),
-#endif
             };
 
-#if AddSkinDefineAndInclude
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                            {
-                                HDStructFields.AttributesMesh.vertexID
-                            };
-            }
-#endif
+
 
             DefineCollection GenerateDefines()
             {
                 return new DefineCollection
                 {
                     supportLighting ? RaytracingIndirectDefines : null,
-#if AddSkinDefineAndInclude
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                    //{ CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-#endif
                 };
             }
 
@@ -1205,10 +996,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-#if AddSkinDefineAndInclude
-                includes.Add(CoreIncludes.kSkinning, IncludeLocation.Pregraph);
-#endif
-
                 // post graph includes
                 includes.Add(CoreIncludes.kPassRaytracingIndirect, IncludeLocation.Postgraph);
 
@@ -1539,33 +1326,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.Basic,
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),
-#if AddSkinDefineAndInclude
-                defines = GenerateDefines(),
-                requiredFields = GenerateRequiredFields(),
-#endif
             };
-
-#if AddSkinDefineAndInclude
-            FieldCollection GenerateRequiredFields()
-            {
-                return new FieldCollection
-                            {
-                                HDStructFields.AttributesMesh.vertexID
-                            };
-            }
-#endif
-
-#if AddSkinDefineAndInclude
-            DefineCollection GenerateDefines()
-            {
-                return new DefineCollection
-                {
-                    { CoreKeywordDescriptors.SkinningDefine, 1 },
-                   // { CoreKeywordDescriptors.ComputeSkinningDefine, 1 },
-                };
-            }
-#endif
-
+            
             IncludeCollection GenerateIncludes()
             {
                 return new IncludeCollection
@@ -1575,9 +1337,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
                     { CoreIncludes.CoreUtility },
                     { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-                    #if AddSkinDefineAndInclude
-                    { CoreIncludes.kSkinning, IncludeLocation.Pregraph },
-                    #endif
                     { CoreIncludes.kPassFullScreenDebug, IncludeLocation.Postgraph },
                 };
             }
