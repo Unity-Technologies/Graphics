@@ -28,8 +28,9 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
+              -  "PrebuildLog/**"
 HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
-    name: Build HDRP_PerformanceTests on Win_DX11_il2cpp_Linear_performance_run_build_Player on version trunk
+    name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -49,6 +50,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
+              -  "PrebuildLog/**"
 HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -71,11 +73,12 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
+              -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
 HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build HDRP_PerformanceTests on Win_DX11_il2cpp_Linear_performance_run_build_Player on version CUSTOM-REVISION
+    name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -96,6 +99,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
+              -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
