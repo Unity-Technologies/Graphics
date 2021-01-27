@@ -23,12 +23,11 @@ VFX_HDRP_OSX_Metal_Standalone_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -50,12 +49,11 @@ VFX_HDRP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -79,12 +77,11 @@ VFX_HDRP_OSX_Metal_playmode_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -108,12 +105,11 @@ VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -137,12 +133,11 @@ VFX_HDRP_OSX_Metal_playmode_XR_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -166,12 +161,11 @@ VFX_HDRP_OSX_Metal_playmode_XR_cache_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -195,12 +189,11 @@ VFX_HDRP_OSX_Metal_playmode_PerformanceTests_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -224,12 +217,11 @@ VFX_HDRP_OSX_Metal_editmode_PerformanceTests_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -251,12 +243,11 @@ VFX_HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -279,12 +270,11 @@ VFX_HDRP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -310,12 +300,11 @@ VFX_HDRP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -343,12 +332,11 @@ VFX_HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -376,12 +364,11 @@ VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -409,12 +396,11 @@ VFX_HDRP_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -442,12 +428,11 @@ VFX_HDRP_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -475,12 +460,11 @@ VFX_HDRP_OSX_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -508,12 +492,11 @@ VFX_HDRP_OSX_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:
@@ -539,12 +522,11 @@ VFX_HDRP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-
-          ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
-          UTR_RESULT=$? 
-          mkdir -p TestProjects/HDRP_HybridTests/test-results/
-          scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
-          exit $UTR_RESULT
+              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=1200 --zero-tests-are-ok=1
+              UTR_RESULT=$? 
+              mkdir -p TestProjects/HDRP_HybridTests/test-results/
+              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
+              exit $UTR_RESULT
     artifacts:
         logs:
             paths:

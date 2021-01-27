@@ -25,21 +25,19 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -89,21 +87,19 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -149,21 +145,19 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -188,21 +182,19 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -255,21 +247,19 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -319,21 +309,19 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

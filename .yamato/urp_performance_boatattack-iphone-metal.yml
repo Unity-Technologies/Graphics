@@ -23,11 +23,11 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -77,11 +77,11 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -128,11 +128,11 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -155,11 +155,11 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -212,11 +212,11 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -267,11 +267,11 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:

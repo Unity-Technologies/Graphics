@@ -21,8 +21,8 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -48,8 +48,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -69,8 +69,8 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -96,8 +96,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -120,8 +120,8 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -144,8 +144,8 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -165,8 +165,8 @@ VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -192,8 +192,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -214,8 +214,8 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -244,8 +244,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -269,8 +269,8 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -299,8 +299,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVI
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -327,8 +327,8 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -355,8 +355,8 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -380,8 +380,8 @@ VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -410,8 +410,8 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:

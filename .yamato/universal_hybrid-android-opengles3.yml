@@ -23,13 +23,12 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -55,13 +54,12 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -83,13 +81,12 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -115,13 +112,12 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -144,13 +140,12 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -179,13 +174,12 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -211,13 +205,12 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -246,13 +239,12 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REV
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-
-          set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
+              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
     artifacts:
         logs:
             paths:

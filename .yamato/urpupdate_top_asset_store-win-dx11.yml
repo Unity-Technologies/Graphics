@@ -23,11 +23,11 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -49,11 +49,11 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -76,11 +76,11 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -106,11 +106,11 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  |5-
-          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-          set /p GIT_REVISIONDATE=<revdate.tmp
-          echo %GIT_REVISIONDATE%
-          del revdate.tmp
-          utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+              set /p GIT_REVISIONDATE=<revdate.tmp
+              echo %GIT_REVISIONDATE%
+              del revdate.tmp
+              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

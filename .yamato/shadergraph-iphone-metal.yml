@@ -21,8 +21,8 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -48,8 +48,8 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -69,8 +69,8 @@ ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -96,8 +96,8 @@ Build_ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -118,8 +118,8 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -148,8 +148,8 @@ Build_ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -173,8 +173,8 @@ ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
@@ -203,8 +203,8 @@ Build_ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  |5-
-            export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-           ./utr
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+            ./utr
     artifacts:
         logs:
             paths:
