@@ -388,7 +388,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal bool AreOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 return AreAllOverridesTo(state);
 
             for (int i = 0; i < m_VolumeNotAdditionalParameters.Count; ++i)
@@ -405,7 +405,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal void SetOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 SetAllOverridesTo(state);
             else
             {
