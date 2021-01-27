@@ -31,8 +31,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
         }
 
-        // The set of parameters that are used to trace the ambient occlusion
-        struct AmbientOcclusionTraceParameters
+        TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
+        {
+            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+
+            TextureHandle result;
+
+            if (GetRayTracingState())
+            {
+                // Trace the signal
+                result = TraceAO(renderGraph, hdCamera, depthPyramid, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
+
+                // Denoise if required
+                result = DenoiseAO(renderGraph, hdCamera, result, depthPyramid, normalBuffer, motionVectors);
+
+                // Compose the result to be done
+                result = ComposeAO(renderGraph, hdCamera, result);
+            }
+            else
+            {
+                result = renderGraph.defaultResources.blackTextureXR;
+            }
+            return result;
+        }
+
+        class TraceRTAOPassData
         {
             // Camera data
             public int actualWidth;
@@ -49,88 +72,37 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesRaytracing raytracingCB;
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
             public RayTracingAccelerationStructure rayTracingAccelerationStructure;
-        }
 
-        struct AmbientOcclusionTraceResources
-        {
-            // Input Buffer
-            public RTHandle depthStencilBuffer;
-            public RTHandle normalBuffer;
-
-            // Debug textures
-            public RTHandle rayCountTexture;
-
-            // Output Buffer
-            public RTHandle outputTexture;
-        }
-
-        AmbientOcclusionTraceParameters PrepareAmbientOcclusionTraceParameters(HDCamera hdCamera, ShaderVariablesRaytracing raytracingCB)
-        {
-            AmbientOcclusionTraceParameters rtAOParameters = new AmbientOcclusionTraceParameters();
-            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-
-            // Camera data
-            rtAOParameters.actualWidth = hdCamera.actualWidth;
-            rtAOParameters.actualHeight = hdCamera.actualHeight;
-            rtAOParameters.viewCount = hdCamera.viewCount;
-
-            // Evaluation parameters
-            rtAOParameters.rayLength = aoSettings.rayLength;
-            rtAOParameters.sampleCount = aoSettings.sampleCount;
-            rtAOParameters.denoise = aoSettings.denoise;
-
-            // Other parameters
-            rtAOParameters.raytracingCB = raytracingCB;
-            rtAOParameters.aoShaderRT = asset.renderPipelineRayTracingResources.aoRaytracingRT;
-            rtAOParameters.rayTracingAccelerationStructure = RequestAccelerationStructure();
-            BlueNoise blueNoise = GetBlueNoiseManager();
-            rtAOParameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
-
-            return rtAOParameters;
-        }
-
-        TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, ShaderVariablesRaytracing shaderVariablesRaytracing)
-        {
-            var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-
-            TextureHandle result;
-
-            if (GetRayTracingState())
-            {
-                // Trace the signal
-                AmbientOcclusionTraceParameters aoParameters = PrepareAmbientOcclusionTraceParameters(hdCamera, shaderVariablesRaytracing);
-                result = TraceAO(renderGraph, aoParameters, depthPyramid, normalBuffer, rayCountTexture);
-
-                // Denoise if required
-                result = DenoiseAO(renderGraph, hdCamera, result, depthPyramid, normalBuffer, motionVectors);
-
-                // Compose the result to be done
-                AmbientOcclusionComposeParameters aoComposeParameters = PrepareAmbientOcclusionComposeParameters(hdCamera, shaderVariablesRaytracing);
-                result = ComposeAO(renderGraph, aoComposeParameters, result);
-            }
-            else
-            {
-                result = renderGraph.defaultResources.blackTextureXR;
-            }
-            return result;
-        }
-
-        class TraceRTAOPassData
-        {
-            public AmbientOcclusionTraceParameters parameters;
             public TextureHandle depthPyramid;
             public TextureHandle normalBuffer;
             public TextureHandle rayCountTexture;
             public TextureHandle outputTexture;
         }
 
-        TextureHandle TraceAO(RenderGraph renderGraph, in AmbientOcclusionTraceParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture)
+        TextureHandle TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             using (var builder = renderGraph.AddRenderPass<TraceRTAOPassData>("Tracing the rays for RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = parameters;
+                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+
+                // Camera data
+                passData.actualWidth = hdCamera.actualWidth;
+                passData.actualHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+
+                // Evaluation parameters
+                passData.rayLength = aoSettings.rayLength;
+                passData.sampleCount = aoSettings.sampleCount;
+                passData.denoise = aoSettings.denoise;
+
+                // Other parameters
+                passData.raytracingCB = shaderVariablesRaytracing;
+                passData.aoShaderRT = asset.renderPipelineRayTracingResources.aoRaytracingRT;
+                passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
+                passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
+
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
@@ -141,14 +113,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (TraceRTAOPassData data, RenderGraphContext ctx) =>
                     {
-                        // We need to fill the structure that holds the various resources
-                        AmbientOcclusionTraceResources aotResources = new AmbientOcclusionTraceResources();
-                        aotResources.depthStencilBuffer = data.depthPyramid;
-                        aotResources.normalBuffer = data.normalBuffer;
-                        aotResources.rayCountTexture = data.rayCountTexture;
-                        aotResources.outputTexture = data.outputTexture;
+                        // Define the shader pass to use for the reflection pass
+                        ctx.cmd.SetRayTracingShaderPass(data.aoShaderRT, "VisibilityDXR");
 
-                        TraceAO(ctx.cmd, data.parameters, aotResources);
+                        // Set the acceleration structure for the pass
+                        ctx.cmd.SetRayTracingAccelerationStructure(data.aoShaderRT, HDShaderIDs._RaytracingAccelerationStructureName, data.rayTracingAccelerationStructure);
+
+                        // Inject the ray generation data (be careful of the global constant buffer limitation)
+                        data.raytracingCB._RaytracingRayMaxLength = data.rayLength;
+                        data.raytracingCB._RaytracingNumSamples = data.sampleCount;
+                        ConstantBuffer.PushGlobal(ctx.cmd, data.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
+                        // Set the data for the ray generation
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthPyramid);
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+
+                        // Inject the ray-tracing sampling data
+                        BlueNoise.BindDitheredTextureSet(ctx.cmd, data.ditheredTextureSet);
+
+                        // Set the output textures
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
+
+                        // Run the computation
+                        ctx.cmd.DispatchRays(data.aoShaderRT, m_RayGenShaderName, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
                     });
 
                 return passData.outputTexture;
@@ -161,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (aoSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = HDRenderPipeline.EvaluateHistoryValidity(hdCamera);
+                float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
@@ -182,33 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ComposeRTAOPassData
         {
-            public AmbientOcclusionComposeParameters parameters;
-            public TextureHandle outputTexture;
-        }
-
-        TextureHandle ComposeAO(RenderGraph renderGraph, in AmbientOcclusionComposeParameters parameters, TextureHandle aoTexture)
-        {
-            using (var builder = renderGraph.AddRenderPass<ComposeRTAOPassData>("Composing the result of RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingComposeAmbientOcclusion)))
-            {
-                builder.EnableAsyncCompute(false);
-
-                passData.parameters = parameters;
-                passData.outputTexture = builder.ReadWriteTexture(aoTexture);
-
-                builder.SetRenderFunc(
-                    (ComposeRTAOPassData data, RenderGraphContext ctx) =>
-                    {
-                        // We need to fill the structure that holds the various resources
-                        ComposeAO(ctx.cmd, data.parameters, data.outputTexture);
-                    });
-
-                return passData.outputTexture;
-            }
-        }
-
-        // The set of parameters that are used to trace the ambient occlusion
-        struct AmbientOcclusionComposeParameters
-        {
             // Generic attributes
             public float intensity;
 
@@ -222,47 +183,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Shaders
             public ComputeShader aoShaderCS;
+
+            public TextureHandle outputTexture;
         }
 
-        AmbientOcclusionComposeParameters PrepareAmbientOcclusionComposeParameters(HDCamera hdCamera, ShaderVariablesRaytracing raytracingCB)
+        TextureHandle ComposeAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle aoTexture)
         {
-            AmbientOcclusionComposeParameters aoComposeParameters = new AmbientOcclusionComposeParameters();
-            var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-            aoComposeParameters.intensity = aoSettings.intensity.value;
-            aoComposeParameters.actualWidth = hdCamera.actualWidth;
-            aoComposeParameters.actualHeight = hdCamera.actualHeight;
-            aoComposeParameters.viewCount = hdCamera.viewCount;
-            aoComposeParameters.aoShaderCS = asset.renderPipelineRayTracingResources.aoRaytracingCS;
-            aoComposeParameters.intensityKernel = m_RTAOApplyIntensityKernel;
-            return aoComposeParameters;
-        }
+            using (var builder = renderGraph.AddRenderPass<ComposeRTAOPassData>("Composing the result of RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingComposeAmbientOcclusion)))
+            {
+                builder.EnableAsyncCompute(false);
 
-        static void TraceAO(CommandBuffer cmd, AmbientOcclusionTraceParameters aoTraceParameters, AmbientOcclusionTraceResources aoTraceResources)
-        {
-            // Define the shader pass to use for the reflection pass
-            cmd.SetRayTracingShaderPass(aoTraceParameters.aoShaderRT, "VisibilityDXR");
+                var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
-            // Set the acceleration structure for the pass
-            cmd.SetRayTracingAccelerationStructure(aoTraceParameters.aoShaderRT, HDShaderIDs._RaytracingAccelerationStructureName, aoTraceParameters.rayTracingAccelerationStructure);
+                passData.intensity = aoSettings.intensity.value;
+                passData.actualWidth = hdCamera.actualWidth;
+                passData.actualHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+                passData.aoShaderCS = asset.renderPipelineRayTracingResources.aoRaytracingCS;
+                passData.intensityKernel = m_RTAOApplyIntensityKernel;
+                passData.outputTexture = builder.ReadWriteTexture(aoTexture);
 
-            // Inject the ray generation data (be careful of the global constant buffer limitation)
-            aoTraceParameters.raytracingCB._RaytracingRayMaxLength = aoTraceParameters.rayLength;
-            aoTraceParameters.raytracingCB._RaytracingNumSamples = aoTraceParameters.sampleCount;
-            ConstantBuffer.PushGlobal(cmd, aoTraceParameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                builder.SetRenderFunc(
+                    (ComposeRTAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetComputeFloatParam(data.aoShaderCS, HDShaderIDs._RaytracingAOIntensity, data.intensity);
+                        ctx.cmd.SetComputeTextureParam(data.aoShaderCS, data.intensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
+                        int texWidth = data.actualWidth;
+                        int texHeight = data.actualHeight;
+                        int areaTileSize = 8;
+                        int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                        int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
+                        ctx.cmd.DispatchCompute(data.aoShaderCS, data.intensityKernel, numTilesXHR, numTilesYHR, data.viewCount);
+                    });
 
-            // Set the data for the ray generation
-            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._DepthTexture, aoTraceResources.depthStencilBuffer);
-            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._NormalBufferTexture, aoTraceResources.normalBuffer);
-
-            // Inject the ray-tracing sampling data
-            BlueNoise.BindDitheredTextureSet(cmd, aoTraceParameters.ditheredTextureSet);
-
-            // Set the output textures
-            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._RayCountTexture, aoTraceResources.rayCountTexture);
-            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, aoTraceResources.outputTexture);
-
-            // Run the computation
-            cmd.DispatchRays(aoTraceParameters.aoShaderRT, m_RayGenShaderName, (uint)aoTraceParameters.actualWidth, (uint)aoTraceParameters.actualHeight, (uint)aoTraceParameters.viewCount);
+                return passData.outputTexture;
+            }
         }
 
         static RTHandle RequestAmbientOcclusionHistoryTexture(HDCamera hdCamera)
@@ -270,21 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion,
                 AmbientOcclusionHistoryBufferAllocatorFunction, 1);
-        }
-
-        static void ComposeAO(CommandBuffer cmd, AmbientOcclusionComposeParameters aoComposeParameters, RTHandle outputTexture)
-        {
-            cmd.SetComputeFloatParam(aoComposeParameters.aoShaderCS, HDShaderIDs._RaytracingAOIntensity, aoComposeParameters.intensity);
-            cmd.SetComputeTextureParam(aoComposeParameters.aoShaderCS, aoComposeParameters.intensityKernel, HDShaderIDs._AmbientOcclusionTextureRW, outputTexture);
-            int texWidth = aoComposeParameters.actualWidth;
-            int texHeight = aoComposeParameters.actualHeight;
-            int areaTileSize = 8;
-            int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
-            int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
-            cmd.DispatchCompute(aoComposeParameters.aoShaderCS, aoComposeParameters.intensityKernel, numTilesXHR, numTilesYHR, aoComposeParameters.viewCount);
-
-            // Bind the textures and the params
-            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, outputTexture);
         }
     }
 }
