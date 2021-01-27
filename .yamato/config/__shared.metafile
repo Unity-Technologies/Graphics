@@ -225,7 +225,7 @@ platforms:
     commands:
       [DX11, DX12, Vulkan, '']:
         setup_utr:
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
         call_utr:
           - |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -266,7 +266,7 @@ platforms:
     commands:
       [Metal]:
         setup_utr: 
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x utr
           - scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
           - scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -289,7 +289,7 @@ platforms:
           - ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
       [OpenGlCore]:
         setup_utr:
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x utr
         call_utr: # TODO add git commands when needed
           - ./utr  <UTR_FLAGS>
@@ -323,7 +323,7 @@ platforms:
     commands:
       [OpenGlCore, Vulkan]:
         setup_utr: 
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x utr
         call_utr:
           - DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
@@ -356,7 +356,7 @@ platforms:
     commands:
       [OpenGLES3, Vulkan]:
         setup_utr: 
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
         call_utr:
           - |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -397,7 +397,7 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x ./utr
         call_utr:
           - |5-
