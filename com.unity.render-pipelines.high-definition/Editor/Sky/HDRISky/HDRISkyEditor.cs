@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {

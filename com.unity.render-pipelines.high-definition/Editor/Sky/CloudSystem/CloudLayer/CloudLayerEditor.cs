@@ -13,8 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
         readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "The tiling of the cloud shadows texture. Controlled by the cookie size parameter on the sun light.");
 
-        public override bool hasAdvancedMode => true;
-
         struct CloudMapParameter
         {
             public SerializedDataParameter cloudMap;
