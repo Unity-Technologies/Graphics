@@ -254,6 +254,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #include "UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct Attributes
             {
