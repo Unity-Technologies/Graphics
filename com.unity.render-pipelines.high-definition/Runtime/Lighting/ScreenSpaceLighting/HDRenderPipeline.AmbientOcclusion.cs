@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         bool m_AOHistoryReady = false;
-        bool m_AORunningFullRes = false;
 
         float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
         {
@@ -94,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 radInPixels
             );
 
-            float stepSize = m_AORunningFullRes ? 1 : 0.5f;
+            float stepSize = settings.fullResolution ? 1 : 0.5f;
 
             float blurTolerance = 1.0f - settings.blurSharpness.value;
             float maxBlurTolerance = 0.25f;
@@ -146,31 +145,21 @@ namespace UnityEngine.Rendering.HighDefinition
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
             TextureHandle result;
-            // AO has side effects (as it uses an imported history buffer)
-            // So we can't rely on automatic pass stripping. This is why we have to be explicit here.
             if (IsAmbientOcclusionActive(hdCamera, settings))
             {
                 using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
-                    float scaleFactor = m_AORunningFullRes ? 1.0f : 0.5f;
-                    if (settings.fullResolution != m_AORunningFullRes)
-                    {
-                        m_AORunningFullRes = settings.fullResolution;
-                        scaleFactor = m_AORunningFullRes ? 1.0f : 0.5f;
-                    }
-
-                    hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
-
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
                         return RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
+                        m_AOHistoryReady = !hdCamera.AllocateAmbientOcclusionHistoryBuffer(settings.fullResolution ? 1.0f : 0.5f);
+
                         var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
                         var currentHistory = renderGraph.ImportTexture(historyRT);
                         var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
 
-                        Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
-                            historyRT.referenceSize.y * historyRT.scaleFactor.y);
+                        Vector2 historySize = historyRT.GetScaledSize();
                         var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
                         var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, depthMipInfo);
@@ -303,7 +292,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.copyHistoryAOCS = defaultResources.shaders.GTAOCopyHistoryCS;
                 passData.denoiseKernelCopyHistory = passData.copyHistoryAOCS.FindKernel("GTAODenoise_CopyHistory");
                 passData.historyReady = m_AOHistoryReady;
-                m_AOHistoryReady = true; // assumes that if this is called, then render is done as well.
 
                 passData.packedData = builder.ReadTexture(aoPackedData);
                 if (parameters.temporalAccumulation)
@@ -410,8 +398,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (UpsampleAOPassData data, RenderGraphContext ctx) =>
                     {
-                        UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
-
                         bool blurAndUpsample = !data.parameters.temporalAccumulation;
 
                         ConstantBuffer.Set<ShaderVariablesAmbientOcclusion>(ctx.cmd, data.upsampleAndBlurAOCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
@@ -420,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._AOPackedData, data.input);
                             ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._OcclusionTexture, data.output);
-                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAndBlurKernel, HDShaderIDs._CameraDepthTexture, data.depthTexture);
 
                             const int groupSizeX = 8;
                             const int groupSizeY = 8;
@@ -432,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._AOPackedData, data.input);
                             ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._OcclusionTexture, data.output);
-                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._CameraDepthTexture, depthTexture);
+                            ctx.cmd.SetComputeTextureParam(data.upsampleAndBlurAOCS, data.upsampleAOKernel, HDShaderIDs._CameraDepthTexture, data.depthTexture);
 
                             const int groupSizeX = 8;
                             const int groupSizeY = 8;
