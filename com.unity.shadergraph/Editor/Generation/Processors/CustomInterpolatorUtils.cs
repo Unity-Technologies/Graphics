@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var cin in pixelNodes.OfType<CustomInterpolatorNode>().ToList())
             {
                 // The CustomBlockNode's subtree.
-                var anties = GetAntecedents(cin.e_targetBlockNode).Where(a => !vertexNodes.Contains(a) && !pixelNodes.Contains(a));
+                var anties = GetAntecedents(cin.e_targetBlockNode)?.Where(a => !vertexNodes.Contains(a) && !pixelNodes.Contains(a));
 
                 // cin contains an inlined value, so there is nothing to do.
                 if (anties == null)
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph
                 else if (isNodePreview)
                 {
                     // we can cheat and add the sub-tree to the pixel node list, which ciNode digs into during its own preview generation.
-                    pixelNodes.AddRange(anties);
+                    pixelNodes.AddRange(anties.Where(a => !pixelNodes.Contains(a)));
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
