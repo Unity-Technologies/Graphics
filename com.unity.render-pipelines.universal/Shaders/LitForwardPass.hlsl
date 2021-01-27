@@ -135,10 +135,13 @@ Varyings LitPassVertex(Attributes input)
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
+#if defined(_BACKFACE_VISIBLE) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+#endif
+
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
 #if defined(_BACKFACE_VISIBLE)
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
 #endif
 
@@ -153,7 +156,6 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
 #endif
