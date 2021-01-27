@@ -717,6 +717,7 @@ groupshared float gs_cacheB[36];
 groupshared float gs_cacheA[36];
 groupshared float gs_cacheDP[36];
 groupshared float gs_cacheDC[36];
+groupshared float gs_cachePS[36];
 
 struct CloudResult
 {
@@ -958,7 +959,7 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 
     // Read the sample value
     float4 sampleVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, sampleCoord);
-    float2 depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, sampleCoord).xy;
+    float3 depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, sampleCoord).xyz;
 
     // Store into the LDS
     gs_cacheR[groupIndex] = sampleVal.r;
@@ -966,7 +967,8 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
     gs_cacheB[groupIndex] = sampleVal.b;
     gs_cacheA[groupIndex] = sampleVal.a;
     gs_cacheDP[groupIndex] = depthStatusValue.y;
-    gs_cacheDC[groupIndex] = saturate(depthStatusValue.x);
+    gs_cachePS[groupIndex] = saturate(depthStatusValue.x);
+    gs_cacheDC[groupIndex] = depthStatusValue.z;
 }
 
 struct UpscaleData
@@ -974,6 +976,7 @@ struct UpscaleData
     float4 cloudLighting;
     float pixelDepth;
     float pixelStatus;
+    float cloudDepth;
 };
 
 UpscaleData GetLDSUpscaleSample(uint index)
@@ -984,7 +987,8 @@ UpscaleData GetLDSUpscaleSample(uint index)
     outVal.cloudLighting.b = gs_cacheB[index];
     outVal.cloudLighting.a = gs_cacheA[index];
     outVal.pixelDepth = gs_cacheDP[index];
-    outVal.pixelStatus = gs_cacheDC[index];
+    outVal.pixelStatus = gs_cachePS[index];
+    outVal.cloudDepth = gs_cacheDC[index];
     return outVal;
 }
 
@@ -1080,7 +1084,7 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, max(depthValue, pixelRegion[CENTER].cloudDepth), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
