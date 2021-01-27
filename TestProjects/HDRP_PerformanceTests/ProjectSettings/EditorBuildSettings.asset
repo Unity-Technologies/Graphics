@@ -71,4 +71,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Timings/0009_DistortionRefraction.unity
     guid: 8ee3e9899640483479abaf0c4f2c8998
+  - enabled: 1
+    path: Assets/Scenes/Timings/0010_SSS.unity
+    guid: e110fb7e571547f47833e59ce151d6c8
   m_configObjects: {}
