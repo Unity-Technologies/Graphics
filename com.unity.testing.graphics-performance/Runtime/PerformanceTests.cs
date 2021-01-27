@@ -103,7 +103,7 @@ public class PerformanceTests : IPrebuildSetup
     {
         long totalMemory = 0;
         var data = Resources.FindObjectsOfTypeAll(testDescription.assetType);
-        var results = new List<(string name, long size)>();
+        var results = new List<(string name, long size, Type type)>();
 
         // Measure memory
         foreach (var item in data)
@@ -113,7 +113,7 @@ public class PerformanceTests : IPrebuildSetup
 
             // There are too many items here so we only keep the one that have a minimun of weight
             if (currSize > sceneSettings.minObjectSize)
-                results.Add((name, currSize));
+                results.Add((name, currSize, item.GetType()));
 
             totalMemory += currSize;
         }
@@ -124,7 +124,7 @@ public class PerformanceTests : IPrebuildSetup
 
         // Report data
         foreach (var result in results)
-            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name, resolution), SampleUnit.Byte, false), result.size);
+            Measure.Custom(new SampleGroup(FormatSampleGroupName(k_Memory, result.name + ":" + result.type.Name, resolution), SampleUnit.Byte, false), result.size);
         Measure.Custom(new SampleGroup(FormatSampleGroupName(k_TotalMemory, testDescription.assetType.Name, resolution), SampleUnit.Byte, false), totalMemory);
 
         yield return null;
