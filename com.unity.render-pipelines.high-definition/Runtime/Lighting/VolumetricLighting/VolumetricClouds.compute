@@ -855,7 +855,6 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
     if (localIndex == currentIndex)
     {
-
         // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
         float cloudNeighborhood = 0.0f;
         for(int i = 0; i < 9; ++i)
@@ -901,7 +900,9 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             }
 
             // Make sure that at least one of the pixels in the neighborhood can be used
-            float rejectNeighborhood = OverrideMaskValues(currentDepth, lowD, lowM);
+            float rejectNeighborhood = 0.0f;
+            int closestNeighbor = CENTER;
+            OverrideMaskValues(currentDepth, lowD, lowM, rejectNeighborhood, closestNeighbor);
 
             // 1.0  if we were able to produce a value 0.0 if we failed to
             previousSampleCount = 1.0f - rejectNeighborhood;
@@ -918,6 +919,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
                 previousSampleCount = 1.0f;
                 previousResult = BilUpColor3x3(currentDepth, lowD, neighborhood, lowM);
             }
+            previousCloudDepth = pixelRegion[closestNeighbor].cloudDepth;
             previousDepth = currentDepth;
         }
     }
@@ -1070,7 +1072,9 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     lowM[8] = pixelRegion[CROSS_3].pixelStatus;
 
     // Flag that tells us which pixel holds valid information
-    float rejectedNeighborhood = OverrideMaskValues(depthValue, lowD, lowM);
+    float rejectedNeighborhood = 0.0;
+    int closestNeighbor = CENTER;
+    OverrideMaskValues(depthValue, lowD, lowM, rejectedNeighborhood, closestNeighbor);
 
     // Do the bilateral upscale
     float4 currentClouds = BilUpColor3x3(depthValue, lowD, lowC, lowM);
@@ -1084,7 +1088,7 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, max(depthValue, pixelRegion[CENTER].cloudDepth), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, pixelRegion[closestNeighbor].cloudDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);

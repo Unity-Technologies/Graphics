@@ -95,21 +95,35 @@ float4 BilUpColor3x3(float HiDepth, float LowDepths[9], float4 lowValue[9])
     return weightedSum / totalWeights;
 }
 
-float OverrideMaskValues(float highDepth, float lowDepth[9], float mask[9])
+void OverrideMaskValues(float highDepth, float lowDepth[9], float mask[9], out float rejectedNeighborhood, out int closestNeighhor)
 {
     // Flag that tells us which pixel holds valid information
-    float rejectedNeighborhood = 1.0f;
+    rejectedNeighborhood = 1.0f;
+    closestNeighhor = 4;
+    float currentDistance = 1.0f;
     for(int i = 0; i < 9; ++i)
     {
         if(mask[i] == 0.0f)
             continue;
+
+        // Convert the depths to linear
         float candidateLinearDepth = Linear01Depth(lowDepth[i], _ZBufferParams);
         float currentFRDepth = Linear01Depth(highDepth, _ZBufferParams);
-        bool validSample = abs(currentFRDepth - candidateLinearDepth) < currentFRDepth * 0.1;
+
+        // Compute the distance between the two values
+        float candidateDistance = abs(currentFRDepth - candidateLinearDepth);
+
+        // Evaluate if this becomes the closest neighbor
+        if (candidateDistance < currentDistance)
+        {
+            closestNeighhor = i;
+            currentDistance = candidateDistance;
+        }
+
+        bool validSample = candidateDistance < (currentFRDepth * 0.1);
         mask[i] = validSample ? 1.0f : 0.0f;
         rejectedNeighborhood *= (validSample ? 0.0f : 1.0f);
     }
-    return rejectedNeighborhood;
 }
 
 // The bilateral upscale function (3x3 neighborhood)
