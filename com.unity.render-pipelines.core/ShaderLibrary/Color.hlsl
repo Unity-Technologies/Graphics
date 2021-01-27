@@ -254,7 +254,7 @@ real YCoCgCheckBoardEdgeFilter(real centerLum, real2 a0, real2 a1, real2 a2, rea
 }
 
 // Converts linear RGB to LMS
-#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+#if defined(SHADER_API_SWITCH) // Full float precision to avoid precision artefact when using ACES tonemapping
 float3 LinearToLMS(float3 x)
 #else
 real3 LinearToLMS(real3 x)
@@ -269,7 +269,7 @@ real3 LinearToLMS(real3 x)
     return mul(LIN_2_LMS_MAT, x);
 }
 
-#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+#if defined(SHADER_API_SWITCH) // Full float precision to avoid precision artefact when using ACES tonemapping
 float3 LMSToLinear(float3 x)
 #else
 real3 LMSToLinear(real3 x)
@@ -403,7 +403,7 @@ real LinearToLogC_Precise(real x)
     return o;
 }
 
-#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+#if defined(SHADER_API_SWITCH) // Full float precision to avoid precision artefact when using ACES tonemapping
 float3 LinearToLogC(float3 x)
 #else
 real3 LinearToLogC(real3 x)
@@ -430,7 +430,7 @@ real LogCToLinear_Precise(real x)
     return o;
 }
 
-#if defined(SHADER_API_SWITCH) // Must use full float precision on Switch to avoid artefact when using ACES tonemapping
+#if defined(SHADER_API_SWITCH) // Full float precision to avoid precision artefact when using ACES tonemapping
 float3 LogCToLinear(float3 x)
 #else
 real3 LogCToLinear(real3 x)
@@ -554,7 +554,7 @@ real3 GetLutStripValue(float2 uv, float4 params)
 
 // Neutral tonemapping (Hable/Hejl/Frostbite)
 // Input is linear RGB
-#if defined(SHADER_API_SWITCH) // We need more accuracy on Nintendo Switch to avoid NaN on extremely high values.
+#if defined(SHADER_API_SWITCH) // More accuracy to avoid NaN on extremely high values.
 float3 NeutralCurve(float3 x, real a, real b, real c, real d, real e, real f)
 #else
 real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
