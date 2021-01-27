@@ -8,65 +8,65 @@ editor_version_names:
 
 editor_versions:
   trunk_latest_internal:
-    android:
+    Android:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    ios:
+    iPhone:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    linux:
+    Linux:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    macos:
+    OSX:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    windows:
+    Win:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
   trunk_latest_public:
-    android:
+    Android:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    ios:
+    iPhone:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    linux:
+    Linux:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    macos:
+    OSX:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    windows:
+    Win:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
   trunk_staging:
-    android:
+    Android:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    ios:
+    iPhone:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    linux:
+    Linux:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    macos:
+    OSX:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
-    windows:
+    Win:
       revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
       updated_at: '2021-01-23 00:12:32.807154'
       version: ''
