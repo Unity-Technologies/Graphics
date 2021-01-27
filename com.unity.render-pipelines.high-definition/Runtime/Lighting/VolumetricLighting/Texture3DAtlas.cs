@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public class Texture3DAtlas
     {
         public static readonly int _ZOffset = Shader.PropertyToID("_ZOffset");
+        public static readonly int _DstTex = Shader.PropertyToID("_DstTex");
+        public static readonly int _SrcTex = Shader.PropertyToID("_SrcTex");
         public int NumTexturesInAtlas = 0;
 
         private List<DensityVolume> m_volumes = new List<DensityVolume>();
@@ -124,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             NumTexturesInAtlas = 0;
         }
 
-        public void UpdateAtlas(CommandBuffer cmd)
+        public void UpdateAtlas(CommandBuffer cmd, ComputeShader blit3dShader)
         {
             if (m_updateAtlas)
             {
@@ -145,8 +147,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var isCopied = new bool[clampedNumTextures];
                     var oldRt = RenderTexture.active;
 
-                    //Iterate through all the textures and append their texture data to the texture array
-                    //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
                     foreach (DensityVolume v in m_volumes)
                     {
                         if (v.parameters.volumeShader != null ||
@@ -155,12 +155,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         isCopied[v.parameters.textureIndex] = true;
-                        for (int i = 0; i < m_atlasSize; i++)
-                        {
-                            Graphics.Blit(v.parameters.volumeMask, m_atlas.rt, Vector2.one, Vector2.zero, i, m_atlasSize * v.parameters.textureIndex + i);
-                        }
-                        //var col = v.parameters.volumeMask.GetPixels();
-                        //Graphics.CopyTexture(v.parameters.volumeMask, m_atlas.rt);
+
+                        var cs = blit3dShader;
+                        cmd.SetComputeTextureParam(cs, 0, _DstTex, m_atlas);
+                        cmd.SetComputeTextureParam(cs, 0, _SrcTex, v.parameters.volumeMask);
+                        cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
+                        cmd.DispatchCompute(cs, 0, 4, 4, 4);
                     }
 
                     RenderTexture.active = oldRt;
@@ -186,14 +186,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         DensityVolumeManager.SetComputeShaderParams?.Invoke(v, cs, cmd);
                         cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
-                        cmd.DispatchCompute(v.parameters.volumeShader, 0, 4, 4, 4);
+                        cmd.DispatchCompute(cs, 0, 4, 4, 4);
                     }
                 }
             }
 
-
             NotifyAtlasUpdated();
-
         }
 
         public RTHandle GetAtlas()

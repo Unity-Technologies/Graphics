@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ContainsVolume(DensityVolume volume) => volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time, ComputeShader blit3dShader)
         {
             //Update volumes
             bool animate = currentCam.animateMaterials;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumeAtlasRefresh();
             }
 
-            volumeAtlas.UpdateAtlas(cmd);
+            volumeAtlas.UpdateAtlas(cmd, blit3dShader);
 
             return volumes;
         }

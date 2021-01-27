@@ -599,7 +599,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera, time);
+                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(
+                    cmd,
+                    hdCamera,
+                    time,
+                    asset.renderPipelineResources.shaders.blit3dCS
+                );
 
                 for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
                 {
