@@ -90,8 +90,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         params = InitializeReflectionProbeLookup(tile, zBin);
 
         EnvLightData envLightData;
-        uint         envLightIndex;
-        if (TryLoadReflectionProbeData(0, params, envLightData, envLightIndex))
+        if (TryLoadReflectionProbeData(0, params, envLightData))
         {
             featureFlags |= LIGHTFEATUREFLAGS_ENV;
         }

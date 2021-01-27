@@ -283,8 +283,7 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         EntityLookupParameters params = InitializeReflectionProbeLookup(tile, zBin);
         i = 0;
         EnvLightData envLightData;
-        uint         envLightIndex;
-        if(!TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
+        if(!TryLoadReflectionProbeData(i, params, envLightData))
         {
             envLightData = InitSkyEnvLightData(0);
         }
@@ -301,10 +300,8 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
             params = InitializeReflectionProbeLookup(tile, zBin);
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-            while (TryLoadReflectionProbeData(i, params, envLightData, envLightIndex))
+            while (TryLoadReflectionProbeData(i, params, envLightData))
             {
-                envLightData = LoadReflectionProbeDataUnsafe(envLightIndex);
-
                 if (reflectionHierarchyWeight < 1.0)
                 {
                     EVALUATE_BSDF_ENV(envLightData, REFLECTION, reflection);

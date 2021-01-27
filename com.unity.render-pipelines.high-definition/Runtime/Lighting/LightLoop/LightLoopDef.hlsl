@@ -422,12 +422,13 @@ EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint2 zBinRang
     return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, false);
 }
 
-bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out EnvLightData data, out uint entityIndex)
+bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out EnvLightData data)
 {
     bool success = false;
     // Need to zero-init to quiet the warning.
     ZERO_INITIALIZE(EnvLightData, data);
 
+    uint entityIndex;
     if (TryFindEntityIndex(i, params, entityIndex))
     {
         data    = _ReflectionProbeData[entityIndex];
@@ -491,14 +492,6 @@ bool TryLoadDensityVolumeData(uint i, inout EntityLookupParameters params, out D
     }
 
     return success;
-}
-
-// This call performs no bounds-checking.
-// Only call this using the 'entityIndex' returned by TryLoadReflectionProbeData, and
-// only if the call to TryLoadReflectionProbeData succeeded.
-EnvLightData LoadReflectionProbeDataUnsafe(uint entityIndex)
-{
-    return _ReflectionProbeData[entityIndex];
 }
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte
