@@ -2,7 +2,7 @@
     margin: 12px;
     padding: 4px;
     border-radius: 4px;
-    background-color: #383838;
+    background-color: rgb(56, 56, 56);
     opacity: 0.75;
 }
 

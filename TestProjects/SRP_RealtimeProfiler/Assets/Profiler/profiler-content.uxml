@@ -2,37 +2,57 @@
     <Style src="Styles/content.uss" />
     <ui:VisualElement name="Root" style="margin: 2px; flex-direction: row; margin: 4px; min-width: auto; min-height: auto;">
         <ui:VisualElement style="flex-direction: column; justify-content: flex-start; flex-grow: 1; min-width: 200px; max-width: none; min-height: 300px;">
-            <ui:Label text="Timings" name="Header" class="category-header" style="font-size: 14px;" />
-            <ui:Label text="Frame times" name="FrameTimes" class="category-header" />
-            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                <ui:Label text="CPU frame duration" name="Label" />
-                <ui:Label text="16.6ms" name="CpuFrameTime" />
-            </ui:VisualElement>
-            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                <ui:Label text="GPU frame duration" name="Label" />
-                <ui:Label text="14.0ms" name="GpuFrameTime" />
-            </ui:VisualElement>
-            <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                <ui:Label text="Full frame duration" name="Label" />
-                <ui:Label text="16.6ms" name="TotalFrameTime" />
-            </ui:VisualElement>
-            <ui:Label text="GPU categories" name="GPUCategories" class="category-header" />
-            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
-                <ui:Foldout text="Opaque" />
-                <ui:Label text="1.25ms" />
-            </ui:VisualElement>
-            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
-                <ui:Foldout text="Deferred Lighting" />
-                <ui:Label text="1.25ms" />
-            </ui:VisualElement>
-            <ui:VisualElement style="height: 28px; flex-direction: row; justify-content: space-between;">
-                <ui:Foldout text="PostProcess" />
-                <ui:Label text="1.25ms" />
-            </ui:VisualElement>
-        </ui:VisualElement>
-        <ui:VisualElement style="flex-direction: column; flex-grow: 3; min-width: 200px; margin: 4px;">
-            <ui:Label text="Graph" name="Header" class="category-header" style="font-size: 14px;" />
-            <ui:IMGUIContainer name="GraphContainer" style="height: 200px; flex-grow: 1; min-height: 200px; max-height: 200px;" />
+            <ui:Foldout text="Frame times&#10;" name="FrameTimes" value="true" class="section-header">
+                <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                    <ui:Label text="CPU main thread frame duration" name="Label" />
+                    <ui:Label text="16.6ms" name="CpuMainThreadFrameTime" />
+                </ui:VisualElement>
+                <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                    <ui:Label text="CPU render thread frame duration" name="Label" />
+                    <ui:Label text="14.0ms" name="CpuRenderThreadFrameTime" />
+                </ui:VisualElement>
+                <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                    <ui:Label text="GPU frame duration" name="Label" />
+                    <ui:Label text="14.0ms" name="GpuFrameTime" />
+                </ui:VisualElement>
+                <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
+                    <ui:Label text="Full frame duration" name="Label" />
+                    <ui:Label text="16.6ms" name="TotalFrameTime" />
+                </ui:VisualElement>
+            </ui:Foldout>
+            <ui:Foldout text="Render stats&#10;" name="RenderStats" value="true" class="section-header">
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-left: 0;">
+                    <ui:VisualElement name="CategoryColumn">
+                        <ui:Label text="Category" name="CategoryHeader" class="category-header" />
+                        <ui:Label text="Opaque&#10;" />
+                        <ui:Label text="Deferred Lighting&#10;" />
+                        <ui:Label text="PostProcess" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-direction: row; justify-content: flex-start;">
+                        <ui:VisualElement name="CategoryColumn">
+                            <ui:Label text="CPU (inline)" name="CategoryHeader" class="category-header" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="CategoryColumn">
+                            <ui:Label text="CPU (cmd)" name="CategoryHeader" class="category-header" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="CategoryColumn">
+                            <ui:Label text="GPU" name="CategoryHeader" class="category-header" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                            <ui:Label text="1.25ms" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:Foldout>
+            <ui:Foldout text="Details&#10;" name="Details" value="false" class="section-header">
+                <ui:Label text="Label" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />
+            </ui:Foldout>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
