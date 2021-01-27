@@ -323,7 +323,7 @@ platforms:
     commands:
       [OpenGlCore, Vulkan]:
         setup_utr: 
-          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr
+          - curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
           - chmod +x utr
         call_utr:
           - DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
