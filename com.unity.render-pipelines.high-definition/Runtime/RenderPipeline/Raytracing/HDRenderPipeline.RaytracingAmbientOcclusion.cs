@@ -9,8 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RTAOApplyIntensityKernel;
 
         // String values
-        const string m_MissShaderName = "MissShaderAmbientOcclusion";
-        const string m_ClosestHitShaderName = "ClosestHitMain";
+        const string m_AORayGenShaderName = "RayGenAmbientOcclusion";
 
         void InitRayTracingAmbientOcclusion()
         {
@@ -136,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
 
                         // Run the computation
-                        ctx.cmd.DispatchRays(data.aoShaderRT, m_RayGenShaderName, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
+                        ctx.cmd.DispatchRays(data.aoShaderRT, m_AORayGenShaderName, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
                     });
 
                 return passData.outputTexture;
