@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering
         static List<Type>                   s_VolumeComponentEditorTypes;
         static TypeCache.MethodCollection   s_AdditionalPropertiesVisibilityMethods;
         static bool                         s_ShowAllAdditionalProperties = false;
+        static List<string>                 s_SearchKeywords;
 
         static AdditionalPropertiesPreferences()
         {
@@ -71,6 +72,17 @@ namespace UnityEditor.Rendering
             {
                 showAllAdditionalProperties = newValue == 1;
             }
+        }
+
+        internal static List<string> GetPreferenceSearchKeywords()
+        {
+            if (s_SearchKeywords == null)
+            {
+                s_SearchKeywords = new List<string>();
+                s_SearchKeywords.Add("Additional");
+                s_SearchKeywords.Add("Properties");
+            }
+            return s_SearchKeywords;
         }
 
         static void ShowAllAdditionalProperties(bool value)

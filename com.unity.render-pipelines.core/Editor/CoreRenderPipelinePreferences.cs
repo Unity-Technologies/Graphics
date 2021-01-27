@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEditor.Rendering
 {
     /// <summary>
@@ -10,13 +12,19 @@ namespace UnityEditor.Rendering
         [SettingsProvider]
         static SettingsProvider PreferenceGUI()
         {
-            return new SettingsProvider(corePreferencePath, SettingsScope.User)
+            var provider = new SettingsProvider(corePreferencePath, SettingsScope.User)
             {
                 guiHandler = searchContext =>
                 {
                     AdditionalPropertiesPreferences.PreferenceGUI();
                 }
             };
+
+            List<string> keywords = new List<string>();
+            foreach (var keyword in AdditionalPropertiesPreferences.GetPreferenceSearchKeywords())
+                keywords.Add(keyword);
+            provider.keywords = keywords;
+            return provider;
         }
 
         /// <summary>
