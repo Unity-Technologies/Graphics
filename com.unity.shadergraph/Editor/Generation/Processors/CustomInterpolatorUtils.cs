@@ -97,7 +97,8 @@ namespace UnityEditor.ShaderGraph
                 else if (isNodePreview)
                 {
                     // we can cheat and add the sub-tree to the pixel node list, which ciNode digs into during its own preview generation.
-                    pixelNodes.AddRange(anties.Where(a => !pixelNodes.Contains(a)));
+                    pixelNodes.InsertRange(0, anties);
+                    // pixelNodes.AddRange(anties.Where(a => !pixelNodes.Contains(a)));
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
