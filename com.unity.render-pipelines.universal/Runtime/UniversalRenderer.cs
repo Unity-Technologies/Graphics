@@ -199,8 +199,32 @@ namespace UnityEngine.Rendering.Universal
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
-            m_CameraAttachments.color = RTHandles.Alloc(Shader.PropertyToID("_CameraColorTexture"), "_CameraColorTexture");
-            m_CameraAttachments.depth = RTHandles.Alloc(Shader.PropertyToID("_CameraDepthAttachment"), "_CameraDepthAttachment");
+            bool useDepthRenderBuffer = true;
+            m_CameraAttachments.color = RTHandles.Alloc(
+                Vector2.one,
+                depthBufferBits: useDepthRenderBuffer ? k_DepthStencilBufferBits : DepthBits.None,
+                colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // TODO there's a determine format we can use here
+                filterMode: FilterMode.Bilinear,
+                dimension: TextureDimension.Tex2D,
+                useMipMap: false,
+                autoGenerateMips: false,
+                name: "_CameraColorTexture");
+
+            bool bindMS = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            bindMS = !SystemInfo.supportsMultisampleAutoResolve && SystemInfo.supportsMultisampledTextures != 0;
+#endif
+            m_CameraAttachments.depth = RTHandles.Alloc(
+                Vector2.one,
+                depthBufferBits: k_DepthStencilBufferBits,
+                colorFormat: GraphicsFormat.DepthAuto,
+                filterMode: FilterMode.Point,
+                dimension: TextureDimension.Tex2D,
+                useMipMap: false,
+                autoGenerateMips: false,
+                bindTextureMS: bindMS,
+                name: "_CameraDepthAttachment");
+
             m_DepthTexture = RTHandles.Alloc(Shader.PropertyToID("_CameraDepthTexture"), "_CameraDepthTexture");
             m_NormalsTexture = RTHandles.Alloc(Shader.PropertyToID("_CameraNormalsTexture"), "_CameraNormalsTexture");
             if (this.renderingMode == RenderingMode.Deferred)
@@ -252,6 +276,9 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
+
+            m_CameraAttachments.color.Release();
+            m_CameraAttachments.depth.Release();
 
             Blitter.Cleanup();
         }
@@ -674,9 +701,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraAttachments.color.name));
-            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraAttachments.depth.name));
-
             m_ActiveCameraAttachments.color = k_CameraTarget;
             m_ActiveCameraAttachments.depth = k_CameraTarget;
         }
@@ -759,27 +783,42 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
-                if (createColor)
+                if (createColor &&
+                    (m_CameraAttachments.color.rt.graphicsFormat != descriptor.graphicsFormat ||
+                     m_CameraAttachments.color.rt.descriptor.msaaSamples != descriptor.msaaSamples))
                 {
-                    var colorDescriptor = descriptor;
-                    colorDescriptor.useMipMap = false;
-                    colorDescriptor.autoGenerateMips = false;
-                    colorDescriptor.depthBufferBits = (int) (useDepthRenderBuffer ? k_DepthStencilBufferBits : DepthBits.None);
-                    cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraAttachments.color.name), colorDescriptor, FilterMode.Bilinear);
+                    m_CameraAttachments.color.Release();
+                    m_CameraAttachments.color = RTHandles.Alloc(Vector2.one,
+                        colorFormat: descriptor.graphicsFormat,
+                        filterMode: FilterMode.Bilinear,
+                        dimension: TextureDimension.Tex2D,
+                        enableRandomWrite: false,
+                        useMipMap: false,
+                        autoGenerateMips: false,
+                        msaaSamples: (MSAASamples)descriptor.msaaSamples,
+                        name: "_CameraColorTexture");
                 }
 
-                if (createDepth)
-                {
-                    var depthDescriptor = descriptor;
-                    depthDescriptor.useMipMap = false;
-                    depthDescriptor.autoGenerateMips = false;
+                bool bindMS = false;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                    // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
-                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                bindMS = descriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && SystemInfo.supportsMultisampledTextures != 0;
 #endif
-                    depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = (int)k_DepthStencilBufferBits;
-                    cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraAttachments.depth.name), depthDescriptor, FilterMode.Point);
+                if (createDepth &&
+                    (bindMS != m_CameraAttachments.depth.rt.bindTextureMS ||
+                     m_CameraAttachments.depth.rt.descriptor.msaaSamples != descriptor.msaaSamples))
+                {
+                    m_CameraAttachments.depth.Release();
+                    m_CameraAttachments.depth = RTHandles.Alloc(
+                        Vector2.one,
+                        depthBufferBits: k_DepthStencilBufferBits,
+                        colorFormat: GraphicsFormat.DepthAuto,
+                        filterMode: FilterMode.Point,
+                        dimension: TextureDimension.Tex2D,
+                        useMipMap: false,
+                        autoGenerateMips: false,
+                        msaaSamples: (MSAASamples)descriptor.msaaSamples,
+                        bindTextureMS: bindMS,
+                        name: "_CameraDepthAttachment");
                 }
             }
 
