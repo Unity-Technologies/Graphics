@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_XRCopyDepthPass;
 #endif
 #if UNITY_EDITOR
-        CopyDepthPass m_SceneViewDepthCopyPass;
+        CopyDepthPass m_FinalDepthCopyPass;
 #endif
 
         RenderTargetHandle m_ActiveCameraColorAttachment;
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 #if UNITY_EDITOR
-            m_SceneViewDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
+            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -587,8 +587,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
-                m_SceneViewDepthCopyPass.Setup(m_DepthTexture, RenderTargetHandle.CameraTarget);
-                EnqueuePass(m_SceneViewDepthCopyPass);
+                m_FinalDepthCopyPass.Setup(m_DepthTexture, RenderTargetHandle.CameraTarget);
+                EnqueuePass(m_FinalDepthCopyPass);
             }
 #endif
         }
