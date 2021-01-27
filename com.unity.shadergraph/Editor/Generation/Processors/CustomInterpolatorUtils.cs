@@ -13,6 +13,12 @@ namespace UnityEditor.ShaderGraph
     {
         internal static bool generatorSkipFlag = false;
         internal static bool generatorNodeOnly = false;
+
+        internal static IEnumerable<CustomInterpolatorNode> GetCIBDependents(BlockNode bnode)
+        {
+            return bnode?.owner?.GetNodes<CustomInterpolatorNode>().Where(cin => cin.e_targetBlockNode == bnode).ToList()
+                ?? new List<CustomInterpolatorNode>();
+        }
     }
  
     internal class CISubGen
