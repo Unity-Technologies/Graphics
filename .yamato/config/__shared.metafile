@@ -388,11 +388,11 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.13-testing:stable
+        image: mobile/macos-10.15-testing:stable
         flavor: b1.large
     commands:
       [Metal]:
@@ -410,10 +410,6 @@ platforms:
           - brew install unity/unity/unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
 non_project_agents:
-  cds_ops_ubuntu_small:
-    type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
-    flavor: b1.small
   package_ci_ubuntu_large:
     type: Unity::VM
     image: package-ci/ubuntu:stable
