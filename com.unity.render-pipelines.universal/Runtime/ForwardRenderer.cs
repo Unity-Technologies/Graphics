@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthInfoTexture.Init("_DepthInfoTexture");
             m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
+            m_AfterFinalPostProcessColor.Init("_AfterFinalPostProcessTexture");
 
             supportedRenderingFeatures = new RenderingFeatures()
             {
@@ -526,10 +527,7 @@ namespace UnityEngine.Rendering.Universal
                 if (applyPostProcessing)
                 {
                     var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget : afterPostProcessColor;
-
-                    // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, upscaling);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -541,7 +539,7 @@ namespace UnityEngine.Rendering.Universal
                 if (applyFinalPostProcessing)
                 {
                     var destination = upscaling ? m_AfterFinalPostProcessColor : RenderTargetHandle.CameraTarget;
-                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, destination);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, destination, upscaling);
                     EnqueuePass(finalPostProcessPass);
                     sourceForFinalPass = destination;
                 }

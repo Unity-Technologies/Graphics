@@ -71,6 +71,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // We need to do the conversion manually on those
         bool m_EnableSRGBConversionIfNeeded;
 
+        // True if upscaling will be done separately from the last post-processing pass.
+        bool m_Upscaling;
+
         // Option to use procedural draw instead of cmd.blit
         bool m_UseDrawProcedural;
 
@@ -131,7 +134,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool upscaling)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -142,16 +145,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
-            m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
+            // If resolving to the screen, we need to be able to do sRGB conversion if necessary.
+            m_EnableSRGBConversionIfNeeded = (destination == RenderTargetHandle.CameraTarget);
+            m_Upscaling = upscaling;
         }
 
-        public void SetupFinalPass(in RenderTargetHandle source, in RenderTargetHandle destination)
+        public void SetupFinalPass(in RenderTargetHandle source, in RenderTargetHandle destination, bool upscaling)
         {
             m_Source = source;
             m_Destination = destination;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
+            m_Upscaling = upscaling;
         }
 
         /// <inheritdoc/>
@@ -166,7 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             desc.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_Destination.id, desc, m_HasFinalPass ? FilterMode.Point : FilterMode.Bilinear);
+            cmd.GetTemporaryRT(m_Destination.id, desc, (m_Upscaling && !m_HasFinalPass) ? FilterMode.Bilinear : FilterMode.Point);
         }
 
         /// <inheritdoc/>

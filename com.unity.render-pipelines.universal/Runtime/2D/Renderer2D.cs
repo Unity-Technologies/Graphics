@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
+        RenderTargetHandle m_AfterFinalPostProcessColor;
 
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
@@ -52,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
+            m_AfterFinalPostProcessColor.Init("_AfterFinalPostProcessTexture");
 
             m_Renderer2DData = data;
 
@@ -188,6 +190,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
+            // Avoid doing post-processing on full swapchain resolution if upscaling.
+            bool upscaling = renderingData.postProcessingData.useRenderScale && renderingData.cameraData.renderScale < 0.9f;
+
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
@@ -197,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 RenderTargetHandle postProcessDestHandle =
-                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
+                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass && !upscaling ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
@@ -206,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
+                    upscaling);
 
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
@@ -217,10 +222,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle, RenderTargetHandle.CameraTarget);
+                var destination = upscaling ? m_AfterFinalPostProcessColor : RenderTargetHandle.CameraTarget;
+                finalPostProcessPass.SetupFinalPass(colorTargetHandle, destination, upscaling);
                 EnqueuePass(finalPostProcessPass);
+                colorTargetHandle = destination;
             }
-            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
+
+            if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
