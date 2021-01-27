@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Settings related to lighting and rendering paths.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
+            public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
@@ -31,6 +32,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
+#endif
+#if ENABLE_RENDER_PASS_UI
+        SerializedProperty m_UseNativeRenderPass;
 #endif
         SerializedProperty m_DefaultStencilState;
         SerializedProperty m_PostProcessData;
@@ -46,6 +50,9 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
+#endif
+#if ENABLE_RENDER_PASS_UI
+            m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
 #endif
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
@@ -77,6 +84,14 @@ namespace UnityEditor.Rendering.Universal
                 //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
                 EditorGUI.indentLevel--;
             }
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+#endif
+
+#if ENABLE_RENDER_PASS_UI
+            EditorGUILayout.LabelField("RenderPass", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 #endif
