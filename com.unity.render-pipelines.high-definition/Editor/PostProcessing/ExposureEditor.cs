@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
