@@ -97,8 +97,6 @@ CBUFFER_START(UnityPerDraw)
     //W : Camera only
     float4 unity_MotionVectorsParams;
 
-    float4 unity_ComputeMeshIndex;
-
 CBUFFER_END
 
 CBUFFER_START(UnityPerDrawRare)
@@ -376,7 +374,6 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_MotionVectorsParams)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ComputeMeshIndex)
-
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
