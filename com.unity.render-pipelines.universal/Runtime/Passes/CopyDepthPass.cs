@@ -129,7 +129,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.y = scale
                     // scaleBias.z = bias
                     // scaleBias.w = unused
-                    float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                    bool renderingToBackBufferTarget = ScriptableRenderer.current.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+                    bool renderingToTexture = !renderingToBackBufferTarget || cameraData.camera.targetTexture != null;
+                    // In game view final target acts as back buffer were target is not flipped
+                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
+                    bool yflip = (renderingToTexture && !isGameViewFinalTarget) && SystemInfo.graphicsUVStartsAtTop;
+                    float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
