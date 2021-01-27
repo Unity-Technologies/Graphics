@@ -454,7 +454,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Clouds
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
+        public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
         public static readonly int _CloudsDepthTexture = Shader.PropertyToID("_CloudsDepthTexture");
+        public static readonly int _DepthStatusTexture = Shader.PropertyToID("_DepthStatusTexture");
         public static readonly int _CloudsDepthTextureRW = Shader.PropertyToID("_CloudsDepthTextureRW");
         public static readonly int _CloudsAdditionalTextureRW = Shader.PropertyToID("_CloudsAdditionalTextureRW");
         public static readonly int _VolumetricCloudsTexture = Shader.PropertyToID("_VolumetricCloudsTexture");

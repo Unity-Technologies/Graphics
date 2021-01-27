@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Volumetric Clouds")]
+    [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
     public sealed class VolumetricClouds : VolumeComponent
     {
         public enum CloudControl
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Cloudy,
             Overcast,
             StormClouds,
-            Manual
+            Custom
         }
 
         /// <summary>
@@ -93,10 +93,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter highestCloudAltitude = new ClampedFloatParameter(8000, 2000.0f, 8000f);
 
         [Tooltip("Number of camera->cloud steps")]
-        public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 8, 256);
+        public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 16, 512);
 
         [Tooltip("Number of cloud-> light steps")]
-        public ClampedIntParameter numLightSteps = new ClampedIntParameter(6, 4, 32);
+        public ClampedIntParameter numLightSteps = new ClampedIntParameter(8, 6, 32);
 
         [Tooltip("Cloud map (Coverage, Rain, Type)")]
         public TextureParameter cloudMap = new TextureParameter(null);
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Global temporal accumulation factor.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Enable/Disable the volumetric clouds shadow.")]
+        [Tooltip("Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).")]
         public BoolParameter shadow = new BoolParameter(false);
 
         [Tooltip("Controls the resolution of the volumetric clouds shadow map.")]

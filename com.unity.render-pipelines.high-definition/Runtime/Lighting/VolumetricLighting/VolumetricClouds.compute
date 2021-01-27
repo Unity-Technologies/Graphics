@@ -1,3 +1,4 @@
+#pragma kernel DownscaleDepth
 #pragma kernel RenderClouds
 #pragma kernel ReprojectClouds
 #pragma kernel UpscaleAndCombineClouds
@@ -34,6 +35,8 @@
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
 #define MAX_EROSION_DISTANCE 100000.0
+// Value that is used to normalize the noise textures
+#define NOISE_TEXTURE_NORMALIZATION_FACTOR 100000.0f
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -52,6 +55,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Input textures
+TEXTURE2D_X(_HalfResDepthBuffer);
 TEXTURE2D_X(_DepthTexture);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float3> _CloudLutTexture;
@@ -65,14 +69,33 @@ TEXTURE2D_X(_CloudsLightingTexture);
 TEXTURE2D_X(_CloudsDepthTexture);
 
 // History buffers
-TEXTURE2D_X(_HistoryDepthTexture);
 TEXTURE2D_X(_HistoryVolumetricClouds0Texture);
 TEXTURE2D_X(_HistoryVolumetricClouds1Texture);
 
 // Output texture
+RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
 RW_TEXTURE2D_X(float, _CloudsDepthTextureRW);
-RW_TEXTURE2D_X(float, _CloudsAdditionalTextureRW);
+RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
+
+[numthreads(8, 8, 1)]
+void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(intermediateCoord.z);
+
+    // If this is bigger than the trace size, we are done
+    if (any(intermediateCoord.xy > uint2(_IntermediateScreenSize.xy)))
+        return;
+
+    // TODO USE LDS for this
+    float depth0 = LOAD_TEXTURE2D_X(_DepthTexture, intermediateCoord.xy * 2.0).x;
+    float depth1 = LOAD_TEXTURE2D_X(_DepthTexture, intermediateCoord.xy * 2.0 + int2(0, 1)).x;
+    float depth2 = LOAD_TEXTURE2D_X(_DepthTexture, intermediateCoord.xy * 2.0 + int2(1, 1)).x;
+    float depth3 = LOAD_TEXTURE2D_X(_DepthTexture, intermediateCoord.xy * 2.0 + int2(1, 0)).x;
+
+    // Combine it with the current shift to define which half res depth should be used
+    _HalfResDepthBufferRW[COORD_TEXTURE2D_X(intermediateCoord.xy)] = min(min(depth0, depth1), min(depth2, depth3));
+}
 
 // Structure that holds all the lighting data required to light the cloud particles
 struct EnvironmentLighting
@@ -110,7 +133,7 @@ CloudRay BuildRay(uint2 halfResCoord)
     ZERO_INITIALIZE(CloudRay, ray);
 
     // Grab the depth value of the pixel (at half resolution)
-    ray.depthValue = LOAD_TEXTURE2D_X(_DepthTexture, _DepthMipOffset + halfResCoord.xy).x;
+    ray.depthValue = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, halfResCoord.xy).x;
 
     // Flag is this sky pixel occluded by an object?
     float isOccluded = ray.depthValue != UNITY_RAW_FAR_CLIP_VALUE ? 1.0 : 0.0;
@@ -150,7 +173,6 @@ bool PointInsideCloudVolume(float3 positionWS)
 {
     float toEarthCenter2 = dot(positionWS, positionWS);
     return toEarthCenter2 < _CloudRangeSquared.y && toEarthCenter2 > _CloudRangeSquared.x;
-    //&& positionWS.x < _NormalizationFactor && positionWS.x > 0 && positionWS.z < _NormalizationFactor && positionWS.z > 0;
 }
 
 bool GetCloudVolumeIntersection_Light(float3 org, float3 dir, out float totalDistance)
@@ -354,7 +376,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.height = EvaluateNormalizedCloudHeight(positionWS);
 
     // Evaluate the generic sampling coordinates
-    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / _NormalizationFactor) * CLOUD_SCALE_FACTOR;
+    float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * CLOUD_SCALE_FACTOR;
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
     baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, 0.0f, _WindDirection.y) * MOTION_DISTORTION;
@@ -399,7 +421,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     // Apply the erosion for nifer details
     if (!cheapVersion)
     {
-        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionWS) / _NormalizationFactor * EROSION_SCALE_FACTOR;
+        float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionWS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * EROSION_SCALE_FACTOR;
         float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
 
         // Compute the weight of the low frequency noise
@@ -423,7 +445,7 @@ float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting,
     // Compute the Ray to the limits of the cloud volume in the direction of the light
     float totalLightDistance = 0.0f;
 
-    // If we early out, this means we've
+    // If we early out, this means we've hit the earth itself
     if(!GetCloudVolumeIntersection_Light(position, envLighting.sunDirection, totalLightDistance))
         return 0.0;
 
@@ -485,7 +507,7 @@ void EvaluateCloud(CloudProperties cloudProperties, CloudRay cloudRay,  float ph
 {
     // Apply the extinction
     const float3 mediaExtinction = _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT;
-    const float currentStepExtinction = exp(-mediaExtinction * stepSize);
+    const float currentStepExtinction = exp(-cloudProperties.density * cloudProperties.sigmaT * stepSize);
 
     // Compute the powder effect
     float powder_effect = PowderEffect(cloudProperties.density, cosAngle, _PowderEffectIntensity);
@@ -504,6 +526,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
 {
     // Initiliaze the volumetric ray
     VolumetricRayResult volumetricRay;
+    ZERO_INITIALIZE(VolumetricRayResult, volumetricRay);
     volumetricRay.inScattering = 0.0;
     volumetricRay.transmittance = 1.0;
     volumetricRay.meanDistance = _MaxCloudDistance;
@@ -660,7 +683,8 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
         return;
 
     // Compute the half res coordinate that matches this thread (as we virtually do the computation in half res space)
-    uint2 halfResCoord = traceCoord.xy * 2 + HalfResIndexToCoordinateShift[_SubPixelIndex];
+    int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord, _SubPixelIndex);
+    uint2 halfResCoord = traceCoord.xy * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
 
     // Build the ray we will use of the ray marching.
     CloudRay ray = BuildRay(halfResCoord);
@@ -669,7 +693,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     ray.envLighting = EvaluateEnvironmentLighting(ray);
 
     // We use the Heitz blue noise method for dithering to get the most visually pleasing noise.
-    float offset = GetBNDSequenceSample(halfResCoord, _AccumulationFrameIndex, 0) * sqrt(_TemporalAccumulationFactor);
+    float offset = GetBNDSequenceSample(halfResCoord, _AccumulationFrameIndex, 0);
 
     // Evaluate the cloud transmittance
     VolumetricRayResult result = TraceVolumetricRay(ray, offset);
@@ -677,15 +701,6 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     // Compute the cloud depths
     float cloudMinDistance = clamp(_ProjectionParams.y, min(result.meanDistance, ray.maxRayLength), _ProjectionParams.z);
     float cloudMinDepth = result.invalidRay ? ray.depthValue : ConvertCloudDepth(ray.direction * cloudMinDistance);
-
-    // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(traceCoord.xy, _TraceScreenSize.zw, cloudMinDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
-    // Compute the fog attenuation of the clouds
-    float3 fogColor;
-    float3 fogOpacity;
-    EvaluateAtmosphericScattering(cloudPosInput, -ray.direction, fogColor, fogOpacity);
-    result.inScattering = result.inScattering * (1 - fogOpacity) + fogColor * (1.0 - result.transmittance);
 
     // Apply a fast tonemap
     result.inScattering *= rcp(result.inScattering + 1.0);
@@ -738,9 +753,10 @@ void FillLDS(uint groupIndex, uint2 groupOrigin)
     int2 sampleCoord = int2(clamp(originXY.x + acessCoordX, 0, _TraceScreenSize.x - 1), clamp(originXY.y + acessCoordY, 0, _TraceScreenSize.y - 1));
 
     // Read the sample value
+    int checkerBoardIndex = ComputeCheckerBoardIndex(sampleCoord, _SubPixelIndex);
     float4 sampleVal = LOAD_TEXTURE2D_X(_CloudsLightingTexture, sampleCoord);
-    float sampleDP = LOAD_TEXTURE2D_X(_DepthTexture, _DepthMipOffset + sampleCoord * 2 + HalfResIndexToCoordinateShift[_SubPixelIndex]).x;
-    float sampleDC = LOAD_TEXTURE2D_X(_CloudsDepthTexture, sampleCoord);
+    float sampleDP = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, sampleCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex]).x;
+    float sampleDC = LOAD_TEXTURE2D_X(_CloudsDepthTexture, sampleCoord).x;
 
     // Store into the LDS
     gs_cacheR[groupIndex] = sampleVal.r;
@@ -800,10 +816,20 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Read the volumetric cloud value from the previous frame
     float2 ratioScale = _HistoryViewportSize / _HistoryBufferSize;
     float2 historySampleCoords = clampedHistoryUV * ratioScale;
+
+    // Grab the history values
     float4 previousResult = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds0Texture, s_linear_clamp_sampler, historySampleCoords, 0);
+    float3 previousResult1 = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historySampleCoords, 0);
+
+    // Inverse the exposure of the previous frame and apply the current one (need to be done in linear space)
+    previousResult.xyz *= rcp(1.0 - previousResult.xyz);
     previousResult.xyz *= GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
-    float previousResult1 = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historySampleCoords, 0).x;
-    float previousDepth = SAMPLE_TEXTURE2D_X_LOD(_HistoryDepthTexture, s_linear_clamp_sampler, historySampleCoords, 0);
+    previousResult.xyz *= rcp(1.0 + previousResult.xyz);
+
+    // Unpack the second buffer
+    float previousSampleCount = previousResult1.x;
+    float previousDepth = previousResult1.y;
+    float previousCloudDepth = previousResult1.z;
 
     // This tracks if the history is considered valid
     bool validHistory = true;
@@ -813,7 +839,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         validHistory = false;
 
     // Read the resolution of the current pixel
-    float currentDepth = LOAD_TEXTURE2D_X(_DepthTexture, _DepthMipOffset + intermediateCoord).x;
+    float currentDepth = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, intermediateCoord).x;
 
     // Compare the depth of the current pixel to the one of its history, if they are too different, we cannot consider this history valid
     float linearPrevDepth = Linear01Depth(previousDepth, _ZBufferParams);
@@ -825,54 +851,74 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
-    if (localIndex == _SubPixelIndex)
+    int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
+    if (localIndex == currentIndex)
     {
-        float accumulationFactor = 0.0;
-        float sampleCount = 1.0;
-        float previousSampleCount = previousResult1;
 
-        float cloudNeighborhood = false;
+        // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
+        float cloudNeighborhood = 0.0f;
         for(int i = 0; i < 9; ++i)
         {
             if(pixelRegion[i].cloudDepth != 0.0)
                 cloudNeighborhood += 1.0f;
         }
-        cloudNeighborhood *= 0.11111f;
 
         // If the target coordinate is out of the screen, we cannot use the history
+        float accumulationFactor = 0.0;
+        float sampleCount = 1.0;
         if (validHistory && cloudNeighborhood != 0.0f)
         {
             // Define our accumation value
             accumulationFactor = previousSampleCount >= 16.0 ? 0.94117647058 : (previousSampleCount / (previousSampleCount + 1.0));
             accumulationFactor *= _TemporalAccumulationFactor;
-            sampleCount = max(previousSampleCount + 1.0, 16.0);
+            sampleCount = min(previousSampleCount + 1.0, 16.0);
         }
 
         // Accumulate the result with the previous frame
         previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * pixelRegion[CENTER].cloudLighting;
-        previousResult1 = sampleCount;
+        previousSampleCount = sampleCount;
+        previousDepth = currentDepth;
+        previousCloudDepth = currentCloudDepth;
     }
     else
     {
-        // If the target coordinate is out of the screen, we cannot use the history
+        // Reduce the history validity a bit
+        previousSampleCount *= _TemporalAccumulationFactor;
+
+        // If the target coordinate is out of the screen or the depth that was used to generate it
+        // is too different from the one of the current pixel, we cannot use the history
         if (!validHistory)
         {
             float4 neighborhood[9];
             float lowD[9];
+            float lowM[9];
             for(int i = 0; i < 9; ++i)
             {
                 neighborhood[i] = pixelRegion[i].cloudLighting;
                 lowD[i] = pixelRegion[i].pixelDepth;
+                lowM[i] = 1.0f;
             }
 
-            previousResult = BilUpColor3x3(currentDepth, lowD, neighborhood);
-            previousResult.w = saturate(previousResult.w);
-            // Force the sample count to one
-            previousResult1 = 1.0;
-        }
+            // Make sure that at least one of the pixels in the neighborhood can be used
+            float rejectNeighborhood = OverrideMaskValues(currentDepth, lowD, lowM);
 
-        // Reduce the history validity a bit
-        previousResult1.x *= _TemporalAccumulationFactor;
+            // 1.0  if we were able to produce a value 0.0 if we failed to
+            previousSampleCount = 1.0f - rejectNeighborhood;
+
+            if (rejectNeighborhood == 1.0f)
+            {
+                // We don't have any valid history and there is no neighbor that is usable
+                previousResult = 0.0f;
+                previousSampleCount = 0.0f;
+            }
+            else
+            {
+                // We don't have any history for this pixel, but there is at least one neighbor that can be used in the current frame tracing
+                previousSampleCount = 1.0f;
+                previousResult = BilUpColor3x3(currentDepth, lowD, neighborhood, lowM);
+            }
+            previousDepth = currentDepth;
+        }
     }
 
     // Make sure this doesn't go outside of the [0, 1] interval
@@ -880,7 +926,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Accumulate the result with the previous frame
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = previousResult;
-    _CloudsAdditionalTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = previousResult1;
+    _CloudsAdditionalTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = float3(previousSampleCount, previousDepth, previousCloudDepth);
 }
 
 // Constant buffer where all variables should land
@@ -890,6 +936,7 @@ CBUFFER_END
 
 // Half resolution volumetric cloud texture
 TEXTURE2D_X(_VolumetricCloudsTexture);
+TEXTURE2D_X(_DepthStatusTexture);
 
 // Input output camera color buffer
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
@@ -900,7 +947,7 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
     int acessCoordX = groupIndex % 6;
     int acessCoordY = groupIndex / 6;
 
-    // Everything we are accessing is in trace res (quarter rez).
+    // Everything we are accessing is in intermediate res (half rez).
     uint2 traceGroupOrigin = groupOrigin / 2;
 
     // The initial position of the access
@@ -911,20 +958,22 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 
     // Read the sample value
     float4 sampleVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, sampleCoord);
-    float sampleDP = LOAD_TEXTURE2D_X(_DepthTexture, _DepthMipOffset + sampleCoord).x;
+    float2 depthStatusValue = LOAD_TEXTURE2D_X(_DepthStatusTexture, sampleCoord).xy;
 
     // Store into the LDS
     gs_cacheR[groupIndex] = sampleVal.r;
     gs_cacheG[groupIndex] = sampleVal.g;
     gs_cacheB[groupIndex] = sampleVal.b;
     gs_cacheA[groupIndex] = sampleVal.a;
-    gs_cacheDP[groupIndex] = sampleDP;
+    gs_cacheDP[groupIndex] = depthStatusValue.y;
+    gs_cacheDC[groupIndex] = saturate(depthStatusValue.x);
 }
 
 struct UpscaleData
 {
     float4 cloudLighting;
     float pixelDepth;
+    float pixelStatus;
 };
 
 UpscaleData GetLDSUpscaleSample(uint index)
@@ -935,6 +984,7 @@ UpscaleData GetLDSUpscaleSample(uint index)
     outVal.cloudLighting.b = gs_cacheB[index];
     outVal.cloudLighting.a = gs_cacheA[index];
     outVal.pixelDepth = gs_cacheDP[index];
+    outVal.pixelStatus = gs_cacheDC[index];
     return outVal;
 }
 
@@ -979,27 +1029,67 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     // Read the color buffer
     float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
 
-    // Read the cloud data
-    float4 lowC[5];
+    // Read the cloud lighting data for every pixel (half res)
+    float4 lowC[9];
     lowC[0] = pixelRegion[CENTER].cloudLighting;
     lowC[1] = pixelRegion[PLUS_0].cloudLighting;
     lowC[2] = pixelRegion[PLUS_1].cloudLighting;
     lowC[3] = pixelRegion[PLUS_2].cloudLighting;
     lowC[4] = pixelRegion[PLUS_3].cloudLighting;
+    lowC[5] = pixelRegion[CROSS_0].cloudLighting;
+    lowC[6] = pixelRegion[CROSS_1].cloudLighting;
+    lowC[7] = pixelRegion[CROSS_2].cloudLighting;
+    lowC[8] = pixelRegion[CROSS_3].cloudLighting;
 
-    float lowD[5];
-    // Grab the depth value of the pixel (at half resolution)
+    // Read the pixel depths for every pixel (half res)
+    float lowD[9];
     lowD[0] = pixelRegion[CENTER].pixelDepth;
     lowD[1] = pixelRegion[PLUS_0].pixelDepth;
     lowD[2] = pixelRegion[PLUS_1].pixelDepth;
     lowD[3] = pixelRegion[PLUS_2].pixelDepth;
     lowD[4] = pixelRegion[PLUS_3].pixelDepth;
+    lowD[5] = pixelRegion[CROSS_0].pixelDepth;
+    lowD[6] = pixelRegion[CROSS_1].pixelDepth;
+    lowD[7] = pixelRegion[CROSS_2].pixelDepth;
+    lowD[8] = pixelRegion[CROSS_3].pixelDepth;
 
-    float4 currentClouds = BilUpColor5(depthValue, lowD, lowC);
+    // This flag allows us to track if one of the pixels is a background pixel
+    float lowM[9];
+    lowM[0] = pixelRegion[CENTER].pixelStatus;
+    lowM[1] = pixelRegion[PLUS_0].pixelStatus;
+    lowM[2] = pixelRegion[PLUS_1].pixelStatus;
+    lowM[3] = pixelRegion[PLUS_2].pixelStatus;
+    lowM[4] = pixelRegion[PLUS_3].pixelStatus;
+    lowM[5] = pixelRegion[CROSS_0].pixelStatus;
+    lowM[6] = pixelRegion[CROSS_1].pixelStatus;
+    lowM[7] = pixelRegion[CROSS_2].pixelStatus;
+    lowM[8] = pixelRegion[CROSS_3].pixelStatus;
+
+    // Flag that tells us which pixel holds valid information
+    float rejectedNeighborhood = OverrideMaskValues(depthValue, lowD, lowM);
+
+    // Do the bilateral upscale
+    float4 currentClouds = BilUpColor3x3(depthValue, lowD, lowC, lowM);
+
+    // Read the fallback value and use it if we defined that it was impossible for us to do something about it
+    if (rejectedNeighborhood == 1.0f)
+        currentClouds = float4(0.0, 0.0, 0.0, 1.0);
 
     // De-tonemap the inscattering value
     currentClouds.xyz *= rcp(1.0 - currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
+
+    // Compute the pos input of the cloud position
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Compute the view direction
+    float3 viewDir = -normalize(cloudPosInput.positionWS);
+
+    // Compute the fog attenuation of the clouds
+    float3 fogColor;
+    float3 fogOpacity;
+    EvaluateAtmosphericScattering(cloudPosInput, viewDir, fogColor, fogOpacity);
+    currentClouds.xyz = currentClouds.xyz * (1 - fogOpacity) + fogColor * (1.0 - currentClouds.a);
 
     // If this is a background pixel, we want the cloud value, otherwise we do not.
     _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
@@ -1012,7 +1102,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
 
-    if (currentCoords.x == 0.0 || currentCoords.y == 0.0 || currentCoords.x == (_ShadowCookieResolution - 1) || currentCoords.y == (_ShadowCookieResolution - 1))
+    if (currentCoords.x == 0 || currentCoords.y == 0 || ((int)currentCoords.x) == (_ShadowCookieResolution - 1) || ((int)currentCoords.y) == (_ShadowCookieResolution - 1))
     {
         _VolumetricCloudsShadowRW[currentCoords.xy] = _ShadowFallbackValue;
         return;
@@ -1066,8 +1156,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
             {
                 // Apply the extinction
-                const float3 mediaExtinction = _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT;
-                const float3 currentStepExtinction = exp(-mediaExtinction * stepSize);
+                const float3 currentStepExtinction = exp(- _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
                 transmittance *= currentStepExtinction;
             }
         }

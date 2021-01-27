@@ -169,7 +169,6 @@ bool RaySphereIntersection(float3 start, float3 dir, float radius)
     float rcp2a = 1.0 / (2.0 * a);
     float2 result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
     return result.x > 0.0 || result.y > 0.0;
-    //return ((-b - sqrtD) > 0.0 || (-b + sqrtD) > 0.0);
 }
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
@@ -209,6 +208,14 @@ float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float 
     velocity.y = -velocity.y;
 #endif
     return velocity;
+}
+
+// This function compute the checkerboard undersampling position
+int ComputeCheckerBoardIndex(int2 traceCoord, int subPixelIndex)
+{
+    int localOffset = (traceCoord.x & 1 + traceCoord.y & 1) & 1;
+    int checkerBoardLocation = (subPixelIndex + localOffset) % 4;
+    return checkerBoardLocation;
 }
 
 #define CENTER 4

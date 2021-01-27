@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateDensityVolumeAtlas,
 
         VolumetricClouds,
+        VolumetricCloudsPrepare,
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
         VolumetricCloudsUpscaleAndCombine,

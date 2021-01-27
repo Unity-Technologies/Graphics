@@ -40,20 +40,35 @@ static const float BilateralUpSampleWeights5[5] = {9.0, 3.0, 3.0, 3.0, 3.0};
 float4 BilUpColor5(float HiDepth, float LowDepths[5], float4 lowValue[5])
 {
     float totalWeights = 0;
-    float weight[5];
+    float4 weightedSum = 0.0;
     int i;
     for(i = 0; i < 5; ++i)
     {
-        weight[i] = BilateralUpSampleWeights5[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance);
-        totalWeights += weight[i];
+        float weight = BilateralUpSampleWeights5[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance);
+        weightedSum += lowValue[i] * weight;
+        totalWeights += weight;
     }
-    totalWeights += _UpsampleTolerance;
 
+    totalWeights += _NoiseFilterStrength;
+    weightedSum += _NoiseFilterStrength;
+
+    return weightedSum / totalWeights;
+}
+
+// The bilateral upscale function (Cross neighborhood)
+float4 BilUpColor5(float HiDepth, float LowDepths[5], float4 lowValue[5], float mask[5])
+{
+    float totalWeights = 0;
     float4 weightedSum = 0.0;
+    int i;
     for(i = 0; i < 5; ++i)
     {
-        weightedSum += lowValue[i] * weight[i];
+        float weight = BilateralUpSampleWeights5[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance) * mask[i];
+        weightedSum += lowValue[i] * weight;
+        totalWeights += weight;
     }
+
+    totalWeights += _NoiseFilterStrength;
     weightedSum += _NoiseFilterStrength;
 
     return weightedSum / totalWeights;
@@ -65,22 +80,53 @@ static const float BilateralUpSampleWeights3x3[9] = {9.0, 3.0, 3.0, 3.0, 3.0, 1.
 float4 BilUpColor3x3(float HiDepth, float LowDepths[9], float4 lowValue[9])
 {
     float totalWeights = 0;
-    float weight[9];
+    float4 weightedSum = 0.0;
+
     int i;
     for(i = 0; i < 9; ++i)
     {
-        weight[i] = BilateralUpSampleWeights3x3[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance);
-        totalWeights += weight[i];
+        float weight = BilateralUpSampleWeights3x3[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance);
+        weightedSum += lowValue[i] * weight;
+        totalWeights += weight;
     }
-    totalWeights += _UpsampleTolerance;
-
-    float4 weightedSum = 0.0;
-    for(i = 0; i < 9; ++i)
-    {
-        weightedSum += lowValue[i] * weight[i];
-    }
+    totalWeights += _NoiseFilterStrength;
     weightedSum += _NoiseFilterStrength;
 
+    return weightedSum / totalWeights;
+}
+
+float OverrideMaskValues(float highDepth, float lowDepth[9], float mask[9])
+{
+    // Flag that tells us which pixel holds valid information
+    float rejectedNeighborhood = 1.0f;
+    for(int i = 0; i < 9; ++i)
+    {
+        if(mask[i] == 0.0f)
+            continue;
+        float candidateLinearDepth = Linear01Depth(lowDepth[i], _ZBufferParams);
+        float currentFRDepth = Linear01Depth(highDepth, _ZBufferParams);
+        bool validSample = abs(currentFRDepth - candidateLinearDepth) < currentFRDepth * 0.1;
+        mask[i] = validSample ? 1.0f : 0.0f;
+        rejectedNeighborhood *= (validSample ? 0.0f : 1.0f);
+    }
+    return rejectedNeighborhood;
+}
+
+// The bilateral upscale function (3x3 neighborhood)
+float4 BilUpColor3x3(float HiDepth, float LowDepths[9], float4 lowValue[9], float mask[9])
+{
+    float totalWeights = 0;
+    float4 weightedSum = 0.0;
+
+    int i;
+    for(i = 0; i < 9; ++i)
+    {
+        float weight = BilateralUpSampleWeights3x3[i] / (abs(HiDepth - LowDepths[i]) + _UpsampleTolerance) * mask[i];
+        weightedSum += lowValue[i] * weight;
+        totalWeights += weight;
+    }
+    totalWeights += _NoiseFilterStrength;
+    weightedSum += _NoiseFilterStrength;
     return weightedSum / totalWeights;
 }
 
