@@ -490,6 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.probeCustomFixedExposure = probeCustomFixedExposure;
 
+            data.clusterDisplayEnabled = clusterDisplayEnabled;
+            data.clusterDisplayParams = clusterDisplayParams;
+
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
             //data.m_CameraRegisterName = m_CameraRegisterName;
