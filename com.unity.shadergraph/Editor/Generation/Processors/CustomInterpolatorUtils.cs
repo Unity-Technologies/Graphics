@@ -96,9 +96,14 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (isNodePreview)
                 {
+                    foreach ( var ant in anties)
+                    {
+                        // ant needs to go _after_ it's known dependents.
+                        // we want to find the last index of a dependent.
+                        InsertAntecedent(pixelNodes, ant);
+                    }
                     // we can cheat and add the sub-tree to the pixel node list, which ciNode digs into during its own preview generation.
                     pixelNodes.InsertRange(0, anties);
-                    // pixelNodes.AddRange(anties.Where(a => !pixelNodes.Contains(a)));
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
@@ -177,7 +182,7 @@ namespace UnityEditor.ShaderGraph
     #endregion
 
     #region helpers
-    private void GenStruct(string structName, ShaderStringBuilder builder, string makeDefine = "")
+        private void GenStruct(string structName, ShaderStringBuilder builder, string makeDefine = "")
         {
             builder.AppendLine($"struct {structName}");
             builder.AppendLine("{");
@@ -223,6 +228,14 @@ namespace UnityEditor.ShaderGraph
                 return results != null && results.Count() == 0 ? null : results;
             }
             return null;
+        }
+
+        private static void InsertAntecedent(List<AbstractMaterialNode> nodes, AbstractMaterialNode node)
+        {
+
+            var upstream = node.GetInputSlots<MaterialSlot>().Where(slot => slot.isConnected).Select(slot => node.GetInputNodeFromSlot(slot.id));
+            int safeIdx = nodes.FindLastIndex(n => upstream.Contains(n))+1;
+            nodes.Insert(safeIdx, node);
         }
 
         private static ShaderValueType ShaderValueTypeFrom(int width)
