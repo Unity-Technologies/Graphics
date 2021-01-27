@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
-                validPixelBlocks = new BlockFieldDescriptor[]
+                validPixelBlocks  = new BlockFieldDescriptor[]
                 {
                     BlockFields.SurfaceDescription.Alpha,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
@@ -349,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
                 // }                    
-
+                
                 return defines;
             }
 
@@ -389,7 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
-            {
+            { 
                 // Definition
                 displayName = "ForwardOnly",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -445,7 +445,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
                 else
                     includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
-
+ 
                 return includes;
             }
         }
@@ -457,7 +457,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor
-            {
+            { 
                 // Definition
                 displayName = "TransparentBackface",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -1064,7 +1064,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We want to have the normal buffer include if this is a gbuffer and unlit shader
                 if (!supportLighting)
                     includes.Add(CoreIncludes.kNormalBuffer, IncludeLocation.Pregraph);
-
+                    
                 // If this is the gbuffer sub-shader, we want the standard lit data
                 includes.Add(CoreIncludes.kStandardLit, IncludeLocation.Pregraph);
 
@@ -1254,13 +1254,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static class Defines
         {
             // Shadows
-            public static DefineCollection shadowLow = new DefineCollection { { CoreKeywordDescriptors.Shadow, 0 } };
-            public static DefineCollection shadowMedium = new DefineCollection { { CoreKeywordDescriptors.Shadow, 1 } };
-            public static DefineCollection shadowHigh = new DefineCollection { { CoreKeywordDescriptors.Shadow, 2 } };
+            public static DefineCollection shadowLow = new DefineCollection { {CoreKeywordDescriptors.Shadow, 0} };
+            public static DefineCollection shadowMedium = new DefineCollection { {CoreKeywordDescriptors.Shadow, 1} };
+            public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
-            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
         }
 
 #endregion
