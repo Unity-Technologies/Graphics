@@ -1,11 +1,13 @@
 #ifndef SG_SHADOW_PASS_INCLUDED
 #define SG_SHADOW_PASS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
 #if defined(DOTS_INSTANCING_ON)
-    ReadComputeData(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+    FetchComputeVertexData(input);
 #endif
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
