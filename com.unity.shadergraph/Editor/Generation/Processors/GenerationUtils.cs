@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if (subscript.HasSemantic() || subscript.HasPreprocessor() || subscript.vectorCount == 0)
+                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
