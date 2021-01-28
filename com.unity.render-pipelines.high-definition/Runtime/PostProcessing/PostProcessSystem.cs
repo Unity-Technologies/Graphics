@@ -2159,6 +2159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareLerp;
             public Material lensFlareAdditive;
             public Material lensFlarePremultiply;
+            public AnimationCurve[] ScaleCurves;
             public LensFlareElement[] Elements;
         }
 
@@ -2173,11 +2174,13 @@ namespace UnityEngine.Rendering.HighDefinition
             SRPLensFlareCommon instance = SRPLensFlareCommon.Instance;
 
             parameters.Elements = new LensFlareElement[instance.Data.Count];
+            parameters.ScaleCurves = new AnimationCurve[instance.Data.Count];
 
             int elemIdx = 0;
             foreach (SRPLensFlareData data in instance.Data)
             {
                 int currentIdx = 0;
+                parameters.ScaleCurves[elemIdx] = new AnimationCurve(data.ScaleCurve.keys);
                 parameters.Elements[elemIdx].Positions = new float[data.Elements.Length];
                 parameters.Elements[elemIdx].LensFlareTextures = new Texture[data.Elements.Length];
                 parameters.Elements[elemIdx].Sizes = new Vector2[data.Elements.Length];
@@ -2211,12 +2214,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlare(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
+            int elemIdx = 0;
             foreach (LensFlareElement element in parameters.Elements)
             {
-                //Vector2 viewportAdjustment = new Vector2((float)hdCam.actualWidth / source.rt.width, (float)hdCam.actualHeight / source.rt.height);
-                Vector2 viewportAdjustment = new Vector2(1.0f, 1.0f);
-                cmd.SetGlobalVector(HDShaderIDs._FlareViewportAdjustment, viewportAdjustment);
-
                 Camera cam = hdCam.camera;
 
                 Vector3 viewportPos = cam.WorldToViewportPoint(element.WorldPosition);
@@ -2228,27 +2228,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
 
-                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos * viewportAdjustment));
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, viewportPos.z);
 
                 Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
-                //if (paniniProjection.IsActive() && (cam.cameraType != CameraType.SceneView || PaniniProjectionSceneView.enabled))
-                //    screenPosPanini = DoPaniniProjection(screenPosPanini, hdcam, paniniProjection, inverse: true);
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
-
-                //var intensity = m_Intensity;
-                ////var coneOuter = m_Feather * m_ConeAngle;
-                ////var coneInner = m_ConeAngle - coneOuter;
-                //var angle = Vector3.Angle(transform.forward, -hdCam.camera.transform.forward);
-                ////var innerAngle = angle - coneInner;
-                ////intensity *= Mathf.SmoothStep(1, 0, innerAngle / coneOuter);
-                //cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, intensity);
-                //cmd.SetGlobalFloat(HDShaderIDs._FlareIntensity, 1.0f);
-
-                //cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionManual, m_OcclusionMode == OcclusionMode.Manual ? m_OcclusionManual : -1f);
-
-                //cmd.SetRenderTarget(source);
 
                 cmd.CopyTexture(source, target);
 
@@ -2258,9 +2242,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element.LensFlareTextures[i] == null)
                         continue;
 
+                    float time = ((float)i) / ((float)(element.LensFlareTextures.Length - 1));
+
                     Texture texture = element.LensFlareTextures[i];
                     float position = element.Positions[i];
-                    Vector2 size = element.Sizes[i];
+                    Vector2 size = element.Sizes[i] * parameters.ScaleCurves[elemIdx].Evaluate(time);
                     float rotation = element.Rotations[i];
                     Vector4 tint = element.Tints[i]; // Tint*LocalIntensity*GlobalIntensity
                     float speed = element.Speeds[i];
@@ -2279,21 +2265,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
                     if (!autoRotate)
-                        rotation = rotation == 0.0f ? -360.0f : -rotation;
+                        rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
 
                     Vector4 data = new Vector4(position, rotation, size.x, size.y);
                     cmd.SetGlobalVector(HDShaderIDs._FlareData, data);
-                    //cmd.SetVect
-                    //usedMaterial.SetVector(HDShaderIDs._FlareData, data);
-                    //usedMaterial.SetFloat(HDShaderIDs._FlareOcclusionRadius, speed);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, speed);
-
-                    //cmd.Draw(m_Mesh, Matrix4x4.identity, flare.material, 0, 0);
-                    //HDUtils.DrawFullScreen(cmd, parameters.lensFlareAdditive, target);
-
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                 }
+                ++elemIdx;
             }
         }
 

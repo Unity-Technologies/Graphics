@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_Intensity;
         SerializedProperty m_ScaleCurve;
+        SerializedProperty m_TextureCurve;
         SerializedProperty m_Elements;
 
         public void OnEnable()
@@ -16,13 +17,25 @@ namespace UnityEditor.Rendering
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Intensity = entryPoint.Find(x => x.GlobalIntensity);
             m_ScaleCurve = entryPoint.Find(x => x.ScaleCurve);
+            m_TextureCurve = entryPoint.obj.FindProperty("TextureCurve");
             m_Elements = entryPoint.Find(x => x.Elements);
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUILayout.PropertyField(m_Intensity);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ScaleCurve);
+            //if (EditorGUI.EndChangeCheck())
+            //{
+            //    //m_ScaleCurve.serializedObject.ApplyModifiedProperties();
+            //    //UnityEngine.AnimationCurve curve = m_ScaleCurve.animationCurveValue as UnityEngine.AnimationCurve;
+            //    //
+            //    //// TODO Multiselect
+            //    //(target as UnityEngine.SRPLensFlareData).TextureCurve = new UnityEngine.Rendering.TextureCurve(curve.keys, 0.0f, false, new Vector2(0.0f, 1.0f));
+            //    //m_TextureCurve.serializedObject.Update();
+            //}
+            //EditorGUILayout.PropertyField(m_TextureCurve);
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
             int countBefore = lensFlareDat != null && lensFlareDat.Elements != null ? lensFlareDat.Elements.Length : 0;

@@ -24,7 +24,6 @@ float4 _FlareColor;
 //		* ZW = Size (Width, Height) in Screen Height Ratio
 float4 _FlareData;
 float _FlareIntensity;
-float2 _ViewportAdjustment;
 
 // thanks, internets
 static const uint DEPTH_SAMPLE_COUNT = 32;
@@ -110,7 +109,7 @@ Varyings vert(Attributes input)
     //// position and rotate
     float angle = flareData.y;
     // negative stands for: also rotate to face the light
-    if (angle > 0)
+    if (angle >= 0)
     {
         angle = -angle;
         float2 dir = normalize(screenPos);

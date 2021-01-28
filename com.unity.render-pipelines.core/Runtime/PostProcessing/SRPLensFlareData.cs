@@ -41,8 +41,10 @@ namespace UnityEngine
         public float Position;
         public Texture LensFlareTexture;
         //[Range(0.0f, 1.0f)]
+        [Min(0.0f)]
         public float Size;
         //[Range(0.0f, 1.0f)]
+        [Min(0.0f)]
         public float AspectRatio;
         [Range(0, 360)]
         public float Rotation;
@@ -56,8 +58,16 @@ namespace UnityEngine
     [System.Serializable]
     public sealed class SRPLensFlareData : ScriptableObject
     {
-        public float GlobalIntensity = 1.0f;
+        public SRPLensFlareData()
+        {
+            GlobalIntensity = 1.0f;
+            ScaleCurve = new AnimationCurve( new Keyframe( 0.0f, 1.0f ), new Keyframe( 1.0f, 1.0f ) );
+            TextureCurve = new Rendering.TextureCurve(ScaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
+        }
+
+    public float GlobalIntensity;
         public AnimationCurve ScaleCurve;
+        public UnityEngine.Rendering.TextureCurve TextureCurve;
         [HideInInspector]
         public Vector3 WorldPosition;
         [SerializeField]
