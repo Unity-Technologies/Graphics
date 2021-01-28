@@ -137,7 +137,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
-#if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) && defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModificationWithCustomInterp(input, _TimeParameters.xyz, output);
 #elif defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
