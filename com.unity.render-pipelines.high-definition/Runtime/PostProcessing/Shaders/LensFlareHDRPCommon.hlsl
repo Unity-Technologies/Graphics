@@ -89,72 +89,51 @@ Varyings vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    //float ratio = (_RTHandleScale.x / _RTHandleScale.y);
-    //float ratio = _ScreenParams.x / _ScreenParams.y;
-    //float screenRatio = _ScreenSize.x / _ScreenSize.y;
     float screenRatio = (_ScreenSize.x) / (_ScreenSize.y);
+    float2 flareSize = _FlareData.zw;
     //float flareRatio = _FlareData.z / _FlareData.w;
-    float flareRatio = _FlareData.z / _FlareData.w;
-    float ratio = screenRatio / flareRatio;
-    //cameraAspectRatio / imageAspectRatio
-    // From [0, 1] => [-1, 1]
-    //output.positionCS = float4(2.0f, 2.0f, 1.0f, 1.0f) * (GetQuadVertexPosition(input.vertexID) * float4(_FlareData.z / ratio, _FlareData.w, 1.0f, 1.0f) - float4(0.5f, 0.5f, 0.0f, 0.0));
-    //output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_FlareData.z / ratio, _FlareData.w, 1.0f, 1.0f) - float4(0.5f, 0.5f, 0.0f, 0.0);
-    output.positionCS = float4(2.0f, 2.0f, 1.0f, 1.0f) * (GetQuadVertexPosition(input.vertexID) - float4(0.5f, 0.5f, 0.0f, 0.0)) * float4(_FlareData.z, _FlareData.w * ratio, 1.0f, 1.0f);
+    //float ratio = screenRatio / flareRatio;
+
+    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID);
 
     float4 flareData = _FlareData;
     float2 screenPos = _FlareScreenPosPanini;
 
-    //if (_FlareDepth < 0)
-    //    flareData.zw = float2(0.0f, 0.0f);
+    if (_FlareDepth < 0)
+        flareData.zw = float2(0.0f, 0.0f);
 
     float radius = _OcclusionRadius;
 
-    //float ratio = _ScreenParams.x / _ScreenParams.y;
-
     float occlusion = _OcclusionManual;
-    //if (occlusion < 0.0f)
-    //    occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, radius, ratio);
-
-    //if (occlusion == 0.0)
-    //    flareData.zw = float2(0.0f, 0.0f);
 
     //// position and rotate
     float angle = flareData.y;
     // negative stands for: also rotate to face the light
-    if (abs(angle) > 0)
+    if (angle > 0)
     {
         angle = -angle;
         float2 dir = normalize(screenPos);
         angle += atan2(dir.y, dir.x) + 1.57079632675; // arbitrary, we need V to face the source, not U;
     }
-    //angle *= _OcclusionRadius;
 
-    float2 local = output.positionCS.xy * flareData.zw;
-    local = float2( local.x * cos(angle) - local.y * sin(angle),
-                    local.x * sin(angle) + local.y * cos(angle));
+    float cos0 = cos(angle);
+    float sin0 = sin(angle);
 
-    local.xy /= flareData.zw;
-    // adjust to correct ratio
-    //local.x /= flareData.w / flareData.z;
-    //local.x /= ( _RTHandleScale.y / _RTHandleScale.x );
-    //local.x *= (_RTHandleScale.x / _RTHandleScale.y);
+    posPreScale.xy *= flareSize;
+    float2 local = float2((posPreScale.x * cos0 - posPreScale.y * sin0),
+                          (posPreScale.x * sin0 + posPreScale.y * cos0));
 
-    float2 rayOffset = -screenPos * flareData.x * _OcclusionRadius;
-    //output.positionCS.w = v.positionCS.w;
-    output.positionCS.xy = screenPos - local + rayOffset;
+    local.x *= 1.0f / screenRatio;
 
-    // This is equivalent to doing the adjustment in the [0, 1] range with flipped Y
-    //output.positionCS.x = (output.positionCS.x + 1) * _ViewportAdjustment.x - 1;
-    //output.positionCS.x = (output.positionCS.x);
-    //output.positionCS.y = (output.positionCS.y - 1) * _ViewportAdjustment.y + 1;
+    float4 centerPos = float4(local.x,
+                              local.y,
+                              posPreScale.z,
+                              posPreScale.w);
+    float2 rayOffset = -screenPos * (flareData.x - 1.0f) * _OcclusionRadius;
 
-    //output.positionCS.z = 1;
-    //o.uv = v.uv;
-
-    //o.color = _FlareIntensity * _FlareColor * occlusion * saturate(length(screenPos * 2));
-    //output.color = _FlareColor;//_FlareIntensity * _FlareColor * occlusion * saturate(length(screenPos * 2));
+    output.positionCS = centerPos;
+    output.positionCS.xy += rayOffset;
 
     return output;
 }

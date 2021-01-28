@@ -2278,9 +2278,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.LensFlareTextures[i]);
 
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
-                    if (autoRotate)
+                    if (!autoRotate)
                         rotation = rotation == 0.0f ? -360.0f : -rotation;
-                    //rotation = rotation == 0.0f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
 
                     Vector4 data = new Vector4(position, rotation, size.x, size.y);
