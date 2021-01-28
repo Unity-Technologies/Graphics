@@ -2368,6 +2368,9 @@ namespace UnityEditor.ShaderGraph
 
         internal void ValidateCustomBlockLimit()
         {
+            if (m_ActiveTargets.Count() == 0)
+                return;
+
             // how many channels are _probably_ used by the target?
             // 7 is the default here.
             int padding = (3 + m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max()) * 4;
