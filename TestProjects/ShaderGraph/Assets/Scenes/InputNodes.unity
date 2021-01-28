@@ -3830,6 +3830,7 @@ GameObject:
   - component: {fileID: 628137916}
   - component: {fileID: 628137915}
   - component: {fileID: 628137914}
+  - component: {fileID: 628137917}
   m_Layer: 0
   m_Name: CameraWidth
   m_TagString: Untagged
@@ -3914,6 +3915,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 628137912}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &628137917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 628137912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa4d17134d42304438323f909c4518fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &644476901
 GameObject:
   m_ObjectHideFlags: 0
@@ -5270,6 +5283,7 @@ GameObject:
   - component: {fileID: 919728592}
   - component: {fileID: 919728591}
   - component: {fileID: 919728590}
+  - component: {fileID: 919728593}
   m_Layer: 0
   m_Name: CameraHeight
   m_TagString: Untagged
@@ -5354,6 +5368,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919728588}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &919728593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919728588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa4d17134d42304438323f909c4518fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &925157434
 GameObject:
   m_ObjectHideFlags: 0
@@ -9821,6 +9847,7 @@ GameObject:
   - component: {fileID: 1787014628}
   - component: {fileID: 1787014627}
   - component: {fileID: 1787014626}
+  - component: {fileID: 1787014629}
   m_Layer: 0
   m_Name: ScreenWidth
   m_TagString: Untagged
@@ -9905,6 +9932,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1787014624}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1787014629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1787014624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff3e1afac33f6984b9b04d902c76ffc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1806418201
 GameObject:
   m_ObjectHideFlags: 0
@@ -10493,6 +10532,7 @@ GameObject:
   - component: {fileID: 1887502895}
   - component: {fileID: 1887502894}
   - component: {fileID: 1887502893}
+  - component: {fileID: 1887502896}
   m_Layer: 0
   m_Name: ScreenHeight
   m_TagString: Untagged
@@ -10577,6 +10617,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1887502891}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1887502896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887502891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff3e1afac33f6984b9b04d902c76ffc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1888281874
 GameObject:
   m_ObjectHideFlags: 0
