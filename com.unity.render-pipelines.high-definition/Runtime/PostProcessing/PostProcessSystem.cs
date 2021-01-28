@@ -2160,6 +2160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareAdditive;
             public Material lensFlarePremultiply;
             public AnimationCurve[] ScaleCurves;
+            public AnimationCurve[] PositionCurves;
             public LensFlareElement[] Elements;
         }
 
@@ -2175,12 +2176,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.Elements = new LensFlareElement[instance.Data.Count];
             parameters.ScaleCurves = new AnimationCurve[instance.Data.Count];
+            parameters.PositionCurves = new AnimationCurve[instance.Data.Count];
 
             int elemIdx = 0;
             foreach (SRPLensFlareData data in instance.Data)
             {
                 int currentIdx = 0;
                 parameters.ScaleCurves[elemIdx] = new AnimationCurve(data.ScaleCurve.keys);
+                parameters.PositionCurves[elemIdx] = new AnimationCurve(data.PositionCurve.keys);
                 parameters.Elements[elemIdx].Positions = new float[data.Elements.Length];
                 parameters.Elements[elemIdx].LensFlareTextures = new Texture[data.Elements.Length];
                 parameters.Elements[elemIdx].Sizes = new Vector2[data.Elements.Length];
@@ -2245,7 +2248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float time = ((float)i) / ((float)(element.LensFlareTextures.Length - 1));
 
                     Texture texture = element.LensFlareTextures[i];
-                    float position = element.Positions[i];
+                    float position = element.Positions[i] * parameters.PositionCurves[elemIdx].Evaluate(time);
                     Vector2 size = element.Sizes[i] * parameters.ScaleCurves[elemIdx].Evaluate(time);
                     float rotation = element.Rotations[i];
                     Vector4 tint = element.Tints[i]; // Tint*LocalIntensity*GlobalIntensity

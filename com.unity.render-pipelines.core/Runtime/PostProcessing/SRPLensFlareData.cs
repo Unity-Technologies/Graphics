@@ -25,7 +25,7 @@ namespace UnityEngine
         public SRPLensFlareDataElement()
         {
             LocalIntensity = 1.0f;
-            Position = 0.5f;
+            Position = 1.0f;
             LensFlareTexture = null;
             Size = 1.0f;
             AspectRatio = 1.0f;
@@ -62,11 +62,13 @@ namespace UnityEngine
         {
             GlobalIntensity = 1.0f;
             ScaleCurve = new AnimationCurve( new Keyframe( 0.0f, 1.0f ), new Keyframe( 1.0f, 1.0f ) );
+            PositionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 1.0f));
             TextureCurve = new Rendering.TextureCurve(ScaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
         }
 
     public float GlobalIntensity;
         public AnimationCurve ScaleCurve;
+        public AnimationCurve PositionCurve;
         public UnityEngine.Rendering.TextureCurve TextureCurve;
         [HideInInspector]
         public Vector3 WorldPosition;
