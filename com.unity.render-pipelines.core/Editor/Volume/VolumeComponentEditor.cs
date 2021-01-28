@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -117,29 +118,63 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        SerializedProperty m_AdvancedMode;
+        EditorPrefBool m_ShowAdditionalProperties;
 
         List<VolumeParameter> m_VolumeNotAdditionalParameters;
         /// <summary>
-        /// Override this property if your editor makes use of the "More Options" feature.
+        /// Override this property if your editor makes use of the "Additional Properties" feature.
         /// </summary>
-        public virtual bool hasAdvancedMode => target.parameters.Count != m_VolumeNotAdditionalParameters.Count;
+        public virtual bool hasAdditionalProperties => target.parameters.Count != m_VolumeNotAdditionalParameters.Count;
 
         /// <summary>
-        /// Checks if the editor currently has the "More Options" feature toggled on.
+        /// Set to true to show additional properties.
         /// </summary>
-        public bool isInAdvancedMode
+
+        public bool showAdditionalProperties
         {
-            get => m_AdvancedMode != null && m_AdvancedMode.boolValue;
-            internal set
+            get => m_ShowAdditionalProperties.value;
+            set
             {
-                if (m_AdvancedMode != null)
+                if (value && !m_ShowAdditionalProperties.value)
                 {
-                    m_AdvancedMode.boolValue = value;
-                    serializedObject.ApplyModifiedProperties();
+                    m_AdditionalPropertiesAnimation.value = 1.0f;
+                    m_AdditionalPropertiesAnimation.target = 0.0f;
                 }
+
+                SetAdditionalPropertiesPreference(value);
             }
         }
+
+        /// <summary>
+        /// Start a scope for additional properties.
+        /// This will handle the highlight of the background when toggled on and off.
+        /// </summary>
+        /// <returns>True if the additional content should be drawn.</returns>
+        protected bool BeginAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties && showAdditionalProperties)
+            {
+                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// End a scope for additional properties.
+        /// </summary>
+        protected void EndAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties && showAdditionalProperties)
+            {
+                CoreEditorUtils.EndAdditionalPropertiesHighlight();
+            }
+        }
+
+        AnimFloat m_AdditionalPropertiesAnimation;
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -187,7 +222,22 @@ namespace UnityEditor.Rendering
         /// </summary>
         public void Repaint()
         {
-            m_Inspector.Repaint();
+            if (m_Inspector != null) // Can happen in tests.
+                m_Inspector.Repaint();
+            // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
+            // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
+            SettingsService.RepaintAllSettingsWindow();
+        }
+
+        internal void InitAdditionalPropertiesPreference()
+        {
+            string key = $"UI_Show_Additional_Properties_{GetType()}";
+            m_ShowAdditionalProperties = new EditorPrefBool(key);
+        }
+
+        internal void SetAdditionalPropertiesPreference(bool value)
+        {
+            m_ShowAdditionalProperties.value = value;
         }
 
         internal void Init(VolumeComponent target, Editor inspector)
@@ -196,7 +246,13 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
-            m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
+
+            InitAdditionalPropertiesPreference();
+
+            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint)
+            {
+                speed = CoreEditorConstants.additionalPropertiesHightLightSpeed
+            };
 
             InitParameters();
 
@@ -333,7 +389,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal bool AreOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 return AreAllOverridesTo(state);
 
             for (int i = 0; i < m_VolumeNotAdditionalParameters.Count; ++i)
@@ -350,7 +406,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal void SetOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 SetAllOverridesTo(state);
             else
             {
@@ -484,12 +540,13 @@ namespace UnityEditor.Rendering
                 {
                     if (drawer != null && !invalidProp)
                     {
-                        if (drawer.OnGUI(property, title))
-                            return;
+                        drawer.OnGUI(property, title);
                     }
-
-                    // Default unity field
-                    EditorGUILayout.PropertyField(property.value, title);
+                    else
+                    {
+                        // Default unity field
+                        EditorGUILayout.PropertyField(property.value, title);
+                    }
                 }
             }
         }
