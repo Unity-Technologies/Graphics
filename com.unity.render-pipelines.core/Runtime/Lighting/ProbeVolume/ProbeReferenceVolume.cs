@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class ProbeReferenceVolume
     {
-        public static int s_ProbeIndexPoolAllocationSize = 1024;
+        public static int s_ProbeIndexPoolAllocationSize = 128;
 
 
         [System.Serializable]
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering
             if (m_NeedsIndexDimChange)
             {
                 Cleanup();
-                InitProbeReferenceVolume(1024, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
             }
         }
