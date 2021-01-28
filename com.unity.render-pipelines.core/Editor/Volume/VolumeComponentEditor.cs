@@ -127,13 +127,13 @@ namespace UnityEditor.Rendering
         public virtual bool hasAdditionalProperties => target.parameters.Count != m_VolumeNotAdditionalParameters.Count;
 
         /// <summary>
-        /// Checks if the editor currently has the "Additional Properties" feature toggled on.
+        /// Set to true to show additional properties.
         /// </summary>
 
         public bool showAdditionalProperties
         {
             get => m_ShowAdditionalProperties.value;
-            internal set
+            set
             {
                 if (value && !m_ShowAdditionalProperties.value)
                 {
@@ -222,7 +222,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         public void Repaint()
         {
-            m_Inspector.Repaint();
+            if (m_Inspector != null) // Can happen in tests.
+                m_Inspector.Repaint();
             // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
             // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
             SettingsService.RepaintAllSettingsWindow();
