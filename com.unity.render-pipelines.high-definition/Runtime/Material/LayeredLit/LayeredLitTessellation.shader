@@ -474,7 +474,7 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     // not local as it is use in shader stripper to discard the pass if not needed
-    #pragma shader_feature      _FORCE_FORWARD_EMISSIVE
+    #pragma shader_feature_local_fragment _FORCE_FORWARD_EMISSIVE
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

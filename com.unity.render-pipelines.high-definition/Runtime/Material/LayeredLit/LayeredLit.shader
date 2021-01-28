@@ -499,7 +499,7 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // not local as it is use in shader stripper to discard the pass if not needed
-    #pragma shader_feature      _FORCE_FORWARD_EMISSIVE
+    #pragma shader_feature_local_fragment _FORCE_FORWARD_EMISSIVE
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

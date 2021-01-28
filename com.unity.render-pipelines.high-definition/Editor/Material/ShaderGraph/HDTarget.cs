@@ -1365,6 +1365,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
