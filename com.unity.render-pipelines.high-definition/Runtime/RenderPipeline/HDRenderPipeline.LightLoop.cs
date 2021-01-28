@@ -1,6 +1,4 @@
-//using System;
-//using UnityEngine.Rendering;
-//using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -545,7 +543,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderContactShadowPassData
         {
-            public ContactShadowsParameters     parameters;
+            public ComputeShader contactShadowsCS;
+            public int kernel;
+
+            public Vector4 params1;
+            public Vector4 params2;
+            public Vector4 params3;
+
+            public int numTilesX;
+            public int numTilesY;
+            public int viewCount;
+
+            public bool rayTracingEnabled;
+            public RayTracingShader contactShadowsRTS;
+            public RayTracingAccelerationStructure accelerationStructure;
+            public int actualWidth;
+            public int actualHeight;
+            public int depthTextureParameterName;
+
             public LightLoopLightData           lightLoopLightData;
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
@@ -565,7 +580,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Avoid garbage when visualizing contact shadows.
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
 
-                passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
+                passData.contactShadowsCS = contactShadowComputeShader;
+                passData.contactShadowsCS.shaderKeywords = null;
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
+                }
+
+                passData.rayTracingEnabled = RayTracedContactShadowsRequired();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                {
+                    passData.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;
+                    passData.accelerationStructure = RequestAccelerationStructure();
+
+                    passData.actualWidth = hdCamera.actualWidth;
+                    passData.actualHeight = hdCamera.actualHeight;
+                }
+
+                passData.kernel = s_deferredContactShadowKernel;
+
+                float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
+                float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
+                float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
+
+                float contactShadowMinDist = Mathf.Min(m_ContactShadows.minDistance.value, contactShadowFadeEnd);
+                float contactShadowFadeIn = Mathf.Clamp(m_ContactShadows.fadeInDistance.value, 1e-6f, contactShadowFadeEnd);
+
+                passData.params1 = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
+                passData.params2 = new Vector4(firstMipOffsetY, contactShadowMinDist, contactShadowFadeIn, m_ContactShadows.rayBias.value * 0.01f);
+                passData.params3 = new Vector4(m_ContactShadows.sampleCount, m_ContactShadows.thicknessScale.value * 10.0f, 0.0f, 0.0f);
+
+                int deferredShadowTileSize = 8; // Must match ContactShadows.compute
+                passData.numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                passData.numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                passData.viewCount = hdCamera.viewCount;
+
+                passData.depthTextureParameterName = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture;
+
                 passData.lightLoopLightData = m_LightLoopLightData;
                 passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
@@ -575,9 +626,40 @@ namespace UnityEngine.Rendering.HighDefinition
                 result = passData.contactShadowsTexture;
 
                 builder.SetRenderFunc(
-                    (RenderContactShadowPassData data, RenderGraphContext context) =>
+                    (RenderContactShadowPassData data, RenderGraphContext ctx) =>
                     {
-                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightLoopLightData, data.lightList, context.cmd);
+                        ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, data.params1);
+                        ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, data.params2);
+                        ctx.cmd.SetComputeVectorParam(data.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters3, data.params3);
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs._DirectionalLightDatas, data.lightLoopLightData.directionalLightData);
+
+                        // Send light list to the compute
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs._LightDatas, data.lightLoopLightData.lightData);
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs.g_vLightListGlobal, data.lightList);
+
+                        ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, data.depthTextureParameterName, data.depthTexture);
+                        ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, HDShaderIDs._ContactShadowTextureUAV, data.contactShadowsTexture);
+
+                        ctx.cmd.DispatchCompute(data.contactShadowsCS, data.kernel, data.numTilesX, data.numTilesY, data.viewCount);
+
+                        if (data.rayTracingEnabled)
+                        {
+                            ctx.cmd.SetRayTracingShaderPass(data.contactShadowsRTS, "VisibilityDXR");
+                            ctx.cmd.SetRayTracingAccelerationStructure(data.contactShadowsRTS, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
+
+                            ctx.cmd.SetRayTracingVectorParam(data.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, data.params1);
+                            ctx.cmd.SetRayTracingVectorParam(data.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters2, data.params2);
+                            ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, data.lightLoopLightData.directionalLightData);
+
+                            // Send light list to the compute
+                            ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs._LightDatas, data.lightLoopLightData.lightData);
+                            ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, data.lightList);
+
+                            ctx.cmd.SetRayTracingTextureParam(data.contactShadowsRTS, HDShaderIDs._DepthTexture, data.depthTexture);
+                            ctx.cmd.SetRayTracingTextureParam(data.contactShadowsRTS, HDShaderIDs._ContactShadowTextureUAV, data.contactShadowsTexture);
+
+                            ctx.cmd.DispatchRays(data.contactShadowsRTS, "RayGenContactShadows", (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
+                        }
                     });
             }
 
