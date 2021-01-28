@@ -319,6 +319,10 @@ namespace UnityEditor.VFX
             // Keywords
             var keywords = new StringBuilder();
 
+            // If there are no keyword, attempt to force them.
+            if (material.shaderKeywords.Length == 0)
+                VFXLibrary.currentSRPBinder.SetupMaterial(material);
+
             foreach (var k in material.shaderKeywords)
             {
                 keywords.Append(k);
