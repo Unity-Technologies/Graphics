@@ -24,7 +24,12 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
       -  cd TestProjects/HDRP_PerformanceTests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=. --timeout=2400 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+      -  git checkout master
+      -  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=. --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -48,7 +53,12 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
       -  cd TestProjects/HDRP_PerformanceTests && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --timeout=2400 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+      -  git checkout master
+      -  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -73,7 +83,12 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
       -  cd TestProjects/HDRP_PerformanceTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=. --timeout=2400 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+      -  git checkout master
+      -  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=. --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -101,7 +116,12 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
       -  cd TestProjects/HDRP_PerformanceTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
 
-                  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --timeout=2400 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+      -  git checkout master
+      -  cd TestProjects/HDRP_PerformanceTests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=. --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
