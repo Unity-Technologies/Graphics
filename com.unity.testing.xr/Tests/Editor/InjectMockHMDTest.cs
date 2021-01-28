@@ -20,9 +20,9 @@ class InjectMockHMDTest
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
 
             Assert.That(buildTargetSettings != null, "Unable to read for XR settings for build target!");
-            Assert.AreEqual(1, buildTargetSettings.AssignedSettings.loaders.Count, "There should be exactly one XR loader!");
+            Assert.AreEqual(1, buildTargetSettings.AssignedSettings.activeLoaders.Count, "There should be exactly one XR loader!");
             Assert.That(buildTargetSettings.InitManagerOnStart, "XR loader is not set to init on start!");
-            Assert.AreEqual("Mock HMD Loader", buildTargetSettings.AssignedSettings.loaders[0].name, "Invalid XR loader found!");
+            Assert.AreEqual("Mock HMD Loader", buildTargetSettings.AssignedSettings.activeLoaders[0].name, "Invalid XR loader found!");
         }
     }
 
