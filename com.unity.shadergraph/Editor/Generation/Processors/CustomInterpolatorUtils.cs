@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var bn in customBlockNodes)
                 {
 
-                    builder.AppendLine($"float{bn.customWidth} {bn.customName};");
+                    builder.AppendLine($"float{(int)bn.customWidth} {bn.customName};");
                 }
             }
             builder.AppendLine("};");
