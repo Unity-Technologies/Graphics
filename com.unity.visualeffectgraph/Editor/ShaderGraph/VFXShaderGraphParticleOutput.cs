@@ -414,11 +414,47 @@ namespace UnityEditor.VFX
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var mapper = base.GetExpressionMapper(target);
+            var particleData = (VFXDataParticle)GetData();
 
             switch (target)
             {
                 case VFXDeviceTarget.CPU:
-                    break;
+                {
+                    var material = particleData.GetOrCreateMaterial(this);
+                    var shader = material.shader;
+
+                    // Map the material properties for render state.
+                    if (shader != null)
+                    {
+                        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+                        {
+                            if (ShaderUtil.IsShaderPropertyHidden(shader, i))
+                            {
+                                var name = ShaderUtil.GetPropertyName(shader, i);
+                                var nameId = Shader.PropertyToID(name);
+                                if (!material.HasProperty(nameId))
+                                    continue;
+
+                                VFXExpression expr = null;
+
+                                switch (ShaderUtil.GetPropertyType(shader, i))
+                                {
+                                    case ShaderUtil.ShaderPropertyType.Float:
+                                        expr = VFXValue.Constant<float>(material.GetFloat(nameId));
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                if (expr != null)
+                                {
+                                    mapper.AddExpression(expr, name, -1);
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
                 case VFXDeviceTarget.GPU:
 
                     RefreshShaderGraphObject();
