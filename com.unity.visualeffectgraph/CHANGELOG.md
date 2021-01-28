@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - An existing link can be remade.
 - Use alphabetical order in type list in blackboard "+" button [Case 1304109](https://issuetracker.unity3d.com/product/unity/issues/guid/1304109/)
 - Consistently displays the Age Particles checkbox in Update context [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
+- Fix compute culling compilation in URP [Case 1309174](https://fogbugz.unity3d.com/f/cases/1309174/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
