@@ -402,6 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
+                customInterpolators = CoreCustomInterpolators.Common
             };
 
             FieldCollection GenerateRequiredFields()
@@ -468,6 +469,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common
             };
 
             IncludeCollection GenerateIncludes()
@@ -780,7 +782,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
                 includes = ForwardIncludes,
-
+                customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
             };
         }

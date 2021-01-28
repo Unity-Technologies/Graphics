@@ -44,7 +44,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 
 #if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl
 // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
-    AttributeMesh ApplyMeshModificationWithCustomInterp(AttributesMesh input, float3 timeParameters, inout VaryingsMeshToPS varyings)
+    AttributesMesh ApplyMeshModificationWithCustomInterp(AttributesMesh input, float3 timeParameters, inout VaryingsMeshToPS varyings)
 #else
     AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 #endif

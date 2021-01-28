@@ -131,6 +131,7 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 {
     VaryingsMeshType output;
+    ZERO_INITIALIZE(VaryingsMeshType, output);
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);

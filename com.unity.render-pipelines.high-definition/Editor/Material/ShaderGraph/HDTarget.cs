@@ -60,6 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        internal override bool ignoreCustomInterpolators => false;
+
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
