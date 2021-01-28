@@ -50,6 +50,24 @@ namespace UnityEditor.ShaderGraph
             set => m_Descriptor = value;
         }
 
+        const string k_CustomBlockDefaultName = "CustomInterpolator";
+
+        internal enum CustomBlockType { Float = 1, Vector2 = 2, Vector3 = 3, Vector4 = 4 }
+
+        internal bool isCustomBlock { get => m_Descriptor?.isCustom ?? false; }
+
+        internal string customName
+        {
+            get => m_Descriptor.name;
+            set => OnCustomBlockFieldModified(value, customWidth);
+        }
+
+        internal CustomBlockType customWidth
+        {
+            get => (CustomBlockType)ControlToWidth(m_Descriptor.control);
+            set => OnCustomBlockFieldModified(customName, value);
+        }
+
         public void Init(BlockFieldDescriptor fieldDescriptor)
         {
             m_Descriptor = fieldDescriptor;
@@ -71,6 +89,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             AddSlotFromControlType();
+        }
+
+        internal void InitCustomDefault()
+        {
+            Init(MakeCustomBlockField(k_CustomBlockDefaultName, CustomBlockType.Vector4));
         }
 
         private void AddSlotFromControlType(bool attemptToModifyExisting = true)
@@ -217,36 +240,6 @@ namespace UnityEditor.ShaderGraph
             return requirements.requiresVertexColor;
         }
 
-
-
-
-
-        ///////////////////////////////////////////////////
-        // Custom block stuff.
-
-        const string k_CustomBlockDefaultName = "CustomInterpolator";
-
-        internal enum CustomBlockType { Float = 1, Vector2 = 2, Vector3 = 3, Vector4 = 4 }
-
-        internal bool isCustomBlock { get => m_Descriptor?.isCustom ?? false; }
-
-        internal string customName
-        {
-            get => m_Descriptor.name;
-            set => OnCustomBlockFieldModified(value, customWidth);
-        }
-
-        internal CustomBlockType customWidth
-        {
-            get => (CustomBlockType)ControlToWidth(m_Descriptor.control);
-            set => OnCustomBlockFieldModified(customName, value);
-        }
-
-        internal void InitCustomDefault()
-        {
-            Init(MakeCustomBlockField(k_CustomBlockDefaultName, CustomBlockType.Vector4));
-        }
-
         private void OnCustomBlockFieldModified(string name, CustomBlockType width)
         {
             if (!isCustomBlock)
@@ -282,7 +275,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize()
         {
-            // flimsy, but concise
+            // TODO: Go find someone to tell @esme not to do this.
             if (m_SerializedDescriptor.Contains("#"))
             {
                 string descName = k_CustomBlockDefaultName;
@@ -308,11 +301,11 @@ namespace UnityEditor.ShaderGraph
                 catch { control = WidthToControl((int)descWidth); }
 
                 descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
-
                 m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
             }
         }
 
+    #region CustomInterpolatorHelpers
         private static BlockFieldDescriptor MakeCustomBlockField(string name, CustomBlockType width)
         {
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
@@ -347,5 +340,6 @@ namespace UnityEditor.ShaderGraph
                 default: return -1;
             }
         }
+    #endregion
     }
 }
