@@ -1109,7 +1109,7 @@ namespace UnityEngine.Rendering.Universal
                             m_FirstTimeColorClear = false;
                     }
 
-                    if (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)) && samples > 1)
+                    if (samples > 1)
                     {
                         m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
                     }

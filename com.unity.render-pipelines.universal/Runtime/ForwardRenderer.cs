@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
         internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame()  ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
+
+        internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -120,6 +122,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
+            this.usesRenderPass = data.useNativeRenderPass;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -362,6 +365,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // Configure all settings require to start a new camera stack (base camera only)
+            bool createResolve = cameraTargetDescriptor.msaaSamples > 1 && this.usesRenderPass;
             if (cameraData.renderType == CameraRenderType.Base)
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
@@ -369,7 +373,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
 
-                bool intermediateRenderTexture = createColorTexture || createDepthTexture;
+                bool intermediateRenderTexture = createColorTexture || createDepthTexture || createResolve;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
@@ -493,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
-                m_CopyColorPass.Setup(msaaSamples > 1 ? m_ResolveTexture.Identifier() : m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+                m_CopyColorPass.Setup(createResolve ? m_ResolveTexture.Identifier() : m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -527,13 +531,13 @@ namespace UnityEngine.Rendering.Universal
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    postProcessPass.Setup(cameraTargetDescriptor, createResolve ? m_ResolveTexture : m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
-                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : m_ActiveCameraColorAttachment);
+                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : (createResolve ? m_ResolveTexture : m_ActiveCameraColorAttachment);
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
@@ -580,7 +584,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment,  cameraData.cameraTargetDescriptor.msaaSamples > 1 ? m_ResolveTexture : afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment,  createResolve ? m_ResolveTexture : afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
             }
 
@@ -812,7 +816,7 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = cameraTargetDescriptor.msaaSamples;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitMsaaResolve();
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && (PlatformRequiresExplicitMsaaResolve() || (this.usesRenderPass && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan));
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
