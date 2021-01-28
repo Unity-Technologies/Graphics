@@ -102,16 +102,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
+            // Override EditorGUI (replaces the HDRP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
+
             // Setup the active SubTarget
             ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
