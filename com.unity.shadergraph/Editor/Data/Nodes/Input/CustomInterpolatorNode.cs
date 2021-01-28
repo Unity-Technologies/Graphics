@@ -151,11 +151,7 @@ namespace UnityEditor.ShaderGraph
                 var slotRef = GetSlotReference(0);
                 return GetOutputForSlot(slotRef, slotRef.slot.concreteValueType, GenerationMode.Preview);
             }
-
             return "float4(1,0,1,1)";
-
-
-            // GetOutputForSlot(slot, slot.slot.concreteValueType, GenerationMode.Preview);
         }
 
         protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
@@ -236,7 +232,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-
         private static int SlotTypeToWidth(ConcreteSlotValueType valueType)
         {
             switch (valueType)
@@ -248,6 +243,7 @@ namespace UnityEditor.ShaderGraph
                 default: return 4;
             }
         }
+
         private static string ConvertVector(string name, int fromLen, int toLen)
         {
             if (fromLen == toLen)
