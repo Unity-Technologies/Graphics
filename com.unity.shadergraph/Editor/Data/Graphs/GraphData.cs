@@ -2372,13 +2372,12 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // how many channels are _probably_ used by the target?
-            // 7 is the default here.
             int padding = (3 + m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max()) * 4;
 
-            int d3dSupport = 32 * 4 - padding; // 32 is standard expected for modern systems and D3D.
-            int chromeSupport = 15 * 4 - padding;  // 15 is for chrome's implementation of WebGL.
-            // int lowSupport = 10 * 4 - padding;  // 10 is some other limitation Unity recognizes.
-            // int minSupport = 8 * 4 - padding; // If interpolators are supported, 8 is the bare minimum we can expect.
+            int d3dSupport    = 32 * 4 - padding;   // 32 is standard expected for modern systems and D3D.
+            int chromeSupport = 15 * 4 - padding;   // 15 is for chrome's implementation of WebGL.
+            // int lowSupport = 10 * 4 - padding;   // 10 is some other limitation Unity recognizes.
+            // int minSupport =  8 * 4 - padding;   // If interpolators are supported, 8 is the bare minimum we can expect.
             int total = 0;
 
             // warn based the interpolators location in the block list.

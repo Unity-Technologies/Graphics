@@ -226,7 +226,6 @@ namespace UnityEditor.ShaderGraph
 
             // If any of these cases are true, custom Interpolators will not work for this pass.
             // Have to use a global flag here to avoid disrupting a lot of assumptions generation makes (Eg. we can't enable/disable nodes per pass or manipulate graph state <__<).
-
             CustomInterpolatorUtils.generatorNodeOnly = m_OutputNode != null;
             CustomInterpolatorUtils.generatorSkipFlag = m_Targets[targetIndex].ignoreCustomInterpolators ||
                 !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0); // PreviewNodes don't need to skip.
