@@ -164,16 +164,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the Target
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
+            // Override EditorGUI (replaces the URP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(UniversalRenderPipelineAsset));
+
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
