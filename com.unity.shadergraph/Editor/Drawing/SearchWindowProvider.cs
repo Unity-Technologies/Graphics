@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
 
-            bool hideCI = m_Graph.activeTargets.All(at => at.ignoreCustomInterpolators);
+            bool hideCustomInterpolators = m_Graph.activeTargets.All(at => at.ignoreCustomInterpolators);
 
             if (target is ContextView contextView)
             {
@@ -96,9 +96,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.Init(field);
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
+
                 SortEntries(nodeEntries);
 
-                if (contextView.contextData.shaderStage == ShaderStage.Vertex && !hideCI)
+                if (contextView.contextData.shaderStage == ShaderStage.Vertex && !hideCustomInterpolators)
                 {
                     var customBlockNodeStub = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     customBlockNodeStub.InitCustomDefault();
@@ -182,11 +183,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
-            if (!hideCI)
+            if (!hideCustomInterpolators)
             {
                 foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
                 {
-                    var node = (CustomInterpolatorNode)Activator.CreateInstance(typeof(CustomInterpolatorNode));
+                    var node = Activator.CreateInstance<CustomInterpolatorNode>();
                     node.ConnectToCustomBlock(cibnode.value);
                     AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
                 }

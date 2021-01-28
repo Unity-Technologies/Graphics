@@ -185,7 +185,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 badge.AttachTo(port.parent, SpriteAlignment.RightCenter);
             }
             else
+            {
                 badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
+            }
         }
 
         public void SetActive(bool state)
@@ -541,6 +543,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 shaderPort.BringToFront();
                         }
                     }
+
                     break;
                 }
             }

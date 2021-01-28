@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph
         public ShaderStage shaderStage { get; }
         public bool isHidden { get; }
         public bool isUnknown { get; }
-
         public bool isCustom { get; }
 
         internal string path { get; set; }

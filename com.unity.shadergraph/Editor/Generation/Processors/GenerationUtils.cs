@@ -171,7 +171,8 @@ namespace UnityEditor.ShaderGraph
             }
             for(int i = 0; i < packedCounts.Count(); ++i)
             {
-                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float"+packedCounts[i], "TEXCOORD" + i, "", StructFieldOptions.Static);
+                // todo: ensure this packing adjustment doesn't waste interpolators when many preprocessors are in use.
+                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "TEXCOORD" + i, "", StructFieldOptions.Static);
                 packedSubscripts.Add(packedSubscript);
             }
             packStruct.fields = packedSubscripts.ToArray();
@@ -568,17 +569,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
         {
-            string rawOutput;
-            if (node is CustomInterpolatorNode cin)
-            {
-                // GetVariableNameForSlot (below) has no preview options, which CIN needs to properly reroute to CIB's input.
-                var slot = cin.GetSlotReference(outputSlotId);
-                rawOutput = cin.GetOutputForSlot(slot, slot.slot.concreteValueType, GenerationMode.Preview);
-            }
-            else
-            {
-                rawOutput = node.GetVariableNameForSlot(outputSlotId);
-            }
+            string rawOutput = node.GetVariableNameForSlot(outputSlotId);
             return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
         }
 
@@ -595,7 +586,7 @@ namespace UnityEditor.ShaderGraph
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("half4({0}.x, {0}.x, {0}.x, 1.0)", variableName);
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector2:
                     return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector3:
@@ -910,7 +901,7 @@ namespace UnityEditor.ShaderGraph
                     surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite(surface.{hlslName})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id, "surface." + hlslName)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
-            else // if (rootNode.hasPreview)
+            else
             {
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)

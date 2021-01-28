@@ -70,8 +70,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 parentElement.Add(propertyRow);
             }
 
-
-
             if (node is BlockNode bnode)
             {
                 AddCustomInterpolatorProperties(parentElement, bnode, setNodesAsDirtyCallback, updateNodeViewsCallback);
@@ -103,17 +101,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                             return;
 
                         HashSet<string> usedNames = new HashSet<string>();
-                        foreach (var other in node.contextData.blocks) if(other != node) usedNames.Add(other.value.descriptor.displayName);
-                                                
+                        foreach (var other in node.contextData.blocks)
+                            if (other != node)
+                                usedNames.Add(other.value.descriptor.displayName);
+
                         setNodesAsDirtyCallback?.Invoke();
                         node.owner.owner.RegisterCompleteObjectUndo("Change Block Name");
-                        field.value = node.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));                        
+                        field.value = node.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", NodeUtils.ConvertToValidHLSLIdentifier(field.value));
                         updateNodeViewsCallback?.Invoke();
                         node.Dirty(ModificationScope.Node);
                         node.owner?.ValidateGraph();
-                    });                    
+                    });
                 });
-                parentElement.Add(propertyRow);  
+                parentElement.Add(propertyRow);
             }
 
             EnumField typeField = null;

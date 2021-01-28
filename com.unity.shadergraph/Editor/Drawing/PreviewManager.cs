@@ -158,7 +158,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // SubGraphOutput nodes have their own previews, but will use the "Master" preview if they are the m_Graph.outputNode
             if (node is BlockNode)
             {
-
                 node.RegisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 m_NodesPropertyChanged.Add(node);
@@ -285,7 +284,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // get the edges out of each slot
                     tempEdges.Clear();                            // and here we serialize another list, ouch!
                     node.owner.GetEdges(slot.slotReference, tempEdges);
-
                     foreach (var edge in tempEdges)
                     {
                         // We look at each node we feed into.
@@ -296,7 +294,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
-
 
             // Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes
             if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
@@ -457,8 +454,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 PropagateNodes(
                         new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
                         PropagationDirection.Downstream,
-                        customProps
-                    );
+                        customProps);
 
                 m_NodesPropertyChanged.UnionWith(customProps);
 
