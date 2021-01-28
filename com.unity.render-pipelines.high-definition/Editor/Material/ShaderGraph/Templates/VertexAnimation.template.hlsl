@@ -1,4 +1,6 @@
 
+$splice(sgci_PreVertex)
+
 VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh input)
 {
     VertexDescriptionInputs output;
@@ -39,7 +41,13 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl
+// use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
+    AttributeMesh ApplyMeshModificationWithCustomInterp(AttributesMesh input, float3 timeParameters, inout VaryingsMeshToPS varyings)
+#else
+    AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+#endif
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
@@ -53,6 +61,10 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
+
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // unnecessary, but let's make the point as clear as possible.
+    $splice(sgci_VertexDefinitionToVaryings)
+#endif
 
     return input;
 }

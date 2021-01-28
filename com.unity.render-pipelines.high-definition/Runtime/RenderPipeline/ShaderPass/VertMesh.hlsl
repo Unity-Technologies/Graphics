@@ -135,7 +135,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-#if defined(HAVE_MESH_MODIFICATION)
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+    input = ApplyMeshModificationWithCustomInterp(input, _TimeParameters.xyz, output);
+#elif defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif
 

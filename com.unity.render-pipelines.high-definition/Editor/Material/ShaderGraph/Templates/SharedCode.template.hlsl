@@ -17,6 +17,8 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
     $FragInputs.color:              output.color = input.color;    
 
+    $splice(sgci_VaryingsToFragInputs)
+
     return output;
 }
 
@@ -60,6 +62,8 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
 
+    $splice(sgci_CopyToSDI)
+    
     return output;
 }
 
