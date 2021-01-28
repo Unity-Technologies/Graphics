@@ -81,9 +81,7 @@ namespace UnityEditor.ShaderGraph
     Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
     if(!IsPerspectiveProjection())
     {
-        $precision d = dot(Out, GetViewForwardDir());
-        $precision3 f = GetViewForwardDir();
-        Out = $precision3(f.x * d, f.y * d, f.z * d);
+        Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }
     Out = TransformWorldToObjectDir(Out, false);
 }
@@ -121,9 +119,7 @@ namespace UnityEditor.ShaderGraph
     Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
     if(!IsPerspectiveProjection())
     {
-        $precision d = dot(Out, GetViewForwardDir());
-        $precision3 f = GetViewForwardDir();
-        Out = $precision3(f.x * d, f.y * d, f.z * d);
+        Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }
 }
 ";
@@ -144,9 +140,7 @@ namespace UnityEditor.ShaderGraph
     Out = _WorldSpaceCameraPos.xyz - GetAbsolutePositionWS(WorldSpacePosition);
     if(!IsPerspectiveProjection())
     {
-        $precision d = dot(Out, GetViewForwardDir());
-        $precision3 f = GetViewForwardDir();
-        Out = $precision3(f.x * d, f.y * d, f.z * d);
+        Out = GetViewForwardDir() * dot(Out, GetViewForwardDir());
     }
     Out = length(Out) * TransformWorldToTangent(Out, basisTransform);
 }
