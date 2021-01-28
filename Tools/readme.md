@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Tools](#tools)
+  - [Git-hooks](#git-hooks)
+    - [Installation](#installation)
+    - [Available hooks](#available-hooks)
+    - [FAQ and Troubleshooting steps](#faq-and-troubleshooting-steps)
+  - [Formatting](#formatting)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Tools
 
 _Questions: #devs-graphics-automation_
@@ -12,17 +25,15 @@ For example, compliance with Unity's code convention is mandatory in order to me
 
 Follow these steps to install the git hooks before working on the Graphics repository:
 
-1. Requirement A: Install [Python >= 3.5](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
-2. Requirement B: Install [pip3](https://pip.pypa.io/en/stable/installing/).
-3. Requirement C: Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. _Sidenote: it is the same tool used to format C++/trunk code._
-4. Requirement D: Make sure you have access to the cds.github.com repositories. Usually this means following [these steps](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh) to create and upload an ssh key to [cds.github.com](https://github.cds.internal.unity3d.com/settings/keys).
+1. Install [Python >= 3.6](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
+2. Install [pip3](https://pip.pypa.io/en/stable/installing/).
+3. Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. _Sidenote: it is the same tool used to format C++/trunk code._
+4. Make sure you have access to the cds.github.com repositories. Usually this means following [these steps](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh) to create and upload an ssh key to [cds.github.com](https://github.cds.internal.unity3d.com/settings/keys).
 5. From the root of the repository, run `cd Tools` and `python3 ./hooks_setup.py`.
-
-Note: If you already installed the git hooks (before November 2020), you need to follow the steps above to re-install them. This is required in order to move towards a more scalable and flexible system. _Sidenote: NodeJS and the node_modules folder are no longer required._
 
 ### Available hooks
 
-A description of the hooks we currently have is available in the [hooks' library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
+A description of the hooks we currently have is available in the [hooks library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
 
 For this repository we have enabled:
 
@@ -76,7 +87,7 @@ Last resort: [Troubleshooting SSH section in Github docs](https://docs.github.co
 
 **Python or pre-commit not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
 
-Make sure Python (>=3.5) is in your PATH. Commands that can help:
+Make sure Python (>=3.6) is in your PATH. Commands that can help:
 - On windows: `where python3`
 - On Unix: `which python3`
 - [How to add to the path on Windows10?](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/)
@@ -102,3 +113,15 @@ Follow the suggestions of [this StackOverflow answer](https://stackoverflow.com/
 **Can't locate Win32/Process.pm in @INC...**
 
 On Windows, Active perl is not supported by the formatting tool. Use Strawberry perl. 
+
+## Formatting
+
+Provided you installed [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/), you can manually run the formatting tool with the following command (use powershell on windows):
+```
+perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --dry-run <folder to format>
+```
+To actually apply the changes:
+```
+perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --nobackups <folder to format>
+```
+Use `--help` to discover more useful options (`--preview` will generate a diff file for instance)

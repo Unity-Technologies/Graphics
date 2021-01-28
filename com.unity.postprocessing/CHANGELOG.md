@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fix FXAA when running on render-targets without alpha channel: force using green channel as luminance
 
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ### Changed
 - ResetProjection isn't being called anymore if Temporal Anti-aliasing isn't enabled, allowing the use of custom projection matrices.
 
@@ -101,7 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.1.4] - 2019-02-27
 
 ### Fixed
-- Shader compilation errors with OpenGL ES2 and Switch.
+- Shader compilation errors with OpenGL ES2 and other platforms.
 - Proper viewport support on Builtin render pipelines.
 
 ## [2.1.3] - 2019-01-30
@@ -121,7 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Optimized volume texture blending.
-- Switch compilation issues with 2019.1+.
+- Compilation issues with 2019.1+ on some platforms.
 
 ### Changed
 - Chromatic aberration is now forced to "fast mode" when running on GLES2.0 platforms due to compatibility issues.
@@ -239,14 +242,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.0.5-preview] - 2018-04-20
 
 ### Fixed
-- More XR/Switch related fixes.
+- More XR/platform-specific related fixes.
 
 ## [2.0.4-preview] - 2018-04-19
 
 ### Fixed
 - Temporal Anti-aliasing creating NaN values in some cases. ([#337](https://github.com/Unity-Technologies/PostProcessing/issues/337))
 - Auto-exposure has been fixed to work the same way it did before the full-compute port.
-- XR compilation errors on Xbox One & Switch (2018.2).
+- XR compilation errors specific-platforms (2018.2).
 - `ArgumentNullException` when attempting to get a property sheet for a null shader. ([#515](https://github.com/Unity-Technologies/PostProcessing/pull/515))
 - Stop NaN Propagation not working for opaque-only effects.
 - HDR color grading had a slight color temperature offset.
