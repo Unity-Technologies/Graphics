@@ -88,14 +88,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasBlit.compute")]
-            public ComputeShader probeVolumeAtlasBlitCS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthBlit.compute")]
-            public ComputeShader probeVolumeAtlasOctahedralDepthBlitCS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthConvolve.compute")]
-            public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
-            [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
-            public Shader debugDisplayProbeVolumePS;
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
@@ -433,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
         }
 

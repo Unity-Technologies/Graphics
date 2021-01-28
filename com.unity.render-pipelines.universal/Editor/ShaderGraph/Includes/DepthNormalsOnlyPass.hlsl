@@ -23,7 +23,16 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(unpacked.normalWS, true)), 0.0, 0.0);
+    #if defined(_GBUFFER_NORMALS_OCT)
+    float3 normalWS = normalize(unpacked.normalWS);
+    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
+    return half4(packedNormalWS, 0.0);
+    #else
+    float3 normalWS = NormalizeNormalPerPixel(unpacked.normalWS);
+    return half4(normalWS, 0.0);
+    #endif
 }
 
 #endif

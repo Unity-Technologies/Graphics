@@ -1,0 +1,43 @@
+project:
+  name: HDRP_PerformanceTests
+  folder: HDRP_PerformanceTests
+test_platforms:
+  - type: playmode
+    name: performance_memory
+    utr_flags:
+      - [all]: --testfilter=Memory
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
+      - [all]: --timeout=2400
+      - [all]: --platform=StandaloneWindows64
+      - [all]: --loglevel=verbose
+  - type: editmode
+    name: performance_run_build
+    utr_flags:
+      - [all]: --testfilter=Build
+      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
+      - [all]: --timeout=2400
+      - [all]: --platform=editmode
+      - [all]: --loglevel=verbose
+expression_trigger:
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_memory
+        # - performance_run_build
+nightly:
+  dependencies:
+    - project: HDRP_PerformanceTests
+      pr: true

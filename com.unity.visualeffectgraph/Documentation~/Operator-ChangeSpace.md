@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Geometry > Change Space**
 
 The **Change Space** Operator can change the space of an input from local to world space or from world to local space.
 
-You can use this to convert the Position of particles in a system from local space to their corresponding world-space position. 
+You can use this to convert the Position of particles in a system from local space to their corresponding world-space position.
 
 ## Operator settings
 

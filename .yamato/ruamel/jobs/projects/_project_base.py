@@ -41,9 +41,9 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
                 'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"])}',
                 'rerun' : editor["rerun_strategy"]}])
 
-    if project["name"] == "URP_Performance_BoatAttack":
-        job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-        job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
+    if project.get('variables'):
+        for key,value in project.get('variables').items():
+            job.add_var_custom(key,value)
 
     job.add_var_custom('UTR_VERSION', dss("current"))
     job.add_var_custom('TEST_FILTER', '.*')
