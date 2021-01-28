@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using System.Text.RegularExpressions;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.ScriptableRenderContext;
 
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
@@ -1163,6 +1165,25 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalReflectionData>.Release();
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
+        }
+
+        internal static void FlushCommandBuffer(RenderGraphContext context)
+        {
+            context.renderContext.ExecuteCommandBuffer(context.cmd);
+            context.cmd.Clear();
+        }
+
+        internal static void ExecuteCommandBufferWithCallback(RenderGraphContext context, CommandBuffer cmd, CommandBufferCallback callback)
+        {
+            if (callback != null)
+            {
+                IntPtr hack = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(callback);
+                context.renderContext.ExecuteCommandBufferConditional(cmd, hack);
+            }
+            else
+            {
+                context.renderContext.ExecuteCommandBuffer(cmd);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using static UnityEngine.Rendering.ScriptableRenderContext;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,6 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Needed only because of custom pass. See comment at ResolveMSAAColor.
         TextureHandle m_NonMSAAColorBuffer;
+
+        ulong m_DistortionID = System.UInt64.MaxValue;
 
         void ExecuteWithRenderGraph(RenderRequest           renderRequest,
             AOVRequestData          aovRequest,
@@ -227,7 +230,19 @@ namespace UnityEngine.Rendering.HighDefinition
                             autoGenerateMips = false,
                             name = "DistortionColorBufferMipChain"
                         });
-                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid);
+
+                    CommandBufferCallback callback = (RenderersList renderersList) =>
+                    {
+                        var ret = renderersList.Query(m_DistortionID);
+                        if (ret == 0)
+                        {
+                            Debug.Log($"skipping distortion color pyramid");
+                        }
+
+                        return ret;
+                    };
+
+                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid, callback);
                     currentColorPyramid = distortionColorPyramid;
                 }
 
@@ -1186,9 +1201,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle inputColor;
             public MipGenerator mipGenerator;
             public HDCamera hdCamera;
+
+            public CommandBuffer cmd;
+            public CommandBufferCallback callback;
         }
 
-        void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, FullScreenDebugMode fsDebugMode)
+        void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, FullScreenDebugMode fsDebugMode, CommandBufferCallback callback = null)
         {
             using (var builder = renderGraph.AddRenderPass<GenerateColorPyramidData>("Color Gaussian MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.ColorPyramid)))
             {
@@ -1196,15 +1214,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.inputColor = builder.ReadTexture(inputColor);
                 passData.hdCamera = hdCamera;
                 passData.mipGenerator = m_MipGenerator;
+                passData.cmd = new CommandBuffer();
+                passData.cmd.name = "Color Pyramid Commnand Buffer";
+                passData.callback = callback;
 
                 builder.SetRenderFunc(
                     (GenerateColorPyramidData data, RenderGraphContext context) =>
                     {
+                        // Flush RenderGraph's command buffer (to get proper ordering)
+                        HDUtils.FlushCommandBuffer(context);
+
                         Vector2Int pyramidSize = new Vector2Int(data.hdCamera.actualWidth, data.hdCamera.actualHeight);
-                        data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, data.inputColor, data.colorPyramid);
+                        //data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, data.inputColor, data.colorPyramid);
+                        data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(data.cmd, pyramidSize, data.inputColor, data.colorPyramid);
                         // TODO RENDERGRAPH: We'd like to avoid SetGlobals like this but it's required by custom passes currently.
                         // We will probably be able to remove those once we push custom passes fully to render graph.
-                        context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                        //context.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                        data.cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+
+                        // Execute the color pyramid command buffer conditionally
+                        HDUtils.ExecuteCommandBufferWithCallback(context, data.cmd, data.callback);
                     });
             }
 
@@ -1239,7 +1268,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (AccumulateDistortionPassData data, RenderGraphContext context) =>
                     {
-                        DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.distortionRendererList);
+                        m_DistortionID = DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.distortionRendererList);
+                        //Debug.Log($"setting distortion id : {m_DistortionID}");
                     });
 
                 return passData.distortionBuffer;
@@ -1255,6 +1285,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    depthStencilBuffer;
             public Vector4          size;
             public bool             roughDistortion;
+
+            public CommandBuffer    cmd;
         }
 
         void RenderDistortion(RenderGraph     renderGraph,
@@ -1277,11 +1309,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
 
+                passData.cmd = new CommandBuffer();
+
                 builder.SetRenderFunc(
                     (RenderDistortionPassData data, RenderGraphContext context) =>
                     {
                         if (!data.roughDistortion)
                             HDUtils.BlitCameraTexture(context.cmd, data.colorBuffer, data.sourceColorBuffer);
+
+                        // Flush the command buffer
+                        HDUtils.FlushCommandBuffer(context);
 
                         // TODO: Set stencil stuff via parameters rather than hard-coding it in shader.
                         data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
@@ -1291,7 +1328,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
                         data.applyDistortionMaterial.SetInt(HDShaderIDs._RoughDistortion, data.roughDistortion ? 1 : 0);
 
-                        HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
+                        //HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
+                        HDUtils.DrawFullScreen(data.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
+
+                        // TODO: conditional
+                        context.renderContext.ExecuteCommandBuffer(data.cmd);
                     });
             }
         }

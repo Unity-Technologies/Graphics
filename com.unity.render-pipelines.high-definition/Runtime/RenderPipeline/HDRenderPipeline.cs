@@ -2546,12 +2546,12 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
-        static void DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        static ulong DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
-                return;
+                return System.UInt64.MaxValue;
 
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            return CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         void UpdateShaderVariablesGlobalDecal(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
