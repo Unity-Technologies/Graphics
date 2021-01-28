@@ -20,18 +20,18 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXRuntimePerformanceTests : PerformanceTests
     {
 #if UNITY_EDITOR
-        private bool m_PreviousAllowAsyncCompilation;
+        private bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
         public void Init()
         {
-            m_PreviousAllowAsyncCompilation = UnityEditor.ShaderUtil.allowAsyncCompilation;
-            UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+            m_PreviousAsyncShaderCompilation = UnityEditor.EditorSettings.asyncShaderCompilation;
+            UnityEditor.EditorSettings.asyncShaderCompilation = false;
         }
 
         [OneTimeTearDown]
         public void Clear()
         {
-            UnityEditor.ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+            UnityEditor.EditorSettings.asyncShaderCompilation = m_PreviousAsyncShaderCompilation;
         }
 #endif
 
@@ -171,18 +171,18 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXRuntimeMemoryTests : PerformanceTests
     {
 #if UNITY_EDITOR
-        private bool m_PreviousAllowAsyncCompilation;
+        private bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
         public void Init()
         {
-            m_PreviousAllowAsyncCompilation = ShaderUtil.allowAsyncCompilation;
-            UnityEditor.ShaderUtil.allowAsyncCompilation = false;
+            m_PreviousAsyncShaderCompilation = UnityEditor.EditorSettings.asyncShaderCompilation;
+            UnityEditor.EditorSettings.asyncShaderCompilation = false;
         }
 
         [OneTimeTearDown]
         public void Clear()
         {
-            UnityEditor.ShaderUtil.allowAsyncCompilation = m_PreviousAllowAsyncCompilation;
+            UnityEditor.EditorSettings.asyncShaderCompilation = m_PreviousAsyncShaderCompilation;
         }
 #endif
 

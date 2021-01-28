@@ -60,6 +60,5 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 ## Performance
 
 Here are some example of frame times (observed with SRP package revision 78d514f756c and Unity 2020.2.0b):
-- Impact of adding a Point Light with hard shadows at position (2, 1, 1) to [Universal RP Project Template](https://docs.unity3d.com/Manual/ProjectTemplates.html) scene on Nintendo Switch (handheld mode):    +3.3ms (total frame time 22.7ms)
 - Impact of adding a Point Light with hard shadows at position (2, 1, 1) to [Universal RP Project Template](https://docs.unity3d.com/Manual/ProjectTemplates.html) scene on Galaxy S20+:                        +1.9ms (total frame time 22.2ms)
 - Impact of adding a Point Light with hard shadows at position (2, 1, 1) to [Universal RP Project Template](https://docs.unity3d.com/Manual/ProjectTemplates.html) scene on PC - GeForce RTX 2080 Ti (Full HD): +0.1ms (total frame time 16.6ms)

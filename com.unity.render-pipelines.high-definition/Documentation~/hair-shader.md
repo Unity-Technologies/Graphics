@@ -49,10 +49,10 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 | **Smoothness UV Scale Transform** | Sets the tiling rate (xy) and offsets (zw) for the Smoothness Mask Map. |
 | **Smoothness Min**                | Set the minimum smoothness for this Material.                |
 | **Smoothness Max**                | Set the maximum smoothness for this Material.                |
-| **Specular Color**                | Set the color of the primary specular highlight.             |
-| **Specular Multiplier**           | Modifies the **Specular Color** by this multiplier.          |
+| **Specular Color**                | Set the representative color of the highlight that Unity uses to drive both the primary specular highlight color, which is mainly monochrome, and the secondary specular highlight color, which is chromatic.|
+| **Specular Multiplier**           | Modifies the primary specular highlight by this multiplier.  |
 | **Specular Shift**                | Modifies the position of the primary specular highlight.     |
-| **Secondary Specular Multiplier** | Modifies the **Secondary Specular Color** by this multiplier. |
+| **Secondary Specular Multiplier** | Modifies the secondary specular highlight by this multiplier. |
 | **Secondary Specular Shift**      | Modifies the position of the secondary specular highlight    |
 | **Transmission Color**            | Set the fraction of specular lighting that penetrates the hair from behind. This is on a per-color channel basis so you can use this property to set the color of penetrating light. Set this to (0, 0, 0) to stop any light from penetrating through the hair. Set this to (1, 1, 1) to have a strong effect with a lot of white light transmitting through the hair. |
 | **Transmission Rim**              | Set the intensity of back lit hair around the edge of the hair. Set this to 0 to completely remove the transmission effect. |

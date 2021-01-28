@@ -25,6 +25,16 @@ test_platforms:
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
+  - type: playmode
+    name: playmode_XR_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-xr-reuse-tests"
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   - type: Standalone
     name: Standalone_cache
     utr_flags:
@@ -43,7 +53,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 expression_trigger:
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
+  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -54,6 +64,28 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_cache:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
   - name: OSX
     apis:
       - name: Metal
@@ -62,6 +94,7 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
+          - name: playmode_XR_cache
           - name: Standalone
           - name: Standalone_cache
     build_configs:
@@ -75,9 +108,11 @@ platforms:
           - name: Standalone
           - name: Standalone_cache
           - name: playmode_XR
+          - name: playmode_XR_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
+          - name: playmode_XR_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -89,12 +124,14 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
           - name: playmode_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
           - name: playmode_cache
     build_configs:
       - name: il2cpp
@@ -107,6 +144,7 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: playmode_XR_cache
           - name: playmode_cache
     build_configs:
       - name: il2cpp
@@ -120,7 +158,7 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
-        - playmode_XR
+        - playmode_XR_cache
         - editmode
     - platform: Win
       api: DX12
@@ -223,14 +261,14 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_cache
-        # - playmode_XR
+        # - playmode_XR_cache
     - platform: Win
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
         - playmode_cache
-        # - playmode_XR
+        # - playmode_XR_cache
     - platform: Linux
       api: Vulkan
       build_config: mono
