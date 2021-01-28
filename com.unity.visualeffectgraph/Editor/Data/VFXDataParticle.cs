@@ -314,7 +314,7 @@ namespace UnityEditor.VFX
 
         public void SyncContextMaterial(VFXContext context) => m_MaterialCollection.TrySyncRenderStateProperties(context);
 
-        static void AppendMaterialParameters(Material material, List<VFXMapping> parameters)
+        static void AppendMaterialParameters(Material material, List<VFXMapping> parameters, VFXContextCompiledData contextData, VFXExpressionGraph expressionGraph)
         {
             // Keywords
             var keywords = new StringBuilder();
@@ -333,6 +333,21 @@ namespace UnityEditor.VFX
             parameters.Add(new VFXMapping(keywords.ToString(), kKeywordID));
 
             // Properties
+            var shader = material.shader;
+            for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+            {
+                if (ShaderUtil.IsShaderPropertyHidden(shader, i))
+                {
+                    var name = ShaderUtil.GetPropertyName(shader, i);
+                    var propExp = contextData.cpuMapper.FromNameAndId(name, -1);
+                    if (propExp != null)
+                    {
+                        int propIndex = expressionGraph.GetFlattenedIndex(propExp);
+                        if (propIndex != -1)
+                            parameters.Add(new VFXMapping(name, propIndex));
+                    }
+                }
+            }
         }
 
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
@@ -1005,7 +1020,7 @@ namespace UnityEditor.VFX
                 if (context is VFXShaderGraphParticleOutput)
                 {
                     var material = GetOrCreateMaterial(context);
-                    AppendMaterialParameters(material, additionalParameters);
+                    AppendMaterialParameters(material, additionalParameters, contextData, expressionGraph);
                 }
 
                 taskDesc.buffers = bufferMappings.ToArray();
