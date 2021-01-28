@@ -685,8 +685,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Get the interpolated anisotropy value.
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
-            int frameIndex = m_FrameCount;
-            int currIdx = (frameIndex + 0) & 1;
+            uint frameIndex = hdCamera.GetCameraFrameCount();
+            uint currIdx = (frameIndex + 0) & 1;
 
             var currParams = hdCamera.vBufferParams[currIdx];
 
@@ -710,7 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferRcpInstancedViewCount = 1.0f / hdCamera.viewCount;
         }
 
-        DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
+        DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd)
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
@@ -730,7 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera, time);
+                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera);
 
                 for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleDensityVolumeCount); i++)
                 {

@@ -33,12 +33,12 @@ Shader "Hidden/HDRP/Deferred"
             #pragma fragment Frag
 
             // Split lighting is utilized during the SSS pass.
-            #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
-            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
-            #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+            #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
             // Comment out the line to loop over all lights (for debugging purposes)
             #define FINE_BINNING

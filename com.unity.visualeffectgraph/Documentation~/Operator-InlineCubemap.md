@@ -18,4 +18,3 @@ The **Cubemap** inline Operator allows you to store an instance of a Cubemap. Th
 | **Output** | Cubemap   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

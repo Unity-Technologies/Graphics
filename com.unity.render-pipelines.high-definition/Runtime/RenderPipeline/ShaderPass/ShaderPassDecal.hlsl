@@ -99,6 +99,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     // we discard during decal projection, or we get artifacts along the
     // edges of the projection(any partial quads get bad partial derivatives
     //regardless of whether they are computed implicitly or explicitly).
+    ZERO_INITIALIZE(DecalSurfaceData, surfaceData); // Require to quiet compiler warning with Metal
     if (clipValue > 0.0)
     {
 #endif
