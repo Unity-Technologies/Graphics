@@ -35,5 +35,6 @@ Material:
     m_Ints: []
     m_Floats:
     - Vector1_ABA683ED: 640
+    - _ScreenWidth: 1920
     m_Colors: []
   m_BuildTextureStacks: []
