@@ -250,6 +250,8 @@ namespace UnityEditor.ShaderGraph
             return otherSlot != null
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
+                && !hidden
+                && !otherSlot.hidden
                 && ((isInputSlot
                     ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
                     : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));

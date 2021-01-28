@@ -33,7 +33,7 @@ Each mode is set per-camera in the **Post-process Layer** component.
 
 ### Performance
 
-Enable `Fast Mode` if you are developing for mobile or Nintendo Switch to get a performance boost. It will also provide a small boost for PlayStation 4 and Xbox One development. `Fast Mode` does not provide any extra benefits for desktop GPUs. In this case regular mode should be used for added visual quality.
+Enable `Fast Mode` if you are developing for mobile devices to get a performance boost. It will also provide a small boost for consoles. `Fast Mode` does not provide any extra benefits for desktop GPUs. In this case regular mode should be used for added visual quality.
 
 ### Requirements
 
