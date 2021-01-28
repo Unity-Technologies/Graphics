@@ -11,19 +11,30 @@ namespace UnityEditor.ShaderGraph
 {
     internal static class CustomInterpolatorUtils
     {
+        // We need to be able to adapt CustomInterpolatorNode's output if the feature couldn't work per pass.
+        // there isn't really a good way to get global information about generation state during a node's generation.
+        // TODO: If we jobify our generator calls, switch these to TLS.
         internal static bool generatorSkipFlag = false;
+
+        // For node only generation, there isn't a breadcumb of information we get in a few of the AbstractMaterialNode
+        // code generating functions. Instead of completely refactoring for this case, we've got a global flag so that
+        // CustomInterpolatorNode can redirect NODE preview graph evaluation from it's CIB's input port directly--
+        // This is necessary because node previews don't interpolate anything. So to get any previews at all we need to reroute.
         internal static bool generatorNodeOnly = false;
 
+        // Used by preview manager to find what custom interpolator nodes need rerouting for node previews.
         internal static IEnumerable<CustomInterpolatorNode> GetCustomBlockNodeDependents(BlockNode bnode)
         {
             return bnode?.owner?.GetNodes<CustomInterpolatorNode>().Where(cin => cin.e_targetBlockNode == bnode).ToList()
                 ?? new List<CustomInterpolatorNode>();
         }
     }
-
+    
     internal class CustomInterpSubGen
     {
     #region descriptor
+
+        // Common splicing locations or concepts. These may or may not exist in client's template code.
         [GenerationAPI]
         internal static class Splice
         {
@@ -34,6 +45,8 @@ namespace UnityEditor.ShaderGraph
             internal static string k_spliceCopyToSDI => "sgci_CopyToSDI";
         }
 
+        // Describes where/what/how custom interpolator behavior can be achieved through splicing and defines.
+        // Generally speaking, this may require a mix of changes to client template and includes.
         [GenerationAPI]
         internal struct Descriptor
         {
@@ -82,6 +95,10 @@ namespace UnityEditor.ShaderGraph
         }
 
     #region GeneratorEntryPoints
+
+
+        // This entry point handles adding our upstream antecedents to the generator's list of active nodes.
+        // Custom Interpolator Nodes have no way of expressing that their Custom Interpolator Block is a dependent within existing generator code.
         internal void ProcessExistingStackData(List<AbstractMaterialNode> vertexNodes, List<MaterialSlot> vertexSlots, List<AbstractMaterialNode> pixelNodes, IActiveFieldsSet activeFields)
         {
             if (CustomInterpolatorUtils.generatorSkipFlag)
@@ -102,16 +119,15 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach ( var ant in anties)
                     {
-                        // ant needs to go _after_ it's known dependents.
-                        // we want to find the last index of a dependent.
+                        // sorted insertion, based on dependencies already present in pixelNodes (an issue because we're faking for the preview).
                         InsertAntecedent(pixelNodes, ant);
                     }
-                    // we can cheat and add the sub-tree to the pixel node list, which ciNode digs into during its own preview generation.
+                    // all antecedents of cin are vertex blocks, but we can add them to Pixel to try and get reasonable preview generation.
                     pixelNodes.InsertRange(0, anties);
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
-                    activeFields.AddAll(cin.e_targetBlockNode.descriptor); // Make New FieldDescriptor for VertexDescription
+                    activeFields.AddAll(cin.e_targetBlockNode.descriptor); // add the BlockFieldDescriptor for VertexDescription
                     customBlockNodes.Add(cin.e_targetBlockNode);
 
                     // vertex nodes should not require hierarchical insertion, but if they do (master preview is failing)-- use the "InsertAntecedent" solve above.
@@ -123,6 +139,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // This entry point is to inject custom interpolator fields into the appropriate structs for struct generation.
         internal List<StructDescriptor> CopyModifyExistingPassStructs(IEnumerable<StructDescriptor> passStructs, IActiveFieldsSet activeFields)
         {
             if (CustomInterpolatorUtils.generatorSkipFlag)
@@ -130,6 +147,7 @@ namespace UnityEditor.ShaderGraph
 
             var newPassStructs = new List<StructDescriptor>();
 
+            // StructDescriptor is (kind-of) immutable, so we need to do some copy/modify shenanigans to make this work.
             foreach (var ps in passStructs)
             {
                 if (ps.populateWithCustomInterpolators)
@@ -156,6 +174,9 @@ namespace UnityEditor.ShaderGraph
             return newPassStructs;
         }
 
+        // Custom Interpolator descriptors indicate how and where code should be generated.
+        // At this entry point, we can process the descriptors on a provided pass and generate
+        // the corresponding splices.
         internal void ProcessDescriptors(IEnumerable<Descriptor> descriptors)
         {
             if (CustomInterpolatorUtils.generatorSkipFlag)
@@ -178,6 +199,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // add our splices to the generator's dictionary.
         internal void AppendToSpliceCommands(Dictionary<string, string> spliceCommands)
         {
             if (CustomInterpolatorUtils.generatorSkipFlag)
@@ -239,7 +261,6 @@ namespace UnityEditor.ShaderGraph
 
         private static void InsertAntecedent(List<AbstractMaterialNode> nodes, AbstractMaterialNode node)
         {
-
             var upstream = node.GetInputSlots<MaterialSlot>().Where(slot => slot.isConnected).Select(slot => node.GetInputNodeFromSlot(slot.id));
             int safeIdx = nodes.FindLastIndex(n => upstream.Contains(n))+1;
             nodes.Insert(safeIdx, node);
