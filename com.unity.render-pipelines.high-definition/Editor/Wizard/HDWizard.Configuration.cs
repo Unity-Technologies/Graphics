@@ -1,15 +1,14 @@
-using UnityEngine;
 using System;
-using System.Linq;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditorInternal.VR;
-using UnityEditor.SceneManagement;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditorInternal;
+using UnityEditorInternal.VR;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
