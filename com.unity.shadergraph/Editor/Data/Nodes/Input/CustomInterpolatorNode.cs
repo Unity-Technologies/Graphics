@@ -34,10 +34,12 @@ namespace UnityEditor.ShaderGraph
 
         internal void ConnectToCustomBlock(BlockNode node)
         {
+            // if somehow we were already connected, be sure to unregister.
             if (e_targetBlockNode != null)
             {
                 e_targetBlockNode.UnregisterCallback(OnCustomBlockModified);
             }
+            // if a new cib is renamed to match us when we didn't have a target (unusual case, but covering all bases here).
             if (node?.isCustomBlock ?? false)
             {
                 name = node.customName + " (Custom Interpolator)";
@@ -45,13 +47,12 @@ namespace UnityEditor.ShaderGraph
                 serializedType = node.customWidth;
                 BuildSlot();
                 node.RegisterCallback(OnCustomBlockModified);
-                // Maybe warn if they lack owners and weak-ref will be broken.
             }
         }
 
         internal void ConnectToCustomBlockByName(string customBlockName)
         {
-            // target shouldn't really change, but if it did- we need to unregister.
+            // see above
             if (e_targetBlockNode != null)
             {
                 e_targetBlockNode.UnregisterCallback(OnCustomBlockModified);
@@ -62,10 +63,10 @@ namespace UnityEditor.ShaderGraph
             if (e_targetBlockNode != null)
             {
                 serializedType = e_targetBlockNode.customWidth;
-                BuildSlot();                
+                BuildSlot();
                 e_targetBlockNode.RegisterCallback(OnCustomBlockModified);
             }
-            else // Target blockNode didn't actually exist :(.
+            else
             {
                 // We should get badged in OnValidate.
             }
@@ -98,7 +99,6 @@ namespace UnityEditor.ShaderGraph
             {
                 e_targetBlockNode?.UnregisterCallback(OnCustomBlockModified);
                 owner.AddValidationError(objectId, String.Format("Custom Block Interpolator '{0}' not found.", customBlockNodeName), ShaderCompilerMessageSeverity.Error);
-
             }
             else
             {
@@ -114,7 +114,6 @@ namespace UnityEditor.ShaderGraph
             BuildSlot();
             base.UpdateNodeAfterDeserialization();
         }
-
 
         void BuildSlot()
         {
@@ -135,7 +134,6 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveSlotsNameNotMatching(new[] { 0 });
         }
-
 
         public override string GetVariableNameForSlot(int slotid)
         {
@@ -210,7 +208,6 @@ namespace UnityEditor.ShaderGraph
                 var result = string.Format("IN.{0}", customBlockNodeName);
                 finalResult = ConvertVector(result, (int)e_targetBlockNode.customWidth, toWidth);
             }
-
             return finalResult.Replace(PrecisionUtil.Token, concretePrecision.ToShaderString());
         }
 
