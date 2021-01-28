@@ -853,7 +853,13 @@ namespace UnityEditor.VFX
 
                     var data = (VFXDataParticle)shaderGraphOutputContext.GetData();
                     var material = data.GetOrCreateMaterial(shaderGraphOutputContext);
+
+                    var requiresSync = material.shader.name != shaderName;
+
                     material.shader = ShaderUtil.CreateShaderAsset(descs[i].source);
+
+                    if (requiresSync)
+                        data.SyncContextMaterial(shaderGraphOutputContext);
                 }
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)

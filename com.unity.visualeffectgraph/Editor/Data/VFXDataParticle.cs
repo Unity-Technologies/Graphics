@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -195,19 +196,22 @@ namespace UnityEditor.VFX
     class VFXMaterialCollection : ISerializationCallbackReceiver
     {
         [NonSerialized]
-        private Dictionary<VFXContext, Material> m_ContextMaterials = new Dictionary<VFXContext, Material>();
+        private Dictionary<VFXContext, Material> m_MaterialMap = new Dictionary<VFXContext, Material>();
+
+        [NonSerialized]
+        private Dictionary<VFXContext, RenderStateProperties> m_RenderStatePropertyMap = new Dictionary<VFXContext, RenderStateProperties>();
 
         public Material GetOrCreate(VFXContext context)
         {
             Material mat;
 
-            if (!m_ContextMaterials.TryGetValue(context, out mat))
+            if (!m_MaterialMap.TryGetValue(context, out mat))
             {
                 mat = new Material(VFXResources.defaultResources.shader)
                 {
                     name = "Render Settings",
                 };
-                m_ContextMaterials.Add(context, mat);
+                m_MaterialMap.Add(context, mat);
             }
             else if (mat == null)
             {
@@ -215,34 +219,83 @@ namespace UnityEditor.VFX
                 {
                     name = "Render Settings"
                 };
-                m_ContextMaterials[context] = mat;
+                m_MaterialMap[context] = mat;
             }
 
             return mat;
+        }
+
+        public void TrySyncRenderStateProperties(VFXContext context)
+        {
+            if (!m_MaterialMap.ContainsKey(context) || !m_RenderStatePropertyMap.ContainsKey(context))
+                return;
+
+            var material = m_MaterialMap[context];
+            var renderStateProperty = m_RenderStatePropertyMap[context];
+
+            renderStateProperty.ConfigureMaterial(material);
+        }
+
+        [Serializable]
+        class RenderStateProperties
+        {
+            [SerializeField]
+            private List<string> m_PropertyNames = new List<string>();
+
+            [SerializeField]
+            private List<float> m_PropertyValues = new List<float>();
+
+            public RenderStateProperties(Material material)
+            {
+                var shader = material.shader;
+
+                if (shader == null)
+                    return;
+
+                var properties = ShaderUtil.GetMaterialProperties(new Object[] {material});
+
+                foreach (var property in properties)
+                {
+                    if (property.type != MaterialProperty.PropType.Float)
+                        continue;
+
+                    m_PropertyNames.Add(property.name);
+                    m_PropertyValues.Add(property.floatValue);
+                }
+            }
+
+            public void ConfigureMaterial(Material material)
+            {
+                for (int i = 0; i < Mathf.Min(m_PropertyNames.Count, m_PropertyValues.Count); i++)
+                    material.SetFloat(m_PropertyNames[i], m_PropertyValues[i]);
+            }
         }
 
         [SerializeField]
         private List<VFXContext> m_Contexts = new List<VFXContext>();
 
         [SerializeField]
-        private List<Material> m_Materials = new List<Material>();
+        private List<RenderStateProperties> m_CachedRenderState = new List<RenderStateProperties>();
 
-        public void OnBeforeSerialize()
+        public void OnBeforeSerialize() => CacheRenderStates();
+        public void OnAfterDeserialize() => LoadRenderStates();
+
+        public void CacheRenderStates()
         {
             m_Contexts.Clear();
-            m_Materials.Clear();
-            foreach (var kvp in m_ContextMaterials)
+            m_CachedRenderState.Clear();
+            foreach (var kvp in m_MaterialMap)
             {
                 m_Contexts.Add(kvp.Key);
-                m_Materials.Add(kvp.Value);
+                m_CachedRenderState.Add(new RenderStateProperties(kvp.Value));
             }
         }
 
-        public void OnAfterDeserialize()
+        public void LoadRenderStates()
         {
-            m_ContextMaterials = new Dictionary<VFXContext, Material>();
-            for (int i = 0; i != Math.Min(m_Contexts.Count, m_Materials.Count); i++)
-                m_ContextMaterials.Add(m_Contexts[i], m_Materials[i]);
+            m_RenderStatePropertyMap = new Dictionary<VFXContext, RenderStateProperties>();
+            for (int i = 0; i != Math.Min(m_Contexts.Count, m_CachedRenderState.Count); i++)
+                m_RenderStatePropertyMap.Add(m_Contexts[i], m_CachedRenderState[i]);
         }
     }
 
@@ -252,10 +305,9 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXMaterialCollection m_MaterialCollection = new VFXMaterialCollection();
 
-        public Material GetOrCreateMaterial(VFXContext context)
-        {
-            return m_MaterialCollection.GetOrCreate(context);
-        }
+        public Material GetOrCreateMaterial(VFXContext context) => m_MaterialCollection.GetOrCreate(context);
+
+        public void SyncContextMaterial(VFXContext context) => m_MaterialCollection.TrySyncRenderStateProperties(context);
 
         static VFXEditorTaskDesc CreateMaterialTask(Material material)
         {
