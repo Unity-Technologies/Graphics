@@ -844,7 +844,6 @@ namespace UnityEditor.VFX
                     descs[i].name = fileName;
                     descs[i].compute = generated.computeShader;
 
-                    // Configure the material
                     if (generated.computeShader)
                         continue;
 
@@ -854,10 +853,13 @@ namespace UnityEditor.VFX
                     var data = (VFXDataParticle)shaderGraphOutputContext.GetData();
                     var material = data.GetOrCreateMaterial(shaderGraphOutputContext);
 
-                    var requiresSync = material.shader.name != shaderName;
+                    var requiresSync = material.shader == VFXResources.defaultResources.shader;
 
+                    // This is a non-serialized transient shader (the real one is made in C++). We create it here to produce
+                    // the appropriate material inspector to control render state. See: [NOTE-VFX-MATERIALS]
                     material.shader = ShaderUtil.CreateShaderAsset(descs[i].source);
 
+                    // In the case of the default shader, force sync the render state.
                     if (requiresSync)
                         data.SyncContextMaterial(shaderGraphOutputContext);
                 }

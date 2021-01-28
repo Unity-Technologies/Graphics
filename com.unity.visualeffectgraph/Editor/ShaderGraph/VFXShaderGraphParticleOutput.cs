@@ -41,6 +41,8 @@ namespace UnityEditor.VFX
 
         void UpdateMaterialEditor()
         {
+            // See: [NOTE-VFX-MATERIALS]
+            // TODO: When the material is serialized fully in C++, we will need to grab it in a different way.
             var material = m_Data.GetOrCreateMaterial((VFXContext)target);
             m_MaterialEditor = (MaterialEditor)CreateEditor(material);
         }

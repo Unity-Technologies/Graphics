@@ -192,13 +192,23 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
+    // [NOTE-VFX-MATERIALS]
+    // Maintain a collection of materials that represent the render state, keyword, and enabled passes for the output.
+    // Currently we maintain this serialized collection of render state properties due to the following reasons:
+    //   1) Due to the native VFX importer overriding it, we cannot write the full .mat as a sub-asset from C# and store a reference.
+    //   2) Currently there is no concept of a serialized material on the C++ side, it is instantiated on the fly.
+    // Because of these reasons, we instead do the following to inject render state per-context:
+    //   1) Maintain a map of output contexts and materials.
+    //   2) Serialize a truncated version of the material that describe the render state (properties, keywords).
+    //   3) When "compiling" shaders, update the material and sync the render state if necesarry
+    //   4) When building the runtime data, extract the material render state and pack it into a VFXMapping (HACK).
+    // In the future, the full material will be serialized in C++ and this functionality removed.
     [Serializable]
     class VFXMaterialCollection : ISerializationCallbackReceiver
     {
-        [NonSerialized]
-        private Dictionary<VFXContext, Material> m_MaterialMap = new Dictionary<VFXContext, Material>();
+        private const string k_RenderSettingsMaterialName = "Render Settings";
 
-        [NonSerialized]
+        private Dictionary<VFXContext, Material> m_MaterialMap = new Dictionary<VFXContext, Material>();
         private Dictionary<VFXContext, RenderStateProperties> m_RenderStatePropertyMap = new Dictionary<VFXContext, RenderStateProperties>();
 
         public Material GetOrCreate(VFXContext context)
@@ -207,18 +217,12 @@ namespace UnityEditor.VFX
 
             if (!m_MaterialMap.TryGetValue(context, out mat))
             {
-                mat = new Material(VFXResources.defaultResources.shader)
-                {
-                    name = "Render Settings",
-                };
+                mat = new Material(VFXResources.defaultResources.shader) { name = k_RenderSettingsMaterialName };
                 m_MaterialMap.Add(context, mat);
             }
             else if (mat == null)
             {
-                mat = new Material(VFXResources.defaultResources.shader)
-                {
-                    name = "Render Settings"
-                };
+                mat = new Material(VFXResources.defaultResources.shader) { name = k_RenderSettingsMaterialName };
                 m_MaterialMap[context] = mat;
             }
 
@@ -233,6 +237,7 @@ namespace UnityEditor.VFX
             var material = m_MaterialMap[context];
             var renderStateProperty = m_RenderStatePropertyMap[context];
 
+            // Configure this material properties to the serialized render state cache.
             renderStateProperty.ConfigureMaterial(material);
         }
 
