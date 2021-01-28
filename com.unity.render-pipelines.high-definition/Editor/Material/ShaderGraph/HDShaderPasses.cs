@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -90,6 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -126,6 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -176,6 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -332,6 +336,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             DefineCollection GenerateDefines()

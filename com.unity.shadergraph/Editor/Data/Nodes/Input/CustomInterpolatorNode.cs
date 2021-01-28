@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.Rendering;
-using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -20,7 +18,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private BlockNode.CustomBlockType serializedType = BlockNode.CustomBlockType.Vector4;
 
-        // preview should be the CI value.
         public override bool hasPreview { get { return true; } }
 
         internal override bool ExposeToSearcher { get => false; } // This is exposed in a special way.
@@ -41,7 +38,6 @@ namespace UnityEditor.ShaderGraph
             {
                 e_targetBlockNode.UnregisterCallback(OnCustomBlockModified);
             }
-
             if (node?.isCustomBlock ?? false)
             {
                 name = node.customName + " (Custom Interpolator)";
