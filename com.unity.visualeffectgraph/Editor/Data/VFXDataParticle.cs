@@ -314,30 +314,21 @@ namespace UnityEditor.VFX
 
         public void SyncContextMaterial(VFXContext context) => m_MaterialCollection.TrySyncRenderStateProperties(context);
 
-        static VFXEditorTaskDesc CreateMaterialTask(Material material)
+        static void AppendMaterialParameters(Material material, List<VFXMapping> parameters)
         {
-            var paramList = new List<VFXMapping>();
+            // Keywords
+            var keywords = new StringBuilder();
 
-            // var keywords = new StringBuilder();
-            // foreach (var k in material.shaderKeywords)
-            // {
-            //     keywords.Append(k);
-            //     keywords.Append(' ');
-            // }
-            //
-            // // Hack: Extract the material information (keywords, properties) into VFXMappings.
-            // //       These mappings will be applied to the internal C++ material.
-            // //       This can be removed after the full material is serialized.
-            // const int kKeywordID = 0x5a52714b;
-            // paramList.Add(new VFXMapping(keywords.ToString(), kKeywordID));
-            //
-            // // TODO: Properties
-
-            return new VFXEditorTaskDesc()
+            foreach (var k in material.shaderKeywords)
             {
-                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
-                parameters = paramList.ToArray()
-            };
+                keywords.Append(k);
+                keywords.Append(' ');
+            }
+
+            const int kKeywordID = 0x5a93213a;
+            parameters.Add(new VFXMapping(keywords.ToString(), kKeywordID));
+
+            // Properties
         }
 
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
@@ -1007,6 +998,12 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                if (context is VFXShaderGraphParticleOutput)
+                {
+                    var material = GetOrCreateMaterial(context);
+                    AppendMaterialParameters(material, additionalParameters);
+                }
+
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.temporaryBuffers = temporaryBufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
@@ -1057,13 +1054,6 @@ namespace UnityEditor.VFX
                             taskDescs.Add(sortTaskDesc);
                         }
                     }
-                }
-
-                if (context is VFXShaderGraphParticleOutput)
-                {
-                    var material = GetOrCreateMaterial(context);
-                    var materialTask = CreateMaterialTask(material);
-                    // taskDescs.Add(materialTask);
                 }
             }
 
