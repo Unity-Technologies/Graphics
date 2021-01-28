@@ -254,8 +254,6 @@ namespace UnityEditor.ShaderGraph
                 Debug.LogWarning(String.Format("{0} is not a custom interpolator.", this.name));
                 return;
             }
-            var oldName = customName;
-            var oldWidth = customWidth;
 
             m_Descriptor = MakeCustomBlockField(name, width);
 
@@ -292,10 +290,13 @@ namespace UnityEditor.ShaderGraph
                 var descTag = BlockFields.VertexDescription.name;
 
                 name = $"{descTag}.{descName}";
-                
+
                 var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
 
-                try   { descWidth = (CustomBlockType)int.Parse(wsplit[2]); }
+                try
+                {
+                    descWidth = (CustomBlockType)int.Parse(wsplit[2]);
+                }
                 catch
                 {
                     Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
@@ -305,7 +306,7 @@ namespace UnityEditor.ShaderGraph
                 IControl control;
                 try   { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
                 catch { control = WidthToControl((int)descWidth); }
-                
+
                 descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
 
                 m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
@@ -317,7 +318,7 @@ namespace UnityEditor.ShaderGraph
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
             var referenceName = name;
             var define = "";
-            IControl control = WidthToControl((int)width);            
+            IControl control = WidthToControl((int)width);
             var tag = BlockFields.VertexDescription.name;
 
             return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);

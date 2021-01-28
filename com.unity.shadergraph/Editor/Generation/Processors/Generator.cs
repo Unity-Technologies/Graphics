@@ -35,12 +35,6 @@ namespace UnityEditor.ShaderGraph
         {
             m_GraphData = graphData;
             m_OutputNode = outputNode;
-
-            if (outputNode != null)
-            {
-                // CustomInterpolatorUtils.StripRedirectsAndCopy(graphData, outputNode, out m_GraphData, out m_OutputNode);
-            }
-
             m_Mode = mode;
             m_Name = name;
 
@@ -224,13 +218,12 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Setup
 
-            // If any of these cases are true, custom Interpolators will not work for this pass.
-            // Have to use a global flag here to avoid disrupting a lot of assumptions generation makes (Eg. we can't enable/disable nodes per pass or manipulate graph state <__<).
+            // Custom Interpolator Global flags (see definition for details).
             CustomInterpolatorUtils.generatorNodeOnly = m_OutputNode != null;
             CustomInterpolatorUtils.generatorSkipFlag = m_Targets[targetIndex].ignoreCustomInterpolators ||
-                !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0); // PreviewNodes don't need to skip.
+                !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0);
 
-            CustomInterpolatorUtils.generatorNodeOnly = m_OutputNode != null;
+            // Initialize custom interpolator sub generator
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
 
             // Initiailize Collectors
@@ -324,6 +317,7 @@ namespace UnityEditor.ShaderGraph
                 vertexSlots = new List<MaterialSlot>();
             }
 
+            // Inject custom interpolator antecedents where appropriate
             customInterpSubGen.ProcessExistingStackData(vertexNodes, vertexSlots, pixelNodes, activeFields.baseInstance);
 
             // Track permutation indices for all nodes
@@ -341,6 +335,8 @@ namespace UnityEditor.ShaderGraph
             passStructs.AddRange(pass.structs.Select(x => x.descriptor));
 
             // GET CUSTOM ACTIVE FIELDS HERE!
+
+            // inject custom interpolator fields into the pass structs
             passStructs = customInterpSubGen.CopyModifyExistingPassStructs(passStructs, activeFields.baseInstance);
 
             // Get active fields from ShaderPass
@@ -355,9 +351,11 @@ namespace UnityEditor.ShaderGraph
             // Value: string to splice
             Dictionary<string, string> spliceCommands = new Dictionary<string, string>();
 
+            // populate splice commands from the pass's customInterpolator descriptors.
             if (pass.customInterpolators != null)
                 customInterpSubGen.ProcessDescriptors(pass.customInterpolators.Select(item => item.descriptor));
             customInterpSubGen.AppendToSpliceCommands(spliceCommands);
+
             // --------------------------------------------------
             // Dependencies
 
@@ -844,7 +842,7 @@ namespace UnityEditor.ShaderGraph
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
 
-            // Turn off the skip flag so other passes can work correctly.
+            // Turn off the skip flag so other passes behave correctly correctly.
             CustomInterpolatorUtils.generatorSkipFlag = false;
             CustomInterpolatorUtils.generatorNodeOnly = false;
         }
