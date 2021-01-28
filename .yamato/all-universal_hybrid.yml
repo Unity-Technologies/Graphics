@@ -7,15 +7,37 @@
 
 ---
 
-All_Universal_Hybrid_2020.2:
-    name: All Universal_Hybrid CI - 2020.2
+PR_Universal_Hybrid_2020.2:
+    name: Universal_Hybrid PR Job - 2020.2
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.2
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_cache_mono_Linear_2020.2
          rerun: on-new-revision
-All_Universal_Hybrid_CUSTOM-REVISION:
-    name: All Universal_Hybrid CI - CUSTOM-REVISION
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_Universal_Hybrid_2020.2:
+    name: Nightly Universal_Hybrid - 2020.2
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.2
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+PR_Universal_Hybrid_CUSTOM-REVISION:
+    name: Universal_Hybrid PR Job - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_Universal_Hybrid_CUSTOM-REVISION:
+    name: Nightly Universal_Hybrid - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

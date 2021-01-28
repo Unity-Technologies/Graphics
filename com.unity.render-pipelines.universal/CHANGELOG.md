@@ -4,19 +4,37 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.4.0] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Fixed
+- Fixed an undo issues for additional light property on the UniversalRenderPipeline Asset.
+
+## [10.3.1] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.3.0] - 2020-11-16
 
 ### Added
 - Added support for the PlayStation 5 platform.
 
 ### Fixed
+- Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
+- Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
+- Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
 - Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 - Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
 - Fixed a case where overlay camera with output texture caused base camera not to render to screen. [case 1283225](https://issuetracker.unity3d.com/issues/game-view-renders-a-black-view-when-having-an-overlay-camera-which-had-output-texture-assigned-in-the-camera-stack)
-- Fixed an undo issues for additional light property on the UniversalRenderPipeline Asset.
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed an issue so it is now possible to enqueue render passes at runtime.
+- Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 
 ## [10.2.0] - 2020-10-19
 
