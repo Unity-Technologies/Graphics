@@ -14,6 +14,18 @@ URP 11 adds support for Point Light shadows. Point Light shadows help you to cre
 
 ![Point Light shadows](../Images/whats-new/urp-11/whats-new-point-light-shadows.png)
 
+### SRP packages are part of the core
+
+With the release of Unity 2021.1, graphics packages are relocating to the core of Unity. This move simplifies the experience of working with new Unity graphics features, as well as ensuring that your projects are always running on the latest verified graphics code.
+
+For each release of Unity (alpha / beta / patch release) the graphics code is embedded within the main Unity installer. When you install the latest release of Unity, you also get the latest URP, HDRP, Shader Graph, VFX Graph, and more.
+
+Tying graphics packages more closely to the main Unity release allows better testing to ensure that the graphics packages you use have been tested extensively with the version of Unity you have downloaded.
+
+You can also use a local copy or a custom version of the graphics packages by overriding them in the manifest file.
+
+For more information, see the following post on the forum: [SRP v11 beta is available now](https://forum.unity.com/threads/srp-v11-beta-is-available-now.1046539/).
+
 ## Improvements
 
 This section contains the overview of the major improvements in this release.
