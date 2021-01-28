@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
 
             public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nUninitialized has undefined values for the camera background. Use this only if you are rendering all pixels in the Camera's view.");
-            public static GUIContent cameraType = EditorGUIUtility.TrTextContent("Render Type", "Controls which type of camera this is.");
+            public static GUIContent cameraType = EditorGUIUtility.TrTextContent("Render Type", "Controls which type of camera this is.\nOverlay type is not allowed when the renderer selected is using deferred rendering.");
             public static GUIContent renderingShadows = EditorGUIUtility.TrTextContent("Render Shadows", "Makes this camera render shadows.");
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent requireOpaqueTexture = EditorGUIUtility.TrTextContent("Opaque Texture", "On makes this camera create a _CameraOpaqueTexture, which is a copy of the rendered view.\nOff makes the camera not create an opaque texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
@@ -258,15 +258,6 @@ namespace UnityEditor.Rendering.Universal
 
         GUIContent m_NameContent = new GUIContent();
 
-        bool IsNonBaseCameraDeferred(UniversalAdditionalCameraData additionalCameraData)
-        {
-            if (additionalCameraData.renderType == CameraRenderType.Base)
-                return false;
-
-            ForwardRenderer renderer = additionalCameraData.scriptableRenderer as ForwardRenderer;
-            return renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
-        }
-
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.height = EditorGUIUtility.singleLineHeight;
@@ -284,15 +275,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     warning = true;
                     warningInfo += "Not a supported type";
-                    if (!errorCameras.Contains(cam))
-                    {
-                        errorCameras.Add(cam);
-                    }
-                }
-                else if (IsNonBaseCameraDeferred(cam.gameObject.GetComponent<UniversalAdditionalCameraData>()))
-                {
-                    warning = true;
-                    warningInfo += "Deferred rendering mode is only allowed for the base camera";
                     if (!errorCameras.Contains(cam))
                     {
                         errorCameras.Add(cam);
@@ -553,20 +535,18 @@ namespace UnityEditor.Rendering.Universal
 
                 if (errorCameras.Any())
                 {
-                    string errorString = "These cameras have invalid properties:\n";
+                    string errorString = "These cameras are not of a valid type:\n";
+                    string validCameras = "";
                     foreach (var errorCamera in errorCameras)
                     {
-                        errorString += " - " + errorCamera.name + "\n";
+                        errorString += errorCamera.name + "\n";
                     }
 
-                    string validTypes = "";
                     foreach (var validCameraType in validCameraTypes)
                     {
-                        validTypes += validCameraType + "  ";
+                        validCameras += validCameraType + "  ";
                     }
-                    errorString += "\nValid types are: " + validTypes;
-
-                    errorString += "\nOnly the base camera can use Deferred rendering mode.";
+                    errorString += "Valid types are " + validCameras;
 
                     EditorGUILayout.HelpBox(errorString, MessageType.Warning);
                 }
@@ -702,15 +682,36 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawCameraType()
         {
+            int selectedRenderer = m_AdditionalCameraDataRendererProp.intValue;
+            ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
+            ForwardRenderer renderer = scriptableRenderer as ForwardRenderer;
+            bool isDeferred = renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
+
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
-            if (EditorGUI.EndChangeCheck())
+
+            //EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
+
+            CameraRenderType originalCamType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+            CameraRenderType camType = (originalCamType != CameraRenderType.Base && isDeferred) ? CameraRenderType.Base : originalCamType;
+
+            camType = (CameraRenderType)EditorGUILayout.EnumPopup(
+                Styles.cameraType,
+                camType,
+                e =>
+                {
+                    return isDeferred ? (CameraRenderType)e != CameraRenderType.Overlay : true;
+                },
+                false
+            );
+
+            if (EditorGUI.EndChangeCheck() || camType != originalCamType)
             {
+                m_AdditionalCameraDataCameraTypeProp.intValue = (int)camType;
+
                 UpdateCameras();
 
                 // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
                 // In order for overlay camera not to override base camera target texture we null it here
-                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
                 if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
                     settings.targetTexture.objectReferenceValue = null;
             }
