@@ -4103,7 +4103,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderContactShadows(in ContactShadowsParameters parameters,
             RTHandle                    contactShadowRT,
             RTHandle                    depthTexture,
-            /* TODO */
+            ComputeBuffer               fineTileBuffer,
+            ComputeBuffer               zBinBuffer,
             CommandBuffer               cmd)
         {
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
@@ -4113,6 +4114,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, parameters.depthTextureParameterName, depthTexture);
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
+
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._FineTileBuffer, fineTileBuffer);
+            cmd.SetComputeBufferParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._zBinBuffer,     zBinBuffer);
 
             cmd.DispatchCompute(parameters.contactShadowsCS, parameters.kernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
 

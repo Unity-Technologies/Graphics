@@ -600,7 +600,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ContactShadowsParameters     parameters;
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
-            public ComputeBufferHandle          lightList;
+            public ComputeBufferHandle          fineTileBuffer;
+            public ComputeBufferHandle          zBinBuffer;
         }
 
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
@@ -617,7 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool clearBuffer = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows;
 
                 passData.parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
+                passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+                passData.zBinBuffer = builder.ReadComputeBuffer(lightLists.zBinBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }));
@@ -627,7 +629,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderContactShadowPassData data, RenderGraphContext context) =>
                     {
-                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, context.cmd);
+                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.fineTileBuffer, data.zBinBuffer, context.cmd);
                     });
             }
 
