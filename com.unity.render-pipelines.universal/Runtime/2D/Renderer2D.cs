@@ -9,7 +9,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         ColorGradingLutPass m_ColorGradingLutPass;
         Render2DLightingPass m_Render2DLightingPass;
         PostProcessPass m_PostProcessPass;
-        PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
         Light2DCullResult m_LightCullResult;
@@ -40,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRendering + 1);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
@@ -212,9 +210,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(m_PostProcessPass);
                 colorTargetHandle = postProcessDestHandle;
             }
-
-            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
-                EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass)
             {

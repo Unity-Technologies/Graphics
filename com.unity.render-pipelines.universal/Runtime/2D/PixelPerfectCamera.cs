@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -162,15 +161,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        Vector2Int cameraRTSize
-        {
-            get
-            {
-                var targetTexture = m_Camera.targetTexture;
-                return targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
-            }
-        }
-
         // Snap camera position to pixels using Camera.worldToCameraMatrix.
         void PixelSnap()
         {
@@ -189,16 +179,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal = new PixelPerfectCameraInternal(this);
 
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
-
-            // Case 1249076: Initialize internals immediately after the scene is loaded,
-            // as the Cinemachine extension may need them before OnBeginContextRendering is called.
-            var rtSize = cameraRTSize;
-            m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            var rtSize = cameraRTSize;
+            if (camera != m_Camera)
+                return;
+
+            var targetTexture = m_Camera.targetTexture;
+            Vector2Int rtSize = targetTexture == null ? new Vector2Int(Screen.width, Screen.height) : new Vector2Int(targetTexture.width, targetTexture.height);
+
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
 
             PixelSnap();
@@ -216,12 +206,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 m_Camera.orthographicSize = m_Internal.orthoSize;
             }
-        }
 
-        void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-        {
-            if (camera == m_Camera)
-                UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            UnityEngine.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -234,7 +220,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
-            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
@@ -246,7 +231,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void OnDisable()
         {
-            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
