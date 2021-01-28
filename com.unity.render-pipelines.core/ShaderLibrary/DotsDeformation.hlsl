@@ -25,8 +25,8 @@ void FetchComputeVertexData(inout Attributes input)
         const DeformedVertexData vertexData = _DeformedMeshData[startIndex + input.vertexID];
 
         input.positionOS = vertexData.Position;
-        input.normalOS = vertexData.Normal;
-        input.tangentOS = float4(vertexData.Tangent, 0);
+        input.normalOS   = vertexData.Normal;
+        input.tangentOS  = float4(vertexData.Tangent, 0);
     }
 }
 #endif

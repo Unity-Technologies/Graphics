@@ -110,7 +110,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         float3 deformedPrevPos = inputPass.previousPositionOS;
 
 #if defined(DOTS_INSTANCING_ON)
-       DOTS_Deformation_MotionVecPass(inputMesh.positionOS, deformedPrevPos, inputMesh.vertexID);
+        FetchComputeVertexPosition(inputMesh.positionOS, deformedPrevPos, inputMesh.vertexID);
 #endif
         float3 effectivePositionOS = (hasDeformation) ? deformedPrevPos : inputMesh.positionOS;
 

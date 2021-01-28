@@ -9,7 +9,8 @@ struct DeformedVertexData
 uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData;
 uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
 
-void DOTS_Deformation(inout AttributesMesh input)
+// Reads vertex data for compute skinned meshes in Hybdrid Renderer
+void FetchComputeVertexData(inout AttributesMesh input)
 {
     // x,y = current and previous frame indices
     // z = deformation check (0 = no deformation, 1 = has deformation)
@@ -32,8 +33,9 @@ void DOTS_Deformation(inout AttributesMesh input)
     }
 }
 
-// position only for motion vec vs
-void DOTS_Deformation_MotionVecPass(inout float3 currPos, inout float3 prevPos, uint vertexID)
+// Reads vertex position for compute skinned meshes in Hybdrid Renderer
+// also previous frame position if skinned motion vectors are used
+void FetchComputeVertexPosition(inout float3 currPos, inout float3 prevPos, uint vertexID)
 {
     // x,y = current and previous frame indices
     // z = deformation check (0 = no deformation, 1 = has deformation)

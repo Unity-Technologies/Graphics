@@ -138,7 +138,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #if defined(DOTS_INSTANCING_ON)
-    DOTS_Deformation(input);
+    FetchComputeVertexData(input);
 #endif
 
 #if defined(HAVE_MESH_MODIFICATION)
