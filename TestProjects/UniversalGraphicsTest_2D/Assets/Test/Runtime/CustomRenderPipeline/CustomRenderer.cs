@@ -4,6 +4,8 @@ namespace UnityEngine.Rendering.Universal
 {
     public class CustomRenderer : ScriptableRenderer
     {
+        static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+
         private DrawObjectsPass m_RenderOpaqueForwardPass;
 
         ForwardLights m_ForwardLights;
@@ -16,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+            ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
 
             foreach (var feature in rendererFeatures)
                 feature.AddRenderPasses(this, ref renderingData);

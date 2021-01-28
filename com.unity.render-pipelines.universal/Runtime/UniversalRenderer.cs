@@ -323,11 +323,7 @@ namespace UnityEngine.Rendering.Universal
             if (createColorTexture)
             {
                 m_ActiveCameraAttachments.color = m_CameraAttachments.color;
-                RenderTargetIdentifier activeColorRenderTargetId = m_ActiveCameraAttachments.color;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled) activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
-#endif
-                ConfigureCameraColorTarget(activeColorRenderTargetId);
+                ConfigureCameraColorTarget(m_ActiveCameraAttachments.color);
             }
 
             // Add render passes and gather the input requirements
@@ -440,18 +436,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign camera targets (color and depth)
             {
-                RenderTargetIdentifier activeColorRenderTargetId = m_ActiveCameraAttachments.color;
-                RenderTargetIdentifier activeDepthRenderTargetId = m_ActiveCameraAttachments.depth;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
-                {
-                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
-                    activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
-                }
-#endif
-
-                ConfigureCameraTarget(activeColorRenderTargetId, activeDepthRenderTargetId);
+                ConfigureCameraTarget(m_ActiveCameraAttachments.color, m_ActiveCameraAttachments.depth);
             }
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
