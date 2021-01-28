@@ -183,7 +183,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         isRun[v.parameters.textureIndex] = true;
                         var cs = v.parameters.volumeShader;
-                        DensityVolumeManager.SetComputeShaderParams?.Invoke(v, cs, cmd);
+                        DensityVolumeManager.ComputeShaderParamsDelegate callback;
+                        if (DensityVolumeManager.ComputeShaderParams.TryGetValue(cs.name, out callback))
+                        {
+                            callback?.Invoke(v, cs, cmd);
+                        }
                         cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
                         cmd.DispatchCompute(cs, 0, 4, 4, 4);
