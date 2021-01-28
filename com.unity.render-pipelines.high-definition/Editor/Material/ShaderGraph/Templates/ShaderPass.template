@@ -24,6 +24,8 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    // For custom interpolators to inject a substruct definition before FragInputs definition,
+    // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(sgci_PreInclude)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

@@ -17,6 +17,7 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
     $FragInputs.color:              output.color = input.color;    
 
+    // splice point to copy custom interpolator fields from varyings to frag inputs
     $splice(sgci_VaryingsToFragInputs)
 
     return output;
@@ -62,8 +63,9 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
 
+    // splice point to copy frag inputs custom interpolator pack into the SDI
     $splice(sgci_CopyToSDI)
-    
+
     return output;
 }
 

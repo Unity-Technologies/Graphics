@@ -1,5 +1,4 @@
 
-$splice(sgci_PreVertex)
 
 VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh input)
 {
@@ -41,6 +40,8 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
+// This is used for injecting the define below.
+$splice(sgci_PreVertex)
 
 #if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl
 // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
