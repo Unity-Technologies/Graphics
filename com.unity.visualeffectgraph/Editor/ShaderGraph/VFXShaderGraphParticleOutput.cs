@@ -39,7 +39,11 @@ namespace UnityEditor.VFX
             base.OnDisable();
         }
 
-        void UpdateMaterialEditor() => m_MaterialEditor = (MaterialEditor)CreateEditor(m_Data.editorMaterial);
+        void UpdateMaterialEditor()
+        {
+            var material = m_Data.GetOrCreateMaterial((VFXContext)target);
+            m_MaterialEditor = (MaterialEditor)CreateEditor(material);
+        }
 
         public override void OnInspectorGUI()
         {
@@ -51,20 +55,34 @@ namespace UnityEditor.VFX
                 m_RequireUpdateMaterialEditor = false;
             }
 
-            EditorGUI.BeginChangeCheck();
+            var materialChanged = false;
 
             if (m_MaterialEditor != null)
             {
-                // Required to draw the header to draw OnInspectorGUI.
-                m_MaterialEditor.DrawHeader();
+                if ((m_MaterialEditor.target as Material)?.shader == VFXResources.defaultResources.shader)
+                {
+                    EditorGUILayout.HelpBox("Failed to create the render state material.", MessageType.Warning);
+                }
+                else
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        // Required to draw the header to draw OnInspectorGUI.
+                        m_MaterialEditor.DrawHeader();
+                    }
 
-                // NOTE: This will correctly handle the configuration of keyword and pass setup.
-                m_MaterialEditor.OnInspectorGUI();
+                    EditorGUI.BeginChangeCheck();
+
+                    // This will correctly handle the configuration of keyword and pass setup.
+                    m_MaterialEditor.OnInspectorGUI();
+
+                    materialChanged = EditorGUI.EndChangeCheck();
+                }
             }
 
             // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
 
-            if (serializedObject.ApplyModifiedProperties() || EditorGUI.EndChangeCheck())
+            if (serializedObject.ApplyModifiedProperties() || materialChanged)
             {
                 foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
                 {
