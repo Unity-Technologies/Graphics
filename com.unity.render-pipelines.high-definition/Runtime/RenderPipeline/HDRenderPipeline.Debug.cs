@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static bool NeedColorPickerDebug(DebugDisplaySettings debugSettings)
+        bool NeedColorPickerDebug(DebugDisplaySettings debugSettings)
         {
             return debugSettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None
                 || debugSettings.data.falseColorDebugSettings.falseColor
