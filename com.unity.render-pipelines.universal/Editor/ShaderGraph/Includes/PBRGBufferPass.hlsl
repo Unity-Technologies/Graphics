@@ -35,6 +35,9 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+#if defined(DOTS_INSTANCINT_ON)
+    ReadComputeData(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+#endif
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);

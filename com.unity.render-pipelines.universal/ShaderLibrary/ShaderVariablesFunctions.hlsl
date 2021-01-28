@@ -279,4 +279,57 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
     #define UnityStereoTransformScreenSpaceTex(uv) uv
 #endif // defined(UNITY_SINGLE_PASS_STEREO)
 
+
+#if defined(DOTS_INSTANCING_ON)
+struct DeformedVertexData
+{
+    float3 Position;
+    float3 Normal;
+    float3 Tangent;
+};
+
+int _HybridDeformedVertexStreamIndex;
+uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData;
+uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
+
+void ReadComputeData(inout float3 position, inout float3 normal, inout float4 tangent, in uint vertexID)
+{
+    // x,y = current and previous frame indices
+    // z = deformation check (0 = no deformation, 1 = has deformation)
+    // w = skinned motion vectors
+    const int4 deformProperty = asint(unity_ComputeMeshIndex);
+    const int doSkinning = deformProperty.z;
+    if (doSkinning == 1)
+    {
+        const int streamIndex = _HybridDeformedVertexStreamIndex;
+        const int startIndex = deformProperty[streamIndex];
+        const DeformedVertexData vertexData = _DeformedMeshData[startIndex + vertexID];
+   
+        position = vertexData.Position;
+        normal   = vertexData.Normal;
+        tangent  = float4(vertexData.Tangent, 0);
+    }
+}
+
+//void ReadComputeData(inout float4 position, inout float3 normal, inout float4 tangent, in uint vertexID)
+//{
+//    // x,y = current and previous frame indices
+//    // z = deformation check (0 = no deformation, 1 = has deformation)
+//    // w = skinned motion vectors
+//    const int4 deformProperty = asint(unity_ComputeMeshIndex);
+//    const int doSkinning = deformProperty.z;
+//    if (doSkinning == 1)
+//    {
+//        const int streamIndex = _HybridDeformedVertexStreamIndex;
+//        const int startIndex = deformProperty[streamIndex];
+//        const DeformedVertexData vertexData = _DeformedMeshData[startIndex + vertexID];
+//
+//        position.xyz = vertexData.Position;
+//        normal = vertexData.Normal;
+//        tangent.xyz = vertexData.Tangent;
+//    }
+//
+//}
+#endif
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
