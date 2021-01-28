@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Profiling;
 using UnityEngine;
 
@@ -10,11 +11,11 @@ public class ProfilerDataModel : MonoBehaviour
     public float GpuFrameTime { get; private set; }
 
     // FrameTiming API does not work ATM
-    //FrameTiming[] m_Timing = new FrameTiming[1];
-    
+    FrameTiming[] m_Timing = new FrameTiming[1];
+
     ProfilerRecorder m_FakeCpuTimeRecorder;
     ProfilerRecorder m_FakeGpuTimeRecorder;
-    
+
     static float GetRecorderFrameAverage(ProfilerRecorder recorder)
     {
         var samplesCount = recorder.Count;
@@ -46,14 +47,14 @@ public class ProfilerDataModel : MonoBehaviour
 
     void Update()
     {
-        // Example numbers for UI visualization - not actual data we want to display  
-        CpuFrameTime = GetRecorderFrameAverage(m_FakeCpuTimeRecorder) * 1e-6f;
-        GpuFrameTime = GetRecorderFrameAverage(m_FakeGpuTimeRecorder) * 1e-6f;
+        // Example numbers for UI visualization - not actual data we want to display
+        //CpuFrameTime = GetRecorderFrameAverage(m_FakeCpuTimeRecorder) * 1e-6f;
+        //GpuFrameTime = GetRecorderFrameAverage(m_FakeGpuTimeRecorder) * 1e-6f;
 
         // FrameTiming API does not work ATM
-        //FrameTimingManager.CaptureFrameTimings();
-        //FrameTimingManager.GetLatestTimings(1, m_Timing);
-        //CpuFrameTime = m_Timing.First().cpuFrameTime;
-        //GpuFrameTime = m_Timing.First().gpuFrameTime;
+        FrameTimingManager.CaptureFrameTimings();
+        FrameTimingManager.GetLatestTimings(1, m_Timing);
+        CpuFrameTime = (float)m_Timing.First().cpuFrameTime;
+        GpuFrameTime = (float)m_Timing.First().gpuFrameTime;
     }
 }
