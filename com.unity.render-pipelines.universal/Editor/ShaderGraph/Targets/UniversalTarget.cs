@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -186,8 +188,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex,
-                descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             
@@ -346,8 +347,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             useInPreview = true,
 
             // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            passTemplatePath = UniversalTarget.kTemplatePath,
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -375,7 +376,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
