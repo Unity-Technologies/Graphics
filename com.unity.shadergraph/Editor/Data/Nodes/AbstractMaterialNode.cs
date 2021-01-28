@@ -34,14 +34,11 @@ namespace UnityEditor.ShaderGraph
         bool m_IsActive = true;
 
         [SerializeField]
-        private List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
+        List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
         public GraphData owner { get; set; }
 
-        internal virtual bool ExposeToSearcher
-        {
-            get => true;
-        }
+        internal virtual bool ExposeToSearcher => true;
 
         OnNodeModified m_OnModified;
 
@@ -448,7 +445,7 @@ namespace UnityEditor.ShaderGraph
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
             AbstractMaterialNode fromNode = null;
             if (edges.Count() > 0)
-            { 
+            {
                 var fromSocketRef = edges[0].outputSlot;
                 fromNode = fromSocketRef.node;
             }
@@ -752,6 +749,7 @@ namespace UnityEditor.ShaderGraph
         {
             return defaultVariableName;
         }
+
         public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if (slot == null)

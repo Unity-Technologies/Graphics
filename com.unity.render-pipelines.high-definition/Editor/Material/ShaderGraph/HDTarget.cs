@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         string m_CustomEditorGUI;
 
         internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 8;
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
@@ -1389,7 +1390,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input.customInterpolators")
         };
     }
-
 
     #endregion
 }

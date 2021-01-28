@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         string m_CustomEditorGUI;
 
         internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 4;
 
         public UniversalTarget()
         {
@@ -191,7 +192,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
-            
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip, alphaClip);
             context.AddField(Fields.DoubleSided, twoSided);
@@ -875,18 +875,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
     #endregion
 
-    #region CISubGenDescriptors
-
+    #region CustomInterpolators
     static class CoreCustomInterpDescriptors
     {
         public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
         {
-
             // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
             // This entry point will let us generate a block of pass-through assignments for each field.
             CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
 
-            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy CI's from VD.
+            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
             // this entry point allows for the function to be defined before it is used.
             CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "sgci_PassThroughFunc", "Varyings", "VertexDescription", "SGCI_VARYPASSTHROUGH_FUNC")
         };

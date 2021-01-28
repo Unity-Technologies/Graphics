@@ -766,17 +766,16 @@ namespace UnityEditor.ShaderGraph
             // Get list of active Block types
             var currentBlocks = GetNodes<BlockNode>();
             var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
-
             foreach (var target in activeTargets)
             {
                 target.GetActiveBlocks(ref context);
             }
 
+            // custom blocks aren't going to exist in GetActiveBlocks, we need to ensure we grab those too.
             foreach(var cibnode in currentBlocks.Where(bn => bn.isCustomBlock))
             {
                 context.AddBlock(cibnode.descriptor);
             }
-
             return context.activeBlocks;
         }
 
@@ -788,7 +787,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var vertexBlock in vertexContext.blocks)
             {
                 if (vertexBlock.value?.isCustomBlock == true)
-                {                    
+                {
                     vertexBlock.value.SetOverrideActiveState(disableCI ? AbstractMaterialNode.ActiveState.ExplicitInactive : AbstractMaterialNode.ActiveState.ExplicitActive);
                 }
                 else if (vertexBlock.value?.descriptor?.isUnknown == true)
@@ -2267,8 +2266,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
-                    if (!block.isCustomBlock) // does its own deserialization
-                    { 
+                    // custom interpolators fully regenerate their own descriptor on deserialization
+                    if (!block.isCustomBlock)
+                    {
                         block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
                     }
                     if (block.descriptor == null)
@@ -2371,16 +2371,29 @@ namespace UnityEditor.ShaderGraph
             if (m_ActiveTargets.Count() == 0)
                 return;
 
-            // how many channels are _probably_ used by the target?
-            int padding = (3 + m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max()) * 4;
+            int nonCustomUsage = 0;
+            foreach (var bnode in vertexContext.blocks.Where(jb => !jb.value.isCustomBlock).Select(b => b.value))
+            {
+                if (bnode == null || bnode.descriptor == null)
+                    continue;
 
+                if (bnode.descriptor.HasPreprocessor() || bnode.descriptor.HasSemantic() || bnode.descriptor.vectorCount == 0) // not packable.
+                    nonCustomUsage += 4;
+                else nonCustomUsage += bnode.descriptor.vectorCount ;
+            }
+            int maxTargetUsage = m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max() * 4;
+
+            int padding = nonCustomUsage + maxTargetUsage;
+
+            // TODO: Add editor settings to select warning/error thresholds.
             int d3dSupport    = 32 * 4 - padding;   // 32 is standard expected for modern systems and D3D.
             int chromeSupport = 15 * 4 - padding;   // 15 is for chrome's implementation of WebGL.
             // int lowSupport = 10 * 4 - padding;   // 10 is some other limitation Unity recognizes.
             // int minSupport =  8 * 4 - padding;   // If interpolators are supported, 8 is the bare minimum we can expect.
+
             int total = 0;
 
-            // warn based the interpolators location in the block list.
+            // warn based on the interpolator's location in the block list.
             foreach (var cib in vertexContext.blocks.Where(jb=>jb.value.isCustomBlock).Select(b=>b.value))
             {
                 ClearErrorsForNode(cib);

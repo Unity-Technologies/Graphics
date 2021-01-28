@@ -63,9 +63,8 @@ $splice(sgci_PreVertex)
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
-#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // unnecessary, but let's make the point as clear as possible.
+    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
     $splice(sgci_VertexDefinitionToVaryings)
-#endif
 
     return input;
 }

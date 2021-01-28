@@ -546,7 +546,7 @@ namespace UnityEditor.Graphing
         // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
-            // DO IT.
+            // ... So let's use it in then.
             return ConvertToValidHLSLIdentifier(input);
         }
 
