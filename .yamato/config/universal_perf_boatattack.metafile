@@ -69,20 +69,18 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersLow
+          - [all]: --player-load-path=playersLow
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-load-path=../../playersMedium
+          - [all]: --player-load-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
-          - [all]: --player-load-path=../../playersHigh
+          - [all]: --player-load-path=playersHigh
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
     commands_build:
@@ -99,8 +97,7 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
           - [all]: --testfilter=Low
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=playersLow
+          - [all]: --player-save-path=playersLow
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags: 
           - <reuse_blocks.perf_utr_flags>
@@ -108,16 +105,15 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
           - [all]: --testfilter=Medium
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=playersMedium
+          - [all]: --player-save-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --testfilter=High
-          - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: --player-save-path=playersHigh
+          - [all]: --testfilter=High
+          - [all]: --player-save-path=playersHigh
           
   - type: playmode
     name: performance_playmode_editor
