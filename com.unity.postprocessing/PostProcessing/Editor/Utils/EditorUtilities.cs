@@ -30,8 +30,10 @@ namespace UnityEditor.Rendering.PostProcessing
                     || t == BuildTarget.PS5
 #endif
                     || t == BuildTarget.XboxOne
+#if UNITY_GAMECORE                    
                     || t == BuildTarget.GameCoreScarlett
                     || t == BuiltTarget.GameCoreXboxone
+#endif                    
                     || t == BuildTarget.Switch;
             }
         }
