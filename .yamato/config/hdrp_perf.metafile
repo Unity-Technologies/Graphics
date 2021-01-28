@@ -1,6 +1,9 @@
 project:
   name: HDRP_PerformanceTests
   folder: HDRP_PerformanceTests
+  variables:
+    GIT_BRANCH: master
+
 test_platforms:
   - type: playmode
     name: performance_memory
