@@ -11,13 +11,21 @@ namespace UnityEngine
         {
         }
 
-        private void OnEnable()
+        public void OnEnable()
         {
             if (LensFlareData)
                 SRPLensFlareCommon.Instance.AddData(this);
+            else
+                SRPLensFlareCommon.Instance.RemoveData(this);
         }
 
-        private void OnDisable()
+        public void OnDisable()
+        {
+            if (LensFlareData)
+                SRPLensFlareCommon.Instance.RemoveData(this);
+        }
+
+        public void OnDestroy()
         {
             if (LensFlareData)
                 SRPLensFlareCommon.Instance.RemoveData(this);
@@ -25,18 +33,39 @@ namespace UnityEngine
 
         public void Start()
         {
-            if (LensFlareData)
+            if (LensFlareData != null)
             {
                 LensFlareData.WorldPosition = transform.position;
                 SRPLensFlareCommon.Instance.AddData(this);
+            }
+            else
+            {
+                SRPLensFlareCommon.Instance.RemoveData(this);
+            }
+        }
+
+        public void OnValidate()
+        {
+            if (LensFlareData != null)
+            {
+                LensFlareData.WorldPosition = transform.position;
+                SRPLensFlareCommon.Instance.AddData(this);
+            }
+            else
+            {
+                SRPLensFlareCommon.Instance.RemoveData(this);
             }
         }
 
         public void Update()
         {
-            if (LensFlareData)
+            if (LensFlareData != null)
             {
                 LensFlareData.WorldPosition = transform.position;
+            }
+            else
+            {
+                SRPLensFlareCommon.Instance.RemoveData(this);
             }
         }
     }

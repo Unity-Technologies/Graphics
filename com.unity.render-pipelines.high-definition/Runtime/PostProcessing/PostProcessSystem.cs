@@ -2184,6 +2184,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SRPLensFlareData lensFlareData = data.LensFlareData;
 
+                if (lensFlareData == null)
+                    continue;
+
                 int currentIdx = 0;
                 parameters.ScaleCurves[elemIdx] = new AnimationCurve(lensFlareData.ScaleCurve.keys);
                 parameters.PositionCurves[elemIdx] = new AnimationCurve(lensFlareData.PositionCurve.keys);
@@ -2222,9 +2225,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.CopyTexture(source, target);
 
+            if (parameters.Elements.Length == 0)
+                return;
+
             int elemIdx = 0;
             foreach (LensFlareElement element in parameters.Elements)
             {
+                if (element.LensFlareTextures == null)
+                    continue;
+
                 Camera cam = hdCam.camera;
 
                 Vector3 positionWS = parameters.WorldPosition[elemIdx];
@@ -2251,6 +2260,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, target);
                 for (int i = 0; i < element.LensFlareTextures.Length; ++i)
                 {
+                    if (element.Positions.Length == 0)
+                        continue;
+
                     if (element.LensFlareTextures[i] == null)
                         continue;
 
