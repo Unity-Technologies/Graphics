@@ -45,7 +45,7 @@
       * [Global Settings](Context-OutputSharedSettings.md)
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
-    * [Update Particle](Context-Update.md) 
+    * [Update Particle](Context-Update.md)
     * Block
       * Attribute
         * [Curve](Block-SetAttributeFromCurve.md)
@@ -109,11 +109,11 @@
           * [Set Spawn Time](Block-SetSpawnTime.md)
           * [Spawn Over Distance](Block-SpawnOverDistance.md)
       * Velocity
-        * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirection&Speed(ChangeSpeed).md)
-        * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirection&Speed(NewDirection).md)
-        * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirection&Speed(RandomDirection).md)
-        * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirection&Speed(Spherical).md)
-        * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirection&Speed(Tangent).md)
+        * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
+        * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
+        * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
+        * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
+        * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)

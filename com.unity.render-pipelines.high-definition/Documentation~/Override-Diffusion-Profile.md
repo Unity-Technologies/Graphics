@@ -1,6 +1,6 @@
 # Diffusion Profile Override
 
-The High Definition Render Pipeline (HDRP) allows you to use up to 15 custom [Diffusion Profiles](Diffusion-Profile.md) in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, you can use the **Diffusion Profile Override** inside a [Volume](Volumes.md). This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global). 
+The High Definition Render Pipeline (HDRP) allows you to use up to 15 custom [Diffusion Profiles](Diffusion-Profile.md) in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, you can use the **Diffusion Profile Override** inside a [Volume](Volumes.md). This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
 
 ## Using a Diffusion Profile Override
 
@@ -8,6 +8,8 @@ To add a **Diffusion Profile Override** to a Volume:
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
 2. In the Inspector, navigate to **Add Override** and click on **Diffusion Profile Override**.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 

@@ -18,8 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </code>
     /// </example>
     /// </summary>
-    internal struct MaterialHeaderScope : IDisposable
+    public struct MaterialHeaderScope : IDisposable
     {
+        /// <summary>Indicates whether the header is expanded or not. Is true if the header is expanded, false otherwise.</summary>
         public readonly bool expanded;
         bool spaceAtEnd;
 #if !UNITY_2020_1_OR_NEWER
@@ -53,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (colorDot != default(Color))
                 title = "   " + title;
             expanded = subHeader
-                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended)
+                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended, isBoxed: false)
                 : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
             if (colorDot != default(Color))
             {

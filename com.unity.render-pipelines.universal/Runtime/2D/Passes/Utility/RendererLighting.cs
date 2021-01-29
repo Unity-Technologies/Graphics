@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             var maxShadowTextureCount = ShadowRendering.maxTextureCount;
             var requiresRTInit = true;
@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // Set the current RT to the light RT
                 if (shadowLightCount > 0 || requiresRTInit)
                 {
-                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    cmd.SetRenderTarget(renderTexture, depthTexture);
                     requiresRTInit = false;
                 }
 
@@ -477,12 +477,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RenderBufferStoreAction.Store,
                         depthTarget,
                         RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.DontCare);
+                        RenderBufferStoreAction.Store);
                 }
                 else
                     cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

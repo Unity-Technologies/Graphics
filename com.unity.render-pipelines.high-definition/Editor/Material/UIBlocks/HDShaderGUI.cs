@@ -21,14 +21,18 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Use this class to build your custom Shader GUI for HDRP.
     /// You can use a class that inherits from HDShaderGUI in the Shader Graph Custom EditorGUI field.
     /// </summary>
-    internal abstract class HDShaderGUI : ShaderGUI
+    public abstract class HDShaderGUI : ShaderGUI
     {
         internal protected bool m_FirstFrame = true;
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
 
-        protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
+        /// <summary>
+        /// Sets up the keywords and passes for the material you pass in as a parameter.
+        /// </summary>
+        /// <param name="material">Target material.</param>
+        protected abstract void SetupMaterialKeywordsAndPass(Material material);
 
         /// <summary>
         /// Unity calls this function when you assign a new shader to the material.
@@ -40,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
-            SetupMaterialKeywordsAndPassInternal(material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         /// <summary>
@@ -61,13 +65,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_FirstFrame = false;
 
                 foreach (var material in materials)
-                    SetupMaterialKeywordsAndPassInternal(material);
+                    SetupMaterialKeywordsAndPass(material);
             }
         }
 
         /// <summary>
         /// Unity calls this function when it displays the GUI. This method is sealed so you cannot override it. To implement your custom GUI, use OnMaterialGUI instead.
         /// </summary>
+        /// <param name="materialEditor">Material editor instance.</param>
+        /// <param name="props">The list of properties in the inspected material(s).</param>
         public sealed override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
@@ -81,10 +87,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
+        /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
         /// <param name="materialEditor">The current material editor.</param>
-        /// <param name="props">The list of properties the material has.</param>
+        /// <param name="props">The list of properties in the inspected material(s).</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
         readonly static string[] floatPropertiesToSynchronize =

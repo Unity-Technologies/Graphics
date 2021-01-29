@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                camera.lastFrame = Time.frameCount;
+                camera.lastFrame = frameCount;
                 m_Cache[key] = camera;
             }
             return camera.camera;
@@ -63,11 +63,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Cache.Keys.CopyTo(cameraKeysCache, 0);
             foreach (var key in cameraKeysCache)
             {
-                m_Cache.TryGetValue(key, out var value);
-                if ((frameCount - value.lastFrame) > frameWindow)
+                if (m_Cache.TryGetValue(key, out var value))
                 {
-                    CoreUtils.Destroy(value.camera.gameObject);
-                    m_Cache.Remove(key);
+                    if (Math.Abs(frameCount - value.lastFrame) > frameWindow)
+                    {
+                        if (value.camera != null)
+                        {
+                            CoreUtils.Destroy(value.camera.gameObject);
+                        }
+                        m_Cache.Remove(key);
+                    }
                 }
             }
         }
@@ -79,7 +84,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new ObjectDisposedException(nameof(CameraCache<K>));
 
             foreach (var pair in m_Cache)
-                CoreUtils.Destroy(pair.Value.camera.gameObject);
+            {
+                if (pair.Value.camera != null)
+                    CoreUtils.Destroy(pair.Value.camera.gameObject);
+            }
             m_Cache.Clear();
         }
 
