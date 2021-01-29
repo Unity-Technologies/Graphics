@@ -44,19 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 volume.parameters.textureIndex = -1;
                 addTexture = false;
             }
-            else if (volume.parameters.volumeShader != null)
-            {
-                // Check if a volume with the same shader already exists
-                foreach (DensityVolume v in m_volumes)
-                {
-                    if (v.parameters.volumeShader == volume.parameters.volumeShader)
-                    {
-                        volume.parameters.textureIndex = v.parameters.textureIndex;
-                        addTexture = false;
-                        break;
-                    }
-                }
-            }
             else if (volume.parameters.volumeMask != null)
             {
                 var tex = volume.parameters.volumeMask;
@@ -184,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         isRun[v.parameters.textureIndex] = true;
                         var cs = v.parameters.volumeShader;
                         DensityVolumeManager.ComputeShaderParamsDelegate callback;
-                        if (DensityVolumeManager.ComputeShaderParams.TryGetValue(cs.name, out callback))
+                        if (DensityVolumeManager.ComputeShaderParams.TryGetValue(v, out callback))
                         {
                             callback?.Invoke(v, cs, cmd);
                         }

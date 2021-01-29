@@ -6,10 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static private DensityVolumeManager _instance = null;
         public delegate void ComputeShaderParamsDelegate(DensityVolume volume, ComputeShader shader, CommandBuffer cmd);
-        internal static Dictionary<string, ComputeShaderParamsDelegate> ComputeShaderParams = new Dictionary<string, ComputeShaderParamsDelegate>();
-        public static void AddComputeShaderCallback(string shaderName, ComputeShaderParamsDelegate callback)
+        internal static Dictionary<DensityVolume, ComputeShaderParamsDelegate> ComputeShaderParams = new Dictionary<DensityVolume, ComputeShaderParamsDelegate>();
+        public static void AddComputeShaderCallback(DensityVolume volume, ComputeShaderParamsDelegate callback)
         {
-            ComputeShaderParams[shaderName] = callback;
+            ComputeShaderParams[volume] = callback;
         }
 
         public static DensityVolumeManager manager
