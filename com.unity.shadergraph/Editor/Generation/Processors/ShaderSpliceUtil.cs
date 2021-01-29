@@ -30,15 +30,17 @@ namespace UnityEditor.ShaderGraph
         // returns the offset of the first non-whitespace character, in the range [start, end] inclusive ... will return end if none found
         private static int SkipWhitespace(string str, int start, int end)
         {
-            int index = str.IndexOfAny(whitespace, start, end-start);
-            if(index > -1)
+            int index = start;
+            while (index < end)
             {
-                return index;
+                char c = str[index];
+                if(!whitespace.Contains(c))
+                {
+                    break;
+                }
+                index++;
             }
-            else
-            {
-                return end;
-            }
+            return index;
         }
 
         public class TemplatePreprocessor

@@ -66,9 +66,9 @@ namespace UnityEditor.ShaderGraph
             return fieldActive;
         }
 
-        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out ShaderStringBuilder structBuilder)
+        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, bool humanReadable, out ShaderStringBuilder structBuilder)
         {
-            structBuilder = new ShaderStringBuilder();
+            structBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using (structBuilder.BlockSemicolonScope())
             {
@@ -176,13 +176,13 @@ namespace UnityEditor.ShaderGraph
             packStruct.fields = packedSubscripts.ToArray();
         }
 
-        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
+        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, bool humanReadable, out ShaderStringBuilder interpolatorBuilder)
         {
             //set up function string builders and struct builder
             List<int> packedCounts = new List<int>();
-            var packBuilder = new ShaderStringBuilder();
-            var unpackBuilder = new ShaderStringBuilder();
-            interpolatorBuilder = new ShaderStringBuilder();
+            var packBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            var unpackBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            interpolatorBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             string packedStruct = "Packed" + shaderStruct.name;
 
             //declare function headers
