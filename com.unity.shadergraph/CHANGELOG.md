@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+
+### Changed
+
+### Fixed
 
 ## [11.0.0] - 2020-10-21
 
