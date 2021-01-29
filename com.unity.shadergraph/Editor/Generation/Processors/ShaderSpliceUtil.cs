@@ -58,14 +58,14 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, bool humanReadable, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
                 this.templatePaths = templatePaths;
                 this.assetCollection = assetCollection;
-                this.result = outShaderCodeResult ?? new ShaderStringBuilder();
+                this.result = outShaderCodeResult ?? new ShaderStringBuilder(humanReadable: humanReadable);
                 includedFiles = new HashSet<string>();
             }
 
@@ -244,7 +244,7 @@ namespace UnityEditor.ShaderGraph
                         else
                         {
                             int endIndex = result.length;
-                            using (var temp = new ShaderStringBuilder())
+                            using (var temp = new ShaderStringBuilder(humanReadable:true))
                             {
                                 // Wrap in debug mode
                                 if (isDebug)

@@ -851,7 +851,7 @@ namespace UnityEditor.ShaderGraph
             // Process Template
             Profiler.BeginSample("ProcessTemplate");
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_assetCollection);
+                isDebug, sharedTemplateDirectories, m_assetCollection, m_humanReadable);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
             Profiler.EndSample();

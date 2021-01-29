@@ -377,8 +377,8 @@ Shader ""Hidden/GraphErrorShader2""
                     });
                 }
 
-                var bodySb = new ShaderStringBuilder(1);
-                var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
+                var bodySb = new ShaderStringBuilder(indentationLevel:1);
+                var registry = new FunctionRegistry(new ShaderStringBuilder(humanReadable:true), true);
 
                 foreach (var properties in graph.properties)
                 {
