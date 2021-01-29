@@ -16,7 +16,7 @@ void FetchComputeVertexData(inout Attributes input)
     // x,y = current and previous frame indices
     // z = deformation check (0 = no deformation, 1 = has deformation)
     // w = skinned motion vectors
-    const int4 deformProperty = asint(unity_ComputeMeshIndex);
+    const int4 deformProperty = asint(unity_DOTSDeformationParams);
     const int doSkinning = deformProperty.z;
     if (doSkinning == 1)
     {
