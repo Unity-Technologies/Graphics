@@ -833,7 +833,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     float previousCloudDepth = previousResult1.z;
 
     // This tracks if the history is considered valid
-    bool validHistory = true;
+    bool validHistory = previousSampleCount >= 0.5f;
 
     // The history is invalid if we are requesting a value outside the frame
     if(historyCoord.x < 0.0 || historyCoord.x >= _IntermediateScreenSize.x || historyCoord.y < 0.0 || historyCoord.y >= _IntermediateScreenSize.y)
@@ -920,8 +920,8 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
                 previousResult = BilUpColor3x3(currentDepth, lowD, neighborhood, lowM);
             }
             previousCloudDepth = pixelRegion[closestNeighbor].cloudDepth;
-            previousDepth = currentDepth;
         }
+        previousDepth = currentDepth;
     }
 
     // Make sure this doesn't go outside of the [0, 1] interval
@@ -1125,7 +1125,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
-    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius, _WorldSpaceCameraPos.z) + t * _SunDirection;
+    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceCameraPos.z) + t * _SunDirection;
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);

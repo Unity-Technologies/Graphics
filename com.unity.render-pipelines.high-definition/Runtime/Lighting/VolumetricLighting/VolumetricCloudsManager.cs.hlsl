@@ -44,7 +44,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
     float2 _DepthMipOffset;
-    float2 _Padding;
+    float2 _Padding0;
     float4 _AmbientProbeCoeffs[7];
     float3 _SunRight;
     float _ShadowIntensity;
@@ -52,6 +52,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ShadowFallbackValue;
     int _ShadowCookieResolution;
     float2 _ShadowRegionSize;
+    float _ShadowPlaneOffset;
+    float _Padding1;
 CBUFFER_END
 
 

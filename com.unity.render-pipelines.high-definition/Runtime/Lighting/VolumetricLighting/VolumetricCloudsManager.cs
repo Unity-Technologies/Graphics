@@ -112,8 +112,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
 
-        // Padding
-        public Vector2 _Padding1;
+        // Offset applied of the plane receiving the center of the shadow
+        public float _ShadowPlaneOffset;
+
+        public float _Padding1;
     }
 
     public partial class HDRenderPipeline
@@ -339,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
-            cb._HighestCloudAltitude = settings.highestCloudAltitude.value;
+            cb._HighestCloudAltitude = settings.lowestCloudAltitude.value + settings.cloudThickness.value;
             cb._EarthRadius = settings.earthRadiusMultiplier.value * earthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
@@ -438,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ShadowCookieResolution = (int)settings.shadowResolution.value;
                 cb._ShadowIntensity = settings.shadowIntensity.value;
                 cb._ShadowFallbackValue = settings.shadowFallbackValue.value;
+                cb._ShadowPlaneOffset = settings.shadowPlaneOffset.value;
 
                 // Compute Size of the shadow on the ground
                 float groundShadowSize = settings.shadowSize.value * 0.5f;
@@ -780,7 +783,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the parameters that we are interested in
             directionalLightData.right = sunLight.transform.right * 2 / Mathf.Max(shadowSize.x, 0.001f);
             directionalLightData.up = sunLight.transform.up * 2 / Mathf.Max(shadowSize.y, 0.001f);
-            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y, 0.0f);
+            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y - settings.shadowPlaneOffset.value, 0.0f);
 
             // Return the overridden light data
             return directionalLightData;

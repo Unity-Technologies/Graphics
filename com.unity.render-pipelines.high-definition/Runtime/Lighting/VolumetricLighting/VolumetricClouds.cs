@@ -87,10 +87,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4Parameter cloudTiling = new Vector4Parameter(new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
         [Tooltip("Altitude in meters of the lowest cloud")]
-        public ClampedFloatParameter lowestCloudAltitude = new ClampedFloatParameter(1500f, 600f, 1500f);
+        public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(1500f, 0.01f);
 
-        [Tooltip("Altitude in meters of the highest cloud")]
-        public ClampedFloatParameter highestCloudAltitude = new ClampedFloatParameter(8000, 2000.0f, 8000f);
+        [Tooltip("Thickness of the cloud volume")]
+        public MinFloatParameter cloudThickness = new MinFloatParameter(6500.0f, 100.0f);
 
         [Tooltip("Number of camera->cloud steps")]
         public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 16, 512);
@@ -157,6 +157,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Controls the resolution of the volumetric clouds shadow map.")]
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium);
+
+        [Tooltip("Shift applied to compute the volumetric clouds shadow.")]
+        public FloatParameter shadowPlaneOffset = new FloatParameter(0.0f);
 
         [Tooltip("Controls the size of the volumetric clouds shadow in meters.")]
         public MinFloatParameter shadowSize = new MinFloatParameter(16000.0f, 1000.0f);

@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_EarthRadiusMultiplier;
         SerializedDataParameter m_CloudTiling;
         SerializedDataParameter m_LowestCloudAltitude;
-        SerializedDataParameter m_HighestCloudAltitude;
+        SerializedDataParameter m_CloudThickness;
         SerializedDataParameter m_NumPrimarySteps;
         SerializedDataParameter m_NumLightSteps;
         SerializedDataParameter m_CloudControl;
@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Shadow;
         SerializedDataParameter m_ShadowResolution;
         SerializedDataParameter m_ShadowSize;
+        SerializedDataParameter m_ShadowPlaneOffset;
         SerializedDataParameter m_ShadowIntensity;
         SerializedDataParameter m_ShadowFallbackValue;
 
@@ -50,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EarthRadiusMultiplier = Unpack(o.Find(x => x.earthRadiusMultiplier));
             m_CloudTiling = Unpack(o.Find(x => x.cloudTiling));
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
-            m_HighestCloudAltitude = Unpack(o.Find(x => x.highestCloudAltitude));
+            m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
             m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
@@ -74,6 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Shadow = Unpack(o.Find(x => x.shadow));
             m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
             m_ShadowSize = Unpack(o.Find(x => x.shadowSize));
+            m_ShadowPlaneOffset = Unpack(o.Find(x => x.shadowPlaneOffset));
             m_ShadowIntensity = Unpack(o.Find(x => x.shadowIntensity));
             m_ShadowFallbackValue = Unpack(o.Find(x => x.shadowFallbackValue));
         }
@@ -102,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             PropertyField(m_LowestCloudAltitude);
-            PropertyField(m_HighestCloudAltitude);
+            PropertyField(m_CloudThickness);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
@@ -196,6 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_ShadowIntensity);
                         PropertyField(m_ShadowSize);
+                        PropertyField(m_ShadowPlaneOffset);
                         PropertyField(m_ShadowFallbackValue);
                     }
                 }
