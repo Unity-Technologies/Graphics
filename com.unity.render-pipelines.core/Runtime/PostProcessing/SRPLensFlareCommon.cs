@@ -5,11 +5,11 @@ namespace UnityEngine
     {
         private static SRPLensFlareCommon m_Instance = null;
         private static readonly object m_Padlock = new object();
-        private System.Collections.Generic.List<SRPLensFlareData> m_Data;
+        private System.Collections.Generic.List<SRPLensFlareOverride> m_Data;
 
         private SRPLensFlareCommon()
         {
-            m_Data = new System.Collections.Generic.List<SRPLensFlareData>();
+            m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
         }
 
         public static SRPLensFlareCommon Instance
@@ -30,7 +30,7 @@ namespace UnityEngine
             }
         }
 
-        public System.Collections.Generic.List<SRPLensFlareData> Data { get { return m_Data; } }
+        public System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return m_Data; } }
 
         public void StartFrame()
         {
@@ -39,7 +39,7 @@ namespace UnityEngine
             m_Data.Clear();
         }
 
-        public void AddData(SRPLensFlareData newData)
+        public void AddData(SRPLensFlareOverride newData)
         {
             Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
 
@@ -49,7 +49,7 @@ namespace UnityEngine
             }
         }
 
-        public void RemoveData(SRPLensFlareData data)
+        public void RemoveData(SRPLensFlareOverride data)
         {
             Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
 

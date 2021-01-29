@@ -66,7 +66,7 @@ namespace UnityEngine
             TextureCurve = new Rendering.TextureCurve(ScaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
         }
 
-    public float GlobalIntensity;
+        public float GlobalIntensity;
         public AnimationCurve ScaleCurve;
         public AnimationCurve PositionCurve;
         public UnityEngine.Rendering.TextureCurve TextureCurve;
