@@ -875,10 +875,10 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #endif
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
-    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
+    half3 colorGI = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+    half3 color = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                      mainLight,
                                      inputData.normalWS, inputData.viewDirectionWS,
                                      surfaceData.clearCoatMask, specularHighlightsOff);
@@ -901,6 +901,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     color += inputData.vertexLighting * brdfData.diffuse;
 #endif
 
+    color *= INV_PI; // Apply BRDF 1/PI for direct lights.
+    color += colorGI;
     color += surfaceData.emission;
 
     return half4(color, surfaceData.alpha);
@@ -944,7 +946,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+    half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
 
 #ifdef _ADDITIONAL_LIGHTS
@@ -964,12 +966,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     diffuseColor += inputData.vertexLighting;
 #endif
 
-    half3 finalColor = diffuseColor * diffuse + emission;
+    half3 finalColor = diffuseColor * diffuse;
 
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
 #endif
 
+    finalColor *= INV_PI; // Apply BRDF 1/PI for direct lights.
+    finalColor += inputData.bakedGI * diffuse + emission;
     return half4(finalColor, alpha);
 }
 
