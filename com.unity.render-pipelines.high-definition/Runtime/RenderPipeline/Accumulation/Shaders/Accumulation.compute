@@ -56,7 +56,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     exposureMultiplier.w = 1.0;
 
 #ifdef INPUT_FROM_RADIANCE_TEXTURE
-        float4 color, colorBg = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        float4 color, colorBg = _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)];
 #else
         float4 color, colorBg = 0.0;
 #endif
@@ -71,9 +71,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     else
     {
 #ifdef INPUT_FROM_RADIANCE_TEXTURE
-        color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        color = _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)];
 #else
-        color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        color = _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)];
 #endif
 
         if (sampleCount++)
