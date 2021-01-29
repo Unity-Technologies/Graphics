@@ -26,7 +26,7 @@ The version number for this package has increased due to a version update of a r
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Removed
- - Removed Compute Deformation Node
+ - Removed Compute Deformation Node as it is no longer required for Hybrid Renderer to be able to apply compute skinning to meshes. For more information see latest documentation about Mesh Deformation in Hybrid Renderer.
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
