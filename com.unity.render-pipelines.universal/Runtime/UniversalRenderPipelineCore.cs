@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
                     return !xr.renderTargetDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
 #endif
 
-                return Display.main.requiresSrgbBlitToBackbuffer;
+                return targetTexture == null && Display.main.requiresSrgbBlitToBackbuffer;
             }
         }
 
