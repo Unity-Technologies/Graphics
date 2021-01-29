@@ -2217,12 +2217,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlare(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
+            cmd.CopyTexture(source, target);
+
             int elemIdx = 0;
             foreach (LensFlareElement element in parameters.Elements)
             {
                 Camera cam = hdCam.camera;
 
                 Vector3 viewportPos = cam.WorldToViewportPoint(element.WorldPosition);
+
+                if (viewportPos.z < 0.0f)
+                    continue;
+
                 Vector2 screenPos = (Vector2)viewportPos;
 
                 Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(element.WorldPosition /*+ cam.transform.up * m_OcclusionRadius*/);
@@ -2236,8 +2242,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
-
-                cmd.CopyTexture(source, target);
 
                 CoreUtils.SetRenderTarget(cmd, target);
                 for (int i = 0; i < element.LensFlareTextures.Length; ++i)
