@@ -27,8 +27,13 @@ namespace UnityEditor.ShaderGraph
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+#if ENABLE_HYBRID_RENDERER_V2
             public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "", ShaderValueType.Uint,
                 "SV_VertexID", "DOTS_INSTANCING_ON");
+#else
+            public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
+                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
+#endif
         }
 
         public struct Varyings
