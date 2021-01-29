@@ -169,9 +169,9 @@ namespace UnityEngine.Rendering
                     int j = bakingCells[c].probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
 
-                    // It can be shown that |L1_i| <= |2*L0|
-                    // Precomputed Global Illumination in Frostbite by Yuriy O'Donnell.
-                    // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
+                    // Compress the range of all coefficients but the DC component to [0..1]
+                    // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
+                    // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
                     for (int rgb = 0; rgb < 3; ++rgb)
                     {
                         var l0 = sh[j][rgb, 0];
@@ -179,29 +179,22 @@ namespace UnityEngine.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        // TODO: Enlarging range by 2 because we're using irradiance probes. Need to derive correct factors and remove this.
-                        // Compare ProbeVolume.hlsl
-                        l0 *= 2.0f;
+                        // TODO: We're working on irradiance instead of radiance coefficients
+                        //       Add safety margin 2 to avoid out-of-bounds values
+                        float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+                        float l2scale = 3.5777088f; // 4/sqrt(5) * 2
 
                         // L_1^m
-                        shv[rgb, 1] = sh[j][rgb, 1] / (l0 * 2.0f) + 0.5f;
-                        shv[rgb, 2] = sh[j][rgb, 2] / (l0 * 2.0f) + 0.5f;
-                        shv[rgb, 3] = sh[j][rgb, 3] / (l0 * 2.0f) + 0.5f;
-                        
+                        shv[rgb, 1] = sh[j][rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
+                        shv[rgb, 2] = sh[j][rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
+                        shv[rgb, 3] = sh[j][rgb, 3] / (l0 * l1scale * 2.0f) + 0.5f;
+
                         // L_2^-2
-                        shv[rgb, 4] = sh[j][rgb, 4] / (l0 * 3.75f) + 0.5f;
-
-                        // L_2^-1
-                        shv[rgb, 5] = sh[j][rgb, 5] / (l0 * 3.75f) + 0.5f;
-
-                        // L_2^0
-                        shv[rgb, 6] = sh[j][rgb, 6] / (l0 * 0.3125f * 4) + 0.5f;
-
-                        // L_2^1
-                        shv[rgb, 7] = sh[j][rgb, 7] / (l0 * 3.75f) + 0.5f;
-
-                        // L_2^2
-                        shv[rgb, 8] = sh[j][rgb, 8] / (l0 * 0.9375f) + 0.5f;
+                        shv[rgb, 4] = sh[j][rgb, 4] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 5] = sh[j][rgb, 5] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 6] = sh[j][rgb, 6] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 7] = sh[j][rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
                         // Assert coefficient range
                         for (int coeff = 1; coeff < 9; ++coeff)

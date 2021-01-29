@@ -79,31 +79,23 @@ APVConstants LoadAPVConstants( StructuredBuffer<int> index )
 
 float3 DecodeSH(float l0, float3 l1)
 {
-    // TODO: Enlarging range by 2 because we're using irradiance probes. Need to derive correct factors and remove this.
-    // Compare ProbeGIBaking.cs
-    return (l1 - 0.5f) * 2.0f * l0 * 2.0f;
+    // TODO: We're working on irradiance instead of radiance coefficients
+    //       Add safety margin 2 to avoid out-of-bounds values
+    const float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+
+    return (l1 - 0.5f) * 2.0f * l1scale * l0;
 }
 
 void DecodeSH_L2(float l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float4 l2_C)
 {
-    l2_R.x = (l2_R.x - 0.5) * 3.75f   * l0;
-    l2_R.y = (l2_R.y - 0.5) * 3.75f   * l0;
-    l2_R.z = (l2_R.z - 0.5) * 3.75f   * l0;
-    l2_R.w = (l2_R.w - 0.5) * 3.75f   * l0;
-                                            
-    l2_G.x = (l2_G.x - 0.5) * 3.75f   * l0;
-    l2_G.y = (l2_G.y - 0.5) * 3.75f   * l0;
-    l2_G.z = (l2_G.z - 0.5) * 0.3125f * l0;
-    l2_G.w = (l2_G.w - 0.5) * 3.75f   * l0;
-                                            
-    l2_B.x = (l2_B.x - 0.5) * 3.75f   * l0;
-    l2_B.y = (l2_B.y - 0.5) * 3.75f   * l0;
-    l2_B.z = (l2_B.z - 0.5) * 0.3125f * l0;
-    l2_B.w = (l2_B.w - 0.5) * 3.75f   * l0;
-                                            
-    l2_C.x = (l2_C.x - 0.5) * 0.9375f * l0;
-    l2_C.y = (l2_C.y - 0.5) * 0.9375f * l0;
-    l2_C.z = (l2_C.z - 0.5) * 0.9375f * l0;
+    // TODO: We're working on irradiance instead of radiance coefficients
+    //       Add safety margin 2 to avoid out-of-bounds values
+    const float l2scale = 3.5777088f; // 4/sqrt(5) * 2
+
+    l2_R = (l2_R - 0.5) * l2scale * l0;
+    l2_G = (l2_G - 0.5) * l2scale * l0;
+    l2_B = (l2_B - 0.5) * l2scale * l0;
+    l2_C = (l2_C - 0.5) * l2scale * l0;
 }
 
 #define APV_USE_BASE_OFFSET
