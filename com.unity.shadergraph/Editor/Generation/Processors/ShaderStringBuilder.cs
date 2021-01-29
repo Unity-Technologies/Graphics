@@ -102,16 +102,54 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             int startSearchIndex = 0;
-            int indexOfNextBreak = Math.Min(lines.IndexOf('\n'), lines.IndexOf('\r'));
+            int newline = lines.IndexOf('\n');
+            int ret = lines.IndexOf('\r');
+            int indexOfNextBreak;
+
+            if (newline >= 0 && ret >= 0)
+            {
+                indexOfNextBreak = Math.Min(lines.IndexOf('\n'), lines.IndexOf('\r'));
+            }
+            else if(newline >= 0)
+            {
+                indexOfNextBreak = newline;
+            }
+            else if(ret >= 0)
+            {
+                indexOfNextBreak = ret;
+            }
+            else
+            {
+                indexOfNextBreak = -1;
+            }
 
             while (indexOfNextBreak >= 0)
             {
                 AppendLine(lines, startSearchIndex, indexOfNextBreak-startSearchIndex);
                 startSearchIndex = indexOfNextBreak + 1;
-                indexOfNextBreak = Math.Min(lines.IndexOf('\n', startSearchIndex), lines.IndexOf('\r', startSearchIndex));
+
+                newline = lines.IndexOf('\n', startSearchIndex);
+                ret = lines.IndexOf('\r', startSearchIndex);
+
+                if(newline >= 0 && ret >= 0)
+                {
+                    indexOfNextBreak = Math.Min(lines.IndexOf('\n', startSearchIndex), lines.IndexOf('\r', startSearchIndex));
+                }
+                else if (newline >= 0)
+                {
+                    indexOfNextBreak = newline;
+                }
+                else if (ret >= 0)
+                {
+                    indexOfNextBreak = ret;
+                }
+                else
+                {
+                    indexOfNextBreak = -1;
+                }
             }
 
-            if(startSearchIndex < lines.Length)
+            if (startSearchIndex < lines.Length)
             {
                 AppendLine(lines, startSearchIndex, lines.Length - startSearchIndex);
             }
