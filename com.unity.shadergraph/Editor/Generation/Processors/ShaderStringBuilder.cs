@@ -105,21 +105,13 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             int startSearchIndex = 0;
-            int indexOfNextBreak = lines.IndexOf('\n');
-            //int indexOfNextCarriageReturn = lines.IndexOf('\r');
+            int indexOfNextBreak = Math.Min(lines.IndexOf('\n'), lines.IndexOf('\r'));
 
             while (indexOfNextBreak >= 0)
             {
-                //if(indexOfNextCarriageReturn >= 0 && indexOfNextCarriageReturn < indexOfNextBreak)
-                //{
-                //    AppendLine(lines, startSearchIndex, indexOfNextCarriageReturn);
-                //    Append(lines, indexOfNextCarriageReturn + 1, indexOfNextBreak);
-                //    startSearchIndex = indexOfNextBreak+
-                //}
-
                 AppendLine(lines, startSearchIndex, indexOfNextBreak-startSearchIndex);
                 startSearchIndex = indexOfNextBreak + 1;
-                indexOfNextBreak = lines.IndexOf('\n', startSearchIndex);
+                indexOfNextBreak = Math.Min(lines.IndexOf('\n', startSearchIndex), lines.IndexOf('\r', startSearchIndex));
             }
 
             if(startSearchIndex < lines.Length)
