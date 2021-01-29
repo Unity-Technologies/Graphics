@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             name = !isCustomBlock
                 ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}"
                 : $"{BlockFields.VertexDescription.name}.{k_CustomBlockDefaultName}";
-            
+
 
             // TODO: This exposes the MaterialSlot API
             // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph
 
                 name = $"{descTag}.{descName}";
 
-                var wsplit = m_SerializedDescriptor.Split(new char[] {'#','.' });
+                var wsplit = m_SerializedDescriptor.Split(new char[] {'#', '.' });
 
                 try
                 {
@@ -305,7 +305,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-    #region CustomInterpolatorHelpers
+        #region CustomInterpolatorHelpers
         private static BlockFieldDescriptor MakeCustomBlockField(string name, CustomBlockType width)
         {
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
@@ -319,7 +319,7 @@ namespace UnityEditor.ShaderGraph
 
         private static IControl WidthToControl(int width)
         {
-            switch(width)
+            switch (width)
             {
                 case 1: return new FloatControl(default(float));
                 case 2: return new Vector2Control(default(Vector2));
@@ -340,6 +340,7 @@ namespace UnityEditor.ShaderGraph
                 default: return -1;
             }
         }
-    #endregion
+
+        #endregion
     }
 }

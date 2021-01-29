@@ -29,10 +29,10 @@ namespace UnityEditor.ShaderGraph
                 ?? new List<CustomInterpolatorNode>();
         }
     }
-    
+
     internal class CustomInterpSubGen
     {
-    #region descriptor
+        #region descriptor
 
         // Common splicing locations or concepts. These may or may not exist in client's template code.
         [GenerationAPI]
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             public IEnumerator<Item> GetEnumerator() { return m_Items.GetEnumerator(); }
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
         }
-    #endregion
+        #endregion
 
         private List<BlockNode> customBlockNodes;
         private bool isNodePreview;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
             spliceCommandBuffer = new Dictionary<String, ShaderStringBuilder>();
         }
 
-    #region GeneratorEntryPoints
+        #region GeneratorEntryPoints
 
 
         // This entry point handles adding our upstream antecedents to the generator's list of active nodes.
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (isNodePreview)
                 {
-                    foreach ( var ant in anties)
+                    foreach (var ant in anties)
                     {
                         // sorted insertion, based on dependencies already present in pixelNodes (an issue because we're faking for the preview).
                         InsertAntecedent(pixelNodes, ant);
@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var desc in descriptors)
             {
                 builder.Clear();
-                if      (desc.isBlock)  GenCopyBlock(desc.dst, desc.src, builder);
+                if (desc.isBlock)  GenCopyBlock(desc.dst, desc.src, builder);
                 else if (desc.isFunc)   GenCopyFunc(desc.name, desc.dst, desc.src, builder, desc.define);
                 else if (desc.isStruct) GenStruct(desc.name, builder, desc.define);
                 else if (desc.isDefine) builder.AppendLine($"#define {desc.define}");
@@ -208,9 +208,10 @@ namespace UnityEditor.ShaderGraph
             foreach (var spliceKV in spliceCommandBuffer)
                 spliceCommands.Add(spliceKV.Key, spliceKV.Value.ToCodeBlock());
         }
-    #endregion
 
-    #region helpers
+        #endregion
+
+        #region helpers
         private void GenStruct(string structName, ShaderStringBuilder builder, string makeDefine = "")
         {
             builder.AppendLine($"struct {structName}");
@@ -219,7 +220,6 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var bn in customBlockNodes)
                 {
-
                     builder.AppendLine($"float{(int)bn.customWidth} {bn.customName};");
                 }
             }
@@ -262,7 +262,7 @@ namespace UnityEditor.ShaderGraph
         private static void InsertAntecedent(List<AbstractMaterialNode> nodes, AbstractMaterialNode node)
         {
             var upstream = node.GetInputSlots<MaterialSlot>().Where(slot => slot.isConnected).Select(slot => node.GetInputNodeFromSlot(slot.id));
-            int safeIdx = nodes.FindLastIndex(n => upstream.Contains(n))+1;
+            int safeIdx = nodes.FindLastIndex(n => upstream.Contains(n)) + 1;
             nodes.Insert(safeIdx, node);
         }
 
@@ -276,6 +276,7 @@ namespace UnityEditor.ShaderGraph
                 default: return ShaderValueType.Float4;
             }
         }
+
         #endregion
     }
 }

@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         updateNodeViewsCallback?.Invoke();
                         node.Dirty(ModificationScope.Topological);
                         node.owner?.ValidateGraph();
-                    }); 
+                    });
                 });
                 parentElement.Add(propertyRow);
             }

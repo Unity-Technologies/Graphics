@@ -452,9 +452,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // can have downstream impacts on dynamic slots.
                 HashSet<AbstractMaterialNode> customProps = new HashSet<AbstractMaterialNode>();
                 PropagateNodes(
-                        new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
-                        PropagationDirection.Downstream,
-                        customProps);
+                    new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
+                    PropagationDirection.Downstream,
+                    customProps);
 
                 m_NodesPropertyChanged.UnionWith(customProps);
 

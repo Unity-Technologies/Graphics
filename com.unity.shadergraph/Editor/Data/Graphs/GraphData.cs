@@ -772,7 +772,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // custom blocks aren't going to exist in GetActiveBlocks, we need to ensure we grab those too.
-            foreach(var cibnode in currentBlocks.Where(bn => bn.isCustomBlock))
+            foreach (var cibnode in currentBlocks.Where(bn => bn.isCustomBlock))
             {
                 context.AddBlock(cibnode.descriptor);
             }
@@ -2379,7 +2379,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (bnode.descriptor.HasPreprocessor() || bnode.descriptor.HasSemantic() || bnode.descriptor.vectorCount == 0) // not packable.
                     nonCustomUsage += 4;
-                else nonCustomUsage += bnode.descriptor.vectorCount ;
+                else nonCustomUsage += bnode.descriptor.vectorCount;
             }
             int maxTargetUsage = m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max() * 4;
 
@@ -2394,7 +2394,7 @@ namespace UnityEditor.ShaderGraph
             int total = 0;
 
             // warn based on the interpolator's location in the block list.
-            foreach (var cib in vertexContext.blocks.Where(jb=>jb.value.isCustomBlock).Select(b=>b.value))
+            foreach (var cib in vertexContext.blocks.Where(jb => jb.value.isCustomBlock).Select(b => b.value))
             {
                 ClearErrorsForNode(cib);
                 total += (int)cib.customWidth;

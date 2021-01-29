@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < swizzLen; ++i)
                 mid += key[i];
 
-            // fill gaps            
+            // fill gaps
             for (int i = fromLen; i < toLen; ++i)
                 mid += ", 0.0";
 
