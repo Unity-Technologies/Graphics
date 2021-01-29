@@ -50,11 +50,6 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        string GetFunctionName()
-        {
-            return $"Unity_ParallaxMapping_{concretePrecision.ToShaderString()}";
-        }
-
         public override void Setup()
         {
             base.Setup();
@@ -64,11 +59,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            var perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl""";
-            registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine(perPixelDisplacementInclude);
-            });
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl");
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
