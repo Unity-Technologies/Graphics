@@ -267,7 +267,7 @@ bool GetCloudVolumeIntersection(float3 org, float3 dir, float insideClouds, floa
 struct CloudCoverageData
 {
     // From a top down view, in what proportions this pixel has clouds
-    float coverage;
+    float2 coverage;
     // From a top down view, in what proportions this pixel has clouds
     float rainClouds;
     // Value that allows us to request the cloudtype using the density
@@ -297,7 +297,7 @@ void GetCloudCoverageData(float3 positionWS, out CloudCoverageData data)
     float2 normalizedPosition = AnimateCloudMapPosition(positionWS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw;
     // Read the data from the texture
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition), 0);
-    data.coverage = cloudMapData.x;
+    data.coverage = float2(cloudMapData.x, cloudMapData.x * cloudMapData.x);
     data.rainClouds = cloudMapData.y;
     data.cloudType = cloudMapData.z;
     data.maxCloudHeight = cloudMapData.w;
@@ -393,20 +393,20 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     GetCloudCoverageData(positionWS, cloudCoverageData);
 
     // If this region of space has no cloud coverage, exit right away
-    if (cloudCoverageData.coverage <= CLOUD_DENSITY_TRESHOLD || cloudCoverageData.maxCloudHeight < properties.height)
+    if (cloudCoverageData.coverage.x <= CLOUD_DENSITY_TRESHOLD || cloudCoverageData.maxCloudHeight < properties.height)
         return;
 
     // Read from the LUT
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
 
-    // Adjust the shape and erosion factor based on the LUT
-    shapeFactor = shapeFactor * densityErosionAO.y;
-    erosionFactor = erosionFactor * densityErosionAO.y;
+    // Adjust the shape and erosion factor based on the LUT and the coverage
+    shapeFactor = lerp(0, shapeFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
+    erosionFactor = lerp(0, erosionFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
 
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
     float base_cloud = 1.0 - densityErosionAO.x * cloudCoverageData.coverage * (1.0 - shapeFactor);
-    base_cloud = saturate(remap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0));
+    base_cloud = saturate(remap(lowFrequencyNoise, base_cloud, 1.0, 0.0, 1.0)) * cloudCoverageData.coverage.y;
 
     // Weight the ambient occlusion's contribution
     properties.ambientOcclusion = densityErosionAO.z;
@@ -425,7 +425,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
         float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
 
         // Compute the weight of the low frequency noise
-        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f);
+        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x);
         base_cloud = remap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
     }
 
