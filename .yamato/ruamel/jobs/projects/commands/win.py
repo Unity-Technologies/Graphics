@@ -18,7 +18,8 @@ def _cmd_base(project, platform, utr_calls, editor):
          del revdate.tmp'''))
         if 'HDRP_PerformanceTests' in project['name']:
             base.append(f'git checkout %GIT_BRANCH%')
-        base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}')
+        base.append(pss(f'''
+         cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}'''))
     return base
 
 
