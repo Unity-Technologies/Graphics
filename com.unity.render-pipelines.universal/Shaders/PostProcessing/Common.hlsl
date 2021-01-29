@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Render fullscreen mesh by using a matrix set directly by the pipeline instead of
@@ -20,6 +21,10 @@ Varyings VertFullscreenMesh(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexPosition(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+#endif
 
 #if _USE_DRAW_PROCEDURAL
     GetProceduralQuad(input.vertexID, output.positionCS, output.uv);

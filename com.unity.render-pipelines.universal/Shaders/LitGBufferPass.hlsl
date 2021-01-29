@@ -25,6 +25,9 @@ struct Attributes
     float4 tangentOS    : TANGENT;
     float2 texcoord     : TEXCOORD0;
     float2 lightmapUV   : TEXCOORD1;
+#if DOTS_INSTANCING_ON
+    uint vertexID       : SV_VertexID;
+#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -93,6 +96,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
 ///////////////////////////////////////////////////////////////////////////////
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,6 +110,11 @@ Varyings LitGBufferPassVertex(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexData(input.positionOS.xyz, input.normalOS, input.tangentOS, input.vertexID);
+#endif
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
