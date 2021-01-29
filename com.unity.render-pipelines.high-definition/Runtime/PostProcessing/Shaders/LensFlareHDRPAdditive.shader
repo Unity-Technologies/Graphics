@@ -32,7 +32,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 float4 col = tex2D(_FlareTex, i.texcoord);
-                return col * _FlareColor;
+                return col * _FlareColor * i.occlusion;
             }
 
             ENDHLSL

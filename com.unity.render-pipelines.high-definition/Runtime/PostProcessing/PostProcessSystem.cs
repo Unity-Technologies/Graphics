@@ -2198,7 +2198,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Camera cam = hdCam.camera;
 
-                Vector3 positionWS = data.worldPosition;
+                Vector3 positionWS = comp.transform.position;
 
                 Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
 
@@ -2223,8 +2223,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, viewportPos.z);
 
-                Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
-                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
+                //Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
+                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
 
                 CoreUtils.SetRenderTarget(cmd, target);
                 int elemIdx = 0;
@@ -2243,7 +2243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float scaleCoef = data.scaleCurve.Evaluate(time);
                     Vector2 size = new Vector2(element.size * scaleCoef, element.size * element.aspectRatio * scaleCoef);
                     float rotation = element.rotation;
-                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity; // Tint*LocalIntensity*GlobalIntensity
+                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity;
                     float speed = element.speed;
                     SRPLensFlareBlendMode blendMode = element.blendMode;
                     bool autoRotate = element.autoRotate;
@@ -2265,7 +2265,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
                     cmd.SetGlobalVector(HDShaderIDs._FlareData, dataSrc);
-                    cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, speed);
+                    cmd.SetGlobalFloat(HDShaderIDs._FlareSpeed, speed);
+                    cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, data.occlusionRadius);
+                    cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, data.samplesCount);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     ++elemIdx;
                 }

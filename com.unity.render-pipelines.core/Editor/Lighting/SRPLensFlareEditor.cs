@@ -9,6 +9,8 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_Intensity;
         SerializedProperty m_AllowOffScreen;
+        SerializedProperty m_OcclusionRadius;
+        SerializedProperty m_SamplesCount;
         SerializedProperty m_ScaleCurve;
         SerializedProperty m_TextureCurve;
         SerializedProperty m_PositionCurve;
@@ -18,6 +20,8 @@ namespace UnityEditor.Rendering
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Intensity = entryPoint.Find(x => x.globalIntensity);
+            m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
+            m_SamplesCount = entryPoint.Find(x => x.samplesCount);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
@@ -30,6 +34,8 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Intensity);
             EditorGUILayout.PropertyField(m_AllowOffScreen);
+            EditorGUILayout.PropertyField(m_OcclusionRadius);
+            EditorGUILayout.PropertyField(m_SamplesCount);
             if (EditorGUI.EndChangeCheck())
             {
                 m_Intensity.serializedObject.ApplyModifiedProperties();

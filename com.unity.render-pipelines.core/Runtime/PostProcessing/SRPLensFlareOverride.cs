@@ -35,7 +35,6 @@ namespace UnityEngine
         {
             if (LensFlareData != null)
             {
-                LensFlareData.worldPosition = transform.position;
                 SRPLensFlareCommon.Instance.AddData(this);
             }
             else
@@ -48,7 +47,6 @@ namespace UnityEngine
         {
             if (LensFlareData != null)
             {
-                LensFlareData.worldPosition = transform.position;
                 SRPLensFlareCommon.Instance.AddData(this);
             }
             else
@@ -59,11 +57,7 @@ namespace UnityEngine
 
         public void Update()
         {
-            if (LensFlareData != null)
-            {
-                LensFlareData.worldPosition = transform.position;
-            }
-            else
+            if (LensFlareData == null)
             {
                 SRPLensFlareCommon.Instance.RemoveData(this);
             }

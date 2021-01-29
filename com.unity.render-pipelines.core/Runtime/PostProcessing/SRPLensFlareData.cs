@@ -58,6 +58,8 @@ namespace UnityEngine
         {
             globalIntensity = 1.0f;
             allowOffScreen = false;
+            occlusionRadius = 0.01f;
+            samplesCount = 4;
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
             positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
             textureCurve = new Rendering.TextureCurve(scaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
@@ -65,11 +67,12 @@ namespace UnityEngine
 
         public float globalIntensity;
         public bool allowOffScreen;
+        public float occlusionRadius;
+        [Min(1)]
+        public uint samplesCount;
         public AnimationCurve scaleCurve;
         public AnimationCurve positionCurve;
         public UnityEngine.Rendering.TextureCurve textureCurve;
-        [HideInInspector]
-        public Vector3 worldPosition;
         [SerializeField]
         public SRPLensFlareDataElement[] elements;
     }
