@@ -9,25 +9,25 @@ editor_version_names:
 editor_versions:
   2021_1_latest_internal:
     android:
-      revision: 6d90c0720bd4
-      updated_at: '2021-01-21 00:25:43.780478'
-      version: 2021.1.0b4
+      revision: 37f46e59aab7
+      updated_at: '2021-01-29 00:14:19.535837'
+      version: 2021.1.0b5
     ios:
-      revision: 6d90c0720bd4
-      updated_at: '2021-01-21 00:25:43.780478'
-      version: 2021.1.0b4
+      revision: 37f46e59aab7
+      updated_at: '2021-01-29 00:14:19.535837'
+      version: 2021.1.0b5
     linux:
-      revision: 6d90c0720bd4
-      updated_at: '2021-01-21 00:25:43.780478'
-      version: 2021.1.0b4
+      revision: 37f46e59aab7
+      updated_at: '2021-01-29 00:14:19.535837'
+      version: 2021.1.0b5
     macos:
-      revision: 6d90c0720bd4
-      updated_at: '2021-01-21 00:25:43.780478'
-      version: 2021.1.0b4
+      revision: 37f46e59aab7
+      updated_at: '2021-01-29 00:14:19.535837'
+      version: 2021.1.0b5
     windows:
-      revision: 6d90c0720bd4
-      updated_at: '2021-01-21 00:25:43.780478'
-      version: 2021.1.0b4
+      revision: 37f46e59aab7
+      updated_at: '2021-01-29 00:14:19.535837'
+      version: 2021.1.0b5
   2021_1_latest_public:
     android:
       revision: 6d90c0720bd4
@@ -51,22 +51,22 @@ editor_versions:
       version: 2021.1.0b4
   2021_1_staging:
     android:
-      revision: 30cfc0ff7b65b7e744aa185b5d3637919a127c29
-      updated_at: '2021-01-24 00:07:57.990650'
+      revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
+      updated_at: '2021-01-29 00:14:19.535837'
       version: ''
     ios:
-      revision: 30cfc0ff7b65b7e744aa185b5d3637919a127c29
-      updated_at: '2021-01-24 23:54:11.202332'
+      revision: 37f46e59aab7be9d664df12278559c94b206938a
+      updated_at: '2021-01-29 00:14:19.535837'
       version: ''
     linux:
-      revision: 30cfc0ff7b65b7e744aa185b5d3637919a127c29
-      updated_at: '2021-01-24 00:07:57.990650'
+      revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
+      updated_at: '2021-01-29 00:14:19.535837'
       version: ''
     macos:
-      revision: 30cfc0ff7b65b7e744aa185b5d3637919a127c29
-      updated_at: '2021-01-24 23:54:11.202332'
+      revision: 37f46e59aab7be9d664df12278559c94b206938a
+      updated_at: '2021-01-29 00:14:19.535837'
       version: ''
     windows:
-      revision: 30cfc0ff7b65b7e744aa185b5d3637919a127c29
-      updated_at: '2021-01-24 00:07:57.990650'
+      revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
+      updated_at: '2021-01-29 00:14:19.535837'
       version: ''
