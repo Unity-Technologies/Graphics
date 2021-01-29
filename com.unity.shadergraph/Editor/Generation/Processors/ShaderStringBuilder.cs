@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
         int m_IndentationLevel;
         ShaderStringMapping m_CurrentMapping;
         List<ShaderStringMapping> m_Mappings;
+        bool m_HumanReadable;
 
         const string k_IndentationString = "    ";
         const string k_NewLineString = "\n";
@@ -52,18 +53,14 @@ namespace UnityEditor.ShaderGraph
             get { return m_Mappings; }
         }
 
-        public ShaderStringBuilder(int stringBuilderSize = 8192)
+        public ShaderStringBuilder(int indentationLevel = 0, int stringBuilderSize = 8192, bool humanReadable = false)
         {
-            m_StringBuilder = new StringBuilder();
+            IncreaseIndent(indentationLevel);
+            m_StringBuilder = new StringBuilder(stringBuilderSize);
             m_ScopeStack = new Stack<ScopeType>();
             m_Mappings = new List<ShaderStringMapping>();
             m_CurrentMapping = new ShaderStringMapping();
-        }
-
-        public ShaderStringBuilder(int indentationLevel, int stringBuilderSize = 8192)
-            : this(stringBuilderSize)
-        {
-            IncreaseIndent(indentationLevel);
+            m_HumanReadable = humanReadable;
         }
 
         public void AppendNewLine()
@@ -75,7 +72,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(value.Length > 0)
             {
-                AppendIndentation();
+                TryAppendIndentation();
                 m_StringBuilder.Append(value, startIndex, count);
             }
             AppendNewLine();
@@ -85,7 +82,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!string.IsNullOrEmpty(value))
             {
-                AppendIndentation();
+                TryAppendIndentation();
                 m_StringBuilder.Append(value);
             }
             AppendNewLine();
@@ -94,7 +91,7 @@ namespace UnityEditor.ShaderGraph
         [StringFormatMethod("formatString")]
         public void AppendLine(string formatString, params object[] args)
         {
-            AppendIndentation();
+            TryAppendIndentation();
             m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture, formatString, args);
             AppendNewLine();
         }
@@ -141,10 +138,13 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Append(' ', count);
         }
 
-        public void AppendIndentation()
+        public void TryAppendIndentation()
         {
-            for (var i = 0; i < m_IndentationLevel; i++)
-                m_StringBuilder.Append(k_IndentationString);
+            if (m_HumanReadable)
+            {
+                for (var i = 0; i < m_IndentationLevel; i++)
+                    m_StringBuilder.Append(k_IndentationString);
+            }
         }
 
         public IDisposable IndentScope()
@@ -221,10 +221,24 @@ namespace UnityEditor.ShaderGraph
                 currentNode = mapping.node;
 
                 // Use `AppendLines` to indent according to the current indentation.
-                AppendLines(other.ToString(mapping.startIndex, mapping.count));
+                if (m_HumanReadable)
+                {
+                    AppendLines(other.ToString(mapping.startIndex, mapping.count));
+                }
+                else
+                {
+                    Append(other.ToString(mapping.startIndex, mapping.count));
+                }
             }
             currentNode = other.currentNode;
-            AppendLines(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            if (m_HumanReadable)
+            {
+                AppendLines(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            }
+            else
+            {
+                Append(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
+            }
         }
 
         public void ReplaceInCurrentMapping(string oldValue, string newValue)
@@ -240,9 +254,12 @@ namespace UnityEditor.ShaderGraph
             if (m_StringBuilder.Length > 0)
                 m_StringBuilder.Length = m_StringBuilder.Length - 1;
 
-            // Set indentations
-            m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
-
+            if (m_HumanReadable)
+            {
+                // Set indentations
+                m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
+            }
+            
             return m_StringBuilder.ToString();
         }
 

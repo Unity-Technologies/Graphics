@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
             m_Mode = mode;
             m_Name = name;
 
-            m_Builder = new ShaderStringBuilder(8192);
+            m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
 

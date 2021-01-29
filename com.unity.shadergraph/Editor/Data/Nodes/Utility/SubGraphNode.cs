@@ -230,7 +230,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(asset.functionName);
             sb.Append("(");
             bool firstArg = true;

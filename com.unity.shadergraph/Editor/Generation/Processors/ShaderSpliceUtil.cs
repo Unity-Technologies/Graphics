@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
                 this.isDebug = isDebug;
                 this.templatePaths = templatePaths;
                 this.assetCollection = assetCollection;
-                this.result = outShaderCodeResult ?? new ShaderStringBuilder(8192*32);
+                this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
 
