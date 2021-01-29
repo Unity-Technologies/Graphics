@@ -9,64 +9,64 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     android:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     ios:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     linux:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     macos:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     windows:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
   trunk_latest_public:
     android:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     ios:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     linux:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     macos:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     windows:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
   trunk_staging:
     android:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     ios:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     linux:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     macos:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''
     windows:
-      revision: c4ea5efac098e61ce4b87fffeb03a64e8e871363
-      updated_at: '2021-01-23 00:12:32.807154'
+      revision: dece830fe0323033721eeff4abbdcc446ac7352e
+      updated_at: '2021-01-28 01:07:32.001697'
       version: ''

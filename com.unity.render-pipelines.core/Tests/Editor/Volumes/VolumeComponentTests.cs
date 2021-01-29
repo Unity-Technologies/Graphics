@@ -54,13 +54,13 @@ namespace UnityEngine.Rendering.Tests
             Assert.True(allOverridesState);
 
             // Enable the advance mode on the editor
-            component.SetField("m_AdvancedMode", true);
+            editor.showAdditionalProperties = true;
 
             // Everything is false
             component.SetAllOverridesTo(false);
 
             // Disable the advance mode on the editor
-            component.SetField("m_AdvancedMode", false);
+            editor.showAdditionalProperties = false;
 
             // Now just set to true the overrides of non additional properties
             editor.Invoke("SetOverridesTo", true);
