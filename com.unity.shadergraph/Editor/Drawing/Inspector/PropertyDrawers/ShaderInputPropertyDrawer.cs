@@ -2,19 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using UnityEditor;
+
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
-using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
+
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -50,6 +48,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         ShaderInput shaderInput;
 
+        // Should be provided by the Inspectable
+        ShaderInputViewModel m_ViewModel;
+        ShaderInputViewModel ViewModel => m_ViewModel;
+
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -68,9 +70,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         GraphData graphData;
         bool isSubGraph { get; set;  }
-        ChangeExposedFieldCallback _exposedFieldChangedCallback;
-        ChangeDisplayNameCallback _displayNameChangedCallback;
-        ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
         ChangeValueCallback _changeValueCallback;
@@ -82,22 +81,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeDisplayNameCallback displayNameCallback,
             ChangeReferenceNameCallback referenceNameCallback,
-            Action precisionChangedCallback,
-            Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
-            PreChangeValueCallback preChangeValueCallback,
             PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
-            this._exposedFieldChangedCallback = exposedFieldCallback;
-            this._displayNameChangedCallback = displayNameCallback;
-            this._referenceNameChangedCallback = referenceNameCallback;
-            this._precisionChangedCallback = precisionChangedCallback;
+            this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
             this._changeValueCallback = changeValueCallback;
-            this._keywordChangedCallback = keywordChangedCallback;
-            this._preChangeValueCallback = preChangeValueCallback;
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
             this._postChangeValueCallback = postChangeValueCallback;
+        }
+
+        internal void GetViewModel(ShaderInputViewModel shaderInputViewModel)
+        {
+            m_ViewModel = shaderInputViewModel;
+            this.isSubGraph = m_ViewModel.IsSubGraph;
+            // TODO: This stuff needs to be supplied by the BlackboardPropertyView instead cause we don't use GetPropertyData from it anymore
+            //this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+            //this._postChangeValueCallback = postChangeValueCallback;
         }
 
         public Action inspectorUpdateDelegate { get; set; }
@@ -133,9 +135,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
-                        this._preChangeValueCallback("Change Exposed Toggle");
-                        this._exposedFieldChangedCallback(evt.isOn);
-                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                        var changeShaderInputExposedAction = new ChangeExposedFlagAction();
+                        changeShaderInputExposedAction.ShaderInputReference = shaderInput;
+                        changeShaderInputExposedAction.NewIsExposedValue = evt.isOn;
+                        ViewModel.RequestModelChangeAction(changeShaderInputExposedAction);
                     },
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
@@ -157,15 +160,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_DisplayNameField.RegisterValueChangedCallback(
                 evt =>
                 {
-                    this._preChangeValueCallback("Change Display Name");
-                    this._displayNameChangedCallback(evt.newValue);
+                    var changeDisplayNameAction = new ChangeDisplayNameAction();
+                    changeDisplayNameAction.ShaderInputReference = shaderInput;
+                    changeDisplayNameAction.NewDisplayNameValue = evt.newValue;
+                    ViewModel.RequestModelChangeAction(changeDisplayNameAction);
 
                     if (string.IsNullOrEmpty(shaderInput.displayName))
                         m_DisplayNameField.RemoveFromClassList("modified");
                     else
                         m_DisplayNameField.AddToClassList("modified");
 
-                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                    this.inspectorUpdateDelegate();
                 });
 
             if (!string.IsNullOrEmpty(shaderInput.displayName))
@@ -189,15 +194,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_ReferenceNameField.RegisterValueChangedCallback(
                     evt =>
                     {
-                        this._preChangeValueCallback("Change Reference Name");
-                        this._referenceNameChangedCallback(evt.newValue);
+                        var changeReferenceNameAction = new ChangeReferenceNameAction();
+                        changeReferenceNameAction.ShaderInputReference = shaderInput;
+                        changeReferenceNameAction.NewReferenceNameValue = evt.newValue;
+                        ViewModel.RequestModelChangeAction(changeReferenceNameAction);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                             m_ReferenceNameField.RemoveFromClassList("modified");
                         else
                             m_ReferenceNameField.AddToClassList("modified");
 
-                        this._postChangeValueCallback(true, ModificationScope.Graph);
+                        this.inspectorUpdateDelegate();
                     });
 
                 if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))

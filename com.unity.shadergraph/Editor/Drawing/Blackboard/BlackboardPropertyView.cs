@@ -9,11 +9,15 @@ using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Assertions;
 
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardPropertyView : GraphElement, IInspectable, ISGControlledElement<ShaderInputViewController>
     {
         static readonly Texture2D k_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+        static readonly string k_UxmlTemplatePath = "UXML/GraphView/BlackboardField";
+        static readonly string k_StyleSheetPath = "Styles/Blackboard";
 
         ShaderInputViewModel m_ViewModel;
 
@@ -23,10 +27,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_ViewModel = value;
         }
 
-        private VisualElement m_ContentItem;
-        private Pill m_Pill;
-        private TextField m_TextField;
-        private Label m_TypeLabel;
+        VisualElement m_ContentItem;
+        Pill m_Pill;
+        TextField m_TextField;
+        Label m_TypeLabel;
+        Label m_NameLabelField;
+
+        ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_ResetReferenceNameTrigger;
 
         public string text
         {
@@ -52,17 +59,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_Pill.highlighted = value; }
         }
 
-        public string inspectorTitle { get; }
-
         internal BlackboardPropertyView(ShaderInputViewModel viewModel)
         {
             ViewModel = viewModel;
+            // Store ShaderInput in userData object
+            userData = ViewModel.Model;
 
-            var visualTreeAsset = Resources.Load<VisualTreeAsset>("UXML/GraphView/BlackboardField");
+            var visualTreeAsset = Resources.Load<VisualTreeAsset>(k_UxmlTemplatePath);
             Assert.IsNotNull(visualTreeAsset);
 
             VisualElement mainContainer = visualTreeAsset.Instantiate();
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
+            var styleSheet = Resources.Load<StyleSheet>(k_StyleSheetPath);
+            Assert.IsNotNull(styleSheet);
+            styleSheets.Add(styleSheet);
 
             mainContainer.AddToClassList("mainContainer");
             mainContainer.pickingMode = PickingMode.Ignore;
@@ -73,8 +82,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TextField = mainContainer.Q<TextField>("textField");
             m_TextField.style.display = DisplayStyle.None;
 
-            var textInputElement = m_TextField.Q(TextField.textInputUssName);
-            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
 
             Add(mainContainer);
 
@@ -85,12 +92,58 @@ namespace UnityEditor.ShaderGraph.Drawing
             ClearClassList();
             AddToClassList("blackboardField");
 
-            this.text = ViewModel.InputName;
-            this.icon = viewModel.IsInputExposed ? k_ExposedIcon : null;
-            this.typeText = ViewModel.InputTypeName;
+            this.name = "BlackboardPropertyView";
+            UpdateFromViewModel();
 
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
             this.AddManipulator(new SelectionDropper());
             this.AddManipulator(new ContextualMenuManipulator(BuildFieldContextualMenu));
+
+            // When a display name is changed through the BlackboardPill, bind this callback to handle it with appropriate change action
+            var textInputElement = m_TextField.Q(TextField.textInputUssName);
+            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
+            textInputElement.RegisterCallback<FocusOutEvent>(e =>
+            {
+                var changeDisplayNameAction = new ChangeDisplayNameAction();
+                changeDisplayNameAction.ShaderInputReference = shaderInput;
+                changeDisplayNameAction.NewDisplayNameValue = m_TextField.text;
+                ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+            });
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+        }
+
+        ~BlackboardPropertyView()
+        {
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTypeText;
+        }
+
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
+        {
+            // Checks if the reference name has been overridden and appends menu action to reset it, if so
+            if (shaderInput.isRenamable &&
+                !string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+            {
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e =>
+                    {
+                        var resetReferenceNameAction = new ResetReferenceNameAction();
+                        resetReferenceNameAction.ShaderInputReference = shaderInput;
+                        ViewModel.RequestModelChangeAction(resetReferenceNameAction);
+                        m_ResetReferenceNameTrigger(shaderInput.referenceName);
+                    },
+                    DropdownMenuAction.AlwaysEnabled);
+            }
+        }
+
+        internal void UpdateFromViewModel()
+        {
+            this.text = ViewModel.InputName;
+            this.icon = ViewModel.IsInputExposed ? k_ExposedIcon : null;
+            this.typeText = ViewModel.InputTypeName;
         }
 
         ShaderInputViewController m_Controller;
@@ -132,14 +185,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // --- ISGControlledElement implementation
 
+        [Inspectable("Shader Input", null)]
+        ShaderInput shaderInput => ViewModel.Model;
+
+        public string inspectorTitle => ViewModel.InputName + " " + ViewModel.InputTypeName;
+
         public object GetObjectToInspect()
         {
-            throw new NotImplementedException();
+            return shaderInput;
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            throw new NotImplementedException();
+            if (propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
+            {
+                shaderInputPropertyDrawer.GetViewModel(ViewModel);
+                m_ResetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                this.RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
+            }
         }
 
         protected override void ExecuteDefaultAction(EventBase evt)
@@ -150,6 +213,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 int x = 0;
                 x++;
+                // TODO: Re-enable somehow (going to need to grab internal function which is gross but temporary at least)
                 //if (ViewModel.ParentView is GraphView graphView)
                 //    graphView.RestorePersitentSelectionForElement(this);
             }
@@ -174,6 +238,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 OpenTextEditor();
                 e.PreventDefault();
+            }
+        }
+
+        void UpdateTypeText()
+        {
+            if (shaderInput is AbstractShaderProperty asp)
+            {
+                typeText = asp.GetPropertyTypeString();
             }
         }
 

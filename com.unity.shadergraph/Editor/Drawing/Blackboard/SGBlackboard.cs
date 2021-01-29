@@ -59,7 +59,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         m_Controller.UnregisterHandler(this);
                     }
-                    Clear();
                     m_Controller = value;
 
                     if (m_Controller != null)
@@ -139,9 +138,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_DefaultKeywordSection.OnDragActionCanceled();
             });
 
-            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            m_TitleLabel.text = ViewModel.Title;
 
-            m_PathLabelTextField = new TextField { visible = false };
+            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            m_SubTitleLabel.text = ViewModel.Subtitle;
+
+            m_PathLabelTextField = this.Q<TextField>("subTitleTextField");
+            m_PathLabelTextField.value = ViewModel.Subtitle;
+            m_PathLabelTextField.visible = false;
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
 
@@ -171,15 +175,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             isWindowResizable = true;
             focusable = true;
 
+            Debug.Log(m_ContentContainer);
             // Want to retain properties and keywords UI, but need to iterate through the GroupInfos, and create sections for each of those
             // Then for each section, add the corresponding properties and keywords based on their GUIDs
             m_DefaultPropertySection =  this.Q<SGBlackboardSection>("propertySection");
             m_DefaultKeywordSection = this.Q<SGBlackboardSection>("keywordSection");
+        }
 
-            // TODO: Need to create a PropertyViewModel that is used to drive a BlackboardRow/FieldView
-            // Also, given how similar the NodeView and FieldView are, would be awesome if we could just unify the two and get rid of FieldView
-            // Then would theoretically also get the ability to connect properties from blackboard to node inputs directly
-            // (could handle in controller to create a new PropertyNodeView and connect that instead)
+        internal void AddPropertyRow(SGBlackboardRow blackboardRow)
+        {
+            m_DefaultPropertySection.Add(blackboardRow);
+        }
+
+        internal void AddKeywordRow(SGBlackboardRow blackboardRow)
+        {
+            m_DefaultKeywordSection.Add(blackboardRow);
         }
 
         public void ShowScrollBoundaryRegions()
@@ -246,11 +256,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
         }
 
-        public void HideAllDragIndicators()
-        {
-
-        }
-
         void InitializeAddPropertyMenu()
         {
             m_AddPropertyMenu = new GenericMenu();
@@ -265,7 +270,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string propertyName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> ViewModel.RequestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"/");
 
@@ -273,7 +278,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string defaultKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> ViewModel.RequestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"Keyword/");
 
@@ -281,7 +286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string builtInKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> addAction.ModifyGraphDataAction(ViewModel.Model));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> ViewModel.RequestModelChangeAction(addAction));
             }
 
             foreach (string disabledKeywordName in ViewModel.DisabledKeywordNameList)

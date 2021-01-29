@@ -61,12 +61,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ExpandButton = mainContainer.Q<Button>("expandButton");
             m_ExpandButton.clickable.clicked += () => expanded = !expanded;
+            m_ExpandButton.RemoveFromHierarchy();
 
             Add(mainContainer);
 
             ClearClassList();
             AddToClassList("blackboardRow");
 
+            name = "SGBlackboardRow";
             m_ItemContainer.Add(item);
             m_PropertyViewContainer.Add(propertyView);
 

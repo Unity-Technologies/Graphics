@@ -233,11 +233,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var shaderInputViewModel = new ShaderInputViewModel()
             {
-                Model = this.Model,
+                Model = shaderInput,
                 ParentView = this.Blackboard
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Add(blackboardItemController);
+            if (shaderInput is AbstractShaderProperty)
+                Blackboard.AddPropertyRow(blackboardItemController.BlackboardItem);
+            else
+                Blackboard.AddKeywordRow(blackboardItemController.BlackboardItem);
         }
 
         public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)

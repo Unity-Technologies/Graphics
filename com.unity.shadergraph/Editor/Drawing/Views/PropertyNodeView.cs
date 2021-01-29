@@ -87,10 +87,7 @@ namespace UnityEditor.ShaderGraph
                     this.ChangeExposedField,
                     this.ChangeDisplayNameField,
                     this.ChangeReferenceNameField,
-                    () => graph.ValidateGraph(),
-                    () => graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
-                    this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;

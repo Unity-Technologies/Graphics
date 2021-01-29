@@ -177,10 +177,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     ChangeExposedField,
                     ChangeDisplayNameField,
                     ChangeReferenceNameField,
-                    () => m_Graph.ValidateGraph(),
-                    () => m_Graph.OnKeywordChanged(),
                     ChangePropertyValue,
-                    RegisterPropertyChangeUndo,
                     MarkNodesAsDirty);
 
                 m_inspectorUpdateTrigger = inspectorUpdateDelegate;

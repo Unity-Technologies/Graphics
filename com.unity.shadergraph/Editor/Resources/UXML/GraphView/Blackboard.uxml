@@ -4,7 +4,7 @@
             <ui:VisualElement name="labelContainer" pickingMode="Ignore">
                 <ui:Label name="titleLabel" text="" />
                 <ui:Label name="subTitleLabel" text="Blackboard">
-                    <ui:TextField name="subTitleTextField" text="Blackboard"/>
+                    <ui:TextField name="subTitleTextField" text="Blackboard" />
                 </ui:Label>
             </ui:VisualElement>
             <ui:Button name="addButton" text="+" />

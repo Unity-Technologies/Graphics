@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -112,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
         private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -120,12 +121,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EditorWindow = editorWindow;
             m_Graph = graph;
+            m_AssetName = graphName;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.RenderPreviews(false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
@@ -278,8 +279,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void CreateBlackboard()
         {
-            //m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
-
             var blackboardViewModel = new BlackboardViewModel() { ParentView = graphView, Model = m_Graph, Title = assetName };
             m_BlackboardController = new BlackboardController(m_Graph, blackboardViewModel, m_Graph.owner.graphDataStore);
         }
