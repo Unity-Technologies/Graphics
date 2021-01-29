@@ -99,9 +99,6 @@ Varyings vert(Attributes input)
     float4 flareData = _FlareData;
     float2 screenPos = _FlareScreenPosPanini;
 
-    if (_FlareDepth < 0)
-        flareData.zw = float2(0.0f, 0.0f);
-
     float radius = _OcclusionRadius;
 
     float occlusion = _OcclusionManual;

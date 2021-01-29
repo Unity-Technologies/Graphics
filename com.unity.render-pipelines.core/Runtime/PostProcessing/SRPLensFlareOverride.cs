@@ -35,7 +35,7 @@ namespace UnityEngine
         {
             if (LensFlareData != null)
             {
-                LensFlareData.WorldPosition = transform.position;
+                LensFlareData.worldPosition = transform.position;
                 SRPLensFlareCommon.Instance.AddData(this);
             }
             else
@@ -48,7 +48,7 @@ namespace UnityEngine
         {
             if (LensFlareData != null)
             {
-                LensFlareData.WorldPosition = transform.position;
+                LensFlareData.worldPosition = transform.position;
                 SRPLensFlareCommon.Instance.AddData(this);
             }
             else
@@ -61,7 +61,7 @@ namespace UnityEngine
         {
             if (LensFlareData != null)
             {
-                LensFlareData.WorldPosition = transform.position;
+                LensFlareData.worldPosition = transform.position;
             }
             else
             {

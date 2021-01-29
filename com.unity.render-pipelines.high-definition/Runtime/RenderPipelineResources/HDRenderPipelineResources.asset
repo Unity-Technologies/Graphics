@@ -141,7 +141,7 @@ MonoBehaviour:
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
-    lensFlareLerpPS: {fileID: 4800000, guid: fd96917b3fd7ed74b9990879b7ef33fb, type: 3}
+    lensFlareLerpPS: {fileID: 4800000, guid: 7a36da817ed616048893a891b2c23faf, type: 3}
     lensFlareAdditivePS: {fileID: 4800000, guid: 46737761ee3758f479f251d2d5204a9a, type: 3}
     lensFlarePremultipliedPS: {fileID: 4800000, guid: e16d0bc9fba717f459ecf8474421accf, type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}

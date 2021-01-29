@@ -160,6 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
 
+
             // Lens Flare
             m_LensFlareLerp = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareLerpPS);
             m_LensFlareAdditive = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareAdditivePS);
@@ -2141,82 +2142,39 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Lens Flare
-        struct LensFlareElement
-        {
-            public Texture[] LensFlareTextures;
-            public float[] Positions;
-            public Vector2[] Sizes;
-            public float[] Rotations;
-            public Vector4[] Tints; // Tint*LocalIntensity*GlobalIntensity
-            public float[] Speeds;
-            public SRPLensFlareBlendMode[] BlendModes;
-            public bool[] AutoRotates;
-        }
+        //struct LensFlareElement
+        //{
+        //    public Texture[] lensFlareTextures;
+        //    public float[] positions;
+        //    public Vector2[] sizes;
+        //    public float[] rotations;
+        //    public Vector4[] tints; // Tint*LocalIntensity*GlobalIntensity
+        //    public float[] speeds;
+        //    public SRPLensFlareBlendMode[] blendModes;
+        //    public bool[] autoRotates;
+        //}
 
         struct LensFlareParameters
         {
             public Material lensFlareLerp;
             public Material lensFlareAdditive;
             public Material lensFlarePremultiply;
-            public Vector3[] WorldPosition;
-            public AnimationCurve[] ScaleCurves;
-            public AnimationCurve[] PositionCurves;
-            public LensFlareElement[] Elements;
+            public SRPLensFlareCommon lensFlares;
+            //public Vector3[] worldPosition;
+            //public AnimationCurve[] scaleCurves;
+            //public AnimationCurve[] positionCurves;
+            //public LensFlareElement[] elements;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
         {
             LensFlareParameters parameters = new LensFlareParameters();
 
+            parameters.lensFlares = SRPLensFlareCommon.Instance;
+
             parameters.lensFlareLerp = m_LensFlareLerp;
             parameters.lensFlareAdditive = m_LensFlareAdditive;
             parameters.lensFlarePremultiply = m_LensFlarePreMultiply;
-
-            SRPLensFlareCommon instance = SRPLensFlareCommon.Instance;
-
-            parameters.WorldPosition = new Vector3[instance.Data.Count];
-            parameters.Elements = new LensFlareElement[instance.Data.Count];
-            parameters.ScaleCurves = new AnimationCurve[instance.Data.Count];
-            parameters.PositionCurves = new AnimationCurve[instance.Data.Count];
-
-            int elemIdx = 0;
-            foreach (SRPLensFlareOverride data in instance.Data)
-            {
-                SRPLensFlareData lensFlareData = data.LensFlareData;
-
-                if (lensFlareData == null)
-                    continue;
-
-                int currentIdx = 0;
-                parameters.ScaleCurves[elemIdx] = new AnimationCurve(lensFlareData.ScaleCurve.keys);
-                parameters.PositionCurves[elemIdx] = new AnimationCurve(lensFlareData.PositionCurve.keys);
-                parameters.WorldPosition[elemIdx] = lensFlareData.WorldPosition;
-                parameters.Elements[elemIdx].Positions = new float[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].LensFlareTextures = new Texture[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].Sizes = new Vector2[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].Rotations = new float[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].Tints = new Vector4[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].Speeds = new float[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].BlendModes = new SRPLensFlareBlendMode[lensFlareData.Elements.Length];
-                parameters.Elements[elemIdx].AutoRotates = new bool[lensFlareData.Elements.Length];
-                foreach (SRPLensFlareDataElement element in lensFlareData.Elements)
-                {
-                    if (element != null && element.LensFlareTexture != null)
-                    {
-                        parameters.Elements[elemIdx].Positions[currentIdx] = element.Position;
-                        parameters.Elements[elemIdx].LensFlareTextures[currentIdx] = element.LensFlareTexture;
-                        parameters.Elements[elemIdx].Sizes[currentIdx] = new Vector2(element.Size, element.Size * element.AspectRatio);
-                        parameters.Elements[elemIdx].Rotations[currentIdx] = element.Rotation;
-                        parameters.Elements[elemIdx].Tints[currentIdx] = (new Vector4(element.Tint.r, element.Tint.g, element.Tint.b, element.Tint.a)) * element.LocalIntensity * lensFlareData.GlobalIntensity;
-                        parameters.Elements[elemIdx].Speeds[currentIdx] = element.Speed;
-                        parameters.Elements[elemIdx].BlendModes[currentIdx] = element.BlendMode;
-                        parameters.Elements[elemIdx].AutoRotates[currentIdx] = element.AutoRotate;
-
-                        ++currentIdx;
-                    }
-                }
-                ++elemIdx;
-            }
 
             return parameters;
         }
@@ -2225,23 +2183,34 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.CopyTexture(source, target);
 
-            if (parameters.Elements.Length == 0)
+            if (parameters.lensFlares.Data.Count == 0)
                 return;
 
-            int elemIdx = 0;
-            foreach (LensFlareElement element in parameters.Elements)
+            foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
             {
-                if (element.LensFlareTextures == null)
+                SRPLensFlareData data = comp.LensFlareData;
+
+                if (data == null)
+                    continue;
+
+                if (data.elements == null || data.elements.Length == 0)
                     continue;
 
                 Camera cam = hdCam.camera;
 
-                Vector3 positionWS = parameters.WorldPosition[elemIdx];
+                Vector3 positionWS = data.worldPosition;
 
                 Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
 
                 if (viewportPos.z < 0.0f)
                     continue;
+
+                if (!data.allowOffScreen)
+                {
+                    if (viewportPos.x < 0.0f || viewportPos.x > 1.0f ||
+                        viewportPos.y < 0.0f || viewportPos.y > 1.0f)
+                        continue;
+                }
 
                 Vector2 screenPos = (Vector2)viewportPos;
 
@@ -2258,24 +2227,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
 
                 CoreUtils.SetRenderTarget(cmd, target);
-                for (int i = 0; i < element.LensFlareTextures.Length; ++i)
+                int elemIdx = 0;
+                foreach (SRPLensFlareDataElement element in data.elements)
                 {
-                    if (element.Positions.Length == 0)
+                    if (element == null)
                         continue;
 
-                    if (element.LensFlareTextures[i] == null)
+                    if (element.lensFlareTexture == null)
                         continue;
 
-                    float time = ((float)i) / ((float)(element.LensFlareTextures.Length - 1));
+                    float time = data.elements.Length == 1 ? 0.5f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
 
-                    Texture texture = element.LensFlareTextures[i];
-                    float position = element.Positions[i] * parameters.PositionCurves[elemIdx].Evaluate(time);
-                    Vector2 size = element.Sizes[i] * parameters.ScaleCurves[elemIdx].Evaluate(time);
-                    float rotation = element.Rotations[i];
-                    Vector4 tint = element.Tints[i]; // Tint*LocalIntensity*GlobalIntensity
-                    float speed = element.Speeds[i];
-                    SRPLensFlareBlendMode blendMode = element.BlendModes[i];
-                    bool autoRotate = element.AutoRotates[i];
+                    Texture texture = element.lensFlareTexture;
+                    float position = element.position * data.positionCurve.Evaluate(time);
+                    float scaleCoef = data.scaleCurve.Evaluate(time);
+                    Vector2 size = new Vector2(element.size * scaleCoef, element.size * element.aspectRatio * scaleCoef);
+                    float rotation = element.rotation;
+                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity; // Tint*LocalIntensity*GlobalIntensity
+                    float speed = element.speed;
+                    SRPLensFlareBlendMode blendMode = element.blendMode;
+                    bool autoRotate = element.autoRotate;
 
                     Material usedMaterial = null;
                     if (blendMode == SRPLensFlareBlendMode.Lerp)
@@ -2285,19 +2256,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         usedMaterial = parameters.lensFlarePremultiply;
 
-                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.LensFlareTextures[i]);
+                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
                     if (!autoRotate)
                         rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
 
-                    Vector4 data = new Vector4(position, rotation, size.x, size.y);
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData, data);
+                    Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData, dataSrc);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, speed);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                    ++elemIdx;
                 }
-                ++elemIdx;
             }
         }
 

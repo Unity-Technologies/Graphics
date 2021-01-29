@@ -11,48 +11,44 @@ namespace UnityEngine
         Premultiply
     }
 
-    /// <summary>
-    /// Asset that define a set image of SRP-LensFlare-DataDriven
-    /// </summary>
-    //[AddComponentMenu("Rendering/Light Anchor")]
-    //[RequireComponent(typeof(Light))]
-    //[ExecuteInEditMode]
-    //[DisallowMultipleComponent]
-    //[HelpURL(UnityEditor.Rendering.Documentation.baseURL + UnityEditor.Rendering.Documentation.version + UnityEditor.Rendering.Documentation.subURL + "SRP-LensFlare" + Rendering.Documentation.endURL)]
+    /////   /// <summary>
+    /////   /// Asset that define a set image of SRP-LensFlare-DataDriven
+    /////   /// </summary>
     [System.Serializable]
     public sealed class SRPLensFlareDataElement //: ScriptableObject
     {
         public SRPLensFlareDataElement()
         {
-            LocalIntensity = 1.0f;
-            Position = 1.0f;
-            LensFlareTexture = null;
-            Size = 1.0f;
-            AspectRatio = 1.0f;
-            Rotation = 0.0f;
-            Tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-            Speed = 1.0f;
-            AutoRotate = false;
+            localIntensity = 1.0f;
+            position = 1.0f;
+            lensFlareTexture = null;
+            size = 1.0f;
+            aspectRatio = 1.0f;
+            rotation = 0.0f;
+            tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+            speed = 1.0f;
+            blendMode = SRPLensFlareBlendMode.Additive;
+            autoRotate = false;
         }
 
         [Range(0.0f, 1.0f)]
-        public float LocalIntensity;
+        public float localIntensity;
         //[Range(-1.0f, 1.0f)]
-        public float Position;
-        public Texture LensFlareTexture;
+        public float position;
+        public Texture lensFlareTexture;
         //[Range(0.0f, 1.0f)]
         [Min(0.0f)]
-        public float Size;
+        public float size;
         //[Range(0.0f, 1.0f)]
         [Min(0.0f)]
-        public float AspectRatio;
+        public float aspectRatio;
         [Range(0, 360)]
-        public float Rotation;
-        public Color Tint;
+        public float rotation;
+        public Color tint;
         //[Range(0.0f, 1.0f)]
-        public float Speed;
-        public SRPLensFlareBlendMode BlendMode;
-        public bool AutoRotate;
+        public float speed;
+        public SRPLensFlareBlendMode blendMode;
+        public bool autoRotate;
     }
 
     [System.Serializable]
@@ -60,20 +56,22 @@ namespace UnityEngine
     {
         public SRPLensFlareData()
         {
-            GlobalIntensity = 1.0f;
-            ScaleCurve = new AnimationCurve( new Keyframe( 0.0f, 1.0f ), new Keyframe( 1.0f, 1.0f ) );
-            PositionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 1.0f));
-            TextureCurve = new Rendering.TextureCurve(ScaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
+            globalIntensity = 1.0f;
+            allowOffScreen = false;
+            scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
+            textureCurve = new Rendering.TextureCurve(scaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
         }
 
-        public float GlobalIntensity;
-        public AnimationCurve ScaleCurve;
-        public AnimationCurve PositionCurve;
-        public UnityEngine.Rendering.TextureCurve TextureCurve;
+        public float globalIntensity;
+        public bool allowOffScreen;
+        public AnimationCurve scaleCurve;
+        public AnimationCurve positionCurve;
+        public UnityEngine.Rendering.TextureCurve textureCurve;
         [HideInInspector]
-        public Vector3 WorldPosition;
+        public Vector3 worldPosition;
         [SerializeField]
-        public SRPLensFlareDataElement[] Elements;
+        public SRPLensFlareDataElement[] elements;
     }
 
 #if UNITY_EDITOR

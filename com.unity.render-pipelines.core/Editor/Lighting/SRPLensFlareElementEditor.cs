@@ -16,16 +16,16 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginProperty(new Rect(rect.x, rect.y, rect.width, 2.0f * rect.height), label, property);
 
-            SerializedProperty intensityProp = property.FindPropertyRelative("LocalIntensity");
-            SerializedProperty positionProp = property.FindPropertyRelative("Position");
-            SerializedProperty lensFlareProp = property.FindPropertyRelative("LensFlareTexture");
-            SerializedProperty tintProp = property.FindPropertyRelative("Tint");
-            SerializedProperty blendModeProp = property.FindPropertyRelative("BlendMode");
-            SerializedProperty sizeProp = property.FindPropertyRelative("Size");
-            SerializedProperty aspectRatioProp = property.FindPropertyRelative("AspectRatio");
-            SerializedProperty rotationProp = property.FindPropertyRelative("Rotation");
-            SerializedProperty speedProp = property.FindPropertyRelative("Speed");
-            SerializedProperty autoRotateProp = property.FindPropertyRelative("AutoRotate");
+            SerializedProperty intensityProp = property.FindPropertyRelative("localIntensity");
+            SerializedProperty positionProp = property.FindPropertyRelative("position");
+            SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
+            SerializedProperty tintProp = property.FindPropertyRelative("tint");
+            SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
+            SerializedProperty sizeProp = property.FindPropertyRelative("size");
+            SerializedProperty aspectRatioProp = property.FindPropertyRelative("aspectRatio");
+            SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
+            SerializedProperty speedProp = property.FindPropertyRelative("speed");
+            SerializedProperty autoRotateProp = property.FindPropertyRelative("autoRotate");
 
             float tmp;
             if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Intensity"), intensityProp.floatValue)) != intensityProp.floatValue)
