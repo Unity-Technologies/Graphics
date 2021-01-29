@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph
                 List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> currentBlockDescriptors = m_Blocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().IsUsingDefaultValue())).ToList();
                 var connectedBlockDescriptors = m_Blocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
 
-                foreach (PassCollection.Item pass in descriptor.passes)
+                foreach (PassCollection.Item pass in descriptor.passes.Where(p => !m_Targets[targetIndex].ShouldSkipPass(descriptor, p.descriptor)))
                 {
                     var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, currentBlockDescriptors, connectedBlockDescriptors, m_Targets[targetIndex]);
 

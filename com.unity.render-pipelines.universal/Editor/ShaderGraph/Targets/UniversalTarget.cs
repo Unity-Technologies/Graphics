@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
-        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] { "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
         public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
@@ -77,6 +77,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_skipDepth = false;
+
+        [SerializeField]
+        bool m_skipShadows = false;
 
         public UniversalTarget()
         {
@@ -207,6 +213,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
+        public override bool ShouldSkipPass(SubShaderDescriptor subShader, PassDescriptor pass)
+        {
+            if (m_skipDepth && pass.referenceName == CorePasses.DepthOnly.referenceName)
+                return true;
+            if (m_skipShadows && pass.referenceName == CorePasses.ShadowCaster.referenceName)
+                return true;
+
+            return false;
+        }
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
@@ -229,6 +245,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 onChange();
             });
+
+            context.AddProperty("Skip Shadow Pass", new Toggle() { value = m_skipShadows }, (evt) =>
+            {
+                if (Equals(m_skipShadows, evt.newValue))
+                    return;
+
+                registerUndo("Does not cast shadows.");
+                m_skipShadows = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Skip Depth Pass", new Toggle() { value = m_skipDepth }, (evt) =>
+            {
+                if (Equals(m_skipDepth, evt.newValue))
+                    return;
+
+                registerUndo("Do generate a depth pass.");
+                m_skipDepth = evt.newValue;
+                onChange();
+            });
+
 
             // SubTarget properties
             m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
