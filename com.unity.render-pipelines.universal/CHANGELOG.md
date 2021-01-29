@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
+- Added toggles to the shadergraph graph inspector for enabling/disabling URP depth and shadow passes.
 
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
