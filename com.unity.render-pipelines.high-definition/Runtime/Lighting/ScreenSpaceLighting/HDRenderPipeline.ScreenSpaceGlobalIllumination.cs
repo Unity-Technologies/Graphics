@@ -421,5 +421,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 return colorBuffer;
             }
         }
+
+        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture)
+        {
+            TextureHandle result;
+            switch (GetIndirectDiffuseMode(hdCamera))
+            {
+                case IndirectDiffuseMode.ScreenSpace:
+                    result = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_ShaderVariablesRayTracingCB, GetDepthBufferMipChainInfo());
+                    break;
+
+                case IndirectDiffuseMode.Raytrace:
+                    result = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
+                        prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
+                        m_ShaderVariablesRayTracingCB);
+                    break;
+                default:
+                    result =  m_RenderGraph.defaultResources.blackTextureXR;
+                    break;
+            }
+            PushFullScreenDebugTexture(m_RenderGraph, result, FullScreenDebugMode.ScreenSpaceGlobalIllumination);
+            return result;
+        }
     }
 }
