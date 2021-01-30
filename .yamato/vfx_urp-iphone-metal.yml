@@ -42,11 +42,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -93,11 +93,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -120,11 +120,11 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -144,11 +144,11 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=iOS --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -192,11 +192,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=3000
@@ -247,11 +247,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -305,11 +305,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -336,11 +336,11 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -364,11 +364,11 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=iOS --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -419,11 +419,11 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=3000

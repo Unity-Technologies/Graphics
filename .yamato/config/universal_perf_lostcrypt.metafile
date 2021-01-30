@@ -63,6 +63,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
@@ -84,11 +85,11 @@ test_platforms:
 
     commands_build:
       - <reuse_blocks.unity_config>
-      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags: 
           - <reuse_blocks.perf_utr_flags>
@@ -118,9 +119,9 @@ test_platforms:
     name: performance_playmode_editor
     commands:
       - <reuse_blocks.unity_config>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
@@ -143,9 +144,9 @@ test_platforms:
     name: performance_build_editmode
     commands:
       - <reuse_blocks.unity_config>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
         flags: 
           - [all]: --testfilter=Build

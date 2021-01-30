@@ -49,10 +49,10 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -110,10 +110,10 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -175,10 +175,10 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -243,10 +243,10 @@ Build_ShaderGraph_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISI
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

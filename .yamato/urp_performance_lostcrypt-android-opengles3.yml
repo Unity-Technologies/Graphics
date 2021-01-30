@@ -82,10 +82,10 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -143,10 +143,10 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -245,10 +245,10 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -310,10 +310,10 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

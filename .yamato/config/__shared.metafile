@@ -122,12 +122,13 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
   - type: playmode
     utr_flags:
@@ -153,9 +154,9 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
     commands:
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
       
   - type: editmode
@@ -191,9 +192,9 @@ test_platforms:
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
 
 platforms:
