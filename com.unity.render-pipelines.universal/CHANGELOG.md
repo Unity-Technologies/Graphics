@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 - Fixed material upgrader to run in batch mode [case 1305402]
+- Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 
 ## [11.0.0] - 2020-10-21
 ### Added
