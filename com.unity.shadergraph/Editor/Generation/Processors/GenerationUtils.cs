@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Profiling;
 using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
@@ -838,7 +839,9 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeFunction");
                 functionNode.GenerateNodeFunction(functionRegistry, mode);
+                Profiler.EndSample();
                 functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
             }
 
@@ -848,7 +851,9 @@ namespace UnityEditor.ShaderGraph
                     descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeCode");
                 bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                Profiler.EndSample();
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
 
                 if (keywordPermutations != null)
@@ -966,12 +971,14 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                Profiler.BeginSample("GenerateNodeDescriptions");
                 for (int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
+                Profiler.EndSample();
 
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null;

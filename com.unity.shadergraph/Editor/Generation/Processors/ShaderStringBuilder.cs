@@ -4,6 +4,7 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEditor.Graphing;
 using System.Globalization;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -281,9 +282,11 @@ namespace UnityEditor.ShaderGraph
 
         public void ReplaceInCurrentMapping(string oldValue, string newValue)
         {
+            Profiler.BeginSample("ReplaceInCurrentMapping");
             int start = m_CurrentMapping.startIndex;
             int end = m_StringBuilder.Length - start;
             m_StringBuilder.Replace(oldValue, newValue, start, end);
+            Profiler.EndSample();
         }
 
         public string ToCodeBlock()

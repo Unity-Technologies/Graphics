@@ -600,9 +600,12 @@ namespace UnityEditor.ShaderGraph
 
                 // Build vertex graph outputs
                 // Add struct fields to active fields
+                Profiler.BeginSample("GenerateVertexDescriptionStruct");
                 GenerationUtils.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
+                Profiler.EndSample();
 
                 // Build vertex graph functions from ShaderPass vertex port mask
+                Profiler.BeginSample("GenerateVertexDescriptionFunction");
                 GenerationUtils.GenerateVertexDescriptionFunction(
                     m_GraphData,
                     vertexGraphFunctionBuilder,
@@ -617,11 +620,21 @@ namespace UnityEditor.ShaderGraph
                     vertexGraphInputName,
                     vertexGraphFunctionName,
                     vertexGraphOutputName);
+                Profiler.EndSample();
 
                 // Generate final shader strings
-                vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
-                vertexBuilder.AppendNewLine();
-                vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+                if (m_humanReadable)
+                {
+                    vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
+                    vertexBuilder.AppendNewLine();
+                    vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
+                }
+                else
+                {
+                    vertexBuilder.Append(vertexGraphOutputBuilder.ToString());
+                    vertexBuilder.AppendNewLine();
+                    vertexBuilder.Append(vertexGraphFunctionBuilder.ToString());
+                }
             }
 
             // Add to splice commands
