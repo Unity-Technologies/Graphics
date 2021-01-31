@@ -185,23 +185,3 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
         return color;
     #endif
 }
-
-float3 VFXGetCameraWorldPosition()
-{
-    return unity_CameraToWorld._m03_m13_m23;
-}
-
-float3 VFXGetCameraWorldDirection()
-{
-    return unity_CameraToWorld._m02_m12_m22;
-}
-
-float4x4 VFXGetCameraToWorldMatrix()
-{
-    return unity_CameraToWorld;
-}
-
-float4x4 VFXGetWorldToCameraMatrix()
-{
-    return unity_WorldToCamera;
-}
