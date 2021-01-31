@@ -314,14 +314,17 @@ namespace UnityEditor.VFX
 
         public void SyncContextMaterial(VFXContext context) => m_MaterialCollection.TrySyncRenderStateProperties(context);
 
+        static VFXMapping InjectMaterialState() => new VFXMapping("injectMaterialState", 1);
+
         static void AppendMaterialParameters(Material material, List<VFXMapping> parameters, VFXContextCompiledData contextData, VFXExpressionGraph expressionGraph)
         {
+            var shader = material.shader;
+
+            VFXLibrary.currentSRPBinder.SetupMaterial(material);
+            parameters.Add(InjectMaterialState());
+
             // Keywords
             var keywords = new StringBuilder();
-
-            // If there are no keyword, attempt to force them.
-            if (material.shaderKeywords.Length == 0)
-                VFXLibrary.currentSRPBinder.SetupMaterial(material);
 
             foreach (var k in material.shaderKeywords)
             {
@@ -332,8 +335,16 @@ namespace UnityEditor.VFX
             const int kKeywordID = 0x5a93213a;
             parameters.Add(new VFXMapping(keywords.ToString(), kKeywordID));
 
+            // Render Type
+            const int kRenderTypeID = 0x5a93214a;
+            parameters.Add(new VFXMapping(material.GetTag("RenderType", false), kRenderTypeID));
+
+            // Render Queue
+            var renderQueueExpression = contextData.cpuMapper.FromNameAndId("RenderQueue", -1);
+            var renderQueueIndex = expressionGraph.GetFlattenedIndex(renderQueueExpression);
+            parameters.Add(new VFXMapping("RenderQueue", renderQueueIndex));
+
             // Properties
-            var shader = material.shader;
             for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
             {
                 if (ShaderUtil.IsShaderPropertyHidden(shader, i))
@@ -346,6 +357,19 @@ namespace UnityEditor.VFX
                         if (propIndex != -1)
                             parameters.Add(new VFXMapping(name, propIndex));
                     }
+                }
+            }
+
+            // Pass
+            for (int i = 0; i < material.passCount; i++)
+            {
+                var passName = material.GetPassName(i);
+                var propExp = contextData.cpuMapper.FromNameAndId(passName, -1);
+                if (propExp != null)
+                {
+                    int propIndex = expressionGraph.GetFlattenedIndex(propExp);
+                    if (propIndex != -1)
+                        parameters.Add(new VFXMapping(passName, propIndex));
                 }
             }
         }

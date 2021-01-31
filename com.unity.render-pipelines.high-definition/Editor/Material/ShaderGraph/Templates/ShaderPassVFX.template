@@ -57,6 +57,8 @@
 
     ByteAddressBuffer attributeBuffer;
 
+    #define VFX_HAS_INDIRECT_DRAW 1
+
     #if VFX_HAS_INDIRECT_DRAW
     StructuredBuffer<uint> indirectBuffer;
     #endif
@@ -219,6 +221,10 @@
         Attributes attributes = (Attributes)0;
 
         uint index = input.instanceID;
+
+        #if VFX_HAS_INDIRECT_DRAW
+        index = indirectBuffer[index];
+        #endif
 
         // Load Attributes
         $splice(VFXLoadAttribute)

@@ -27,6 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
+            var baseSubShaderDescriptor = base.GetSubShaderDescriptor();
+
+            /*
             var baseSubShaderDescriptor = new SubShaderDescriptor
             {
                 generatesPreview = false,
@@ -58,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
 
                 return passes;
-            }
+            }*/
 
             // Use the current VFX context to configure the subshader.
             return PostProcessSubShaderVFX(baseSubShaderDescriptor, m_Context, m_ContextData);

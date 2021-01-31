@@ -83,6 +83,7 @@ namespace UnityEditor.VFX
             }
 
             // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
+            // base.OnInspectorGUI();
 
             if (serializedObject.ApplyModifiedProperties() || materialChanged)
             {
@@ -423,9 +424,12 @@ namespace UnityEditor.VFX
                     var material = particleData.GetOrCreateMaterial(this);
                     var shader = material.shader;
 
-                    // Map the material properties for render state.
+                    // Map the material state values
                     if (shader != null)
                     {
+                        VFXLibrary.currentSRPBinder.SetupMaterial(material);
+
+                        // Properties
                         for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
                         {
                             if (ShaderUtil.IsShaderPropertyHidden(shader, i))
@@ -452,6 +456,21 @@ namespace UnityEditor.VFX
                                 }
                             }
                         }
+
+                        // Pass
+                        for (int i = 0; i < material.passCount; i++)
+                        {
+                            var passName = material.GetPassName(i);
+                            if (passName == string.Empty)
+                                continue;
+
+                            var expr = VFXValue.Constant<bool>(material.GetShaderPassEnabled(passName));
+                            mapper.AddExpression(expr, passName, -1);
+                        }
+
+                        // Render Queue
+                        var renderQueueExpression = VFXValue.Constant<int>(material.renderQueue);
+                        mapper.AddExpression(renderQueueExpression, "RenderQueue", -1);
                     }
                 }
                 break;
