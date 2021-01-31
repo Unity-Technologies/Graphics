@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return cameraFrameCount;
         }
 
-        internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
+        public ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         internal HDCamera(Camera cam)
         {
