@@ -1242,7 +1242,7 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
             {
-                if (sv.UseSceneFiltering()) return true;
+                if (sv.isUsingSceneFiltering) return true;
             }
 #endif
             return false;
