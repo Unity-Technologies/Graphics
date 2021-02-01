@@ -483,19 +483,17 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        internal int firstPassIndex { get; set; }
-        internal int lastPassIndex { get; set; }
-
-        internal void SetupSceneInfo()
+        private void SetLastPassFlag()
         {
-            firstPassIndex = 0;
-            lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
+            // Go through all the passes and mark the final one as last pass
+
+            int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
 
             // Make sure the list is already sorted!
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-            {
-                m_ActiveRenderPassQueue[i].sceneIndex = i;
-            }
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
+                m_ActiveRenderPassQueue[i].isLastPass = false;
+
+            m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
         }
 
         /// <summary>
@@ -538,7 +536,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                SetupSceneInfo();
+                SetLastPassFlag();
 
                 // to configure the targets we need to call ConfigureTarget which is called in ExecuteRenderPass()...
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
@@ -780,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
 
                 int validColorBuffersCount = (int)RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
 
-                bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+                bool isLastPass = renderPass.isLastPass;
 
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
                 bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
@@ -943,7 +941,7 @@ namespace UnityEngine.Rendering.Universal
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
                     // TODO: move this logic in the preprocessing of the scene and cache the results
-                    bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+                    bool isLastPass = renderPass.isLastPass;
                     bool isLastPassToBB = false;
 
                     if (cameraData.renderType == CameraRenderType.Overlay)
@@ -1080,7 +1078,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : defaultFormat);
                 }
 
-                    bool isLastPass = renderPass.sceneIndex == lastPassIndex;
+                    bool isLastPass = renderPass.isLastPass;
 
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
