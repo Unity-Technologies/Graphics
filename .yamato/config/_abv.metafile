@@ -6,7 +6,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_HDRP
     - name: VFX_URP
   expression_trigger:
-    expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"]'
+    expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
   build_configs:
     - mono
     - il2cpp
@@ -15,6 +15,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
 nightly:
   extra_dependencies: # additional project jobs to run nightly
     - project: URP_Performance_BoatAttack
+      pr: true
+    - project: URP_Performance_LostCrypt
       pr: true
     - project: URPUpdate
       pr: true

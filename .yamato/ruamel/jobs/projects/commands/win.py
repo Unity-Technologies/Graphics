@@ -15,14 +15,15 @@ def _cmd_base(project, platform, utr_calls, editor):
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
-         del revdate.tmp
+         del revdate.tmp'''))
+        if 'HDRP_PerformanceTests' in project['name']:
+            base.append(f'git checkout %GIT_BRANCH%')
+        base.append(pss(f'''
          cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}'''))
-
     return base
 
 
 def cmd_editmode(project, platform, api, test_platform, editor, build_config, color_space):
-
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     base = _cmd_base(project, platform, utr_calls, editor)
     base = add_project_commands(project) + base

@@ -123,6 +123,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_EyeTestSG.unity
     guid: f62791cf7ace7534680a0f9c461be164
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1550_3dsMax.unity
+    guid: 35bf0206fff1a8442bd9cb215df7692d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1601_TerrainLit.unity
     guid: d52dbea61cf2f884fadf33f8cc6afc0c
   - enabled: 1
@@ -179,6 +182,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1712_DecalAngleFading.unity
     guid: 4b93985ba01d5aa49a5f0cdd342faa27
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
+    guid: 0adc2fcc221085f45ba4dce7e4afae0d
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
@@ -565,6 +571,9 @@ EditorBuildSettings:
     guid: 446a8abf33eabaa4eb3228747da30066
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8107_UnlitShadowMatteAmbientOcclusion.unity
+    guid: 3258eb67f3c2f974bb87d063ef60ccb5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8108_UnlitShadowMatteAmbientOcclusionMSAA.unity
     guid: c2efdf3fe2a75b54588a53fc3be2bd17
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
@@ -689,7 +698,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9902_AOV_buffers2.unity
     guid: f63ff73f5ad6e02479e7d9e556f572b6
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
-    guid: 0adc2fcc221085f45ba4dce7e4afae0d
   m_configObjects: {}
