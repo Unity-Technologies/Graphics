@@ -7,15 +7,26 @@
 
 ---
 
-All_URPUpdate_Top_Asset_Store_2020.2:
-    name: All URPUpdate_Top_Asset_Store CI - 2020.2
+PR_URPUpdate_Top_Asset_Store_2020.2:
+    name: URPUpdate_Top_Asset_Store PR Job - 2020.2
     dependencies:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_2020.2
          rerun: on-new-revision
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
-All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
-    name: All URPUpdate_Top_Asset_Store CI - CUSTOM-REVISION
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URPUpdate_Top_Asset_Store_2020.2:
+    name: Nightly URPUpdate_Top_Asset_Store - 2020.2
+    dependencies:
+      -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_2020.2
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
+    name: URPUpdate_Top_Asset_Store PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -23,3 +34,14 @@ All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
+    name: Nightly URPUpdate_Top_Asset_Store - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

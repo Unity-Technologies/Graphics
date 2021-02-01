@@ -107,12 +107,12 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Generate the new sample (follwing values of the sequence)
-    float2 sample;
-    sample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
-    sample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
+    float2 theSample;
+    theSample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
+    theSample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
 
     // Importance sample with a cosine lobe
-    float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
+    float3 sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, normalData.normalWS);
 
     // PDF is the cosine
     float samplePDF = dot(sampleDir, normalData.normalWS);
@@ -209,8 +209,8 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
             if(sampleDepth == UNITY_RAW_FAR_CLIP_VALUE) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
-            int index = clamp(floor(sample * 4.0f), 0, 3);
+            float theSample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            int index = clamp(floor(theSample * 4.0f), 0, 3);
 
             if (index != localIndex) continue;
 

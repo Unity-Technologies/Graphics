@@ -4,12 +4,24 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.4.0] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.3.1] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.3.0] - 2020-11-03
 
 ### Added
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+- Adjusted and expanded Swizzle Node article as reviewed by docs editorial. (DOC-2695)
+- Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
@@ -35,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
 - Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 
 ## [10.2.0] - 2020-10-19
 
