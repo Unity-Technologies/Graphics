@@ -10,20 +10,20 @@
 PR_ShaderGraph_trunk:
     name: ShaderGraph PR Job - trunk
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_trunk
+      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk
+      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -36,13 +36,13 @@ Nightly_ShaderGraph_trunk:
          rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_trunk
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -50,15 +50,15 @@ Nightly_ShaderGraph_trunk:
 PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-osx-metal.yml#ShaderGraph_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: always
@@ -75,13 +75,13 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
