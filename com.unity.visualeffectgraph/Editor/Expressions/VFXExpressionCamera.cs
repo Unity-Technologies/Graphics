@@ -167,4 +167,28 @@ namespace UnityEditor.VFX
         protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
         private VFXCameraBufferTypes m_BufferType;
     }
+
+    class VFXExpressionIsCameraOrthographic : VFXExpression
+    {
+        public VFXExpressionIsCameraOrthographic() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.IsCameraOrthographic;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.cameraToWorldMatrix);
+            else
+                return VFXValue.Constant(CameraType.defaultValue.transform);
+        }
+    }
+
 }

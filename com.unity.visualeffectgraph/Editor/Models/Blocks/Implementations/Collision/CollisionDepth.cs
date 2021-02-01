@@ -107,7 +107,15 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
-    float linearEyeDepth = n * f / (depth * (n - f) + f);";
+    float linearEyeDepth;
+    if (IsPerspectiveProjection())
+    {
+        linearEyeDepth = n + depth * (f-n);
+    }
+    else
+    {
+        linearEyeDepth = n * f / (depth * (n - f) + f);
+    }";
 
                 if (surfaceThickness == SurfaceThickness.Infinite)
                     Source += @"

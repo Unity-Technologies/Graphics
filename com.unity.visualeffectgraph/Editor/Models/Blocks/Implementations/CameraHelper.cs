@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
                 ViewToVFX = new VFXExpressionTransformMatrix(VFXBuiltInExpression.LocalToWorld, cameraMatrix.exp);
 
             VFXExpression VFXToView = new VFXExpressionInverseTRSMatrix(ViewToVFX);
-            VFXExpression ViewToClip = VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp);
+            VFXExpression ViewToClip = VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp); //Will not work for Orthographic projection
             VFXExpression ClipToView = new VFXExpressionInverseMatrix(ViewToClip);
 
             return new CameraMatricesExpressions()
