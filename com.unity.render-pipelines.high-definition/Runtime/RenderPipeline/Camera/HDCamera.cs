@@ -1420,7 +1420,7 @@ namespace UnityEngine.Rendering.HighDefinition
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: hdPipeline.GetColorBufferFormat(),
                 dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
                 name: string.Format("{0}_CameraColorBufferMipChain{1}", viewName, frameIndex));
         }

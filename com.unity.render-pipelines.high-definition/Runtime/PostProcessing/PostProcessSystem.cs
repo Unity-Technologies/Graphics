@@ -182,12 +182,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_KeepAlpha = false;
 
             // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha() && postProcessSettings.supportsAlpha;
 
             if (m_EnableAlpha == false)
             {
                 // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha();
             }
 
             // Setup a default exposure textures and clear it to neutral values so that the exposure
