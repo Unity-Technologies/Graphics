@@ -18,8 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("a4015296799c4bfd99499b48602f9e32");  // VFXLitSubTarget.cs
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPassVFX.template";
-
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
 
