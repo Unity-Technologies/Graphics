@@ -5,13 +5,21 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
-  expression_trigger: 
-    expression: 'pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"]'
+  expression_trigger:
+    expression: 'pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
   build_configs:
     - mono
     - il2cpp
   color_spaces: 
     - Linear
+nightly:
+  extra_dependencies: # additional project jobs to run nightly
+    - project: URP_Performance_BoatAttack
+      pr: true
+    - project: URP_Performance_LostCrypt
+      pr: true
+    - project: URPUpdate
+      pr: true
 weekly:
   extra_dependencies: # additional project jobs to run weekly
     []
@@ -47,7 +55,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
         - editmode
     - project: VFX_URP
       platform: Win
