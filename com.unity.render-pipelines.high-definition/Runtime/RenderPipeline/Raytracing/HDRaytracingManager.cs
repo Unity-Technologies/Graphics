@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null)
+            if (m_TemporalFilter == null && m_RayTracingSupported)
             {
                 m_TemporalFilter = new HDTemporalFilter();
                 m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
@@ -729,10 +729,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
         {
+            // Grab the temporal filter
             HDTemporalFilter temporalFilter = GetTemporalFilter();
-            float historyValidity = EvaluateHistoryValidity(hdCamera);
-            HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
-            return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
+
+            // If the temporal filter is valid use it, otherwise return a white texture
+            if (temporalFilter != null)
+            {
+                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
+                return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
+            }
+            else
+                return renderGraph.defaultResources.whiteTexture;
         }
     }
 }
