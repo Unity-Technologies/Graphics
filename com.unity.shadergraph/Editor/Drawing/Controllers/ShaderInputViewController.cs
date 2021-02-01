@@ -15,7 +15,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
-            graphData.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
+            // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
+            //graphData.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
             ShaderInputReference.generatePropertyBlock = NewIsExposedValue;
         }
 
@@ -35,8 +36,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangePropertyValueAction");
             Assert.IsNotNull(ShaderPropertyReference, "ShaderInputReference is null while carrying out ChangePropertyValueAction");
-
-            graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
+            // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
+            //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
             switch (ShaderPropertyReference)
             {
                 case BooleanShaderProperty booleanProperty:
@@ -105,7 +106,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeDisplayNameAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
-            graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
+            // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
+            //graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
             if (NewDisplayNameValue != ShaderInputReference.displayName)
             {
                 ShaderInputReference.displayName = NewDisplayNameValue;
@@ -127,7 +129,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeReferenceNameAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeReferenceNameAction");
-            graphData.owner.RegisterCompleteObjectUndo("Change Reference Name");
+            // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
+            //graphData.owner.RegisterCompleteObjectUndo("Change Reference Name");
             if (NewReferenceNameValue != ShaderInputReference.overrideReferenceName)
             {
                 graphData.SanitizeGraphInputReferenceName(ShaderInputReference, NewReferenceNameValue);
@@ -158,16 +161,41 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal ShaderInput ShaderInputReference { get; set; }
     }
 
+    // TODO: GraphView handles deletion of selected items using MaterialGraphView::DeleteSelectionImplementation(), which keeps all child views out of the loop
+    // And forces state tracking hacks like the tracking of removed inputs etc, currently use a delegate called at input removal to handle BB cleanup
+    // Find a better way that uses GraphDataActions instead
+    class DeleteShaderInputAction : IGraphDataAction
+    {
+        void DeleteShaderInput(GraphData graphData)
+        {
+            Assert.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
+            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
+            graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input");
+            graphData.RemoveGraphInput(ShaderInputReference);
+        }
+
+        public Action<GraphData> ModifyGraphDataAction =>  DeleteShaderInput;
+
+        // Reference to the shader input being deleted
+        internal ShaderInput ShaderInputReference { get; set; }
+
+    }
+
     class ShaderInputViewController : SGViewController<ShaderInput, ShaderInputViewModel>
     {
+        // Exposed for PropertyView
+        internal GraphData DataStoreState => DataStore.State;
+
         internal ShaderInputViewController(ShaderInput shaderInput, ShaderInputViewModel inViewModel, GraphDataStore graphDataStore)
             : base(shaderInput, inViewModel, graphDataStore)
         {
             InitializeViewModel();
 
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
-            m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
+            m_BlackboardPropertyView.controller = this;
 
+            m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
+            m_BlackboardRowView.expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{shaderInput.objectId}.isExpanded", false);
         }
 
         void InitializeViewModel()
@@ -193,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         SGBlackboardRow m_BlackboardRowView;
         BlackboardPropertyView m_BlackboardPropertyView;
 
-        internal SGBlackboardRow BlackboardItem => m_BlackboardRowView;
+        internal SGBlackboardRow BlackboardItemView => m_BlackboardRowView;
 
         protected override void RequestModelChange(IGraphDataAction changeAction)
         {
@@ -232,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // TODO: This should communicate to node controllers instead of searching for the nodes themselves everytime, but that's going to take a while...
-        void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
+        internal void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             switch (Model)
             {
@@ -268,7 +296,5 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        public override void ApplyChanges() { }
     }
 }

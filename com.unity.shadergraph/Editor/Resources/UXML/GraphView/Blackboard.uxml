@@ -11,10 +11,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="scrollBoundaryTop" pickingMode="Position" />
             <ui:ScrollView class="unity-scroll-view unity-scroll-view--scroll unity-scroll-view--vertical-horizontal" name ="scrollView"/>
-                <ui:VisualElement name="contentContainer" pickingMode="Ignore">
-                    <sg:SGBlackboardSection name="propertySection" title="Properties" />
-                    <sg:SGBlackboardSection name="keywordSection" title="Keywords"/>
-                </ui:VisualElement>
+                <ui:VisualElement name="contentContainer" pickingMode="Ignore" />
         <ui:VisualElement name="scrollBoundaryBottom" pickingMode="Position"/>
     </ui:VisualElement>
     <sg:ResizableElement pickingMode="Ignore" resizeRestriction="FlexDirection"/>

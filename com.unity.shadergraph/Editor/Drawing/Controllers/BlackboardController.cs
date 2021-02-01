@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 using System;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
-
+using UnityEngine.Assertions;
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
 using BlackboardItemController = UnityEditor.ShaderGraph.Drawing.ShaderInputViewController;
@@ -61,46 +61,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 		public string NewGraphPath { get; set; }
     }
 
-    class MoveBlackboardItemAction : IGraphDataAction
-    {
-        void MoveBlackboardItem(GraphData m_GraphData)
-        {
-
-        }
-
-        public Action<GraphData> ModifyGraphDataAction => MoveBlackboardItem;
-
-        BlackboardItem m_ItemToMove;
-        int m_NewIndex;
-    }
-
-    class RemoveBlackboardItemAction : IGraphDataAction
-    {
-        void RemoveBlackboardItem(GraphData m_GraphData)
-        {
-
-        }
-
-        public Action<GraphData> ModifyGraphDataAction => RemoveBlackboardItem;
-
-        BlackboardItem m_ItemToRemove;
-    }
-
-	class RenameBlackboardItemAction : IGraphDataAction
-    {
-        void RenameBlackboardItem(GraphData m_GraphData)
-        {
-
-        }
-
-        public Action<GraphData> ModifyGraphDataAction => RenameBlackboardItem;
-
-        public BlackboardItem BlackboardItemToRename { get; set; }
-
-		public string NewItemName { get; set; }
-
-    }
-
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
     {
         // Type changes (adds/removes of Types) only happen after a full assmebly reload so its safe to make this stuff static (I think, confirm this assumption)
@@ -122,6 +82,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_shaderInputTypes = shaderInputTypes.ToList();
         }
+
+        BlackboardSectionController m_PropertySectionController;
+        BlackboardSectionController m_KeywordSectionController;
+
         IList<BlackboardItemController> m_BlackboardItemControllers = new List<BlackboardItemController>();
 
         SGBlackboard m_Blackboard;
@@ -140,9 +104,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             Blackboard = new SGBlackboard(ViewModel);
             Blackboard.controller = this;
 
-            // TODO: Change it so MoveItem isn't handled by the BlackboardController,
-            // it'd be nice to have a BlackboardRowController that handled moving, deleting, updating etc after a BlackboardRow is created and its assigned that as its view
+            // Temporary patch-fix for how GraphView handles deleting graph selections, should go through data store ideally
+            if (ViewModel.ParentView is MaterialGraphView graphView)
+                graphView.blackboardItemRemovedDelegate += RemoveBlackboardRow;
+
+            var propertySectionViewModel = new BlackboardSectionViewModel();
+            propertySectionViewModel.ParentView = Blackboard;
+            propertySectionViewModel.Name = "Properties";
+            propertySectionViewModel.RequestModelChangeAction = ViewModel.RequestModelChangeAction;
+            m_PropertySectionController = new BlackboardSectionController(model, propertySectionViewModel, graphDataStore);
+            //RegisterHandler(m_PropertySectionController);
+
+            var keywordSectionViewModel = new BlackboardSectionViewModel();
+            keywordSectionViewModel.ParentView = Blackboard;
+            keywordSectionViewModel.Name = "Keywords";
+            keywordSectionViewModel.RequestModelChangeAction = ViewModel.RequestModelChangeAction;
+            m_KeywordSectionController = new BlackboardSectionController(model, keywordSectionViewModel, graphDataStore);
+            //RegisterHandler(m_KeywordSectionController);
+
+            Blackboard.PropertySection = m_PropertySectionController.BlackboardSectionView;
+            Blackboard.KeywordSection = m_KeywordSectionController.BlackboardSectionView;
+            Blackboard.contentContainer.Add(Blackboard.PropertySection);
+            Blackboard.contentContainer.Add(Blackboard.KeywordSection);
+
             foreach (var shaderInput in DataStore.State.properties)
+            {
+                CreateBlackboardRow(shaderInput);
+            }
+
+            foreach (var shaderInput in DataStore.State.keywords)
             {
                 CreateBlackboardRow(shaderInput);
             }
@@ -210,7 +200,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (changeAction is AddBlackboardItemAction addBlackboardItemAction)
             {
-                CreateBlackboardRow(addBlackboardItemAction.BlackboardItemReference);
+                var blackboardRow = CreateBlackboardRow(addBlackboardItemAction.BlackboardItemReference);
+                // Rows should auto-expand when an input is first added
+                blackboardRow.expanded = true;
             }
 
             // Reconstruct view-model first
@@ -222,14 +214,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             NotifyChange(changeAction);
 
             // Let child controllers know about changes to this controller so they may update themselves in turn
-            foreach (var controller in allChildren)
-            {
-                controller.ApplyChanges();
-            }
+            ApplyChanges();
         }
 
         // Creates controller, view and view model for a blackboard item and adds the view to the blackboard
-        void CreateBlackboardRow(BlackboardItem shaderInput)
+        SGBlackboardRow CreateBlackboardRow(BlackboardItem shaderInput)
         {
             var shaderInputViewModel = new ShaderInputViewModel()
             {
@@ -239,19 +228,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Add(blackboardItemController);
             if (shaderInput is AbstractShaderProperty)
-                Blackboard.AddPropertyRow(blackboardItemController.BlackboardItem);
+                Blackboard.AddPropertyRow(blackboardItemController.BlackboardItemView);
             else
-                Blackboard.AddKeywordRow(blackboardItemController.BlackboardItem);
+                Blackboard.AddKeywordRow(blackboardItemController.BlackboardItemView);
+
+            return blackboardItemController.BlackboardItemView;
+        }
+
+        void RemoveBlackboardRow(BlackboardItem shaderInput)
+        {
+            BlackboardItemController associatedBlackboardItemController = null;
+            foreach (var blackboardItemController in m_BlackboardItemControllers.ToList())
+            {
+                if (blackboardItemController.Model == shaderInput)
+                    associatedBlackboardItemController = blackboardItemController;
+            }
+
+            try
+            {
+                Assert.IsNotNull(associatedBlackboardItemController);
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.Log("ERROR: Failed to find associated blackboard item controller for shader input that was just deleted. Cannot clean up view associated with input. " + e);
+                return;
+            }
+
+            if(shaderInput is AbstractShaderProperty)
+                Blackboard.RemovePropertyRow(associatedBlackboardItemController.BlackboardItemView);
+            else
+                Blackboard.RemoveKeywordRow(associatedBlackboardItemController.BlackboardItemView);
+
+            m_BlackboardItemControllers.Remove(associatedBlackboardItemController);
         }
 
         public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
         {
             return new BlackboardRow(new VisualElement(), null);
-        }
-
-        public override void ApplyChanges()
-        {
-
         }
     }
 }

@@ -174,5 +174,13 @@ namespace UnityEditor.ShaderGraph
         // Holds data specific to the views this controller is responsible for
         ViewModelType m_ViewModel;
         public ViewModelType ViewModel => m_ViewModel;
+
+        public override void ApplyChanges()
+        {
+            foreach (var controller in allChildren)
+            {
+                controller.ApplyChanges();
+            }
+        }
     }
 }

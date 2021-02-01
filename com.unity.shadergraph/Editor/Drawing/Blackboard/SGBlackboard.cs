@@ -83,8 +83,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_ViewModel = value;
         }
 
-        readonly SGBlackboardSection m_DefaultPropertySection;
-        readonly SGBlackboardSection m_DefaultKeywordSection;
+        // sections are created by BlackboardSectionControllers, then assigned to this Blackboard by the BlackboardController
+        internal SGBlackboardSection PropertySection { get; set; }
+        internal SGBlackboardSection KeywordSection { get; set; }
 
         // List of user-made blackboard sections
         IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
@@ -128,14 +129,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
             this.RegisterCallback<MouseUpEvent>(evt =>
             {
-                m_DefaultPropertySection.OnDragActionCanceled();
-                m_DefaultKeywordSection.OnDragActionCanceled();
+                PropertySection.OnDragActionCanceled();
+                KeywordSection.OnDragActionCanceled();
             });
 
             this.RegisterCallback<DragExitedEvent>(evt =>
             {
-                m_DefaultPropertySection.OnDragActionCanceled();
-                m_DefaultKeywordSection.OnDragActionCanceled();
+                PropertySection.OnDragActionCanceled();
+                KeywordSection.OnDragActionCanceled();
             });
 
             m_TitleLabel.text = ViewModel.Title;
@@ -174,22 +175,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             isWindowScrollable = true;
             isWindowResizable = true;
             focusable = true;
-
-            Debug.Log(m_ContentContainer);
-            // Want to retain properties and keywords UI, but need to iterate through the GroupInfos, and create sections for each of those
-            // Then for each section, add the corresponding properties and keywords based on their GUIDs
-            m_DefaultPropertySection =  this.Q<SGBlackboardSection>("propertySection");
-            m_DefaultKeywordSection = this.Q<SGBlackboardSection>("keywordSection");
         }
 
         internal void AddPropertyRow(SGBlackboardRow blackboardRow)
         {
-            m_DefaultPropertySection.Add(blackboardRow);
+            PropertySection.Add(blackboardRow);
         }
 
         internal void AddKeywordRow(SGBlackboardRow blackboardRow)
         {
-            m_DefaultKeywordSection.Add(blackboardRow);
+            KeywordSection.Add(blackboardRow);
+        }
+
+        internal void RemovePropertyRow(SGBlackboardRow blackboardRow)
+        {
+            PropertySection.Remove(blackboardRow);
+        }
+
+        internal void RemoveKeywordRow(SGBlackboardRow blackboardRow)
+        {
+            KeywordSection.Remove(blackboardRow);
         }
 
         public void ShowScrollBoundaryRegions()

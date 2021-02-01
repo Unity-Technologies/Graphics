@@ -70,6 +70,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         GraphData graphData;
         bool isSubGraph { get; set;  }
+        ChangeExposedFieldCallback _exposedFieldChangedCallback;
+        ChangeDisplayNameCallback _displayNameChangedCallback;
+        ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
         ChangeValueCallback _changeValueCallback;
@@ -88,18 +91,60 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.graphData = graphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
             this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+            this._exposedFieldChangedCallback = exposedFieldCallback;
+            this._displayNameChangedCallback = displayNameCallback;
+            this._referenceNameChangedCallback = referenceNameCallback;
             this._changeValueCallback = changeValueCallback;
             this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
             this._postChangeValueCallback = postChangeValueCallback;
         }
 
-        internal void GetViewModel(ShaderInputViewModel shaderInputViewModel)
+        internal void GetViewModel(ShaderInputViewModel shaderInputViewModel, GraphData inGraphData, PostChangeValueCallback postChangeValueCallback)
         {
             m_ViewModel = shaderInputViewModel;
             this.isSubGraph = m_ViewModel.IsSubGraph;
-            // TODO: This stuff needs to be supplied by the BlackboardPropertyView instead cause we don't use GetPropertyData from it anymore
-            //this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
-            //this._postChangeValueCallback = postChangeValueCallback;
+            this.graphData = inGraphData;
+            this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+
+            this._exposedFieldChangedCallback = newValue =>
+            {
+                var changeExposedFlagAction = new ChangeExposedFlagAction();
+                changeExposedFlagAction.ShaderInputReference = shaderInput;
+                changeExposedFlagAction.NewIsExposedValue = newValue;
+                ViewModel.RequestModelChangeAction(changeExposedFlagAction);
+            };
+
+            this._displayNameChangedCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangeDisplayNameAction();
+                changeDisplayNameAction.ShaderInputReference = shaderInput;
+                changeDisplayNameAction.NewDisplayNameValue = newValue;
+                ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._referenceNameChangedCallback = newValue =>
+            {
+                var changeReferenceNameAction = new ChangeReferenceNameAction();
+                changeReferenceNameAction.ShaderInputReference = shaderInput;
+                changeReferenceNameAction.NewReferenceNameValue = newValue;
+                ViewModel.RequestModelChangeAction(changeReferenceNameAction);
+            };
+
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+
+            if (shaderInput is AbstractShaderProperty abstractShaderProperty)
+            {
+                var changePropertyValueAction = new ChangePropertyValueAction();
+                changePropertyValueAction.ShaderPropertyReference = abstractShaderProperty;
+                this._changeValueCallback = newValue =>
+                {
+                    changePropertyValueAction.NewShaderPropertyValue = newValue;
+                    ViewModel.RequestModelChangeAction(changePropertyValueAction);
+                };
+            }
+
+            this._postChangeValueCallback = postChangeValueCallback;
         }
 
         public Action inspectorUpdateDelegate { get; set; }
@@ -135,10 +180,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
-                        var changeShaderInputExposedAction = new ChangeExposedFlagAction();
-                        changeShaderInputExposedAction.ShaderInputReference = shaderInput;
-                        changeShaderInputExposedAction.NewIsExposedValue = evt.isOn;
-                        ViewModel.RequestModelChangeAction(changeShaderInputExposedAction);
+                        this._preChangeValueCallback("Change Exposed Toggle");
+                        this._exposedFieldChangedCallback(evt.isOn);
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
@@ -160,17 +204,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_DisplayNameField.RegisterValueChangedCallback(
                 evt =>
                 {
-                    var changeDisplayNameAction = new ChangeDisplayNameAction();
-                    changeDisplayNameAction.ShaderInputReference = shaderInput;
-                    changeDisplayNameAction.NewDisplayNameValue = evt.newValue;
-                    ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+                    this._preChangeValueCallback("Change Display Name");
+                    this._displayNameChangedCallback(evt.newValue);
 
                     if (string.IsNullOrEmpty(shaderInput.displayName))
                         m_DisplayNameField.RemoveFromClassList("modified");
                     else
                         m_DisplayNameField.AddToClassList("modified");
 
-                    this.inspectorUpdateDelegate();
+                    this._postChangeValueCallback(true, ModificationScope.Topological);
                 });
 
             if (!string.IsNullOrEmpty(shaderInput.displayName))
@@ -194,17 +236,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_ReferenceNameField.RegisterValueChangedCallback(
                     evt =>
                     {
-                        var changeReferenceNameAction = new ChangeReferenceNameAction();
-                        changeReferenceNameAction.ShaderInputReference = shaderInput;
-                        changeReferenceNameAction.NewReferenceNameValue = evt.newValue;
-                        ViewModel.RequestModelChangeAction(changeReferenceNameAction);
+                        this._preChangeValueCallback("Change Reference Name");
+                        this._referenceNameChangedCallback(evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                             m_ReferenceNameField.RemoveFromClassList("modified");
                         else
                             m_ReferenceNameField.AddToClassList("modified");
 
-                        this.inspectorUpdateDelegate();
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
                 if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))

@@ -52,14 +52,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
-        public Action blackboardFieldDropDelegate
+        internal Action blackboardFieldDropDelegate
         {
             get => m_BlackboardFieldDropDelegate;
             set => m_BlackboardFieldDropDelegate = value;
         }
 
+        internal Action<ShaderInput> blackboardItemRemovedDelegate
+        {
+            get => m_BlackboardItemRemovedDelegate;
+            set => m_BlackboardItemRemovedDelegate = value;
+        }
+
         public List<ISelectable> GetSelection => selection;
 
+        Action<ShaderInput> m_BlackboardItemRemovedDelegate;
         Action m_BlackboardFieldDropDelegate;
 
         Action m_InspectorUpdateDelegate;
@@ -897,19 +904,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
+            var removedInputs = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
                 if (selectable is BlackboardPropertyView field && field.userData != null)
                 {
                     var input = (ShaderInput)field.userData;
                     graph.RemoveGraphInput(input);
-
+                    removedInputs.Add(input);
                     // If deleting a Keyword test variant limit
                     if (input is ShaderKeyword keyword)
                     {
                         keywordsDirty = true;
                     }
                 }
+            }
+
+            for (int i = 0; i < removedInputs.Count; i++)
+            {
+                // Called to update the blackboard when a graph input is removed
+                blackboardItemRemovedDelegate?.Invoke(removedInputs[i]);
             }
 
             // Test Keywords against variant limit

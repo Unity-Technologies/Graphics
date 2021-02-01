@@ -1,29 +1,58 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class SGBlackboardSection : GraphElement
+    class SGBlackboardSection : GraphElement, ISGControlledElement<BlackboardSectionController>
     {
-        public new class UxmlFactory : UxmlFactory<SGBlackboardSection, UxmlTraits> {}
-
-        public new class UxmlTraits : VisualElement.UxmlTraits
+        // --- Begin ISGControlledElement implementation
+        public void OnControllerChanged(ref SGControllerChangedEvent e)
         {
-            UxmlStringAttributeDescription m_Title = new UxmlStringAttributeDescription { name = "title" };
 
-            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-            {
-                get { yield break; }
-            }
+        }
 
-            public override void Init(VisualElement visualElement, IUxmlAttributes bag, CreationContext cc)
+        public void OnControllerEvent(SGControllerEvent e)
+        {
+
+        }
+
+        public BlackboardSectionController controller
+        {
+            get => m_Controller;
+            set
             {
-                base.Init(visualElement, bag, cc);
-                ((SGBlackboardSection)visualElement).title = m_Title.GetValueFromBag(bag, cc);
+                if (m_Controller != value)
+                {
+                    if (m_Controller != null)
+                    {
+                        m_Controller.UnregisterHandler(this);
+                    }
+                    m_Controller = value;
+
+                    if (m_Controller != null)
+                    {
+                        m_Controller.RegisterHandler(this);
+                    }
+                }
             }
+        }
+
+        SGController ISGControlledElement.controller => m_Controller;
+
+        // --- ISGControlledElement implementation
+
+        BlackboardSectionController m_Controller;
+
+        BlackboardSectionViewModel m_ViewModel;
+
+        BlackboardSectionViewModel ViewModel
+        {
+            get => m_ViewModel;
+            set => m_ViewModel = value;
         }
 
         VisualElement m_DragIndicator;
@@ -32,12 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_TitleLabel;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
-
-        SGBlackboard m_Blackboard;
-        SGBlackboard blackboard
-        {
-            get { return m_Blackboard ?? (m_Blackboard = GetFirstAncestorOfType<SGBlackboard>()); }
-        }
+        SGBlackboard Blackboard => ViewModel.ParentView as SGBlackboard;
 
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
@@ -87,8 +111,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        public SGBlackboardSection()
+        internal SGBlackboardSection(BlackboardSectionViewModel sectionViewModel)
         {
+            ViewModel = sectionViewModel;
+
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
             m_MainContainer = tpl.Instantiate();
@@ -102,6 +128,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_DragIndicator = m_MainContainer.Q("dragIndicator");
             m_DragIndicator.visible = false;
+
             hierarchy.Add(m_DragIndicator);
 
             ClearClassList();
@@ -115,6 +142,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(styleSheet);
 
             m_InsertIndex = -1;
+
+            // Update section title from view model
+            m_TitleLabel.text = ViewModel.Name;
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
@@ -279,12 +309,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (!((indexOfDraggedElement == insertIndex) || ((insertIndex - 1) == indexOfDraggedElement)))
                     {
-                        if (blackboard.moveItemRequested != null)
+                        var moveShaderInputAction = new MoveShaderInputAction();
+                        if (draggedElement.Item2.userData is ShaderInput shaderInput)
                         {
-                            blackboard.moveItemRequested(m_InsertIndex, draggedElement.Item2);
-                        }
-                        else
-                        {
+                            moveShaderInputAction.ShaderInputReference = shaderInput;
+                            moveShaderInputAction.NewIndexValue = m_InsertIndex;
+                            ViewModel.RequestModelChangeAction(moveShaderInputAction);
+
                             if (insertIndex == contentContainer.childCount)
                             {
                                 sectionDirectChild.BringToFront();
@@ -311,7 +342,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             SetDragIndicatorVisible(false);
         }
 
-        public void OnDragActionCanceled()
+        internal void OnDragActionCanceled()
         {
             SetDragIndicatorVisible(false);
         }
