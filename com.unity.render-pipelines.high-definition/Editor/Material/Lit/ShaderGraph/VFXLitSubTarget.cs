@@ -413,6 +413,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            base.GetFields(ref context);
+
+            context.AddField(Fields.GraphVFX);
+        }
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);

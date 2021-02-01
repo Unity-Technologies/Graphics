@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
 
         #region Fields
         // These are core Fields shared between URP and HDRP etc.
+        public static FieldDescriptor GraphVFX =              new FieldDescriptor(kFeatures, "graphVFX", "FEATURES_GRAPH_VFX");
         public static FieldDescriptor GraphVertex =           new FieldDescriptor(kFeatures, "graphVertex", "FEATURES_GRAPH_VERTEX");
         public static FieldDescriptor GraphPixel =            new FieldDescriptor(kFeatures, "graphPixel", "FEATURES_GRAPH_PIXEL");
         public static FieldDescriptor GraphColorInterp =      new FieldDescriptor(kFeatures, "graphColorInterp", "FEATURES_GRAPH_COLOR_INTERP");
