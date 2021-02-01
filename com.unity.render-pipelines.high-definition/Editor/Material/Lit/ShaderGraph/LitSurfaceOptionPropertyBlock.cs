@@ -29,19 +29,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CreatePropertyGUI()
         {
             // Lit specific properties:
-            AddProperty(materialIDText, "HDLitData.materialType", () => litData.materialType, (newValue) => litData.materialType = newValue);
-            AddProperty(rayTracingText, "HDLitData.rayTracing", () => litData.rayTracing, (newValue) => litData.rayTracing = newValue);
+            AddProperty(materialIDText, () => litData.materialType, (newValue) => litData.materialType = newValue);
+            AddProperty(rayTracingText, () => litData.rayTracing, (newValue) => litData.rayTracing = newValue);
 
             base.CreatePropertyGUI();
 
-            AddProperty(Styles.enableClearCoat, "HDLitData.clearCoat", () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
+            AddProperty(Styles.enableClearCoat, () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
             if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
             {
-                AddProperty(transmissionEnableText, "HDLitData.sssTransmission", () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
+                AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
             }
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                AddProperty(refractionModelText, "HDLitData.refractionModel", () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
+                AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
                 if (litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None)
                 {
                     if (systemData.blendMode != BlendMode.Alpha)
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             if (litData.materialType == HDLitData.MaterialType.SpecularColor)
             {
-                AddProperty(energyConservingSpecularColorText, "HDLitData.energyConservingSpecular", () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
+                AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
             }
         }
     }

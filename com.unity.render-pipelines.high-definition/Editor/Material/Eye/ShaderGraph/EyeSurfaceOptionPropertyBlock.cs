@@ -29,13 +29,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(Styles.materialType, "EyeData.materialType", () => eyeData.materialType, (newValue) => eyeData.materialType = newValue);
+            AddProperty(Styles.materialType, () => eyeData.materialType, (newValue) => eyeData.materialType = newValue);
 
             base.CreatePropertyGUI();
 
             // Eye specific properties:
-            AddProperty(subsurfaceEnableText, "EyeData.subsurfaceScattering", () => eyeData.subsurfaceScattering, (newValue) => eyeData.subsurfaceScattering = newValue);
-            AddProperty(Styles.irisNormalType, "EyeData.irisNormal", () => eyeData.irisNormal, (newValue) => eyeData.irisNormal = newValue);
+            AddProperty(subsurfaceEnableText, () => eyeData.subsurfaceScattering, (newValue) => eyeData.subsurfaceScattering = newValue);
+            AddProperty(Styles.irisNormalType, () => eyeData.irisNormal, (newValue) => eyeData.irisNormal = newValue);
         }
     }
 }

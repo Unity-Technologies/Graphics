@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(surfaceTypeText, "SystemData.surfaceType", () => systemData.surfaceType, (newValue) => {
+            AddLockableProperty(surfaceTypeText, HDMaterialProperties.kSurfaceType, () => systemData.surfaceType, (newValue) => {
                 systemData.surfaceType = newValue;
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
@@ -52,8 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             var renderingPassLine = new LockableBaseField<BaseField<HDRenderQueue.RenderQueueType>, HDRenderQueue.RenderQueueType>(
                 new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue },
-                lockedProperties.Contains("SystemData.renderingPass"),
-                CreateLockerFor("SystemData.renderingPass"));
+                lockedProperties.Contains("_RenderQueueType"),
+                CreateLockerFor("_RenderQueueType"));
             context.AddProperty(renderingPassText, renderingPassLine, (evt) =>
             {
                 registerUndo(renderingPassText);
@@ -64,58 +64,58 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                AddProperty(blendModeText, "SystemData.blendMode", () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
-                AddProperty(enableTransparentFogText, "BuiltinData.transparencyFog", () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
-                AddProperty(transparentZTestText, "SystemData.zTest", () => systemData.zTest, (newValue) => systemData.zTest = newValue);
-                AddProperty(zWriteEnableText, "SystemData.transparentZWrite", () => systemData.transparentZWrite, (newValue) => systemData.transparentZWrite = newValue);
-                AddProperty(transparentCullModeText, "SystemData.transparentCullMode", () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
-                AddProperty(transparentSortPriorityText, "SystemData.sortPriority", () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
-                AddProperty(transparentBackfaceEnableText, "BuiltinData.backThenFrontRendering", () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, "BuiltinData.transparentDepthPrepass", () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, "BuiltinData.transparentDepthPostpass", () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
-                AddProperty(transparentWritingMotionVecText, "BuiltinData.transparentWritesMotionVec", () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
+                AddLockableProperty(blendModeText, HDMaterialProperties.kBlendMode, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
+                AddLockableProperty(enableTransparentFogText, HDMaterialProperties.kEnableFogOnTransparent, () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
+                AddLockableProperty(transparentZTestText, HDMaterialProperties.kZTestTransparent, () => systemData.zTest, (newValue) => systemData.zTest = newValue);
+                AddLockableProperty(zWriteEnableText, HDMaterialProperties.kTransparentZWrite, () => systemData.transparentZWrite, (newValue) => systemData.transparentZWrite = newValue);
+                AddLockableProperty(transparentCullModeText, HDMaterialProperties.kTransparentCullMode, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
+                AddLockableProperty(transparentSortPriorityText, HDMaterialProperties.kTransparentSortPriority, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
+                AddLockableProperty(transparentBackfaceEnableText, HDMaterialProperties.kTransparentBackfaceEnable, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
+                AddLockableProperty(transparentDepthPrepassEnableText, HDMaterialProperties.kTransparentDepthPrepassEnable, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
+                AddLockableProperty(transparentDepthPostpassEnableText, HDMaterialProperties.kTransparentDepthPostpassEnable, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
+                AddLockableProperty(transparentWritingMotionVecText, HDMaterialProperties.kTransparentWritingMotionVec, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
 
                 if (lightingData != null)
-                    AddProperty(enableBlendModePreserveSpecularLightingText, "LightingData.blendPreserveSpecular", () => lightingData.blendPreserveSpecular, (newValue) => lightingData.blendPreserveSpecular = newValue);
+                    AddLockableProperty(enableBlendModePreserveSpecularLightingText, HDMaterialProperties.kEnableBlendModePreserveSpecularLighting, () => lightingData.blendPreserveSpecular, (newValue) => lightingData.blendPreserveSpecular = newValue);
             }
             else
             {
-                AddProperty(opaqueCullModeText, "SystemData.opaqueCullMode", () => systemData.opaqueCullMode, (newValue) => systemData.opaqueCullMode = newValue);
+                AddLockableProperty(opaqueCullModeText, HDMaterialProperties.kOpaqueCullMode, () => systemData.opaqueCullMode, (newValue) => systemData.opaqueCullMode = newValue);
             }
             context.globalIndentLevel--;
 
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
-            AddProperty(alphaCutoffEnableText, "SystemData.alphaTest", () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
+            AddLockableProperty(alphaCutoffEnableText, HDMaterialProperties.kAlphaCutoffEnabled, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
             if (systemData.alphaTest)
             {
                 context.globalIndentLevel++;
-                AddProperty(useShadowThresholdText, "BuiltinData.alphaTestShadow", () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-                AddProperty(alphaToMaskText, "BuiltinData.alphaToMask", () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
+                AddLockableProperty(useShadowThresholdText, HDMaterialProperties.kUseShadowThreshold, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
+                AddLockableProperty(alphaToMaskText, HDMaterialProperties.kAlphaToMaskInspector, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
                 context.globalIndentLevel--;
             }
 
             // Misc
             if ((enabledFeatures & Features.ShowDoubleSidedNormal) != 0)
-                AddProperty(Styles.doubleSidedModeText, "SystemData.doubleSidedMode", () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+                AddLockableProperty(Styles.doubleSidedModeText, HDMaterialProperties.kDoubleSidedEnable, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
             else
-                AddProperty(doubleSidedEnableText, "SystemData.doubleSidedModeEnabled", () => systemData.doubleSidedMode != DoubleSidedMode.Disabled, (newValue) => systemData.doubleSidedMode = newValue ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
+                AddLockableProperty(doubleSidedEnableText, HDMaterialProperties.kDoubleSidedEnable, () => systemData.doubleSidedMode != DoubleSidedMode.Disabled, (newValue) => systemData.doubleSidedMode = newValue ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
             if (lightingData != null)
-                AddProperty(Styles.fragmentNormalSpace, "LightingData.normalDropOffSpace", () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
+                AddProperty(Styles.fragmentNormalSpace, () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
 
             // Misc Cont.
             if (lightingData != null)
             {
-                AddProperty(supportDecalsText, "LightingData.receiveDecals", () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
+                AddLockableProperty(supportDecalsText, HDMaterialProperties.kEnableDecals, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
 
                 if (systemData.surfaceType == SurfaceType.Transparent)
-                    AddProperty(receivesSSRTransparentText, "LightingData.receiveSSRTransparent", () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
+                    AddLockableProperty(receivesSSRTransparentText, HDMaterialProperties.kReceivesSSRTransparent, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
                 else
-                    AddProperty(receivesSSRText, "LightingData.receiveSSR", () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
+                    AddLockableProperty(receivesSSRText, HDMaterialProperties.kReceivesSSR, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
 
-                AddProperty(enableGeometricSpecularAAText, "LightingData.specularAA", () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
+                AddProperty(enableGeometricSpecularAAText, () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
             }
-            AddProperty(depthOffsetEnableText, "BuiltinData.depthOffset", () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);
+            AddLockableProperty(depthOffsetEnableText, HDMaterialProperties.kDepthOffsetEnable, () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);
         }
     }
 }

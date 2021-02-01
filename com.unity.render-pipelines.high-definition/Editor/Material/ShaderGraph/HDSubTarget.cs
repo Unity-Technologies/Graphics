@@ -70,7 +70,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
-            hdMetadata.lockedProperties = lockedProperties; // TODO Do conversion from SGProperty to MaterialProperty here
+            hdMetadata.lockedProperties = lockedProperties;
+
+            // BEGIN Patch locked properties
+
+            // There's a single property in the ShaderGraph side for the double-sided feature, but it sets two different Material properties
+            if (hdMetadata.lockedProperties.Contains(kDoubleSidedEnable) && !hdMetadata.lockedProperties.Contains(kDoubleSidedNormalMode))
+                hdMetadata.lockedProperties.Add(kDoubleSidedNormalMode);
+
+            // END Patch locked properties
+
             return hdMetadata;
         }
 

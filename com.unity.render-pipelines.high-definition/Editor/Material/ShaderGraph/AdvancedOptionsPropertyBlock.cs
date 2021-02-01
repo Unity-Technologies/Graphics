@@ -44,11 +44,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (lightingData != null)
             {
                 if ((enabledFeatures & Features.SpecularOcclusion) != 0)
-                    AddProperty(specularOcclusionModeText, "LightingData.specularOcclusionMode", () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
-                AddProperty(Styles.overrideBakedGI, "LightingData.overrideBakedGI", () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
+                    AddProperty(specularOcclusionModeText, () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
+                AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
             }
-            AddProperty(Styles.supportLodCrossFade, "BuiltinData.supportLodCrossFade", () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
-            AddProperty(addPrecomputedVelocityText, "BuiltinData.addPrecomputedVelocity", () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
+            AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
+            AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
         }
     }
 }

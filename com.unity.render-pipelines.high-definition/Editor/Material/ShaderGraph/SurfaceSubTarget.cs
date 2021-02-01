@@ -192,11 +192,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DoubleSided, systemData.doubleSidedMode != DoubleSidedMode.Disabled);
 
             // We always generate the keyword ALPHATEST_ON. All the variant of AlphaClip (shadow, pre/postpass) are only available if alpha test is on.
-            context.AddField(Fields.AlphaTest, systemData.alphaTest
-                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
+            context.AddField(Fields.AlphaTest,
+                (
+                    systemData.alphaTest
+                    || !lockedProperties.Contains(kAlphaCutoffEnabled)
+                )
+                &&
+                (
+                    context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
                     || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
                     || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
-                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)
+                )
+            );
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
@@ -204,7 +212,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
 
             // Shadow use the specific alpha test only if user have ask to override it
-            context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
+            context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && isShadowPass &&
+                (builtinData.alphaTestShadow || !lockedProperties.Contains(kUseShadowThreshold)) &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
             // Pre/post pass always use the specific alpha test provided for those pass
             context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && builtinData.transparentDepthPrepass && isTransparentDepthPrepass &&
@@ -213,14 +222,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Features & Misc
             context.AddField(Fields.LodCrossFade,           builtinData.supportLodCrossFade);
             context.AddField(Fields.AlphaToMask,            systemData.alphaTest);
-            context.AddField(HDFields.TransparentBackFace,  builtinData.backThenFrontRendering);
-            context.AddField(HDFields.TransparentDepthPrePass, builtinData.transparentDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass);
+            context.AddField(HDFields.TransparentBackFace,  builtinData.backThenFrontRendering || !lockedProperties.Contains(kTransparentBackfaceEnable));
+            context.AddField(HDFields.TransparentDepthPrePass, builtinData.transparentDepthPrepass || !lockedProperties.Contains(kTransparentDepthPrepassEnable));
+            context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass || !lockedProperties.Contains(kTransparentDepthPostpassEnable));
 
-            context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+            bool isDepthOffsetEnabledOrExposed = builtinData.depthOffset || !lockedProperties.Contains(kDepthOffsetEnable);
+            context.AddField(HDFields.DepthOffset, isDepthOffsetEnabledOrExposed && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
 
             // Depth offset needs positionRWS and is now a multi_compile
-            if (builtinData.depthOffset)
+            if (isDepthOffsetEnabledOrExposed)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
         }
 
@@ -249,15 +259,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
+            bool isAlphaTestEnabledOrExposed = systemData.alphaTest || !lockedProperties.Contains(kAlphaCutoffEnabled);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, isAlphaTestEnabledOrExposed);
 
             // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.alphaTest && builtinData.transparentDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.alphaTest && builtinData.transparentDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
+            bool isDepthPrepassEnabledOrExposed = builtinData.transparentDepthPrepass || !lockedProperties.Contains(kTransparentDepthPrepassEnable);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, isAlphaTestEnabledOrExposed && isDepthPrepassEnabledOrExposed);
+            bool isDepthPostpassEnabledOrExposed = builtinData.transparentDepthPostpass || !lockedProperties.Contains(kTransparentDepthPostpassEnable);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, isAlphaTestEnabledOrExposed && isDepthPostpassEnabledOrExposed);
+            bool isShadowEnabledOrExposed = builtinData.alphaTestShadow || !lockedProperties.Contains(kUseShadowThreshold);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, isAlphaTestEnabledOrExposed && isShadowEnabledOrExposed);
 
             // Misc
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
+            bool isDepthOffsetEnabledOrExposed = builtinData.depthOffset || !lockedProperties.Contains(kDepthOffsetEnable);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, isDepthOffsetEnabledOrExposed);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

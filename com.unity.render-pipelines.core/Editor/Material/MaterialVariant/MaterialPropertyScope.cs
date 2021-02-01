@@ -265,7 +265,7 @@ namespace UnityEditor.Rendering.MaterialVariants
         bool m_IsBlocked;
         float m_StartY;
 
-        const string k_SerializedPropertyName = "m_CustomRenderQueue";
+        const string k_SerializedPropertyName = "_RenderQueueType";
 
         /// <summary>
         /// MaterialRenderQueueScope is used to handle MaterialPropertyModification in material instances around renderqueue.

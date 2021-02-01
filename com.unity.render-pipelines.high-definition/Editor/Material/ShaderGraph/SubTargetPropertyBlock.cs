@@ -36,43 +36,59 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             this.lockedProperties = lockedProperties;
         }
 
-        // Utility function to create UIElement fields:
-        protected void AddProperty<Data>(string displayName, string fieldName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
-            => AddProperty<Data>(new GUIContent(displayName), fieldName, getter, setter, indentLevel);
-
         protected Action<bool> CreateLockerFor(string fieldName)
         {
             return (locked) =>
             {
+                bool isLocked = lockedProperties.Contains(fieldName);
+
+                if (locked == isLocked)
+                    return;
+
                 if (!locked)
                     lockedProperties.Remove(fieldName);
-                else if (!lockedProperties.Contains(fieldName))
+                else
                     lockedProperties.Add(fieldName);
+
+                onChange();
             };
         }
 
-        protected void AddProperty<Data>(GUIContent displayName, string fieldName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+        // Utility function to create UIElement fields:
+        private void AddPropertyImpl<Data>(GUIContent displayName, string lockableMaterialPropertyName, Func<Data> getter, Action<Data> setter, int indentLevel)
         {
             // Create UIElement from type:
             BaseField<Data> elem = null;
             BaseField<Enum> elemEnum = null;
 
-            bool isLocked = lockedProperties.Contains(fieldName);
-
-            Action<bool> locker = CreateLockerFor(fieldName);
-
-            switch (getter())
+            var g = getter();
+            switch (g)
             {
-                case bool b: elem = new LockableBaseField<Toggle, bool>(new Toggle { value = b, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
-                case int i: elem = new LockableBaseField<IntegerField, int>(new IntegerField { value = i, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
-                case float f: elem = new LockableBaseField<FloatField, float>(new FloatField { value = f, tooltip = displayName.tooltip }, isLocked, locker) as BaseField<Data>; break;
-                case Enum e: elemEnum = new LockableBaseField<EnumField, Enum>(new EnumField(e) { value = e, tooltip = displayName.tooltip }, isLocked, locker); break;
+                case bool b: elem = new Toggle { value = b, tooltip = displayName.tooltip } as BaseField<Data>; break;
+                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip } as BaseField<Data>; break;
+                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip } as BaseField<Data>; break;
+                case Enum e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip }; break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
+            }
+
+            // Wrap if lockable
+            if (lockableMaterialPropertyName != null)
+            {
+                bool isLocked = lockedProperties.Contains(lockableMaterialPropertyName);
+                Action<bool> locker = CreateLockerFor(lockableMaterialPropertyName);
+                switch (g)
+                {
+                    case bool b: elem = new LockableBaseField<Toggle, bool>(elem as Toggle, isLocked, locker) as BaseField<Data>; break;
+                    case int i: elem = new LockableBaseField<IntegerField, int>(elem as IntegerField, isLocked, locker) as BaseField<Data>; break;
+                    case float f: elem = new LockableBaseField<FloatField, float>(elem as FloatField, isLocked, locker) as BaseField<Data>; break;
+                    case Enum e: elemEnum = new LockableBaseField<EnumField, Enum>(elemEnum, isLocked, locker); break;
+                }
             }
 
             if (elem != null)
             {
-                context.AddProperty<Data>(displayName.text, indentLevel, elem, (evt) => {
+                context.AddProperty<Data>(displayName.text, indentLevel, elem, (evt) =>
+                {
                     if (Equals(getter(), evt.newValue))
                         return;
 
@@ -80,11 +96,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     setter(evt.newValue);
                     onChange();
                 });
-                (elem as ILockable).InitLockPosition();
+
+                if (elem is ILockable lockableField)
+                    lockableField.InitLockPosition();
             }
             else
             {
-                context.AddProperty<Enum>(displayName.text, indentLevel, elemEnum, (evt) => {
+                context.AddProperty<Enum>(displayName.text, indentLevel, elemEnum, (evt) =>
+                {
                     if (Equals(getter(), evt.newValue))
                         return;
 
@@ -92,9 +111,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     setter((Data)(object)evt.newValue);
                     onChange();
                 });
-                (elemEnum as ILockable).InitLockPosition();
+
+                if (elemEnum is ILockable lockableField)
+                    lockableField.InitLockPosition();
             }
         }
+
+        protected void AddProperty<Data>(string displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddProperty<Data>(new GUIContent(displayName), getter, setter, indentLevel);
+
+        protected void AddProperty<Data>(GUIContent displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddPropertyImpl<Data>(displayName, null, getter, setter, indentLevel);
+
+        protected void AddLockableProperty<Data>(string displayName, string materialPropertyName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddLockableProperty<Data>(new GUIContent(displayName), materialPropertyName, getter, setter, indentLevel);
+
+        protected void AddLockableProperty<Data>(GUIContent displayName, string materialPropertyName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddPropertyImpl<Data>(displayName, materialPropertyName, getter, setter, indentLevel);
 
         protected void AddFoldout(string text, Func<bool> getter, Action<bool> setter)
             => AddFoldout(new GUIContent(text), getter, setter);

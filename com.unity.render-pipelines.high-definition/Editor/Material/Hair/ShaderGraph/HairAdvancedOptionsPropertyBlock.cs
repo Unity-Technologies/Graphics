@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             // Hair specific properties GUI
-            AddProperty(Styles.useLightFacingNormal, "HairData.useLightFacingNormal", () => hairData.useLightFacingNormal, (newValue) => hairData.useLightFacingNormal = newValue);
+            AddProperty(Styles.useLightFacingNormal, () => hairData.useLightFacingNormal, (newValue) => hairData.useLightFacingNormal = newValue);
         }
     }
 }

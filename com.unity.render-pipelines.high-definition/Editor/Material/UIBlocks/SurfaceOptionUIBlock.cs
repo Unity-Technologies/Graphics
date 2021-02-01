@@ -480,10 +480,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (showAlphaClipThreshold && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
                 {
-                    // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
                     bool showUseShadowThreshold = useShadowThreshold != null;
+
+                    // For shadergraphs we show this slider only if the feature is enabled or exposed in the shader settings.
                     if (isShaderGraph)
+                    {
                         showUseShadowThreshold = GetShaderDefaultFloatValue(kUseShadowThreshold) > 0.0f;
+
+                        // Even if disabled in the shadergraph, this should still be shown if it's not locked
+                        if (!showUseShadowThreshold)
+                        {
+                            showUseShadowThreshold = shaderGUI.IsPropertyExposedInAncestorsForAllVariants(useShadowThreshold);
+                        }
+                    }
 
                     if (showUseShadowThreshold)
                     {
@@ -889,8 +898,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.ShowDepthOffsetOnly) != 0 && depthOffsetEnable != null)
             {
                 // We only display Depth offset option when it's enabled in the ShaderGraph, otherwise the default value for depth offset is 0 does not make sense.
-                if (!AreMaterialsShaderGraphs() || (AreMaterialsShaderGraphs() && GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f == true))
-                    materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                if (!AreMaterialsShaderGraphs() || GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f || shaderGUI.IsPropertyExposedInAncestorsForAllVariants(depthOffsetEnable))
+                    using (CreateOverrideScopeFor(depthOffsetEnable))
+                        materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
             }
             else if (displacementMode != null)
             {
