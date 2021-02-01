@@ -438,6 +438,11 @@ namespace  UnityEditor.VFX.UI
             newParam.isOutput = true;
         }
 
+        private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
+        {
+            return VFXLibrary.GetParameters().OrderBy(o => o.name);
+        }
+
         void OnAddItem(Blackboard bb)
         {
             GenericMenu menu = new GenericMenu();
@@ -448,7 +453,7 @@ namespace  UnityEditor.VFX.UI
                 menu.AddSeparator(string.Empty);
             }
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
                 VFXParameter model = parameter.model as VFXParameter;
 
@@ -554,7 +559,7 @@ namespace  UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
                 VFXParameter model = parameter.model as VFXParameter;
 
