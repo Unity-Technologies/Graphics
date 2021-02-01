@@ -807,13 +807,6 @@ namespace UnityEngine.Rendering.Universal
                     isLastPassToBB ? QualitySettings.antiAliasing : sampleCount;
 #endif
 
-                if ((isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)) && !cameraData.isDefaultViewport)
-                {
-                    if (cameraData.camera.rect.width != 1)
-                        width = (int)(width / cameraData.camera.rect.width);
-                    if (cameraData.camera.rect.height != 1)
-                        height = (int)(height / cameraData.camera.rect.height);
-                }
                 context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
                     useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
                 attachments.Dispose();
