@@ -418,7 +418,7 @@ namespace UnityEditor.VFX
             m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
 
             if (hasDirectEventLink)
-                m_SourceCount += 512; //TODOPAUL : Arbitrary allocation size, should handle a growable buffer in C++
+                m_SourceCount += 2; //TEMP : the "//Loop with 1 iteration" should be rework
 
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
