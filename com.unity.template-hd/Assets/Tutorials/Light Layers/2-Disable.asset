@@ -43,12 +43,12 @@ MonoBehaviour:
           are solving for this project. We will do this by simply disabling the feature.\r\n\r\n1)
           Find your active HDRP asset in the <i>Project</i> window <b>Settings</b>
           folder. It should be <b>HDRP Medium</b> if you haven't switched to another
-          one in the quality settings.\r\n2) In the asset, uncheck Lighting->Light
+          one in the quality settings\r\n\r\n2) In the asset, uncheck Lighting>Light
           layers\r\n\r\nWhile Light layers are off, we can see 2 unwanted effects:\r\n*
           The glass is casting a shadow on the right lamp\r\n* The bottom part of
           the glass gets brighter\r\n\r\nTurn back Light layers On. In the next step,
           we will see how they were set up.\r\n\r\nNote: by default Light layers
-          are turned off for new projects\r"
+          are turned off for new projects\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

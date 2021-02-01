@@ -40,13 +40,14 @@ MonoBehaviour:
         m_Untranslated: Explore global settings
       Text:
         m_Untranslated: "1) Delete your Global Volume in the <i>Hierarchy</i> window.
-          We wont need it anymore.\r\n2) Select Lighting->Volumes->Volume Global\r\n3)
-          Take a look at the <i>Inspector</i> tab to see Exposure settings in use\r\n\r\nThese
-          are globally applied to all volumes in the scene. The most notable  are:\r\n\r\n<b>Mode</b>
-          - Automatic Histogram, very similar to automatic but has additional options.\r\n\r\n<b>Speed
-          Dark to Light</b> - controls how fast will the camera adapt to light conditions
+          We won\u2019t need it anymore\r\n\r\n2) Select <b>Lighting</b>><b>Volumes</b>><b>Volume
+          Global</b>\r\n\r\n3) Take a look at the <i>Inspector</i> tab to see Exposure
+          settings in use\r\n\r\nThese are globally applied to all volumes in the
+          scene. The most notable  are:\r\n\r\n<b>Mode</b> - Automatic Histogram,
+          very similar to automatic but has additional options.\r\n\r\n<b>Speed Dark
+          to Light</b> - controls how fast will the camera adapt to light conditions
           change. In real life it is also not instant, so most of the time you'd
-          probably want to have a higher value than 0\r"
+          probably want to have a higher value than 0\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

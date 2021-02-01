@@ -46,11 +46,12 @@ MonoBehaviour:
           impacting performance, reduce memory consumption, and  minimize build time.\r\n\r\nLet\u2019s
           quickly check how that works.\r\n\r\n1) Select the <b>HDRPMediumQuality</b>
           asset from the previous step. It is located in the Project Window, in the
-          <b>Assets->Settings</b> folder\r\n2) In the <i>Inspector</i> window expand
-          the <b>Lighting</b> foldout and disable <b>Screen Space Ambient Occlusion</b>\r\n3)
-          Notice the visual change it has on the flower pot\r\n4) Turn the feature
-          back on\r\n\r\nYou might have noticed we have 2 more HDRP asset files in
-          the Settings folder. We will see how they\u2019re used in the next step.\r\n"
+          <b>Assets</b>><b>Settings</b> folder\r\n\r\n2) In the <i>Inspector</i>
+          window expand the <b>Lighting</b> foldout and disable <b>Screen Space Ambient
+          Occlusion</b>\r\n\r\n3) Notice the visual change it has on the flower pot\r\n\r\n4)
+          Turn the feature back on\r\n\r\nYou might have noticed we have 2 more HDRP
+          asset files in the Settings folder. We will see how they\u2019re used in
+          the next step.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

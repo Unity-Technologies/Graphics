@@ -43,14 +43,14 @@ MonoBehaviour:
           my empty scene?\" or \"Where is the fog coming from?\" are very common
           questions.\r\n\r\nIn the HDRP, we have some default effects applied to
           all scenes in the project. These can range from post processing to fog,
-          as well as sky settings.\r\n\r\n1) Go to <b>Edit->Project Settings->HDRP
-          Default Settings</b> and review Volume components list.\r\n2) Disable HDRI
-          Sky. The scene\u2019s sky should become black.\r\n3) Undo your changes\r\n\r\nFor
-          convenience, we also added an instance of these settings in the scene.
-          Use the search of the <i>Hierarchy</i> window to find <b>Volume Global</b>
-          gameobject. Adding them does not change the way our scene is rendered,
-          but allows us to edit these settings without opening the <i>Project Settings</i>
-          window.\r"
+          as well as sky settings.\r\n\r\n1) Go to <b>Edit</b>><b>Project Settings</b>><b>HDRP
+          Default Settings</b> and review Volume components list.\r\n\r\n2) Disable
+          HDRI Sky. The scene\u2019s sky should become black.\r\n\r\n3) Undo your
+          changes\r\n\r\nFor convenience, we also added an instance of these settings
+          in the scene. Use the search of the <i>Hierarchy</i> window to find <b>Volume
+          Global</b> GameObject. Adding them does not change the way our scene is
+          rendered, but allows us to edit these settings without opening the <i>Project
+          Settings</i> window.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

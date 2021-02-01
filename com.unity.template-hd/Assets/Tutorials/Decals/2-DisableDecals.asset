@@ -39,10 +39,24 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disable decals
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Structure</b>
-          gameobject\r\n2) Select <b>Decals</b> gameobject\r\n3) Toggle it <b>on</b>
-          and <b>off</b> in the <i>Inspector</i>\r\n\r\nNotice the impact they have
-          on the scene\r"
+        m_Untranslated: '1) In the <i>Hierarchy</i> window expand <b>Structure</b>
+          GameObject
+
+          
+
+          2) Select <b>Decals</b> GameObject
+
+          
+
+          3)
+          Toggle it <b>on</b> and <b>off</b> in the <i>Inspector</i>
+
+          
+
+          Notice
+          the impact they have on the scene
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

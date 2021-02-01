@@ -41,12 +41,12 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Let\u2019s reuse the same Global Volume we created in the
           last step to study Automatic Exposure.\r\n\r\n1) In the <i>Hierarchy</i>
-          window, select the Global volume\r\n2) Switch Mode to <b>Automatic</b>\r\n3)
+          window, select the Global volume\r\n\r\n2) Switch Mode to <b>Automatic</b>\r\n\r\n3)
           Turn off and on Global Volume. The result is very similar to the original
-          but slightly different.\r\n4) Hold the right mouse button and using WASD
-          keys move around the scene.\r\n\r\nNotice how Unity imitates eyes adaptation
+          but slightly different\r\n\r\n4) Hold the right mouse button and using
+          WASD keys move around the scene\r\n\r\nNotice how Unity imitates eyes adaptation
           to bright lights. At no point it\u2019s so bright or dark that you can
-          not see anything.\r"
+          not see anything.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

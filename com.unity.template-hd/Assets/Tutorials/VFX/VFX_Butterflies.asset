@@ -45,21 +45,27 @@ MonoBehaviour:
           
 
           1) In <i>Project</i>
-          window select <b>Art->Particles</b>t and open <b>ButterFlies.vfx</b>
+          window select <b>Art</b>><b>Particles</b>t and open <b>ButterFlies.vfx</b>
+
+          
 
           2)
           Find <b>Spawn</b> node, remove connection to <b>Count</b> node
 
+          
+
           3)
           Change <b>Count</b> from 10 to 30
 
-          4) Press Compile at the top
-          left of the window
+          
+
+          4) Press Compile
+          at the top left of the window
 
           
 
-          Now you should notice more
-          butterflies flying around the trees.
+          Now you should notice
+          more butterflies flying around the trees.
 
 '
       m_Summary: 

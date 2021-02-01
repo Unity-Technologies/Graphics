@@ -39,12 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Scene without light probes
       Text:
-        m_Untranslated: "Look at the image above. <b>Lighting Probes</b> were removed
+        m_Untranslated: Look at the image above. <b>Lighting Probes</b> were removed
           from the scene. Notice the object looks completely out of place. Why is
           it glowing? As explained in the Baked Lighting tutorial, since there is
           no baked data stored for it, the cube uses sky ambient lighting as a fallback.
           It is extremely strong compared to indoor lights. So if we want our moving
-          game objects to be in harmony with the scene, we need light probes.\r"
+          GameObject to be in harmony with the scene, we need light probes.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

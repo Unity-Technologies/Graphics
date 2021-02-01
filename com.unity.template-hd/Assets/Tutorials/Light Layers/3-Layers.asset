@@ -41,15 +41,16 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Remember from the last step, both issues were caused by
           the glass. More precisely, because a spotlight was affecting the glass.\r\n\r\n1)
-          Select the glass, it is under <b>Props->Room3->CeilingLamp_01->CeilingLamp_Lamp_01->CeilingLamp_Glass_01_LOD0\r\n</b>\r\n2)
+          Select the glass, it is under <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>
+          > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0\r\n</b>\r\n\r\n2)
           See that the <b>Rendering Layer Mask</b> parameter is set to a custom layer
-          <b>LampsOnly</b>, rather than default.\r\n3) Now select the Spotlight,
-          it is under <b>Props->Room3->CeilingLamp_01->Light_Spot_1200lm</b>\r\n4)
+          <b>LampsOnly</b>, rather than default\r\n\r\n3) Now select the Spotlight,
+          it is under <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm</b>\r\n\r\n4)
           See that the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> Click
-          on it, see that inside Mixed, Lamps Only is off.\r\n\r\nThe whole point
+          on it, see that inside Mixed, Lamps Only is off\r\n\r\nThe whole point
           of this setup is that the light and the glass are on different layers.
           Meaning they can\u2019t affect each other in any way, thus no unwanted
-          shadows.\r"
+          shadows.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -43,11 +43,11 @@ MonoBehaviour:
           this scene.\r\n\r\nTip: If you'd like to match the image above, make sure
           Gizmos are on, light probes are not selected and at the bottom of the Lighting
           window, set Light Probe Visualization to <b>All probes no cells</b>.\r\n\r\nAll
-          the scene light probes can be found in <i>Hierarchy</i> window <b>Lighting->Light
+          the scene light probes can be found in <i>Hierarchy</i> window <b>Lighting</b>><b>Light
           Probe Group</b>. They were placed by hand. Select Light Probe Group and
           in the <i>Inspector</i> click <b>Edit Light Probes</b> button then you
           can select, move or add new ones.\r\n\r\nThis tutorial will not delve into
-          manually placing or creating a Light Probe Group,however, we will highlight
+          manually placing or creating a Light Probe Group, however, we will highlight
           a few key principles to have in mind:\r\n\r\n* Light probes are not realtime,
           remember to rebake if you made drastic changes to lighting.\r\n\r\n* Spheres
           in the image above show at what points in the scene lighting data will
@@ -60,7 +60,7 @@ MonoBehaviour:
           reduce baking times and lightmap sizes. For example, see the chairs in
           the third room. They are only static for reflections and receive lighting
           from probes. Generally, small objects should use light probes, not baked
-          lightmaps.\r"
+          lightmaps.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

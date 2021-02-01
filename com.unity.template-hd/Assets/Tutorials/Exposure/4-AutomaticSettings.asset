@@ -39,12 +39,26 @@ MonoBehaviour:
       Title:
         m_Untranslated: Automatic exposure
       Text:
-        m_Untranslated: "Automatic mode can however provide new challenges\r\n\r\n1)
-          Right click and hold the mouse in the Scene view.\r\n2) Move the mouse
-          left and right to look around.\r\n\r\nNotice how drastically the lighting
-          changes. This is not how eyes react to light changes in real life, thus
-          Automatic mode also requires some fine tuning. We will see how this was
-          achieved by the artists that worked on this scene.\r"
+        m_Untranslated: 'Automatic mode can however provide new challenges
+
+          
+
+          1)
+          Right-click and hold the mouse in the Scene view
+
+          
+
+          2)
+          Move the mouse left and right to look around
+
+          
+
+          Notice
+          how drastically the lighting changes. This is not how eyes react to light
+          changes in real life, thus Automatic mode also requires some fine tuning.
+          We will see how this was achieved by the artists that worked on this scene.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

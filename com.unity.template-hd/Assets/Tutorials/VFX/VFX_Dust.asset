@@ -39,10 +39,25 @@ MonoBehaviour:
       Title:
         m_Untranslated: Dust
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand the <b>VFX</b>
-          GameObject\r\n2) Select <b>FloatingDust Cage</b> GameObject\r\n3) Toggle
-          it <b>on</b> and <b>off</b> in the <i>Inspector</i>\r\n\r\nNotice the impact
-          they have on the scene.\r"
+        m_Untranslated: '1) In the <i>Hierarchy</i> window expand the <b>VFX</b>
+          GameObject
+
+          
+
+          2) Select <b>FloatingDust Cage</b>
+          GameObject
+
+          
+
+          3) Toggle it <b>on</b> and <b>off</b>
+          in the <i>Inspector</i>
+
+          
+
+          Notice the impact they
+          have on the scene.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

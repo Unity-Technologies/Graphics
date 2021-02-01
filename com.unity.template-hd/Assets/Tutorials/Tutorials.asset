@@ -25,7 +25,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Before You Start
     Text:
-      m_Untranslated: 
+      m_Untranslated: Project summary and a guide for choosing the correct quality
+        settings
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -35,7 +36,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: HDRP Settings
     Text:
-      m_Untranslated: 
+      m_Untranslated: Introduction to the basic HDRP settings
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -45,7 +46,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Cookies
     Text:
-      m_Untranslated: 
+      m_Untranslated: How lighting shapes are applied to spotlights
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -55,7 +56,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Decals
     Text:
-      m_Untranslated: 
+      m_Untranslated: Add surface details by projecting textures onto 3D geometry
+        in the scene
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -65,7 +67,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Volumes
     Text:
-      m_Untranslated: 
+      m_Untranslated: Learn how volumes work and how to set them up to override HDRP
+        settings
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -75,7 +78,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Physically Based Lighting
     Text:
-      m_Untranslated: 
+      m_Untranslated: Overview of working with realistic lighting with physically
+        accurate values across exteriors and interiors
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -85,7 +89,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Visual Effects
     Text:
-      m_Untranslated: 
+      m_Untranslated: How dust and butterflies were added into the project using
+        the VFX graph
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -95,7 +100,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Exposure
     Text:
-      m_Untranslated: 
+      m_Untranslated: Learn about the concept of exposure to control the perceived
+        brightness in a space
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -105,7 +111,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Materials
     Text:
-      m_Untranslated: 
+      m_Untranslated: Explore the range of materials that Unity supports - from metals,
+        to glass and leaves
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -115,7 +122,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Baked Lighting
     Text:
-      m_Untranslated: 
+      m_Untranslated: How lighting is baked into lightmaps and time is saved from
+        runtime calculations
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -125,7 +133,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Sky
     Text:
-      m_Untranslated: 
+      m_Untranslated: Explore different sky setups and brightness values
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -135,7 +143,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: White Balance
     Text:
-      m_Untranslated: 
+      m_Untranslated: Learn what white balance is and explore the examples in the
+        scene
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -145,7 +154,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Probes
     Text:
-      m_Untranslated: 
+      m_Untranslated: Bake light into probes that are used for lighting dynamic objects
+        during play
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -155,7 +165,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Fog
     Text:
-      m_Untranslated: 
+      m_Untranslated: Learn about the different systems for adding fog into a HDRP
+        scene
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -165,7 +176,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Density Volume
     Text:
-      m_Untranslated: 
+      m_Untranslated: Further controls for the fog in the scene by fine tuning the
+        fog's variation
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -175,7 +187,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Layers
     Text:
-      m_Untranslated: 
+      m_Untranslated: Define which lights affects which objects using layers
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -185,7 +197,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Reflection Probes
     Text:
-      m_Untranslated: 
+      m_Untranslated: Capture reflections from the scene in the editor so they can
+        be applied to static or dynamic
     LinkText: 
     Url: 
     AuthorizedUrl: 0
