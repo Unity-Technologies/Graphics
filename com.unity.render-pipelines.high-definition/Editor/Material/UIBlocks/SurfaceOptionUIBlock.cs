@@ -890,7 +890,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // We only display Depth offset option when it's enabled in the ShaderGraph, otherwise the default value for depth offset is 0 does not make sense.
                 if (!AreMaterialsShaderGraphs() || (AreMaterialsShaderGraphs() && GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f == true))
-                    materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                    using (CreateOverrideScopeFor(depthOffsetEnable))
+                        materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
             }
             else if (displacementMode != null)
             {
