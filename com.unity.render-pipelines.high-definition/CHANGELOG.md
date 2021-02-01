@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 
 ### Fixed
+- Fixed an exception when opening the color picker in the material UI (case 1307143).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
