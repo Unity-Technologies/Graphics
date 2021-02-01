@@ -16,7 +16,7 @@ The **Append Vector** [cascaded Operator](Operators.md#cascaded-operators) appen
 
 ## Operator configuration
 
-To view this [cascaded Operator's](Operators.md#cascaded-operators) configuration, click the **cog** icon in the Node's header. 
+To view this [cascaded Operator's](Operators.md#cascaded-operators) configuration, click the **cog** icon in the Node's header.
 
 Here, you can change the name of each input as well as the type for each input's value.
 

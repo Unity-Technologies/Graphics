@@ -23,7 +23,7 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 
 ## Workspace
 
-The workspace is where you create [Node](Node.md) networks. 
+The workspace is where you create [Node](Node.md) networks.
 You can navigate the workspace by holding Alt and left mouse button to pan and zoom with the scroll wheel.
 
 You can hold left mouse button and drag to select multiple [Nodes](Node.md) with a marquee. There are also various shortcut keys to use for better workflow.
