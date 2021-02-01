@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issues on platforms that don't support XR.
 - Fixed issue with compute shader stripping for probe volumes variants.
 - Fixed issue with an empty index buffer not being released.
+- Fixed issue when debug full screen 'Transparent Screen Space Reflection' do not take in consideration debug exposure
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
