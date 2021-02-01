@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedProbeVolume m_SerializedProbeVolume;
 
+        ProbeVolumeBrush m_Brush = new ProbeVolumeBrush();
+
         protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
@@ -104,6 +106,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!blendBoxes.TryGetValue(probeVolume, out HierarchicalBox blendBox)) { return; }
             if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
 
+            if (EditMode.editMode != EditMode.SceneViewEditMode.GridPainting)
+                m_Brush.Cancel();
+
             switch (EditMode.editMode)
             {
                 case k_EditBlend:
@@ -158,12 +163,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             probeVolume.parameters.size = shapeBox.size;
 
                             Vector3 delta = probeVolume.transform.rotation * shapeBox.center - probeVolume.transform.position;
-                            probeVolume.transform.position += delta; ;
+                            probeVolume.transform.position += delta;
                         }
                     }
                     break;
                 case k_EditPaint:
-                    
+                    m_Brush.OnSceneGUI(SceneView.currentDrawingSceneView);
                     break;
             }
         }
