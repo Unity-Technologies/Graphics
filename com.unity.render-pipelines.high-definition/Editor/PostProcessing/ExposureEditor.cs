@@ -127,11 +127,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
 
-                    if (isInAdvancedMode)
+                    if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_ProceduralMinIntensity);
                         PropertyField(m_ProceduralMaxIntensity);
                     }
+                    EndAdditionalPropertiesScope();
 
                     EditorGUILayout.Space();
                 }
@@ -181,7 +182,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                if (isInAdvancedMode)
+                // Custom property still requires testing manually. The scope will take care of the background animation.
+                if (BeginAdditionalPropertiesScope())
                 {
                     EditorGUILayout.Space();
 
@@ -199,6 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                 }
+                EndAdditionalPropertiesScope();
             }
         }
 

@@ -15,6 +15,7 @@ PR_HDRP_PerformanceTests_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        GIT_BRANCH: master
 Nightly_HDRP_PerformanceTests_trunk:
     name: Nightly HDRP_PerformanceTests - trunk
     dependencies:
@@ -23,6 +24,7 @@ Nightly_HDRP_PerformanceTests_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        GIT_BRANCH: master
 PR_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests PR Job - CUSTOM-REVISION
     dependencies:
@@ -32,6 +34,7 @@ PR_HDRP_PerformanceTests_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        GIT_BRANCH: master
 Nightly_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: Nightly HDRP_PerformanceTests - CUSTOM-REVISION
     dependencies:
@@ -41,3 +44,4 @@ Nightly_HDRP_PerformanceTests_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        GIT_BRANCH: master

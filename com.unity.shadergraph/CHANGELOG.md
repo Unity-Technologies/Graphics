@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+
 ## [11.0.0] - 2020-10-21
 
 ### Added
@@ -33,6 +36,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
 - Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
+- Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
+- Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
 
 ## [10.3.0] - 2020-11-03
 
