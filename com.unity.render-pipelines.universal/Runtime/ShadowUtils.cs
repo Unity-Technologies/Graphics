@@ -229,10 +229,11 @@ namespace UnityEngine.Rendering.Universal
         {
             // To avoid division from zero
             // This values ensure that fade within cascade will be 0 and outside 1
-            if (border == 0)
+            if (border < 0.0001f)
             {
-                scale = 1;
-                bias = -fadeDistance;
+                float multiplier = 1000f; // To avoid blending if difference is in fractions
+                scale = multiplier;
+                bias = -fadeDistance * multiplier;
                 return;
             }
 
