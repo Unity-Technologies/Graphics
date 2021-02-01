@@ -52,18 +52,17 @@ struct Varyings
     half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
     half3 normal                    : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD4;
-    half3 vertexSH                  : TEXCOORD5; // SH
+    half3 vertexSH                  : TEXCOORD4; // SH
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+    half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 #else
-    half  fogFactor                 : TEXCOORD6;
+    half  fogFactor                 : TEXCOORD5;
 #endif
-    float3 positionWS               : TEXCOORD7;
+    float3 positionWS               : TEXCOORD6;
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD8;
+    float4 shadowCoord              : TEXCOORD7;
 #endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
@@ -81,14 +80,20 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
     SH = SampleSH(input.normalWS.xyz);
 #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDirWS = IN.viewDir;
+    half3 viewDirWS = GetWorldSpaceViewDir(IN.positionWS);
+#if !SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
     float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
     half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
     half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
     input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
     SH = SampleSH(input.normalWS.xyz);
 #else
-    half3 viewDirWS = IN.viewDir;
+    half3 viewDirWS = GetWorldSpaceViewDir(IN.positionWS);
+#if !SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
     input.normalWS = IN.normal;
     SH = IN.vertexSH;
 #endif
@@ -278,12 +283,11 @@ Varyings SplatmapVert(Attributes v)
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
 
+#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
-
-#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
     float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
     VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
 
@@ -292,7 +296,6 @@ Varyings SplatmapVert(Attributes v)
     o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
     o.normal = TransformObjectToWorldNormal(v.normalOS);
-    o.viewDir = viewDirWS;
     o.vertexSH = SampleSH(o.normal);
 #endif
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
