@@ -671,18 +671,7 @@ namespace UnityEditor.ShaderGraph
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
-
-            // --------------------------------------------------
-            // VFX Graph Properties
-
-            using (var vfxPropertyBuilder = new ShaderStringBuilder())
-            {
-                propertyCollector.GetVFXPropertiesDeclaration(vfxPropertyBuilder);
-                if (vfxPropertyBuilder.length == 0)
-                    vfxPropertyBuilder.AppendLine("// VFXGraphProperties: <None>");
-                spliceCommands.Add("VFXGraphProperties", vfxPropertyBuilder.ToCodeBlock());
-            }
-
+            
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 

@@ -82,7 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
                 out var buildVFXFragInputs,
-                out var defineSpaceDescriptor
+                out var defineSpaceDescriptor,
+                out var parameterBufferDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -122,7 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
                     buildVFXFragInputs,
-                    defineSpaceDescriptor
+                    defineSpaceDescriptor,
+                    parameterBufferDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -262,8 +264,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
-            out AdditionalCommandDescriptor buildVFXFragInputs,
-            out AdditionalCommandDescriptor defineSpaceDescriptor)
+            out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
+            out AdditionalCommandDescriptor defineSpaceDescriptor,
+            out AdditionalCommandDescriptor parameterBufferDescriptor)
         {
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
@@ -281,7 +284,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
             VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, out var buildFragInputsGeneration);
-            buildVFXFragInputs = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
+            buildVFXFragInputsDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
 
             // Define coordinate space
             var defineSpaceDescriptorContent = string.Empty;
@@ -292,6 +295,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     $"#define {(spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE")} 1";
             }
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
+
+            // Parameter Cbuffer
+            // TODO: Maybe possible to collapse all of this into one global declaration command.
+            VFXCodeGenerator.BuildParameterBuffer(contextData, out var parameterBuffer);
+            parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
@@ -361,70 +369,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);
         }
 
-        static AbstractShaderProperty VFXExpressionToShaderProperty(VFXExpression expression, string name)
-        {
-            var type = VFXExpression.TypeToType(expression.valueType);
-
-            if (!kVFXShaderPropertyMap.TryGetValue(type, out var shaderPropertyType))
-                return null;
-
-            // Must flag for non public here since all shader property constructors are internal.
-            var property =  (AbstractShaderProperty)Activator.CreateInstance(shaderPropertyType, true);
-
-            property.overrideReferenceName   = name;
-            property.overrideHLSLDeclaration = true;
-            property.hlslDeclarationOverride = HLSLDeclaration.VFX;
-
-            return property;
-        }
-
-        static void CollectVFXShaderProperties(PropertyCollector collector, VFXContextCompiledData contextData)
-        {
-            // See: VFXShaderWriter.WriteCBuffer
-            // TODO: It may just be better to replace this with another AdditionalCommand and let VFX do it, since it also handles padding.
-            var mapper = contextData.uniformMapper;
-            var uniformValues = mapper.uniforms
-                .Where(e => !e.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.InvalidOnCPU)) // Filter out constant expressions
-                .OrderByDescending(e => VFXValue.TypeToSize(e.valueType));
-
-            var uniformBlocks = new List<List<VFXExpression>>();
-            foreach (var value in uniformValues)
-            {
-                var block = uniformBlocks.FirstOrDefault(b => b.Sum(e => VFXValue.TypeToSize(e.valueType)) + VFXValue.TypeToSize(value.valueType) <= 4);
-                if (block != null)
-                    block.Add(value);
-                else
-                    uniformBlocks.Add(new List<VFXExpression>() { value });
-            }
-
-            foreach (var block in uniformBlocks)
-            {
-                foreach (var value in block)
-                {
-                    string name = mapper.GetName(value);
-
-                    //Reserved unity variable name (could be filled manually see : VFXCameraUpdate)
-                    if (name.StartsWith("unity_"))
-                        continue;
-
-                    var property = VFXExpressionToShaderProperty(value, name);
-                    collector.AddShaderProperty(property);
-                }
-            }
-        }
-
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
 
             context.AddField(Fields.GraphVFX);
-        }
-
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            base.CollectShaderProperties(collector, generationMode);
-
-            CollectVFXShaderProperties(collector, m_ContextData);
         }
 
         public bool TryConfigureVFX(VFXContext context, VFXContextCompiledData contextData)

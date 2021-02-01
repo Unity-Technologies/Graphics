@@ -390,6 +390,13 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
+        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, out string parameterBufferContent)
+        {
+            var parameterBuffer = new VFXShaderWriter();
+            parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
+            parameterBufferContent = parameterBuffer.ToString();
+        }
+
         internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
             out string interpolatorsGeneration)
         {

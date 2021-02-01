@@ -3,6 +3,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
 
+$splice(VFXParameterBuffer)
+
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
 #define VFX_OPTIONAL_INTERPOLATION
