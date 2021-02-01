@@ -456,6 +456,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var include in graphIncludes)
                 {
+                    sharedCodeIndices.Add(codeSnippets.Count);
                     codeSnippets.Add(include.value + nl);
                 }
 
