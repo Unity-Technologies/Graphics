@@ -4,10 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.3] - 2021-01-11
+## [7.5.4] - 2021-01-28
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.5.3] - 2021-01-11
+
+### Fixed
+- Fixed case where material keywords would not get setup before usage.
+- Fixed shader warning in ReflectionDenoiser
+- Fixed XR depth copy (case 1286908).
 
 ## [7.5.2] - 2020-11-16
 
