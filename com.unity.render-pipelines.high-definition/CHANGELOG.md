@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
+- Move the Decal Gizmo Color initialization to preferences
 
 ## [11.0.0] - 2020-10-21
 
