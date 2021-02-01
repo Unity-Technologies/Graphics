@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
         public override void OnInspectorGUI()
         {
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            if (renderPipelineAsset != null && (renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset" || renderPipelineAsset.GetType().Name == "UniversalRenderPipelineAsset"))
             {
                 serializedObject.Update();
 
