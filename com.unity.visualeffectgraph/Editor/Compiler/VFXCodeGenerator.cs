@@ -235,15 +235,18 @@ namespace UnityEditor.VFX
             var r = new VFXShaderWriter();
             if (!context.GetData().dependenciesIn.Any())
             {
-                var spawnLinkCount = context.GetData().sourceCount;
+                var staticSourceCount = context.GetData().sourceCount;
 
                 r.WriteLine("int sourceIndex = 0;");
 
-                if (spawnLinkCount <= 1)
+                //TODOPAUL correctly handle this
+                bool skipLoop = staticSourceCount <= 1 && !(context.GetData() as VFXDataParticle).hasDirectEventLink;
+
+                if (skipLoop)
                     r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
 
                 r.WriteLine("#if !VFX_USE_DIRECT_LINK_EVENT");
-                r.WriteLineFormat("uint nbEvents = {0};", spawnLinkCount);
+                r.WriteLineFormat("uint nbEvents = {0};", staticSourceCount);
                 r.WriteLine("#endif");
 
                 r.WriteLine("uint currentSumSpawnCount = 0u;");
@@ -256,7 +259,7 @@ namespace UnityEditor.VFX
                 r.ExitScope();
                 r.ExitScope();
 
-                if (spawnLinkCount <= 1)
+                if (skipLoop)
                     r.WriteLine("*/");
             }
             else

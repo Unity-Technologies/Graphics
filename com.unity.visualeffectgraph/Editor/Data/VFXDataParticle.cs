@@ -418,7 +418,7 @@ namespace UnityEditor.VFX
             m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
 
             if (hasDirectEventLink)
-                m_SourceCount += 2; //TEMP : the "//Loop with 1 iteration" should be rework
+                m_SourceCount += 1; //TEMP : Can't allocate empty buffer yet
 
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
