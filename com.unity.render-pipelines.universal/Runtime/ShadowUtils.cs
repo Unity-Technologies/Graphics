@@ -57,6 +57,9 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.resolution = shadowResolution;
             shadowSliceData.shadowTransform = GetShadowTransform(shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
 
+            // This used to be fixed to .6f, but is now configureable.
+            shadowSliceData.splitData.shadowCascadeBlendCullingFactor = 1.0f;
+
             // If we have shadow cascades baked into the atlas we bake cascade transform
             // in each shadow matrix to save shader ALU and L/S
             if (shadowData.mainLightShadowCascadesCount > 1)
