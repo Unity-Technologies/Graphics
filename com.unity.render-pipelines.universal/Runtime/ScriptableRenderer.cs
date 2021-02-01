@@ -933,7 +933,6 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    // TODO: move this logic in the preprocessing of the scene and cache the results
                     bool isLastPass = renderPass.isLastPass;
                     bool isLastPassToBB = false;
 
@@ -1072,27 +1071,26 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                     bool isLastPass = renderPass.isLastPass;
-
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
-                    var destTarget = (renderPass.depthOnly ||
+                    var colorAttachmentTarget = (renderPass.depthOnly ||
                                       passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                         ? passColorAttachment
                         : (cameraData.targetTexture != null
                             ? new RenderTargetIdentifier(cameraData.targetTexture)
                             : RenderTargetHandle.CameraTarget.Identifier());
 
-                    // TODO: move this logic in the preprocessing of the scene and cache the results
-                    bool isLastPassToBB = isLastPass && (destTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
+                    var depthAttachmentTarget = (cameraData.targetTexture != null)
+                        ? m_CameraDepthTarget
+                        : ((cameraData.cameraTargetDescriptor.msaaSamples == 1) && (passDepthAttachment == BuiltinRenderTextureType.CameraTarget))
+                            ? BuiltinRenderTextureType.Depth
+                            : passDepthAttachment;
 
-                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(destTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
+                    bool isLastPassToBB = isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
 
+                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-
-                    if (cameraData.cameraTargetDescriptor.msaaSamples == 1 && passDepthAttachment == BuiltinRenderTextureType.CameraTarget)
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(cameraData.targetTexture != null ? m_CameraDepthTarget : BuiltinRenderTextureType.Depth, !m_FirstTimeColorClear , !isLastPassToBB);
-                    else
-                        m_ActiveDepthAttachmentDescriptor.ConfigureTarget(cameraData.targetTexture != null ? m_CameraDepthTarget : passDepthAttachment,!m_FirstTimeColorClear , !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,!m_FirstTimeColorClear , !isLastPassToBB);
 
                     if (m_FirstTimeColorClear)
                     {
@@ -1106,9 +1104,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (samples > 1)
-                    {
                         m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
-                    }
                 }
                 else
                 {
