@@ -117,10 +117,6 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 #undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #endif
 
-#ifdef SHADER_API_GAMECORE
-// LaneSwizzle is not a supported intrinsic
-#undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-#endif
 
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
