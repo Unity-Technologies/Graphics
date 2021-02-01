@@ -168,6 +168,9 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            // TODO
+            ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
         }
 
         protected override void Dispose(bool disposing)
@@ -352,6 +355,9 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
+
+                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+                srp.BindAPVRuntimeResources(cmd);
 
                 using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
@@ -901,6 +907,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
+
+            ProbeReferenceVolume.instance.PerformPendingOperations();
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
