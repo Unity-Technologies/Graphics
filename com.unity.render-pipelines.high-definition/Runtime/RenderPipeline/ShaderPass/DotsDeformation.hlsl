@@ -52,7 +52,7 @@ void FetchComputeVertexPosition(inout float3 currPos, inout float3 prevPos, uint
     const int skinMotionVec = deformProperty.w;
     if (skinMotionVec == 1)
     {
-        const int prevStreamIndex = (_HybridDeformedVertexStreamIndex + 1) % 2;
+        const int prevStreamIndex = _HybridDeformedVertexStreamIndex ^ 1;
         const int prevMeshStart = deformProperty[prevStreamIndex];
         prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
     }
