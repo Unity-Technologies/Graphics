@@ -561,7 +561,7 @@ half3 SampleSHVertex(half3 normalWS)
 
 // SH Pixel Evaluation. Depending on target SH sampling might be done
 // mixed or fully in pixel. See SampleSHVertex
-half3 SampleSHPixel(half3 L2Term, half3 normalWS)
+half3 SampleSHPixel(half3 L2Term, half3 positionWS, half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
     return L2Term;
@@ -622,9 +622,9 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
 #if defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI(lmName, shName, positionWSName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(lmName, shName, positionWSName, normalWSName) SampleSHPixel(shName, positionWSName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
