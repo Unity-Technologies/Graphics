@@ -40,7 +40,6 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #define DEBUG_EDGE 0
 #endif
 
-#if SHADER_STAGE_FRAGMENT
         float4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -107,7 +106,6 @@ Shader "Hidden/HDRP/UpsampleTransparent"
         
 
         }
-#endif
     ENDHLSL
 
     SubShader
