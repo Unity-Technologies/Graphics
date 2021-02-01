@@ -417,9 +417,6 @@ namespace UnityEditor.VFX
             m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
             m_SourceCount = ComputeSourceCount(effectiveFlowInputLinks);
 
-            if (hasDirectEventLink)
-                m_SourceCount += 1; //TEMP : Can't allocate empty buffer yet
-
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
             {
@@ -596,7 +593,7 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
-            if (m_ownAttributeSourceBuffer && m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
+            if (m_ownAttributeSourceBuffer)
             {
                 if (attributeSourceBufferIndex != -1)
                 {
