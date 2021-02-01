@@ -1,0 +1,25 @@
+{
+    "name": "Unity.Collections",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Burst",
+        "Unity.Mathematics",
+        "Unity.Properties",
+        "Unity.Collections.LowLevel.ILSupport"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.properties",
+            "expression": "1.2.0-preview",
+            "define": "UNITY_PROPERTIES_EXISTS"
+        }
+    ],
+    "noEngineReferences": false
+}
