@@ -4123,7 +4123,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 60
-  waitFrames: 45
+  waitFrames: 101
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 0
@@ -7677,7 +7677,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &1909291551
 Canvas:
   m_ObjectHideFlags: 0
