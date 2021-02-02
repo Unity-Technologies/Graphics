@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Defines the maximum intensity value computed for a path segment.
         /// </summary>
-        [Tooltip("Defines the maximum intensity value computed for a path segment.")]
+        [Tooltip("Defines the maximum intensity value computed for a path segment. If the value is set to null, no maximum is enforced anymore.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
             parameters.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
             parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
-            parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
+            parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value > 0.0 ? m_PathTracingSettings.maximumIntensity.value : float.MaxValue;
             parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
 
             return parameters;
