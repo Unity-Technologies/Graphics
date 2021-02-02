@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -11,39 +12,96 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
-    // class SavePrefabWindow : EditorWindow
-    // {
-    //     void OnGUI()
-    //     {
-    //         if (GUILayout.Button("Muppets"))
-    //         {
-    //             OnClickSavePrefab();
-    //             GUIUtility.ExitGUI();
-    //         }
-    //     }
-    //
-    //     void OnClickSavePrefab()
-    //     {
-    //         Debug.Log("Close");
-    //         Close();
-    //     }
-    // }
-
     public class AssignToRendererDataPopup : EditorWindow
     {
-        //[MenuItem("Example/ShowPopup Example")]
-        // static void Init(ScriptableRendererData data)
-        // {
-        //     ShowPopupExample window = ScriptableObject.CreateInstance<ShowPopupExample>();
-        //     window.position = new Rect(Screen.width / 2, Screen.height / 2, 250, 150);
-        //     window.ShowPopup();
-        // }
-        List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
-        public void Init()
+        public static AssignToRendererDataPopup Instance { get; private set; }
+        public static bool RunOnce;
+        static ScriptableRendererData rendererData;
+        public static bool IsOpen()
         {
-            var window = GetWindow<AssignToRendererDataPopup>();
-            window.titleContent = new GUIContent("Assign To Renderer");
+            return Instance != null;
+        }
 
+        public static void ShowWindow(ScriptableRendererData renderer)
+        {
+            rendererData = renderer;
+            // Get existing open window or if none, make a new one:
+            AssignToRendererDataPopup window = (AssignToRendererDataPopup)GetWindow(typeof(AssignToRendererDataPopup));
+            window.titleContent = new GUIContent("Assign To Renderer");
+            Init();
+            window.Show();
+        }
+
+        void OnEnable()
+        {
+            Instance = this;
+        }
+
+        static List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
+        //List<UniversalRenderPipelineAsset> rpaListAssigned = new List<UniversalRenderPipelineAsset>();
+        Dictionary<UniversalRenderPipelineAsset, bool> rpaDict = new Dictionary<UniversalRenderPipelineAsset, bool>();
+        static void Init()
+        {
+            RunOnce = false;
+            rpaList = GetAllUniversalRenderPipelineAssets();
+
+            // var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
+            // foreach (string asset in rpAssets)
+            // {
+            //     var path = AssetDatabase.GUIDToAssetPath(asset);
+            //     UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(path) as UniversalRenderPipelineAsset;
+            //     if (urpAsset != null)
+            //     {
+            //         // Need to check if it assigned and then have teh tickbox on if it is
+            //         if()
+            //             rpaList.Add(urpAsset);
+            //     }
+            // }
+        }
+
+        void OnGUI()
+        {
+            // This should only run once to populate the assigned list
+            if (!RunOnce)
+            {
+                //rpaListAssigned = GetAllURPAssetsAssigned();
+                RunOnce = true;
+                GetAllURPAssetsAssignedToDict();
+            }
+
+
+            foreach (UniversalRenderPipelineAsset urpAsset in rpaDict.Keys.ToArray())
+            {
+                rpaDict[urpAsset] = EditorGUILayout.Toggle(urpAsset.name, rpaDict[urpAsset]);
+                // if (val != rpaDict[urpAsset])
+                // {
+                //     rpaDict[urpAsset] = val;
+                // }
+            }
+            // for (int i = 0; i < rpaDict.Count; ++i)
+            // {
+            //     EditorGUILayout.Toggle(rpaDict[i].name, val);
+            // }
+            // foreach (UniversalRenderPipelineAsset renderPipelineAsset in rpaList)
+            // {
+            //
+            //     // If this asset is assigned anywhere add the toggle correctly
+            //     if (rpaListAssigned.Contains(renderPipelineAsset))
+            //     {
+            //         val = true;
+            //     }
+            //     val = EditorGUILayout.Toggle(renderPipelineAsset.name, val);
+            // }
+
+            if (GUILayout.Button("Agree!"))
+            {
+                Close();
+            }
+        }
+
+        static List<UniversalRenderPipelineAsset> GetAllUniversalRenderPipelineAssets()
+        {
+            List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
             var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
             foreach (string asset in rpAssets)
             {
@@ -52,57 +110,57 @@ namespace UnityEditor.Rendering.Universal
                 if (urpAsset != null)
                 {
                     rpaList.Add(urpAsset);
-                    minSize += new Vector2(0, 25);
                 }
             }
+
+            return rpaList;
         }
 
-        void OnGUI()
+        List<UniversalRenderPipelineAsset> GetAllURPAssetsAssigned()
         {
-            foreach (UniversalRenderPipelineAsset renderPipelineAsset in rpaList)
+            List<UniversalRenderPipelineAsset> rpaListAssigned = new List<UniversalRenderPipelineAsset>();
+            foreach (var asset in rpaList)
             {
-                EditorGUILayout.Toggle(renderPipelineAsset.name, true);
-                //minSize+= new Vector2(15,15);
+                var path = AssetDatabase.GetAssetPath(asset);
+                var renderers = asset.RendererDataList;
+                //rpaDict[asset] = false;
+                foreach (var renderer in renderers)
+                {
+                    if (this == renderer)
+                    {
+                        rpaListAssigned.Add(asset);
+                        rpaDict[asset] = true;
+                        //m_RenderPipeLineAssets.Add((asset.name, path));
+                        //m_RenderPipelineAssetNames.Add(asset.name);
+                    }
+                }
             }
+            return rpaListAssigned;
+        }
 
-            //EditorGUILayout.LabelField("This is an example of EditorWindow.ShowPopup", EditorStyles.wordWrappedLabel);
-            //GUILayout.Space(70);
-            if (GUILayout.Button("Agree!")) Close();
+        void GetAllURPAssetsAssignedToDict()
+        {
+            foreach (var asset in rpaList)
+            {
+                var renderers = asset.RendererDataList;
+                rpaDict[asset] = false;
+                foreach (var renderer in renderers)
+                {
+                    Debug.Log(renderer);
+                    Debug.Log(this);
+                    if (rendererData == renderer)
+                    {
+                        Debug.Log("Found 1");
+                        rpaDict[asset] = true;
+                    }
+                }
+            }
         }
     }
 
     [CustomEditor(typeof(ScriptableRendererData), true)]
     [MovedFrom("UnityEditor.Rendering.LWRP")] public class ScriptableRendererDataEditor : Editor
     {
-        // public class PopupExample : PopupWindowContent
-        // {
-        //     bool toggle1 = true;
-        //     bool toggle2 = true;
-        //     bool toggle3 = true;
-        //
-        //     public override Vector2 GetWindowSize()
-        //     {
-        //         return new Vector2(200, 150);
-        //     }
-        //
-        //     public override void OnGUI(Rect rect)
-        //     {
-        //         GUILayout.Label("Popup Options Example", EditorStyles.boldLabel);
-        //         toggle1 = EditorGUILayout.Toggle("Toggle 1", toggle1);
-        //         toggle2 = EditorGUILayout.Toggle("Toggle 2", toggle2);
-        //         toggle3 = EditorGUILayout.Toggle("Toggle 3", toggle3);
-        //     }
-        //
-        //     public override void OnOpen()
-        //     {
-        //         Debug.Log("Popup opened: " + this);
-        //     }
-        //
-        //     public override void OnClose()
-        //     {
-        //         Debug.Log("Popup closed: " + this);
-        //     }
-        // }
         class Styles
         {
             public static readonly GUIContent RenderFeatures =
@@ -164,44 +222,10 @@ namespace UnityEditor.Rendering.Universal
             Rect fullRect = EditorGUILayout.GetControlRect();
             float titleHeight = EditorGUIUtility.singleLineHeight + 5;
             Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
-            //Rect buttonRect = GUILayoutUtility.GetLastRect();
-            //Rect windowRect = new Rect(20, 20, 120, 50);
-            // bool toggle1 = true;
-            // bool toggle2 = true;
-            // bool toggle3 = true;
-            if (GUI.Button(titleRect, $"Assign to Renderer List"))
+
+            if (GUI.Button(titleRect, "Assign to Renderer List"))
             {
-                AssignToRendererDataPopup window = CreateInstance<AssignToRendererDataPopup>();
-                window.position = new Rect(Screen.width / 2, Screen.height / 2, 200, 150);
-                window.Init();
-                window.ShowPopup();
-                //windowRect = GUILayout.Window(0, windowRect, DoMyWindow, "My Window");
-                //PopupWindow.Show(buttonRect, new PopupExample());
-                //EditorWindow window = EditorWindow.CreateInstance<EditorWindowWithPopup>();
-                //window.Show();
-                // Open a GUI with all the Pipeline Assets
-                // Add a tickbox next to them and when clicking apply at the bottom we update the renderer lists
-
-
-                //UniversalRenderPipelineAsset rp = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
-                //rp?.AddRendererToRendererDataList(target as ScriptableRendererData);
-                //FindAssignedRenderPipelineAssets();
-                // buttonRect = titleRect;
-                //
-                // GUILayout.Label("Popup Options Example", EditorStyles.boldLabel);
-                // toggle1 = EditorGUILayout.Toggle("Toggle 1", toggle1);
-                // toggle2 = EditorGUILayout.Toggle("Toggle 2", toggle2);
-                // toggle3 = EditorGUILayout.Toggle("Toggle 3", toggle3);
-            }
-            //if (Event.current.type == EventType.Repaint) buttonRect = GUILayoutUtility.GetLastRect();
-        }
-
-        void DoMyWindow(int windowID)
-        {
-            // This button will size to fit the window
-            if (GUILayout.Button("Hello World"))
-            {
-                Debug.Log("Got a click");
+                AssignToRendererDataPopup.ShowWindow(target as ScriptableRendererData);
             }
         }
 
@@ -339,20 +363,20 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void UpdateRendererDataLists(BitVector32 mask)
-        {
-            for (int c = 0; c < options.Length; c++)
-            {
-                if ((mask.Data & (1 << c)) != 0)
-                {
-                    Debug.Log(options[c]);
-                    // Assign the renderer to the data list
-                    AssignRendererToRPAsset(options[c]);
-                }
-            }
-
-            FindAssignedRenderPipelineAssets();
-        }
+        // void UpdateRendererDataLists(BitVector32 mask)
+        // {
+        //     for (int c = 0; c < options.Length; c++)
+        //     {
+        //         if ((mask.Data & (1 << c)) != 0)
+        //         {
+        //             Debug.Log(options[c]);
+        //             // Assign the renderer to the data list
+        //             AssignRendererToRPAsset(options[c]);
+        //         }
+        //     }
+        //
+        //     FindAssignedRenderPipelineAssets();
+        // }
 
         void AssignRendererToRPAsset(string rpName)
         {
