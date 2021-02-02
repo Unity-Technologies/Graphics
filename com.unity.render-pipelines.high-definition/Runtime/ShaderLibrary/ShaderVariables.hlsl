@@ -344,7 +344,7 @@ float2 GetMainCameraPixelCoordFromWorldPosition(float3 positionWS, bool isPositi
 
     float4 hp = mul(_CameraViewProjMatrix, float4(positionWS, 1));
     hp *= rcp(hp.w);
-    return hp.xy * _ScreenSize;
+    return (hp.xy * 0.5 + 0.5) * _ScreenSize;
 }
 
 // Define Model Matrix Macro
