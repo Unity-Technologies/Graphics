@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 [System.Serializable]
 public class KawaseBlurSettings
 {
-    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingSkybox;     
+    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
     public Material blurMaterial = null;
 
     [Range(1, 15)]
@@ -126,5 +126,3 @@ class KawaseBlur : ScriptableRenderPass
     {
     }
 }
-
-
