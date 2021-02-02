@@ -959,11 +959,8 @@ namespace UnityEditor.VFX.UI
                 m_Blackboard.UnlockUI();
             }
 
-            //Insure m_Blackboard & m_ComponentBoard are in front in any order creation case
             if (m_Blackboard.parent != null)
-                m_LockedElement.PlaceBehind(m_Blackboard);
-            if (m_ComponentBoard.parent != null)
-                m_LockedElement.PlaceBehind(m_ComponentBoard);
+                m_LockedElement.PlaceInFront(contentViewContainer);
         }
 
         public void FrameNewController()
