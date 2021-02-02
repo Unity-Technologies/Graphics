@@ -3,7 +3,7 @@ repoconfig=5
 
 [format]
 path-ignore=<<EOT
-# rooted folder paths
+# specially named folders that will be matched anywhere in a path (e.g. all files under any 'imgs' will be ignored)
 (^|/)(
  .github
 |.yamato
@@ -11,14 +11,15 @@ path-ignore=<<EOT
 |imgs
 |LocalTestProjects
 |TestProjects
-|Tools
 |com\.unity\.testing\..*
 )(/|$)
 |
+# rooted folder paths
+^(
+ Tools
+)/|
 # rooted file paths
 ^(
- build\.py
-|.*\.md
 )$
 EOT
 
