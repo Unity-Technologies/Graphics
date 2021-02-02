@@ -8,7 +8,6 @@ using UnityEditor.VFX.Block.Test;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 
-
 using Object = UnityEngine.Object;
 using System.IO;
 
@@ -426,6 +425,63 @@ namespace UnityEditor.VFX.Test
                 test(sizeSource, VFXAttributeLocation.Source);
             };
             InnerSaveAndReloadTest("AttributeParameter", write, read);
+        }
+
+        //Cover unexpected behavior from 1307562
+        [Test]
+        public void Verify_Orphan_Dependencies_Are_Correctly_Cleared()
+        {
+            string path = null;
+            {
+                var graph = VFXTestCommon.MakeTemporaryGraph();
+                path = AssetDatabase.GetAssetPath(graph);
+
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+                var slotCount = blockConstantRate.GetInputSlot(0);
+
+                var basicInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                var quadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
+
+                var setPosition = ScriptableObject.CreateInstance<Block.SetAttribute>();
+                setPosition.SetSettingValue("attribute", "position");
+                setPosition.inputSlots[0].value = VFX.Position.defaultValue;
+                basicInitialize.AddChild(setPosition);
+
+                slotCount.value = 1.0f;
+
+                spawnerContext.AddChild(blockConstantRate);
+                graph.AddChild(spawnerContext);
+                graph.AddChild(basicInitialize);
+                graph.AddChild(quadOutput);
+
+                basicInitialize.LinkFrom(spawnerContext);
+                quadOutput.LinkFrom(basicInitialize);
+            }
+
+
+            for (uint i = 0; i < 16; ++i)
+            {
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+
+                var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                var graph = asset.GetResource().GetOrCreateGraph();
+                graph.GetResource().WriteAsset();
+                Debug.LogFormat("({0}) File size : {1}", i, new FileInfo(path).Length);
+
+                var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
+
+                quadOutput.UnlinkAll();
+                graph.RemoveChild(quadOutput);
+
+                var newQuadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                newQuadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
+
+                graph.AddChild(newQuadOutput);
+                var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+                newQuadOutput.LinkFrom(basicInitialize);
+            }
         }
     }
 }
