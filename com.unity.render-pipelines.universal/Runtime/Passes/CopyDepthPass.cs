@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = destination;
-            this.AllocateRT = AllocateRT && !destination.HasInternalRenderTargetId();
+            this.AllocateRT = !destination.HasInternalRenderTargetId();
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)

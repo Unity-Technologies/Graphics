@@ -9,6 +9,9 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class VertexColorMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition
     {
+        public VertexColorMaterialSlot()
+        {}
+
         public VertexColorMaterialSlot(int slotId, string displayName, string shaderOutputName,
                                        ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, stageCapability, hidden: hidden)

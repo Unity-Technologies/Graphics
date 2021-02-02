@@ -161,7 +161,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
-        [SerializeField] PostProcessData m_PostProcessData = null;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
@@ -202,9 +201,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
-
-            // Set default post process data
-            instance.m_PostProcessData = PostProcessData.GetDefaultPostProcessData();
 
             return instance;
         }
@@ -718,15 +714,6 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
-        /// <summary>
-        /// Contains resources used by post processing pass.
-        /// </summary>
-        public PostProcessData postProcessData
-        {
-            get { return m_PostProcessData; }
-            set { m_PostProcessData = value; }
-        }
-
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
@@ -959,7 +946,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (asset.k_AssetPreviousVersion < 7)
             {
-                asset.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 7;
             }
 

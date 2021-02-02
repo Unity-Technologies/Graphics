@@ -121,6 +121,7 @@ namespace UnityEditor.ShaderGraph
                     StructFields.Varyings.viewDirectionWS,
                     StructFields.Varyings.screenPosition,
                     StructFields.Varyings.instanceID,
+                    StructFields.Varyings.vertexID,
                     StructFields.Varyings.cullFace,
                 }
             };
@@ -135,6 +136,7 @@ namespace UnityEditor.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+                stages = KeywordShaderStage.All,
             };
         }
     }
