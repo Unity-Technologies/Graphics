@@ -1,12 +1,9 @@
+using UnityEditor.SceneManagement;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition.Compositor;
-
-using UnityEditor;
-using UnityEditorInternal;
-using UnityEditor.ShaderGraph;
-using UnityEditor.SceneManagement;
 
 namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
@@ -14,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
     {
         static class Styles
         {
-            static public GUIContent windowTitle { get; } = new GUIContent("Graphics Compositor");
+            static public GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Graphics Compositor");
             static public GUIContent enableCompositor { get; } = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
             static public GUIContent removeCompositor { get; } = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
         }
