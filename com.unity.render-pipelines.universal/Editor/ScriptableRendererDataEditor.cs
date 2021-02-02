@@ -12,22 +12,18 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
-    public class AssignToRendererDataPopup : EditorWindow
+    public class AssignToRendererDataWindow : EditorWindow
     {
-        public static AssignToRendererDataPopup Instance { get; private set; }
+        public static AssignToRendererDataWindow Instance { get; private set; }
         public static bool RunOnce;
         static ScriptableRendererData rendererData;
-        public static bool IsOpen()
-        {
-            return Instance != null;
-        }
 
         public static void ShowWindow(ScriptableRendererData renderer)
         {
             // This is the renderer data that we care about
             rendererData = renderer;
             // Get existing open window or if none, make a new one:
-            AssignToRendererDataPopup window = (AssignToRendererDataPopup)GetWindow(typeof(AssignToRendererDataPopup));
+            AssignToRendererDataWindow window = (AssignToRendererDataWindow)GetWindow(typeof(AssignToRendererDataWindow));
             window.titleContent = new GUIContent("Assign to Render Pipeline Asset");
             Init();
             window.Show();
@@ -88,28 +84,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return rpaList;
-        }
-
-        List<UniversalRenderPipelineAsset> GetAllURPAssetsAssigned()
-        {
-            List<UniversalRenderPipelineAsset> rpaListAssigned = new List<UniversalRenderPipelineAsset>();
-            foreach (var asset in rpaList)
-            {
-                var path = AssetDatabase.GetAssetPath(asset);
-                var renderers = asset.RendererDataList;
-                //rpaDict[asset] = false;
-                foreach (var renderer in renderers)
-                {
-                    if (this == renderer)
-                    {
-                        rpaListAssigned.Add(asset);
-                        rpaDict[asset] = true;
-                        //m_RenderPipeLineAssets.Add((asset.name, path));
-                        //m_RenderPipelineAssetNames.Add(asset.name);
-                    }
-                }
-            }
-            return rpaListAssigned;
         }
 
         void GetAllURPAssetsAssignedToDict()
@@ -174,7 +148,6 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIStyle BoldLabelSimple;
 
-            public static GUIContent renderPipelineAssetsText = EditorGUIUtility.TrTextContent("Assigned to these Render Pipeline Assets", "This Renderer Data has been assigned to these Renderer Pipeline Assets.");
             static Styles()
             {
                 BoldLabelSimple = new GUIStyle(EditorStyles.label);
@@ -182,11 +155,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        // Temporary saved bools for foldout header
-        SavedBool m_RenderPipelineAssetsFoldout;
-
-        List<ValueTuple<string, string>> m_RenderPipeLineAssets;
-        //List<string> m_RenderPipelineAssetNames;
         private SerializedProperty m_RendererFeatures;
         private SerializedProperty m_RendererFeaturesMap;
         private SerializedProperty m_FalseBool;
@@ -204,63 +172,18 @@ namespace UnityEditor.Rendering.Universal
             var editorObj = new SerializedObject(this);
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
-            m_RenderPipelineAssetsFoldout = new SavedBool($"{target.GetType()}.RenderPipelineAssetsFoldout", true);
-            m_RenderPipeLineAssets = new List<ValueTuple<string, string>>();
-            //m_RenderPipelineAssetNames = new List<string>();
-            rpAssets = GetAllUniversalRenderPipelineAssets();
-            FindAssignedRenderPipelineAssets();
-
-            //options = new string[]{};
-            //FindAssignedRenderPipelineAssets();
         }
 
         protected override void OnHeaderGUI()
         {
             base.OnHeaderGUI();
             // New button in header to assign asset
-            Rect fullRect = EditorGUILayout.GetControlRect();
-            float titleHeight = EditorGUIUtility.singleLineHeight + 5;
-            Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
-
-            if (GUI.Button(titleRect, "Assign to Renderer List"))
+            if (GUILayout.Button("Assign to Renderer List"))
             {
-                AssignToRendererDataPopup.ShowWindow(target as ScriptableRendererData);
+                AssignToRendererDataWindow.ShowWindow(target as ScriptableRendererData);
             }
-        }
-
-        List<UniversalRenderPipelineAsset> GetAllUniversalRenderPipelineAssets()
-        {
-            List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
-            var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
-            foreach (string asset in rpAssets)
-            {
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(path) as UniversalRenderPipelineAsset;
-                if (urpAsset != null)
-                {
-                    rpaList.Add(urpAsset);
-                }
-            }
-
-            return rpaList;
-        }
-
-        public void FindAssignedRenderPipelineAssets()
-        {
-            m_RenderPipeLineAssets.Clear();
-            foreach (var asset in rpAssets)
-            {
-                var path = AssetDatabase.GetAssetPath(asset);
-                var renderers = asset.RendererDataList;
-                foreach (var renderer in renderers)
-                {
-                    if (target == renderer)
-                    {
-                        m_RenderPipeLineAssets.Add((asset.name, path));
-                        //m_RenderPipelineAssetNames.Add(asset.name);
-                    }
-                }
-            }
+            // Need to add some padding here because the addressables tickbox has taken up ome space so it squishes this button otherwise
+            GUILayout.Space(10f);
         }
 
         private void OnDisable()
@@ -277,26 +200,6 @@ namespace UnityEditor.Rendering.Universal
 
             serializedObject.Update();
             DrawRendererFeatureList();
-            DrawRenderPipelineAssetList();
-        }
-
-        void DrawRenderPipelineAssetList()
-        {
-            // Foldout header
-            m_RenderPipelineAssetsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderPipelineAssetsFoldout.value, Styles.renderPipelineAssetsText);
-            if (m_RenderPipelineAssetsFoldout.value)
-            {
-                foreach ((string, string)renderPipeLineAsset in m_RenderPipeLineAssets)
-                {
-                    if (GUILayout.Button(renderPipeLineAsset.Item1, "Label"))
-                    {
-                        var asset = AssetDatabase.LoadAssetAtPath<Object>(renderPipeLineAsset.Item2);
-                        EditorGUIUtility.PingObject(asset);
-                    }
-                }
-            }
-
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawRendererFeatureList()
