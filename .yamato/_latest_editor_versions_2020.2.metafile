@@ -51,8 +51,8 @@ editor_versions:
       version: 2020.2.2f1
   2020_2_staging:
     android:
-      revision: c32421247b77cac638136e0258e7b55837e51d2f
-      updated_at: '2021-01-29 00:02:39.482008'
+      revision: b5115dc417428c9ddc44cb4cbd01a1bd518bdf80
+      updated_at: '2021-02-02 01:21:43.557459'
       version: ''
     ios:
       revision: c32421247b77cac638136e0258e7b55837e51d2f
@@ -67,6 +67,6 @@ editor_versions:
       updated_at: '2021-01-29 00:02:39.482008'
       version: ''
     windows:
-      revision: c32421247b77cac638136e0258e7b55837e51d2f
-      updated_at: '2021-01-29 00:02:39.482008'
+      revision: b5115dc417428c9ddc44cb4cbd01a1bd518bdf80
+      updated_at: '2021-02-02 01:21:43.557459'
       version: ''
