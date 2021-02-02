@@ -174,6 +174,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
+        internal ScriptableRenderPassDescriptor rpd = ScriptableRenderPassDescriptor.Empty;
+
         internal int renderTargetWidth { get; set; }
         internal int renderTargetHeight { get; set; }
         internal int renderTargetSampleCount { get; set; }
@@ -238,6 +240,13 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment, format);
         }
 
+        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment,
+            ScriptableRenderPassDescriptor desc)
+        {
+            ConfigureTarget(colorAttachment, depthAttachment);
+            rpd = desc;
+        }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -265,6 +274,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment,
+            ScriptableRenderPassDescriptor desc)
+        {
+            ConfigureTarget(colorAttachments, depthAttachment);
+            rpd = desc;
+        }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -287,6 +303,12 @@ namespace UnityEngine.Rendering.Universal
             renderTargetSampleCount = sampleCount;
             depthOnly = depth;
             renderTargetFormat[0] = format;
+        }
+
+        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, ScriptableRenderPassDescriptor desc)
+        {
+            ConfigureTarget(colorAttachment);
+            rpd = desc;
         }
 
         /// <summary>

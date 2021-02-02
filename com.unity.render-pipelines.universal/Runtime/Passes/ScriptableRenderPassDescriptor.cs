@@ -5,6 +5,8 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class ScriptableRenderPassDescriptor
     {
+        internal static ScriptableRenderPassDescriptor Empty = new ScriptableRenderPassDescriptor(GraphicsFormat.None, -1, -1, -1, false);
+
         internal int width;
         internal int height;
         internal int sampleCount;

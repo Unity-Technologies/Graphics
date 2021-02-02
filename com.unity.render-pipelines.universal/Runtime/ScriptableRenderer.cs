@@ -783,22 +783,22 @@ namespace UnityEngine.Rendering.Universal
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
                 bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
                 var attachments =
-                    new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
+                    new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.rpd.isDepthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
 
                 for (int i = 0; i < validColorBuffersCount; ++i)
                 {
                     attachments[i] = m_ActiveColorAttachmentDescriptors[i];
                 }
 
-                if (useDepth && !renderPass.depthOnly)
+                if (useDepth && !renderPass.rpd.isDepthOnly)
                     attachments[validColorBuffersCount] = m_ActiveDepthAttachmentDescriptor;
                 ///yyy
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 var sampleCount = desc.msaaSamples;
-                int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
-                int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
-                sampleCount = renderPass.renderTargetSampleCount != -1
-                    ? renderPass.renderTargetSampleCount
+                int width = renderPass.rpd.width != -1 ? renderPass.rpd.width : desc.width;
+                int height = renderPass.rpd.height != -1 ? renderPass.rpd.height : desc.height;
+                sampleCount = renderPass.rpd.sampleCount != -1
+                    ? renderPass.rpd.sampleCount
                     :
 #if UNITY_EDITOR
                     !isLastPassToBB ? sampleCount : 1;
@@ -808,10 +808,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
-                    useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
+                    useDepth ? (!renderPass.rpd.isDepthOnly ? validColorBuffersCount : 0) : -1);
                 attachments.Dispose();
-                var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? validColorBuffersCount : 0, Allocator.Temp);
-                if (!renderPass.depthOnly)
+                var attachmentIndices = new NativeArray<int>(!renderPass.rpd.isDepthOnly ? validColorBuffersCount : 0, Allocator.Temp);
+                if (!renderPass.rpd.isDepthOnly)
                 {
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
@@ -943,7 +943,7 @@ namespace UnityEngine.Rendering.Universal
                         isLastPassToBB |= isLastPass && (renderPass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
 
                         m_ActiveColorAttachmentDescriptors[i] =
-                            new AttachmentDescriptor(renderPass.renderTargetFormat[i] != GraphicsFormat.None ? renderPass.renderTargetFormat[i] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
+                            new AttachmentDescriptor(renderPass.rpd.formats[i] != GraphicsFormat.None ? renderPass.rpd.formats[i] : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
                         m_ActiveColorAttachmentDescriptors[i].ConfigureTarget(renderPass.colorAttachments[i], false, true);
                         if (needCustomCameraColorClear)
                             m_ActiveColorAttachmentDescriptors[i].ConfigureClear(Color.black, 1.0f, 0);
@@ -1067,13 +1067,13 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     var defaultFormat = cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.renderTargetFormat[0] != GraphicsFormat.None ? renderPass.renderTargetFormat[0] : defaultFormat);
+                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.rpd.formats[0] != GraphicsFormat.None ? renderPass.rpd.formats[0] : defaultFormat);
                 }
 
                     bool isLastPass = renderPass.isLastPass;
-                    var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+                    var samples = renderPass.rpd.sampleCount != -1 ? renderPass.rpd.sampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
-                    var colorAttachmentTarget = (renderPass.depthOnly ||
+                    var colorAttachmentTarget = (renderPass.rpd.isDepthOnly ||
                                       passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                         ? passColorAttachment
                         : (cameraData.targetTexture != null
@@ -1095,11 +1095,11 @@ namespace UnityEngine.Rendering.Universal
                     if (m_FirstTimeColorClear)
                     {
                         // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
-                        if (cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly)
+                        if (cameraData.renderType != CameraRenderType.Overlay || renderPass.rpd.isDepthOnly)
                             m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
                         if (!isLastPassToBB)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
-                        if (!renderPass.depthOnly)
+                        if (!renderPass.rpd.isDepthOnly)
                             m_FirstTimeColorClear = false;
                     }
 
