@@ -14,7 +14,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
-            #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
@@ -32,11 +31,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half2   screenUV        : TEXCOORD1;
                 half2   lookupUV        : TEXCOORD2;  // This is used for light relative direction
 
-#if LIGHT_QUALITY_FAST
-                half4   lightDirection  : TEXCOORD4;
-#else
-                half4   positionWS : TEXCOORD4;
-#endif
                 SHADOW_COORDS(TEXCOORD5)
             };
 
@@ -59,7 +53,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
             half    _LightZDistance;
-            half    _OuterAngle;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _OuterAngle;                // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half    _InnerAngleMult;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half    _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half    _InverseHDREmulationScale;
@@ -81,15 +75,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
-
-#if LIGHT_QUALITY_FAST
-                output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
-                output.lightDirection.z = _LightZDistance;
-                output.lightDirection.w = 0;
-                output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-#else
-                output.positionWS = worldSpacePos;
-#endif
 
                 output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);
 

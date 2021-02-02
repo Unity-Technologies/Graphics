@@ -9,6 +9,8 @@ The Channel Mixer effect modifies the influence of each input color channel on t
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Channel Mixer**. HDRP now applies **Channel Mixer** to any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingChannelMixer1.png)
