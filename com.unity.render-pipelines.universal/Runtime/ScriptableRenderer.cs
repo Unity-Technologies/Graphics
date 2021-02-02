@@ -829,6 +829,10 @@ namespace UnityEngine.Rendering.Universal
                 }
                 context.BeginSubPass(attachmentIndices);
                 attachmentIndices.Dispose();
+
+                cmd.SetViewport(new Rect(0,0, width, height));
+                context.ExecuteCommandBuffer(cmd);
+
                 renderPass.Execute(context, ref renderingData);
                 context.EndSubPass();
                 context.EndRenderPass();
