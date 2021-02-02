@@ -68,10 +68,7 @@ namespace UnityEditor.ShaderGraph
             return new SamplerStateShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
-                overrideReferenceName = overrideReferenceName,
                 value = value,
-                precision = precision,
             };
         }
     }

@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("enableSpotReflector")]
-        bool m_EnableSpotReflector = false;
+        bool m_EnableSpotReflector = true;
         /// <summary>
         /// Get/Set the Spot Reflection option on spot lights.
         /// </summary>
@@ -1649,8 +1649,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool useVolumetric = true;
         [SerializeField, FormerlySerializedAs("featuresFoldout")]
         bool featuresFoldout = true;
-        [SerializeField, FormerlySerializedAs("showAdditionalSettings")]
-        byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
         HDShadowRequest[]   shadowRequests;
@@ -2594,7 +2592,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_ApplyRangeAttenuation = m_ApplyRangeAttenuation;
             data.useOldInspector = useOldInspector;
             data.featuresFoldout = featuresFoldout;
-            data.showAdditionalSettings = showAdditionalSettings;
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;

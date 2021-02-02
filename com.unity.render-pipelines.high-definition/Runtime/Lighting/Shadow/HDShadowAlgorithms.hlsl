@@ -5,6 +5,13 @@
 // Since we use slope-scale bias, the constant bias is for now set as a small fixed value
 #define FIXED_UNIFORM_BIAS (1.0f / 65536.0f)
 
+// For non-fragment shaders we might skip the variant with the quality as shadows might not be used, if that's the case define something just to make the compiler happy in case the quality is not defined.
+#ifndef SHADER_STAGE_FRAGMENT
+    #if !defined(SHADOW_ULTRA_LOW) && !defined(SHADOW_LOW) && !defined(SHADOW_MEDIUM) && !defined(SHADOW_HIGH)
+        #define SHADOW_MEDIUM
+    #endif
+#endif
+
 // WARNINGS:
 // Keep in sync with both HDShadowManager::GetDirectionalShadowAlgorithm() and GetPunctualFilterWidthInTexels() in C# as well!
 
@@ -206,12 +213,15 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
 
     // The above code will generate transitions on the whole cascade sphere boundary.
     // It means that depending on the light and camera direction, sometimes the transition appears on the wrong side of the cascade
-    // To avoid that we attenuate the effect (lerp to 0.0) when view direction and cascade center to pixel vector face opposite directions.
+    // To avoid that we attenuate the effect (lerp very sharply to 0.0) when view direction and cascade center to pixel vector face opposite directions.
     // This way you only get fade out on the right side of the cascade.
     float3 viewDir = GetWorldSpaceViewDir(positionWS);
-    float  cascDot = dot(viewDir, wposDir);
-    alpha = lerp(alpha, 0.0, saturate(cascDot * 4.0));
 
+    float  cascDot = dot(viewDir, wposDir);
+    // At high border sizes the sharp lerp is noticeable, hence we need to lerp how sharpenss factor
+    // if we are below 80% we keep the very sharp transition.
+    float lerpSharpness = 8.0f + 512.0f * smoothstep(1.0f, 0.7f, border);// lerp(1024.0f, 8.0f, saturate(border - 0.8) / 0.2f);
+    alpha = lerp(alpha, 0.0, saturate(cascDot * lerpSharpness));
     return shadowSplitIndex;
 }
 
@@ -298,7 +308,7 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
 
         /* We select what split we need to sample from */
         float nextSplit = min(shadowSplitIndex + 1, cascadeCount - 1);
-        bool evalNextCascade = nextSplit != shadowSplitIndex && step(InterleavedGradientNoise(positionSS.xy, _TaaFrameInfo.z), alpha);
+        bool evalNextCascade = nextSplit != shadowSplitIndex && alpha > 0 && step(InterleavedGradientNoise(positionSS.xy, _TaaFrameInfo.z), alpha);
 
         if (evalNextCascade)
         {

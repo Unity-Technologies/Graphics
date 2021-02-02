@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingParams = cameraData.xr.cullingParams;
 
                 // Sync the FOV on the camera to match the projection from the XR device
-                if (!cameraData.camera.usePhysicalProperties)
+                if (!cameraData.camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
                     cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
 
                 return true;
@@ -654,6 +654,27 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            ///////////////////////////////////////////////////////////////////
+            // Descriptor settings                                            /
+            ///////////////////////////////////////////////////////////////////
+
+            var renderer = additionalCameraData?.scriptableRenderer;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+
+            int msaaSamples = 1;
+            if (camera.allowMSAA && asset.msaaSampleCount > 1 && rendererSupportsMSAA)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
+            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
+            if (cameraData.xrRendering && rendererSupportsMSAA)
+                msaaSamples = XRSystem.GetMSAALevel();
+#endif
+
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>
@@ -716,19 +737,6 @@ namespace UnityEngine.Rendering.Universal
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
 
-            var renderer = baseAdditionalCameraData?.scriptableRenderer;
-            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
-
-            int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
-                msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
-            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering && rendererSupportsMSAA)
-                msaaSamples = XRSystem.GetMSAALevel();
-#endif
-
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
@@ -758,10 +766,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
-
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
-                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         /// <summary>
@@ -781,6 +785,14 @@ namespace UnityEngine.Rendering.Universal
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
+
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
@@ -968,7 +980,6 @@ namespace UnityEngine.Rendering.Universal
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
         {
-            postProcessingData.resources = settings.postProcessData;
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
                 : ColorGradingMode.LowDynamicRange;

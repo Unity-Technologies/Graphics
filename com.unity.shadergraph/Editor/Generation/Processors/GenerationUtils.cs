@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph
                         // super simple packing: use the first interpolator that has room for the whole value
                         int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
                         int firstChannel;
-                        if (interpIndex < 0)
+                        if (interpIndex < 0 || subscript.HasPreprocessor())
                         {
                             // allocate a new interpolator
                             interpIndex = packedCounts.Count;
@@ -216,7 +216,7 @@ namespace UnityEditor.ShaderGraph
                         // super simple packing: use the first interpolator that has room for the whole value
                         int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
                         int firstChannel;
-                        if (interpIndex < 0)
+                        if (interpIndex < 0 || subscript.HasPreprocessor())
                         {
                             // allocate a new interpolator
                             interpIndex = packedCounts.Count;
@@ -636,7 +636,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
                 {
-                    sb.AppendLine(key.GetPropertyBlockString());
+                    key.AppendPropertyBlockStrings(sb);
                 }
             }
         }
