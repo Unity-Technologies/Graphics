@@ -20,8 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_Anamorphic;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Bloom>(serializedObject);
@@ -55,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            if (isInAdvancedMode)
+            if (BeginAdditionalPropertiesScope())
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 
@@ -68,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_Anamorphic);
             }
+            EndAdditionalPropertiesScope();
         }
 
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)

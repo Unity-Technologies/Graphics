@@ -11,11 +11,13 @@ def _cmd_base(project, platform, utr_calls, editor):
     ]
 
     for utr_args in utr_calls:
-        base.append(pss(f'''
+        if 'HDRP_PerformanceTests' not in project['name']:
+            base.append(pss(f'''
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
-         del revdate.tmp
+         del revdate.tmp'''))
+        base.append(pss(f'''
          cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}'''))
 
     return base
