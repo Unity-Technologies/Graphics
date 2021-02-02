@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        private void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int passIndex = 0)
+        private new void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int passIndex = 0)
         {
             cmd.SetGlobalTexture(URPShaderIDs._SourceTex, source);
             if (m_UseDrawProcedural)
@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        private new void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
+        private void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
         {
             cmd.SetGlobalTexture(URPShaderIDs._SourceTex, source);
             if (m_UseDrawProcedural)

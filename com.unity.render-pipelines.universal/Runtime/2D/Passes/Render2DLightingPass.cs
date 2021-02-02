@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachment : null;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
                     }
 

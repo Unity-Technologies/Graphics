@@ -11,9 +11,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyColorPass : ScriptableRenderPass
     {
+        static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
-        Downsampling m_DownsamplingMethod;
+        public Downsampling m_DownsamplingMethod { get; private set; }
         Material m_CopyColorMaterial;
 
         private RTHandle source { get; set; }
@@ -43,28 +45,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;
-            this.destination?.Release();
             this.destination = destination;
             m_DownsamplingMethod = downsampling;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.msaaSamples = 1;
-            descriptor.depthBufferBits = 0;
-            if (m_DownsamplingMethod == Downsampling._2xBilinear)
-            {
-                descriptor.width /= 2;
-                descriptor.height /= 2;
-            }
-            else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
-            {
-                descriptor.width /= 4;
-                descriptor.height /= 4;
-            }
-
-            cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }
 
         /// <inheritdoc/>
@@ -79,26 +65,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                RenderTargetIdentifier opaqueColorRT = destination;
-
-                ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag,
+                ScriptableRenderer.SetRenderTarget(cmd, destination ?? k_CameraTarget, k_CameraTarget, clearFlag,
                     clearColor);
 
                 bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination ?? k_CameraTarget, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination ?? k_CameraTarget, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._4xBox:
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_SamplingMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination ?? k_CameraTarget, m_SamplingMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination ?? k_CameraTarget, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                 }
             }
@@ -113,8 +97,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destination != null)
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination.name));
             destination = null;
         }
     }

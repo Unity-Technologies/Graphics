@@ -70,9 +70,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(Shader.PropertyToID(m_DeferredLights.GbufferAttachments[i].name), gbufferSlice);
             }
 
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
+            ConfigureTarget(m_DeferredLights.GbufferAttachments, m_DeferredLights.DepthAttachment, m_DeferredLights.GbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
-            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            // ScriptableRenderer may still implicitly force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
 
                 // If any sub-system needs camera normal texture, make it available.
-                gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferNormalSmoothnessIndex]);
+                gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex]);
             }
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);

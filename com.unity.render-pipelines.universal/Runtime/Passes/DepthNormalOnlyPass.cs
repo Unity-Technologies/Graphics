@@ -70,10 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(Shader.PropertyToID(normal.name), normalDescriptor, FilterMode.Point);
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(Shader.PropertyToID(depth.name), depthDescriptor, FilterMode.Point);
-            ConfigureTarget(
-                new RenderTargetIdentifier(normal.name, 0, CubemapFace.Unknown, -1),
-                new RenderTargetIdentifier(depth.name, 0, CubemapFace.Unknown, -1)
-            );
+            ConfigureTarget(normal, depth);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
+        static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
 
         /// <inheritdoc/>
         public override void Create()
@@ -193,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
 
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
-                ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+                ConfigureTarget(k_CurrentActive);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

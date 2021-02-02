@@ -41,11 +41,7 @@ internal class OutputColorsToMRTsRenderPass : ScriptableRenderPass
         cmd.GetTemporaryRT(Shader.PropertyToID(destination[0].name), destDescriptor, FilterMode.Point);
         cmd.GetTemporaryRT(Shader.PropertyToID(destination[1].name), destDescriptor, FilterMode.Point);
 
-        RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[2];
-        colorAttachmentIdentifiers[0] = destination[0];
-        colorAttachmentIdentifiers[1] = destination[1];
-
-        ConfigureTarget(colorAttachmentIdentifiers);
+        ConfigureTarget(destination);
         //ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
 
         ConfigureClear(ClearFlag.Color, Color.yellow);
