@@ -82,21 +82,21 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
     ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
+    ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
       024)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
-    XrSdk: None
-    StereoModes: 0
-    Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: a770620fcd2f84f248d06edf3744b2c0, type: 3}
@@ -111,21 +111,21 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
     ColorSpace: -1
-    BuildPlatform: 19
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305591/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
-    ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
       026)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1305591/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 2d287b701f8e1bf429c14805ac505eb9, type: 3}
@@ -170,51 +170,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
-    BuildPlatform: 38
-    GraphicsDevice: 22
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 19
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android Out of memory crash (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
     XrSdk: None
@@ -231,6 +186,51 @@ MonoBehaviour:
     Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Out of memory crash (FB: 1304672)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1304675
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -238,6 +238,15 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue (036)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
@@ -259,13 +268,13 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1305591/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
+    BuildPlatform: 9
+    GraphicsDevice: 16
     XrSdk: None
     StereoModes: 0
-    Reason: Needs fixing in OpenGL
+    Reason: iOS 039 new faulty test scene
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
@@ -275,15 +284,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Android 039 new faulty testscene
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS 039 new faulty test scene
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: cd37c7e9d54e74dd7add9b40a2698ada, type: 3}
@@ -426,20 +426,11 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
     StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
@@ -453,20 +444,20 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
     StereoModes: 0
-    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
+    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
     ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: None
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
     StereoModes: 0
-    Reason: 'Android Vulkan 119: tracked issue (1252270)'
+    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
@@ -476,6 +467,15 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Vulkan 119: tracked issue (1252270)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
@@ -516,24 +516,15 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
     ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
     StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
+    Reason: OSX Standalone won't work with back buffer capture
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
-    ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
     XrSdk: 
@@ -550,22 +541,13 @@ MonoBehaviour:
     Reason: OSX Standalone won't work with back buffer capture
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: OSX Standalone won't work with back buffer capture
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
@@ -575,6 +557,24 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone won't work with back buffer capture
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 13
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
