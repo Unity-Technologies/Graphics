@@ -1379,17 +1379,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            if (camera.orthographic)
-            {
-                verticalFoV = -1;
-            }
-            else if (!camera.usePhysicalProperties)
+            if (!camera.usePhysicalProperties)
             {
                 verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
             }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect, camera.orthographic);
         }
 
         void Dispose()

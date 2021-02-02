@@ -140,14 +140,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
             => - matrix.m11 / matrix.m00;
 
-        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1, bool isOrthographic = false)
         {
             Matrix4x4 viewSpaceRasterTransform;
-            aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
 
-            if (verticalFoV < 0)
+            if (isOrthographic)
             {
                 // For ortho cameras, project the skybox with no perspective
+                // the same way as builtin does (case 1264647)
                 viewSpaceRasterTransform = new Matrix4x4(
                     new Vector4(-2.0f * screenSize.z, 0.0f, 0.0f, 0.0f),
                     new Vector4(0.0f, -2.0f * screenSize.w, 0.0f, 0.0f),
@@ -161,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
                 // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
 
+                aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
                 float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
 
                 // Compose the matrix.
