@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected int GetTextureHash(Texture texture)
+        protected int GetTextureHash(Texture texture, int width, int height)
         {
             int hash = texture.GetHashCode();
 
@@ -312,8 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = 23 * hash + texture.GetInstanceID().GetHashCode();
                 hash = 23 * hash + texture.graphicsFormat.GetHashCode();
                 hash = 23 * hash + texture.wrapMode.GetHashCode();
-                hash = 23 * hash + texture.width.GetHashCode();
-                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + width.GetHashCode();
+                hash = 23 * hash + height.GetHashCode();
                 hash = 23 * hash + texture.filterMode.GetHashCode();
                 hash = 23 * hash + texture.anisoLevel.GetHashCode();
                 hash = 23 * hash + texture.mipmapCount.GetHashCode();
@@ -322,9 +322,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return hash;
         }
 
-        protected int GetTextureHash(Texture textureA, Texture textureB)
+        protected int GetTextureHash(Texture textureA, Texture textureB, int width, int height)
         {
-            int hash = GetTextureHash(textureA) + 23 * GetTextureHash(textureB);
+            int hash = GetTextureHash(textureA, width, height) + 23 * GetTextureHash(textureB, width, height);
             return hash;
         }
 
@@ -347,14 +347,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsCached(out Vector4 scaleOffset, int id)
             => m_AllocationCache.TryGetValue(id, out scaleOffset);
 
-        public virtual bool HashChanged(Texture texture)
+        public virtual bool HashChanged(Texture texture, int width, int height)
         {
             int key = GetTextureID(texture);
-            int textureHash = GetTextureHash(texture);
+            int hash = GetTextureHash(texture, width, height);
 
-            if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            if (m_TextureHashes.TryGetValue(key, out int cachedHash))
             {
-                return true;
+                if (hash != cachedHash)
+                    return true;
+                else
+                    return false;
             }
             else
             {
@@ -362,14 +365,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public virtual bool HashChanged(Texture textureA, Texture textureB)
+        public virtual bool HashChanged(Texture textureA, Texture textureB, int width, int height)
         {
             int key = GetTextureID(textureA, textureB);
-            int textureHash = GetTextureHash(textureA, textureB);
+            int hash = GetTextureHash(textureA, textureB, width, height);
 
-            if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            if (m_TextureHashes.TryGetValue(key, out int cachedHash))
             {
-                return true;
+                if (hash != cachedHash)
+                    return true;
+                else
+                    return false;
             }
             else
             {
@@ -379,9 +385,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
-            RenderTexture   rt = texture as RenderTexture;
-            int             key = GetTextureID(texture);
-            int             textureHash = GetTextureHash(texture);
+            RenderTexture rt = texture as RenderTexture;
+            int key = GetTextureID(texture);
+            int textureHash = GetTextureHash(texture, texture.width, texture.height);
 
             // Update the render texture if needed
             if (rt != null)
@@ -415,12 +421,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
+        public virtual bool NeedsUpdate(Texture textureA, Texture textureB, int width, int height, bool needMips = false)
         {
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;
             int key = GetTextureID(textureA, textureB);
-            int textureHash = GetTextureHash(textureA, textureB);
+            int textureHash = GetTextureHash(textureA, textureB, width, height);
 
             // Update the render texture if needed
             if (rtA != null || rtB != null)

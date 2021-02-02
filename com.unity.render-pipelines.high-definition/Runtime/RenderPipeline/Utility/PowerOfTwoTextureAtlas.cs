@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
 
-            if (HashChanged(texture))
+            if (HashChanged(texture, texture.width, texture.height))
                 return false;
 
             // new texture
@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int id = GetTextureID(texture);
             m_RequestedTextures[id] = new Vector2Int(width, height);
 
-            if (HashChanged(texture))
+            if (HashChanged(texture, width, height))
                 return false;
 
             // new texture
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int id = GetTextureID(textureA, textureB);
             m_RequestedTextures[id] = new Vector2Int(width, height);
 
-            if (HashChanged(textureA, textureB))
+            if (HashChanged(textureA, textureB, width, height))
                 return false;
 
             // new texture

@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, m_CookieAtlas.GetTextureID(cookie, ies)) && !m_NoMoreSpace)
                 Debug.LogError($"Unity cannot fetch the 2D Light cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
 
-            if (m_CookieAtlas.NeedsUpdate(cookie, ies, false))
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, width, height, false))
             {
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, ies, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
                 m_CookieAtlas.BlitTextureMultiply(cmd, scaleBias, cookie, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
                 Debug.LogError($"Area Light cookie texture {cookie} & {ies} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
-            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, projectionSize, projectionSize, true))
             {
                 Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
 
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(ies.dimension == TextureDimension.Cube);
 
 #if UNITY_2020_1_OR_NEWER
-            int projectionSize = 2 * cookie.width;
+            int projectionSize = 2 * (int)Mathf.Max((float)cookie.width, (float)ies.width);
 #else
             int projectionSize = 2 * (int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
 #endif
@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
                 Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
 
-            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, projectionSize, projectionSize, true))
             {
                 Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
 
