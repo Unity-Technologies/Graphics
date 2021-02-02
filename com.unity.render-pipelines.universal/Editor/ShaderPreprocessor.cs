@@ -26,7 +26,8 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11),
         ScreenSpaceShadows = (1 << 12),
-        UseFastSRGBLinearConversion = (1 << 13)
+        UseFastSRGBLinearConversion = (1 << 13),
+        UseProbeVolumes = (1 << 14),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -54,6 +55,9 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
         ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
         ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
+        ShaderKeyword m_ProbeVolumes_Off = new ShaderKeyword(ShaderKeywordStrings.PROBE_VOLUMES_OFF);
+        ShaderKeyword m_ProbeVolumes_L1 = new ShaderKeyword(ShaderKeywordStrings.PROBE_VOLUMES_L1);
+        ShaderKeyword m_ProbeVolumes_L2 = new ShaderKeyword(ShaderKeywordStrings.PROBE_VOLUMES_L2);
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
@@ -127,6 +131,11 @@ namespace UnityEditor.Rendering.Universal
 
             if (compilerData.shaderKeywordSet.IsEnabled(m_UseFastSRGBLinearConversion) &&
                 !IsFeatureEnabled(features, ShaderFeatures.UseFastSRGBLinearConversion))
+                return true;
+
+            // Probe Volumes
+            if ((compilerData.shaderKeywordSet.IsEnabled(m_ProbeVolumes_L1) || compilerData.shaderKeywordSet.IsEnabled(m_ProbeVolumes_L2)) && 
+                !IsFeatureEnabled(features, ShaderFeatures.UseProbeVolumes))
                 return true;
 
             // Strip here only if mixed lighting is disabled
@@ -426,6 +435,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
+
+            if (pipelineAsset.probeVolume)
+                shaderFeatures |= ShaderFeatures.UseProbeVolumes;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;

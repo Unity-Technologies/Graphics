@@ -141,6 +141,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = 512;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = 1024;
 
+        // ProbeVolumes
+        [SerializeField] ProbeVolumeTextureMemoryBudget m_ProbeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium;
+        [SerializeField] ProbeVolumeSHBands m_ProbeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
+        [SerializeField] bool m_ProbeVolume = false;
+
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] int m_ShadowCascadeCount = 1;
@@ -712,6 +717,24 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        public bool probeVolume
+        {
+            get { return m_ProbeVolume; }
+            set { m_ProbeVolume = value;}
+        }
+
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget
+        {
+            get { return m_ProbeVolumeMemoryBudget; }
+            set { m_ProbeVolumeMemoryBudget = value; }
+        }
+
+        public ProbeVolumeSHBands probeVolumeSHBands
+        {
+            get { return m_ProbeVolumeSHBands; }
+            set { m_ProbeVolumeSHBands = value; }
         }
 
         public ColorGradingMode colorGradingMode

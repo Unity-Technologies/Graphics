@@ -360,6 +360,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
 
+        public static readonly string PROBE_VOLUMES_OFF = "PROBE_VOLUMES_OFF";
+        public static readonly string PROBE_VOLUMES_L1  = "PROBE_VOLUMES_L1";
+        public static readonly string PROBE_VOLUMES_L2  = "PROBE_VOLUMES_L2";
+
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }

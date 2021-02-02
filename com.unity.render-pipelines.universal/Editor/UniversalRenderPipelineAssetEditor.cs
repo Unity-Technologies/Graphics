@@ -37,6 +37,11 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
 
+            // ProbeVolume
+            public static GUIContent probeVolumeText = EditorGUIUtility.TrTextContent("Probe Volumes", "Enable ProbeVolumes.");
+            public static GUIContent probeVolumeMemoryBudgetText = EditorGUIUtility.TrTextContent("Probe Volume Memory Budget", "Memory budget for ProbeVolumes");
+            public static GUIContent probeVolumeSHBandsText = EditorGUIUtility.TrTextContent("Probe Volume SH Bands", "The number of bands to use for ProbeVolumes.");
+
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
             public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled the main light can be a shadow casting light.");
@@ -118,6 +123,12 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_MSAA;
         SerializedProperty m_RenderScale;
 
+        SerializedProperty m_ProbeVolumeProp;
+        SerializedProperty m_ProbeVolumeMemoryBudgetProp;
+        SerializedProperty m_ProbeVolumeSHBandsProp;
+        ProbeVolumeTextureMemoryBudget selectedProbeVolumeMemoryBudget;
+        ProbeVolumeSHBands selectedProbeVolumeSHBands;
+
         SerializedProperty m_MainLightRenderingModeProp;
         SerializedProperty m_MainLightShadowsSupportedProp;
         SerializedProperty m_MainLightShadowmapResolutionProp;
@@ -198,6 +209,10 @@ namespace UnityEditor.Rendering.Universal
             m_MSAA = serializedObject.FindProperty("m_MSAA");
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
 
+            m_ProbeVolumeProp = serializedObject.FindProperty("m_ProbeVolume");
+            m_ProbeVolumeMemoryBudgetProp = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
+            m_ProbeVolumeSHBandsProp = serializedObject.FindProperty("m_ProbeVolumeSHBands");
+
             m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             m_MainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
@@ -236,6 +251,8 @@ namespace UnityEditor.Rendering.Universal
             m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 
             selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
+            selectedProbeVolumeMemoryBudget = (ProbeVolumeTextureMemoryBudget)m_ProbeVolumeMemoryBudgetProp.intValue;
+            selectedProbeVolumeSHBands = (ProbeVolumeSHBands)m_ProbeVolumeSHBandsProp.intValue;
 
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
@@ -288,6 +305,15 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
                 m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+
+                EditorGUILayout.PropertyField(m_ProbeVolumeProp, Styles.probeVolumeText);
+                
+                selectedProbeVolumeMemoryBudget = (ProbeVolumeTextureMemoryBudget)EditorGUILayout.EnumPopup(Styles.probeVolumeMemoryBudgetText, selectedProbeVolumeMemoryBudget);
+                m_ProbeVolumeMemoryBudgetProp.intValue = (int)selectedProbeVolumeMemoryBudget;
+
+                selectedProbeVolumeSHBands = (ProbeVolumeSHBands)EditorGUILayout.EnumPopup(Styles.probeVolumeSHBandsText, selectedProbeVolumeSHBands);
+                m_ProbeVolumeSHBandsProp.intValue = (int)selectedProbeVolumeSHBands;
+
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
