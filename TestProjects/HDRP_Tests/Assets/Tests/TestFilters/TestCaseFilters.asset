@@ -33,15 +33,6 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: f62791cf7ace7534680a0f9c461be164, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
