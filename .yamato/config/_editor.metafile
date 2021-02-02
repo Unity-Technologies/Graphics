@@ -40,6 +40,7 @@ platforms: # Components to have unity-downloader-cli to trigger.
     os: macos
     components:
       - editor
+      - il2cpp
       - ios
 
 versions_file_header: |
