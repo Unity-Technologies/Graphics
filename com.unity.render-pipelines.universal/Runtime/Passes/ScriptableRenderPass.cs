@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool isBlitRenderPass { get; set; }
 
         internal bool useNativeRenderPass { get; set; }
-        internal ScriptableRenderPassDescriptor rpd = ScriptableRenderPassDescriptor.Empty;
+        internal ScriptableRenderPassDescriptor rpd { get; set; }
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
             useNativeRenderPass = true;
+            rpd = new ScriptableRenderPassDescriptor(GraphicsFormat.None);
         }
 
         /// <summary>
