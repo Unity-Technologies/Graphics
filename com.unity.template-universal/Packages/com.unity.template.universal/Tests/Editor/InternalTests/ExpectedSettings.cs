@@ -29,8 +29,8 @@ namespace Tests
                 yield return new TestCaseData(BuildTarget.WebGL);
                 yield return new TestCaseData(BuildTarget.WSAPlayer);
                 yield return new TestCaseData(BuildTarget.XboxOne);
-                yield return new TestCaseData(BuildTarget.GameCodeXboxOne);
-                yield return new TestCaseData(BuildTarget.GameCodeScarlett);
+                yield return new TestCaseData(BuildTarget.GameCoreXboxOne);
+                yield return new TestCaseData(BuildTarget.GameCoreScarlett);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Tests
                 case BuildTarget.WSAPlayer:
                 case BuildTarget.XboxOne:
                 case BuildTarget.GameCoreXboxOne:
-                case BuildTarget.GameCodeScarlett:
+                case BuildTarget.GameCoreScarlett:
                     return true;
             }
             throw new System.ArgumentException("Unhandled BuildTarget case '" + buildTarget.ToString() + "'", nameof(buildTarget));
