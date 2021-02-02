@@ -11,6 +11,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+#if defined(PROBE_VOLUMES_L1) || defined (PROBE_VOLUMES_L2)
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+#endif
+
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
@@ -563,7 +567,12 @@ half3 SampleSHVertex(half3 normalWS)
 // mixed or fully in pixel. See SampleSHVertex
 half3 SampleSHPixel(half3 L2Term, half3 positionWS, half3 normalWS)
 {
-#if defined(EVALUATE_SH_VERTEX)
+#if defined(PROBE_VOLUMES_L1) || defined (PROBE_VOLUMES_L2)
+    float3 frontBakedDiffuseGI;
+    float3 backBakedDiffuseGI;
+    EvaluateAdaptiveProbeVolume(positionWS, normalWS, -normalWS, frontBakedDiffuseGI, backBakedDiffuseGI);
+    return frontBakedDiffuseGI;
+#elif defined(EVALUATE_SH_VERTEX)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);

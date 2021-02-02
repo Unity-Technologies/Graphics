@@ -1,6 +1,10 @@
 #ifndef __PROBEVOLUME_HLSL__
 #define __PROBEVOLUME_HLSL__
 
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
+    SAMPLER(s_linear_clamp_sampler);
+#endif
+
 // APV specific code
 struct APVConstants
 {
@@ -66,6 +70,19 @@ float3 DecodeSH( float l0, float3 l1 )
     return (l1 - 0.5) * 4.0 * l0;
 }
 
+float3 EvaluateAmbientProbe(float3 normalWS)
+{
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
+}
 
 #define APV_USE_BASE_OFFSET
 
