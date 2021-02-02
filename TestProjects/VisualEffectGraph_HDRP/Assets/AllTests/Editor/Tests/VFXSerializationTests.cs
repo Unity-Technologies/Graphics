@@ -460,14 +460,19 @@ namespace UnityEditor.VFX.Test
                 quadOutput.LinkFrom(basicInitialize);
             }
 
-
-            for (uint i = 0; i < 16; ++i)
+            var recordedSize = new List<long>();
+            for (uint i = 0; i < 8; ++i)
             {
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+
+                Debug.LogFormat("=> {0}", asset.GetResource().GetContents().Count());
+
                 var graph = asset.GetResource().GetOrCreateGraph();
                 graph.GetResource().WriteAsset();
+                recordedSize.Add(new FileInfo(path).Length);
+
                 Debug.LogFormat("({0}) File size : {1}", i, new FileInfo(path).Length);
 
                 var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
@@ -482,6 +487,9 @@ namespace UnityEditor.VFX.Test
                 var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
                 newQuadOutput.LinkFrom(basicInitialize);
             }
+
+            Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
+
         }
     }
 }
