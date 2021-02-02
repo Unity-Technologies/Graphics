@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
+- Fixed skybox for ortho cameras.
 
 ## [11.0.0] - 2020-10-21
 
