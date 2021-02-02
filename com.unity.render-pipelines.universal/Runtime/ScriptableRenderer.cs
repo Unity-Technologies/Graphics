@@ -491,9 +491,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Make sure the list is already sorted!
             for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
-                m_ActiveRenderPassQueue[i].isLastPass = false;
+                m_ActiveRenderPassQueue[i].rpd.isLastPass = false;
 
-            m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
+            m_ActiveRenderPassQueue[lastPassIndex].rpd.isLastPass = true;
         }
 
         /// <summary>
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
 
                 int validColorBuffersCount = (int)RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
 
-                bool isLastPass = renderPass.isLastPass;
+                bool isLastPass = renderPass.rpd.isLastPass;
 
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget); //renderPass.GetType().Name == "FinalBlitPass";
                 bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
@@ -933,7 +933,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    bool isLastPass = renderPass.isLastPass;
+                    bool isLastPass = renderPass.rpd.isLastPass;
                     bool isLastPassToBB = false;
 
                     if (cameraData.renderType == CameraRenderType.Overlay)
@@ -1070,7 +1070,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.rpd.formats[0] != GraphicsFormat.None ? renderPass.rpd.formats[0] : defaultFormat);
                 }
 
-                    bool isLastPass = renderPass.isLastPass;
+                    bool isLastPass = renderPass.rpd.isLastPass;
                     var samples = renderPass.rpd.sampleCount != -1 ? renderPass.rpd.sampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
                     var colorAttachmentTarget = (renderPass.rpd.isDepthOnly ||

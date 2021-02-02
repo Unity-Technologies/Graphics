@@ -174,18 +174,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        internal ScriptableRenderPassDescriptor rpd = ScriptableRenderPassDescriptor.Empty;
-
-        internal int renderTargetWidth { get; set; }
-        internal int renderTargetHeight { get; set; }
-        internal int renderTargetSampleCount { get; set; }
-        internal bool depthOnly { get; set; }
-
-        internal bool isLastPass { get; set; }
-
         internal bool useNativeRenderPass { get; set; }
-
-        internal GraphicsFormat[] renderTargetFormat { get; set; }
+        internal ScriptableRenderPassDescriptor rpd = ScriptableRenderPassDescriptor.Empty;
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
@@ -203,16 +193,6 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = false;
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
-            renderTargetWidth = -1;
-            renderTargetHeight = -1;
-            renderTargetSampleCount = -1;
-            renderTargetFormat = new GraphicsFormat[]
-            {
-                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
-                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
-            };
-            depthOnly = false;
-
             useNativeRenderPass = true;
         }
 
@@ -234,10 +214,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format = GraphicsFormat.None)
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
-            ConfigureTarget(colorAttachment, format);
+            ConfigureTarget(colorAttachment);
         }
 
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment,
@@ -254,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats = null)
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             overrideCameraTarget = true;
 
@@ -264,14 +244,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
-
-            if (formats != null)
-            {
-                for (int i = 0; i < formats.Length; ++i)
-                {
-                    renderTargetFormat[i] = formats[i];
-                }
-            }
         }
 
         internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment,
@@ -287,7 +259,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format = GraphicsFormat.None, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             overrideCameraTarget = true;
 
@@ -295,14 +267,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
             {
                 m_ColorAttachments[i] = 0;
-                renderTargetFormat[i] = GraphicsFormat.None;
             }
-
-            renderTargetWidth = width;
-            renderTargetHeight = height;
-            renderTargetSampleCount = sampleCount;
-            depthOnly = depth;
-            renderTargetFormat[0] = format;
         }
 
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, ScriptableRenderPassDescriptor desc)
