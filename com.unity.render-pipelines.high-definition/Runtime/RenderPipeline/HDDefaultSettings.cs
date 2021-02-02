@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings
     /// - Various resources for runtime, editor-only, and raytracing
     /// </summary>
-    public partial class HDDefaultSettings : RenderPipelineDefaultSettings
+    public partial class HDDefaultSettings : RenderPipelineGlobalSettings
     {
         private static HDDefaultSettings cachedInstance = null;
         public static HDDefaultSettings instance
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (newSettings == null || newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineDefaultSettings);
+            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
             cachedInstance = newSettings;
         }
 

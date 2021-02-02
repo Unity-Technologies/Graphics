@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => HDDefaultSettings.instance;
 
         private HDDefaultSettings m_defaultSettings;
-        public override RenderPipelineDefaultSettings defaultSettings => m_defaultSettings;
+        public override RenderPipelineGlobalSettings defaultSettings => m_defaultSettings;
 
         internal static HDRenderPipelineAsset currentAsset
             => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
