@@ -1991,7 +1991,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
+        public int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
             switch (shadowMapType)
             {
