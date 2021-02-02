@@ -250,6 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Whether the settings are deemed very different.</returns>
         public virtual bool IsVeryDifferentFrom(SkySettings otherSettings)
         {
+            if (otherSettings.GetSkyRendererType() != GetSkyRendererType())
+                return true;
+
             float thisIntensity = GetIntensityFromSettings();
             float otherIntensity = otherSettings.GetIntensityFromSettings();
 

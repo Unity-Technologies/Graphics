@@ -177,11 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="otherSettings">The settings to compare with.</param>
         /// <returns>Whether the settings are deemed very different.</returns>
-        public virtual bool IsVeryDifferentFrom(SkySettings otherSettings)
+        public override bool IsVeryDifferentFrom(SkySettings otherSettings)
         {
-            if (otherSettings.GetSkyRendererType() != GetSkyRendererType())
-                return true;
-
             HDRISky otherHdriSkySettings = otherSettings as HDRISky;
 
             return base.IsVeryDifferentFrom(otherSettings) || hdriSky.value != otherHdriSkySettings.hdriSky.value;
