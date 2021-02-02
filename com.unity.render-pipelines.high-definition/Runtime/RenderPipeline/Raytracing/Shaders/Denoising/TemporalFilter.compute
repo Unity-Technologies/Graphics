@@ -33,6 +33,9 @@
 
 // Depth buffer of the current frame
 TEXTURE2D_X(_DepthTexture);
+// Stencil buffer of the current frame
+TEXTURE2D_X_UINT2(_StencilTexture);
+int _ObjectMotionStencilBit;
 // Depth buffer of the previous frame
 TEXTURE2D_X(_HistoryDepthTexture);
 // Normal buffer of the previous frame
@@ -121,9 +124,9 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
         return;
     }
 
-    // We sample the velocity buffer, if not null
-    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
-    if (sampleVelocity > MINIMAL_MOTION_DISTANCE)
+    // Was the object of this pixel moving?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, centerCoord));
+    if ((stencilValue & _ObjectMotionStencilBit) != 0)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -204,19 +207,22 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 #endif
 
     // Get the velocity of the current sample
-    float sampleVelocity = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r;
+    float movingIntersection = LOAD_TEXTURE2D_X(_VelocityBuffer, centerCoord).r > MINIMAL_MOTION_DISTANCE;
 
     // Accumulation factor that tells us how much we need to keep the history data
     float accumulationFactor = 0.0;
 
+    // Combine the history validity from both sources
+    bool historyInvalid = (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x * _HistoryValidity) < 1.0f;
+
     // If the history is invalid or the history was flagged as moving (sampleCount == 0.0)
-    if (_ValidationBuffer[COORD_TEXTURE2D_X(centerCoord)].x < 1.0 || sampleCount == 0.0)
+    if (historyInvalid || sampleCount == 0.0 || movingIntersection)
     {
         // We only take the current value
         accumulationFactor = 0.0;
         history = 0.0;
         // And the sample count of history becomes 1 (or 0 if the previous sample was mooving)
-        sampleCount = sampleVelocity > MINIMAL_MOTION_DISTANCE ? 0.0 : 1.0;
+        sampleCount = movingIntersection ? 0.0 : 1.0;
     }
     else
     {
