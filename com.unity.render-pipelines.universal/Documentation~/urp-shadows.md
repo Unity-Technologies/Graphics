@@ -24,7 +24,7 @@ URP uses two shadow map atlases to render all real-time shadows in a frame:
 
 * One shadow map atlas for all Spot Light and Point Light shadows.
 
-* One shadow map atlas for Directional Light shadows. 
+* One shadow map atlas for Directional Light shadows.
 
 Set the size of these atlases in your the following settings in the [URP Asset](universalrp-asset.md#lighting):
 
