@@ -8,65 +8,65 @@ editor_version_names:
 
 editor_versions:
   2021_1_latest_internal:
-    android:
+    Android:
       revision: 37f46e59aab7
       updated_at: '2021-01-29 00:14:19.535837'
       version: 2021.1.0b5
-    ios:
+    iPhone:
       revision: 37f46e59aab7
       updated_at: '2021-01-29 00:14:19.535837'
       version: 2021.1.0b5
-    linux:
+    Linux:
       revision: 37f46e59aab7
       updated_at: '2021-01-29 00:14:19.535837'
       version: 2021.1.0b5
-    macos:
+    OSX:
       revision: 37f46e59aab7
       updated_at: '2021-01-29 00:14:19.535837'
       version: 2021.1.0b5
-    windows:
+    Win:
       revision: 37f46e59aab7
       updated_at: '2021-01-29 00:14:19.535837'
       version: 2021.1.0b5
   2021_1_latest_public:
-    android:
+    Android:
       revision: 6d90c0720bd4
       updated_at: '2021-01-28 01:06:29.454616'
       version: 2021.1.0b4
-    ios:
+    iPhone:
       revision: 6d90c0720bd4
       updated_at: '2021-01-28 01:06:29.454616'
       version: 2021.1.0b4
-    linux:
+    Linux:
       revision: 6d90c0720bd4
       updated_at: '2021-01-28 01:06:29.454616'
       version: 2021.1.0b4
-    macos:
+    OSX:
       revision: 6d90c0720bd4
       updated_at: '2021-01-28 01:06:29.454616'
       version: 2021.1.0b4
-    windows:
+    Win:
       revision: 6d90c0720bd4
       updated_at: '2021-01-28 01:06:29.454616'
       version: 2021.1.0b4
   2021_1_staging:
-    android:
+    Android:
       revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
       updated_at: '2021-01-29 00:14:19.535837'
       version: ''
-    ios:
+    iPhone:
       revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
       updated_at: '2021-01-30 20:56:03.417101'
       version: ''
-    linux:
+    Linux:
       revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
       updated_at: '2021-01-29 00:14:19.535837'
       version: ''
-    macos:
+    OSX:
       revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
       updated_at: '2021-01-30 20:56:03.417101'
       version: ''
-    windows:
+    Win:
       revision: 4329e51477ee3500bc85e4ee3149e8660bfd557f
       updated_at: '2021-01-29 00:14:19.535837'
       version: ''
