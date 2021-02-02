@@ -17,7 +17,7 @@ Shader "Custom/RenderFeature/KawaseBlur"
             #pragma vertex vert
             #pragma fragment frag
 
-            
+
             struct Attributes
             {
                 float4 positionCS : POSITION;
