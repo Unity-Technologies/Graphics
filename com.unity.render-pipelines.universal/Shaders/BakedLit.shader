@@ -53,6 +53,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
             // -------------------------------------
             // Unity defined keywords
