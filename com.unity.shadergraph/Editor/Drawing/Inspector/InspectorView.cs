@@ -73,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
             m_ContentContainer.Add(m_GraphInspectorView);
 
+            isWindowScrollable = true;
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
             foreach (var type in unregisteredPropertyDrawerTypes)

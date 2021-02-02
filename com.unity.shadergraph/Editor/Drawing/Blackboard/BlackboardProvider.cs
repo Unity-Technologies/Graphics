@@ -39,21 +39,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardProvider(GraphData graph)
+        public BlackboardProvider(GraphData graph, GraphView associatedGraphView)
         {
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new SGBlackboard()
+            blackboard = new SGBlackboard(associatedGraphView)
             {
                 subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
-
-            var styleSheet = Resources.Load<StyleSheet>($"Styles/{k_styleName}");
-            blackboard.styleSheets.Add(styleSheet);
 
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
