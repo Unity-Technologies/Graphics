@@ -1002,12 +1002,12 @@ PrefabInstance:
     - target: {fileID: 289498767785640819, guid: c9ada76d1d9f321498ace4c15cbc52dc,
         type: 3}
       propertyPath: ImageComparisonSettings.TargetWidth
-      value: 512
+      value: 640
       objectReference: {fileID: 0}
     - target: {fileID: 289498767785640819, guid: c9ada76d1d9f321498ace4c15cbc52dc,
         type: 3}
       propertyPath: ImageComparisonSettings.TargetHeight
-      value: 512
+      value: 360
       objectReference: {fileID: 0}
     - target: {fileID: 289498767785640824, guid: c9ada76d1d9f321498ace4c15cbc52dc,
         type: 3}
