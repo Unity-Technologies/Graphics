@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Added support the XboxSeries platform.
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -89,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
 - Fixed issue when debug full screen 'Transparent Screen Space Reflection' do not take in consideration debug exposure
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
