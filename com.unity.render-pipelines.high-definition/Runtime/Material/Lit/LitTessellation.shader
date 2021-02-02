@@ -749,6 +749,10 @@ Shader "HDRP/LitTessellation"
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
+            #ifndef SHADER_STAGE_FRAGMENT
+            #define SHADOW_LOW
+            #endif
+
             #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
 
             #define SHADERPASS SHADERPASS_FORWARD
