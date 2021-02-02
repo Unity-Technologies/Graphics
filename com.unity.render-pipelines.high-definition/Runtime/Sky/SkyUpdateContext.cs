@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_SkySettings == null)
                     settingsHadBigDifferenceWithPrev = true;
                 else
-                    settingsHadBigDifferenceWithPrev = m_SkySettings.IsVeryDifferentFrom(value);
+                    settingsHadBigDifferenceWithPrev = m_SkySettings.SignificantlyDivergesFrom(value);
 
                 if (m_SkySettings == value)
                     return;

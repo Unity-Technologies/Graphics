@@ -242,13 +242,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Determines if the SkySettings is very different from another. This is going to be used to determine whether
+        /// Determines if the SkySettings is significantly divergent from another. This is going to be used to determine whether
         /// to reset completely the ambient probe instead of using previous one when waiting for current data upon changes.
         /// Override this to have a per-sky specific heuristic.
         /// </summary>
         /// <param name="otherSettings">The settings to compare with.</param>
         /// <returns>Whether the settings are deemed very different.</returns>
-        public virtual bool IsVeryDifferentFrom(SkySettings otherSettings)
+        public virtual bool SignificantlyDivergesFrom(SkySettings otherSettings)
         {
             if (otherSettings.GetSkyRendererType() != GetSkyRendererType())
                 return true;
