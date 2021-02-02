@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -506,6 +507,20 @@ namespace UnityEngine.Rendering.Universal
             if (!m_RendererDataList.Contains(rendererData))
             {
                 m_RendererDataList = m_RendererDataList.Append(rendererData).ToArray();
+                EditorUtility.SetDirty(this);
+            }
+        }
+
+        internal void RemoveRendererFromRendererDataList(ScriptableRendererData rendererData)
+        {
+            // Check if it exists
+            if (m_RendererDataList.Contains(rendererData))
+            {
+                // Lets remove the renderer data
+                var rendererDataList = new List<ScriptableRendererData>(m_RendererDataList);
+                rendererDataList.Remove(rendererData);
+                m_RendererDataList = rendererDataList.ToArray();
+                EditorUtility.SetDirty(this);
             }
         }
 

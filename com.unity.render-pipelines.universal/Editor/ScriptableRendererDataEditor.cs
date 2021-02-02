@@ -24,10 +24,11 @@ namespace UnityEditor.Rendering.Universal
 
         public static void ShowWindow(ScriptableRendererData renderer)
         {
+            // This is the renderer data that we care about
             rendererData = renderer;
             // Get existing open window or if none, make a new one:
             AssignToRendererDataPopup window = (AssignToRendererDataPopup)GetWindow(typeof(AssignToRendererDataPopup));
-            window.titleContent = new GUIContent("Assign To Renderer");
+            window.titleContent = new GUIContent("Assign to Render Pipeline Asset");
             Init();
             window.Show();
         }
@@ -38,25 +39,11 @@ namespace UnityEditor.Rendering.Universal
         }
 
         static List<UniversalRenderPipelineAsset> rpaList = new List<UniversalRenderPipelineAsset>();
-        //List<UniversalRenderPipelineAsset> rpaListAssigned = new List<UniversalRenderPipelineAsset>();
         Dictionary<UniversalRenderPipelineAsset, bool> rpaDict = new Dictionary<UniversalRenderPipelineAsset, bool>();
         static void Init()
         {
             RunOnce = false;
             rpaList = GetAllUniversalRenderPipelineAssets();
-
-            // var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
-            // foreach (string asset in rpAssets)
-            // {
-            //     var path = AssetDatabase.GUIDToAssetPath(asset);
-            //     UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(path) as UniversalRenderPipelineAsset;
-            //     if (urpAsset != null)
-            //     {
-            //         // Need to check if it assigned and then have teh tickbox on if it is
-            //         if()
-            //             rpaList.Add(urpAsset);
-            //     }
-            // }
         }
 
         void OnGUI()
@@ -64,39 +51,26 @@ namespace UnityEditor.Rendering.Universal
             // This should only run once to populate the assigned list
             if (!RunOnce)
             {
-                //rpaListAssigned = GetAllURPAssetsAssigned();
                 RunOnce = true;
                 GetAllURPAssetsAssignedToDict();
             }
 
-
             foreach (UniversalRenderPipelineAsset urpAsset in rpaDict.Keys.ToArray())
             {
                 rpaDict[urpAsset] = EditorGUILayout.Toggle(urpAsset.name, rpaDict[urpAsset]);
-                // if (val != rpaDict[urpAsset])
-                // {
-                //     rpaDict[urpAsset] = val;
-                // }
             }
-            // for (int i = 0; i < rpaDict.Count; ++i)
-            // {
-            //     EditorGUILayout.Toggle(rpaDict[i].name, val);
-            // }
-            // foreach (UniversalRenderPipelineAsset renderPipelineAsset in rpaList)
-            // {
-            //
-            //     // If this asset is assigned anywhere add the toggle correctly
-            //     if (rpaListAssigned.Contains(renderPipelineAsset))
-            //     {
-            //         val = true;
-            //     }
-            //     val = EditorGUILayout.Toggle(renderPipelineAsset.name, val);
-            // }
 
-            if (GUILayout.Button("Agree!"))
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Confirm"))
+            {
+                UpdateRendererAndRPAssets();
+                Close();
+            }
+            else if (GUILayout.Button("Cancel"))
             {
                 Close();
             }
+            GUILayout.EndHorizontal();
         }
 
         static List<UniversalRenderPipelineAsset> GetAllUniversalRenderPipelineAssets()
@@ -146,16 +120,41 @@ namespace UnityEditor.Rendering.Universal
                 rpaDict[asset] = false;
                 foreach (var renderer in renderers)
                 {
-                    Debug.Log(renderer);
-                    Debug.Log(this);
                     if (rendererData == renderer)
                     {
-                        Debug.Log("Found 1");
                         rpaDict[asset] = true;
                     }
                 }
             }
         }
+
+        void UpdateRendererAndRPAssets()
+        {
+            foreach (UniversalRenderPipelineAsset renderPipelineAsset in rpaDict.Keys)
+            {
+                if (rpaDict[renderPipelineAsset])
+                {
+                    renderPipelineAsset.AddRendererToRendererDataList(rendererData);
+                }
+                else
+                {
+                    renderPipelineAsset.RemoveRendererFromRendererDataList(rendererData);
+                }
+            }
+        }
+
+        // void AssignRendererToRPAsset(string rpName)
+        // {
+        //     foreach (var asset in rpAssets)
+        //     {
+        //         if (asset.name == rpName)
+        //         {
+        //             Debug.Log("Adding");
+        //             asset.AddRendererToRendererDataList(target as ScriptableRendererData);
+        //             return;
+        //         }
+        //     }
+        // }
     }
 
     [CustomEditor(typeof(ScriptableRendererData), true)]
@@ -248,27 +247,7 @@ namespace UnityEditor.Rendering.Universal
 
         public void FindAssignedRenderPipelineAssets()
         {
-            // m_RenderPipeLineAssets.Clear();
-            // var rpAssets = AssetDatabase.FindAssets("t:RenderPipelineAsset");
-            // foreach (string asset in rpAssets)
-            // {
-            //     var path = AssetDatabase.GUIDToAssetPath(asset);
-            //     UniversalRenderPipelineAsset urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(path) as UniversalRenderPipelineAsset;
-            //     if (urpAsset != null)
-            //     {
-            //         var renderers = urpAsset.RendererDataList;
-            //         foreach(var renderer in renderers)
-            //         {
-            //             if (target == renderer)
-            //             {
-            //                 m_RenderPipeLineAssets.Add((urpAsset.name, path));
-            //             }
-            //         }
-            //     }
-            // }
-            Debug.Log("Finding");
             m_RenderPipeLineAssets.Clear();
-            //var rpAssets = GetAllUniversalRenderPipelineAssets();
             foreach (var asset in rpAssets)
             {
                 var path = AssetDatabase.GetAssetPath(asset);
@@ -301,10 +280,6 @@ namespace UnityEditor.Rendering.Universal
             DrawRenderPipelineAssetList();
         }
 
-        // Create the bit mask from the rp assets rendererdatalist
-        // show the drop down.
-        // Update the correct rendererdatalist
-
         void DrawRenderPipelineAssetList()
         {
             // Foldout header
@@ -321,74 +296,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            // using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
-            // {
-            //
-            //     List<string> names = new List<string>();
-            //     //List<UniversalRenderPipelineAsset> rpAssets = GetAllUniversalRenderPipelineAssets();
-            //     foreach (var asset in rpAssets)
-            //     {
-            //         names.Add(asset.name);
-            //     }
-            //
-            //
-            //     // // LayerMask needs to be converted to be used in a MaskField...
-            //     // int field = 0;
-            //     // for (int c = 0; c < names.Count; c++)
-            //     //     if ((mask & (1 << LayerMask.NameToLayer(names[c]))) != 0)
-            //     //         field |= 1 << c;
-            //
-            //     // This needs to be on initialization
-            //     int field = 0;
-            //     for (int c = 0; c < names.Count; c++)
-            //         if (m_RenderPipelineAssetNames.Contains(names[c]))
-            //             field |= 1 << c;
-            //
-            //     options = names.ToArray();
-            //     var mask = new BitVector32(field);
-            //     //mField = EditorGUILayout.MaskField("Render Pipeline Assets", mField, options);
-            //
-            //
-            //     var newMask = new BitVector32(EditorGUILayout.MaskField("Render Pipeline Assets", mask.Data, options));
-            //
-            //
-            //     if (changeCheckScope.changed)
-            //     {
-            //         //AssignRendererToAsset()
-            //         Debug.Log(newMask);
-            //         UpdateRendererDataLists(newMask);
-            //     }
-            // }
-
             EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        // void UpdateRendererDataLists(BitVector32 mask)
-        // {
-        //     for (int c = 0; c < options.Length; c++)
-        //     {
-        //         if ((mask.Data & (1 << c)) != 0)
-        //         {
-        //             Debug.Log(options[c]);
-        //             // Assign the renderer to the data list
-        //             AssignRendererToRPAsset(options[c]);
-        //         }
-        //     }
-        //
-        //     FindAssignedRenderPipelineAssets();
-        // }
-
-        void AssignRendererToRPAsset(string rpName)
-        {
-            foreach (var asset in rpAssets)
-            {
-                if (asset.name == rpName)
-                {
-                    Debug.Log("Adding");
-                    asset.AddRendererToRendererDataList(target as ScriptableRendererData);
-                    return;
-                }
-            }
         }
 
         private void DrawRendererFeatureList()
