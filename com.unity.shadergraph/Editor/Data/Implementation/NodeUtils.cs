@@ -546,8 +546,14 @@ namespace UnityEditor.Graphing
         // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
-            // ... So let's use it in then.
-            return ConvertToValidHLSLIdentifier(input);
+            char[] arr = input.ToCharArray();
+            arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
+            var safeName = new string(arr);
+            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
+            {
+                safeName = $"var{safeName}";
+            }
+            return safeName;
         }
 
         static readonly string[] k_HLSLNumericKeywords =
@@ -810,7 +816,7 @@ namespace UnityEditor.Graphing
         public static bool ValidateSlotName(string inName, out string errorMessage)
         {
             //check for invalid characters between display safe and hlsl safe name
-            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName) && GetDisplaySafeName(inName) != ConvertToValidHLSLIdentifier(inName))
             {
                 errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
                 return true;
