@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
+- Fixed lights shadow frustum near and far planes.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
