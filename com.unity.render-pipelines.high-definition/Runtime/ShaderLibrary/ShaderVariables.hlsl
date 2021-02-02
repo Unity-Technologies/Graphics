@@ -332,21 +332,6 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
     return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
-float2 GetMainCameraPixelCoordFromWorldPosition(float3 positionWS, bool isPositionCameraRelative)
-{
-    //The _CameraViewProjMatrix obeys the camera relative rendering options.
-    //Some passes in unity that require main camera position (such as scenepick selection pass)
-    //Use the standard unity matrices, which might output the world position as absolute.
-    #if SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0
-    if (!isPositionCameraRelative)
-        positionWS -= _WorldSpaceCameraPos.xyz;
-    #endif
-
-    float4 hp = mul(_CameraViewProjMatrix, float4(positionWS, 1));
-    hp *= rcp(hp.w);
-    return (hp.xy * 0.5 + 0.5) * _ScreenSize;
-}
-
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
