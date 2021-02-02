@@ -7,6 +7,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Drawing.Views;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,9 +23,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public const int k_KeywordSectionIndex = 1;
         const string k_styleName = "Blackboard";
 
-        public Blackboard blackboard { get; private set; }
+        public SGBlackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
+        ScrollView m_blackboardScrollView;
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
@@ -42,9 +44,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new Blackboard()
+            blackboard = new SGBlackboard()
             {
-                scrollable = true,
                 subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
@@ -56,6 +57,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+
+            m_blackboardScrollView = blackboard.Q<ScrollView>("");
 
             m_PathLabelTextField = new TextField { visible = false };
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
@@ -75,6 +78,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
+            if (m_blackboardScrollView != null)
+            {
+                Debug.Log("Mouse Delta: " + evt.mouseDelta);
+                m_blackboardScrollView.scrollOffset -= new Vector2(0, 1.0f);
+            }
             if (m_SelectedNodes.Any())
             {
                 foreach (var node in m_SelectedNodes)
@@ -172,7 +180,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return string.Join("/", newStrings.ToArray());
         }
 
-        void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
+        void MoveItemRequested(SGBlackboard blackboard, int newIndex, VisualElement visualElement)
         {
             var input = visualElement.userData as ShaderInput;
             if (input == null)
@@ -192,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddItemRequested(Blackboard blackboard)
+        void AddItemRequested(SGBlackboard blackboard)
         {
             var gm = new GenericMenu();
             AddPropertyItems(gm);
@@ -257,7 +265,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
+        void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
         {
             var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
@@ -295,13 +303,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selection.AddRange(blackboard.selection);
             }
 
-            foreach (var inputGuid in m_Graph.removedInputs)
+            foreach (var shaderInput in m_Graph.removedInputs)
             {
                 BlackboardRow row;
-                if (m_InputRows.TryGetValue(inputGuid, out row))
+                if (m_InputRows.TryGetValue(shaderInput, out row))
                 {
                     row.RemoveFromHierarchy();
-                    m_InputRows.Remove(inputGuid);
+                    m_InputRows.Remove(shaderInput);
                 }
             }
 
@@ -405,6 +413,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 }
                 default:
+
                     throw new ArgumentOutOfRangeException();
             }
 
