@@ -384,11 +384,40 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static uint GetValidColorBufferCount(RTHandle[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var handle in colorBuffers)
+                {
+                    if (handle != null)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static bool IsMRT(RTHandle[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
@@ -426,6 +455,22 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static int IndexOf(RTHandle[] source, RenderTargetIdentifier value)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
         /// </summary>
         /// <param name="source"></param>
@@ -443,6 +488,23 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static uint CountDistinct(RTHandle[] source, RenderTargetIdentifier value)
+        {
+            uint count = 0;
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] != value && source[i] != null)
+                    ++count;
+            }
+            return count;
+        }
+
+        /// <summary>
         /// Return the index of last valid (i.e different from 0) RenderTargetIdentifiers in "source" (without recurring to Linq)
         /// </summary>
         /// <param name="source"></param>
@@ -452,6 +514,21 @@ namespace UnityEngine.Rendering.Universal
             for (int i = source.Length - 1; i >= 0; --i)
             {
                 if (source[i] != 0)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Return the index of last valid (i.e different from 0) RenderTargetIdentifiers in "source" (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        internal static int LastValid(RTHandle[] source)
+        {
+            for (int i = source.Length - 1; i >= 0; --i)
+            {
+                if (source[i] != null)
                     return i;
             }
             return -1;
@@ -481,6 +558,53 @@ namespace UnityEngine.Rendering.Universal
 
             for (int i = 0; i < left.Length; ++i)
                 if (left[i] != right[i])
+                    return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Return true if "left" and "right" are the same (without recurring to Linq)
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        internal static bool SequenceEqual(RTHandle[] left, RenderTargetIdentifier[] right)
+        {
+            if (left.Length != right.Length)
+                return false;
+
+            for (int i = 0; i < left.Length; ++i)
+                if (left[i].nameID != right[i])
+                    return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Return true if "left" and "right" are the same (without recurring to Linq)
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RTHandle[] right)
+        {
+            return SequenceEqual(right, left);
+        }
+
+        /// <summary>
+        /// Return true if "left" and "right" are the same (without recurring to Linq)
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        internal static bool SequenceEqual(RTHandle[] left, RTHandle[] right)
+        {
+            if (left.Length != right.Length)
+                return false;
+
+            for (int i = 0; i < left.Length; ++i)
+                if (left[i].nameID != right[i].nameID)
                     return false;
 
             return true;

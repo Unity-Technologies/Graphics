@@ -365,9 +365,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Per-tile depth info texture.
         internal RTHandle TileDepthInfoTexture { get; set; }
 
-        internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
         internal GraphicsFormat[] GbufferFormats { get; set; }
-        internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
         internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
         internal RenderTargetIdentifier DepthInfoTextureIdentifier { get; set; }
         internal RenderTargetIdentifier TileDepthInfoTextureIdentifier { get; set; }
@@ -771,17 +769,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture;
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture;
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture;
-            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
-            {
-                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
-                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
-            }
+            this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
-            {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].nameID;
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
-            }
-            this.DepthAttachmentIdentifier = depthAttachment;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
@@ -790,10 +780,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
                 this.DepthInfoTextureIdentifier = new RenderTargetIdentifier(this.DepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
                 this.TileDepthInfoTextureIdentifier = new RenderTargetIdentifier(this.TileDepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
-
-                for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
-                    this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
-                this.DepthAttachmentIdentifier = new RenderTargetIdentifier(this.DepthAttachmentIdentifier, 0, CubemapFace.Unknown, -1);
             }
 #endif
 
@@ -931,7 +917,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingTileDepthInfo))
             {
-                RenderTargetIdentifier depthSurface = this.DepthAttachmentIdentifier;
+                RenderTargetIdentifier depthSurface = this.DepthAttachment;
                 RenderTargetIdentifier depthInfoSurface = (tileMipLevel == intermediateMipLevel) ? this.TileDepthInfoTextureIdentifier : this.DepthInfoTextureIdentifier;
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);

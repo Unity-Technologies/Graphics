@@ -24,14 +24,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // ScriptableRenderPass
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            RenderTargetIdentifier lightingAttachmentId = m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferLightingIndex];
-            RenderTargetIdentifier depthAttachmentId = m_DeferredLights.DepthAttachmentIdentifier;
+            var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
+            var depthAttachment = m_DeferredLights.DepthAttachment;
 
             // TODO: change to m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferLightingIndex) when it's not GraphicsFormat.None
             // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(lightingAttachmentId, depthAttachmentId, cameraTextureDescripor.graphicsFormat);
+            ConfigureTarget(lightingAttachment, depthAttachment, cameraTextureDescriptor.graphicsFormat);
         }
 
         // ScriptableRenderPass

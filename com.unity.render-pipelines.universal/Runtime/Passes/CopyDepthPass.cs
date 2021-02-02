@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RTHandle source, CameraData cameraData)
         {
             this.source = source;
-            this.destination = k_CameraTarget;
+            this.destination = null;
             this.AllocateRT = false;
             this.MssaSamples = -1;
         }
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(Shader.PropertyToID(destination.name), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(destination ?? k_CameraTarget, GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
