@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering;
@@ -10,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -55,6 +55,9 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
+            // Set callback association for display name updates
+            property.displayNameUpdateTrigger += node.UpdateNodeDisplayName;
+
             UpdateReferenceNameResetMenu();
         }
 
@@ -93,6 +96,8 @@ namespace UnityEditor.ShaderGraph
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
                 this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
+
+            UpdateReferenceNameResetMenu();
         }
 
         void ChangeExposedField(bool newValue)
@@ -325,19 +330,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void OnMouseHover(EventBase evt)
+        BlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
-                return;
+                return null;
 
             var blackboardProvider = graphView.blackboardProvider;
             if (blackboardProvider == null)
-                return;
+                return null;
 
             var propNode = (PropertyNode)node;
+            return blackboardProvider.GetBlackboardRow(propNode.property);
+        }
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.property);
+        void OnMouseHover(EventBase evt)
+        {
+            var propRow = GetAssociatedBlackboardRow();
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())
@@ -353,6 +362,11 @@ namespace UnityEditor.ShaderGraph
 
         public void Dispose()
         {
+            var propRow = GetAssociatedBlackboardRow();
+            if (propRow != null)
+            {
+                propRow.RemoveFromClassList("hovered");
+            }
         }
     }
 }

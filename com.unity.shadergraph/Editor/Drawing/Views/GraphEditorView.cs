@@ -9,13 +9,13 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -26,13 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             dockingTop = false,
             dockingLeft = false,
-            verticalOffset = 8,
-            horizontalOffset = 8
-        };
-        public WindowDockingLayout blackboardLayout = new WindowDockingLayout
-        {
-            dockingTop = true,
-            dockingLeft = true,
             verticalOffset = 8,
             horizontalOffset = 8
         };
@@ -1279,11 +1272,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         void SerializeMasterPreviewLayout(GeometryChangedEvent evt)
-        {
-            UpdateSerializedWindowLayout();
-        }
-
-        void SerializeBlackboardLayout(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
         }

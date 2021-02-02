@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+
 using UnityEngine;
-using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {

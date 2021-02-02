@@ -54,6 +54,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void UpdateNodeDisplayName(string newDisplayName)
+        {
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);
+
+            if (foundSlot != null)
+                foundSlot.displayName = newDisplayName;
+        }
+
         public override bool canSetPrecision => false;
 
         public void OnEnable()
