@@ -14,27 +14,28 @@ namespace UnityEngine.Rendering.Universal
 
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
+        private void InitProbeVolumes(ProbeVolumeTextureMemoryBudget memoryBudget)
+        {
+            ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, memoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
+        }
+
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer)
         {
             bool needToBindNeutral = true;
-            // Do this only if the framesetting is on, otherwise there is some hidden cost
-            // TODO
-            //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
-            {
-                var refVolume = ProbeReferenceVolume.instance;
-                ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
 
-                bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
-                
-                if (validResources)
-                {
-                    cmdBuffer.SetGlobalBuffer (ShaderIDs._APVResIndex, rr.index);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, rr.L0);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, rr.L1_R);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, rr.L1_G);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, rr.L1_B);
-                    needToBindNeutral = false;
-                }
+            var refVolume = ProbeReferenceVolume.instance;
+            ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
+
+            bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
+
+            if (validResources)
+            {
+                cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, rr.index);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, rr.L0);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, rr.L1_R);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, rr.L1_G);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, rr.L1_B);
+                needToBindNeutral = false;
             }
 
             if (needToBindNeutral)

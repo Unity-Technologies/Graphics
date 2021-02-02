@@ -169,8 +169,8 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
-            // TODO
-            ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
+            if (asset.probeVolume)
+                InitProbeVolumes(asset.probeVolumeMemoryBudget);
         }
 
         protected override void Dispose(bool disposing)
@@ -356,8 +356,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-                srp.BindAPVRuntimeResources(cmd);
+                if (asset.probeVolume)
+                {
+                    var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+                    srp.BindAPVRuntimeResources(cmd);
+                }
+
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_L1, asset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_L2, asset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_OFF, !asset.probeVolume);
+
 
                 using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
@@ -908,7 +916,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
 
-            ProbeReferenceVolume.instance.PerformPendingOperations();
+            if (settings.probeVolume)
+                ProbeReferenceVolume.instance.PerformPendingOperations();
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
