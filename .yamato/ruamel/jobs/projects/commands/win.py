@@ -9,20 +9,21 @@ def _cmd_base(project, platform, utr_calls, editor):
         f'NetSh Advfirewall set allprofiles state off',
         f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
-    
+
     for utr_args in utr_calls:
         base.append(pss(f'''
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
-         del revdate.tmp
+         del revdate.tmp'''))
+        if 'HDRP_PerformanceTests' in project['name']:
+            base.append(f'git checkout %GIT_BRANCH%')
+        base.append(pss(f'''
          cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}'''))
-    
     return base
 
 
 def cmd_editmode(project, platform, api, test_platform, editor, build_config, color_space):
-    
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     base = _cmd_base(project, platform, utr_calls, editor)
     base = add_project_commands(project) + base
@@ -31,7 +32,6 @@ def cmd_editmode(project, platform, api, test_platform, editor, build_config, co
 
 
 def cmd_playmode(project, platform, api, test_platform, editor, build_config, color_space):
-
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     base = _cmd_base(project, platform, utr_calls, editor)
     base = add_project_commands(project) + base
@@ -43,11 +43,11 @@ def cmd_standalone(project, platform, api, test_platform, editor, build_config, 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project["folder"]}/utr.bat']
     if 'universalgraphicstest' in project["folder"].lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
-    
+
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project["folder"])
     for utr_args in utr_calls:
         base.append(f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr {" ".join(utr_args)}')
-    
+
     return base
 
 
