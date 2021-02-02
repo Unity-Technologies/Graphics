@@ -3465,7 +3465,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => UpdateBounds();
 
         // This is faster than the above property if lightType is known given that type does a non-trivial amount of work.
-        internal ShadowMapType GetShadowMapType(HDLightType lightType)
+        public ShadowMapType GetShadowMapType(HDLightType lightType)
         {
             return (lightType == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle) ? ShadowMapType.AreaLightAtlas
                 : lightType != HDLightType.Directional
