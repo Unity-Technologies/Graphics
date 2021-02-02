@@ -174,7 +174,7 @@ groupshared uint gs_NdcAaBbMaxPtW[ENTITIES_PER_GROUP]; // View-space Z coordinat
 // *************************************************************************************************
 
 [numthreads(THREADS_PER_ENTITY, ENTITIES_PER_GROUP, 1)]
-void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint threadIdx : SV_GroupIndex)
 {
     const uint t      = threadID.x;
     const uint entity = threadID.y;
@@ -424,8 +424,8 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
                 ClipFaceAgainstCube(f, cubeMinCS, cubeMaxCS, baseVertexOffset,
-                                    srcBegin, srcSize, vertRingBuffer);
-                UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, invProjMat,
+                                    srcBegin, srcSize, vertRingBuffer, threadIdx);
+                UpdateAaBb(srcBegin, srcSize, vertRingBuffer, threadIdx, g_isOrthographic != 0, invProjMat,
                            ndcAaBbMinPt, ndcAaBbMaxPt);
             }
         }

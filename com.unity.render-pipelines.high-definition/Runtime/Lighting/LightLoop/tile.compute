@@ -279,7 +279,8 @@ void TryCullBoundingSphere(float3 C, float r,
     }
 }
 
-void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, float scale, float radius, uint tile, uint t /* thread */,
+void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, float scale, float radius, uint tile,
+                            uint t /* thread */, uint threadIdx,
                             float3 cubeMinCS, float3 cubeMaxCS, float4x4 projMat, float4x4 invProjMat,
                             out bool trivialAccept, out bool trivialReject)
 {
@@ -536,7 +537,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
                 if (ClipFaceAgainstCube(f, cubeMinCS, cubeMaxCS, baseVertexOffset,
-                                        srcBegin, srcSize, vertRingBuffer))
+                                        srcBegin, srcSize, vertRingBuffer, threadIdx))
                 {
                     culledFaceMask |= 1 << f;
                 }
@@ -580,7 +581,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     }
 }
 
-bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtCS, float2 tileAaBbMaxPtCS, uint tile, uint t /* thread */)
+bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtCS, float2 tileAaBbMaxPtCS, uint tile, uint t /* thread */, uint threadIdx)
 {
     const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
     const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
@@ -609,7 +610,7 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMin
     {
         const float3 cubeMinCS = float3(tileAaBbMinPtCS, 0);
         const float3 cubeMaxCS = float3(tileAaBbMaxPtCS, 1);
-        TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t,
+        TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t, threadIdx,
                                cubeMinCS, cubeMaxCS, projMat, invProjMat,
                                trivialAccept, trivialReject);
     }
@@ -630,7 +631,7 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMin
 // *************************************************************************************************
 
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
-void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint threadIdx : SV_GroupIndex)
 {
     // TODO: swizzle blocks of tiles to improve locality & reduce divergence at the cost of padding?
     const uint t    = threadID.x;
@@ -672,7 +673,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
             uint b = firstbitlow(inputDword);
             uint i = d * 32 + b;
 
-            if (!TryCullEntity(i, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t))
+            if (!TryCullEntity(i, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t, threadIdx))
             {
                 outputDword |= 1 << b;
             }
@@ -695,7 +696,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 // Caution: generic tile macros (such as TILES_PER_GROUP) used below correspond to COARSE_BINNING.
 // Still, by TILES_PER_GROUP, we mean fine tiles (hence 'FillFineTiles').
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
-void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint threadIdx : SV_GroupIndex)
 {
     const uint t    = threadID.x;
     const uint tile = threadID.y;
@@ -748,7 +749,7 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
             uint b = firstbitlow(inputDword);
             uint i = d * 32 + b;
 
-            if (!TryCullEntity(i, cat, eye, fineTileAaBbMinPtCS, fineTileAaBbMaxPtCS, tile, t))
+            if (!TryCullEntity(i, cat, eye, fineTileAaBbMinPtCS, fineTileAaBbMaxPtCS, tile, t, threadIdx))
             {
                 outputDword |= 1 << b;
             }

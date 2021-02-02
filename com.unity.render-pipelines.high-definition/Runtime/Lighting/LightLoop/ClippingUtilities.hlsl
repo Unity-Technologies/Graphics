@@ -73,7 +73,51 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 // (Sep 16, 2020)
 // Improve the quality of generated code at the expense of readability.
 // Remove when the shader compiler is clever enough to perform this optimization for us.
-#define OBTUSE_COMPILER IS_NOT_POW2(MAX_CLIP_VERTS)
+#if IS_NOT_POW2(MAX_CLIP_VERTS)
+    #define OBTUSE_COMPILER
+#endif
+
+#if (defined(SHADER_API_D3D12) || defined(SHADER_API_XBOXONE))
+    #define ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+#endif
+
+#ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+    // Some shaders crash when running async with the D3D12 API.
+    // The issue is due to Unity's compiler stack generating shaders that "spill" registers.
+    // Apparently, that is illegal for shaders running async.
+    // There is nothing wrong with the shader code, the compiler stack is simply unaware
+    // of this API restriction, so it generates invalid code.
+    // Real fix: update the compiler stack.
+    // Workaround: make shaders use fewer registers so that the compiler is less likely to spill.
+    // Issues: *any* changes to the shader code or the compiler stack (different compiler options,
+    // updated compiler, new hardware, new drivers, etc.) can cause another spill.
+    // Then there is the performance cost. Allocating a huge amount of groupshared memory
+    // reduces occupancy. Accessing groupshared memory is also 2 orders of magnitude slower
+    // than accessing a register (but this latency can be partially hidden).
+
+    groupshared float gs_VertexRingBufferX[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+    groupshared float gs_VertexRingBufferY[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+    groupshared float gs_VertexRingBufferZ[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+    groupshared float gs_VertexRingBufferW[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+
+    float4 GetFromRingBuffer(uint threadIdx, uint entry)
+    {
+        float4 outV;
+        outV.x = gs_VertexRingBufferX[threadIdx * MAX_CLIP_VERTS + entry];
+        outV.y = gs_VertexRingBufferY[threadIdx * MAX_CLIP_VERTS + entry];
+        outV.z = gs_VertexRingBufferZ[threadIdx * MAX_CLIP_VERTS + entry];
+        outV.w = gs_VertexRingBufferW[threadIdx * MAX_CLIP_VERTS + entry];
+        return outV;
+    }
+
+    void WriteToRingBuffer(uint threadIdx, uint entry, float4 value)
+    {
+        gs_VertexRingBufferX[threadIdx * MAX_CLIP_VERTS + entry] = value.x;
+        gs_VertexRingBufferY[threadIdx * MAX_CLIP_VERTS + entry] = value.y;
+        gs_VertexRingBufferZ[threadIdx * MAX_CLIP_VERTS + entry] = value.z;
+        gs_VertexRingBufferW[threadIdx * MAX_CLIP_VERTS + entry] = value.w;
+    }
+#endif
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
@@ -166,25 +210,34 @@ uint TryCullFace(uint f, uint baseVertexOffset)
 // TODO: we may be able to save several VGPRs by representing each vertex as
 // {v.xyz / abs(v.w), sign(v.w)}, where the sign is stored in a bit field.
 void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
-                             inout float4 vertRingBuffer[MAX_CLIP_VERTS],
+                             inout float4 vertRingBuffer[MAX_CLIP_VERTS], uint threadIdx,
                              out uint dstBegin, out uint dstSize)
 {
     dstBegin = srcBegin + srcSize; // Start at the end; we don't use modular arithmetic here
     dstSize  = 0;
 
+#ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+    ClipVertex tailVert = CreateClipVertex(GetFromRingBuffer(threadIdx, (srcBegin + srcSize - 1) % MAX_CLIP_VERTS), clipPlane);
+#else
     ClipVertex tailVert = CreateClipVertex(vertRingBuffer[(srcBegin + srcSize - 1) % MAX_CLIP_VERTS], clipPlane);
+#endif
 
-#if (OBTUSE_COMPILER != 0)
+#ifdef OBTUSE_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
     uint modDstIdx = dstBegin % MAX_CLIP_VERTS;
 #endif
 
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #if (OBTUSE_COMPILER == 0)
+    #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
+
+    #ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+        ClipVertex leadVert = CreateClipVertex(GetFromRingBuffer(threadIdx, modSrcIdx), clipPlane);
+    #else
         ClipVertex leadVert = CreateClipVertex(vertRingBuffer[modSrcIdx], clipPlane);
+    #endif
 
         // Execute Blinn's line clipping algorithm.
         // Classify the line segment. 4 cases:
@@ -198,11 +251,17 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
         {
             // The line segment is guaranteed to cross the plane.
             float4 clipVert = IntersectEdgeAgainstPlane(tailVert, leadVert);
-        #if (OBTUSE_COMPILER == 0)
+        #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
+
+        #ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+            WriteToRingBuffer(threadIdx, modDstIdx, clipVert);
+        #else
             vertRingBuffer[modDstIdx] = clipVert;
-        #if (OBTUSE_COMPILER != 0)
+        #endif
+
+        #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
@@ -211,18 +270,24 @@ void ClipPolygonAgainstPlane(float4 clipPlane, uint srcBegin, uint srcSize,
 
         if (leadVert.bc >= 0)
         {
-        #if (OBTUSE_COMPILER == 0)
+        #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
+
+        #ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+            WriteToRingBuffer(threadIdx, modDstIdx, leadVert.pt);
+        #else
             vertRingBuffer[modDstIdx] = leadVert.pt;
-        #if (OBTUSE_COMPILER != 0)
+        #endif
+
+        #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
             modDstIdx = (modDstIdx == MAX_CLIP_VERTS) ? 0 : modDstIdx;
         #endif
         }
 
-    #if (OBTUSE_COMPILER != 0)
+    #ifdef OBTUSE_COMPILER
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
@@ -239,7 +304,7 @@ groupshared float gs_HapVertsW[VERTS_PER_GROUP];
 // Returns 'true' if the face has been entirely clipped.
 bool ClipFaceAgainstCube(uint f, float3 cubeMin, float3 cubeMax, uint baseVertexOffset,
                          out uint srcBegin, out uint srcSize,
-                         out float4 vertRingBuffer[MAX_CLIP_VERTS])
+                         out float4 vertRingBuffer[MAX_CLIP_VERTS], uint threadIdx)
 {
     srcBegin = 0;
     srcSize  = VERTS_PER_FACE;
@@ -251,14 +316,20 @@ bool ClipFaceAgainstCube(uint f, float3 cubeMin, float3 cubeMax, uint baseVertex
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ANY of the vertices are behind the same plane(s).
-        clipMaskOfFace |= gs_BehindMasksOfVerts[baseVertexOffset + v];
-
         // Not all edges may require clipping. However, filtering the vertex list
         // is somewhat expensive, so we currently don't do it.
-        vertRingBuffer[j].x = gs_HapVertsX[baseVertexOffset + v];
-        vertRingBuffer[j].y = gs_HapVertsY[baseVertexOffset + v];
-        vertRingBuffer[j].z = gs_HapVertsZ[baseVertexOffset + v];
-        vertRingBuffer[j].w = gs_HapVertsW[baseVertexOffset + v];
+        clipMaskOfFace |= gs_BehindMasksOfVerts[baseVertexOffset + v];
+
+        float4 vert = float4(gs_HapVertsX[baseVertexOffset + v],
+                             gs_HapVertsY[baseVertexOffset + v],
+                             gs_HapVertsZ[baseVertexOffset + v],
+                             gs_HapVertsW[baseVertexOffset + v]);
+
+    #ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+        WriteToRingBuffer(threadIdx, j, vert);
+    #else
+        vertRingBuffer[j] = vert;
+    #endif
     }
 
     // Sutherland-Hodgeman polygon clipping algorithm.
@@ -270,7 +341,7 @@ bool ClipFaceAgainstCube(uint f, float3 cubeMin, float3 cubeMax, uint baseVertex
         float4 clipPlane = CreateClipPlane(p, cubeMin, cubeMax);
 
         uint dstBegin, dstSize;
-        ClipPolygonAgainstPlane(clipPlane, srcBegin, srcSize, vertRingBuffer, dstBegin, dstSize);
+        ClipPolygonAgainstPlane(clipPlane, srcBegin, srcSize, vertRingBuffer, threadIdx, dstBegin, dstSize);
 
         srcBegin = dstBegin;
         srcSize  = dstSize;
@@ -281,19 +352,24 @@ bool ClipFaceAgainstCube(uint f, float3 cubeMin, float3 cubeMax, uint baseVertex
     return srcSize == 0;
 }
 
-void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERTS],
+void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERTS], uint threadIdx,
                 bool isOrthoProj, float4x4 invProjMat,
                 inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
 {
-#if (OBTUSE_COMPILER != 0)
+#ifdef OBTUSE_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
 #endif
     for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
     {
-    #if (OBTUSE_COMPILER == 0)
+    #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
+
+    #ifdef ENABLE_D3D12_ASYNC_CRASH_WORKAROUND
+        float4 hapVertCS  = GetFromRingBuffer(threadIdx, modSrcIdx);
+    #else
         float4 hapVertCS  = vertRingBuffer[modSrcIdx];
+    #endif
         float3 rapVertCS  = hapVertCS.xyz * rcp(hapVertCS.w);
         float3 rapVertNDC = float3(rapVertCS.xy * 0.5 + 0.5, rapVertCS.z);
         float  rbpVertVSz = hapVertCS.w;
@@ -305,7 +381,7 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
 
         ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
         ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
-    #if (OBTUSE_COMPILER != 0)
+    #ifdef OBTUSE_COMPILER
         modSrcIdx++;
         modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
     #endif
