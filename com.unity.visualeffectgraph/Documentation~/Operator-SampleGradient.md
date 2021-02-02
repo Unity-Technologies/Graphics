@@ -14,4 +14,3 @@ The **Sample Gradient** Operator samples a gradient at a specified time between 
 | **Output** | **Type** | **Description**                      |
 | ---------- | -------- | ------------------------------------ |
 | **s**      | Vector4  | The sampled value from the gradient. |
-
