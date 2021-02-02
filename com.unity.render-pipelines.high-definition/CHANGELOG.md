@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 
 ### Fixed
+- Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
