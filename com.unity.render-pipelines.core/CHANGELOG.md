@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for the PlayStation 5 platform has been added.
 
 ### Changed
-- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
