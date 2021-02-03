@@ -43,7 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
             VirtualTexturing = 1 << 27,
             FogQuality = 1 << 28,
             Volumetric = 1 << 29,
-            ProbeVolume = 1 << 30
+            ProbeVolume = 1 << 30,
+            RTAOQuality = 1 << 31,
+            RTRQuality = 1 << 32,
+            RTGIQuality = 1 << 33
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -92,9 +95,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(Styles.lightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
                     CED.FoldoutGroup(Styles.SSAOQualitySettingSubTitle, Expandable.SSAOQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSAOQualitySettings),
+                    CED.FoldoutGroup(Styles.RTAOQualitySettingSubTitle, Expandable.RTAOQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTAOQualitySettings),
                     CED.FoldoutGroup(Styles.contactShadowsSettingsSubTitle, Expandable.ContactShadowQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionContactShadowQualitySettings),
                     CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings),
-                    CED.FoldoutGroup(Styles.FogSettingsSubTitle, Expandable.FogQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionFogQualitySettings)
+                    CED.FoldoutGroup(Styles.RTRSettingsSubTitle, Expandable.RTRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTRQualitySettings),
+                    CED.FoldoutGroup(Styles.FogSettingsSubTitle, Expandable.FogQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionFogQualitySettings),
+                    CED.FoldoutGroup(Styles.RTGISettingsSubTitle, Expandable.RTGIQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTGIQualitySettings)
                     ),
                 CED.FoldoutGroup(Styles.materialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(Styles.postProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
@@ -811,10 +817,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool m_ShowAOLowQualitySection = false;
-        static private bool m_ShowAOMediumQualitySection = false;
-        static private bool m_ShowAOHighQualitySection = false;
-
         static void DrawAOQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOStepCount.GetArrayElementAtIndex(tier), Styles.AOStepCount);
@@ -822,6 +824,14 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOMaximumRadiusPixels.GetArrayElementAtIndex(tier), Styles.AOMaxRadiusInPixels);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AODirectionCount.GetArrayElementAtIndex(tier), Styles.AODirectionCount);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOBilateralUpsample.GetArrayElementAtIndex(tier), Styles.AOBilateralUpsample);
+        }
+
+        static void DrawRTAOQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAORayLength.GetArrayElementAtIndex(tier), Styles.RTAORayLength);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAOSampleCount.GetArrayElementAtIndex(tier), Styles.RTAOSampleCount);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAODenoise.GetArrayElementAtIndex(tier), Styles.RTAODenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAODenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTAODenoiserRadius);
         }
 
         static void CheckFoldoutClick(Rect foldoutRect, ref bool foldoutFlag)
@@ -835,6 +845,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
+
+        static private bool m_ShowAOLowQualitySection = false;
+        static private bool m_ShowAOMediumQualitySection = false;
+        static private bool m_ShowAOHighQualitySection = false;
 
         static void Drawer_SectionSSAOQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -860,6 +874,37 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
                 DrawAOQualitySetting(serialized, quality);
+            }
+        }
+
+        static private bool m_ShowRTAOLowQualitySection = false;
+        static private bool m_ShowRTAOMediumQualitySection = false;
+        static private bool m_ShowRTAOHighQualitySection = false;
+
+        static void Drawer_SectionRTAOQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowRTAOLowQualitySection = EditorGUILayout.Foldout(m_ShowRTAOLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTAOLowQualitySection);
+            if (m_ShowRTAOLowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                DrawRTAOQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTAOMediumQualitySection = EditorGUILayout.Foldout(m_ShowRTAOMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTAOMediumQualitySection);
+            if (m_ShowRTAOMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                DrawRTAOQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTAOHighQualitySection = EditorGUILayout.Foldout(m_ShowRTAOHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTAOHighQualitySection);
+            if (m_ShowRTAOHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                DrawRTAOQualitySetting(serialized, quality);
             }
         }
 
@@ -925,6 +970,49 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static private bool m_ShowRTRLowQualitySection = false;
+        static private bool m_ShowRTRMediumQualitySection = false;
+        static private bool m_ShowRTRHighQualitySection = false;
+
+        static void DrawRTRQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRMinSmoothness.GetArrayElementAtIndex(tier), Styles.RTRMinSmoothness);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRSmoothnessFadeStart.GetArrayElementAtIndex(tier), Styles.RTRSmoothnessFadeStart);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRRayLength.GetArrayElementAtIndex(tier), Styles.RTRRayLength);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRClampValue.GetArrayElementAtIndex(tier), Styles.RTRClampValue);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRFullResolution.GetArrayElementAtIndex(tier), Styles.RTRFullResolution);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoise.GetArrayElementAtIndex(tier), Styles.RTRDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTRDenoiserRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRSmoothDenoising.GetArrayElementAtIndex(tier), Styles.RTRSmoothDenoising);
+        }
+
+        static void Drawer_SectionRTRQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowRTRLowQualitySection = EditorGUILayout.Foldout(m_ShowRTRLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTRLowQualitySection);
+            if (m_ShowRTRLowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                DrawRTRQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTRMediumQualitySection = EditorGUILayout.Foldout(m_ShowRTRMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTRMediumQualitySection);
+            if (m_ShowRTRMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                DrawRTRQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTRHighQualitySection = EditorGUILayout.Foldout(m_ShowRTRHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTRHighQualitySection);
+            if (m_ShowRTRHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                DrawRTRQualitySetting(serialized, quality);
+            }
+        }
+
         static private bool m_ShowFogLowQualitySection = false;
         static private bool m_ShowFogMediumQualitySection = false;
         static private bool m_ShowFogHighQualitySection = false;
@@ -968,6 +1056,49 @@ namespace UnityEditor.Rendering.HighDefinition
                 var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
                 EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
                 ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+        }
+
+        static private bool m_ShowRTGILowQualitySection = false;
+        static private bool m_ShowRTGIMediumQualitySection = false;
+        static private bool m_ShowRTGIHighQualitySection = false;
+
+        static void DrawRTGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIRayLength.GetArrayElementAtIndex(tier), Styles.RTGIRayLength);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIFullResolution.GetArrayElementAtIndex(tier), Styles.RTGIFullResolution);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIClampValue.GetArrayElementAtIndex(tier), Styles.RTGIClampValue);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIUpScaleRadius.GetArrayElementAtIndex(tier), Styles.RTGIUpScaleRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoise.GetArrayElementAtIndex(tier), Styles.RTGIDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.RTGIHalfResDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTGIDenoiserRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGISecondDenoise.GetArrayElementAtIndex(tier), Styles.RTGISecondDenoise);
+        }
+
+        static void Drawer_SectionRTGIQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowRTGILowQualitySection = EditorGUILayout.Foldout(m_ShowRTGILowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTGILowQualitySection);
+            if (m_ShowRTGILowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                DrawRTGIQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTGIMediumQualitySection = EditorGUILayout.Foldout(m_ShowRTGIMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTGIMediumQualitySection);
+            if (m_ShowRTGIMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                DrawRTGIQualitySetting(serialized, quality);
+            }
+
+            m_ShowRTGIHighQualitySection = EditorGUILayout.Foldout(m_ShowRTGIHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowRTGIHighQualitySection);
+            if (m_ShowRTGIHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                DrawRTGIQualitySetting(serialized, quality);
             }
         }
 
