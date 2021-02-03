@@ -39,20 +39,6 @@ namespace UnityEngine
 
         static bool havePendingOperation => s_PendingInputsToRegister.Count > 0;
 
-        static bool InputAlreadyRegistered(string name, InputManagerEntry.Kind kind, SerializedProperty spAxes)
-        {
-            for (var i = 0; i < spAxes.arraySize; ++i)
-            {
-                var spAxis = spAxes.GetArrayElementAtIndex(i);
-                var axisName = spAxis.FindPropertyRelative("m_Name").stringValue;
-                var kindValue = spAxis.FindPropertyRelative("type").intValue;
-                if (axisName == name && (int)kind == kindValue)
-                    return true;
-            }
-
-            return false;
-        }
-
         static void CopyEntry(SerializedProperty spAxis, InputManagerEntry entry)
         {
             spAxis.FindPropertyRelative("m_Name").stringValue = entry.name;
