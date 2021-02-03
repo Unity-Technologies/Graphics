@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
 
         private const int DebugUAVSlot = 7;
         private const int FramesInFlight = 4;
-        private const int MaxBufferElements = 1024 * 16; // 16KB - must match the shader size definition
+        private const int MaxBufferElements = 1024 * 16; // Must match the shader size definition
 
         private List<GraphicsBuffer> m_OutputBuffers = new List<GraphicsBuffer>();
 
@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.Universal
 
         private int m_FrameCounter = 0;
         private bool m_FrameCleared = false;
+
+        private string m_OutputLine = "";
+        private Action<string> m_OutputAction;
 
         private static readonly int m_ShaderPropertyIDInputMouse = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
         private static readonly int m_ShaderPropertyIDInputFrame = Shader.PropertyToID("_ShaderDebugPrintInputFrame");
@@ -61,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_bufferReadCompleteAction = BufferReadComplete;
+            m_OutputAction = DefaultOutput;
         }
 
         public static ShaderDebugPrintManager Instance
@@ -117,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 if (count >= MaxBufferElements)
                 {
                     count = MaxBufferElements;
+                    // Shader print buffer is full, some data is lost!
                     Debug.LogWarning("Debug Shader Print Buffer Full!");
                 }
 
@@ -222,11 +227,16 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 if (count > 0)
-                    Debug.Log(outputLine);
+                {
+                    m_OutputLine = outputLine;
+                    m_OutputAction(outputLine);
+                }
             }
             else
             {
-                Debug.Log("Error at read back!");
+                const string errorMsg = "Error at read back!";
+                m_OutputLine = errorMsg;
+                m_OutputAction(errorMsg);
             }
         }
 
@@ -237,6 +247,13 @@ namespace UnityEngine.Rendering.Universal
 
             m_FrameCounter++;
             m_FrameCleared = false;
+        }
+
+        public string OutputLine { get => m_OutputLine; }
+        public Action<string> OutputAction { set => m_OutputAction = value; }
+        public void DefaultOutput(string line)
+        {
+            Debug.Log(line);
         }
     }
 

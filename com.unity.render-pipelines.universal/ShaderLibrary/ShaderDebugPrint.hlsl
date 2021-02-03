@@ -12,11 +12,22 @@
 // ----
 // Output:
 // Frame #270497: Col  float4(0.1f, 0.2f, 0.3f, 0.4f)
+// ----
+//
+// Print pixel at mouse position.
+// 
+// Example:
+//
+// #include "Packages/.../ShaderDebugPrint.hlsl"
+// ShaderDebugPrintMouseOver(int2(thisPixel.xy), pixelColor);
+//
+// Print pixel at mouse position on button press.
+// ShaderDebugPrintMouseButtonOver(int2(thisPixel.xy), pixelColor);
 
 // Output buffer bound into "last" slot by convention
 RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
 
-static const uint MaxShaderDebugOutputElements = 1024 * 16; // 16KB - must match the C# side buffer size (16KB / 4 (bytes per uint) / 6 (uints, header+tag+payload) == 682 uint4s)
+static const uint MaxShaderDebugOutputElements = 1024 * 16; // Must match the C# side buffer size (16K / 6 (header+tag+payload) ~= 2730 uint4s)
 
 // Input Constants
 CBUFFER_START(ShaderDebugPrintInput)
