@@ -58,6 +58,11 @@ float4x4 glstate_matrix_projection;
 #define TransformTangentToObject TransformTangentToObject_Picking
 #define TransformObjectToTangent TransformObjectToTangent_Picking
 
+#ifdef GetCameraViewProjMatrix
+#undef GetCameraViewProjMatrix
+#endif
+
+#define GetCameraViewProjMatrix _GetCameraViewProjMatrixForAbsolute
 
 // Redefine the functions using the new macros
 #undef UNITY_SPACE_TRANSFORMS_INCLUDED

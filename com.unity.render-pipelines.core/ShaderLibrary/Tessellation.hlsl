@@ -16,17 +16,6 @@ real3 PhongTessellation(real3 positionWS, real3 p0, real3 p1, real3 p2, real3 n0
 // Reference: http://twvideo01.ubm-us.net/o1/vault/gdc10/slides/Bilodeau_Bill_Direct3D11TutorialTessellation.pdf
 
 // Compute both screen and distance based adaptation - return factor between 0 and 1
-real3 GetScreenSpaceTessFactor(real2 edgeScreenPosition0, real2 edgeScreenPosition1, real2 edgeScreenPosition2, real triangleSize)
-{
-    real EdgeScale = 1.0 / triangleSize; // Edge size in reality, but name is simpler
-    real3 tessFactor;
-    tessFactor.x = saturate(distance(edgeScreenPosition1, edgeScreenPosition2) * EdgeScale);
-    tessFactor.y = saturate(distance(edgeScreenPosition0, edgeScreenPosition2) * EdgeScale);
-    tessFactor.z = saturate(distance(edgeScreenPosition0, edgeScreenPosition1) * EdgeScale);
-
-    return tessFactor;
-}
-
 real3 GetScreenSpaceTessFactor(real3 p0, real3 p1, real3 p2, real4x4 viewProjectionMatrix, real4 screenSize, real triangleSize)
 {
     // Get screen space adaptive scale factor
@@ -34,7 +23,13 @@ real3 GetScreenSpaceTessFactor(real3 p0, real3 p1, real3 p2, real4x4 viewProject
     real2 edgeScreenPosition1 = ComputeNormalizedDeviceCoordinates(p1, viewProjectionMatrix) * screenSize.xy;
     real2 edgeScreenPosition2 = ComputeNormalizedDeviceCoordinates(p2, viewProjectionMatrix) * screenSize.xy;
 
-    return GetScreenSpaceTessFactor(edgeScreenPosition0, edgeScreenPosition1, edgeScreenPosition2, triangleSize);
+    real EdgeScale = 1.0 / triangleSize; // Edge size in reality, but name is simpler
+    real3 tessFactor;
+    tessFactor.x = saturate(distance(edgeScreenPosition1, edgeScreenPosition2) * EdgeScale);
+    tessFactor.y = saturate(distance(edgeScreenPosition0, edgeScreenPosition2) * EdgeScale);
+    tessFactor.z = saturate(distance(edgeScreenPosition0, edgeScreenPosition1) * EdgeScale);
+
+    return tessFactor;
 }
 
 real3 GetDistanceBasedTessFactor(real3 p0, real3 p1, real3 p2, real3 cameraPosWS, real tessMinDist, real tessMaxDist)

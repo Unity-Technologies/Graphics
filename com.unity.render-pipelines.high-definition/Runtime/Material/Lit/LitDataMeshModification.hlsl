@@ -49,21 +49,6 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 
 #ifdef TESSELLATION_ON
 
-float2 GetMainCameraPixelCoordFromWorldPosition(float3 positionWS)
-{
-    //The _CameraViewProjMatrix obeys the camera relative rendering options.
-    //Some passes in unity that require main camera position (such as scenepick selection pass)
-    //Use the standard unity matrices, which might output the world position as absolute.
-    #if defined(SCENEPICKINGPASS) && SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0
-        positionWS -= _WorldSpaceCameraPos.xyz;
-    #endif
-
-    // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use _CameraViewProjMatrix instead
-    float2 hp = ComputeNormalizedDeviceCoordinates(positionWS, _CameraViewProjMatrix);
-    return hp * _ScreenSize;
-}
-
-
 float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3 n1, float3 n2)
 {
     float maxDisplacement = GetMaxDisplacement();
@@ -122,10 +107,8 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        float2 sp0 = GetMainCameraPixelCoordFromWorldPosition(p0);
-        float2 sp1 = GetMainCameraPixelCoordFromWorldPosition(p1);
-        float2 sp2 = GetMainCameraPixelCoordFromWorldPosition(p2);
-        edgeTessFactors *= GetScreenSpaceTessFactor(sp0, sp1, sp2, _TessellationFactorTriangleSize); // Use primary camera view
+        // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use GetCameraViewProjMatrix() instead
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, GetCameraViewProjMatrix(), _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation
