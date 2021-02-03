@@ -3044,6 +3044,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
 
+                    if(!probe.HasValidRenderedData())
+                        continue;
+
                     ref ProcessedProbeData processedData = ref m_ProcessedPlanarProbeData[planarProbeIndex];
                     PreprocessProbeData(ref processedData, probe, probe.bounds, hdCamera);
 
