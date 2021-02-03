@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// It provides
     /// </summary>
     [ExecuteAlways]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Custom-Pass")]
     public class CustomPassVolume : MonoBehaviour
     {
         /// <summary>

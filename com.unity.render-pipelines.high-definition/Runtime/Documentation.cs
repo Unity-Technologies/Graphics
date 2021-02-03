@@ -1,9 +1,22 @@
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using UnityEngine;
 
-[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor.Tests")]
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [Conditional("UNITY_EDITOR")]
+    internal class HDRPHelpURLAttribute : HelpURLAttribute
+    {
+        public HDRPHelpURLAttribute(string urlString)
+            : base(HelpURL(urlString)) {}
+
+        static string HelpURL(string pageName)
+        {
+            return Documentation.baseURL + DocumentationInfo.version + Documentation.subURL + pageName + Documentation.endURL;
+        }
+    }
+
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
     class Documentation : DocumentationInfo
     {
