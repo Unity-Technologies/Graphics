@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,12 +20,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static Dictionary<ProbeVolume, HierarchicalBox> shapeBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
         internal static Dictionary<ProbeVolume, HierarchicalBox> blendBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
 
-        internal static Color brushColor = Color.red;
-        internal static float brushSize = 1f;
+        internal static Color BrushColor = Color.red;
 
         SerializedProbeVolume m_SerializedProbeVolume;
 
-        ProbeVolumeBrush m_Brush = new ProbeVolumeBrush();
+        internal static readonly ProbeVolumeBrush Brush = new ProbeVolumeBrush();
 
         protected void OnEnable()
         {
@@ -36,8 +37,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 var shapeBox = shapeBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
                 shapeBox.monoHandle = false;
                 blendBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: shapeBox);
-
             }
+
+            Brush.OnApply += OnApplyBrush;
+            Brush.OnStopApplying += OnStopApplyingBrush;
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        }
+
+        void OnDisable()
+        {
+            Brush.OnApply -= OnApplyBrush;
+            Brush.OnStopApplying -= OnStopApplyingBrush;
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
         public override void OnInspectorGUI()
@@ -107,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
 
             if (EditMode.editMode != EditMode.SceneViewEditMode.GridPainting)
-                m_Brush.Cancel();
+                Brush.StopIfApplying();
 
             switch (EditMode.editMode)
             {
@@ -168,9 +179,68 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     break;
                 case k_EditPaint:
-                    m_Brush.OnSceneGUI(SceneView.currentDrawingSceneView);
+                    Brush.OnSceneGUI(SceneView.currentDrawingSceneView);
                     break;
             }
+        }
+
+        bool m_ApplyingBrush;
+
+        void OnApplyBrush(Vector3 position)
+        {
+            // TODO: Multi-editing.
+            var probeVolume = (ProbeVolume)target;
+
+            var probeVolumeAsset = (ProbeVolumeAsset)m_SerializedProbeVolume.probeVolumeAsset.objectReferenceValue;
+            if (probeVolumeAsset == null)
+                return;
+
+            if (!m_ApplyingBrush)
+            {
+                Undo.RecordObject(probeVolumeAsset, "Paint Volume");
+                m_ApplyingBrush = true;
+            }
+
+            var parameters = probeVolume.parameters;
+            var size = parameters.size;
+            var texelSize = new Vector3(size.x / probeVolumeAsset.resolutionX, size.y / probeVolumeAsset.resolutionY, size.z / probeVolumeAsset.resolutionZ);
+            var firstTexelLocalPosition = size * -0.5f + texelSize * 0.5f;
+            var probeTransform = probeVolume.transform;
+            var localToWorld = Matrix4x4.TRS(probeTransform.position, probeTransform.rotation, Vector3.one);
+
+            for (int z = 0, i = 0; z < probeVolumeAsset.resolutionZ; z++)
+            for (int y = 0; y < probeVolumeAsset.resolutionY; y++)
+            for (int x = 0; x < probeVolumeAsset.resolutionX; x++, i++)
+            {
+                var point = firstTexelLocalPosition + new Vector3(texelSize.x * x, texelSize.y * y, texelSize.z * z);
+                point = localToWorld.MultiplyPoint(point);
+
+                var distanceToBrush = Vector3.Distance(position, point);
+                if (distanceToBrush < Brush.Radius)
+                {
+                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, new SphericalHarmonicsL1
+                    {
+                        shAr = new Vector4(0f, 0f, 0f, BrushColor.r),
+                        shAg = new Vector4(0f, 0f, 0f, BrushColor.g),
+                        shAb = new Vector4(0f, 0f, 0f, BrushColor.b)
+                    }, i);
+                }
+            }
+
+            EditorUtility.SetDirty(probeVolumeAsset);
+            probeVolume.dataUpdated = true;
+        }
+
+        void OnStopApplyingBrush()
+        {
+            Undo.FlushUndoRecordObjects();
+            m_ApplyingBrush = false;
+        }
+
+        void OnUndoRedoPerformed()
+        {
+            ((ProbeVolume)target).dataUpdated = true;
+            // TODO: Figure out where to mark it as potentially changed when undo/redo happens without an editor for changed volume enabled.
         }
     }
 }

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -9,11 +7,16 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         const double k_EditorTargetFramerateHigh = .03;
 
-        double m_LastBrushUpdate = 0.0;
-        bool m_ApplyingBrush = false;
+        public float Radius = 0.5f;
 
-        bool m_HasHit = false;
-        Vector3 m_WorldPosition;
+        double m_LastUpdate = 0.0;
+        bool m_Hovering = false;
+        Vector3 m_Position;
+        bool m_Applying = false;
+        Vector3 m_LastApplyPosition;
+
+        public event Action<Vector3> OnApply;
+        public event Action OnStopApplying;
 
         public void OnSceneGUI(SceneView sceneView)
         {
@@ -23,8 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Force exit the current brush if user's mouse left
                 // the SceneView while a brush was still in use.
-                if (m_ApplyingBrush)
-                    OnFinishApplyingBrush();
+                StopIfApplying();
                 return;
             }
 
@@ -35,36 +37,28 @@ namespace UnityEditor.Rendering.HighDefinition
             switch( e.GetTypeForControl(controlID) )
             {
                 case EventType.MouseMove:
-                    // Handles:
-                    //		OnBrushEnter
-                    //		OnBrushExit
-                    //		OnBrushMove
-                    if( EditorApplication.timeSinceStartup - m_LastBrushUpdate > GetTargetFramerate() )
+                    if (EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate())
                     {
-                        m_LastBrushUpdate = EditorApplication.timeSinceStartup;
-                        UpdateBrush(e.mousePosition, Event.current.control, Event.current.shift && Event.current.type != EventType.ScrollWheel);
+                        m_LastUpdate = EditorApplication.timeSinceStartup;
+                        UpdateBrush(e.mousePosition);
                     }
                     break;
 
                 case EventType.MouseDown:
                 case EventType.MouseDrag:
-                    // Handles:
-                    //		OnBrushBeginApply
-                    //		OnBrushApply
-                    //		OnBrushFinishApply
-                    if( EditorApplication.timeSinceStartup - m_LastBrushUpdate > GetTargetFramerate() )
+                    if (EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate())
                     {
-                        m_LastBrushUpdate = EditorApplication.timeSinceStartup;
-                        UpdateBrush(e.mousePosition, Event.current.control, Event.current.shift && Event.current.type != EventType.ScrollWheel);
-                        ApplyBrush(Event.current.control, Event.current.shift && Event.current.type != EventType.ScrollWheel);
+                        m_LastUpdate = EditorApplication.timeSinceStartup;
+                        UpdateBrush(e.mousePosition);
+                        ApplyBrush();
                     }
                     break;
 
                 case EventType.MouseUp:
-                    if(m_ApplyingBrush)
+                    if (m_Applying)
                     {
-                        OnFinishApplyingBrush();
-                        UpdateBrush(e.mousePosition, Event.current.control, Event.current.shift && Event.current.type != EventType.ScrollWheel);
+                        StopIfApplying();
+                        UpdateBrush(e.mousePosition);
                     }
                     break;
             }
@@ -87,27 +81,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     || Tools.viewTool == ViewTool.Orbit;
         }
 
-        private void OnFinishApplyingBrush()
-        {
-            Debug.Log("Finish");
-            // PolySceneUtility.PopGIWorkflowMode();
-            // firstGameObject = null;
-            m_ApplyingBrush = false;
-            // mode.OnBrushFinishApply(brushTarget, brushSettings);
-            // FinalizeAndResetHovering();
-            // m_IgnoreDrag.Clear();
-        }
-
         /// <summary>
         /// Get framerate according to the brush target
         /// </summary>
-        /// <param name="target">The brush target</param>
         /// <returns>framerate</returns>
         static double GetTargetFramerate()
         {
-            // if (Util.IsValid(target) && target.vertexCount > 24000)
-            //     return k_EditorTargetFrameLow;
-
             return k_EditorTargetFramerateHigh;
         }
 
@@ -115,58 +94,65 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Update the current brush object and weights with the current mouse position.
         /// </summary>
         /// <param name="mousePosition">current mouse position (from Event)</param>
-        /// <param name="isDrag">optional, is dragging the mouse cursor</param>
-        /// <param name="overridenGO">optional, provides an already selected gameobject (used in unit tests only)</param>
-        /// <param name="overridenRay"> optional, provides a ray already created (used in unit tests only)</param>
-        internal void UpdateBrush(Vector2 mousePosition, bool isUserHoldingControl = false, bool isUserHoldingShift = false, bool isDrag = false, GameObject overridenGO = null, Ray? overridenRay = null)
+        void UpdateBrush(Vector2 mousePosition)
         {
-            Ray mouseRay = overridenRay != null ? (Ray)overridenRay :  HandleUtility.GUIPointToWorldRay(mousePosition);
-            // if the mouse hover picked up a valid editable, raycast against that.  otherwise
-            // raycast all meshes in selection
-            DoMeshRaycast(mouseRay);
-
-            // OnBrushMove();
-
-            SceneView.RepaintAll();
+            Ray mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
+            OnBrushMove(mouseRay);
         }
 
         /// <summary>
         /// Calculate the weights for this ray.
         /// </summary>
         /// <param name="mouseRay">The ray used to calculate weights</param>
-        /// <param name="target">The object on which to calculate the weights</param>
         /// <returns>true if mouseRay hits the target, false otherwise</returns>
-        void DoMeshRaycast(Ray mouseRay)
+        void OnBrushMove(Ray mouseRay)
         {
-            m_HasHit = Physics.Raycast(mouseRay, out var hit, float.MaxValue, ~0, QueryTriggerInteraction.Ignore);
-            if (m_HasHit)
-                m_WorldPosition = hit.point;
+            m_Hovering = Physics.Raycast(mouseRay, out var hit, float.MaxValue, ~0, QueryTriggerInteraction.Ignore);
+            if (m_Hovering)
+                m_Position = hit.point;
         }
 
         /// <summary>
         /// Apply brush to current brush target
         /// </summary>
-        /// <param name="isUserHoldingControl"></param>
-        /// <param name="isUserHoldingShift"></param>
-        internal void ApplyBrush(bool isUserHoldingControl, bool isUserHoldingShift)
+        void ApplyBrush()
         {
-            if (m_HasHit)
+            if (m_Hovering)
             {
-                m_ApplyingBrush = true;
-                Debug.Log("Painted!");
+                bool needsApplying;
+                if (!m_Applying)
+                {
+                    m_Applying = true;
+                    needsApplying = true;
+                }
+                else
+                {
+                    var sqrMoveDistance = Vector3.SqrMagnitude(m_Position - m_LastApplyPosition);
+                    var minStep = Radius * 0.25f;
+                    needsApplying = sqrMoveDistance >= (minStep * minStep);
+                }
+
+                if (needsApplying)
+                {
+                    OnApply?.Invoke(m_Position);
+                    m_LastApplyPosition = m_Position;
+                }
             }
         }
 
         void DrawGizmo(SceneView sceneView)
         {
-            if (m_HasHit)
-                Handles.DrawWireDisc(m_WorldPosition, (sceneView.camera.transform.position - m_WorldPosition).normalized, 1f);
+            if (m_Hovering)
+                Handles.DrawWireDisc(m_Position, (sceneView.camera.transform.position - m_Position).normalized, Radius);
         }
 
-        internal void Cancel()
+        public void StopIfApplying()
         {
-            if (m_ApplyingBrush)
-                OnFinishApplyingBrush();
+            if (m_Applying)
+            {
+                OnStopApplying?.Invoke();
+                m_Applying = false;
+            }
         }
     }
 }

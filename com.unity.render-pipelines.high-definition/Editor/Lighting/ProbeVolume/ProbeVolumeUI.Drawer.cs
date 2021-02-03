@@ -129,10 +129,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditMode.editMode == ProbeVolumeEditor.k_EditPaint)
             {
                 EditorGUILayout.Space();
-                ProbeVolumeEditor.brushColor = EditorGUILayout.ColorField("Brush Color", ProbeVolumeEditor.brushColor);
-                ProbeVolumeEditor.brushSize = EditorGUILayout.FloatField("Brush Size", ProbeVolumeEditor.brushSize);
-                if (ProbeVolumeEditor.brushSize < float.Epsilon)
-                    ProbeVolumeEditor.brushSize = float.Epsilon;
+                ProbeVolumeEditor.BrushColor = EditorGUILayout.ColorField("Brush Color", ProbeVolumeEditor.BrushColor);
+                ProbeVolumeEditor.Brush.Radius = EditorGUILayout.FloatField("Brush Radius", ProbeVolumeEditor.Brush.Radius);
+                if (ProbeVolumeEditor.Brush.Radius < float.Epsilon)
+                    ProbeVolumeEditor.Brush.Radius = float.Epsilon;
                 EditorGUILayout.Space();
             }
         }
