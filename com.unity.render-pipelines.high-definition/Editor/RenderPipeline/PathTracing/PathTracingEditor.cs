@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxSamples;
         SerializedDataParameter m_MinDepth;
         SerializedDataParameter m_MaxDepth;
+        SerializedDataParameter m_IntensityClamping;
         SerializedDataParameter m_MaxIntensity;
 
         public override void OnEnable()
@@ -27,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxSamples = Unpack(o.Find(x => x.maximumSamples));
             m_MinDepth = Unpack(o.Find(x => x.minimumDepth));
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
+            m_IntensityClamping = Unpack(o.Find(x => x.intensityClamping));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
         }
 
@@ -53,7 +55,17 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxSamples);
                         PropertyField(m_MinDepth);
                         PropertyField(m_MaxDepth);
-                        PropertyField(m_MaxIntensity);
+
+                        PropertyField(m_IntensityClamping);
+
+                        if (!m_IntensityClamping.overrideState.boolValue ||
+                            m_IntensityClamping.overrideState.boolValue && m_IntensityClamping.value.intValue > 0)
+                        {
+                            using (new HDEditorUtils.IndentScope())
+                            {
+                                PropertyField(m_MaxIntensity);
+                            }
+                        }
                     }
 
                     // Make sure MaxDepth is always greater or equal than MinDepth

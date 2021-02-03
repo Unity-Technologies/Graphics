@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Path tracing parameters
         public int _RaytracingMinRecursion;
         public int _RaytracingMaxRecursion;
+        public int _RaytracingClampingMode;
         // Ray traced indirect diffuse data
         public int _RayTracingDiffuseLightingOnly;
         // Shadow value to be used when the point to shade is not inside of the cascades

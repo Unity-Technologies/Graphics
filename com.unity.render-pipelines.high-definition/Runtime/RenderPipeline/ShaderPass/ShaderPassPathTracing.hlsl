@@ -280,7 +280,8 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
-    if (currentDepth)
+    // ClampingMode=1 is indirect only, clampingMmode=2 is everything, and 0 is nothing at all
+    if (_RaytracingClampingMode == 1 && currentDepth || _RaytracingClampingMode == 2)
     {
         // Bias the result (making it too dark), but reduces fireflies a lot
         float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();

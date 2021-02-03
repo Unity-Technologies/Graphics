@@ -21,6 +21,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     int _RaytracingIncludeSky;
     int _RaytracingMinRecursion;
     int _RaytracingMaxRecursion;
+    int _RaytracingClampingMode;
     int _RayTracingDiffuseLightingOnly;
     float _DirectionalShadowFallbackIntensity;
 CBUFFER_END

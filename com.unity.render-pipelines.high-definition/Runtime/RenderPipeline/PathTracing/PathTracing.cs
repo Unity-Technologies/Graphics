@@ -46,10 +46,43 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
-        /// Defines the maximum intensity value computed for a path segment.
+        /// Defines how intensity clamping is applied on paths, in order to reduce fireflies (high intensity outliers).
         /// </summary>
-        [Tooltip("Defines the maximum intensity value computed for a path segment. If the value is set to null, no maximum is enforced anymore.")]
-        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+        public enum IntensityClampingMode
+        {
+            /// <summary>Clamps indirect path segments only. This is the default clamping mode.</summary>
+            IndirectOnly = 1,
+            /// <summary>Clamps all path segments, direct and indirect.</summary>
+            DirectAndIndirect = 2,
+            /// <summary>Disable clamping altogether.</summary>
+            None = 0,
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds an <see cref="IntensityClampingMode"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class IntensityClampingParameter : VolumeParameter<IntensityClampingMode>
+        {
+            /// <summary>
+            /// Creates a new <see cref="IntensityClampingParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public IntensityClampingParameter(IntensityClampingMode value, bool overrideState = false) : base(value, overrideState) {}
+        }
+
+        /// <summary>
+        /// Defines how intensity clamping is applied on paths (more precisely, on what path segments), in order to reduce fireflies (high intensity outliers).
+        /// </summary>
+        [Tooltip("Defines how intensity clamping is applied on paths (more precisely, on what path segments), in order to reduce fireflies (high intensity outliers).")]
+        public IntensityClampingParameter intensityClamping = new IntensityClampingParameter(IntensityClampingMode.IndirectOnly);
+
+        /// <summary>
+        /// Defines the maximum post-exposition intensity value computed for a path segment.
+        /// </summary>
+        [Tooltip("Defines the maximum post-exposed intensity value computed for a path segment.")]
+        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10.0f, 0.0f, 100.0f);
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
@@ -264,7 +297,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
             parameters.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
             parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
-            parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value > 0.0 ? m_PathTracingSettings.maximumIntensity.value : float.MaxValue;
+            parameters.shaderVariablesRaytracingCB._RaytracingClampingMode = (int)m_PathTracingSettings.intensityClamping.value;
+            parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
             parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
 
             return parameters;
