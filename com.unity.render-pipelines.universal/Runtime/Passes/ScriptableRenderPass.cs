@@ -304,6 +304,7 @@ namespace UnityEngine.Rendering.Universal
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
 
+
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
         /// by this render
