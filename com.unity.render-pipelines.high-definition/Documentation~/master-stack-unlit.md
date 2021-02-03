@@ -44,7 +44,7 @@ When you create a new Unlit Master Stack, the Vertex Context contains the follow
 
 #### Relevant
 
-This Master Stack material type adds all its relevant Blocks to the Vertex Context by default and has no extra relevant Blocks.
+This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
 ### Fragment Context
 

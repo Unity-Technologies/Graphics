@@ -40,7 +40,7 @@ To create a Decal material in Shader Graph, you can either:
 
 #### Relevant
 
-This Master Stack material type adds all its relevant Blocks to the Vertex Context by default and has no extra relevant Blocks.
+This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
 ### Fragment Context
 
@@ -68,7 +68,7 @@ When you create a new Decal Master Stack, the Fragment Context contains the foll
 
 #### Relevant
 
-This Master Stack material type adds all its relevant Blocks to the Fragment Context by default and has no extra relevant Blocks.
+This Master Stack material type adds all its Fragment Blocks to the Fragment Context by default and has no extra relevant Blocks.
 
 ## Graph Settings
 

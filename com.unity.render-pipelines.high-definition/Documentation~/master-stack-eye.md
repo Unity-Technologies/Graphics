@@ -40,7 +40,7 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 
 #### Relevant
 
-This Master Stack material type adds all its relevant Blocks to the Vertex Context by default and has no extra relevant Blocks.
+This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
 ### Fragment Context
 

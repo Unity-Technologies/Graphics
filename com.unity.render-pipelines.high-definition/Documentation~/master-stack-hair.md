@@ -9,12 +9,12 @@ The Hair Master Stack enables you to render hair and fur in the High Definition 
 To create a Hair material in Shader Graph, you can either:
 
 * Modify an existing Shader Graph.
-	1. Open the Shader Graph in the Shader Editor.
-	2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
-	3. In the **Material** drop-down, select **Hair**.
+    1. Open the Shader Graph in the Shader Editor.
+    2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
+    3. In the **Material** drop-down, select **Hair**.
 
 * Create a new Shader Graph.
-	1. Go to **Assets > Create >Shader Graph > HDRP** and click **Hair Shader Graph**.
+    1. Go to **Assets > Create >Shader Graph > HDRP** and click **Hair Shader Graph**.
 
 ## Contexts
 
@@ -40,7 +40,7 @@ When you create a new Hair Master Stack, the Vertex Context contains the followi
 
 #### Relevant
 
-This Master Stack material type adds all its relevant Blocks to the Vertex Context by default and has no extra relevant Blocks.
+This Master Stack material type adds all its Vertex Blocks to the Vertex Context by default and has no extra relevant Blocks.
 
 ### Fragment Context
 
