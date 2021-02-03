@@ -172,10 +172,15 @@ namespace UnityEngine
 
         public static void RegisterInputs(List<InputManagerEntry> entries)
         {
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+            Debug.LogWarning("Trying to add entry in the legacy InputManager but using InputSystem package. Skiping.");
+            return;
+#else
             s_PendingInputsToRegister.AddRange(entries);
 
             //delay the call in order to do only one pass event if several different class register inputs
             EditorApplication.delayCall += DelayedRegisterInput;
+#endif
         }
     }
 #endif
