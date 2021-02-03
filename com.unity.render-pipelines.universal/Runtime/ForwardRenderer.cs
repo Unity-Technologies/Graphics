@@ -367,6 +367,12 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
+            if (usesRenderPass)
+            {
+                createDepthTexture |= createColorTexture;
+                createColorTexture = createDepthTexture;
+            }
+
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
