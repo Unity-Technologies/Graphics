@@ -546,9 +546,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (doubleSidedGIMode != null)
             {
-                EditorGUI.indentLevel++;
                 materialEditor.ShaderProperty(doubleSidedGIMode, Styles.doubleSidedGIText);
-                EditorGUI.indentLevel--;
             }
         }
 
