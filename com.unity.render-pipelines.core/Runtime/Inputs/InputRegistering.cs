@@ -38,7 +38,7 @@ namespace UnityEngine
         static List<InputManagerEntry> s_PendingInputsToRegister = new List<InputManagerEntry>();
 
         static bool havePendingOperation => s_PendingInputsToRegister.Count > 0;
-        
+
         static bool InputAlreadyRegistered(string name, InputManagerEntry.Kind kind, SerializedProperty spAxes)
         {
             for (var i = 0; i < spAxes.arraySize; ++i)
@@ -80,7 +80,7 @@ namespace UnityEngine
             for (int i = startRange; i < endRange; ++i)
                 CopyEntry(spAxes.GetArrayElementAtIndex(i), newEntries[i]);
         }
-        
+
         // Get a representation of the already registered inputs
         static List<(string name, InputManagerEntry.Kind kind)> GetCachedInputs(SerializedProperty spAxes)
         {
@@ -113,7 +113,7 @@ namespace UnityEngine
                 s_PendingInputsToRegister.RemoveAt(pendingIndex);
             }
         }
-        
+
         static void RemovePendingInputsToAddThatAreAlreadyRegistered(List<(string name, InputManagerEntry.Kind kind)> cachedEntries, List<InputManagerEntry> newEntries)
         {
             for (int newIndex = newEntries.Count - 1; newIndex >= 0; --newIndex)
@@ -133,7 +133,7 @@ namespace UnityEngine
                 s_PendingInputsToRegister.RemoveAt(newIndex);
             }
         }
-        
+
         static void DelayedRegisterInput()
         {
             // Exit quickly if nothing more to register
@@ -154,7 +154,7 @@ namespace UnityEngine
             var spAxes = soInputManager.FindProperty("m_Axes");
 
             // At this point, we assume that entries in spAxes are already unique.
-            
+
             // Ensure no double entry are tried to be registered (trim early)
             MakeUniquePendingInputsToRegister();
 
