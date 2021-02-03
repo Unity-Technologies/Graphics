@@ -172,7 +172,7 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < packedCounts.Count(); ++i)
             {
                 // todo: ensure this packing adjustment doesn't waste interpolators when many preprocessors are in use.
-                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "TEXCOORD" + i, "", StructFieldOptions.Static);
+                var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "INTERP" + i, "", StructFieldOptions.Static);
                 packedSubscripts.Add(packedSubscript);
             }
             packStruct.fields = packedSubscripts.ToArray();
