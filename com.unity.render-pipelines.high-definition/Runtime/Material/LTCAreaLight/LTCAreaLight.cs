@@ -30,20 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_refCounting = 0;
         }
 
-        // Load LUT with one scalar in alpha of a tex2D
-        public static void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LUTScalar)
-        {
-            const int count = k_LtcLUTResolution * k_LtcLUTResolution;
-            Color[] pixels = new Color[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                pixels[i] = new Color(0, 0, 0, LUTScalar[i]);
-            }
-
-            tex.SetPixels(pixels, arrayElement);
-        }
-
         // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
         public static void LoadLUT(Texture2DArray tex, int arrayElement, GraphicsFormat format, double[,] LUTTransformInv)
         {

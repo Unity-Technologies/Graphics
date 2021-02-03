@@ -84,34 +84,6 @@ namespace UnityEditor.Rendering
                 return tex;
         }
 
-        private static TextureFormat[] TextureFormatsWithouthAlpha =
-        {
-            TextureFormat.BC4,
-            TextureFormat.BC5,
-            TextureFormat.DXT1,
-            TextureFormat.DXT1Crunched,
-            TextureFormat.EAC_R,
-            TextureFormat.EAC_R_SIGNED,
-            TextureFormat.EAC_RG,
-            TextureFormat.EAC_RG_SIGNED,
-            TextureFormat.ETC2_RGB,
-            TextureFormat.ETC_RGB4,
-            TextureFormat.ETC_RGB4Crunched,
-            TextureFormat.PVRTC_RGB2,
-            TextureFormat.PVRTC_RGB4,
-            TextureFormat.R16,
-            TextureFormat.R8,
-            TextureFormat.RFloat,
-            TextureFormat.RG16,
-            TextureFormat.RGB24,
-            TextureFormat.RGB565,
-            TextureFormat.RGB9e5Float,
-            TextureFormat.RGFloat,
-            TextureFormat.RGHalf,
-            TextureFormat.RHalf,
-            TextureFormat.YUY2
-        };
-
         /// <summary>
         /// Specifies whether the Texture has an alpha channel or not. Returns true if it does and false otherwise.
         /// </summary>
@@ -121,16 +93,7 @@ namespace UnityEditor.Rendering
         {
             if (tex == null) return false;
 
-            bool o = true;
-            int i = 0;
-
-            while (i < TextureFormatsWithouthAlpha.Length && o)
-            {
-                o = tex.format != TextureFormatsWithouthAlpha[i];
-                ++i;
-            }
-
-            return o;
+            return GraphicsFormatUtility.HasAlphaChannel(tex.graphicsFormat);
         }
 
         private Texture m_rSource;

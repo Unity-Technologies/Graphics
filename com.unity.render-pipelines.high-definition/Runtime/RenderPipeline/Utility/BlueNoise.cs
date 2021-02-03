@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RenderPipelineResources = resources;
             InitTextures(16, TextureFormat.Alpha8, resources.textures.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);
-            InitTextures(16, GraphicsFormat.R8G8B8_UNorm, resources.textures.blueNoise16RGBTex, out m_Textures16RGB, out m_TextureArray16RGB);
+            InitTextures(16, TextureFormat.RGB24, resources.textures.blueNoise16RGBTex, out m_Textures16RGB, out m_TextureArray16RGB);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return textures16RGB[(int)(m_Random.NextDouble() * (textures16RGB.Length - 1))];
         }
 
-        static void InitTextures(int size, GraphicsFormat format, Texture2D[] sourceTextures, out Texture2D[] destination, out Texture2DArray destinationArray)
+        static void InitTextures(int size, TextureFormat format, Texture2D[] sourceTextures, out Texture2D[] destination, out Texture2DArray destinationArray)
         {
             Assert.IsNotNull(sourceTextures);
 
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Assert.IsTrue(len > 0);
 
             destination = new Texture2D[len];
-            destinationArray = new Texture2DArray(size, size, len, format, TextureCreationFlags.None);
+            destinationArray = new Texture2DArray(size, size, len, format, false, true);
             destinationArray.hideFlags = HideFlags.HideAndDontSave;
 
             for (int i = 0; i < len; i++)
