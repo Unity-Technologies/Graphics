@@ -107,8 +107,8 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use GetCameraViewProjMatrix() instead
-        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, GetCameraViewProjMatrix(), _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
+        // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use _CameraViewProjMatrix instead
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _CameraViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation

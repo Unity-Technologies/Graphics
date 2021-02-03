@@ -233,22 +233,4 @@ uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
     return fadeMaskSeed;
 }
 
-float4x4 _GetCameraViewProjMatrixRaw()
-{
-    return _CameraViewProjMatrix;
-}
-
-float4x4 _GetCameraViewProjMatrixForAbsolute()
-{
-    float4x4 translationMatrix = {
-            { 1.0 ,0.0 , 0.0, -_WorldSpaceCameraPos.x },
-            { 0.0 ,1.0 , 0.0, -_WorldSpaceCameraPos.y },
-            { 0.0 ,0.0 , 1.0, -_WorldSpaceCameraPos.z },
-            { 0.0 ,0.0 , 0.0, 1.0} };
-
-    return mul(_GetCameraViewProjMatrixRaw(), translationMatrix);
-}
-
-#define GetCameraViewProjMatrix _GetCameraViewProjMatrixRaw
-
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
