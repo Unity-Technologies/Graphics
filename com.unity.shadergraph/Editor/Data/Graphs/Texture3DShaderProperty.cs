@@ -36,7 +36,15 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";
+            return "UnityTexture3D " + referenceName;
+        }
+
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            if (isSubgraphProperty)
+                return referenceName;
+            else
+                return $"UnityBuildTexture3DStruct({referenceName})";
         }
 
         [SerializeField]
@@ -67,9 +75,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Texture3DShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision
             };
         }
     }

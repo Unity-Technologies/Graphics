@@ -109,30 +109,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputBuffer;
         }
 
-        SSSRayTracingResources PrepareSSSRayTracingResources(RTHandle sssColor,
-            RTHandle intermediateBuffer0, RTHandle intermediateBuffer1,
-            RTHandle intermediateBuffer2, RTHandle intermediateBuffer3,
-            RTHandle directionBuffer, RTHandle outputBuffer)
-        {
-            SSSRayTracingResources sssrtResources = new SSSRayTracingResources();
-
-            // Input buffers
-            sssrtResources.depthStencilBuffer = sharedRTManager.GetDepthStencilBuffer();
-            sssrtResources.normalBuffer = sharedRTManager.GetNormalBuffer();
-            sssrtResources.sssColor = sssColor;
-
-            // Intermediate buffers
-            sssrtResources.intermediateBuffer0 = intermediateBuffer0;
-            sssrtResources.intermediateBuffer1 = intermediateBuffer1;
-            sssrtResources.intermediateBuffer2 = intermediateBuffer2;
-            sssrtResources.intermediateBuffer3 = intermediateBuffer3;
-            sssrtResources.directionBuffer = directionBuffer;
-
-            // Output Buffers
-            sssrtResources.outputBuffer = outputBuffer;
-            return sssrtResources;
-        }
-
         static void ExecuteRTSubsurfaceScattering(CommandBuffer cmd, SSSRayTracingParameters sssrtParams, SSSRayTracingResources sssrtResources)
         {
             // Evaluate the dispatch parameters
@@ -249,23 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputColorBuffer;
         }
 
-        SSSCombineResources PrepareSSSCombineResources(RTHandle sssColor, RTHandle colorBufferRT, RTHandle diffuseLightingBuffer, RTHandle sssBuffer, bool validSSGI)
-        {
-            SSSCombineResources ssscResources = new SSSCombineResources();
-
-            // Input buffers
-            ssscResources.depthStencilBuffer = sharedRTManager.GetDepthStencilBuffer();
-            ssscResources.sssColor = sssColor;
-            ssscResources.ssgiBuffer = validSSGI ? m_IndirectDiffuseBuffer0 : TextureXR.GetBlackTexture();
-            ssscResources.diffuseLightingBuffer = diffuseLightingBuffer;
-            ssscResources.subsurfaceBuffer = sssBuffer;
-
-            // Output Buffers
-            ssscResources.outputColorBuffer = colorBufferRT;
-
-            return ssscResources;
-        }
-
         static void ExecuteCombineSubsurfaceScattering(CommandBuffer cmd, SSSCombineParameters ssscParams, SSSCombineResources ssscResources)
         {
             // Evaluate the dispatch parameters
@@ -288,53 +247,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RayTracedSubSurface)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RayTracedSubSurface, SubSurfaceHistoryBufferAllocatorFunction, 1);
-        }
-
-        void RenderSubsurfaceScatteringRT(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
-            RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle normalBuffer)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
-            {
-                // Grab the SSS params
-                var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-
-                // Fetch all the intermediate buffers that we need (too much of them to be fair)
-                RTHandle intermediateBuffer0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-                RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-                RTHandle intermediateBuffer2 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
-                RTHandle intermediateBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
-                RTHandle intermediateBuffer4 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA4);
-                RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
-
-                // Evaluate the lighting for the samples that we need to
-                SSSRayTracingParameters sssrtParams = PrepareSSSRayTracingParameters(hdCamera, settings);
-                SSSRayTracingResources sssrtResources = PrepareSSSRayTracingResources(m_SSSColor,
-                    intermediateBuffer0, intermediateBuffer1,
-                    intermediateBuffer2, intermediateBuffer3, directionBuffer,
-                    intermediateBuffer4);
-                ExecuteRTSubsurfaceScattering(cmd, sssrtParams, sssrtResources);
-
-                // Grab the history buffer
-                RTHandle subsurfaceHistory = RequestRayTracedSSSHistoryTexture(hdCamera);
-
-                // Check if we need to invalidate the history
-                float historyValidity = EvaluateHistoryValidity(hdCamera);
-
-                // Apply temporal filtering to the signal
-                HDTemporalFilter temporalFilter = GetTemporalFilter();
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
-                RTHandle validationBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);
-                TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, intermediateBuffer4, subsurfaceHistory, intermediateBuffer0);
-                HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
-
-                // Combine the result with the rest of the lighting
-                SSSCombineParameters ssscParams = PrepareSSSCombineParameters(hdCamera);
-                SSSCombineResources ssscResources = PrepareSSSCombineResources(m_SSSColor, colorBufferRT, diffuseBufferRT, intermediateBuffer0, ssscParams.validSSGI);
-                ExecuteCombineSubsurfaceScattering(cmd, ssscParams, ssscResources);
-
-                // Push this version of the texture for debug
-                PushFullScreenDebugTexture(hdCamera, cmd, diffuseBufferRT, FullScreenDebugMode.RayTracedSubSurface);
-            }
         }
 
         class TraceRTSSSPassData
@@ -402,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DenoiseRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedSSS, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+        TextureHandle DenoiseRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedSSS, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationTexture)
         {
             // Evaluate the history's validity
             float historyValidity = HDRenderPipeline.EvaluateHistoryValidity(hdCamera);
@@ -411,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
             TextureHandle historyBuffer = renderGraph.ImportTexture(RequestRayTracedSSSHistoryTexture(hdCamera));
-            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer);
+            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
         }
 
         class ComposeRTSSSPassData
@@ -437,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ssgiBuffer = passData.parameters.validSSGI ? builder.ReadTexture(ssgiBuffer) : renderGraph.defaultResources.blackTextureXR;
                 passData.diffuseLightingBuffer = builder.ReadTexture(diffuseLightingBuffer);
                 passData.subsurfaceBuffer = builder.ReadTexture(rayTracedSSS);
-                passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
 
                 builder.SetRenderFunc(
                     (ComposeRTSSSPassData data, RenderGraphContext ctx) =>
@@ -459,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderSubsurfaceScatteringRT(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle colorBuffer,
-            TextureHandle sssColor, TextureHandle diffuseBuffer, TextureHandle motionVectorsBuffer, TextureHandle ssgiBuffer)
+            TextureHandle sssColor, TextureHandle diffuseBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture, TextureHandle ssgiBuffer)
         {
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.RaytracingSSS)))
             {
@@ -467,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle rtsssResult = TraceRTSSS(renderGraph, hdCamera, depthStencilBuffer, normalBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
 
                 // Denoise the result
-                rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer);
+                rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture);
 
                 // Compose it
                 rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);

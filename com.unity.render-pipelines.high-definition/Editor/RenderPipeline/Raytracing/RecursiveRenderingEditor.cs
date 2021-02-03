@@ -1,7 +1,7 @@
+using UnityEngine;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
@@ -26,6 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
         }
 
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays.");
+
         public override void OnInspectorGUI()
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
@@ -47,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                     {
                         PropertyField(m_LayerMask);
                         PropertyField(m_MaxDepth);
-                        PropertyField(m_RayLength);
+                        PropertyField(m_RayLength, k_RayLengthText);
                         PropertyField(m_MinSmoothness);
                     }
                 }

@@ -42,11 +42,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return base.GetVariableNameForSlot(OutputSlotId);
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return $"UnityBuildTexture3DStruct({GetTexturePropertyName()})";
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new Texture3DShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Texture,
                 modifiable = false
@@ -57,7 +67,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Texture3D)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 textureValue = texture
             });
         }

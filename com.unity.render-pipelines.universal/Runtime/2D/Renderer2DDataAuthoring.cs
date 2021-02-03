@@ -60,8 +60,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
         }
 
         private void Awake()

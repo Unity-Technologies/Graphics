@@ -38,7 +38,15 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";
+            return "UnityTextureCube " + referenceName;
+        }
+
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            if (isSubgraphProperty)
+                return referenceName;
+            else
+                return $"UnityBuildTextureCubeStruct({referenceName})";
         }
 
         [SerializeField]
@@ -69,9 +77,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new CubemapShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
     }

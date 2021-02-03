@@ -6,8 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDSimpleDenoiser
     {
         ComputeShader m_SimpleDenoiserCS;
-        SharedRTManager m_SharedRTManager;
-        HDRenderPipeline m_RenderPipeline;
 
         int m_BilateralFilterHSingleKernel;
         int m_BilateralFilterVSingleKernel;
@@ -18,11 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
         {
             m_SimpleDenoiserCS = rpRTResources.simpleDenoiserCS;
-            m_SharedRTManager = sharedRTManager;
-            m_RenderPipeline = renderPipeline;
 
             m_BilateralFilterHSingleKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterHSingle");
             m_BilateralFilterVSingleKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterVSingle");
@@ -87,24 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputBuffer;
         }
 
-        SimpleDenoiserResources PrepareSimpleDenoiserResources(RTHandle noisyBuffer, RTHandle intermediateBuffer, RTHandle outputBuffer)
-        {
-            SimpleDenoiserResources sdResources = new SimpleDenoiserResources();
-
-            // Input buffers
-            sdResources.noisyBuffer = noisyBuffer;
-            sdResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            sdResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-
-            // Temporary buffers
-            sdResources.intermediateBuffer = intermediateBuffer;
-
-            // Output buffers
-            sdResources.outputBuffer = outputBuffer;
-
-            return sdResources;
-        }
-
         static void ExecuteSimpleDenoiser(CommandBuffer cmd, SimpleDenoiserParameters sdParams, SimpleDenoiserResources sdResources)
         {
             // Evaluate the dispatch parameters
@@ -127,15 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(sdParams.simpleDenoiserCS, sdParams.bilateralVKernel, HDShaderIDs._NormalBufferTexture, sdResources.normalBuffer);
             cmd.SetComputeTextureParam(sdParams.simpleDenoiserCS, sdParams.bilateralVKernel, HDShaderIDs._DenoiseOutputTextureRW, sdResources.outputBuffer);
             cmd.DispatchCompute(sdParams.simpleDenoiserCS, sdParams.bilateralVKernel, numTilesX, numTilesY, sdParams.viewCount);
-        }
-
-        public void DenoiseBufferNoHistory(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisyBuffer, RTHandle outputBuffer, int kernelSize, bool singleChannel = true)
-        {
-            // Request the intermediate buffers that we need
-            RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
-            SimpleDenoiserParameters sdParams = PrepareSimpleDenoiserParameters(hdCamera, singleChannel, kernelSize);
-            SimpleDenoiserResources sdResources = PrepareSimpleDenoiserResources(noisyBuffer, intermediateBuffer, outputBuffer);
-            ExecuteSimpleDenoiser(cmd, sdParams, sdResources);
         }
 
         class SimpleDenoiserPassData
@@ -176,8 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
 
                 // Output buffer
-                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
+                passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" }));
 
 
                 builder.SetRenderFunc(

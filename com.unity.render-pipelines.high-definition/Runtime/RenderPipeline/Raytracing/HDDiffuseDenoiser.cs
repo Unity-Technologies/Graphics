@@ -47,8 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_DiffuseDenoiser;
         Texture m_OwenScrambleRGBA;
 
-        // Required for fetching depth and normal buffers
-        SharedRTManager m_SharedRTManager;
         HDRenderPipeline m_RenderPipeline;
 
         // Kernels that may be required
@@ -61,14 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpRTResources.diffuseDenoiserCS;
             m_OwenScrambleRGBA = rpResources.textures.owenScrambledRGBATex;
 
-            // Keep track of the shared rt manager
-            m_SharedRTManager = sharedRTManager;
             m_RenderPipeline = renderPipeline;
 
             // Grab all the kernels we'll eventually need
@@ -106,23 +102,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ddParams.owenScrambleRGBA = m_OwenScrambleRGBA;
             ddParams.diffuseDenoiserCS = m_DiffuseDenoiser;
             return ddParams;
-        }
-
-        public DiffuseDenoiserResources PrepareDiffuseDenoiserResources(RTHandle noisyBuffer, RTHandle intermediateBuffer, RTHandle outputBuffer)
-        {
-            DiffuseDenoiserResources ddResources = new DiffuseDenoiserResources();
-            // Input buffers
-            ddResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            ddResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            ddResources.noisyBuffer = noisyBuffer;
-
-            // Temporary buffers
-            ddResources.intermediateBuffer = intermediateBuffer;
-
-            // Output buffers
-            ddResources.outputBuffer = outputBuffer;
-
-            return ddResources;
         }
 
         static public void DenoiseBuffer(CommandBuffer cmd, DiffuseDenoiserParameters ddParams, DiffuseDenoiserResources ddResources)
@@ -166,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters tfParameters, TextureHandle noisyBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle outputBuffer)
+        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters tfParameters, TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -175,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Fetch all the resources
                 passData.parameters = tfParameters;
-                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });
