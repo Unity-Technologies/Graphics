@@ -38,6 +38,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 - Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
 - Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
+- Fixed ParallaxMapping node compile issue on GLES2
 
 ## [10.3.0] - 2020-11-03
 
