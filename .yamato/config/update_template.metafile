@@ -1,6 +1,6 @@
 project:
   name: URPUpdate
-  folder: URP-Update-Testing
+  folder: URP-Update-Testing/URP-Update-Testing
 
 reuse_blocks:
   setup_with_utr:

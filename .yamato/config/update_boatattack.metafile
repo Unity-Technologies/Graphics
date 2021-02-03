@@ -1,6 +1,6 @@
 project:
   name: URPUpdate_BoatAttack
-  folder: BoatAttack-19-4
+  folder: URP-Update-Testing/BoatAttack-19-4
 
 reuse_blocks:
   setup_with_utr:

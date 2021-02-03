@@ -1,6 +1,6 @@
 project:
   name: URPUpdate_Top_Asset_Store
-  folder: Top-URP-Assets
+  folder: URP-Update-Testing/Top-URP-Assets
 
 reuse_blocks:
   setup_with_utr:
