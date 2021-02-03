@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed class UniversalRenderer : ScriptableRenderer
     {
-        const int k_DepthStencilBufferBits = 32;
+        const DepthBits k_DepthStencilBufferBits = DepthBits.Depth32;
         static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
         static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
@@ -764,7 +764,7 @@ namespace UnityEngine.Rendering.Universal
                     var colorDescriptor = descriptor;
                     colorDescriptor.useMipMap = false;
                     colorDescriptor.autoGenerateMips = false;
-                    colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                    colorDescriptor.depthBufferBits = (int) (useDepthRenderBuffer ? k_DepthStencilBufferBits : DepthBits.None);
                     cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraAttachments.color.name), colorDescriptor, FilterMode.Bilinear);
                 }
 
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 #endif
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                    depthDescriptor.depthBufferBits = (int)k_DepthStencilBufferBits;
                     cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraAttachments.depth.name), depthDescriptor, FilterMode.Point);
                 }
             }
