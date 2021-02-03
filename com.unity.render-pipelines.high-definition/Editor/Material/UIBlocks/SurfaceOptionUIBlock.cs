@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+            public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "Determines how double-sided GI is handled.");
 
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
@@ -175,6 +176,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
         const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        MaterialProperty doubleSidedGIMode = null;
+        const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         MaterialProperty materialID  = null;
         MaterialProperty supportDecals = null;
         const string kSupportDecals = "_SupportDecals";
@@ -357,7 +360,10 @@ namespace UnityEditor.Rendering.HighDefinition
             transmissionEnable = FindProperty(kTransmissionEnable);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
+            {
                 doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode);
+            }
+            doubleSidedGIMode = FindProperty(kDoubleSidedGIMode);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable);
 
             // MaterialID
@@ -528,10 +534,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
 
             // This follow double sided option
-            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
+            if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
+            {
+                if (doubleSidedNormalMode != null)
+                {
+                    EditorGUI.indentLevel++;
+                    materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                    EditorGUI.indentLevel--;
+                }
+            }
+
+            if (doubleSidedGIMode != null)
             {
                 EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                materialEditor.ShaderProperty(doubleSidedGIMode, Styles.doubleSidedGIText);
                 EditorGUI.indentLevel--;
             }
         }

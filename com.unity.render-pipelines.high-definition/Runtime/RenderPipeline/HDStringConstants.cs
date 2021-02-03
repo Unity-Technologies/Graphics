@@ -965,6 +965,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kDoubleSidedEnable = "_DoubleSidedEnable";
         /// <summary>Double sided normal mode.</summary>
         public const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        /// <summary>Double sided GI mode.</summary>
+        public const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         /// <summary>Enable distortion only (for Unlit).</summary>
         public const string kDistortionOnly = "_DistortionOnly";
         /// <summary>Enable Depth Prepass.</summary>
