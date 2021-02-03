@@ -797,6 +797,27 @@ namespace UnityEditor.Rendering
             return data;
         }
 
+        /// <summary>Add the appropriate AdditionalData to the given GameOject and its children containing the original component</summary>
+        /// <typeparam name="T">The type of the original component</typeparam>
+        /// <typeparam name="T">The type of the AdditionalData component</typeparam>
+        /// <param name="go">The object to seek for update</param>
+        /// <param name="initDefault">[Optional] The default value to use if there is no AdditionalData</param>
+        public static void AddAdditionalData<T, AdditionalT>(GameObject go, Action<AdditionalT> initDefault = null)
+            where T : Component
+            where AdditionalT : Component
+        {
+            var components = go.GetComponentsInChildren(typeof(T), true);
+            foreach (var c in components)
+            {
+                if (!c.TryGetComponent<AdditionalT>(out _))
+                {
+                    var hd = c.gameObject.AddComponent<AdditionalT>();
+                    if (initDefault != null)
+                        initDefault(hd);
+                }
+            }
+        }
+
         /// <summary>Create a game object</summary>
         /// <param name="parent">The parent</param>
         /// <param name="name">The wanted name (can be updated with a number if a sibling with same name exist</param>
