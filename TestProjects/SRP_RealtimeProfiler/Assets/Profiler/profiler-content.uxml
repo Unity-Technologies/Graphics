@@ -4,20 +4,20 @@
         <ui:VisualElement style="flex-direction: column; justify-content: flex-start; flex-grow: 1; min-width: 200px; max-width: none; min-height: 300px;">
             <ui:Foldout text="Frame times&#10;" name="FrameTimes" value="true" class="section-header">
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="CPU main thread frame duration" name="Label" />
-                    <ui:Label text="16.6ms" name="CpuMainThreadFrameTime" />
+                    <ui:Label text="Full frame time" name="Label" />
+                    <ui:Label text="16.6ms" name="FullFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="CPU render thread frame duration" name="Label" />
-                    <ui:Label text="14.0ms" name="CpuRenderThreadFrameTime" />
+                    <ui:Label text="Logic CPU frame time" name="Label" />
+                    <ui:Label text="14.0ms" name="LogicCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="GPU frame duration" name="Label" />
-                    <ui:Label text="14.0ms" name="GpuFrameTime" />
+                    <ui:Label text="Combined CPU frame time" name="Label" />
+                    <ui:Label text="14.0ms" name="CombinedCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="Full frame duration" name="Label" />
-                    <ui:Label text="16.6ms" name="TotalFrameTime" />
+                    <ui:Label text="GPU frame time" name="Label" />
+                    <ui:Label text="16.6ms" name="GPUFrameTime" />
                 </ui:VisualElement>
             </ui:Foldout>
             <ui:Foldout text="Render stats&#10;" name="RenderStats" value="true" class="section-header">

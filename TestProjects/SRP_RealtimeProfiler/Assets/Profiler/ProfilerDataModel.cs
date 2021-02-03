@@ -7,14 +7,17 @@ using UnityEngine;
 // Prototype stuff, should not be a MonoBehaviour
 public class ProfilerDataModel : MonoBehaviour
 {
-    public float CpuFrameTime { get; private set; }
-    public float GpuFrameTime { get; private set; }
+    public struct FrameTimeSample
+    {
+        public float FullFrameTime;
+        public float LogicCPUFrameTime;
+        public float CombinedCPUFrameTime;
+        public float GPUFrameTime;
+    };
 
-    // FrameTiming API does not work ATM
+    public FrameTimeSample FrameTime { get; private set; }
+
     FrameTiming[] m_Timing = new FrameTiming[1];
-
-    ProfilerRecorder m_FakeCpuTimeRecorder;
-    ProfilerRecorder m_FakeGpuTimeRecorder;
 
     static float GetRecorderFrameAverage(ProfilerRecorder recorder)
     {
@@ -36,25 +39,25 @@ public class ProfilerDataModel : MonoBehaviour
 
     void OnEnable()
     {
-        m_FakeCpuTimeRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Main Thread", 15);
-        m_FakeGpuTimeRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Render Thread", 15);
+        FrameTime = new FrameTimeSample();
     }
 
     void OnDisable()
     {
-        m_FakeCpuTimeRecorder.Dispose();
     }
 
     void Update()
     {
-        // Example numbers for UI visualization - not actual data we want to display
-        //CpuFrameTime = GetRecorderFrameAverage(m_FakeCpuTimeRecorder) * 1e-6f;
-        //GpuFrameTime = GetRecorderFrameAverage(m_FakeGpuTimeRecorder) * 1e-6f;
-
-        // FrameTiming API does not work ATM
         FrameTimingManager.CaptureFrameTimings();
         FrameTimingManager.GetLatestTimings(1, m_Timing);
-        CpuFrameTime = (float)m_Timing.First().cpuFrameTime;
-        GpuFrameTime = (float)m_Timing.First().gpuFrameTime;
+
+        FrameTimeSample frameTime = FrameTime;
+
+        frameTime.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
+        frameTime.LogicCPUFrameTime = (float)m_Timing.First().logicCpuFrameTime;
+        frameTime.CombinedCPUFrameTime = (float)m_Timing.First().combinedCpuFrameTime;
+        frameTime.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
+
+        FrameTime = frameTime;
     }
 }

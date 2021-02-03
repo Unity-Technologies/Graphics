@@ -9,7 +9,9 @@ public class ProfilerViewModel
     // Update "data bindings"
     public void UpdateUI(ProfilerDataModel model, VisualElement viewRoot)
     {
-        viewRoot.Q<Label>("CpuMainThreadFrameTime").text = $"{model.CpuFrameTime:F2}ms";
-        viewRoot.Q<Label>("GpuFrameTime").text = $"{model.GpuFrameTime:F2}ms";
+        viewRoot.Q<Label>("FullFrameTime").text = $"{model.FrameTime.FullFrameTime:F2}ms";
+        viewRoot.Q<Label>("LogicCPUFrameTime").text = $"{model.FrameTime.LogicCPUFrameTime:F2}ms";
+        viewRoot.Q<Label>("CombinedCPUFrameTime").text = $"{model.FrameTime.CombinedCPUFrameTime:F2}ms";
+        viewRoot.Q<Label>("GPUFrameTime").text = $"{model.FrameTime.GPUFrameTime:F2}ms";
     }
 }
