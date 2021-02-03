@@ -151,7 +151,34 @@ namespace UnityEngine.VFX.Test
                 {
                     camera.targetTexture = null;
 
-                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
+                    bool ignoreResult = false;
+                    if (vfxTestSettingsInScene != null && vfxTestSettingsInScene.exclusions != null)
+                    {
+                        var runtimePlatform = Application.platform;
+                        var graphicsdeviceType = SystemInfo.graphicsDeviceType;
+                        var operatingSystem = SystemInfo.operatingSystem;
+                        var graphicDeviceName = SystemInfo.graphicsDeviceName;
+                        foreach (var exclusion in vfxTestSettingsInScene.exclusions)
+                        {
+                            if (   exclusion.runtimePlatform == runtimePlatform
+                                && exclusion.graphicDevice == graphicsdeviceType
+                                && (string.IsNullOrEmpty(exclusion.operatingSystem) || System.Text.RegularExpressions.Regex.IsMatch(operatingSystem, exclusion.operatingSystem))
+                                && (string.IsNullOrEmpty(exclusion.graphicDeviceName) || System.Text.RegularExpressions.Regex.IsMatch(graphicDeviceName, exclusion.graphicDeviceName)))
+                            {
+                                Debug.LogFormat("{0} result has been ignored because an exclusion has matched : {1}, {2}, {3}, {4}",
+                                    testCase.ScenePath,
+                                    exclusion.runtimePlatform,
+                                    exclusion.graphicDevice,
+                                    exclusion.operatingSystem,
+                                    exclusion.graphicDeviceName);
+                                ignoreResult = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!ignoreResult)
+                        ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings);
 
                 }
                 finally

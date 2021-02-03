@@ -1,3 +1,5 @@
+using System;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools.Graphics;
 
 namespace UnityEngine.VFX.Test
@@ -13,6 +15,16 @@ namespace UnityEngine.VFX.Test
         public float simulateTime = defaultSimulateTime;
 
         public bool xrCompatible = true;
+
+        [Serializable]
+        public struct ExclusionPattern
+        {
+            public RuntimePlatform runtimePlatform;
+            public GraphicsDeviceType graphicDevice;
+            public string operatingSystem;
+            public string graphicDeviceName;
+        }
+        public ExclusionPattern[] exclusions = new ExclusionPattern[] { };
 
         VFXGraphicsTestSettings()
         {
