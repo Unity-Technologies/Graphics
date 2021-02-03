@@ -40,8 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
             public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
 
-            public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
-            public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
+            public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
+            public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string HDRPVersion = "Current HDRP version: ";

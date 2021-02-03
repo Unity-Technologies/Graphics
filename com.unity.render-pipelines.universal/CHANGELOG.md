@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 
+### Moved
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Project URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Scene URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to URP Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to URP Materials to Edit/Rendering/Materials/Convert Selected Built-in Materials to URP
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.
@@ -491,7 +499,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Classes have moved to the Universal namespace (from LWRP).
 
 ### Upgrade Guide
-- Upgrading to UniversalRP is designed to be almost seamless from the user side.
+- Upgrading to URP is designed to be almost seamless from the user side.
 - LWRP package still exists, this forwards includes and classes to the UniversalRP Package.
 - Please see the more involved upgrade guide (https://docs.google.com/document/d/1Xd5bZa8pYZRHri-EnNkyhwrWEzSa15vtnpcg--xUCIs/).
 
