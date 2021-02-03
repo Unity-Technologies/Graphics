@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 0dbe26483d05e4624918c05c0e5b2679,
+  m_LightingDataAsset: {fileID: 112000004, guid: 51ef1af1640240b45b6fae2eb91df4e4,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 8dcf15611e194c34da4dffd95fd17df1,
     type: 2}
@@ -137,6 +137,34 @@ PrefabInstance:
       value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
@@ -151,34 +179,6 @@ PrefabInstance:
     - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
       propertyPath: m_LocalScale.z
       value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: b56f0b54c8a1042f3ae9a8904a576f5d, type: 3}
       propertyPath: m_CastShadows
@@ -336,7 +336,6 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
