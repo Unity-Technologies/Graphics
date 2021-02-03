@@ -1,2 +1,2 @@
 -warnaserror+
--nowarn:0618
+-warnaserror-:618
