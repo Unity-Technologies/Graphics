@@ -2,7 +2,7 @@
 
 The Decal Master Stack material type enables you to author decals that you can [project](Decal-Projector.md) or place into your Scene. The Decal Master Stack material type is similar to the standard [Decal Shader](Decal-Shader.md), except that you cannot use this version to author decals projected on transparent materials.
 
- 
+
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
@@ -10,15 +10,13 @@ The Decal Master Stack material type enables you to author decals that you can [
 
 To create a Decal material in Shader Graph, you can either:
 
-- Modify an existing Shader Graph.
+* Modify an existing Shader Graph.
+    1. Open the Shader Graph in the Shader Editor.
+    2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
+    3. In the **Material** drop-down, select **Decal**.
 
-- 1. Open the Shader Graph in the Shader Editor.
-  2. In **Graph Settings**, select the **HDRP** Target. If there isn't one, go to **Active Targets,** click the **Plus** button, and select **HDRP**.
-  3. In the **Material** drop-down, select **Decal**.
-
-- Create a new Shader Graph.
-
-- 1. Go to **Assets > Create >Shader Graph > HDRP** and click **Decal Shader Graph**.
+* Create a new Shader Graph.
+    1. Go to **Assets > Create >Shader Graph > HDRP** and click **Decal Shader Graph**.
 
 ## Contexts
 
