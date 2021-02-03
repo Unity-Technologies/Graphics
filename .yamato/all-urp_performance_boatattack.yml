@@ -48,7 +48,7 @@ PR_URP_Performance_BoatAttack_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
 Nightly_URP_Performance_BoatAttack_trunk:
     name: Nightly URP_Performance_BoatAttack - trunk
     dependencies:
@@ -57,6 +57,8 @@ Nightly_URP_Performance_BoatAttack_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
 PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
@@ -99,7 +101,7 @@ PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
 Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: Nightly URP_Performance_BoatAttack - CUSTOM-REVISION
     dependencies:
@@ -109,3 +111,5 @@ Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c

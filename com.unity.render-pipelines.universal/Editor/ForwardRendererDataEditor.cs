@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
-#if ENABLE_RENDERING_PATH_UI
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
@@ -45,7 +44,6 @@ namespace UnityEditor.Rendering.Universal
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
-#if ENABLE_RENDERING_PATH_UI
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
@@ -73,7 +71,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-#if ENABLE_RENDERING_PATH_UI
             EditorGUILayout.LabelField(Styles.LightingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_RenderingMode, Styles.RenderingModeLabel);
@@ -86,8 +83,6 @@ namespace UnityEditor.Rendering.Universal
             }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-#endif
-
 #if ENABLE_RENDER_PASS_UI
             EditorGUILayout.LabelField("RenderPass", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
@@ -121,7 +116,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
             SerializedProperty overrideStencil = m_DefaultStencilState.FindPropertyRelative("overrideStencilState");
-#if ENABLE_RENDERING_PATH_UI
+
             if (overrideStencil.boolValue && m_RenderingMode.intValue == (int)RenderingMode.Deferred)
             {
                 CompareFunction stencilFunction = (CompareFunction)m_DefaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
@@ -134,7 +129,7 @@ namespace UnityEditor.Rendering.Universal
                 if (invalidFunction || invalidOp)
                     EditorGUILayout.HelpBox(Styles.invalidStencilOverride.text, MessageType.Error, true);
             }
-#endif
+
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 

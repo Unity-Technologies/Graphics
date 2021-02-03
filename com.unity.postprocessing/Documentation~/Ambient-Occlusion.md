@@ -15,7 +15,7 @@ This is a standard implementation of ambient obscurance that works on older plat
 
 ### Performance
 
-The **Scalable Ambient Obscurance** mode can be resource-intensive, especially when viewed very close to the Camera. To improve performance, use a low `Radius` setting, to sample pixels that are close and in clip space to the source pixel. This makes caching more efficient. Using a higher `Radius` setting generates samples further away from the source pixel and won’t benefit from caching, which slows down the effect. 
+The **Scalable Ambient Obscurance** mode can be resource-intensive, especially when viewed very close to the Camera. To improve performance, use a low `Radius` setting, to sample pixels that are close and in clip space to the source pixel. This makes caching more efficient. Using a higher `Radius` setting generates samples further away from the source pixel and won’t benefit from caching, which slows down the effect.
 
 Because of the Camera’s perspective, objects near the front plane use larger radiuses than those far away, so computing the ambient occlusion pass for an object close to the camera will be slower than for an object further away that only occupies a few pixels on screen.
 
