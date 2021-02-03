@@ -29,7 +29,10 @@ namespace UnityEditor.VFX
                     return;
                 VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
+                {
                     graph.SanitizeForImport();
+                    graph.UpdateSubAssets(); //Should not be necessary : there is something restoring "ghost" reference just before import.
+                }
                 else
                     Debug.LogError("VisualEffectGraphResource without graph");
             }
