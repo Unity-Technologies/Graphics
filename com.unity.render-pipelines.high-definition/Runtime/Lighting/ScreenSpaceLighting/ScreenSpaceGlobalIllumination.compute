@@ -25,6 +25,9 @@
 // Epslon value used for the computation
 #define GI_TRACE_EPS 0.00024414
 
+// Defines the mip offset for the color buffer
+#define SSGI_MIP_OFFSET 3
+
 // #define PERCEPTUAL_SPACE
 
 // Input depth pyramid texture
@@ -345,7 +348,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 color = 0.0;
     if (!invalid)
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, 0).rgb;
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb;
 
     // TODO: Remove me when you can find where the nans come from
     if (AnyIsNaN(color))
