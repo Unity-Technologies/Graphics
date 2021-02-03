@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldDescriptor sh = new FieldDescriptor(Varyings.name, "sh", "", ShaderValueType.Float3,
                 preprocessor: "!defined(LIGHTMAP_ON)", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor fogFactorAndVertexLight = new FieldDescriptor(Varyings.name, "fogFactorAndVertexLight", "VARYINGS_NEED_FOG_AND_VERTEX_LIGHT", ShaderValueType.Half4,
-                subscriptOptions: StructFieldOptions.Optional, nativeType:true);
+                subscriptOptions: StructFieldOptions.Optional, nativeType: true);
             public static FieldDescriptor shadowCoord = new FieldDescriptor(Varyings.name, "shadowCoord", "VARYINGS_NEED_SHADOWCOORD", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor stereoTargetEyeIndexAsRTArrayIdx = new FieldDescriptor(Varyings.name, "stereoTargetEyeIndexAsRTArrayIdx", "", ShaderValueType.Uint,
