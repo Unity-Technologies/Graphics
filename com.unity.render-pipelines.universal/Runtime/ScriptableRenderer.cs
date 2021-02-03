@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
-		RenderTargetIdentifier m_CameraResolveTarget;
+        RenderTargetIdentifier m_CameraResolveTarget;
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
-			m_CameraResolveTarget = resolveTarget;
+            m_CameraResolveTarget = resolveTarget;
         }
 
         // This should be removed when early camera color target assignment is removed.
@@ -804,7 +804,7 @@ namespace UnityEngine.Rendering.Universal
                     !isLastPassToBB ? sampleCount : 1;
 #else
                     //In mase MSAA is disabled on camera, we need to still check the QualitySettings, as backbuffer will be created with that setting in mind
-                    isLastPassToBB ? QualitySettings.antiAliasing : sampleCount;
+                    isLastPassToBB? QualitySettings.antiAliasing : sampleCount;
 #endif
 
                 context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
@@ -820,10 +820,6 @@ namespace UnityEngine.Rendering.Universal
                 }
                 context.BeginSubPass(attachmentIndices);
                 attachmentIndices.Dispose();
-
-                cmd.SetViewport(new Rect(0,0, width, height));
-                context.ExecuteCommandBuffer(cmd);
-
                 renderPass.Execute(context, ref renderingData);
                 context.EndSubPass();
                 context.EndRenderPass();
@@ -845,9 +841,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-
-        //CommandBufferPool.Release(cmd);
-
+            //CommandBufferPool.Release(cmd);
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -929,10 +923,9 @@ namespace UnityEngine.Rendering.Universal
 
                         if (writeIndex != otherTargetsCount)
                             Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
-                        if (!IsRenderPassEnabled(renderPass)|| cameraData.cameraType != CameraType.Game)
+                        if (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game)
                             SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
-
                 }
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
@@ -1054,31 +1047,31 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Keep all the Native RenderPass stuff here
 
-                if (!renderPass.overrideCameraTarget)
-                    m_ActiveColorAttachmentDescriptors[0] =
-                        new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
-                else
-                {
-                    GraphicsFormat hdrFormat = GraphicsFormat.None;
-                    if (cameraData.isHdrEnabled)
+                    if (!renderPass.overrideCameraTarget)
+                        m_ActiveColorAttachmentDescriptors[0] =
+                            new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                    else
                     {
-                        if (!Graphics.preserveFramebufferAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
-                        hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                        else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
-                            hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                        else
-                            hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
-                    }
+                        GraphicsFormat hdrFormat = GraphicsFormat.None;
+                        if (cameraData.isHdrEnabled)
+                        {
+                            if (!Graphics.preserveFramebufferAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                                hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                                hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                            else
+                                hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+                        }
 
-                    var defaultFormat = cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                    m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.srpDescriptor.formats[0] != GraphicsFormat.None ? renderPass.srpDescriptor.formats[0] : defaultFormat);
-                }
+                        var defaultFormat = cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+                        m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(renderPass.srpDescriptor.formats[0] != GraphicsFormat.None ? renderPass.srpDescriptor.formats[0] : defaultFormat);
+                    }
 
                     bool isLastPass = renderPass.srpDescriptor.isLastPass;
                     var samples = renderPass.srpDescriptor.sampleCount != -1 ? renderPass.srpDescriptor.sampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
                     var colorAttachmentTarget = (renderPass.srpDescriptor.isDepthOnly ||
-                                      passColorAttachment != BuiltinRenderTextureType.CameraTarget)
+                        passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                         ? passColorAttachment
                         : (cameraData.targetTexture != null
                             ? new RenderTargetIdentifier(cameraData.targetTexture)
@@ -1087,14 +1080,14 @@ namespace UnityEngine.Rendering.Universal
                     var depthAttachmentTarget = (cameraData.targetTexture != null)
                         ? m_CameraDepthTarget
                         : ((cameraData.cameraTargetDescriptor.msaaSamples == 1) && (passDepthAttachment == BuiltinRenderTextureType.CameraTarget))
-                            ? BuiltinRenderTextureType.Depth
-                            : passDepthAttachment;
+                        ? BuiltinRenderTextureType.Depth
+                        : passDepthAttachment;
 
                     bool isLastPassToBB = isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
 
                     m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,!m_FirstTimeColorClear , !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget, !m_FirstTimeColorClear , !isLastPassToBB);
 
                     if (m_FirstTimeColorClear)
                     {
@@ -1128,7 +1121,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
                     }
                 }
-
             }
         }
 
