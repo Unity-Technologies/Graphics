@@ -240,7 +240,6 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
 
     output.clipPos = vertexInput.positionCS;
 
-    OUTPUT_LIGHTMAP_UV(input.texcoord1.xy, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     return output;
