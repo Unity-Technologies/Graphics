@@ -44,6 +44,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
 - Added option to enable/disable Adaptive Performance when it's package is available.
+- Added GI to SpeedTree
 
 ### Fixed
 - Fixed an issue that caused WebGL to render blank screen when Depth texture was enabled [case 1240228](https://issuetracker.unity3d.com/issues/webgl-urp-scene-is-rendered-black-in-webgl-build-when-depth-texture-is-enabled)
