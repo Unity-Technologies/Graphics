@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix screen being over-exposed when changing very different skies.
 - White flashes on camera cuts on volumetric fog.
 - Fixed light layer issue when performing editing on multiple lights.
+- Fixed an issue where selection in a debug panel would reset when cycling through enum items.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
