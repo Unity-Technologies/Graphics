@@ -201,6 +201,13 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
+            DoubleSidedGIMode doubleSidedGIMode = DoubleSidedGIMode.MatchMaterial;
+            if (material.HasProperty(kDoubleSidedGIMode))
+            {
+                doubleSidedGIMode = (DoubleSidedGIMode)material.GetFloat(kDoubleSidedGIMode);
+            }
+            //int doubleSidedGIMode = material.HasProperty(k) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
+
             // Disable culling if double sided
             material.SetInt("_CullMode", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)doubleSidedOffMode);
 
@@ -240,8 +247,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
-            var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
-            doubleSidedGIppt.boolValue = doubleSidedEnable;
+            if (doubleSidedGIMode == DoubleSidedGIMode.MatchMaterial)
+                material.doubleSidedGI = doubleSidedEnable;
+            else if (doubleSidedGIMode == DoubleSidedGIMode.ForceOn)
+                material.doubleSidedGI = true;
+            else if (doubleSidedGIMode == DoubleSidedGIMode.ForceOff)
+                material.doubleSidedGI = false;
+
+            //var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
+            //doubleSidedGIppt.boolValue = doubleSidedEnable;
             serializedObject.ApplyModifiedProperties();
         }
 
