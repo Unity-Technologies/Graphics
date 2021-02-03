@@ -535,11 +535,8 @@ namespace UnityEditor.Rendering
                 var attrs = component.GetCustomAttributes(false);
                 foreach (var attr in attrs)
                 {
-                    if (attr is CoreRPHelpURLAttribute attrDocumentation)
+                    if (attr is HelpURLAttribute attrDocumentation)
                         return attrDocumentation.URL;
-
-                    if (attr is HDRPHelpURLAttribute hdrpDocumentation)
-                        return hdrpDocumentation.URL;
                 }
 
                 // There is no documentation for this volume component.
