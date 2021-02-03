@@ -18,7 +18,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -48,7 +48,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -79,7 +79,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -113,7 +113,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
