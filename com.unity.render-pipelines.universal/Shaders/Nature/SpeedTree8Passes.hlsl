@@ -295,7 +295,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
 }
 
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
