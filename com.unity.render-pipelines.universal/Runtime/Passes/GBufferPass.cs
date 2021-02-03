@@ -74,8 +74,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
-            var srpDesc = new ScriptableRenderPassDescriptor(gbufferFormatsUsed);
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, srpDesc);
+            srpDescriptor.ConfigureDescriptor(gbufferFormatsUsed);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
             // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
