@@ -799,7 +799,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Add the appropriate AdditionalData to the given GameOject and its children containing the original component</summary>
         /// <typeparam name="T">The type of the original component</typeparam>
-        /// <typeparam name="T">The type of the AdditionalData component</typeparam>
+        /// <typeparam name="AdditionalT">The type of the AdditionalData component</typeparam>
         /// <param name="go">The object to seek for update</param>
         /// <param name="initDefault">[Optional] The default value to use if there is no AdditionalData</param>
         public static void AddAdditionalData<T, AdditionalT>(GameObject go, Action<AdditionalT> initDefault = null)
