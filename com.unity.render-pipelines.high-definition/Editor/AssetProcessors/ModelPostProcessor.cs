@@ -8,12 +8,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnPostprocessModel(GameObject go)
         {
-            if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
-            {
-                CoreEditorUtils.AddAdditionalData<Camera, HDAdditionalCameraData>(go, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
-                CoreEditorUtils.AddAdditionalData<Light, HDAdditionalLightData>(go, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
-                CoreEditorUtils.AddAdditionalData<ReflectionProbe, HDAdditionalReflectionData>(go);
-            }
+            CoreEditorUtils.AddAdditionalData<Camera, HDAdditionalCameraData>(go, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
+            CoreEditorUtils.AddAdditionalData<Light, HDAdditionalLightData>(go, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
+            CoreEditorUtils.AddAdditionalData<ReflectionProbe, HDAdditionalReflectionData>(go);
         }
     }
 }

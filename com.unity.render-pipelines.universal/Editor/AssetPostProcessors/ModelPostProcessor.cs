@@ -8,11 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnPostprocessModel(GameObject go)
         {
-            if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset)
-            {
-                CoreEditorUtils.AddAdditionalData<Camera, UniversalAdditionalCameraData>(go);
-                CoreEditorUtils.AddAdditionalData<Light, UniversalAdditionalLightData>(go);
-            }
+            CoreEditorUtils.AddAdditionalData<Camera, UniversalAdditionalCameraData>(go);
+            CoreEditorUtils.AddAdditionalData<Light, UniversalAdditionalLightData>(go);
         }
     }
 }
