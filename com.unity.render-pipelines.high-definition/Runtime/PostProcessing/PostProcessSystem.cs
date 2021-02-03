@@ -2786,7 +2786,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_InternalSpectralLut == null)
                 {
-                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8_SRGB, TextureCreationFlags.None)
+                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                     {
                         name = "Chromatic Aberration Spectral LUT",
                         filterMode = FilterMode.Bilinear,
@@ -2797,9 +2797,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_InternalSpectralLut.SetPixels(new[]
                     {
-                        new Color(1f, 0f, 0f),
-                        new Color(0f, 1f, 0f),
-                        new Color(0f, 0f, 1f)
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
                     });
 
                     m_InternalSpectralLut.Apply();
