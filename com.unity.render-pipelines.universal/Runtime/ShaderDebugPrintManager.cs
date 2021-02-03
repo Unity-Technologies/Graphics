@@ -72,10 +72,8 @@ namespace UnityEngine.Rendering.Universal
             get { return instance; }
         }
 
-        public void SetShaderDebugPrintInputConstants(CommandBuffer cmd)
+        public void SetShaderDebugPrintInputConstants(CommandBuffer cmd, ShaderDebugPrintInput input)
         {
-            var input = ShaderDebugPrintInput.Get();
-
             var mouse = new Vector4(input.Pos.x, input.Pos.y, input.LeftDown ? 1 : 0, input.RightDown ? 1 : 0);
             cmd.SetGlobalVector(m_ShaderPropertyIDInputMouse, mouse);
             cmd.SetGlobalInt(m_ShaderPropertyIDInputFrame, m_FrameCounter);
@@ -268,6 +266,15 @@ namespace UnityEngine.Rendering.Universal
         public bool RightDown { get; set; }
         public bool MiddleDown { get; set; }
 
+        public string String()
+        {
+            return $"Mouse: {Pos.x}x{Pos.y}  Btns: Left:{LeftDown} Right:{RightDown} Middle:{MiddleDown} ";
+        }
+    }
+
+    // TODO: Move, rename, perhaps #ifdef. Has dependencies to Input systems.
+    public static class ShaderDebugPrintInputProducer
+    {
         static public ShaderDebugPrintInput Get()
         {
             var r = new ShaderDebugPrintInput();
@@ -286,11 +293,6 @@ namespace UnityEngine.Rendering.Universal
             r.MiddleDown = mouse.middleButton.isPressed;
 #endif
             return r;
-        }
-
-        public string Log()
-        {
-            return $"Mouse: {Pos.x}x{Pos.y}  Btns: Left:{LeftDown} Right:{RightDown} Middle:{MiddleDown} ";
         }
     }
 }

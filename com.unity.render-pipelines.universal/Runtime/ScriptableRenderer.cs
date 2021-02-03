@@ -913,7 +913,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 }
             }
-            ShaderDebugPrintManager.Instance.SetShaderDebugPrintInputConstants(cmd);
+            ShaderDebugPrintManager.Instance.SetShaderDebugPrintInputConstants(cmd, ShaderDebugPrintInputProducer.Get());
             // TODO: Binding doesn't seem to work on Mac/Metal
             ShaderDebugPrintManager.Instance.SetShaderDebugPrintBindings(cmd);
         }
