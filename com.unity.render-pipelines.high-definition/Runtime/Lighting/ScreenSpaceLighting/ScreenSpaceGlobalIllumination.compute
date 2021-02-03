@@ -26,7 +26,7 @@
 #define GI_TRACE_EPS 0.00024414
 
 // Defines the mip offset for the color buffer
-#define SSGI_MIP_OFFSET 3
+#define SSGI_MIP_OFFSET 1
 
 // #define PERCEPTUAL_SPACE
 
@@ -363,7 +363,13 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
 
-    color = clamp(color, 0.0, 1.5f);
+    // Convert to HSV space
+    color = RgbToHsv(color);
+    // Expose and clamp the final color
+    color.z = clamp(color.z, 0.0, 1.5f);
+    // Convert back to HSV space
+    color = HsvToRgb(color);
+
 #ifdef PERCEPTUAL_SPACE
     // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal
     color *= rcp(1.0 + color);
