@@ -236,24 +236,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             });
         }
 
-        protected void ShowWindow()
+        internal void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
+            this.m_ScrollView.style.display = DisplayStyle.Flex;
             contentContainer.MarkDirtyRepaint();
         }
 
-        protected void HideWindow()
+        internal void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-            #if UNITY_2021_1_OR_NEWER
-            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
-            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            #else
-            this.m_ScrollView.showVertical = false;
-            this.m_ScrollView.showHorizontal = false;
-            #endif
-
-            contentContainer.Clear();
+            this.m_ScrollView.style.display = DisplayStyle.None;
             contentContainer.MarkDirtyRepaint();
         }
 

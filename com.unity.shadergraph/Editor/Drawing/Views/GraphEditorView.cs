@@ -342,17 +342,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Because of their differences we do this is different ways, for now.
         void UpdateSubWindowsVisibility()
         {
-            // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+                m_BlackboardProvider.blackboard.ShowWindow();
             else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+                m_BlackboardProvider.blackboard.HideWindow();
 
-            // Same for the inspector
             if (m_UserViewSettings.isInspectorVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
+                m_InspectorView.ShowWindow();
             else
-                m_InspectorView.RemoveFromHierarchy();
+                m_InspectorView.HideWindow();
 
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
