@@ -221,13 +221,6 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
         }
 
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment,
-            ScriptableRenderPassDescriptor desc)
-        {
-            ConfigureTarget(colorAttachment, depthAttachment);
-            srpDescriptor = desc;
-        }
-
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -247,13 +240,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
         }
 
-        internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment,
-            ScriptableRenderPassDescriptor desc)
-        {
-            ConfigureTarget(colorAttachments, depthAttachment);
-            srpDescriptor = desc;
-        }
-
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -266,15 +252,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
-            {
                 m_ColorAttachments[i] = 0;
-            }
-        }
-
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, ScriptableRenderPassDescriptor desc)
-        {
-            ConfigureTarget(colorAttachment);
-            srpDescriptor = desc;
         }
 
         /// <summary>
@@ -325,7 +303,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
-
 
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
