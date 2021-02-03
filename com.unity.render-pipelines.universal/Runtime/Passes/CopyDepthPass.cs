@@ -47,10 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
-
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            // var srpDesc = new ScriptableRenderPassDescriptor(GraphicsFormat.DepthAuto, descriptor.width,
-            //     descriptor.height, descriptor.msaaSamples, true);
             srpDescriptor.ConfigureDescriptor(GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, 1, true);
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);

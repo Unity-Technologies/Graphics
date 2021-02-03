@@ -56,9 +56,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
             var srpDesc =
-                new ScriptableRenderPassDescriptor(GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
+                new ScriptableRenderPassDescriptor(GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, 1, true);
             ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), srpDesc);
             ConfigureClear(ClearFlag.All, Color.black);
         }

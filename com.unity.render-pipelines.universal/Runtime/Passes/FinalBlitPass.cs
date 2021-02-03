@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             m_Source = colorHandle;
-            ConfigureTarget(RenderTargetHandle.CameraTarget.Identifier());
         }
 
         /// <inheritdoc/>
