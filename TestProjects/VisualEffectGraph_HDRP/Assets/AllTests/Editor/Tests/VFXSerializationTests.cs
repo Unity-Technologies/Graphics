@@ -427,6 +427,12 @@ namespace UnityEditor.VFX.Test
             InnerSaveAndReloadTest("AttributeParameter", write, read);
         }
 
+        static System.Text.StringBuilder tempStringBuilder = new System.Text.StringBuilder();
+        private static void  HandleLog(string message, string stack, LogType type)
+        {
+            tempStringBuilder.AppendLine(message);
+        }
+
         //Cover unexpected behavior from 1307562
         [Test]
         public void Verify_Orphan_Dependencies_Are_Correctly_Cleared()
@@ -460,36 +466,43 @@ namespace UnityEditor.VFX.Test
                 quadOutput.LinkFrom(basicInitialize);
             }
 
+            Application.logMessageReceived += HandleLog;
             var recordedSize = new List<long>();
-            for (uint i = 0; i < 8; ++i)
+            for (uint i = 0; i < 32; ++i)
             {
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-
+                AssetDatabase.ImportAsset(path);
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-
-                Debug.LogFormat("=> {0}", asset.GetResource().GetContents().Count());
+                Debug.LogFormat("=> LoadAssetAtPath {0}", asset.GetResource().GetContents().Count());
 
                 var graph = asset.GetResource().GetOrCreateGraph();
+                Debug.LogFormat("=> GetOrCreateGraph {0}", asset.GetResource().GetContents().Count());
                 graph.GetResource().WriteAsset();
+                Debug.LogFormat("=> WriteAsset {0}", asset.GetResource().GetContents().Count());
                 recordedSize.Add(new FileInfo(path).Length);
-
                 Debug.LogFormat("({0}) File size : {1}", i, new FileInfo(path).Length);
 
                 var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
 
                 quadOutput.UnlinkAll();
+                Debug.LogFormat("=> UnlinkAll {0}", asset.GetResource().GetContents().Count());
                 graph.RemoveChild(quadOutput);
+                Debug.LogFormat("=> RemoveChild {0}", asset.GetResource().GetContents().Count());
 
                 var newQuadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                Debug.LogFormat("=> CreateInstance {0}", asset.GetResource().GetContents().Count());
                 newQuadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
 
                 graph.AddChild(newQuadOutput);
+                Debug.LogFormat("=> AddChild {0}", asset.GetResource().GetContents().Count());
                 var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
                 newQuadOutput.LinkFrom(basicInitialize);
+                Debug.LogFormat("=> LinkFrom {0}", asset.GetResource().GetContents().Count());
             }
+            Application.logMessageReceived -= HandleLog;
+            File.WriteAllText(path + ".txt", tempStringBuilder.ToString());
+            tempStringBuilder.Clear();
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
-
         }
     }
 }
