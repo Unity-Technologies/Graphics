@@ -26,12 +26,6 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
         static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
-        private static class Profiling
-        {
-            private const string k_Name = nameof(UniversalRenderer);
-            public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
-        }
-
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
@@ -440,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base && intermediateRenderTexture)
             {
-                bool useDepthRenderBuffer = !createDepthTexture && cameraTarget == k_CameraTarget;
+                bool useDepthRenderBuffer = !createDepthTexture && cameraTarget.nameID == k_CameraTarget.nameID;
                 CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, useDepthRenderBuffer);
 
                 m_ActiveCameraAttachments.color = createColorTexture ? m_CameraAttachments.color : cameraTarget;
@@ -807,46 +801,40 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth, bool useDepthRenderBuffer)
         {
-            CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
+            if (createColor && m_CameraAttachments.color.rt.graphicsFormat != descriptor.graphicsFormat)
             {
-                if (createColor && m_CameraAttachments.color.rt.graphicsFormat != descriptor.graphicsFormat)
-                {
-                    m_CameraAttachments.color.Release();
-                    m_CameraAttachments.color = RTHandles.Alloc(Vector2.one,
-                        colorFormat: descriptor.graphicsFormat,
-                        filterMode: FilterMode.Bilinear,
-                        dimension: TextureDimension.Tex2D,
-                        enableRandomWrite: false,
-                        useMipMap: false,
-                        autoGenerateMips: false,
-                        enableMSAA: true,
-                        name: "_CameraColorTexture");
-                }
-
-                bool bindMS = false;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                bindMS = descriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && SystemInfo.supportsMultisampledTextures != 0;
-#endif
-                if (createDepth && bindMS != m_CameraAttachments.depth.rt.bindTextureMS)
-                {
-                    m_CameraAttachments.depth.Release();
-                    m_CameraAttachments.depth = RTHandles.Alloc(
-                        Vector2.one,
-                        depthBufferBits: k_DepthStencilBufferBits,
-                        colorFormat: GraphicsFormat.DepthAuto,
-                        filterMode: FilterMode.Point,
-                        dimension: TextureDimension.Tex2D,
-                        useMipMap: false,
-                        autoGenerateMips: false,
-                        enableMSAA: true,
-                        bindTextureMS: bindMS,
-                        name: "_CameraDepthAttachment");
-                }
+                m_CameraAttachments.color.Release();
+                m_CameraAttachments.color = RTHandles.Alloc(Vector2.one,
+                    colorFormat: descriptor.graphicsFormat,
+                    filterMode: FilterMode.Bilinear,
+                    dimension: TextureDimension.Tex2D,
+                    enableRandomWrite: false,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    enableMSAA: true,
+                    name: "_CameraColorTexture");
             }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            bool bindMS = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            bindMS = descriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve &&
+                     SystemInfo.supportsMultisampledTextures != 0;
+#endif
+            if (createDepth && bindMS != m_CameraAttachments.depth.rt.bindTextureMS)
+            {
+                m_CameraAttachments.depth.Release();
+                m_CameraAttachments.depth = RTHandles.Alloc(
+                    Vector2.one,
+                    depthBufferBits: k_DepthStencilBufferBits,
+                    colorFormat: GraphicsFormat.DepthAuto,
+                    filterMode: FilterMode.Point,
+                    dimension: TextureDimension.Tex2D,
+                    useMipMap: false,
+                    autoGenerateMips: false,
+                    enableMSAA: true,
+                    bindTextureMS: bindMS,
+                    name: "_CameraDepthAttachment");
+            }
         }
 
         bool PlatformRequiresExplicitMsaaResolve()
