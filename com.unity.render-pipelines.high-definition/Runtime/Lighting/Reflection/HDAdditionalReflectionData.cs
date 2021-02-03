@@ -27,6 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// be rendered the next time it will influence a camera rendering.
         ///
         /// If the probe don't have a <see cref="HDAdditionalReflectionData"/> component, nothing is done.
+        ///
+        /// Note: A camera is influenced by a probe if the camera's frustum intersects the probe's influence volume.
         /// </summary>
         /// <param name="probe">The probe to request a render.</param>
         public static void RequestRenderNextUpdate(this ReflectionProbe probe)
