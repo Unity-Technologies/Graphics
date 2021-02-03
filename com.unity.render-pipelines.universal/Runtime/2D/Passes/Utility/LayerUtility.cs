@@ -72,7 +72,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
                 if ((light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2)) || (light.IsLitLayer(layerId1) && light.shadowsEnabled))
                     return false;
-                
             }
             return true;
         }
