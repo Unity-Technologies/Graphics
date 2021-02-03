@@ -5,7 +5,7 @@ using Unity.Profiling;
 using UnityEngine;
 
 // Prototype stuff, should not be a MonoBehaviour
-public class ProfilerDataModel : MonoBehaviour
+public class RealtimeProfilerModel : MonoBehaviour
 {
     public struct FrameTimeSample
     {
@@ -53,10 +53,10 @@ public class ProfilerDataModel : MonoBehaviour
 
         FrameTimeSample frameTime = FrameTime;
 
-        frameTime.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
-        frameTime.LogicCPUFrameTime = (float)m_Timing.First().logicCpuFrameTime;
-        frameTime.CombinedCPUFrameTime = (float)m_Timing.First().combinedCpuFrameTime;
-        frameTime.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
+        frameTime.FullFrameTime         = (float)m_Timing.First().cpuFrameTime;
+        frameTime.LogicCPUFrameTime     = (float)m_Timing.First().logicCpuFrameTime;
+        frameTime.CombinedCPUFrameTime  = (float)m_Timing.First().combinedCpuFrameTime;
+        frameTime.GPUFrameTime          = (float)m_Timing.First().gpuFrameTime;
 
         FrameTime = frameTime;
     }

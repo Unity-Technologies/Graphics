@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="Styles/content.uss" />
+    <Style src="../Styles/realtimeprofiler-content.uss" />
     <ui:VisualElement name="Root" style="margin: 2px; flex-direction: row; margin: 4px; min-width: auto; min-height: auto;">
         <ui:VisualElement style="flex-direction: column; justify-content: flex-start; flex-grow: 1; min-width: 200px; max-width: none; min-height: 300px;">
             <ui:Foldout text="Frame times&#10;" name="FrameTimes" value="true" class="section-header">

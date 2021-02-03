@@ -4,10 +4,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class ProfilerViewModel
+public class RealtimeProfilerViewModel
 {
     // Update "data bindings"
-    public void UpdateUI(ProfilerDataModel model, VisualElement viewRoot)
+    public void UpdateUI(RealtimeProfilerModel model, VisualElement viewRoot)
     {
         viewRoot.Q<Label>("FullFrameTime").text = $"{model.FrameTime.FullFrameTime:F2}ms";
         viewRoot.Q<Label>("LogicCPUFrameTime").text = $"{model.FrameTime.LogicCPUFrameTime:F2}ms";
