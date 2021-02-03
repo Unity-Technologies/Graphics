@@ -136,7 +136,7 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
         float w = r ? gaussian(r, sigma) * depthWeight * normalWeight : 1.0;
 
         // If the sample we are taking is not valid, lower its weight significantly
-        float tapAdditionalData = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).xyz;
+        float tapAdditionalData = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).z;
         w *= lerp(0.025, 1.0, tapAdditionalData);
 
         // Accumuate this value
