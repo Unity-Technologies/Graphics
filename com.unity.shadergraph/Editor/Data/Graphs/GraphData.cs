@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        public override int latestVersion => 2;
+        public override int latestVersion => 3;
 
         public GraphObject owner { get; set; }
 
@@ -274,13 +274,25 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        // the graph-defined concrete precision
+        // this is the precision used by any nodes using GraphPrecision.Graph
+        // note that for sub-graphs, this is only used as a default setting for rendering previews
+        // (sub-graphs define GraphPrecision.Graph as being switchable externally)
         [SerializeField]
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
-
         public ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
             set => m_ConcretePrecision = value;
+        }
+
+        // TODO: old subgraphs need to set this to their concrete precision
+        [SerializeField]
+        private GraphPrecision m_GraphPrecision = GraphPrecision.Graph;
+        public GraphPrecision graphPrecision
+        {
+            get => m_GraphPrecision;
+            set => m_GraphPrecision = value;
         }
 
         // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
@@ -1906,6 +1918,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
+                    // graphData.m_Version == 0  (matches current sgVersion)
                     Guid assetGuid;
                     if (!Guid.TryParse(this.assetGuid, out assetGuid))
                         assetGuid = JsonObject.GenerateNamespaceUUID(Guid.Empty, json);
@@ -2071,16 +2084,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-
-
-            // In V2 we need to defer version set to in OnAfterMultiDeserialize
-            // This is because we need access to m_OutputNode to convert it to Targets and Stacks
-            // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
-            bool deferredUpgrades = sgVersion < 2;
-            if (!deferredUpgrades)
-            {
-                ChangeVersion(latestVersion);
-            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
@@ -2234,6 +2237,20 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     m_NodeEdges.Clear();
+                }
+
+                if (sgVersion < 3)
+                {
+                    // copy concrete precision to the newly added graph precision
+                    switch (this.concretePrecision)
+                    {
+                        case ConcretePrecision.Half:
+                            this.graphPrecision = GraphPrecision.Half;
+                            break;
+                        case ConcretePrecision.Single:
+                            this.graphPrecision = GraphPrecision.Single;
+                            break;
+                    }
                 }
 
                 ChangeVersion(latestVersion);

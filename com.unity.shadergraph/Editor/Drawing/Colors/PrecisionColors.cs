@@ -29,4 +29,28 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             }
         }
     }
+
+    class GraphPrecisionColors : ColorProviderFromStyleSheet
+    {
+        public override string GetTitle() => "Graph Precision";
+
+        public override bool AllowCustom() => false;
+
+        public override bool ClearOnDirty() => true;
+
+        protected override bool GetClassFromNode(AbstractMaterialNode node, out string ussClass)
+        {
+            ussClass = node.graphPrecision.ToString();
+
+            return !string.IsNullOrEmpty(ussClass);
+        }
+
+        public override void ClearColor(IShaderNodeView nodeView)
+        {
+            foreach (var type in GraphPrecision.GetValues(typeof(GraphPrecision)))
+            {
+                nodeView.colorElement.RemoveFromClassList(type.ToString());
+            }
+        }
+    }
 }

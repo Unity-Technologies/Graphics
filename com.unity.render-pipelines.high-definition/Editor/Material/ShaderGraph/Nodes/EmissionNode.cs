@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string GetFunctionName()
         {
-            return $"Unity_HDRP_GetEmissionHDRColor_{concretePrecision.ToShaderString()}";
+            return "Unity_HDRP_GetEmissionHDRColor_$precision";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

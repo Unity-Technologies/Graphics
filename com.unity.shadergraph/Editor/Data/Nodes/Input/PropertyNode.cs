@@ -260,10 +260,9 @@ namespace UnityEditor.ShaderGraph
             }
             // If Property has a precision override use that
             precision = property.precision;
-            if (precision != Precision.Inherit)
-                concretePrecision = precision.ToConcrete();
-            else
-                concretePrecision = owner.concretePrecision;
+
+            graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
         }
     }
 }

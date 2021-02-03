@@ -97,6 +97,8 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public GraphPrecision graphPrecision { get; set; } = GraphPrecision.Single;
+
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
@@ -492,52 +494,50 @@ namespace UnityEditor.ShaderGraph
 
         protected const string k_validationErrorMessage = "Error found during node validation";
 
+        // evaluate ALL the precisions...
         public virtual void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
         {
-            // If Node has a precision override use that
-            if (precision != Precision.Inherit)
+            // first let's reduce from precision ==> graph precision
+            if (precision == Precision.Inherit)
             {
-                m_ConcretePrecision = precision.ToConcrete();
-                return;
-            }
+                // inherit means calculate it automatically based on inputs
 
-            // Get inputs
-            {
                 // If no inputs were found use the precision of the Graph
                 // This can be removed when parameters are considered as true inputs
                 if (inputSlots.Count == 0)
                 {
-                    m_ConcretePrecision = owner.concretePrecision;
-                    return;
+                    graphPrecision = GraphPrecision.Graph;
                 }
-
-                // Otherwise compare precisions from inputs
-                var precisionsToCompare = new List<int>();
-
-                foreach (var inputSlot in inputSlots)
+                else
                 {
-                    // If input port doesnt have an edge use the Graph's precision for that input
-                    var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
-                    if (!edges.Any())
+                    int curGraphPrecision = (int)GraphPrecision.Half;
+                    foreach (var inputSlot in inputSlots)
                     {
-                        precisionsToCompare.Add((int)owner.concretePrecision);
-                        continue;
+                        // If input port doesn't have an edge use the Graph's precision for that input
+                        var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
+                        if (!edges.Any())
+                        {
+                            // disconnected inputs use graph precision (I guess?)
+                            curGraphPrecision = Math.Min(curGraphPrecision, (int)GraphPrecision.Graph);
+                        }
+                        else
+                        {
+                            var outputSlotRef = edges[0].outputSlot;
+                            var outputNode = outputSlotRef.node;
+                            curGraphPrecision = Math.Min(curGraphPrecision, (int)outputNode.graphPrecision);
+                        }
                     }
-
-                    // Get output node from edge
-                    var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = outputSlotRef.node;
-
-                    // Use precision from connected Node
-                    precisionsToCompare.Add((int)outputNode.concretePrecision);
+                    graphPrecision = (GraphPrecision)curGraphPrecision;
                 }
-
-                // Use highest precision from all input sources
-                m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
-
-                // Clean up
-                return;
             }
+            else
+            {
+                // not inherited, just use the definition
+                graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            }
+
+            // to calculate the concrete precision we just replace "Graph" with what the graph chose
+            concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
         }
 
         public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)

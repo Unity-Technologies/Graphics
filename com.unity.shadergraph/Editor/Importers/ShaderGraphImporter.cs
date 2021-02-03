@@ -377,6 +377,7 @@ Shader ""Hidden/GraphErrorShader2""
                     });
                 }
 
+                // VFX graph building sets m_Validate to true
                 var bodySb = new ShaderStringBuilder(1);
                 var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
 

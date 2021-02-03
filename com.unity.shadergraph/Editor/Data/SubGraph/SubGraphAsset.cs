@@ -15,13 +15,15 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     struct FunctionPair
     {
-        public string key;
-        public string value;
+        public string key;              // aka function name
+        public string value;            // aka function code
+        public int graphPrecisionFlags; // Flags<GraphPrecision> indicating which precision variants are requested by the subgraph
 
-        public FunctionPair(string key, string value)
+        public FunctionPair(string key, string value, int graphPrecisionFlags)
         {
             this.key = key;
             this.value = value;
+            this.graphPrecisionFlags = graphPrecisionFlags;
         }
     }
 
@@ -80,6 +82,10 @@ namespace UnityEditor.ShaderGraph
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
+
+        public GraphPrecision outputGraphPrecision;
+
+        public GraphPrecision subGraphGraphPrecision;
 
         public PreviewMode previewMode;
 

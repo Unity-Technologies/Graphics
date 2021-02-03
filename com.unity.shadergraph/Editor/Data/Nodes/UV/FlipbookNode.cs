@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             else if (m_InvertY)
                 invertText = "InvertY_";
 
-            return $"Unity_Flipbook_{invertText}{concretePrecision.ToShaderString()}";
+            return $"Unity_Flipbook_{invertText}$precision";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

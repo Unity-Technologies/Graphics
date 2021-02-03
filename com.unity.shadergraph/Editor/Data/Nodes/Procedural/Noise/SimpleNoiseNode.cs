@@ -45,13 +45,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction($"Unity_SimpleNoise_RandomValue_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction("Unity_SimpleNoise_RandomValue_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNoise_RandomValue_$precision ($precision2 uv)
 {
     return frac(sin(dot(uv, $precision2(12.9898, 78.233)))*43758.5453);
 }"));
 
-            registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNnoise_Interpolate_$precision ($precision a, $precision b, $precision t)
 {
     return (1.0-t)*a + (t*b);

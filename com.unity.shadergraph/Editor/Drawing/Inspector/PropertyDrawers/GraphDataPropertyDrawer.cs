@@ -132,6 +132,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (graphData.isSubGraph)
             {
+                {
+                    var enum2PropertyDrawer = new EnumPropertyDrawer();
+                    propertySheet.Add(enum2PropertyDrawer.CreateGUI(
+                        newValue => { graphData.graphPrecision = (GraphPrecision)newValue; },
+                        graphData.graphPrecision,
+                        "Graph Precision",
+                        GraphPrecision.Graph,
+                        out var propertyVisualElement2));
+                }
+
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
                     newValue =>

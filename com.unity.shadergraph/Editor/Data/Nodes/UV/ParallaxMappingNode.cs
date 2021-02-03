@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_ParallaxMapping_{concretePrecision.ToShaderString()}";
+            return $"Unity_ParallaxMapping";
         }
 
         public override void Setup()

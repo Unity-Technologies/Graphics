@@ -161,6 +161,7 @@ namespace UnityEditor.ShaderGraph
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+
                 using (s.BlockScope())
                 {
                     s.AppendLine("Out = abs(InvertColors - In);");

@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        string GetFunctionName() => $"Unity_ParallaxOcclusionMapping{GetVariableNameForNode()}_{concretePrecision.ToShaderString()}";
+        string GetFunctionName() => $"Unity_ParallaxOcclusionMapping{GetVariableNameForNode()}_$precision";
 
         public override void Setup()
         {
