@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 
 ## [11.0.0] - 2020-10-21
 

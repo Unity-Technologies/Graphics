@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/HDRP Diffusion Profile", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -195,14 +195,14 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Custom Pass", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCustomPassCSharpScript()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Post Process Volume", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";

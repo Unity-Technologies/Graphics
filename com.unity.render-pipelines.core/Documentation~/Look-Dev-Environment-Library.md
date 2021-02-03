@@ -10,7 +10,7 @@ An Environment Library is an Asset that contains a list of environments that you
 
 To create an Environment Library Asset, either:
 
-- Select **Assets > Create > Look Dev > Environment Library**.
+- Select **Assets > Create > Rendering Environment Library (Look Dev)**.
 - Open [Look Dev](Look-Dev.html) and click the **New Library** button.
 
 ## Creating and editing an environment
