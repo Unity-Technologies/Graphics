@@ -3014,6 +3014,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref ProcessedProbeData processedData = ref m_ProcessedReflectionProbeData[probeIndex];
                     PreprocessReflectionProbeData(ref processedData, probe, hdCamera);
 
+                    // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+                    if(!processedData.hdProbe.HasValidRenderedData())
+                        continue;
+
                     if (TrivialRejectProbe(processedData, hdCamera))
                         continue;
 
@@ -3044,6 +3048,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
 
+                    // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
                     if(!probe.HasValidRenderedData())
                         continue;
 
