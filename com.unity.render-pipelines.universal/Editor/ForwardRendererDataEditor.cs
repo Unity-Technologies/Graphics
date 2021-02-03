@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
-#endif
 #if ENABLE_RENDER_PASS_UI
         SerializedProperty m_UseNativeRenderPass;
 #endif
@@ -48,7 +47,6 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
-#endif
 #if ENABLE_RENDER_PASS_UI
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
 #endif
