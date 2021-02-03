@@ -22,8 +22,6 @@ PR_URP_Performance_LostCrypt_2021.1:
          rerun: on-new-revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_2021.1
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_2021.1
-         rerun: on-new-revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_2021.1
          rerun: on-new-revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_2021.1
@@ -67,8 +65,6 @@ PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_lostcrypt-win-vulkan.yml#URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
