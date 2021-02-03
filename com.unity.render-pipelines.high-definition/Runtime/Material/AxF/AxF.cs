@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -238,16 +239,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // LTC data
 
-            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
             };
 
             // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, LTCAreaLight.s_LtcMatrixData_GGX);
+            LTCAreaLight.LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, LTCAreaLight.s_LtcMatrixData_GGX);
             // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
             // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
             // (Lit, etc.)

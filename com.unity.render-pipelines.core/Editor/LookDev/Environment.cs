@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -268,7 +269,7 @@ namespace UnityEditor.Rendering.LookDev
             int height = width >> 1;
 
             RenderTexture temporaryRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-            Texture2D brightestPointTexture = new Texture2D(width, height, TextureFormat.RGBAHalf, false);
+            Texture2D brightestPointTexture = new Texture2D(width, height, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
 
             // Convert cubemap to a 2D LatLong to read on CPU
             Graphics.Blit(environment.cubemap, temporaryRT, cubeToLatlongMaterial);
@@ -326,7 +327,7 @@ namespace UnityEditor.Rendering.LookDev
             Rect skyRect = new Rect(0, 0, width, height);
             Renderer.DrawFullScreenQuad(skyRect);
 
-            Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, false);
+            Texture2D result = new Texture2D(width, height, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             result.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
             result.Apply(false);
             RenderTexture.active = oldActive;

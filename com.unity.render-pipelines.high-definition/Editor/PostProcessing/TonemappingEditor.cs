@@ -2,6 +2,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -168,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
-            var texOut = new Texture2D(w, h, TextureFormat.RGBAFloat, false, true);
+            var texOut = new Texture2D(w, h, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
             var target = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
             var lastActive = RenderTexture.active;
             var lastTargetSet = camera.targetTexture;

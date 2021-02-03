@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using System.IO;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering
 
             if (makeTexture)
             {
-                Texture2D tex = new Texture2D(1, 1, TextureFormat.ARGB32, false, true);
+                Texture2D tex = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
                 tex.SetPixel(0, 0, color);
                 tex.Apply();
 
@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering
             if (m_aSource.height > 4 && m_aSource.height < yMin) yMin = m_aSource.height;
             if (yMin == int.MaxValue) yMin = 4;
 
-            Texture2D combined = new Texture2D(xMin, yMin, TextureFormat.RGBAFloat, true, true);
+            Texture2D combined = new Texture2D(xMin, yMin, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.MipChain);
             combined.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
             Material combinerMaterial = new Material(Shader.Find("Hidden/SRP_Core/TextureCombiner"));
