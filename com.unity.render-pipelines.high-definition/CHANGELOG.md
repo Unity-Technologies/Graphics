@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added pivot point manipulation for Decals (inspector and edit mode).
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
+- Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 
 ### Fixed
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Move the Decal Gizmo Color initialization to preferences
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 
 ## [11.0.0] - 2020-10-21
 
