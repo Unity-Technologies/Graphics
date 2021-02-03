@@ -977,7 +977,7 @@ namespace UnityEngine.Rendering.Universal
                 // { ...
                 // }
 
-                if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
+                if (renderPass.depthAttachment.nameID == m_CameraDepthTarget.nameID && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
                     needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.DepthStencil) != (renderPass.clearFlag & ClearFlag.DepthStencil);
@@ -1044,7 +1044,7 @@ namespace UnityEngine.Rendering.Universal
                 finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
-                if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment.nameID != m_ActiveDepthAttachment.nameID || finalClearFlag != ClearFlag.None)
                 {
                     int lastValidRTindex = RenderingUtils.LastValid(renderPass.colorAttachments);
                     if (lastValidRTindex >= 0)
@@ -1116,7 +1116,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Condition (m_CameraDepthTarget!=k_CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
-                if (m_CameraDepthTarget != k_CameraTarget && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound)
+                if (m_CameraDepthTarget.nameID != k_CameraTarget.nameID && (passDepthAttachment.nameID == m_CameraDepthTarget.nameID || passColorAttachment.nameID == m_CameraDepthTarget.nameID) && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
@@ -1279,7 +1279,7 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor)
         {
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
-            if (depthAttachment == k_CameraTarget)
+            if (depthAttachment.nameID == k_CameraTarget.nameID)
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
             }
