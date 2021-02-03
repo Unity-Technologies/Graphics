@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed various issues with non-temporal SSAO and rendergraph.
 - Fix screen being over-exposed when changing very different skies.
 - White flashes on camera cuts on volumetric fog.
+- Fixed light layer issue when performing editing on multiple lights.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
