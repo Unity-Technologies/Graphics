@@ -8,12 +8,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [Conditional("UNITY_EDITOR")]
     internal class HDRPHelpURLAttribute : HelpURLAttribute
     {
-        public HDRPHelpURLAttribute(string urlString)
-            : base(HelpURL(urlString)) {}
+        public HDRPHelpURLAttribute(string pageName)
+            : base(HelpURL(pageName)) {}
 
         static string HelpURL(string pageName)
         {
-            return Documentation.baseURL + DocumentationInfo.version + Documentation.subURL + pageName + Documentation.endURL;
+            return Documentation.baseURL + Documentation.version + Documentation.subURL + pageName + Documentation.endURL;
         }
     }
 
