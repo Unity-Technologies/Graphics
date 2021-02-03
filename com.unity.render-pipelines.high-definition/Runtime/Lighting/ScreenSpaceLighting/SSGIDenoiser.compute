@@ -35,6 +35,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseSpatialFilter;
     float _HistoryValidity;
     float _PixelSpreadAngleTangent;
+    float2 _SpatialFilterDirection;
 CBUFFER_END
 
 // Denoised output buffer
@@ -46,7 +47,7 @@ RW_TEXTURE2D_X(float4, _OutputFilteredBuffer1);
 #define NORMAL_WEIGHT_MULTIPLIER 5.0
 
 // Number of samples to compelte the accumulation loop
-#define NUM_SAMPLE_LOOP 8.0
+#define NUM_SAMPLE_LOOP 16.0
 #define EXPONENTIAL_ACCUMULATION_FACTOR (NUM_SAMPLE_LOOP/(NUM_SAMPLE_LOOP + 1.0f))
 
 [numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
@@ -88,62 +89,67 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
     const float sigma = _IndirectDiffuseSpatialFilter * SPATIAL_FILTER_SIGMA_RATIO;
 
     // Loop through the neighboord and do our filter
-    for (int y = -_IndirectDiffuseSpatialFilter; y <= _IndirectDiffuseSpatialFilter; ++y)
+    for (int sampleIdx = -_IndirectDiffuseSpatialFilter; sampleIdx <= _IndirectDiffuseSpatialFilter; ++sampleIdx)
     {
-        for (int x = -_IndirectDiffuseSpatialFilter; x <= _IndirectDiffuseSpatialFilter; ++x)
-        {
-            // This could probably be avoided, but the shader is badwidth bound anyway, so..
-            float r = sqrt(x * x + y * y);
+        // Compute the relative sample location
+        int2 sampleLocation = int2(sampleIdx * _SpatialFilterDirection.x, sampleIdx * _SpatialFilterDirection.y);
 
-            // Compute the absolute tap coord
-            int2 tapCoord = centerCoord + int2(x, y);
+        // This could probably be avoided, but the shader is badwidth bound anyway, so..
+        float r = sqrt(sampleLocation.x * sampleLocation.x + sampleLocation.y * sampleLocation.y);
 
-            // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
+        // Compute the absolute tap coord
+        int2 tapCoord = centerCoord + sampleLocation;
+
+        // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
 #if HALF_RES
-            if (tapCoord.x >= _HalfScreenSize.x
-                || tapCoord.x < 0
-                || tapCoord.y >= _HalfScreenSize.y
-                || tapCoord.y < 0)
-                continue;
+        if (tapCoord.x >= _HalfScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _HalfScreenSize.y || tapCoord.y < 0)
+            continue;
 #else
-            if (tapCoord.x >= _ScreenSize.x
-                || tapCoord.x < 0
-                || tapCoord.y >= _ScreenSize.y
-                || tapCoord.y < 0)
-                continue;
+        if (tapCoord.x >= _ScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _ScreenSize.y || tapCoord.y < 0)
+            continue;
 #endif
 
-            // Read the depth of the tap pixel
+        // Read the depth of the tap pixel
 #if HALF_RES
-            float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + tapCoord).r;
-            NormalData normalDataTap;
-            DecodeFromNormalBuffer(tapCoord * 2, normalDataTap);
+        float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + tapCoord).r;
+        NormalData normalDataTap;
+        DecodeFromNormalBuffer(tapCoord * 2, normalDataTap);
 #else
-            float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).r;
-            NormalData normalDataTap;
-            DecodeFromNormalBuffer(tapCoord, normalDataTap);
+        float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).r;
+        NormalData normalDataTap;
+        DecodeFromNormalBuffer(tapCoord, normalDataTap);
 #endif
-            if (tapDepth == UNITY_RAW_FAR_CLIP_VALUE)
-                continue;
+        if (tapDepth == UNITY_RAW_FAR_CLIP_VALUE)
+            continue;
 
-            // Convert the tapped depth to linear for weight evaluation
-            float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);
+        // Convert the tapped depth to linear for weight evaluation
+        float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);
 
-            // Compute the depth for this pixel
-            float depthWeight = max(0.0, 1.0 - abs(tapz01 - centerz01) * DEPTH_WEIGHT_MULTIPLIER);
+        // Compute the depth for this pixel
+        float depthWeight = max(0.0, 1.0 - abs(tapz01 - centerz01) * DEPTH_WEIGHT_MULTIPLIER);
 
-            const float normalCloseness = sqr(sqr(max(0.0, dot(normalDataTap.normalWS, normalData.normalWS))));
-            const float normalError = 1.0 - normalCloseness;
-            const float normalWeight = max(0.0, (1.0 - normalError * NORMAL_WEIGHT_MULTIPLIER));
+        const float normalCloseness = sqr(sqr(max(0.0, dot(normalDataTap.normalWS, normalData.normalWS))));
+        const float normalError = 1.0 - normalCloseness;
+        const float normalWeight = max(0.0, (1.0 - normalError * NORMAL_WEIGHT_MULTIPLIER));
 
-            // Compute the weight (skip computation for the center)
-            const float w = r ? gaussian(r, sigma) * depthWeight * normalWeight : 1.0;
+        // Compute the weight (skip computation for the center)
+        float w = r ? gaussian(r, sigma) * depthWeight * normalWeight : 1.0;
 
-            // Accumuate this value
-            colorSum0 += LOAD_TEXTURE2D_X(_InputNoisyBuffer0, tapCoord).xyzw * w;
-            colorSum1 += LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).xyz * w;
-            wSum += w;
-        }
+        // If the sample we are taking is not valid, lower its weight significantly
+        float tapAdditionalData = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).xyz;
+        w *= lerp(0.025, 1.0, tapAdditionalData);
+
+        // Accumuate this value
+        colorSum0 += LOAD_TEXTURE2D_X(_InputNoisyBuffer0, tapCoord).xyzw * w;
+        colorSum1 += LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).xyz * w;
+        wSum += w;
+    }
+
+    if (wSum == 0.0f)
+    {
+        colorSum0 = LOAD_TEXTURE2D_X(_InputNoisyBuffer0, centerCoord).xyzw;
+        colorSum1 = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, centerCoord).xyz;
+        wSum = 1.0f;
     }
 
     // Output the result to the buffer and propagate the w channel as is.

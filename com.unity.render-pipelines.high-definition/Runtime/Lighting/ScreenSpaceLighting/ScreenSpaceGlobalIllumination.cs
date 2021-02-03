@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool fullResolutionSS;
             public float thickness;
             public int raySteps;
+            public int frameIndex;
             public Vector4 colorPyramidUvScaleAndLimitPrevFrame;
 
             // Compute Shader
@@ -109,8 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             parameters.farClipPlane = hdCamera.camera.farClipPlane;
             parameters.fullResolutionSS = settings.fullResolutionSS;
-            parameters.thickness = settings.depthBufferThickness.value;
+            parameters.thickness = 0.1f;
             parameters.raySteps = settings.raySteps;
+            parameters.frameIndex = RayTracingFrameIndex(hdCamera, 16);
             parameters.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 
             // Grab the right kernel
@@ -157,6 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseThicknessScale, thicknessScale);
             cmd.SetComputeFloatParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseThicknessBias, thicknessBias);
             cmd.SetComputeIntParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseSteps, parameters.raySteps);
+            cmd.SetComputeIntParam(parameters.ssGICS, HDShaderIDs._IndirectDiffuseFrameIndex, parameters.frameIndex);
+
             // Inject half screen size if required
             if (!parameters.fullResolutionSS)
                 cmd.SetComputeVectorParam(parameters.ssGICS, HDShaderIDs._HalfScreenSize, parameters.halfScreenSize);

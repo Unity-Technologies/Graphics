@@ -25,7 +25,7 @@
 // Epslon value used for the computation
 #define GI_TRACE_EPS 0.00024414
 
-#define PERCEPTUAL_SPACE
+// #define PERCEPTUAL_SPACE
 
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
@@ -360,9 +360,10 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
 
+    color = clamp(color, 0.0, 1.5f);
 #ifdef PERCEPTUAL_SPACE
     // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal
-    color = color / (1.0 + color);
+    color *= rcp(1.0 + color);
 #endif
 
     // Re-compute the direction that was used to do the generation
@@ -435,13 +436,11 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 
 #ifdef PERCEPTUAL_SPACE
     // We invert the tonemap
-    color = color / (1.0 - color);
-
-    // The mulitplication is wrong, but with all the approximations that we need to compensate a bit
-    // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness).
-    // This has been experimentally tested. However, it needs more testing and potetially reverted if found more harmful than useful
-    color *= (lerp(5.0, 1.0, cocgB.z));
+    color *= rcp(1.0 - color);
 #endif
+
+    // Adjust the validity mask based on the proportion of valid samples
+    cocgB.z = lerp(0.0, 1.0, saturate((cocgB.z - 0.5) / 0.5f));
 
     // Does this pixel recieve SSGI?
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));

@@ -22,12 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enable screen space global illumination.")]
         public BoolParameter enable = new BoolParameter(false);
 
-        /// <summary>
-        /// The thickness of the depth buffer value used for the ray marching step
-        /// </summary>
-        [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
-        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.2f, 0.0f, 0.5f);
-
         GlobalIllumination()
         {
             displayName = "Screen Space Global Illumination";
@@ -49,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
+        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 256);
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -84,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [Tooltip("Filter Radius")]
         [SerializeField]
-        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 16);
 
         /// <summary>
         /// Toggles ray traced global illumination.
