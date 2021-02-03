@@ -206,7 +206,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 doubleSidedGIMode = (DoubleSidedGIMode)material.GetFloat(kDoubleSidedGIMode);
             }
-            //int doubleSidedGIMode = material.HasProperty(k) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
             // Disable culling if double sided
             material.SetInt("_CullMode", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)doubleSidedOffMode);
@@ -253,9 +252,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.ForceOff)
                 material.doubleSidedGI = false;
-
-            //var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
-            //doubleSidedGIppt.boolValue = doubleSidedEnable;
             serializedObject.ApplyModifiedProperties();
         }
 
