@@ -48,10 +48,6 @@ MonoBehaviour:
     volumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
-    probeVolumeAtlasBlitCS: {fileID: 7200000, guid: 07f429bf534edb44eb5a0e4b2c65b108, type: 3}
-    probeVolumeAtlasOctahedralDepthBlitCS: {fileID: 7200000, guid: f60c895d3a3061848844b36ccf9e44a9, type: 3}
-    probeVolumeAtlasOctahedralDepthConvolveCS: {fileID: 7200000, guid: 7ef71ce05401a4c4081039b475d3b9ee, type: 3}
-    debugDisplayProbeVolumePS: {fileID: 4800000, guid: e7c19cfee7a88394fbb53652b9644cc0, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
     debugDensityVolumeAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
@@ -81,7 +77,7 @@ MonoBehaviour:
     planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2, type: 3}
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}
-    bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}    
+    bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
@@ -250,6 +246,9 @@ MonoBehaviour:
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
     defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
     defaultCloudMap: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
+  shaderGraphs:
+    speedTree8Shader: {fileID: -6465566751694194690, guid: b07bc9af4d5809b43a91d1a9db4381a0, type: 3}
+    speedTree8BillboardShader: {fileID: -6465566751694194690, guid: 30db7bce031de4149b6f211dbcb9101c, type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}

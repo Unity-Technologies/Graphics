@@ -303,6 +303,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
 
+        /// <summary>HDRP SpeedTree8 shader.</summary>
+        public override Shader defaultSpeedTree8Shader
+            => renderPipelineResources?.shaderGraphs.speedTree8Shader;
+
         // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
         [SerializeField]
         internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
