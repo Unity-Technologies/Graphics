@@ -442,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base && intermediateRenderTexture)
             {
-                bool useDepthRenderBuffer = !createDepthTexture && cameraTarget == k_CameraTarget;
+                bool useDepthRenderBuffer = !createDepthTexture && cameraTarget.nameID == k_CameraTarget.nameID;
                 CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, useDepthRenderBuffer);
 
                 m_ActiveCameraAttachments.color = createColorTexture ? m_CameraAttachments.color : cameraTarget;
@@ -808,7 +808,6 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth, bool useDepthRenderBuffer)
         {
-            CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
                 if (createColor &&
@@ -849,9 +848,6 @@ namespace UnityEngine.Rendering.Universal
                         name: "_CameraDepthAttachment");
                 }
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         bool PlatformRequiresExplicitMsaaResolve()
