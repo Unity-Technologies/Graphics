@@ -476,6 +476,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns the index of a specified renderer data from the current pipeline asset
+        /// </summary>
+        /// <param name="scriptableRendererData">Index to the renderer data. If invalid renderer data is passed, then -1 is returned instead.</param>
+        /// <returns></returns>
+        public int RendererDataIndex(ScriptableRendererData scriptableRendererData)
+        {
+            return Array.IndexOf(m_RendererDataList, scriptableRendererData);
+        }
+
 #if UNITY_EDITOR
         internal GUIContent[] rendererDisplayList
         {
@@ -500,26 +510,46 @@ namespace UnityEngine.Rendering.Universal
             return "NULL (Missing RendererData)";
         }
 
-#endif
+        internal bool CanRemoveFromRendererDataList(ScriptableRendererData rendererData)
+        {
+            // Check if it exists and it is not the default renderer data
+            return m_RendererDataList.Contains(rendererData) && rendererData != scriptableRendererData;
+        }
 
+        internal bool RemoveRendererFromRendererDataList(ScriptableRendererData rendererData)
+        {
+            // Check if it exists
+            if (CanRemoveFromRendererDataList(rendererData))
+            {
+                UpdateDefaultRendererValue(RendererDataIndex(rendererData));
+                // Lets remove the renderer data
+                var rendererDataList = new List<ScriptableRendererData>(m_RendererDataList);
+                rendererDataList.Remove(rendererData);
+                m_RendererDataList = rendererDataList.ToArray();
+
+                EditorUtility.SetDirty(this);
+                return true;
+            }
+
+            return false;
+        }
+
+        internal void UpdateDefaultRendererValue(int index)
+        {
+            // If the index that is being removed is lower than the default renderer value,
+            // the default value needs to be one lower.
+            if (index < m_DefaultRendererIndex)
+            {
+                m_DefaultRendererIndex--;
+            }
+        }
+
+#endif
         internal void AddRendererToRendererDataList(ScriptableRendererData rendererData)
         {
             if (!m_RendererDataList.Contains(rendererData))
             {
                 m_RendererDataList = m_RendererDataList.Append(rendererData).ToArray();
-                EditorUtility.SetDirty(this);
-            }
-        }
-
-        internal void RemoveRendererFromRendererDataList(ScriptableRendererData rendererData)
-        {
-            // Check if it exists
-            if (m_RendererDataList.Contains(rendererData))
-            {
-                // Lets remove the renderer data
-                var rendererDataList = new List<ScriptableRendererData>(m_RendererDataList);
-                rendererDataList.Remove(rendererData);
-                m_RendererDataList = rendererDataList.ToArray();
                 EditorUtility.SetDirty(this);
             }
         }

@@ -521,6 +521,7 @@ namespace UnityEditor.Rendering.Universal
             list.index = list.count - 1;
             list.onCanRemoveCallback = CanRemoveElement;
             list.onRemoveCallback = RemoveElement;
+            list.onReorderCallbackWithDetails = ReorderElement;
         }
 
         void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
@@ -609,12 +610,12 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorUtility.SetDirty(target);
+        }
 
-            list.onReorderCallbackWithDetails += (reorderableList, index, newIndex) =>
-            {
-                // Need to update the default renderer index
-                UpdateDefaultRendererValue(index, newIndex);
-            };
+        void ReorderElement(ReorderableList list, int oldindex, int newindex)
+        {
+            // Need to update the default renderer index
+            UpdateDefaultRendererValue(oldindex, newindex);
         }
 
         void UpdateDefaultRendererValue(int index)

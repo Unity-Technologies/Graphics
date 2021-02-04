@@ -12,6 +12,15 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    static class RemoveRendererDataDialogText
+    {
+        public static readonly string title = "Remove Renderer Data from URP Asset";
+        public static readonly string message = "This change might change the renderer data list entries";
+        public static readonly string proceed = "Proceed";
+        public static readonly string ok = "Ok";
+        public static readonly string cancel = "Cancel";
+    }
+
     public class AssignToRendererDataWindow : EditorWindow
     {
         public static AssignToRendererDataWindow Instance { get; private set; }
@@ -53,7 +62,10 @@ namespace UnityEditor.Rendering.Universal
 
             foreach (UniversalRenderPipelineAsset urpAsset in rpaDict.Keys.ToArray())
             {
-                rpaDict[urpAsset] = EditorGUILayout.Toggle(urpAsset.name, rpaDict[urpAsset]);
+                float width = position.width - 25f;
+                EditorGUIUtility.labelWidth = width;
+                GUIContent label = new GUIContent(urpAsset.name, AssetDatabase.GetAssetPath(urpAsset));
+                rpaDict[urpAsset] = EditorGUILayout.Toggle(label, rpaDict[urpAsset]);
             }
 
             GUILayout.BeginHorizontal();
@@ -112,7 +124,14 @@ namespace UnityEditor.Rendering.Universal
                 }
                 else
                 {
-                    renderPipelineAsset.RemoveRendererFromRendererDataList(rendererData);
+                    // If this returns true, then we can remove an entry and should tell the user that the list will change.
+                    if (renderPipelineAsset.CanRemoveFromRendererDataList(rendererData))
+                    {
+                        if (EditorUtility.DisplayDialog(RemoveRendererDataDialogText.title, RemoveRendererDataDialogText.message, RemoveRendererDataDialogText.proceed, RemoveRendererDataDialogText.cancel))
+                        {
+                            renderPipelineAsset.RemoveRendererFromRendererDataList(rendererData);
+                        }
+                    }
                 }
             }
         }
@@ -161,8 +180,6 @@ namespace UnityEditor.Rendering.Universal
         [SerializeField] private bool falseBool = false;
         List<Editor> m_Editors = new List<Editor>();
 
-        List<UniversalRenderPipelineAsset> rpAssets;
-
         //static int mField = 0;
         string[] options = {};
         private void OnEnable()
@@ -178,7 +195,7 @@ namespace UnityEditor.Rendering.Universal
         {
             base.OnHeaderGUI();
             // New button in header to assign asset
-            if (GUILayout.Button("Assign to Renderer List"))
+            if (GUILayout.Button("Assign to Render Pipeline Asset..."))
             {
                 AssignToRendererDataWindow.ShowWindow(target as ScriptableRendererData);
             }
