@@ -7,7 +7,7 @@ HDRP voxelizes Density Volumes to enhance performance. This results in two limit
 - Density Volumes do not support volumetric shadowing. If you place a Density Volume between a Light and a surface, the Volume does not decrease the intensity of light that reaches the surface.
 - Density Volumes are voxelized at a very coarse rate, with typically only 64 or 128 slices along the camera's focal axis. This can cause noticeable aliasing at the boundary of the Volume. You can hide the aliasing by using Density Volumes in conjunction with some global fog, if possible. You can also use a Density Mask and a non-zero Blend Distance to decrease the hardness of the edge.
 
-To create a Density Volume, right click in the Hierarchy and select __Rendering > Density Volume__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Rendering > Density Volume__.
+To create a Density Volume, right click in the Hierarchy and select __Volume > Density Volume__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Volume > Density Volume__.
 
 
 # Properties

@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering
             public const int assetsCreateRenderingMenuPriority = 308;
             /// <summary>Edit Menu base priority</summary>
             public const int editMenuPriority = 320;
+            /// <summary>Game Object Menu priority</summary>
+            public const int gameObjectMenuPriority = 10;
         }
 
         // TODO delete when finish top level menu reorder

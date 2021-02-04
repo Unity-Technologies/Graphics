@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 
+### Changed
+- Moved GameObject/Light/Freeform Light 2D/Square to GameObject/Light/2D/Square Freeform Light 2D
+- Moved GameObject/Light/Freeform Light 2D/Circle to GameObject/Light/2D/Circle Freeform Light 2D
+- Moved GameObject/Light/Freeform Light 2D/Isometric Diamond to GameObject/Light/2D/Isometric Diamond Freeform Light 2D
+- Moved GameObject/Light/Freeform Light 2D/Hexagon Flat Top to GameObject/Light/2D/Hexagon Flat Top Freeform Light 2D
+- Moved GameObject/Light/Sprite Light 2D to GameObject/Light/2D/Sprite Light 2D
+- Moved GameObject/Light/Spot Light 2D to GameObject/Light/2D/Spot Light 2D
+- Moved GameObject/Light/Global Light 2D to GameObject/Light/2D/Global Light 2D
+
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)

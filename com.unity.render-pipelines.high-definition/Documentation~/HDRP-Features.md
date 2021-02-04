@@ -454,7 +454,7 @@ To match the scale of the GameObjects in your Scene, you can vary the pixel foot
 
 ### Light Explorer
 
-The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog volumes
+The Light Explorer allows you to select and edit light sources: Directional lights, Point lights, Spot lights, Area lights, Reflection Probes, Planar Probes and Sky and Fog Global Volumes
 
 ![](Images/LightExplorer.png)
 
