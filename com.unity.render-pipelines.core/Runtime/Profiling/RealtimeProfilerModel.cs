@@ -4,9 +4,33 @@ using System.Linq;
 using Unity.Profiling;
 using UnityEngine;
 
-// Prototype stuff, should not be a MonoBehaviour
+// TODO: Prototype stuff, should not be a MonoBehaviour?
 public class RealtimeProfilerModel : MonoBehaviour
 {
+    static GameObject s_Updater;
+    internal static RealtimeProfilerModel GetOrCreateRuntimeInstance()
+    {
+        if (s_Updater == null)
+        {
+            s_Updater = new GameObject("RealtimeProfilerModelUpdater")
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            s_Updater.AddComponent<RealtimeProfilerModel>();
+        }
+
+        return s_Updater.GetComponent<RealtimeProfilerModel>();
+    }
+
+    internal static void DestroyInstance()
+    {
+        if (s_Updater != null)
+        {
+            DestroyImmediate(s_Updater);
+            s_Updater = null;
+        }
+    }
+
     public struct FrameTimeSample
     {
         public float FullFrameTime;
@@ -40,10 +64,6 @@ public class RealtimeProfilerModel : MonoBehaviour
     void OnEnable()
     {
         FrameTime = new FrameTimeSample();
-    }
-
-    void OnDisable()
-    {
     }
 
     void Update()

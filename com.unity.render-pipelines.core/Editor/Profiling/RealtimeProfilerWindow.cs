@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering
 {
     public class RealtimeProfilerWindow : EditorWindow
     {
-        RealtimeProfilerModel m_RealtimeProfilerModelUpdater;
-        RealtimeProfilerViewModel m_RealtimeProfilerViewModel = new RealtimeProfilerViewModel();
+        RealtimeProfilerModel m_Model;
+        RealtimeProfilerViewModel m_ViewModel = new RealtimeProfilerViewModel();
 
         [MenuItem("Window/Analysis/Realtime Profiler")]
         public static void ShowDefaultWindow()
@@ -28,19 +28,34 @@ namespace UnityEditor.Rendering
             if (windowTemplate != null)
                 windowTemplate.CloneTree(this.rootVisualElement);
             this.minSize = new Vector2(400, 250);
+
+            EditorApplication.playModeStateChanged += PlayModeStateChanged;
+        }
+
+        public void OnDisable()
+        {
+            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+        }
+
+        private void PlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (state == PlayModeStateChange.EnteredPlayMode)
+            {
+                m_Model = RealtimeProfilerModel.GetOrCreateRuntimeInstance();
+            }
+            else if (state == PlayModeStateChange.ExitingPlayMode)
+            {
+                RealtimeProfilerModel.DestroyInstance();
+                m_Model = null;
+                m_ViewModel.ResetUI(this.rootVisualElement);
+            }
         }
 
         public void OnInspectorUpdate()
         {
-            if (m_RealtimeProfilerModelUpdater == null)
+            if (m_Model != null)
             {
-                m_RealtimeProfilerModelUpdater = FindObjectOfType<RealtimeProfilerModel>();
-            }
-
-            if (m_RealtimeProfilerModelUpdater)
-            {
-                //var model = m_ProfilerDataModelUpdater.GetComponent<ProfilerDataModel>();
-                m_RealtimeProfilerViewModel.UpdateUI(m_RealtimeProfilerModelUpdater, this.rootVisualElement);
+                m_ViewModel.UpdateUI(m_Model, this.rootVisualElement);
             }
         }
     }

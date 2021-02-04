@@ -5,19 +5,19 @@
             <ui:Foldout text="Frame times&#10;" name="FrameTimes" value="true" class="section-header">
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
                     <ui:Label text="Full frame time" name="Label" />
-                    <ui:Label text="16.6ms" name="FullFrameTime" />
+                    <ui:Label text="0.00ms" name="FullFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
                     <ui:Label text="Logic CPU frame time" name="Label" />
-                    <ui:Label text="14.0ms" name="LogicCPUFrameTime" />
+                    <ui:Label text="0.00ms" name="LogicCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
                     <ui:Label text="Combined CPU frame time" name="Label" />
-                    <ui:Label text="14.0ms" name="CombinedCPUFrameTime" />
+                    <ui:Label text="0.00ms" name="CombinedCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
                     <ui:Label text="GPU frame time" name="Label" />
-                    <ui:Label text="16.6ms" name="GPUFrameTime" />
+                    <ui:Label text="0.00ms" name="GPUFrameTime" />
                 </ui:VisualElement>
             </ui:Foldout>
             <ui:Foldout text="Render stats&#10;" name="RenderStats" value="true" class="section-header">
@@ -31,21 +31,21 @@
                     <ui:VisualElement style="flex-direction: row; justify-content: flex-start;">
                         <ui:VisualElement name="CategoryColumn">
                             <ui:Label text="CPU (inline)" name="CategoryHeader" class="category-header" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
                         </ui:VisualElement>
                         <ui:VisualElement name="CategoryColumn">
                             <ui:Label text="CPU (cmd)" name="CategoryHeader" class="category-header" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
                         </ui:VisualElement>
                         <ui:VisualElement name="CategoryColumn">
                             <ui:Label text="GPU" name="CategoryHeader" class="category-header" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
-                            <ui:Label text="1.25ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
+                            <ui:Label text="0.00ms" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
