@@ -537,7 +537,19 @@ namespace UnityEditor.ShaderGraph
             }
 
             // to calculate the concrete precision we just replace "Graph" with what the graph chose
-            concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
+            if (owner.isSubGraph)
+            {
+                if (graphPrecision == GraphPrecision.Graph)
+                    graphPrecision = owner.graphPrecision;
+
+                // default to half if still switchable (for previews)
+                concretePrecision = graphPrecision.ToConcrete(ConcretePrecision.Half);
+            }
+            else
+            {
+                // non subgraphs have a concrete graph precision
+                concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
+            }
         }
 
         public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
