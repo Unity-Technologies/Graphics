@@ -41,12 +41,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += OnUndoRedo;
+
+            HDLightUI.RegisterEditor(this);
         }
 
         void OnDisable()
         {
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed -= OnUndoRedo;
+            HDLightUI.UnregisterEditor(this);
         }
 
         void OnUndoRedo()
