@@ -39,27 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: '1) In the <i>Hierarchy</i> window expand <b>Lightning</b>><b>Reflection
-          Probes</b>
-
-          
-
-          2) Select <b>Room2</b> GameObject
-
-          
-
-          3)
-          Disable and enable it in the <i>Inspector</i> window
-
-          
-
-          We
-          can see that if a Reflection Probe is not affecting an area, the sky will
-          be reflected instead, which can lead to extremely bright and unwanted reflections.
-          It is important to place reflection probes in darker parts of the scene
-          to ensure materials are reflecting the scene correctly.
-
-'
+        m_Untranslated: "1) In the <i>Hierarchy</i> window, expand <b>Lightning</b>><b>Reflection
+          Probes</b>\r\n\r\n2) Select <b>Room2</b> GameObject\r\n\r\n3) Disable and
+          enable it in the <i>Inspector</i> window\r\n\r\nWe can see that if the
+          local Reflection Probes are disabled in this area, the sky will be reflected
+          instead.In HDRP, a hidden Reflection Probe is automatically generated from
+          the sky and affects the entire world. Therefore, placing local Reflection
+          Probes in each room of the template is required to avoid a phenomenon called
+          \u201Clight leaking\u201D.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

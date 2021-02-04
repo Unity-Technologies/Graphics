@@ -39,36 +39,18 @@ MonoBehaviour:
       Title:
         m_Untranslated: What is baked lighting?
       Text:
-        m_Untranslated: 'Lights have to be baked in order to simulate indirect lighting,
-          this is especially important for indoor environments.
-
-          
-
-          In
-          reality, most of the objects we see are lit by indirect light that bounced
-          from walls, floors, etc. Thus the absence of it is instantly noticeable.
-
-          
-
-          The
-          image above shows the scene when baked data is cleared. As you can see
-          bounced light is missing, but there are also a few other key things to
-          take note of. When baked data does not exist:
-
-          
-
-          *
-          The sky is used for reflections  (set in <b>Lighting</b> > <b>Volumes</b>
-          > <b>Volume Global</b> > <b>Visual Environment</b>)
-
-          
-
-          *
+        m_Untranslated: "Indirect lighting calculations in real-time are incredibly
+          costly on most hardware platforms. Therefore, baking or precomputing the
+          indirect lighting \r\n\r\nIn reality, most of the objects we see are lit
+          by indirect light that bounces off of walls, floors, etc. Thus the absence
+          of it is instantly noticeable.\r\n\r\nThe image above shows the scene when
+          baked data is cleared. As you can see bounced light is missing, but there
+          are also a few other key things to take note of. When baked data does not
+          exist:\r\n\r\n* The sky is used for reflections  (set in <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global</b> > <b>Visual Environment</b>)\r\n\r\n*
           All objects receive ambient lighting from the sky, light is not occluded
           (set in <b>Window</b> > <b>Rendering</b> > <b>Environment</b> > <b>Static
-          lighting sky</b>)
-
-'
+          lighting sky</b>)\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

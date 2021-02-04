@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Light Layers
       Text:
         m_Untranslated: Light layers can be used to dictate which objects can be
-          affected by a light or a reflection probe.
+          affected by a Light or a Reflection Probe.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -61,9 +61,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.3600989
-    m_Pivot: {x: 63.291298, y: 4.773621, z: -0.1692621}
-    m_Rotation: {x: -0.04505677, y: 0.69589955, z: 0.043833137, w: 0.715384}
+    m_Size: 2.8151612
+    m_Pivot: {x: 65.39235, y: 3.048728, z: 0.1418814}
+    m_Rotation: {x: 0.06921207, y: 0.66655827, z: -0.06237899, w: 0.7396072}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

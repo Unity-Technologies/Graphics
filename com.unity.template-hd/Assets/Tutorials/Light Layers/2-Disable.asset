@@ -39,16 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disabling the feature
       Text:
-        m_Untranslated: "Let\u2019s take a look at what problems the Light layers
-          are solving for this project. We will do this by simply disabling the feature.\r\n\r\n1)
-          Find your active HDRP asset in the <i>Project</i> window <b>Settings</b>
-          folder. It should be <b>HDRP Medium</b> if you haven't switched to another
-          one in the quality settings\r\n\r\n2) In the asset, uncheck Lighting>Light
-          layers\r\n\r\nWhile Light layers are off, we can see 2 unwanted effects:\r\n*
-          The glass is casting a shadow on the right lamp\r\n* The bottom part of
-          the glass gets brighter\r\n\r\nTurn back Light layers On. In the next step,
-          we will see how they were set up.\r\n\r\nNote: by default Light layers
-          are turned off for new projects\r\n"
+        m_Untranslated: "Let\u2019s see how the Light Layer system can help us in
+          solving common light leaking problems.\r\n\r\n1) Find your active HDRP
+          asset in the <i>Project</i> window <b>Settings</b> folder. It should be
+          <b>HDRP Medium</b> if you haven't switched to another one in the quality
+          settings\r\n\r\n2) In the asset, uncheck Lighting>Light layers\r\n\r\nWhile
+          Light layers are off, you can notice that the top lamp\u2019s glass surface
+          will cast unwanted shadows on its siblings.\r\n\r\nTurn the Light layers
+          back on, and see how the glass doesn\u2019t seem to cast any shadow anymore.
+          \r\n\r\nNote: by default Light layers are turned off for new projects\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -69,9 +68,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.3600989
-    m_Pivot: {x: 63.291298, y: 4.773621, z: -0.1692621}
-    m_Rotation: {x: -0.04505677, y: 0.69589955, z: 0.043833137, w: 0.715384}
+    m_Size: 2.8151612
+    m_Pivot: {x: 65.39235, y: 3.048728, z: 0.1418814}
+    m_Rotation: {x: 0.06921207, y: 0.66655827, z: -0.06237899, w: 0.7396072}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

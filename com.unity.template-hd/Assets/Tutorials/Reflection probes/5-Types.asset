@@ -39,15 +39,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: 'In a complex room, like room 2 which has curved walls, a
-          sloped ceiling, and a wide range of lighting strength, it requires a large
-          number of probes to reach a high reflective quality.
+        m_Untranslated: 'A complex room like room 2, which has curved walls, a sloped
+          ceiling, and a wide range of lighting intensities, requires a large number
+          of probes to reach a high reflection quality.
 
-          
 
-          The
-          size of the probe directly influences how probes are sorted: smaller local
-          Reflection Probes tend to have higher importance than larger ones.
+
+          The size of
+          the probe directly influences how it is sorted and blended with other probes:
+          smaller Reflection Probes tend to have higher importance than larger ones
+          and will most likely have a higher influence on the nearby objects.
 
 '
       m_Summary: 
@@ -67,12 +68,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 4.851026
+    m_Pivot: {x: 29.678757, y: 3.3441396, z: 0.029434562}
+    m_Rotation: {x: 0.16154604, y: 0.7290674, z: -0.18429545, w: 0.6390598}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -81,7 +82,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

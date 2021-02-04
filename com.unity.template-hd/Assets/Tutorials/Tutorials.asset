@@ -133,7 +133,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Sky
     Text:
-      m_Untranslated: Explore different sky setups and brightness values
+      m_Untranslated: Explore different sky setups and intensity values
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -143,8 +143,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: White Balance
     Text:
-      m_Untranslated: Learn what white balance is and explore the examples in the
-        scene
+      m_Untranslated: Learn how white balance can help you improve the visual fidelity
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -154,8 +153,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Probes
     Text:
-      m_Untranslated: Bake light into probes that are used for lighting dynamic objects
-        during play
+      m_Untranslated: Store the indirect lighting for objects marked to receive Global
+        Illumination from Light Probes
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -165,8 +164,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Fog
     Text:
-      m_Untranslated: Learn about the different systems for adding fog into a HDRP
-        scene
+      m_Untranslated: 'Learn about the different fog systems '
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -176,8 +174,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Density Volume
     Text:
-      m_Untranslated: Further controls for the fog in the scene by fine tuning the
-        fog's variation
+      m_Untranslated: Control the local fog more precisely
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -187,7 +184,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Layers
     Text:
-      m_Untranslated: Define which lights affects which objects using layers
+      m_Untranslated: Define which Lights or Reflection Probes affects which objects
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -197,8 +194,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Reflection Probes
     Text:
-      m_Untranslated: Capture reflections from the scene in the editor so they can
-        be applied to static or dynamic
+      m_Untranslated: Capture the reflections in the environment
     LinkText: 
     Url: 
     AuthorizedUrl: 0

@@ -39,14 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog hierarchy
       Text:
-        m_Untranslated: "One of the commonly used volume overrides is Fog. Adding
-          Fog in a Volume enables fine control over adding a fog atmospheric effect
-          globally or locally:\r\n\r\nThe currently visible volumetric fog is influenced
-          by 3 Volumes:\r\n* Volume Global - Has the majority of fog settings\r\n*
-          Volume Room 2 - Reduces the fog thickness across the room\r\n* Density
-          Volume Tree Cage - Increases the fog density in a localized area\r\n\r\nIn
-          the next step, we will take a look at the Volume Global and go over the
-          most notable settings.\r"
+        m_Untranslated: 'One common atmospheric effect is fog. It can be used to
+          simulate actual fog or increase the perception of depth in a scene.
+
+          
+
+          The
+          global fog in HDRP is set via a volume override.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -42,16 +42,16 @@ MonoBehaviour:
         m_Untranslated: '1) In the <i>Hierarchy</i> window expand <b>Structure</b>
           GameObject
 
-          
+
 
           2) Select <b>Decals</b> GameObject
 
-          
+
 
           3)
           Toggle it <b>on</b> and <b>off</b> in the <i>Inspector</i>
 
-          
+
 
           Notice
           the impact they have on the scene
@@ -77,9 +77,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 10
-    m_Pivot: {x: 2, y: 4, z: 2}
-    m_Rotation: {x: 0.2642654, y: 0.45507437, z: -0.1434844, w: 0.8381428}
+    m_Size: 6.8480654
+    m_Pivot: {x: -3.0870085, y: -1.292491, z: 0.2109518}
+    m_Rotation: {x: 0.31233156, y: 0.4305406, z: -0.16177791, w: 0.8312104}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
