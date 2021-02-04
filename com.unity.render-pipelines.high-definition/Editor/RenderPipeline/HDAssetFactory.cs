@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/HDRP Resources", priority = CoreUtils.Sections.k_Section7 + CoreUtils.Priorities.k_AssetsCreateRenderingMenuPriority)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateRenderPipelineResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/HDRP Ray Tracing Resources", priority = CoreUtils.Sections.k_Section7 + CoreUtils.Priorities.k_AssetsCreateRenderingMenuPriority + 2)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Ray Tracing Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateRenderPipelineRayTracingResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/HDRP Editor Resources", priority = CoreUtils.Sections.k_Section7 + CoreUtils.Priorities.k_AssetsCreateRenderingMenuPriority + 1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Editor Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void CreateRenderPipelineEditorResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
