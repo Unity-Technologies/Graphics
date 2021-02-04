@@ -4,11 +4,11 @@
 
 #pragma kernel KMain
 
-#pragma multi_compile _ INPUT_FROM_RADIANCE_TEXTURE
+#pragma multi_compile _ INPUT_FROM_FRAME_TEXTURE
 
 // Inputs
-#ifdef INPUT_FROM_RADIANCE_TEXTURE
-TEXTURE2D_X(_RadianceTexture);
+#ifdef INPUT_FROM_FRAME_TEXTURE
+TEXTURE2D_X(_FrameTexture);
 #endif
 
 float4      _AccumulationWeights;
@@ -55,25 +55,18 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     exposureMultiplier.xyz = (_AccumulationNeedsExposure != 0) ? GetCurrentExposureMultiplier() : 1.0;
     exposureMultiplier.w = 1.0;
 
-#ifdef INPUT_FROM_RADIANCE_TEXTURE
-        float4 color, colorBg = _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)];
-#else
-        float4 color, colorBg = 0.0;
-#endif
-
     // Have we reached max sampling?
     uint sampleCount = _AccumulationFrameIndex;
     if (sampleCount >= _AccumulationNumSamples)
     {
-        color = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color + (1.0 - color.w) * colorBg;
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
     }
     else
     {
-#ifdef INPUT_FROM_RADIANCE_TEXTURE
-        color = _RadianceTexture[COORD_TEXTURE2D_X(currentPixelCoord)];
+#ifdef INPUT_FROM_FRAME_TEXTURE
+        float4 color = _FrameTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #else
-        color = _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)];
+        float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #endif
 
         if (sampleCount++)
@@ -87,6 +80,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, color.xyz);
 
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color + (1.0 - color.w) * colorBg;
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
     }
 }
