@@ -190,21 +190,8 @@ namespace UnityEditor.VFX
                 if (HasFeature(Features.MotionVector))
                 {
                     yield return "VFX_FEATURE_MOTION_VECTORS";
-                    switch (output.taskType)
-                    {
-                        case VFXTaskType.ParticleQuadOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 4";
-                            break;
-                        case VFXTaskType.ParticleTriangleOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 3";
-                            break;
-                        case VFXTaskType.ParticleLineOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 2";
-                            break;
-                        case VFXTaskType.ParticlePointOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 1";
-                            break;
-                    }
+                    if (output.SupportsMotionVectorPerVertex(out uint vertsCount))
+                        yield return "VFX_FEATURE_MOTION_VECTORS_VERTS " + vertsCount;
                 }
                 if (HasFeature(Features.LOD))
                     yield return "VFX_FEATURE_LOD";

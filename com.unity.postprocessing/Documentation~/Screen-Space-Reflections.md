@@ -29,6 +29,7 @@ The `Custom` preset is very resource-intensive and best for beauty shots. If you
 ### Known issues and limitations
 
 - Screen-space reflections doesn't support AR/VR.
+- [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@7.5/manual/index.html) do not support Screen Space Reflections.
 
 ### Requirements
 
