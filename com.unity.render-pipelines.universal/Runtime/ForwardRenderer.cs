@@ -300,10 +300,11 @@ namespace UnityEngine.Rendering.Universal
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
-
-            bool isGizmosEnabled = false;
+            
 #if UNITY_EDITOR
-            UnityEditor.Handles.ShouldRenderGizmos();
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+#else
+            bool isGizmosEnabled = false; 
 #endif
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
