@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderSkyPassData data, RenderGraphContext context) =>
                     {
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, passData.depthTexture, data.debugDisplaySettings, context.cmd);
+                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, context.cmd);
                     });
             }
         }
