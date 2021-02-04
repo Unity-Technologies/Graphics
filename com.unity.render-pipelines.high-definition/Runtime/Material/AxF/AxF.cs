@@ -221,20 +221,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
             // Create render textures where we will render the FGD tables
-            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_Ward.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_Ward.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_Ward");
+            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_Ward");
             m_preIntegratedFGD_Ward.Create();
 
-            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_CookTorrance.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_CookTorrance.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_CookTorrance");
+            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_CookTorrance");
             m_preIntegratedFGD_CookTorrance.Create();
 
             // LTC data

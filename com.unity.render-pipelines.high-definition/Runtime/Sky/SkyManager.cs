@@ -1099,7 +1099,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int resolution = skyCubemap.width;
 
-            var tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+            var tempRT = new RenderTexture(resolution * 6, resolution, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 dimension = TextureDimension.Tex2D,
                 useMipMap = false,

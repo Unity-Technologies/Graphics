@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering
             combinerMaterial.SetVector("_BRemap", m_remapings[2]);
             combinerMaterial.SetVector("_ARemap", m_remapings[3]);
 
-            RenderTexture combinedRT = new RenderTexture(xMin, yMin, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.sRGB);
+            RenderTexture combinedRT = new RenderTexture(xMin, yMin, 0, GraphicsFormat.R32G32B32A32_SFloat);
 
             Graphics.Blit(Texture2D.whiteTexture, combinedRT, combinerMaterial);
 

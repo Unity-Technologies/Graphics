@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_CurveTex == null || !m_CurveTex.IsCreated() || m_CurveTex.width != width || m_CurveTex.height != height)
             {
                 CoreUtils.Destroy(m_CurveTex);
-                m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+                m_CurveTex = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
         }
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
             var texOut = new Texture2D(w, h, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
-            var target = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            var target = RenderTexture.GetTemporary(w, h, 24, GraphicsFormat.R32G32B32A32_SFloat);
             var lastActive = RenderTexture.active;
             var lastTargetSet = camera.targetTexture;
 

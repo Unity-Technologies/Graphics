@@ -51,15 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The copied Texture2D.</returns>
         public static Texture2D CopyRenderTextureToTexture2D(RenderTexture source)
         {
-            GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat;
-            switch (source.format)
-            {
-                case RenderTextureFormat.ARGBFloat: format = GraphicsFormat.R32G32B32A32_SFloat; break;
-                case RenderTextureFormat.ARGBHalf: format = GraphicsFormat.R16G16B16A16_SFloat; break;
-                default:
-                    Assert.IsFalse(true, "Unmanaged format");
-                    break;
-            }
+            GraphicsFormat format = source.graphicsFormat;
 
             switch (source.dimension)
             {

@@ -268,7 +268,7 @@ namespace UnityEditor.Rendering.LookDev
             int width = k_SkyThumbnailWidth;
             int height = width >> 1;
 
-            RenderTexture temporaryRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            RenderTexture temporaryRT = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
             Texture2D brightestPointTexture = new Texture2D(width, height, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
 
             // Convert cubemap to a 2D LatLong to read on CPU
@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             int height = width >> 1;
             RenderTexture oldActive = RenderTexture.active;
-            RenderTexture temporaryRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            RenderTexture temporaryRT = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
             RenderTexture.active = temporaryRT;
             cubeToLatlongMaterial.SetTexture("_MainTex", environment.cubemap);
             cubeToLatlongMaterial.SetVector("_WindowParams",
