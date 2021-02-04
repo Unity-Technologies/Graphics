@@ -342,14 +342,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
             cb._HighestCloudAltitude = settings.lowestCloudAltitude.value + settings.cloudThickness.value;
-            cb._EarthRadius = settings.earthRadiusMultiplier.value * earthRadius;
+            cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * earthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1500.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
             cb._MaxRayMarchingDistance = Mathf.Min(1500.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
-            cb._CloudMapTiling = settings.cloudTiling.value;
+            cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringDirection = settings.scatteringDirection.value;
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
@@ -389,20 +389,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Compute the theta angle for the wind direction
-            float theta = settings.windRotation.value / 180.0f * Mathf.PI;
-            cb._WindDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
+            float theta = settings.orientation.value / 180.0f * Mathf.PI;
+            // We apply a minus to see something moving in the right direction
+            cb._WindDirection = new Vector2(-Mathf.Cos(theta),- Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
 
             cb._GlobalWindSpeed = settings.globalWindSpeed.value;
-            cb._LargeWindSpeed = settings.cloudMapWindSpeedMultiplier.value;
-            cb._MediumWindSpeed = settings.shapeWindSpeedMultiplier.value;
-            cb._SmallWindSpeed = settings.erosionWindSpeedMultiplier.value;
+            cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
+            cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
+            cb._SmallWindSpeed = settings.erosionSpeedMultiplier.value;
 
             cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.8f;
 
-            if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPresets.value != VolumetricClouds.CloudPresets.Custom)
+            if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPreset.value != VolumetricClouds.CloudPresets.Custom)
             {
-                GetPresetCloudMapValues(settings.cloudPresets.value, out cb._DensityMultiplier, out cb._ShapeFactor, out cb._ErosionFactor);
+                GetPresetCloudMapValues(settings.cloudPreset.value, out cb._DensityMultiplier, out cb._ShapeFactor, out cb._ErosionFactor);
             }
             else
             {
@@ -438,12 +439,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Resolution of the cloud shadow
                 cb._ShadowCookieResolution = (int)settings.shadowResolution.value;
-                cb._ShadowIntensity = settings.shadowIntensity.value;
-                cb._ShadowFallbackValue = settings.shadowFallbackValue.value;
-                cb._ShadowPlaneOffset = settings.shadowPlaneOffset.value;
+                cb._ShadowIntensity = settings.shadowOpacity.value;
+                cb._ShadowFallbackValue = 1.0f - settings.shadowOpacityFallback.value;
+                cb._ShadowPlaneOffset = settings.shadowPlaneHeightOffset.value;
 
                 // Compute Size of the shadow on the ground
-                float groundShadowSize = settings.shadowSize.value * 0.5f;
+                float groundShadowSize = settings.shadowDistance.value;
 
                 if (HasVolumetricCloudsShadows(hdCamera, settings))
                 {
@@ -505,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Static textures
             if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple)
             {
-                parameters.cloudMapTexture = GetPresetCloudMapTexture(settings.cloudPresets.value);
+                parameters.cloudMapTexture = GetPresetCloudMapTexture(settings.cloudPreset.value);
                 parameters.cloudLutTexture = m_Asset.renderPipelineResources.textures.cloudLutRainAO;
             }
             else if (settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced)
@@ -697,13 +698,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 float delaTime = hdCamera.time - hdCamera.volumetricCloudsAnimationData.lastTime;
 
                 // Compute the theta angle for the wind direction
-                float theta = settings.windRotation.value / 180.0f * Mathf.PI;
+                float theta = settings.orientation.value / 180.0f * Mathf.PI;
 
                 // Compute the wind direction
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
-                Vector2 windVector = windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
+                // We apply a minus to see something moving in the right direction
+                Vector2 windVector = -windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
 
                 // Animate the offset
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
@@ -759,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
         {
-            return (settings.enable.value && GetCurrentSunLight() != null && settings.shadow.value);
+            return (settings.enable.value && GetCurrentSunLight() != null && settings.shadows.value);
         }
 
         bool HasVolumetricCloudsShadows(HDCamera hdCamera)
@@ -775,7 +777,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute the shadow size
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            float groundShadowSize = settings.shadowSize.value;
+            float groundShadowSize = settings.shadowDistance.value * 2.0f;
             float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
             float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
             Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
@@ -783,7 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the parameters that we are interested in
             directionalLightData.right = sunLight.transform.right * 2 / Mathf.Max(shadowSize.x, 0.001f);
             directionalLightData.up = sunLight.transform.up * 2 / Mathf.Max(shadowSize.y, 0.001f);
-            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y - settings.shadowPlaneOffset.value, 0.0f);
+            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y - settings.shadowPlaneHeightOffset.value, 0.0f);
 
             // Return the overridden light data
             return directionalLightData;
@@ -795,16 +797,16 @@ namespace UnityEngine.Rendering.HighDefinition
             int shadowResIndex = 0;
             switch (settings.shadowResolution.value)
             {
-                case VolumetricClouds.CloudShadowResolution.VeryLow:
+                case VolumetricClouds.CloudShadowResolution.VeryLow64:
                     shadowResIndex = 0;
                     break;
-                case VolumetricClouds.CloudShadowResolution.Low:
+                case VolumetricClouds.CloudShadowResolution.Low128:
                     shadowResIndex = 1;
                     break;
-                case VolumetricClouds.CloudShadowResolution.Medium:
+                case VolumetricClouds.CloudShadowResolution.Medium256:
                     shadowResIndex = 2;
                     break;
-                case VolumetricClouds.CloudShadowResolution.High:
+                case VolumetricClouds.CloudShadowResolution.High512:
                     shadowResIndex = 3;
                     break;
             }

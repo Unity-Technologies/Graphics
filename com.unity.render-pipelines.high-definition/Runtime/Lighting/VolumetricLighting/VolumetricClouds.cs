@@ -54,10 +54,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public enum CloudShadowResolution
         {
-            VeryLow = 64,
-            Low = 128,
-            Medium = 256,
-            High = 512,
+            VeryLow64 = 64,
+            Low128 = 128,
+            Medium256 = 256,
+            High512 = 512,
         }
         /// <summary> </summary>
         public const int CloudShadowResolutionCount = 4;
@@ -80,95 +80,98 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         // The size of the cloud dome in kilometers around the center of the world
-        [Tooltip("Radius of the earth")]
-        public ClampedFloatParameter earthRadiusMultiplier = new ClampedFloatParameter(0.5f, 0.025f, 1.0f);
+        [Tooltip("Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.")]
+        public ClampedFloatParameter earthCurvature = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Tiling (x,y) and offset (z,w) of the cloud map")]
-        public Vector4Parameter cloudTiling = new Vector4Parameter(new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+        [Tooltip("Tiling (x,y) of the cloud map")]
+        public Vector2Parameter cloudTiling = new Vector2Parameter(new Vector2(1.0f, 1.0f));
 
-        [Tooltip("Altitude in meters of the lowest cloud")]
+        [Tooltip("Offset (z,w) of the cloud map")]
+        public Vector2Parameter cloudOffset = new Vector2Parameter(new Vector2(0.0f, 0.0f));
+
+        [Tooltip("Altitude of the lowest cloud in meters.")]
         public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(1500f, 0.01f);
 
-        [Tooltip("Thickness of the cloud volume")]
+        [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
         public MinFloatParameter cloudThickness = new MinFloatParameter(6500.0f, 100.0f);
 
-        [Tooltip("Number of camera->cloud steps")]
+        [Tooltip("Controls the number of steps when evaluating the clouds' transmittance.")]
         public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 16, 512);
 
-        [Tooltip("Number of cloud-> light steps")]
+        [Tooltip("Controls the number of steps when evaluating the clouds' lighting.")]
         public ClampedIntParameter numLightSteps = new ClampedIntParameter(8, 6, 32);
 
-        [Tooltip("Cloud map (Coverage, Rain, Type)")]
+        [Tooltip("Specifies the cloud map - Coverage (R), Rain (G), Type (B).")]
         public TextureParameter cloudMap = new TextureParameter(null);
 
-        [Tooltip("Cloud Control Mode")]
+        [Tooltip("Specifies the cloud control Mode: Simple, Advanced or Manual.")]
         public CloudControlParameter cloudControl = new CloudControlParameter(CloudControl.Simple);
 
-        [Tooltip("Cloud Preset Mode")]
-        public CloudPresetsParameter cloudPresets = new CloudPresetsParameter(CloudPresets.Cloudy);
+        [Tooltip("Specifies the weather preset in Simple mode.")]
+        public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
-        [Tooltip("Cloud type/height map")]
+        [Tooltip("Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).")]
         public TextureParameter cloudLut = new TextureParameter(null);
 
-        [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward")]
+        [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward.")]
         public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Tint of the cloud scattering")]
+        [Tooltip("Specifies the tint of the cloud scattering color.")]
         public ColorParameter scatteringTint = new ColorParameter(new Color(0.0f, 0.0f, 0.0f, 1.0f));
 
-        [Tooltip("Intensity of the back scattering function")]
+        [Tooltip("Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.")]
         public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.8f, 0.0f, 1.0f);
 
-        [Tooltip("Intensity of the multi-scattering")]
+        [Tooltip("Controls the amount of multi-scattering inside the cloud.")]
         public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Global density multiplier")]
+        [Tooltip("Controls the global density of the cloud volume.")]
         public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
-        [Tooltip("Shape factor")]
+        [Tooltip("Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.")]
         public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Erosion factor")]
+        [Tooltip("Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.")]
         public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Value to control the intensity of the ambient light probe when lighting the clouds")]
+        [Tooltip("Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Global wind speed in kilometers per hour.")]
+        [Tooltip("Sets the global wind speed in kilometers per hour.")]
         public MinFloatParameter globalWindSpeed = new MinFloatParameter(50.0f, 0.0f);
 
-        [Tooltip("Rotation of the wind in degrees.")]
-        public ClampedFloatParameter windRotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
+        public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
         [Tooltip("Multiplier to the speed of the cloud map.")]
-        public ClampedFloatParameter cloudMapWindSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter cloudMapSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Multiplier to the speed of the larger cloud shapes.")]
-        public ClampedFloatParameter shapeWindSpeedMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        [Tooltip("Controls the multiplier to the speed of the larger cloud shapes.")]
+        public ClampedFloatParameter shapeSpeedMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Multiplier to the speed of the erosion cloud shapes.")]
-        public ClampedFloatParameter erosionWindSpeedMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
+        [Tooltip("Controls the multiplier to the speed of the erosion cloud shapes.")]
+        public ClampedFloatParameter erosionSpeedMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
-        [Tooltip("Global temporal accumulation factor.")]
-        public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.")]
+        public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(0.95f, 0.0f, 1.0f);
 
         [Tooltip("Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).")]
-        public BoolParameter shadow = new BoolParameter(false);
+        public BoolParameter shadows = new BoolParameter(false);
 
-        [Tooltip("Controls the resolution of the volumetric clouds shadow map.")]
-        public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium);
+        [Tooltip("Specifies the resolution of the volumetric clouds shadow map.")]
+        public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
 
-        [Tooltip("Shift applied to compute the volumetric clouds shadow.")]
-        public FloatParameter shadowPlaneOffset = new FloatParameter(0.0f);
+        [Tooltip("Vertical offset applied to compute the volumetric clouds shadow.")]
+        public FloatParameter shadowPlaneHeightOffset = new FloatParameter(0.0f);
 
-        [Tooltip("Controls the size of the volumetric clouds shadow in meters.")]
-        public MinFloatParameter shadowSize = new MinFloatParameter(16000.0f, 1000.0f);
+        [Tooltip("Sets the size of the area covered by shadow around the camera.")]
+        public MinFloatParameter shadowDistance = new MinFloatParameter(8000.0f, 1000.0f);
 
-        [Tooltip("Controls the intensity of the volumetric clouds shadow.")]
-        public ClampedFloatParameter shadowIntensity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
+        public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
-        [Tooltip("Controls value that is used to fallback on when the volumetric clouds shadow is not define.")]
-        public ClampedFloatParameter shadowFallbackValue = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.")]
+        public ClampedFloatParameter shadowOpacityFallback = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         public VolumetricClouds()
         {
