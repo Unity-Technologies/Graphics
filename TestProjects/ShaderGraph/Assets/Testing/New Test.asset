@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testMaterial:
   - {fileID: 2100000, guid: 5996b483850f3944c91a9950f3b6a786, type: 2}
+  - {fileID: 2100000, guid: 31b9fe7edc34eaf439bf433e8bfea874, type: 2}
   customMesh: {fileID: 0}
   isCameraPerspective: 0
