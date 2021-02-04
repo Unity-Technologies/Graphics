@@ -59,12 +59,12 @@ namespace UnityEngine
 
         static void AddEntriesWithoutCheck(SerializedProperty spAxes, List<InputManagerEntry> newEntries)
         {
-            int startRange = spAxes.arraySize;
-            int endRange = startRange + newEntries.Count;
-            spAxes.arraySize = endRange;
+            int endOfCurrentInputList = spAxes.arraySize;
+            spAxes.arraySize = endOfCurrentInputList + newEntries.Count;
 
-            for (int i = startRange; i < endRange; ++i)
-                CopyEntry(spAxes.GetArrayElementAtIndex(i), newEntries[i]);
+            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList);
+            for (int i = 0; i < newEntries.Count; ++i, spAxis.Next(false))
+                CopyEntry(spAxis, newEntries[i]);
         }
 
         // Get a representation of the already registered inputs
@@ -72,11 +72,10 @@ namespace UnityEngine
         {
             int size = spAxes.arraySize;
             List<(string name, InputManagerEntry.Kind kind)> result = new List<(string name, InputManagerEntry.Kind kind)>(size);
-            for (int i = 0; i < size; ++i)
-            {
-                var spAxis = spAxes.GetArrayElementAtIndex(i);
+
+            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(0);
+            for (int i = 0; i < size; ++i, spAxis.Next(false))
                 result.Add((spAxis.FindPropertyRelative("m_Name").stringValue, (InputManagerEntry.Kind)spAxis.FindPropertyRelative("type").intValue));
-            }
             return result;
         }
 
