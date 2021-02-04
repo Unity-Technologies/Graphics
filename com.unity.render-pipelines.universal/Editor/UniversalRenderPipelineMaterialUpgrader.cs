@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -440,9 +442,24 @@ namespace UnityEditor.Rendering.Universal
     }
     internal class SpeedTree8Upgrader : MaterialUpgrader
     {
+        string m_OldShaderName;
         internal SpeedTree8Upgrader(string oldShaderName)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            // Since the target shader depends on whether the source material is for a billboard or not,
+            // redo the renames in the Upgrade override. We are still doing a rename here just to set
+            // the old shader name appropriately so that the upgrader gets picked up when needed.
+            m_OldShaderName = oldShaderName;
+            RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+        }
+
+        public override void Upgrade(Material material, UpgradeFlags flags)
+        {
+            if (material.name.Contains("Billboard"))
+                RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8Billboard));
+            else
+                RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+
+            base.Upgrade(material, flags);
         }
     }
 

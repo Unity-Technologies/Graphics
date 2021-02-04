@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="material">Material to upgrade.</param>
         /// <param name="flags">Upgrade flag</param>
-        public void Upgrade(Material material, UpgradeFlags flags)
+        public virtual void Upgrade(Material material, UpgradeFlags flags)
         {
             Material newMaterial;
             if ((flags & UpgradeFlags.CleanupNonUpgradedProperties) != 0)
