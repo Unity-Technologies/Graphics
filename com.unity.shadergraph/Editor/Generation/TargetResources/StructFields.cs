@@ -38,9 +38,9 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor positionWS = new FieldDescriptor(Varyings.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor normalWS = new FieldDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Half3,
-                subscriptOptions: StructFieldOptions.Optional, nativeType:true);
+                subscriptOptions: StructFieldOptions.Optional, nativeType: true);
             public static FieldDescriptor tangentWS = new FieldDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Half4,
-                subscriptOptions: StructFieldOptions.Optional, nativeType:true);
+                subscriptOptions: StructFieldOptions.Optional, nativeType: true);
             public static FieldDescriptor texCoord0 = new FieldDescriptor(Varyings.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor texCoord1 = new FieldDescriptor(Varyings.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
