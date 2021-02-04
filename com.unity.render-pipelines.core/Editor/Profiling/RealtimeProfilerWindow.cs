@@ -41,11 +41,10 @@ namespace UnityEditor.Rendering
         {
             if (state == PlayModeStateChange.EnteredPlayMode)
             {
-                m_Model = RealtimeProfilerModel.GetOrCreateRuntimeInstance();
+                m_Model = FindObjectOfType<RealtimeProfilerModel>();
             }
             else if (state == PlayModeStateChange.ExitingPlayMode)
             {
-                RealtimeProfilerModel.DestroyInstance();
                 m_Model = null;
                 m_ViewModel.ResetUI(this.rootVisualElement);
             }
