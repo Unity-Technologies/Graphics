@@ -34,9 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
     enum DoubleSidedGIMode
     {
-        MatchMaterial,
-        ForceOn,
-        ForceOff
+        Auto,
+        On,
+        Off
     }
 
     enum TessellationMode

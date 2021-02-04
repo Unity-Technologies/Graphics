@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
-            DoubleSidedGIMode doubleSidedGIMode = DoubleSidedGIMode.MatchMaterial;
+            DoubleSidedGIMode doubleSidedGIMode = DoubleSidedGIMode.Auto;
             if (material.HasProperty(kDoubleSidedGIMode))
             {
                 doubleSidedGIMode = (DoubleSidedGIMode)material.GetFloat(kDoubleSidedGIMode);
@@ -246,11 +246,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
-            if (doubleSidedGIMode == DoubleSidedGIMode.MatchMaterial)
+            if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
                 material.doubleSidedGI = doubleSidedEnable;
-            else if (doubleSidedGIMode == DoubleSidedGIMode.ForceOn)
+            else if (doubleSidedGIMode == DoubleSidedGIMode.On)
                 material.doubleSidedGI = true;
-            else if (doubleSidedGIMode == DoubleSidedGIMode.ForceOff)
+            else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
                 material.doubleSidedGI = false;
             serializedObject.ApplyModifiedProperties();
         }

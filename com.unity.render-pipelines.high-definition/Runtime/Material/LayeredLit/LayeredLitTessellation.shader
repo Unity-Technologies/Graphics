@@ -301,7 +301,7 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
-        [Enum(MatchMaterial, 0, ForceOn, 1, ForceOff, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
+        [Enum(Auto, 0, On, 1, Off, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
 
         // For layering, due to combinatorial explosion, we only support SSS/Transmission and Standard. We let other case for the shader graph
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard

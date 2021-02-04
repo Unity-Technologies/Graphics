@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold, HLSLDeclaration.UnityPerMaterial);
         }
 
-        public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled, DoubleSidedGIMode giMode = DoubleSidedGIMode.MatchMaterial)
+        public static void AddDoubleSidedProperty(PropertyCollector collector, DoubleSidedMode mode = DoubleSidedMode.Enabled, DoubleSidedGIMode giMode = DoubleSidedGIMode.Auto)
         {
             var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                enumNames = { "MatchMaterial", "ForcesOn", "ForcesOff" }, // values will be 0, 1 and 2
+                enumNames = { "Auto", "On", "Off" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedGIMode",
                 hidden = true,
