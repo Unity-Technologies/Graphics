@@ -537,6 +537,26 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowsPendingRendering.Add(shadowIdx, shadowRecord);
         }
 
+        internal void SchedulePartialShadowUpdate(HDAdditionalLightData lightData, int shadowIdx)
+        {
+            if (!lightData.isActiveAndEnabled) return;
+
+            int lightIdx = lightData.lightIdxForCachedShadows;
+            Debug.Assert(lightIdx >= 0);
+
+            if (!m_PlacedShadows.ContainsKey(lightIdx))
+            {
+                if (m_RegisteredLightDataPendingPlacement.ContainsKey(lightIdx))
+                    return;
+
+                RegisterLight(lightData);
+            }
+            else
+            {
+                ScheduleShadowUpdate(shadowIdx);
+            }
+        }
+
         internal void MarkAsRendered(int shadowIdx)
         {
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))

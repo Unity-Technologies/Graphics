@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Point)
             {
                 Debug.Assert(subShadowIndex < 6);
-                punctualShadowAtlas.ScheduleShadowUpdate(light.lightIdxForCachedShadows + subShadowIndex);
+                punctualShadowAtlas.SchedulePartialShadowUpdate(light, light.lightIdxForCachedShadows + subShadowIndex);
             }
             if (lightType == HDLightType.Directional)
             {
