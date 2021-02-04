@@ -195,11 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects)) // If we don't have opaque objects there is no need to clear.
-                {
-                    // No need for old stencil values here since from transparent on different features are tagged
-                    ClearStencilBuffer(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer);
-                }
+                // No need for old stencil values here since from transparent on different features are tagged
+                ClearStencilBuffer(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer);
 
                 colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
@@ -1193,8 +1190,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
         }
 
-        void ClearStencilBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        void ClearStencilBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects)) // If we don't have opaque objects there is no need to clear.
+                return;
+
             using (var builder = renderGraph.AddRenderPass<ClearStencilPassData>("Clear Stencil Buffer", out var passData, ProfilingSampler.Get(HDProfileId.ClearStencil)))
             {
                 passData.clearStencilMaterial = m_ClearStencilBufferMaterial;
