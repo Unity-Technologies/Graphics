@@ -73,11 +73,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
-#pragma warning disable 414
-        [SerializeField]
-        bool m_AdvancedMode = false; // Editor-only
-#pragma warning restore 414
-
         /// <summary>
         /// Extracts all the <see cref="VolumeParameter"/>s defined in this class and nested classes.
         /// </summary>
@@ -117,6 +112,7 @@ namespace UnityEngine.Rendering
             var fields = new List<VolumeParameter>();
             FindParameters(this, fields);
             parameters = fields.AsReadOnly();
+
 
             foreach (var parameter in parameters)
             {

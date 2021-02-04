@@ -508,7 +508,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var property in graph.properties)
                 {
-                    if (property.isExposable && property.generatePropertyBlock)
+                    if (property.isExposed)
                     {
                         continue;
                     }
@@ -657,7 +657,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var property in graph.properties)
                 {
-                    if (!property.isExposable || !property.generatePropertyBlock)
+                    if (!property.isExposed)
                     {
                         continue;
                     }
