@@ -23,7 +23,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621394765
-      data2: 4539628425463136280
+      data2: 4539628429758103576
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -64,8 +64,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 0
-    supportSSRTransparent: 0
+    supportSSR: 1
+    supportSSRTransparent: 1
     supportSSAO: 1
     supportSSGI: 0
     supportSubsurfaceScattering: 1
@@ -74,7 +74,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportLightLayers: 0
+    supportLightLayers: 1
     lightLayerName0: Light Layer default
     lightLayerName1: Light Layer 1
     lightLayerName2: Light Layer 2
@@ -96,7 +96,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
-    supportDecalLayers: 0
+    supportDecalLayers: 1
     decalLayerName0: Decal Layer default
     decalLayerName1: Decal Layer 1
     decalLayerName2: Decal Layer 2
@@ -132,9 +132,9 @@ MonoBehaviour:
       supportFabricConvolution: 0
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 2048
-      maxAreaLightsOnScreen: 512
+      maxAreaLightsOnScreen: 1024
       maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
+      maxDecalsOnScreen: 2048
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
       maxDensityVolumeSize: 32
@@ -142,7 +142,7 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      shadowFilteringQuality: 2
       punctualLightShadowAtlas:
         shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 32
@@ -168,7 +168,7 @@ MonoBehaviour:
       maxDirectionalShadowMapResolution: 2048
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 0
+      supportScreenSpaceShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
@@ -308,6 +308,11 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
   - {fileID: 11400000, guid: ad180cf900c4ef141be2b350f09ffa5b, type: 2}
+  - {fileID: 11400000, guid: 92119388ece825647ba5039062efc187, type: 2}
+  - {fileID: 11400000, guid: 2efa14a049ef1fc49bcf18c90ebcab30, type: 2}
+  - {fileID: 11400000, guid: 7906daf99f11c624a9d2c8fa0eed731c, type: 2}
+  - {fileID: 11400000, guid: 806662ba108f2924e87ff130ceb55b0c, type: 2}
+  - {fileID: 11400000, guid: fe4039db552975244bf7f3c3ce891928, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []

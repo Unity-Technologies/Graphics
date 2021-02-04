@@ -64,8 +64,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 0
-    supportSSRTransparent: 0
+    supportSSR: 1
+    supportSSRTransparent: 1
     supportSSAO: 1
     supportSSGI: 0
     supportSubsurfaceScattering: 1
@@ -74,7 +74,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportLightLayers: 0
+    supportLightLayers: 1
     lightLayerName0: Light Layer default
     lightLayerName1: Light Layer 1
     lightLayerName2: Light Layer 2
@@ -87,16 +87,16 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 74
+    colorBufferFormat: 48
     supportCustomPass: 1
-    customBufferFormat: 12
+    customBufferFormat: 48
     supportedLitShaderMode: 2
     planarReflectionResolution:
       m_Values: 000100000004000000040000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
-    supportDecalLayers: 0
+    supportDecalLayers: 1
     decalLayerName0: Decal Layer default
     decalLayerName1: Decal Layer 1
     decalLayerName2: Decal Layer 2
@@ -117,7 +117,7 @@ MonoBehaviour:
     supportedRayTracingMode: 3
     lightLoopSettings:
       cookieAtlasSize: 2048
-      cookieFormat: 74
+      cookieFormat: 48
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
       planarReflectionAtlasSize: 1024
@@ -132,9 +132,9 @@ MonoBehaviour:
       supportFabricConvolution: 0
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 2048
-      maxAreaLightsOnScreen: 512
+      maxAreaLightsOnScreen: 1024
       maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
+      maxDecalsOnScreen: 2048
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
       maxDensityVolumeSize: 32
@@ -142,7 +142,7 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      shadowFilteringQuality: 2
       punctualLightShadowAtlas:
         shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 32
