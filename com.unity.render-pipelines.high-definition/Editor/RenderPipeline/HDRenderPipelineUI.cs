@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 --EditorGUI.indentLevel;
             }
-
+			
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
         }
@@ -727,6 +727,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowMotionBlurMediumQualitySection = false;
         static private bool m_ShowMotionBlurHighQualitySection = false;
 
+		static void DrawMotionBlurQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+			++EditorGUI.indentLevel;
+          	EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(tier), Styles.sampleCountQuality);
+			--EditorGUI.indentLevel;
+		}
+
         static void Drawer_SectionMotionBlurQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowMotionBlurLowQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurLowQualitySection, Styles.lowQualityContent, true);
@@ -734,22 +741,22 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowMotionBlurLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), Styles.sampleCountQuality);
-            }
+				DrawMotionBlurQualitySetting(serialized, quality);
+			}
             m_ShowMotionBlurMediumQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurMediumQualitySection, Styles.mediumQualityContent, true);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowMotionBlurMediumQualitySection);
             if (m_ShowMotionBlurMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), Styles.sampleCountQuality);
-            }
+				DrawMotionBlurQualitySetting(serialized, quality);
+			}
             m_ShowMotionBlurHighQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurHighQualitySection, Styles.highQualityContent, true);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowMotionBlurHighQualitySection);
             if (m_ShowMotionBlurHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), Styles.sampleCountQuality);
-            }
+                DrawMotionBlurQualitySetting(serialized, quality);
+			}
         }
 
         static private bool m_ShowBloomLowQualitySection = false;
@@ -758,10 +765,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawBloomQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
+			++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomRes.GetArrayElementAtIndex(tier), Styles.resolutionQuality);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighPrefilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityPrefiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
-        }
+			--EditorGUI.indentLevel;
+		}
 
         static void Drawer_SectionBloomQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -792,6 +801,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowChromaticAberrationMediumQualitySection = false;
         static private bool m_ShowChromaticAberrationHighQualitySection = false;
 
+		static void DrawChromaticAberrationQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+			++EditorGUI.indentLevel;
+			EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(tier), Styles.maxSamplesQuality);
+			--EditorGUI.indentLevel;
+		}
+
         static void Drawer_SectionChromaticAberrationQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowChromaticAberrationLowQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationLowQualitySection, Styles.lowQualityContent, true);
@@ -799,40 +815,46 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowChromaticAberrationLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), Styles.maxSamplesQuality);
-            }
+				DrawChromaticAberrationQualitySetting(serialized, quality);
+			}
             m_ShowChromaticAberrationMediumQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationMediumQualitySection, Styles.mediumQualityContent, true);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowChromaticAberrationMediumQualitySection);
             if (m_ShowChromaticAberrationMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), Styles.maxSamplesQuality);
-            }
+                DrawChromaticAberrationQualitySetting(serialized, quality);
+			}
             m_ShowChromaticAberrationHighQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationHighQualitySection, Styles.highQualityContent, true);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowChromaticAberrationHighQualitySection);
             if (m_ShowChromaticAberrationHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), Styles.maxSamplesQuality);
-            }
+                DrawChromaticAberrationQualitySetting(serialized, quality);
+			}
         }
+		
+		
 
         static void DrawAOQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
+			++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOStepCount.GetArrayElementAtIndex(tier), Styles.AOStepCount);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOFullRes.GetArrayElementAtIndex(tier), Styles.AOFullRes);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOMaximumRadiusPixels.GetArrayElementAtIndex(tier), Styles.AOMaxRadiusInPixels);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AODirectionCount.GetArrayElementAtIndex(tier), Styles.AODirectionCount);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.AOBilateralUpsample.GetArrayElementAtIndex(tier), Styles.AOBilateralUpsample);
-        }
+			--EditorGUI.indentLevel;
+		}
 
         static void DrawRTAOQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
+			++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAORayLength.GetArrayElementAtIndex(tier), Styles.RTAORayLength);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAOSampleCount.GetArrayElementAtIndex(tier), Styles.RTAOSampleCount);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAODenoise.GetArrayElementAtIndex(tier), Styles.RTAODenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTAODenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTAODenoiserRadius);
-        }
+			--EditorGUI.indentLevel;
+		}
 
         static void CheckFoldoutClick(Rect foldoutRect, ref bool foldoutFlag)
         {
@@ -912,6 +934,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowContactShadowMediumQualitySection = false;
         static private bool m_ShowContactShadowHighQualitySection = false;
 
+		static void DrawContactShadowQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+			++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(tier), Styles.contactShadowsSampleCount);
+			--EditorGUI.indentLevel;
+		}
+
         static void Drawer_SectionContactShadowQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowContactShadowLowQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowLowQualitySection, Styles.lowQualityContent);
@@ -919,29 +948,36 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowContactShadowLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+				DrawContactShadowQualitySetting(serialized, quality);
+			}
 
             m_ShowContactShadowMediumQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowMediumQualitySection, Styles.mediumQualityContent);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowContactShadowMediumQualitySection);
             if (m_ShowContactShadowMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+                DrawContactShadowQualitySetting(serialized, quality);
+			}
 
             m_ShowContactShadowHighQualitySection = EditorGUILayout.Foldout(m_ShowContactShadowHighQualitySection, Styles.highQualityContent);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowContactShadowHighQualitySection);
             if (m_ShowContactShadowHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.ContactShadowSampleCount.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+                DrawContactShadowQualitySetting(serialized, quality);
+			}
         }
 
         static private bool m_ShowSSRLowQualitySection = false;
         static private bool m_ShowSSRMediumQualitySection = false;
         static private bool m_ShowSSRHighQualitySection = false;
+
+		static void DrawSSRQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+			++EditorGUI.indentLevel;
+			EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(tier), Styles.contactShadowsSampleCount);
+			--EditorGUI.indentLevel;
+		}
 
         static void Drawer_SectionSSRQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -950,24 +986,24 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowSSRLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+                DrawSSRQualitySetting(serialized, quality);
+			}
 
             m_ShowSSRMediumQualitySection = EditorGUILayout.Foldout(m_ShowSSRMediumQualitySection, Styles.mediumQualityContent);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSRMediumQualitySection);
             if (m_ShowSSRMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+				DrawSSRQualitySetting(serialized, quality);
+			}
 
             m_ShowSSRHighQualitySection = EditorGUILayout.Foldout(m_ShowSSRHighQualitySection, Styles.highQualityContent);
             CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSRHighQualitySection);
             if (m_ShowSSRHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
-            }
+                DrawSSRQualitySetting(serialized, quality);
+			}
         }
 
         static private bool m_ShowRTRLowQualitySection = false;
@@ -976,6 +1012,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawRTRQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
+			++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRMinSmoothness.GetArrayElementAtIndex(tier), Styles.RTRMinSmoothness);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRSmoothnessFadeStart.GetArrayElementAtIndex(tier), Styles.RTRSmoothnessFadeStart);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRRayLength.GetArrayElementAtIndex(tier), Styles.RTRRayLength);
@@ -984,7 +1021,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoise.GetArrayElementAtIndex(tier), Styles.RTRDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTRDenoiserRadius);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTRSmoothDenoising.GetArrayElementAtIndex(tier), Styles.RTRSmoothDenoising);
-        }
+			--EditorGUI.indentLevel;
+		}
 
         static void Drawer_SectionRTRQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -1017,6 +1055,18 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool m_ShowFogMediumQualitySection = false;
         static private bool m_ShowFogHighQualitySection = false;
 
+		static void DrawVolumetricFogQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+			++EditorGUI.indentLevel;
+			var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(tier);
+			EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+			budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+			var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(tier);
+			EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+			ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);			
+			--EditorGUI.indentLevel;
+		}
+
         static void Drawer_SectionFogQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             m_ShowFogLowQualitySection = EditorGUILayout.Foldout(m_ShowFogLowQualitySection, Styles.lowQualityContent);
@@ -1024,12 +1074,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowFogLowQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Low;
-                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
-                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
-                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
-                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+				DrawVolumetricFogQualitySetting(serialized, quality);
             }
 
             m_ShowFogMediumQualitySection = EditorGUILayout.Foldout(m_ShowFogMediumQualitySection, Styles.mediumQualityContent);
@@ -1037,12 +1082,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowFogMediumQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.Medium;
-                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
-                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
-                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
-                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+				DrawVolumetricFogQualitySetting(serialized, quality);
             }
 
             m_ShowFogHighQualitySection = EditorGUILayout.Foldout(m_ShowFogHighQualitySection, Styles.highQualityContent);
@@ -1050,12 +1090,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowFogHighQualitySection)
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
-                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
-                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
-                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
-                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
-                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+				DrawVolumetricFogQualitySetting(serialized, quality);
             }
         }
 
@@ -1065,6 +1100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawRTGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
+			++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIRayLength.GetArrayElementAtIndex(tier), Styles.RTGIRayLength);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIClampValue.GetArrayElementAtIndex(tier), Styles.RTGIClampValue);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIFullResolution.GetArrayElementAtIndex(tier), Styles.RTGIFullResolution);
@@ -1073,7 +1109,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.RTGIHalfResDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.RTGIDenoiserRadius);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGISecondDenoise.GetArrayElementAtIndex(tier), Styles.RTGISecondDenoise);
-        }
+			--EditorGUI.indentLevel;
+		}
 
         static void Drawer_SectionRTGIQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
