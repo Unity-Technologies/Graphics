@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
     // This ifdef can be removed once V2 is the only option.
     [ScriptedImporter(109, Extension, -902)]
 #else
-    [ScriptedImporter(41, Extension, -902)]
+    [ScriptedImporter(42, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -379,7 +379,8 @@ Shader ""Hidden/GraphErrorShader2""
 
                 // VFX graph building sets m_Validate to true
                 var bodySb = new ShaderStringBuilder(1);
-                var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
+                var graphIncludes = new IncludeCollection();
+                var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
 
                 foreach (var properties in graph.properties)
                 {
@@ -453,6 +454,12 @@ Shader ""Hidden/GraphErrorShader2""
 
                 sharedCodeIndices.Add(codeSnippets.Count);
                 codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\"{nl}");
+
+                foreach (var include in graphIncludes)
+                {
+                    sharedCodeIndices.Add(codeSnippets.Count);
+                    codeSnippets.Add(include.value + nl);
+                }
 
                 for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
                 {

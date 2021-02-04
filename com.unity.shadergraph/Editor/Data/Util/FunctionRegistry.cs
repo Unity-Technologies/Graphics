@@ -19,16 +19,28 @@ namespace UnityEditor.ShaderGraph
         Dictionary<string, FunctionSource> m_Sources = new Dictionary<string, FunctionSource>();
         bool m_Validate = false;
         ShaderStringBuilder m_Builder;
+        IncludeCollection m_Includes;
 
-        public FunctionRegistry(ShaderStringBuilder builder, bool validate = false)
+        public FunctionRegistry(ShaderStringBuilder builder, IncludeCollection includes, bool validate = false)
         {
             m_Builder = builder;
+            m_Includes = includes;
             m_Validate = validate;
         }
 
         internal ShaderStringBuilder builder => m_Builder;
 
         public Dictionary<string, FunctionSource> sources => m_Sources;
+
+        public void RequiresIncludes(IncludeCollection includes)
+        {
+            m_Includes.Add(includes);
+        }
+
+        public void RequiresIncludePath(string includePath)
+        {
+            m_Includes.Add(includePath, IncludeLocation.Pregraph);
+        }
 
         // this list is somewhat redundant, but it preserves function declaration ordering
         // (i.e. when nodes add multiple functions, they require being defined in a certain order)
