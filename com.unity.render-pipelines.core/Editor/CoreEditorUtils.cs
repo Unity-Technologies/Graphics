@@ -797,10 +797,10 @@ namespace UnityEditor.Rendering
             return data;
         }
 
-        /// <summary>Add the appropriate AdditionalData to the given GameOject and its children containing the original component</summary>
+        /// <summary>Add the appropriate AdditionalData to the given GameObject and its children containing the original component</summary>
         /// <typeparam name="T">The type of the original component</typeparam>
         /// <typeparam name="AdditionalT">The type of the AdditionalData component</typeparam>
-        /// <param name="go">The object to seek for update</param>
+        /// <param name="go">The root object to update</param>
         /// <param name="initDefault">[Optional] The default value to use if there is no AdditionalData</param>
         public static void AddAdditionalData<T, AdditionalT>(GameObject go, Action<AdditionalT> initDefault = null)
             where T : Component
