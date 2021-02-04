@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -197,7 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!m_ApplyingBrush)
             {
-                Undo.RecordObject(probeVolumeAsset, "Paint Volume");
+                Undo.RegisterCompleteObjectUndo(probeVolumeAsset, "Paint Volume");
                 m_ApplyingBrush = true;
             }
 
@@ -227,13 +223,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorUtility.SetDirty(probeVolumeAsset);
             probeVolume.dataUpdated = true;
         }
 
         void OnStopApplyingBrush()
         {
-            Undo.FlushUndoRecordObjects();
             m_ApplyingBrush = false;
         }
 

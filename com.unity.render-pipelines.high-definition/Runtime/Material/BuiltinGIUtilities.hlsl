@@ -291,7 +291,7 @@ float3 SampleProbeVolume(float3 positionRWS, float3 normalWS)
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
     uint renderingLayers = GetMeshRenderingLightLayer();
 
-    float probeVolumeHierarchyWeight = 1.0f;
+    float probeVolumeHierarchyWeight = 0.0f;
 
     const float3 backNormalWSUnused = 0.0f;
     float3 backBakeDiffuseLightingUnused = 0.0f;
