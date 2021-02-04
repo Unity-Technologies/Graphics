@@ -523,8 +523,102 @@ namespace UnityEngine.Rendering.Universal
                     // is because this need to be called for each eye in multi pass VR.
                     // The side effect is that this will override some shader properties we already setup and we will have to
                     // reset them.
-                    context.SetupCameraProperties(camera);
-                    SetCameraMatrices(cmd, ref cameraData, true);
+                    if (cameraData.renderType == CameraRenderType.Base)
+                    {
+                        context.SetupCameraProperties(camera);
+                        SetCameraMatrices(cmd, ref cameraData, true);
+                    }
+                    else
+                    {
+                        context.SetupCameraProperties(cameraData.baseCamera);
+
+                        var cameraWorldPos = camera.transform.position;
+                        cmd.SetGlobalVector("_WorldSpaceCameraPos", new Vector4(cameraWorldPos.x, cameraWorldPos.y, cameraWorldPos.z, 0.0f));
+
+                        // TODO avoid duplicate
+                        Matrix4x4 worldToCamera = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * cameraData.GetViewMatrix();
+                        Matrix4x4 cameraToWorld = worldToCamera.inverse;
+
+                        // Get the matrix to use for cubemap reflections.
+                        // It's camera to world matrix; rotation only, and mirrored on Y.
+                        worldToCamera.m03 = 0; // clear translation x
+                        worldToCamera.m13 = 0; // clear translation y
+                        worldToCamera.m23 = 0; // clear translation z
+                        Matrix4x4 invertY;
+                        invertY = Matrix4x4.Scale(new Vector3(1, -1, 1));
+                        Matrix4x4 reflMat = worldToCamera * invertY; // TODO check if correct order
+                        cmd.SetGlobalMatrix("_Reflection", reflMat);
+
+                        // Camera clipping planes
+                        SetClippingPlaneShaderProps();
+
+                        SetCameraMatrices(cmd, ref cameraData, true);
+
+                        bool invertProjectionMatrix = false; // TODO
+
+                        float projNear = camera.nearClipPlane;
+                        float projFar = camera.farClipPlane;
+                        float invNear = (projNear == 0.0f) ? 1.0f : 1.0f / projNear;
+                        float invFar = (projFar == 0.0f) ? 1.0f : 1.0f / projFar;
+                        cmd.SetGlobalVector("_ProjectionParams", new Vector4(invertProjectionMatrix ? -1.0f : 1.0f, projNear, projFar, invFar));
+
+                        //Rectf view = GetScreenViewportRect();
+                        //shaderParams.SetVectorParam(kShaderVecScreenParams, Vector4f(view.width, view.height, 1.0f + 1.0f / view.width, 1.0f + 1.0f / view.height));
+
+
+                        /*// From http://www.humus.name/temp/Linearize%20depth.txt
+                        // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
+                        // the same constants for both D3D and OpenGL here.
+                        double zc0, zc1;
+                        // OpenGL would be this:
+                        // zc0 = (1.0 - projFar / projNear) / 2.0;
+                        // zc1 = (1.0 + projFar / projNear) / 2.0;
+                        // D3D is this:
+                        zc0 = 1.0 - projFar * invNear;
+                        zc1 = projFar * invNear;
+
+                        Vector4f v = Vector4f(zc0, zc1, zc0 * invFar, zc1 * invFar);
+                        if (GetGraphicsCaps().usesReverseZ)
+                        {
+                            v.y += v.x;
+                            v.x = -v.x;
+                            v.w += v.z;
+                            v.z = -v.z;
+                        }
+                        shaderParams.SetVectorParam(kShaderVecZBufferParams, v);*/
+
+                        // Ortho params
+                        Vector4 orthoParams;
+                        bool isPerspective = !camera.orthographic;
+                        orthoParams.x = camera.orthographicSize * camera.aspect;
+                        orthoParams.y = camera.orthographicSize;
+                        orthoParams.z = 0.0f;
+                        orthoParams.w = isPerspective ? 0.0f : 1.0f;
+                        cmd.SetGlobalVector("unity_OrthoParams", orthoParams);
+
+                        /*if (passContext.keywords.IsEnabled(keywords::kStereoCubemapRenderOn))
+                        {
+                            float halfStereoSeparation = 0.5f * params.stereoSeparation;
+                            GfxDevice & device = GetGfxDevice();
+                            float eyeIndex = device.GetBuiltinParamValues().GetWritableVectorParam(kShaderVecStereoEyeIndex).x;
+
+                            if (eyeIndex == 0)
+                            {
+                                //left eye gets negative separation value
+                                halfStereoSeparation *= -1.0f;
+                            }
+                            v = Vector4f(halfStereoSeparation, 0, 0, 0);
+                            shaderParams.SetVectorParam(kShaderVecHalfStereoSeparation, v);
+                        }*/
+
+                        // Setup billboard rendering.
+                        SetBillboardShaderProps(
+                            cmd,
+                            QualitySettings.billboardsFaceCameraPosition,
+                            cameraData.GetViewMatrix(),
+                            cameraData.camera.transform.position);
+                    }
+
 
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
@@ -557,7 +651,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Draw Gizmos...
-                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                DrawGizmos(context, cameraData.baseCamera, GizmoSubset.PreImageEffects);
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
@@ -568,14 +662,89 @@ namespace UnityEngine.Rendering.Universal
 
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
-                DrawWireOverlay(context, camera);
-                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                DrawWireOverlay(context, cameraData.baseCamera);
+                DrawGizmos(context, cameraData.baseCamera, GizmoSubset.PostImageEffects);
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void SetClippingPlaneShaderProps()
+        {
+            // TODO
+            /*BuiltinShaderParamValues & params = device.GetBuiltinParamValues();
+
+            const Matrix4x4f&viewMatrix = device.GetViewMatrix();
+            const Matrix4x4f&deviceProjMatrix = device.GetDeviceProjectionMatrix();
+            Matrix4x4f viewProj;
+            MultiplyMatrices4x4(&deviceProjMatrix, &viewMatrix, &viewProj);
+            Plane planes[6];
+            ExtractProjectionPlanes(viewProj, planes);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes0, (const Vector4f&)planes[0]);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes1, (const Vector4f&)planes[1]);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes2, (const Vector4f&)planes[2]);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes3, (const Vector4f&)planes[3]);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes4, (const Vector4f&)planes[4]);
+            params.SetVectorParam(kShaderVecCameraWorldClipPlanes5, (const Vector4f&)planes[5]);*/
+        }
+
+        private static void SetBillboardShaderProps(
+            CommandBuffer cmd,
+            bool faceCameraPosition,
+            Matrix4x4 worldToCameraMatrix,
+            Vector3 cameraPos)
+        {
+            CoreUtils.SetKeyword(cmd, "BILLBOARD_FACE_CAMERA_POS", faceCameraPosition);
+
+            Vector3 billboardTangent;
+            Vector3 billboardNormal;
+            float cameraXZAngle;
+            CalculateBillboardProperties(worldToCameraMatrix, out billboardTangent, out billboardNormal, out cameraXZAngle);
+
+            cmd.SetGlobalVector("unity_BillboardNormal", new Vector4(billboardTangent.x, billboardTangent.y, billboardTangent.z, 0.0f));
+            cmd.SetGlobalVector("unity_BillboardTangent", new Vector4(billboardNormal.x, billboardNormal.y, billboardNormal.z, 0.0f));
+            cmd.SetGlobalVector("unity_BillboardCameraParams", new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, cameraXZAngle));
+        }
+
+        private static void CalculateBillboardProperties(
+            in Matrix4x4 worldToCameraMatrix,
+            out Vector3 billboardTangent,
+            out Vector3 billboardNormal,
+            out float cameraXZAngle)
+        {
+            Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix;
+            cameraToWorldMatrix = cameraToWorldMatrix.transpose;
+
+            Vector3 cameraToWorldMatrixAxisX = new Vector3(cameraToWorldMatrix.m00, cameraToWorldMatrix.m10, cameraToWorldMatrix.m20);
+            Vector3 cameraToWorldMatrixAxisY = new Vector3(cameraToWorldMatrix.m01, cameraToWorldMatrix.m11, cameraToWorldMatrix.m21);
+            Vector3 cameraToWorldMatrixAxisZ = new Vector3(cameraToWorldMatrix.m02, cameraToWorldMatrix.m12, cameraToWorldMatrix.m22);
+
+            Vector3 front = cameraToWorldMatrixAxisZ;
+
+            Vector3 worldUp = Vector3.up;
+            Vector3 cross = Vector3.Cross(front, worldUp);
+            billboardTangent = !Mathf.Approximately(cross.sqrMagnitude, 0.0f)
+                ? cross.normalized
+                : cameraToWorldMatrixAxisX;
+
+            billboardNormal = Vector3.Cross(worldUp, billboardTangent);
+            billboardNormal = !Mathf.Approximately(billboardNormal.sqrMagnitude, 0.0f)
+                ? billboardNormal.normalized
+                : cameraToWorldMatrixAxisY;
+
+            // SpeedTree generates billboards starting from looking towards X- and rotates counter clock-wisely
+            Vector3 worldRight = new Vector3(0, 0, 1);
+            // signed angle is calculated on X-Z plane
+            float s = worldRight.x * billboardTangent.z - worldRight.z * billboardTangent.x;
+            float c = worldRight.x * billboardTangent.x + worldRight.z * billboardTangent.z;
+            cameraXZAngle = Mathf.Atan2(s, c);
+
+            // convert to [0,2PI)
+            if (cameraXZAngle < 0)
+                cameraXZAngle += 2 * Mathf.PI;
         }
 
         /// <summary>
