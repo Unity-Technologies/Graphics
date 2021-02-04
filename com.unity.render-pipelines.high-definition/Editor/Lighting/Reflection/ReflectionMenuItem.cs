@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("GameObject/Light/Planar Reflection Probe", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 1)]
+        [MenuItem("GameObject/Light/Planar Reflection Probe", priority = 22)]
         static void CreatePlanarReflectionGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
