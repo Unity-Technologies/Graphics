@@ -266,7 +266,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
-  - enabled: 1
-    path: Assets/Scenes/131_ParallaxMapping.unity
-    guid: ac4701d765fa26b4f83d2fb9ed6b3c08
   m_configObjects: {}
