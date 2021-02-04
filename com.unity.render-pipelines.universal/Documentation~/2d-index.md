@@ -1,4 +1,4 @@
-#2D URP components and features
+#2D components and features
 
 The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D Scene through core Unity components such as the Sprite Renderer, and 2D Light components that act as 2D counterparts to familiar 3D Light components.
 
