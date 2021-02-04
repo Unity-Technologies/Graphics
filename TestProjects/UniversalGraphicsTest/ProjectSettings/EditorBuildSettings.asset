@@ -105,9 +105,6 @@ EditorBuildSettings:
     path: Assets/Scenes/038_Shader_TerrainBlend_Opacity_As_Density.unity
     guid: 57b37a9fcda3f244992f314e76964faa
   - enabled: 1
-    path: Assets/Scenes/039_Particles_Instanced.unity
-    guid: 5fca56b2f8a46664e858cbb290338fc8
-  - enabled: 1
     path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
   - enabled: 1
