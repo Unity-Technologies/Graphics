@@ -392,8 +392,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = PreparePathTracingParameters(hdCamera);
             if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
             {
-                // Keep a sky texture around, that we compute only on the very first frame of the accumulation
-                if (m_RenderSky)
+                // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
+                if (m_RenderSky || m_SubFrameManager.isRecording)
                 {
                     RenderSky(m_RenderGraph, hdCamera, m_SkyTexture);
                     m_RenderSky = false;   
