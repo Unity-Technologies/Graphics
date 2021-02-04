@@ -129,7 +129,9 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
-                concretePrecision = m_SubGraph.outputPrecision;
+
+                // EvaluateConcretePrecision(List < MaterialSlot > inputSlots)
+                // concretePrecision = m_SubGraph.outputPrecision;
             }
         }
 
@@ -188,11 +190,14 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
+            var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
+
             if (asset == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
+
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -205,13 +210,16 @@ namespace UnityEditor.ShaderGraph
 
             GenerationUtils.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
+            // declare output variables
             foreach (var outSlot in asset.outputs)
-                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(asset.outputPrecision), GetVariableNameForSlot(outSlot.id));
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(outputPrecision), GetVariableNameForSlot(outSlot.id));
 
+            //
             var arguments = new List<string>();
-            foreach (var prop in asset.inputs)
+            foreach (AbstractShaderProperty prop in asset.inputs)
             {
-                prop.ValidateConcretePrecision(asset.graphPrecision);
+                // setup the property concrete precision (fallback to node concrete precision when it's switchable)
+                prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));

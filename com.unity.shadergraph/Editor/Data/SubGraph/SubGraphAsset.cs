@@ -79,13 +79,17 @@ namespace UnityEditor.ShaderGraph
 
         public ShaderStageCapability effectiveShaderStage;
 
-        public ConcretePrecision graphPrecision;
 
-        public ConcretePrecision outputPrecision;
-
-        public GraphPrecision outputGraphPrecision;
-
+        // this is the precision that the entire subgraph is set to (indicates whether the graph is hard-coded or switchable)
         public GraphPrecision subGraphGraphPrecision;
+
+        // this is the precision of the subgraph outputs
+        // NOTE: this may not be the same as subGraphGraphPrecision
+        // for example, a graph could allow switching precisions for internal calculations,
+        // but the output of the graph is always full float
+        // NOTE: we don't currently have a way to select the graph precision for EACH output
+        // there's a single shared precision for all of them
+        public GraphPrecision outputGraphPrecision;
 
         public PreviewMode previewMode;
 

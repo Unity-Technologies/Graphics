@@ -2251,6 +2251,11 @@ namespace UnityEditor.ShaderGraph
                             this.graphPrecision = GraphPrecision.Single;
                             break;
                     }
+
+                    // concrete precision no longer affects subgraph output
+                    // (only affects the code generated for preview renders)
+                    // so we force it back to the default
+                    this.concretePrecision = ConcretePrecision.Single;
                 }
 
                 ChangeVersion(latestVersion);

@@ -383,7 +383,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var properties in graph.properties)
                 {
-                    properties.ValidateConcretePrecision(graph.concretePrecision);
+                    properties.SetupConcretePrecision(graph.concretePrecision);
                 }
 
                 foreach (var node in nodes)

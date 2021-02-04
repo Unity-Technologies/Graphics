@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
+        public delegate void ChangeConcretePrecisionCallback(GraphPrecision graphPrecision, ConcretePrecision concretePrecision);
         public delegate void PostTargetSettingsChangedCallback();
 
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
@@ -110,6 +110,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return element;
         }
 
+        // used to display UI to select GraphPrecision in the GraphData inspector
+        enum UIGraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+            Switchable = GraphPrecision.Graph,
+        };
+
         internal VisualElement CreateGUI(GraphData graphData)
         {
             var propertySheet = new VisualElement() {name = "graphSettings"};
@@ -120,10 +128,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return propertySheet;
             }
 
+            if (!graphData.isSubGraph)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
+                    newValue => { m_postChangeConcretePrecisionCallback(graphData.graphPrecision, (ConcretePrecision)newValue); },
                     graphData.concretePrecision,
                     "Precision",
                     ConcretePrecision.Single,
@@ -135,10 +144,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     var enum2PropertyDrawer = new EnumPropertyDrawer();
                     propertySheet.Add(enum2PropertyDrawer.CreateGUI(
-                        newValue => { graphData.graphPrecision = (GraphPrecision)newValue; },
-                        graphData.graphPrecision,
-                        "Graph Precision",
-                        GraphPrecision.Graph,
+                        newValue => { m_postChangeConcretePrecisionCallback((GraphPrecision)newValue, graphData.concretePrecision); },
+                        (UIGraphPrecision)graphData.graphPrecision,
+                        "Precision",
+                        UIGraphPrecision.Switchable,
                         out var propertyVisualElement2));
                 }
 

@@ -59,10 +59,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        internal void SetupConcretePrecision(ConcretePrecision whenSwitched)
         {
             // For properties, inherit (auto) means choose graph precision
-            m_ConcretePrecision = precision.ToConcrete(graphPrecision, graphPrecision);
+            m_ConcretePrecision = precision.ToConcrete(whenSwitched, whenSwitched);
         }
 
         [SerializeField]

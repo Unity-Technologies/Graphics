@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
-                prop.ValidateConcretePrecision(inheritedPrecision);
+                prop.SetupConcretePrecision(inheritedPrecision);
             }
 
             // build a list of all HLSL properties
