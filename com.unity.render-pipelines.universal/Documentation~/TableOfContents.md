@@ -89,7 +89,7 @@
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 
-* [2D components and features](2d-index.md)
+* [2D graphic features](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
     * [Requirements and setup](Setup.md)
     * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)

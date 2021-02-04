@@ -1,15 +1,5 @@
-#2D components and features
-
-The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D Scene through core Unity components such as the Sprite Renderer, and 2D Light components that act as 2D counterparts to familiar 3D Light components.
-
-These tools are designed to integrate seamlessly with 2D Renderers such as the Sprite Renderer, Tilemap Renderer, and Sprite Shape Renderer. This system of tools and components are optimized for mobile systems, and for running on multiple platforms.
-
-
--older content subject to change-
-
-When using URP with the **2D Renderer** selected, the **Light 2D** component introduces a way to apply 2D optimized lighting to Sprites.
-
-You can choose from several different Light Types with the **Light 2D** component. The Light Types currently available in the package are:
+#2D graphic features
+2D features included with URP are the [2D Lighting](Lights-2D-intro.md) graphics pipeline which allows you to create 2D Lights and 2D lighting effects; and the [2D Pixel Perfect Camera](2d-pixelperfect.md) for implementing the pixelated visual style with your projects. The following are the different 2D Light Types included in the package's **Light 2D** component:
 
 - [Freeform](LightTypes.html#freeform)
 - [Sprite](LightTypes.html#sprite)
