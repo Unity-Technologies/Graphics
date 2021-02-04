@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Moved
-- Moved Edit/Visual Effects//Rebuild And Save All VFX Graphs to Edit/VFX//Rebuild And Save All Visual Effect Graphs
+- Moved Edit/Visual Effects/Rebuild And Save All VFX Graphs to Edit/VFX/Rebuild And Save All Visual Effect Graphs
 
 ## [11.0.0] - 2020-10-21
 ### Added
