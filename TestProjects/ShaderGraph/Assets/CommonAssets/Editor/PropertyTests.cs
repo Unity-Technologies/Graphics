@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         GraphEditorView m_GraphEditorView;
         MaterialGraphEditWindow m_Window;
-
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
 
         [OneTimeSetUp]
@@ -115,6 +114,5 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     Assert.Fail("Failed to reset reference name to original value.");
             }
         }
-
     }
 }

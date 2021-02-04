@@ -44,7 +44,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             blackboard = new SGBlackboard(associatedGraphView)
             {
                 subTitle = FormatPath(graph.path),
-                editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
@@ -266,22 +265,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
-        void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
-        {
-            var field = (BlackboardFieldView)visualElement;
-            var input = (ShaderInput)field.userData;
-            if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
-            {
-                m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
-                input.displayName = newText;
-                m_Graph.SanitizeGraphInputName(input);
-                field.text = input.displayName;
-                // need to trigger the inspector update to match
-                field.InspectorUpdateTrigger();
-                DirtyNodes();
-            }
-        }
-
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             var selection = new List<ISelectable>();
@@ -467,15 +450,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 return m_InputRows[input];
             else
                 return null;
-        }
-
-        // Clear any rows that are currently highlighted due to mouse hovering over PropertyNodeViews in the graph
-        public void ClearHighlightedRows()
-        {
-            foreach (var row in m_InputRows)
-            {
-                row.Value.RemoveFromClassList("hovered");
-            }
         }
 
         void OnMouseHover(EventBase evt, ShaderInput input)

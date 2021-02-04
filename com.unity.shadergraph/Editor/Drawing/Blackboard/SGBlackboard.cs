@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -25,7 +25,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         public Action<SGBlackboard> addItemRequested { get; set; }
         public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
-        public Action<SGBlackboard, VisualElement, string> editTextRequested { get; set; }
 
         public SGBlackboard(GraphView associatedGraphView) : base(associatedGraphView)
         {
