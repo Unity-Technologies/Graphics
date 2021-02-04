@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+- Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 
 ## [11.0.0] - 2020-10-21
 
