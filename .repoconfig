@@ -9,14 +9,13 @@ path-ignore=<<EOT
 |.yamato
 |artifacts
 |imgs
-|LocalTestProjects
-|TestProjects
 |com\.unity\.testing\..*
 )(/|$)
 |
 # rooted folder paths
 ^(
  Tools
+ |TestProjects\/.*\/Library
 )/|
 # rooted file paths
 ^(
