@@ -15,4 +15,3 @@ The **Get Attribute: lifetime** returns the lifetime, which is a [standard attri
 ## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).
-
