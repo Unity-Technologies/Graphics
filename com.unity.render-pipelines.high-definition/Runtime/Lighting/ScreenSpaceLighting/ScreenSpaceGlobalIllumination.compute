@@ -393,7 +393,10 @@ void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
     float upperValidityRange = lowerValidityRange + 0.25f;
 
     // Kill the color when we don't have an amount of samples that were valid
-    float validityMask = lerp(0.0, 1.0f, saturate((sampleProportion - lowerValidityRange) / (upperValidityRange - lowerValidityRange)));
+    color *= lerp(0.0, 1.0f, saturate((sampleProportion - lowerValidityRange) / (upperValidityRange - lowerValidityRange)));
+
+    // In the future mixing this with light probes should increase significantly the image quality.
+    float validityMask = 1.0f;
 
     // Does this pixel recieve SSGI?
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
