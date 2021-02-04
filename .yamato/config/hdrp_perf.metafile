@@ -17,7 +17,7 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr_without_git>
         flags:
           - [all]: --testfilter=Memory
-          - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
           - [all]: --timeout=2400
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
@@ -33,7 +33,7 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr_without_git>
         flags:
           - [all]: --testfilter=Build
-          - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=HDRP
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
           - [all]: --timeout=2400
           - [all]: --platform=editmode
           - [all]: --loglevel=verbose

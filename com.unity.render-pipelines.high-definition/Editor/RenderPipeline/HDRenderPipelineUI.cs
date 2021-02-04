@@ -290,6 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
         }
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
