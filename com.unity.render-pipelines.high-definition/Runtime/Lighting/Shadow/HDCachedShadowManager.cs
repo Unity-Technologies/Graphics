@@ -135,6 +135,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterLight(lightData);
         }
 
+        public bool IsLightCached(HDAdditionalLightData lightData)
+        {
+            return IsLightPlaced(lightData);
+        }
+
         // ------------------------------------------------------------------------------------------------------------------
 
         private void MarkAllDirectionalShadowsForUpdate()
@@ -162,6 +167,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_InitParams = atlasInitParams.initParams;
             areaShadowAtlas.InitAtlas(atlasInitParams);
+        }
+
+        internal bool IsLightPlaced(HDAdditionalLightData lightData)
+        {
+            HDLightType lightType = lightData.type;
+            
+            if (lightType == HDLightType.Spot || lightType == HDLightType.Point)
+            {
+                return punctualShadowAtlas.IsLightPlaced(lightData);
+            }
+
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area && lightData.areaLightShape == AreaLightShape.Rectangle)
+            {
+                return areaShadowAtlas.IsLightPlaced(lightData);
+            }
+
+            // not supporting directionals at the moment
+            return false;
         }
 
         internal void RegisterLight(HDAdditionalLightData lightData)

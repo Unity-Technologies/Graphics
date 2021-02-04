@@ -195,6 +195,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return outputId;
         }
 
+        internal bool IsLightPlaced(HDAdditionalLightData lightData)
+        {
+            if (lightData.lightIdxForCachedShadows >= 0 && m_PlacedShadows.ContainsKey(lightData.lightIdxForCachedShadows))
+                return true;
+
+            return false;
+        }
+
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             // If we are trying to register something that we have already placed, we do nothing
