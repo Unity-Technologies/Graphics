@@ -188,10 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
-
-            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length);
-            for (int i = 0; i < oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length; ++i)
-                assetCreated.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
+            assetCreated.diffusionProfileSettingsList = oldAsset.m_ObsoleteDiffusionProfileSettingsList;
 
             //3. Clear obsolete fields
             if (bClearObsoleteFields)
@@ -206,25 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.m_ObsoleteBeforePostProcessCustomPostProcesses = null;
                 oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
                 oldAsset.m_ObsoleteBeforeTAACustomPostProcesses = null;
-                /* TODOJENNY - not sure why we cannot reset a string like that
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName0 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName1 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName2 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName3 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName4 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName5 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName6 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName7 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName0 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName1 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName2 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName3 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName4 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName5 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName6 = "";
-                oldAsset.currentPlatformRenderPipelineSettings.m_ObsoletelightLayerName7 = "";
-                */
-                System.Array.Resize(ref oldAsset.m_ObsoleteDiffusionProfileSettingsList, 0);
+                oldAsset.m_ObsoleteDiffusionProfileSettingsList = null;
             }
 #pragma warning restore 618
 
@@ -652,6 +631,34 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Name for light layer 7.</summary>
         public string lightLayerName7;
 
+
+        [System.NonSerialized]
+        string[] m_LightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] lightLayerNames
+        {
+            get
+            {
+                if (m_LightLayerNames == null)
+                {
+                    m_LightLayerNames = new string[8];
+                }
+
+                m_LightLayerNames[0] = lightLayerName0;
+                m_LightLayerNames[1] = lightLayerName1;
+                m_LightLayerNames[2] = lightLayerName2;
+                m_LightLayerNames[3] = lightLayerName3;
+                m_LightLayerNames[4] = lightLayerName4;
+                m_LightLayerNames[5] = lightLayerName5;
+                m_LightLayerNames[6] = lightLayerName6;
+                m_LightLayerNames[7] = lightLayerName7;
+
+                return m_LightLayerNames;
+            }
+        }
+
         #endregion
 
         #region Layer Names [DECAL]
@@ -673,6 +680,32 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Name for decal layer 7.</summary>
         public string decalLayerName7;
 
+        [System.NonSerialized]
+        string[] m_DecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of decal layers.
+        /// </summary>
+        public string[] decalLayerNames
+        {
+            get
+            {
+                if (m_DecalLayerNames == null)
+                {
+                    m_DecalLayerNames = new string[8];
+                }
+
+                m_DecalLayerNames[0] = decalLayerName0;
+                m_DecalLayerNames[1] = decalLayerName1;
+                m_DecalLayerNames[2] = decalLayerName2;
+                m_DecalLayerNames[3] = decalLayerName3;
+                m_DecalLayerNames[4] = decalLayerName4;
+                m_DecalLayerNames[5] = decalLayerName5;
+                m_DecalLayerNames[6] = decalLayerName6;
+                m_DecalLayerNames[7] = decalLayerName7;
+
+                return m_DecalLayerNames;
+            }
+        }
         #endregion
 
         #region Misc.

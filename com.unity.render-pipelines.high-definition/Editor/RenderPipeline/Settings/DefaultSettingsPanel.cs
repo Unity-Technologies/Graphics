@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
-            return new SettingsProvider("Project/Graphics/HDRP Default Settings", SettingsScope.Project)
+            return new SettingsProvider("Project/Graphics/HDRP Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles>()
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((serializedSettings == null) || (settingsSerialized != HDDefaultSettings.instance))
             {
-                settingsSerialized = HDDefaultSettings.instance;
+                settingsSerialized = HDDefaultSettings.Ensure();
                 var serializedObject = new SerializedObject(settingsSerialized);
                 serializedSettings = new SerializedHDDefaultSettings(serializedObject);
             }

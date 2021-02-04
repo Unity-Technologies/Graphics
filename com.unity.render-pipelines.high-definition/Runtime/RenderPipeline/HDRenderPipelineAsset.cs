@@ -154,51 +154,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public override string[] renderingLayerMaskNames
             => renderingLayerNames;
 
-        [System.NonSerialized]
-        string[] m_LightLayerNames = null;
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames
-        {
-            get
-            {
-                if (m_LightLayerNames == null)
-                {
-                    m_LightLayerNames = new string[8];
-                }
+        public string[] lightLayerNames => HDDefaultSettings.instance.lightLayerNames;
 
-                for (int i = 0; i < 8; ++i)
-                {
-                    m_LightLayerNames[i] = renderingLayerNames[i];
-                }
-
-                return m_LightLayerNames;
-            }
-        }
-
-        [System.NonSerialized]
-        string[] m_DecalLayerNames = null;
         /// <summary>
-        /// Names used for display of light layers.
+        /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames
-        {
-            get
-            {
-                if (m_DecalLayerNames == null)
-                {
-                    m_DecalLayerNames = new string[8];
-                }
-
-                for (int i = 0; i < 8; ++i)
-                {
-                    m_DecalLayerNames[i] = renderingLayerNames[i + 8];
-                }
-
-                return m_DecalLayerNames;
-            }
-        }
+        public string[] decalLayerNames => HDDefaultSettings.instance.decalLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
