@@ -173,6 +173,24 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterLight(lightData);
         }
 
+        /// <summary>
+        /// This function verifies if the light has its shadow maps placed in the cached shadow atlas.
+        /// </summary>
+        /// <param name="lightData">The light that we want to check the placement of.</param>
+        /// <returns>True if the shadow map is already placed in the atlas, false otherwise.</returns>
+        public bool LightHasBeenPlacedInAtlas(HDAdditionalLightData lightData)
+        {
+            var lightType = lightData.type;
+            if (lightType == HDLightType.Area)
+                return instance.areaShadowAtlas.LightIsPlaced(lightData);
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+                return instance.punctualShadowAtlas.LightIsPlaced(lightData);
+            if (lightType == HDLightType.Directional)
+                return !lightData.ShadowIsUpdatedEveryFrame();
+
+            return false;
+        }
+
         // ------------------------------------------------------------------------------------------------------------------
 
         private void MarkAllDirectionalShadowsForUpdate()

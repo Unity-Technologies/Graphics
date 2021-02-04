@@ -530,6 +530,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowsPendingRendering.ContainsKey(shadowIdx);
         }
 
+        internal bool LightIsPlaced(HDAdditionalLightData lightData)
+        {
+            int cachedShadowIdx = lightData.lightIdxForCachedShadows;
+            return cachedShadowIdx >= 0 && m_PlacedShadows.ContainsKey(cachedShadowIdx);
+        }
+
         internal void ScheduleShadowUpdate(HDAdditionalLightData lightData)
         {
             if (!lightData.isActiveAndEnabled) return;
