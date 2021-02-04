@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
+using System.Reflection;
+
 namespace UnityEngine.Rendering
 {
     // This file can't be in the editor assembly as we need to access it in runtime-editor-specific
@@ -10,80 +15,60 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
     using UnityEditor;
-    class Styles
-    {
-        public static readonly GUIContent userDefaults = EditorGUIUtility.TrTextContent("Use Defaults");
-    }
+
+    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
-        static bool m_Loaded = false;
+        // We do not want that GC frees the preferences that have been added, used to store their references
+        static readonly ConcurrentStack<object> s_ColorPref = new ConcurrentStack<object>();
 
-        // Added default Colors so that they can be reverted back to these values
+        #region Volumes Gizmo Color
+
         static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.5f);
-        static Color s_VolumeGizmoColor = s_VolumeGizmoColorDefault;
+        private static Func<Color> GetColorPrefVolumeGizmoColor;
+
+        public static Color volumeGizmoColor => GetColorPrefVolumeGizmoColor();
+
+        #endregion
+
+        #region Preview Camera Background Color
+
         static readonly Color kPreviewCameraBackgroundColorDefault = new Color(82f / 255.0f, 82f / 255.0f, 82.0f / 255.0f, 0.0f);
-
-        public static Color volumeGizmoColor
-        {
-            get => s_VolumeGizmoColor;
-            set
-            {
-                if (s_VolumeGizmoColor == value) return;
-                s_VolumeGizmoColor = value;
-                EditorPrefs.SetInt(Keys.volumeGizmoColor, (int)ColorUtils.ToHex(value));
-            }
-        }
-
         public static Color previewBackgroundColor => kPreviewCameraBackgroundColorDefault;
 
-        static class Keys
-        {
-            internal const string volumeGizmoColor = "CoreRP.Volume.GizmoColor";
-        }
-
-        [SettingsProvider]
-        static SettingsProvider PreferenceGUI()
-        {
-            return new SettingsProvider("Preferences/Colors/SRP", SettingsScope.User)
-            {
-                guiHandler = searchContext =>
-                {
-                    if (!m_Loaded)
-                        Load();
-
-                    Rect r = EditorGUILayout.GetControlRect();
-                    r.xMin = 10;
-                    EditorGUIUtility.labelWidth = 251;
-                    volumeGizmoColor = EditorGUI.ColorField(r, "Volume Gizmo Color", volumeGizmoColor);
-
-                    if (GUILayout.Button(Styles.userDefaults, GUILayout.Width(120)))
-                    {
-                        RevertColors();
-                    }
-                }
-            };
-        }
-
-        static void RevertColors()
-        {
-            volumeGizmoColor = s_VolumeGizmoColorDefault;
-        }
+        #endregion
 
         static CoreRenderPipelinePreferences()
         {
-            Load();
+            GetColorPrefVolumeGizmoColor = RegisterPreferenceColor("Scene/Volume Gizmo", s_VolumeGizmoColorDefault);
         }
 
-        static void Load()
+        /// <summary>
+        /// Adds a <see cref="PrefColor"/> into the **Preferences > Colors** panel./>
+        /// </summary>
+        /// <param name="name">The name the color has in the **Colors** panel. This is in the format of 'group/name'.</param>
+        /// <param name="defaultColor">The initial color to use for the new entry in the **Colors** panel. This is also the value Unity uses when it resets the colors to their defaults.</param>
+        public static Func<Color> RegisterPreferenceColor(string name, Color defaultColor)
         {
-            s_VolumeGizmoColor = GetColor(Keys.volumeGizmoColor, new Color(0.2f, 0.8f, 0.1f, 0.5f));
-            m_Loaded = true;
-        }
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("You must give a valid name for the color property", nameof(name));
 
-        static Color GetColor(string key, Color defaultValue)
-        {
-            int value = EditorPrefs.GetInt(key, (int)ColorUtils.ToHex(defaultValue));
-            return ColorUtils.ToRGBA((uint)value);
+            // PrefColor is the type to use to have a Color that is customizable inside the Preference/Colors panel.
+            // Sadly it is internal so we must create it and grab color from it by reflection.
+            Type prefColorType = typeof(Editor).Assembly.GetType("UnityEditor.PrefColor");
+            PropertyInfo colorInfo = prefColorType.GetProperty("Color");
+
+            var colorPref = Activator.CreateInstance(prefColorType, name, defaultColor.r, defaultColor.g, defaultColor.b, defaultColor.a);
+            s_ColorPref.Push(colorPref);
+
+            MemberExpression colorProperty = Expression.Property(Expression.Constant(colorPref, prefColorType), colorInfo);
+
+            // Make sure that the new preference color is being loaded into the Preference/Colors panel
+            MethodInfo loadMethod = prefColorType.GetMethod("Load");
+            loadMethod.Invoke(colorPref, null);
+
+            // Return the method to obtain the color
+            return Expression.Lambda<Func<Color>>(colorProperty).Compile();
         }
     }
 #endif
