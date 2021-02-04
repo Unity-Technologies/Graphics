@@ -466,37 +466,28 @@ namespace UnityEditor.VFX.Test
                 quadOutput.LinkFrom(basicInitialize);
             }
 
-            Application.logMessageReceived += HandleLog;
+            Application.logMessageReceived += HandleLog; //TEMP : Helper to gather log if C++ debug a lot of detauls
             var recordedSize = new List<long>();
-            for (uint i = 0; i < 32; ++i)
+            for (uint i = 0; i < 16; ++i)
             {
-                AssetDatabase.ImportAsset(path);
+                AssetDatabase.ImportAsset(path); //<== This probably where "ghost" references are restored.
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                Debug.LogFormat("=> LoadAssetAtPath {0}", asset.GetResource().GetContents().Count());
 
                 var graph = asset.GetResource().GetOrCreateGraph();
-                Debug.LogFormat("=> GetOrCreateGraph {0}", asset.GetResource().GetContents().Count());
                 graph.GetResource().WriteAsset();
-                Debug.LogFormat("=> WriteAsset {0}", asset.GetResource().GetContents().Count());
                 recordedSize.Add(new FileInfo(path).Length);
-                Debug.LogFormat("({0}) File size : {1}", i, new FileInfo(path).Length);
 
                 var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
 
                 quadOutput.UnlinkAll();
-                Debug.LogFormat("=> UnlinkAll {0}", asset.GetResource().GetContents().Count());
                 graph.RemoveChild(quadOutput);
-                Debug.LogFormat("=> RemoveChild {0}", asset.GetResource().GetContents().Count());
 
                 var newQuadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
-                Debug.LogFormat("=> CreateInstance {0}", asset.GetResource().GetContents().Count());
                 newQuadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
 
                 graph.AddChild(newQuadOutput);
-                Debug.LogFormat("=> AddChild {0}", asset.GetResource().GetContents().Count());
                 var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
                 newQuadOutput.LinkFrom(basicInitialize);
-                Debug.LogFormat("=> LinkFrom {0}", asset.GetResource().GetContents().Count());
             }
             Application.logMessageReceived -= HandleLog;
             File.WriteAllText(path + ".txt", tempStringBuilder.ToString());

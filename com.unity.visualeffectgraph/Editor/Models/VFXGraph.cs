@@ -31,7 +31,8 @@ namespace UnityEditor.VFX
                 if (graph != null)
                 {
                     graph.SanitizeForImport();
-                    graph.UpdateSubAssets(); //Should not be necessary : there is something restoring "ghost" reference just before import.
+                    //Workaround A : here, add "graph.UpdateSubAssets();"
+                    //This code will recompute all dependencies and does a GetResource().SetContents(...)
                 }
                 else
                     Debug.LogError("VisualEffectGraphResource without graph");
