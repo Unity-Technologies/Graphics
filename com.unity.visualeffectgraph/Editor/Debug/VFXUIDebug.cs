@@ -937,6 +937,9 @@ namespace UnityEditor.VFX.UI
                     isSystemInSubGraph = true;
                     return (e) =>
                     {
+                        if (!m_Graph.visualEffectResource.IsAssetEditable())
+                            return; //The button should be disabled but state update can have a delay
+
                         var button = e.currentTarget as Button;
                         if (button != null)
                             system.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
@@ -953,7 +956,10 @@ namespace UnityEditor.VFX.UI
             if (statUI[3] is TextElement alive)
                 alive.text = stat.aliveCount.ToString();
             if (statUI[4] is TextElement maxAliveText)
+            {
+                maxAliveText.SetEnabled(m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.aliveCount).ToString();
+            }
             if (statUI[5] is TextElement efficiency)
             {
                 var eff = (int)((float)stat.aliveCount * 100.0f / (float)stat.capacity);
