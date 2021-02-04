@@ -30,11 +30,18 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector3 angles; // Only for area and spot
         }
 
+        enum SlotValue : byte
+        {
+            Free,
+            Occupied,
+            TempOccupied        //  Used when checking if it will fit.
+        }
+
         private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
 
         private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion.
 
-        private List<bool> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
+        private List<SlotValue> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
@@ -73,10 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
-            m_AtlasSlots = new List<bool>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
+            m_AtlasSlots = new List<SlotValue>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
-                m_AtlasSlots.Add(false);
+                m_AtlasSlots.Add(SlotValue.Free);
             }
 
             // Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
@@ -108,21 +115,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // ------------------------------------------------------------------------------------------
         private bool IsEntryEmpty(int x, int y)
         {
-            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x] == false);
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x] == SlotValue.Free);
         }
 
         private bool IsEntryFull(int x, int y)
         {
-            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]);
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]) != SlotValue.Free;
+        }
+
+        private bool IsEntryTempOccupied(int x, int y)
+        {
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]) == SlotValue.TempOccupied;
         }
 
         // Always fill slots in a square shape, for example : if x = 1 and y = 2, if numEntries = 2 it will fill {(1,2),(2,2),(1,3),(2,3)}
         private void FillEntries(int x, int y, int numEntries)
         {
-            MarkEntries(x, y, numEntries, true);
+            MarkEntries(x, y, numEntries, SlotValue.Occupied);
         }
 
-        private void MarkEntries(int x, int y, int numEntries, bool value)
+        private void MarkEntries(int x, int y, int numEntries, SlotValue value)
         {
             for (int j = y; j < y + numEntries; ++j)
             {
@@ -149,10 +161,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool FindSlotInAtlas(int resolution, out int x, out int y)
+        internal bool FindSlotInAtlas(int resolution, bool tempFill, out int x, out int y)
         {
             int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
-
             for (int j = 0; j < m_AtlasResolutionInSlots; ++j)
             {
                 for (int i = 0; i < m_AtlasResolutionInSlots; ++i)
@@ -161,6 +172,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         x = i;
                         y = j;
+
+                        if (tempFill)
+                            MarkEntries(x, y, numEntries, SlotValue.TempOccupied);
+
                         return true;
                     }
                 }
@@ -169,6 +184,26 @@ namespace UnityEngine.Rendering.HighDefinition
             x = 0;
             y = 0;
             return false;
+        }
+
+        internal void FreeTempFilled(int x, int y, int resolution)
+        {
+            int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+            for (int j = y; j < y + numEntries; ++j)
+            {
+                for (int i = x; i < x + numEntries; ++i)
+                {
+                    if (m_AtlasSlots[j * m_AtlasResolutionInSlots + i] == SlotValue.TempOccupied)
+                    {
+                        m_AtlasSlots[j * m_AtlasResolutionInSlots + i] = SlotValue.Free;
+                    }
+                }
+            }
+        }
+
+        internal bool FindSlotInAtlas(int resolution, out int x, out int y)
+        {
+            return FindSlotInAtlas(resolution, false, out x, out y);
         }
 
         internal bool GetSlotInAtlas(int resolution, out int x, out int y)
@@ -242,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
 
-                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), false);
+                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), SlotValue.Free);
                     m_CanTryPlacement = true;
                 }
             }
@@ -362,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numEntries = HDUtils.DivRoundUp(m_TempListForPlacement[startIdx].viewportSize, m_MinSlotSize);
                 for (int j = 0; j < successfullyPlaced; ++j)
                 {
-                    MarkEntries(placements[j].x, placements[j].y, numEntries, false);
+                    MarkEntries(placements[j].x, placements[j].y, numEntries, SlotValue.Free);
                 }
             }
 
@@ -446,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
-                m_AtlasSlots[i] = false;
+                m_AtlasSlots[i] = SlotValue.Free;
             }
 
             // Clear the other state lists.

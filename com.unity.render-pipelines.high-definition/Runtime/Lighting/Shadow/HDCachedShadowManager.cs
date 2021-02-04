@@ -22,6 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector3 m_CachedDirectionalForward;
         private Vector3 m_CachedDirectionalAngles;
 
+        // Helper array used to check what has been tmp filled.
+        private (int, int)[] m_TempFilled = new(int, int)[6];
+
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
         internal HDCachedShadowAtlas areaShadowAtlas;
@@ -76,13 +79,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
         {
             bool fits = true;
-            int x, y;
+            int x = 0;
+            int y = 0;
 
             if (lightType == HDLightType.Point)
             {
+                int fitted = 0;
                 for (int i = 0; i < 6; ++i)
                 {
-                    fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
+                    fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, true, out x, out y);
+                    if (fits)
+                    {
+                        m_TempFilled[fitted++] = (x, y);
+                    }
+                    else
+                    {
+                        // Free the temp filled ones.
+                        for (int filled = 0; filled < fitted; ++filled)
+                        {
+                            HDShadowManager.cachedShadowManager.punctualShadowAtlas.FreeTempFilled(m_TempFilled[filled].Item1, m_TempFilled[filled].Item2, shadowResolution);
+                        }
+                        return false;
+                    }
+                }
+
+                // Free the temp filled ones.
+                for (int filled = 0; filled < fitted; ++filled)
+                {
+                    HDShadowManager.cachedShadowManager.punctualShadowAtlas.FreeTempFilled(m_TempFilled[filled].Item1, m_TempFilled[filled].Item2, shadowResolution);
                 }
             }
 
@@ -93,6 +117,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 fits = fits && HDShadowManager.cachedShadowManager.areaShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
             return fits;
+        }
+
+        /// <summary>
+        /// This function verifies if the shadow map for the passed light would fit in the atlas when inserted.
+        /// </summary>
+        /// <param name="lightData">The light that we try to fit in the atlas.</param>
+        /// <returns>True if the shadow map would fit in the atlas, false otherwise. If lightData does not cast shadows, false is returned.</returns>
+        public bool WouldFitInAtlas(HDAdditionalLightData lightData)
+        {
+            if (lightData.legacyLight.shadows != LightShadows.None)
+            {
+                var lightType = lightData.type;
+                var resolution = lightData.GetResolutionFromSettings(lightData.GetShadowMapType(lightType), m_InitParams);
+                return WouldFitInAtlas(resolution, lightType);
+            }
+            return false;
         }
 
         /// <summary>
