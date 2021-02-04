@@ -70,6 +70,5 @@ namespace UnityEngine.Rendering.Universal
         internal ScriptableRenderPassDescriptor(GraphicsFormat[] format)
             : this(format, -1, -1, -1, false)
         {}
-
     }
 }

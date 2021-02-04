@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
         static Mesh s_FullscreenMesh = null;
 
         /// <summary>
@@ -343,6 +344,7 @@ namespace UnityEngine.Rendering.Universal
             }
             return nonNullColorBuffers;
         }
+
         internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
         {
             uint nonNullColorBuffers = 0;
