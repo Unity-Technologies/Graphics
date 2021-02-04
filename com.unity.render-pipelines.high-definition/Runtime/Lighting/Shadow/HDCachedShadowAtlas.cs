@@ -47,6 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
         private Dictionary<int, CachedShadowRecord> m_PlacedShadows;
         private Dictionary<int, CachedShadowRecord> m_ShadowsPendingRendering;
+        private Dictionary<int, int> m_ShadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
         private Dictionary<int, HDAdditionalLightData> m_RegisteredLightDataPendingPlacement;
         private Dictionary<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
                                                                                         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
@@ -64,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_PlacedShadows = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
             m_ShadowsPendingRendering = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
+            m_ShadowsWithValidData = new Dictionary<int, int>(s_InitialCapacity);
             m_TempListForPlacement = new List<CachedShadowRecord>(s_InitialCapacity);
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
@@ -276,6 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
+                    m_ShadowsWithValidData.Remove(shadowIdx);
 
                     MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), SlotValue.Free);
                     m_CanTryPlacement = true;
@@ -487,6 +490,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Clear the other state lists.
             m_PlacedShadows.Clear();
             m_ShadowsPendingRendering.Clear();
+            m_ShadowsWithValidData.Clear();
             m_RecordsPendingPlacement.Clear(); // We'll reset what records are pending.
 
             // Sort in order to obtain a more optimal packing.
@@ -528,6 +532,27 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool ShadowIsPendingRendering(int shadowIdx)
         {
             return m_ShadowsPendingRendering.ContainsKey(shadowIdx);
+        }
+
+        internal bool ShadowHasRenderedAtLeastOnce(int shadowIdx)
+        {
+            return m_ShadowsWithValidData.ContainsKey(shadowIdx);
+        }
+
+        internal bool FullLightShadowHasRenderedAtLeastOnce(HDAdditionalLightData lightData)
+        {
+            int cachedShadowIdx = lightData.lightIdxForCachedShadows;
+            if (lightData.type == HDLightType.Point)
+            {
+                bool allRendered = true;
+                for (int i = 0; i < 6; ++i)
+                {
+                    allRendered = allRendered && m_ShadowsWithValidData.ContainsKey(cachedShadowIdx + i);
+                }
+
+                return allRendered;
+            }
+            return m_ShadowsWithValidData.ContainsKey(cachedShadowIdx);
         }
 
         internal bool LightIsPlaced(HDAdditionalLightData lightData)
@@ -583,6 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))
             {
                 m_ShadowsPendingRendering.Remove(shadowIdx);
+                m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
             }
         }
 
