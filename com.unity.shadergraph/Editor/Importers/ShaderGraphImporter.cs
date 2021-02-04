@@ -175,6 +175,8 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
+                // Temp fix to make sure all errors are caught and displayed. Currently this will log an error on every save,
+                // but it's better than not display anything. Long-term this should be improved.
                 if (ShaderUtil.ShaderHasError(shader))
                 {
                     var messages = ShaderUtil.GetShaderMessages(shader);
