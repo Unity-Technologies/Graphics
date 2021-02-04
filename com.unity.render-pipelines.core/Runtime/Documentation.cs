@@ -9,6 +9,9 @@ namespace UnityEngine.Rendering
     [Conditional("UNITY_EDITOR")]
     internal class CoreRPHelpURLAttribute : HelpURLAttribute
     {
+        //This must be used like
+        //[CoreRPHelpURLAttribute("some-page")]
+        //It cannot support String.Format nor string interpolation.
         public CoreRPHelpURLAttribute(string urlString)
             : base(HelpURL(urlString)) {}
 
@@ -18,9 +21,13 @@ namespace UnityEngine.Rendering
         }
     }
 
+    //Temporary for now, there is several part of the Core documentation that are misplaced in HDRP documentation.
     [Conditional("UNITY_EDITOR")]
     internal class HDRPHelpURLAttribute : HelpURLAttribute
     {
+        //This must be used like
+        //[HDRPHelpURLAttribute("some-page")]
+        //It cannot support String.Format nor string interpolation.
         public HDRPHelpURLAttribute(string urlString)
             : base(HelpURL(urlString)) {}
 
@@ -37,7 +44,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class DocumentationInfo
     {
-        private const string fallbackVersion = "11.0";
+        private const string fallbackVersion = "12.0";
         /// <summary>
         /// Current version of the documentation.
         /// </summary>
