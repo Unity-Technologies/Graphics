@@ -1,20 +1,22 @@
 #pragma kernel EvaluateCloudMap
 
-int _Resolution;
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+// #pragma enable_d3d11_debug_symbols
+
+CBUFFER_START(UnityCloudMapGenerator)
+    int _CloudMapResolution;
+    float _CumulusMapMultiplier;
+    float _CumulonimbusMapMultiplier;
+    float _AltostratusMapMultiplier;
+CBUFFER_END
+
 SamplerState linear_repeat_sampler;
-
 Texture2D<float> _CumulusMap;
-float _CumulusIntensity;
-
 Texture2D<float> _CumulonimbusMap;
-float _CumulonimbusIntensity;
-
-Texture2D<float> _AltoStratusMap;
-float _AltoStratusIntensity;
-
+Texture2D<float> _AltostratusMap;
 Texture2D<float> _RainMap;
-
-RWTexture2D<float4> _CloudMapRW;
+RWTexture2D<float4> _CloudMapTextureRW;
 
 #define ALTOSTRATUS_ONLY_RANGE_MIN (0.0f/256.0f)
 #define ALTOSTRATUS_ONLY_RANGE_MAX (32.0f/256.0f)
@@ -36,14 +38,14 @@ RWTexture2D<float4> _CloudMapRW;
 
 float2 NormalizedCoordinates(uint2 coord)
 {
-    return (coord + 0.5f) / _Resolution;
+    return (coord + 0.5f) / _CloudMapResolution;
 }
 
 [numthreads(8, 8, 1)]
 void EvaluateCloudMap(uint2 currentCoord : SV_DispatchThreadID)
 {
     // If this pixel is not in the range, we are done
-    if (any(currentCoord.xy >= (uint2)  _Resolution))
+    if (any(currentCoord.xy >= (uint2)  _CloudMapResolution))
         return;
 
     // Compute the normalized coordinate of the current pixel
@@ -51,13 +53,13 @@ void EvaluateCloudMap(uint2 currentCoord : SV_DispatchThreadID)
 
     // Read all the cloud data
     float2 tapUV = float2(normalizedCoord.x, 1.0 - normalizedCoord.y);
-    float cumulusCoverage = _CumulusMap.SampleLevel(linear_repeat_sampler, tapUV, 0) * _CumulusIntensity;
+    float cumulusCoverage = _CumulusMap.SampleLevel(linear_repeat_sampler, tapUV, 0) * _CumulusMapMultiplier;
     cumulusCoverage = cumulusCoverage < 0.01 ? 0.0 : cumulusCoverage;
 
     float cumulonimbusCoverage = _CumulonimbusMap.SampleLevel(linear_repeat_sampler, tapUV, 0);
     cumulonimbusCoverage = cumulonimbusCoverage < 0.01 ? 0.0 : cumulonimbusCoverage;
 
-    float altoStratusCoverage = _AltoStratusMap.SampleLevel(linear_repeat_sampler, tapUV, 0) * _AltoStratusIntensity;
+    float altoStratusCoverage = _AltostratusMap.SampleLevel(linear_repeat_sampler, tapUV, 0) * _AltostratusMapMultiplier;
     altoStratusCoverage = altoStratusCoverage < 0.01 ? 0.0 : altoStratusCoverage;
 
     float cloudRain = _RainMap.SampleLevel(linear_repeat_sampler, tapUV, 0);
@@ -67,7 +69,7 @@ void EvaluateCloudMap(uint2 currentCoord : SV_DispatchThreadID)
     float cloudMaxHeight = 0.0;
 
     // Cumulonimbus clouds have precedence over all the other clouds
-    if (cumulonimbusCoverage * _CumulonimbusIntensity > 0.0)
+    if (cumulonimbusCoverage * _CumulonimbusMapMultiplier > 0.0)
     {
         cloudType = cumulonimbusCoverage * (CUMULONIMBUS_RANGE_MAX - CUMULONIMBUS_RANGE_FIRST_MIN) + CUMULONIMBUS_RANGE_FIRST_MIN;
         if (cloudType < CUMULONIMBUS_RANGE_SECOND_MIN)
@@ -77,12 +79,12 @@ void EvaluateCloudMap(uint2 currentCoord : SV_DispatchThreadID)
         }
         else if (cloudType < CUMULONIMBUS_RANGE_THIRD_MIN)
         {
-            cloudCoverage = lerp(0.0, _CumulonimbusIntensity, (cloudType - CUMULONIMBUS_RANGE_SECOND_MIN) / (CUMULONIMBUS_RANGE_THIRD_MIN - CUMULONIMBUS_RANGE_SECOND_MIN));
+            cloudCoverage = lerp(0.0, _CumulonimbusMapMultiplier, (cloudType - CUMULONIMBUS_RANGE_SECOND_MIN) / (CUMULONIMBUS_RANGE_THIRD_MIN - CUMULONIMBUS_RANGE_SECOND_MIN));
             cloudMaxHeight = lerp(0.0, 1.0, (cloudType - CUMULONIMBUS_RANGE_SECOND_MIN) / (CUMULONIMBUS_RANGE_THIRD_MIN - CUMULONIMBUS_RANGE_SECOND_MIN));
         }
         else
         {
-            cloudCoverage = _CumulonimbusIntensity;
+            cloudCoverage = lerp(0.0, 0.75, _CumulonimbusMapMultiplier);
             cloudMaxHeight = 1.0f;
         }
     }
@@ -119,5 +121,5 @@ void EvaluateCloudMap(uint2 currentCoord : SV_DispatchThreadID)
         }
     }
 
-    _CloudMapRW[currentCoord] = float4(cloudCoverage, cloudRain, cloudType, cloudMaxHeight);
+    _CloudMapTextureRW[currentCoord] = float4(cloudCoverage, cloudRain, cloudType, cloudMaxHeight);
 }

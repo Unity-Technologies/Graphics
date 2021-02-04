@@ -467,8 +467,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Worley128RGBA = Shader.PropertyToID("_Worley128RGBA");
         public static readonly int _Worley32RGB = Shader.PropertyToID("_Worley32RGB");
         public static readonly int _CloudMapTexture = Shader.PropertyToID("_CloudMapTexture");
+        public static readonly int _CloudMapTextureRW = Shader.PropertyToID("_CloudMapTextureRW");
         public static readonly int _CloudLutTexture = Shader.PropertyToID("_CloudLutTexture");
-
+        public static readonly int _CumulusMap = Shader.PropertyToID("_CumulusMap");
+        public static readonly int _CumulusMapMultiplier = Shader.PropertyToID("_CumulusMapMultiplier");
+        public static readonly int _AltostratusMap = Shader.PropertyToID("_AltostratusMap");
+        public static readonly int _AltostratusMapMultiplier = Shader.PropertyToID("_AltostratusMapMultiplier");
+        public static readonly int _CumulonimbusMap = Shader.PropertyToID("_CumulonimbusMap");
+        public static readonly int _CumulonimbusMapMultiplier = Shader.PropertyToID("_CumulonimbusMapMultiplier");
+        public static readonly int _RainMap = Shader.PropertyToID("_RainMap");
+        public static readonly int _CloudMapResolution = Shader.PropertyToID("_CloudMapResolution");
+        
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
 

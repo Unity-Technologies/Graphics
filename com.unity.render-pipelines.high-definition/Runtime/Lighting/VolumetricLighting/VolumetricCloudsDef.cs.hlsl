@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
-#ifndef VOLUMETRICCLOUDSMANAGER_CS_HLSL
-#define VOLUMETRICCLOUDSMANAGER_CS_HLSL
+#ifndef VOLUMETRICCLOUDSDEF_CS_HLSL
+#define VOLUMETRICCLOUDSDEF_CS_HLSL
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesClouds
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesClouds)

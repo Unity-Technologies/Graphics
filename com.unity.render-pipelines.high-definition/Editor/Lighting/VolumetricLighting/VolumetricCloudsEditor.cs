@@ -9,32 +9,57 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(VolumetricClouds))]
     class VolumetricCloudsEditor : VolumeComponentEditor
     {
+        // General
         SerializedDataParameter m_Enable;
+
+        // Shape
+        SerializedDataParameter m_CloudControl;
+
+        SerializedDataParameter m_CloudPreset;
+
+        SerializedDataParameter m_CumulusMap;
+        SerializedDataParameter m_CumulusMapMultiplier;
+        SerializedDataParameter m_AltoStratusMap;
+        SerializedDataParameter m_AltoStratusMapMultiplier;
+        SerializedDataParameter m_CumulonimbusMap;
+        SerializedDataParameter m_CumulonimbusMapMultiplier;
+        SerializedDataParameter m_RainMap;
+        SerializedDataParameter m_CloudMapResolution;
+
+        SerializedDataParameter m_CloudMap;
+        SerializedDataParameter m_CloudLut;
+
         SerializedDataParameter m_EarthCurvature;
         SerializedDataParameter m_CloudTiling;
         SerializedDataParameter m_CloudOffset;
+
         SerializedDataParameter m_LowestCloudAltitude;
         SerializedDataParameter m_CloudThickness;
-        SerializedDataParameter m_NumPrimarySteps;
-        SerializedDataParameter m_NumLightSteps;
-        SerializedDataParameter m_CloudControl;
-        SerializedDataParameter m_CloudPreset;
-        SerializedDataParameter m_CloudMap;
-        SerializedDataParameter m_CloudLut;
+
+        SerializedDataParameter m_DensityMultiplier;
+        SerializedDataParameter m_ShapeFactor;
+        SerializedDataParameter m_ErosionFactor;
+
+        // Lighting
         SerializedDataParameter m_ScatteringDirection;
         SerializedDataParameter m_ScatteringTint;
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
-        SerializedDataParameter m_DensityMultiplier;
-        SerializedDataParameter m_ShapeFactor;
-        SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_AmbientLightProbeDimmer;
+
+        // Wind
         SerializedDataParameter m_GlobalWindSpeed;
         SerializedDataParameter m_Orientation;
         SerializedDataParameter m_CloudMapSpeedMultiplier;
         SerializedDataParameter m_ShapeSpeedMultiplier;
         SerializedDataParameter m_ErosionSpeedMultiplier;
+
+        // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
+        SerializedDataParameter m_NumPrimarySteps;
+        SerializedDataParameter m_NumLightSteps;
+
+        // Shadows
         SerializedDataParameter m_Shadows;
         SerializedDataParameter m_ShadowResolution;
         SerializedDataParameter m_ShadowDistance;
@@ -48,32 +73,57 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<VolumetricClouds>(serializedObject);
 
+            // General
             m_Enable = Unpack(o.Find(x => x.enable));
+
+            // Shape
+            m_CloudControl = Unpack(o.Find(x => x.cloudControl));
+
+            m_CloudPreset = Unpack(o.Find(x => x.cloudPreset));
+
+            m_CumulusMap = Unpack(o.Find(x => x.cumulusMap));
+            m_CumulusMapMultiplier = Unpack(o.Find(x => x.cumulusMapMultiplier));
+            m_AltoStratusMap = Unpack(o.Find(x => x.altoStratusMap));
+            m_AltoStratusMapMultiplier = Unpack(o.Find(x => x.altoStratusMapMultiplier));
+            m_CumulonimbusMap = Unpack(o.Find(x => x.cumulonimbusMap));
+            m_CumulonimbusMapMultiplier = Unpack(o.Find(x => x.cumulonimbusMapMultiplier));
+            m_RainMap = Unpack(o.Find(x => x.rainMap));
+            m_CloudMapResolution = Unpack(o.Find(x => x.cloudMapResolution));
+
+            m_CloudMap = Unpack(o.Find(x => x.cloudMap));
+            m_CloudLut = Unpack(o.Find(x => x.cloudLut));
+
             m_EarthCurvature = Unpack(o.Find(x => x.earthCurvature));
             m_CloudTiling = Unpack(o.Find(x => x.cloudTiling));
             m_CloudOffset = Unpack(o.Find(x => x.cloudOffset));
+
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
             m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
-            m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
-            m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
-            m_CloudControl = Unpack(o.Find(x => x.cloudControl));
-            m_CloudPreset = Unpack(o.Find(x => x.cloudPreset));
-            m_CloudMap = Unpack(o.Find(x => x.cloudMap));
-            m_CloudLut = Unpack(o.Find(x => x.cloudLut));
+        
+            m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
+            m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
+            m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
+
+            // Lighting
             m_ScatteringDirection = Unpack(o.Find(x => x.scatteringDirection));
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
-            m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
-            m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
-            m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_AmbientLightProbeDimmer = Unpack(o.Find(x => x.ambientLightProbeDimmer));
+
+            // Wind
             m_GlobalWindSpeed = Unpack(o.Find(x => x.globalWindSpeed));
             m_Orientation = Unpack(o.Find(x => x.orientation));
             m_CloudMapSpeedMultiplier = Unpack(o.Find(x => x.cloudMapSpeedMultiplier));
             m_ShapeSpeedMultiplier = Unpack(o.Find(x => x.shapeSpeedMultiplier));
             m_ErosionSpeedMultiplier = Unpack(o.Find(x => x.erosionSpeedMultiplier));
+
+            // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
+            m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
+            m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
+
+            // Shadows
             m_Shadows = Unpack(o.Find(x => x.shadows));
             m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
             m_ShadowDistance = Unpack(o.Find(x => x.shadowDistance));
@@ -98,7 +148,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool needsIntendation = false;
                 if (controlMode == VolumetricClouds.CloudControl.Advanced)
                 {
-                    PropertyField(m_CloudMap);
+                    PropertyField(m_CumulusMap);
+                    PropertyField(m_CumulusMapMultiplier);
+                    PropertyField(m_AltoStratusMap);
+                    PropertyField(m_AltoStratusMapMultiplier);
+                    PropertyField(m_CumulonimbusMap);
+                    PropertyField(m_CumulonimbusMapMultiplier);
+                    PropertyField(m_RainMap);
+                    PropertyField(m_CloudMapResolution);
                     PropertyField(m_CloudTiling);
                     PropertyField(m_CloudOffset);
                 }

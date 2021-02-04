@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Medium256 = 256,
             High512 = 512,
         }
+
         /// <summary> </summary>
         public const int CloudShadowResolutionCount = 4;
 
@@ -74,6 +75,28 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
             public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) {}
+        }
+
+        public enum CloudMapResolution
+        {
+            Low32x32 = 32,
+            Medium64x64 = 64,
+            High128x128 = 128,
+            Ultra256x256 = 256
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudMapResolution"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudMapResolutionParameter : VolumeParameter<CloudMapResolution>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudMapResolutionParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
@@ -104,14 +127,24 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the cloud map - Coverage (R), Rain (G), Type (B).")]
         public TextureParameter cloudMap = new TextureParameter(null);
 
+        [Tooltip("Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).")]
+        public TextureParameter cloudLut = new TextureParameter(null);
+
         [Tooltip("Specifies the cloud control Mode: Simple, Advanced or Manual.")]
         public CloudControlParameter cloudControl = new CloudControlParameter(CloudControl.Simple);
 
         [Tooltip("Specifies the weather preset in Simple mode.")]
         public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
-        [Tooltip("Specifies the lookup table for the clouds - Profile Coverage (R), Erosion (G), Ambient Occlusion (B).")]
-        public TextureParameter cloudLut = new TextureParameter(null);
+        // TODO ADD TOOLTIPS
+        public TextureParameter cumulusMap = new TextureParameter(null);
+        public ClampedFloatParameter cumulusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public TextureParameter altoStratusMap = new TextureParameter(null);
+        public ClampedFloatParameter altoStratusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public TextureParameter cumulonimbusMap = new TextureParameter(null);
+        public ClampedFloatParameter cumulonimbusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public TextureParameter rainMap = new TextureParameter(null);
+        public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
 
         [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward.")]
         public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);

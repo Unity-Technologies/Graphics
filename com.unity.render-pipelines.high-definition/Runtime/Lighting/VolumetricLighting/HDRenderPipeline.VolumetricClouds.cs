@@ -4,120 +4,6 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    unsafe struct ShaderVariablesClouds
-    {
-        // Maximal ray marching distance
-        public float _MaxRayMarchingDistance;
-        // The highest altitude clouds can reach in meters
-        public float _HighestCloudAltitude;
-        // The lowest altitude clouds can reach in meters
-        public float _LowestCloudAltitude;
-        // Radius of the earth so that the dome falls exactly at the horizon
-        public float _EarthRadius;
-
-        // Stores (_HighestCloudAltitude + _EarthRadius)^2 and (_LowestCloudAltitude + _EarthRadius)^2
-        public Vector2 _CloudRangeSquared;
-        // Maximal primary steps that a ray can do
-        public int _NumPrimarySteps;
-        // Maximal number of light steps a ray can do
-        public int _NumLightSteps;
-
-        // Controls the tiling of the cloud map
-        public Vector4 _CloudMapTiling;
-
-        // Direction of the wind
-        public Vector2 _WindDirection;
-        // Displacement vector of the wind
-        public Vector2 _WindVector;
-
-        // Wind speed controllers
-        public float _GlobalWindSpeed;
-        public float _LargeWindSpeed;
-        public float _MediumWindSpeed;
-        public float _SmallWindSpeed;
-
-        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
-        public int _ExposureSunColor;
-        // Color * intensity of the directional light
-        public Vector3 _SunLightColor;
-
-        // Direction to the sun
-        public Vector3 _SunDirection;
-        // Is the current sun a physically based one
-        public int _PhysicallyBasedSun;
-
-        // Scattering Tint
-        public Vector4 _ScatteringTint;
-
-        // Factor for the multi scattering
-        public float _MultiScattering;
-        // Defines how we blend the forward and backward HG function
-        public float _ScatteringDirection;
-        // Controls the strength of the powder effect intensity
-        public float _PowderEffectIntensity;
-        // NormalizationFactor
-        public float _NormalizationFactor;
-
-        // Maximal cloud distance
-        public float _MaxCloudDistance;
-        // Global multiplier to the density
-        public float _DensityMultiplier;
-        // Controls the amount of low frenquency noise
-        public float _ShapeFactor;
-        // Controls the forward eccentricity of the clouds
-        public float _ErosionFactor;
-
-        // Global offset applied to the cloud map
-        public float _CloudMapOffset;
-        // Maximal temporal accumulation
-        public float _TemporalAccumulationFactor;
-        // Frame index for the accumulation
-        public int _AccumulationFrameIndex;
-        // Index for which of the 4 local pixels should be evaluated
-        public int _SubPixelIndex;
-
-        // Resolution of the final size of the effect
-        public Vector4 _FinalScreenSize;
-        // Half/ Intermediate resolution
-        public Vector4 _IntermediateScreenSize;
-        // Quarter/Trace resolution
-        public Vector4 _TraceScreenSize;
-        // Resolution of the history buffer size
-        public Vector2 _HistoryViewportSize;
-        // Resolution of the history depth buffer
-        public Vector2 _HistoryBufferSize;
-        // MipOffset of the first depth mip
-        public Vector2 _DepthMipOffset;
-
-        // Padding
-        public Vector2 _Padding0;
-
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
-
-        // Right direction of the sun
-        public Vector3 _SunRight;
-        // Intensity of the volumetric clouds shadow
-        public float _ShadowIntensity;
-
-        // Up direction of the sun
-        public Vector3 _SunUp;
-        // Fallback intensity used when the shadow is not defined
-        public float _ShadowFallbackValue;
-
-        // The resolution of the shadow cookie to fill
-        public int _ShadowCookieResolution;
-
-        // The size of the shadow region (meters)
-        public Vector2 _ShadowRegionSize;
-
-        // Offset applied of the plane receiving the center of the shadow
-        public float _ShadowPlaneOffset;
-
-        public float _Padding1;
-    }
-
     public partial class HDRenderPipeline
     {
         // Intermediate values for ambient probe evaluation
@@ -125,7 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
-        RTHandle[] m_VolumetricCloudsShadowTexture = new RTHandle[VolumetricClouds.CloudShadowResolutionCount];
         Texture2D m_SparsePresetMap;
         Texture2D m_CloudyPresetMap;
         Texture2D m_OvercastPresetMap;
@@ -136,7 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CloudRenderKernel;
         int m_CloudReprojectKernel;
         int m_UpscaleAndCombineCloudsKernel;
-        int m_ComputeShadowCloudsKernel;
 
         void InitializeVolumetricClouds()
         {
@@ -151,18 +35,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudRenderKernel = volumetricCloudsCS.FindKernel("RenderClouds");
             m_CloudReprojectKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
             m_UpscaleAndCombineCloudsKernel = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds");
-            m_ComputeShadowCloudsKernel = volumetricCloudsCS.FindKernel("ComputeVolumetricCloudsShadow");
 
             // Allocate all the texture initially
             AllocatePresetTextures();
+
+            // Initialize the additional sub components
+            InitializeVolumetricCloudsMap();
+            InitializeVolumetricCloudsShadows();
         }
 
         void ReleaseVolumetricClouds()
         {
-            for (int i = 0; i < VolumetricClouds.CloudShadowResolutionCount; ++i)
-            {
-                RTHandles.Release(m_VolumetricCloudsShadowTexture[i]);
-            }
+            // Release the additional sub components
+            ReleaseVolumetricCloudsMap();
+            ReleaseVolumetricCloudsShadows();
         }
 
         void AllocatePresetTextures()
@@ -245,13 +131,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function to evaluate if a camera should have volumetric clouds
-        static bool HasVolumetricClouds(HDCamera hdCamera)
+        static bool HasVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
             // If the current volume does not enable the feature, quit right away.
             return settings.enable.value;
         }
 
+        static bool HasVolumetricClouds(HDCamera hdCamera)
+        {
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            // If the current volume does not enable the feature, quit right away.
+            return HasVolumetricClouds(hdCamera, in settings);
+        }
+
+  
         struct VolumetricCloudsParameters
         {
             // Resolution parameters
@@ -511,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced)
             {
-                parameters.cloudMapTexture = settings.cloudMap.value != null ? settings.cloudMap.value : Texture2D.blackTexture;
+                parameters.cloudMapTexture = m_AdvancedCloudMap;
                 parameters.cloudLutTexture = m_Asset.renderPipelineResources.textures.cloudLutRainAO;
             }
             else
@@ -730,147 +623,19 @@ namespace UnityEngine.Rendering.HighDefinition
             TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting, info);
         }
 
-        static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsParameters parameters, RTHandle shadowTexture)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
-            {
-                // Bind the constant buffer
-                ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
-
-                // Compute the final resolution parameters
-                int shadowTX = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                int shadowTY = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
-                cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, parameters.viewCount);
-
-                // Apply the texture to the sun
-                shadowTexture.rt.IncrementUpdateCount();
-                parameters.sunLight.cookie = shadowTexture;
-            }
-        }
-
-        class VolumetricCloudsShadowData
-        {
-            public VolumetricCloudsParameters parameters;
-            public TextureHandle shadowTexture;
-        }
-
-        bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
-        {
-            return (settings.enable.value && GetCurrentSunLight() != null && settings.shadows.value);
-        }
-
-        bool HasVolumetricCloudsShadows(HDCamera hdCamera)
-        {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            return HasVolumetricCloudsShadows(hdCamera, settings);
-        }
-
-        DirectionalLightData OverrideDirectionalLightData(HDCamera hdCamera, DirectionalLightData directionalLightData)
-        {
-            // Grab the current sun light
-            Light sunLight = GetCurrentSunLight();
-
-            // Compute the shadow size
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            float groundShadowSize = settings.shadowDistance.value * 2.0f;
-            float scaleX = Mathf.Abs(Vector3.Dot(sunLight.transform.right, Vector3.Normalize(new Vector3(sunLight.transform.right.x, 0.0f, sunLight.transform.right.z))));
-            float scaleY = Mathf.Abs(Vector3.Dot(sunLight.transform.up, Vector3.Normalize(new Vector3(sunLight.transform.up.x, 0.0f, sunLight.transform.up.z))));
-            Vector2 shadowSize = new Vector2(groundShadowSize * scaleX, groundShadowSize * scaleY);
-
-            // Override the parameters that we are interested in
-            directionalLightData.right = sunLight.transform.right * 2 / Mathf.Max(shadowSize.x, 0.001f);
-            directionalLightData.up = sunLight.transform.up * 2 / Mathf.Max(shadowSize.y, 0.001f);
-            directionalLightData.positionRWS = Vector3.zero - new Vector3(0.0f, hdCamera.camera.transform.position.y - settings.shadowPlaneHeightOffset.value, 0.0f);
-
-            // Return the overridden light data
-            return directionalLightData;
-        }
-
-        RTHandle RequestShadowTexture(in VolumetricClouds settings)
-        {
-            int shadowResolution = (int)settings.shadowResolution.value;
-            int shadowResIndex = 0;
-            switch (settings.shadowResolution.value)
-            {
-                case VolumetricClouds.CloudShadowResolution.VeryLow64:
-                    shadowResIndex = 0;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.Low128:
-                    shadowResIndex = 1;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.Medium256:
-                    shadowResIndex = 2;
-                    break;
-                case VolumetricClouds.CloudShadowResolution.High512:
-                    shadowResIndex = 3;
-                    break;
-            }
-
-            if (m_VolumetricCloudsShadowTexture[shadowResIndex] == null)
-            {
-                m_VolumetricCloudsShadowTexture[shadowResIndex] = RTHandles.Alloc(shadowResolution, shadowResolution, 1, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
-                    enableRandomWrite: true, useDynamicScale: false, useMipMap: false, wrapMode: TextureWrapMode.Clamp, name: "Volumetric Clouds Shadow Texture");
-            }
-
-            return m_VolumetricCloudsShadowTexture[shadowResIndex];
-        }
-
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo info)
         {
             if (hdCamera.camera.cameraType == CameraType.Reflection)
                 return;
 
+            // Grab the volume settings
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
-            // Make sure we need to compute the shadow
-            if (!HasVolumetricCloudsShadows(hdCamera, settings))
-            {
-                // We need to make sure that none of the textures that the component owns is assigned to the light
-                Light currentSun = GetCurrentSunLight();
-                if (currentSun != null)
-                {
-                    for (int i = 0; i < VolumetricClouds.CloudShadowResolutionCount; ++i)
-                    {
-                        if (currentSun.cookie == m_VolumetricCloudsShadowTexture[i])
-                        {
-                            currentSun.cookie = null;
-                            break;
-                        }
-                    }
-                }
-                return;
-            }
+            // Render the shadows
+            PreRenderVolumetricCloudsShadows(renderGraph, hdCamera, info, in settings);
 
-            // Make sure the shadow texture is the right size
-            // TODO: Right now we can endup with a bunch of textures allocated which should be solved by an other PR.
-            RTHandle currentHandle = RequestShadowTexture(settings);
-
-            // Evaluate the shadow
-            TextureHandle shadowHandle;
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsShadowData>("Volumetric cloud shadow", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
-            {
-                builder.EnableAsyncCompute(false);
-
-                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, true);
-                int shadowResolution = (int)settings.shadowResolution.value;
-                passData.shadowTexture = builder.WriteTexture(renderGraph.ImportTexture(currentHandle));
-
-                builder.SetRenderFunc(
-                    (VolumetricCloudsShadowData data, RenderGraphContext ctx) =>
-                    {
-                        TraceVolumetricCloudShadow(ctx.cmd, data.parameters, data.shadowTexture);
-                    });
-
-                shadowHandle = passData.shadowTexture;
-            }
-
-            // Push the shadow
-            PushFullScreenDebugTexture(m_RenderGraph, shadowHandle, FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
+            // Evaluate the cloud map
+            PreRenderVolumetricCloudMap(renderGraph, hdCamera, in settings);
         }
     }
 }

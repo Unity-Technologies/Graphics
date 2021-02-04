@@ -214,7 +214,7 @@ float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float 
 int ComputeCheckerBoardIndex(int2 traceCoord, int subPixelIndex)
 {
     int localOffset = (traceCoord.x & 1 + traceCoord.y & 1) & 1;
-    int checkerBoardLocation = (subPixelIndex + localOffset) % 4;
+    int checkerBoardLocation = (subPixelIndex + localOffset) & 0x3;
     return checkerBoardLocation;
 }
 
