@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+- Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
 
 ## [11.0.0] - 2020-10-21
 
