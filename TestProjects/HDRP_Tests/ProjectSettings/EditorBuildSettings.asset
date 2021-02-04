@@ -695,4 +695,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9901_AOV_buffers.unity
     guid: 5b7d40e46ea038446bf4f714c9d89eaf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2109_GI_DoubleSided.unity
+    guid: 901190cb7cb9686409afb4b714125e54
   m_configObjects: {}
