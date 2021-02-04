@@ -431,7 +431,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 property.precision = (Precision)newValue;
                 this._precisionChangedCallback();
                 this._postChangeValueCallback();
-            }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            }, (PropertyDrawerUtils.UIPrecisionForShaderGraphs)property.precision, "Precision", PropertyDrawerUtils.UIPrecisionForShaderGraphs.Inherit, out var precisionField));
             if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
                 precisionField.SetEnabled(false);
         }

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             return labelVisualElement;
         }
 
-        enum UIPrecisionForShaderGraphs
+        internal enum UIPrecisionForShaderGraphs
         {
             Inherit = Precision.Inherit,
             Single = Precision.Single,
