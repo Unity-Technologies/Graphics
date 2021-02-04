@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - White flashes on camera cuts on volumetric fog.
 - Fixed light layer issue when performing editing on multiple lights.
 - Fixed an issue where selection in a debug panel would reset when cycling through enum items.
+- Fixed material keywords with fbx importer.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
