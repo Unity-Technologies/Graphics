@@ -2219,6 +2219,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
+                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                 if (needToUpdateCachedContent)
                 {
                     m_CachedViewPos = cameraPos;
@@ -2251,8 +2254,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
-                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
-                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
                 if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
