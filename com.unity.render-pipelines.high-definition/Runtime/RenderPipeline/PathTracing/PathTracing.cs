@@ -70,9 +70,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ulong m_CacheAccelSize = 0;
         uint  m_CacheLightCount = 0;
 
-        RTHandle m_RadianceTexture; // stores the per-pixel results of path tracing for this frame
+        TextureHandle m_RadianceTexture; // stores the per-pixel results of path tracing for this frame
 
-        void InitPathTracing()
+        void InitPathTracing(RenderGraph renderGraph)
         {
 #if UNITY_EDITOR
             Undo.postprocessModifications += OnUndoRecorded;
@@ -80,9 +80,14 @@ namespace UnityEngine.Rendering.HighDefinition
             SceneView.duringSceneGui += OnSceneGui;
 #endif // UNITY_EDITOR
 
-            m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                name: "PathTracingFrameBuffer");
+            TextureDesc radianceTextureDesc = new TextureDesc(Vector2.one, true, true);
+            radianceTextureDesc.colorFormat = GraphicsFormat.R32G32B32A32_SFloat;           
+            radianceTextureDesc.enableRandomWrite = true;
+            radianceTextureDesc.useMipMap = false;
+            radianceTextureDesc.autoGenerateMips = false;
+            radianceTextureDesc.name = "PathTracingFrameBuffer";
+
+            m_RadianceTexture = renderGraph.CreateSharedTexture(radianceTextureDesc);
         }
 
         void ReleasePathTracing()
@@ -92,8 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Undo.undoRedoPerformed -= OnSceneEdit;
             SceneView.duringSceneGui -= OnSceneGui;
 #endif // UNITY_EDITOR
-
-            RTHandles.Release(m_RadianceTexture);
         }
 
         internal void ResetPathTracing()
@@ -323,7 +326,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera)
+        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
@@ -334,34 +337,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CheckDirtiness(hdCamera);
 
-            var parameters = PreparePathTracingParameters(hdCamera);
-            TextureHandle outputTexture = CreateColorBuffer(renderGraph, hdCamera, false);
-            // TODO RENDERGRAPH: This texture needs to be persistent
-            // (apparently it only matters for some tests, loading a regular scene with pathtracing works even if this one is not persistent)
-            // So we need to import a regular RTHandle. This is not good because it means the texture will always be allocate even if not used...
-            // Refactor that when we formalize how to handle persistent textures better (with automatic lifetime and such).
-            var radianceTexture = renderGraph.ImportTexture(m_RadianceTexture);
-
             if (!m_SubFrameManager.isRecording)
             {
                 // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
                 m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
             }
 
-
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 m_SubFrameManager.subFrameCount = 1;
 #endif
 
+            var parameters = PreparePathTracingParameters(hdCamera);
             if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
             {
-                RenderPathTracing(m_RenderGraph, parameters, radianceTexture);
+                RenderPathTracing(m_RenderGraph, parameters, m_RadianceTexture);
             }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, radianceTexture, outputTexture, true);
+            RenderAccumulation(m_RenderGraph, hdCamera, m_RadianceTexture, colorBuffer, true);
 
-            return outputTexture;
+            return colorBuffer;
         }
     }
 }

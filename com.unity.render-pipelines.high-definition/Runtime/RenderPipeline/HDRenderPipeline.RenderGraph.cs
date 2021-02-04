@@ -93,9 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.viewCount == 1)
                 {
-                    // FIXME: call to be refined
-                    RenderSky(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, false);
-                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
+                    var clearDepthBuffer = CreateDepthBuffer(m_RenderGraph, true, false);
+                    RenderSky(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, clearDepthBuffer, clearDepthBuffer, false);
+                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else
                 {
