@@ -4,13 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.4] - 2021-02-05
+## [7.5.5] - 2021-02-05
 
 ### Changed
 - Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
 
 ### Fixed
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
+
+## [7.5.4] - 2021-01-28
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [7.5.3] - 2021-01-11
 
