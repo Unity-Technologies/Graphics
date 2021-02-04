@@ -65,11 +65,12 @@ namespace UnityEditor.ShaderGraph
             bool isGeneric = isGenericName || isGenericFunc;
             bool containsFunctionName = code.Contains(name);
 
+            var curNode = builder.currentNode;
             if (isGenericName != isGenericFunc)
-                Debug.LogError($"Function {name} provided by node {builder.currentNode.name} contains $precision tokens in the name or the code, but not both. This is very likely an error.");
+                curNode.owner.AddValidationError(curNode.objectId, $"Function {name} provided by node {curNode.name} contains $precision tokens in the name or the code, but not both. This is very likely an error.");
 
             if (!containsFunctionName)
-                Debug.LogError($"Function {name} provided by node {builder.currentNode.name} does not contain the name of the function.  This is very likely an error.");
+                curNode.owner.AddValidationError(curNode.objectId, $"Function {name} provided by node {curNode.name} does not contain the name of the function.  This is very likely an error.");
 
             int graphPrecisionFlag = (1 << (int)graphPrecision);
             int concretePrecisionFlag = (1 << (int)concretePrecision);
@@ -92,10 +93,14 @@ namespace UnityEditor.ShaderGraph
                 existingSource.concretePrecisionFlags = existingSource.concretePrecisionFlags | concretePrecisionFlag;
 
                 // if validate, we double check that the two function declarations are the same
-                // if (m_Validate)
+                // if (m_Validate)      // TODO: we should just always do this, no?
                 {
                     if (code != existingSource.code)
-                        Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, code, existingSource);
+                    {
+                        var errorMessage = string.Format("Function `{0}` has conflicting implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, code, existingSource.code);
+                        foreach (var n in existingSource.nodes)
+                            n.owner.AddValidationError(n.objectId, errorMessage);
+                    }
                 }
             }
             else

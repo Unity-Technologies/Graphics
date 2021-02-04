@@ -39,9 +39,9 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
         }
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)

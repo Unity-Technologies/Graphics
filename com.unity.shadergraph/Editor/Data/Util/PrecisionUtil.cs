@@ -40,8 +40,10 @@ namespace UnityEditor.ShaderGraph
                     return ConcretePrecision.Single;
                 case Precision.Half:
                     return ConcretePrecision.Half;
+                case Precision.Inherit:
+                    return InheritPrecision;
                 default:
-                    return ConcretePrecision.Single;
+                    return GraphPrecision;
             }
         }
 

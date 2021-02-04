@@ -677,7 +677,7 @@ Shader ""Hidden/GraphErrorShader2""
                     }
 
                     inputProperties.Add(property);
-                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
+                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString(property.concretePrecision.ToShaderString())}");
                 }
 
                 sharedCodeIndices.Add(codeSnippets.Count);

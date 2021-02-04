@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
+                // set up switched properties to use the inherited precision
                 prop.SetupConcretePrecision(inheritedPrecision);
             }
 

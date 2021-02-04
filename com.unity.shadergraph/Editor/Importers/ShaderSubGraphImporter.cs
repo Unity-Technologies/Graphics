@@ -266,8 +266,10 @@ namespace UnityEditor.ShaderGraph
 
                     // TODO: this does not support Graph precision on inputs... we might want to do that...
 
-                    prop.SetupConcretePrecision(graph.concretePrecision);
-                    arguments.Add(prop.GetPropertyAsArgumentString());
+                    // convert to graph precision using the graph value as inherit fallback
+                    var propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphPrecision);
+                    string precisionString = propGraphPrecision.ToGenericString();
+                    arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                 }
 
                 // now pass surface inputs
