@@ -96,7 +96,7 @@
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent.md)
     * [AxF Shader](AxF-Shader.md)
     * [Decal Shader](Decal-Shader.md)
-    * [Cottom/Wool Shader](cotton-wool-shader.md)
+    * [Cotton/Wool Shader](cotton-wool-shader.md)
     * [Eye Shader](eye-shader.md)
     * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader.md)

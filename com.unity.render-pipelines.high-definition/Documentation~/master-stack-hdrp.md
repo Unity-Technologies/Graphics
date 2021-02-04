@@ -4,14 +4,14 @@ Shader Graphs in the High Definition Render Pipelines (HDRP) have an HDRP-specif
 
 This documentation begins with an introduction to the Shader Graph Contexts and Blocks available in HDRP:
 
-- [Contexts and Blocks](ss-contexts-and-blocks.md)
+* [Contexts and Blocks](ss-contexts-and-blocks.md)
 
 It then describes the HDRP-specific material types you can create with Shader Graph. Each material type page contains information on which settings the material type adds to the Graph Settings menu, and which Blocks the material type adds to the Master Stack by default. The list of material type pages is as follows:
 
-- [Decal Master Stack](master-stack-decal.md)
-- [Eye Master Stack](master-stack-eye.md)
-- [Fabric Master Stack](master-stack-fabric.md)
-- [Hair Master Stack](master-stack-hair.md)
-- [Lit Master Stack](master-stack-lit.md)
-- [StackLit Master Stack](master-stack-stacklit.md)
-- [Unlit Master Stack](master-stack-unlit.md)
+* [Decal Master Stack](master-stack-decal.md)
+* [Eye Master Stack](master-stack-eye.md)
+* [Fabric Master Stack](master-stack-fabric.md)
+* [Hair Master Stack](master-stack-hair.md)
+* [Lit Master Stack](master-stack-lit.md)
+* [StackLit Master Stack](master-stack-stacklit.md)
+* [Unlit Master Stack](master-stack-unlit.md)
