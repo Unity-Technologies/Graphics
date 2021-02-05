@@ -6,6 +6,8 @@ namespace UnityEditor.Rendering.HighDefinition
     public class ProbeVolumeBrush
     {
         const double k_EditorTargetFramerateHigh = .03;
+        const float k_MaxBrushStep = 0.5f;
+        const float k_MinBrushStep = 0.25f;
 
         public float Radius = 0.5f;
 
@@ -37,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             switch( e.GetTypeForControl(controlID) )
             {
                 case EventType.MouseMove:
-                    if (EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate())
+                    if (true /* EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate() */)
                     {
                         m_LastUpdate = EditorApplication.timeSinceStartup;
                         UpdateBrush(e.mousePosition);
@@ -46,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 case EventType.MouseDown:
                 case EventType.MouseDrag:
-                    if (EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate())
+                    if (true /* EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate() */)
                     {
                         m_LastUpdate = EditorApplication.timeSinceStartup;
                         UpdateBrush(e.mousePosition);
@@ -119,23 +121,28 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (m_Hovering)
             {
-                bool needsApplying;
                 if (!m_Applying)
                 {
                     m_Applying = true;
-                    needsApplying = true;
+                    OnApply?.Invoke(m_Position);
+                    m_LastApplyPosition = m_Position;
                 }
                 else
                 {
-                    var sqrMoveDistance = Vector3.SqrMagnitude(m_Position - m_LastApplyPosition);
-                    var minStep = Radius * 0.25f;
-                    needsApplying = sqrMoveDistance >= (minStep * minStep);
-                }
+                    var moveDistance = Vector3.Distance(m_Position, m_LastApplyPosition);
+                    var minStep = Radius * k_MinBrushStep;
 
-                if (needsApplying)
-                {
-                    OnApply?.Invoke(m_Position);
-                    m_LastApplyPosition = m_Position;
+                    if (moveDistance >= minStep)
+                    {
+                        // If mouse moved too far due to low framerate or high movement speed, fill the gap with more stamps
+                        var maxStep = Radius * k_MaxBrushStep;
+                        var steps = Mathf.CeilToInt(moveDistance / maxStep);
+
+                        for (int i = 1; i <= steps; i++)
+                            OnApply?.Invoke(Vector3.Lerp(m_LastApplyPosition, m_Position, (float) i / steps));
+
+                        m_LastApplyPosition = m_Position;
+                    }
                 }
             }
         }

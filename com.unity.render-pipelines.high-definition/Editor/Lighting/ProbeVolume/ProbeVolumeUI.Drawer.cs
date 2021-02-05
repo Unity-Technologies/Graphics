@@ -133,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeVolumeEditor.Brush.Radius = EditorGUILayout.FloatField("Brush Radius", ProbeVolumeEditor.Brush.Radius);
                 if (ProbeVolumeEditor.Brush.Radius < float.Epsilon)
                     ProbeVolumeEditor.Brush.Radius = float.Epsilon;
+                ProbeVolumeEditor.BrushHardness = EditorGUILayout.Slider("Brush Hardness", ProbeVolumeEditor.BrushHardness, 0f, 1f);
                 EditorGUILayout.Space();
             }
         }

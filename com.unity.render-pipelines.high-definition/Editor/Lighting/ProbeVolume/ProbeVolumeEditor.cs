@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
+using UnityEngineInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -17,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static Dictionary<ProbeVolume, HierarchicalBox> blendBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
 
         internal static Color BrushColor = Color.red;
+        internal static float BrushHardness = 1f;
 
         SerializedProbeVolume m_SerializedProbeVolume;
 
@@ -42,6 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnDisable()
         {
+            Brush.StopIfApplying();
+
             Brush.OnApply -= OnApplyBrush;
             Brush.OnStopApplying -= OnStopApplyingBrush;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
@@ -203,23 +207,34 @@ namespace UnityEditor.Rendering.HighDefinition
             var firstTexelLocalPosition = size * -0.5f + texelSize * 0.5f;
             var probeTransform = probeVolume.transform;
             var localToWorld = Matrix4x4.TRS(probeTransform.position, probeTransform.rotation, Vector3.one);
+            var worldToLocal = localToWorld.inverse;
+            var localBrushPosition = worldToLocal.MultiplyPoint3x4(position);
 
             for (int z = 0, i = 0; z < probeVolumeAsset.resolutionZ; z++)
             for (int y = 0; y < probeVolumeAsset.resolutionY; y++)
             for (int x = 0; x < probeVolumeAsset.resolutionX; x++, i++)
             {
                 var point = firstTexelLocalPosition + new Vector3(texelSize.x * x, texelSize.y * y, texelSize.z * z);
-                point = localToWorld.MultiplyPoint(point);
 
-                var distanceToBrush = Vector3.Distance(position, point);
-                if (distanceToBrush < Brush.Radius)
+                var toBrush = localBrushPosition - point;
+                // TODO: Use toBrush clamped by unit cube instead of normalized to support diagonal better.
+                var halfTexelLength = Vector3.Scale(toBrush.normalized, texelSize).magnitude * 0.5f;
+
+                var outerRadius = Brush.Radius + halfTexelLength;
+                var innerRadius = (Brush.Radius - halfTexelLength) * BrushHardness;
+
+                var distanceToBrush = toBrush.magnitude;
+                var opacity = BrushColor.a * Mathf.Clamp01((outerRadius - distanceToBrush) / (outerRadius - innerRadius));
+                if (opacity > 0f)
                 {
-                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, new SphericalHarmonicsL1
-                    {
-                        shAr = new Vector4(0f, 0f, 0f, BrushColor.r),
-                        shAg = new Vector4(0f, 0f, 0f, BrushColor.g),
-                        shAb = new Vector4(0f, 0f, 0f, BrushColor.b)
-                    }, i);
+                    var sh = new SphericalHarmonicsL1();
+                    ProbeVolumePayload.GetSphericalHarmonicsL1FromIndex(ref sh, ref probeVolumeAsset.payload, i);
+
+                    sh.shAr.w = Mathf.Lerp(sh.shAr.w, BrushColor.r, opacity);
+                    sh.shAg.w = Mathf.Lerp(sh.shAg.w, BrushColor.g, opacity);
+                    sh.shAb.w = Mathf.Lerp(sh.shAb.w, BrushColor.b, opacity);
+
+                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, sh, i);
                 }
             }
 
@@ -234,7 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void OnUndoRedoPerformed()
         {
             ((ProbeVolume)target).dataUpdated = true;
-            // TODO: Figure out where to mark it as potentially changed when undo/redo happens without an editor for changed volume enabled.
+            // TODO: Figure out where to mark it as potentially changed when undo/redo happens without an enabled editor for changed volume.
         }
     }
 }
