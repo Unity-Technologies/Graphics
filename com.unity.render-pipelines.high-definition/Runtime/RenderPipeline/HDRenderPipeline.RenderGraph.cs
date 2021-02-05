@@ -1725,5 +1725,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
         }
+
+        static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, uint factor)
+        {
+            cb._OffScreenRendering = enabled ? 1u : 0u;
+            cb._OffScreenDownsampleFactor = factor;
+        }
     }
 }
