@@ -2,7 +2,6 @@
     "dependencies": {
         "com.unity.ide.visualstudio": "2.0.0",
         "com.unity.ide.vscode": "1.2.0",
-        "com.unity.inputsystem": "1.0.2",
         "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
         "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
         "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
