@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
 // Raytracing includes (should probably be in generic files)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
@@ -19,6 +20,8 @@
 #pragma kernel ConvertSSGI                      CONVERT_SSGI=ConvertSSGI
 #pragma kernel ConvertSSGIHalf                  CONVERT_SSGI=ConvertSSGIHalf HALF_RES
 
+#pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+
 // The dispatch tile resolution
 #define INDIRECT_DIFFUSE_TILE_SIZE 8
 
@@ -28,7 +31,7 @@
 // Defines the mip offset for the color buffer
 #define SSGI_MIP_OFFSET 1
 
-#define SSGI_CLAMP_VALUE 1.0f
+#define SSGI_CLAMP_VALUE 2.0f
 
 // Disabled for now
 //#define PERCEPTUAL_SPACE
@@ -279,8 +282,13 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Compute the full resolution pixel for the inputs that do not have a pyramid
     currentCoord = currentCoord * 2;
 #endif
-
+    // Read the depth and compute the position
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Read the pixel normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
 
     // Read the hit point ndc position to fetch
     float2 hitPositionNDC = LOAD_TEXTURE2D_X(_IndirectDiffuseHitPointTexture, dispatchThreadId.xy).xy;
@@ -324,8 +332,25 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (!invalid)
     {
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier() * PI;
     }
+    #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    else if(_EnableProbeVolumes)
+    {
+        BuiltinData apvBuiltinData;
+        ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
+        SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
+        SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
+
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+                                    normalData.normalWS,
+                                    -normalData.normalWS,
+                                    apvBuiltinData.bakeDiffuseLighting,
+                                    apvBuiltinData.backBakeDiffuseLighting);
+        color = apvBuiltinData.bakeDiffuseLighting * _IndirectDiffuseLightingMultiplier * GetCurrentExposureMultiplier();
+        invalid = false;
+    }
+    #endif
 
     // TODO: Remove me when you can find where the nans come from
     if (AnyIsNaN(color))
