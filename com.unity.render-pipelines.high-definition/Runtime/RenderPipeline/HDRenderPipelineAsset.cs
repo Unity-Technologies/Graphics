@@ -305,7 +305,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>HDRP SpeedTree8 shader.</summary>
         public override Shader defaultSpeedTree8Shader
-            => renderPipelineResources?.shaderGraphs.speedTree8Shader;
+            => m_RenderPipelineResources?.shaderGraphs.speedTree8Shader;
+
+        /// <summary>HDRP SpeedTree8 Billboard shader.</summary>
+        public override Shader defaultSpeedTree8BillboardShader
+            => m_RenderPipelineResources?.shaderGraphs.speedTree8BillboardShader;
 
         // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
         [SerializeField]
