@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(20, Extension, -905)]
+    [ScriptedImporter(21, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -153,7 +153,8 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
+            var graphIncludes = new IncludeCollection();
+            var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
             registry.names.Clear();
             asset.functions.Clear();
             asset.isValid = true;
@@ -192,6 +193,8 @@ namespace UnityEditor.ShaderGraph
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
             asset.previewMode = graph.previewMode;
+
+            asset.includes = graphIncludes;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));

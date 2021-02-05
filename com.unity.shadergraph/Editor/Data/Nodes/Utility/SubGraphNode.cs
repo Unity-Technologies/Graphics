@@ -250,9 +250,9 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
 
-        public bool Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencyGUIDs)
         {
-            if (!changedFileDependencies.Contains(subGraphGuid))
+            if (!changedFileDependencyGUIDs.Contains(subGraphGuid))
             {
                 return false;
             }
@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph
                 return true;
             }
 
-            if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
+            if (changedFileDependencyGUIDs.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencyGUIDs.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
@@ -563,6 +563,8 @@ namespace UnityEditor.ShaderGraph
         {
             if (asset == null || hasError)
                 return;
+
+            registry.RequiresIncludes(asset.includes);
 
             foreach (var function in asset.functions)
             {

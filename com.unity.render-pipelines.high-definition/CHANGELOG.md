@@ -10,12 +10,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added pivot point manipulation for Decals (inspector and edit mode).
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
+- Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
+- Fixed lights shadow frustum near and far planes.
+- Fixed various issues with non-temporal SSAO and rendergraph.
+- Fixed white flashes on camera cuts on volumetric fog.
+- Fixed light layer issue when performing editing on multiple lights.
+- Fixed an issue where selection in a debug panel would reset when cycling through enum items.
+- Fixed material keywords with fbx importer.
+- Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
+- Fixed skybox for ortho cameras.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 
 ## [11.0.0] - 2020-10-21
