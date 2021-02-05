@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with half res ssgi upscale.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed timing issues with accumulation motion blur
+- Fixed model import by adding additional data if needed.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
