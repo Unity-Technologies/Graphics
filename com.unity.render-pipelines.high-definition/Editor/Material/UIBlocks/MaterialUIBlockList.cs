@@ -55,9 +55,21 @@ namespace UnityEditor.Rendering.HighDefinition
             Initialize(materialEditor, properties);
             foreach (var uiBlock in this)
             {
-                // We load material properties at each frame because materials can be animated and to make undo/redo works
-                uiBlock.UpdateMaterialProperties(properties);
-                uiBlock.OnGUI();
+                try
+                {
+                    // We load material properties at each frame because materials can be animated and to make undo/redo works
+                    uiBlock.UpdateMaterialProperties(properties);
+                    uiBlock.OnGUI();
+                }
+                // Never catch ExitGUIException as they are used to handle color picker and object pickers.
+                catch (ExitGUIException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
 
