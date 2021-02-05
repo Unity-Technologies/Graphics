@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
 - Added support for the PlayStation 5 platform.
 - Added support the XboxSeries platform.
+- Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 
 ### Fixed
 - Fixed probe volumes debug views.
