@@ -45,10 +45,10 @@
         "com.unity.modules.video": "1.0.0",
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.imageconversion": "1.0.0",
-        "com.unity.render-pipelines.core": "11.0.0",
-        "com.unity.shadergraph": "11.0.0",
-        "com.unity.visualeffectgraph": "11.0.0",
-        "com.unity.render-pipelines.high-definition-config": "11.0.0"
+        "com.unity.render-pipelines.core": "12.0.0",
+        "com.unity.shadergraph": "12.0.0",
+        "com.unity.visualeffectgraph": "12.0.0",
+        "com.unity.render-pipelines.high-definition-config": "12.0.0"
       }
     },
     "com.unity.render-pipelines.high-definition-config": {
@@ -56,7 +56,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0"
+        "com.unity.render-pipelines.core": "12.0.0"
       }
     },
     "com.unity.searcher": {
@@ -77,7 +77,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.render-pipelines.core": "11.0.0",
+        "com.unity.render-pipelines.core": "12.0.0",
         "com.unity.searcher": "4.3.1"
       }
     },
@@ -134,7 +134,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.shadergraph": "11.0.0"
+        "com.unity.shadergraph": "12.0.0"
       }
     },
     "com.unity.modules.ai": {
