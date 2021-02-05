@@ -58,7 +58,7 @@ inline $precision Unity_SimpleNnoise_Interpolate_$precision ($precision a, $prec
 }
 "));
 
-            registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNoise_ValueNoise_$precision ($precision2 uv)
 {
     $precision2 i = floor(uv);
