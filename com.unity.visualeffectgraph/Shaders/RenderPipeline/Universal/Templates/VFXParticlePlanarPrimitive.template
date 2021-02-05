@@ -8,5 +8,6 @@
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassForward.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXIncludeRP("Templates/ParticlePlanarPrimitives/PassForward2D.template")}
 	}
 }

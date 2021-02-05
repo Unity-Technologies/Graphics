@@ -1,14 +1,10 @@
-// Forward pass
+// 2D pass
 Pass
 {		
-	Tags { "LightMode"=${VFXPassForward} }
-
-	${VFXStencilForward}
-
+	Tags { "LightMode"=${VFXPassForward2D} }
+	
 	HLSLPROGRAM
 	#pragma target 4.5
-	${VFXPassForwardAdditionalPragma}
-	
 	${VFXInclude("Shaders/ParticleLinesSW/PassForwardCommon.template")}
 	ENDHLSL
 }
