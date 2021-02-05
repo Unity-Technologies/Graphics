@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed model import by adding additional data if needed.
 
 ### Changed
+- Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
 - Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
