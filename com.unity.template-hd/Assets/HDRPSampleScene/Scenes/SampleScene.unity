@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.7451, g: 1835.5391, b: 2429.8105, a: 1}
+  m_IndirectSpecularColor: {r: 1481.9102, g: 1835.9688, b: 2430.3418, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -15607,17 +15607,9 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 738646681595172698, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: TAAQuality
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_Name
       value: PlayerControllerFPS
-      objectReference: {fileID: 0}
-    - target: {fileID: 738646681744756154, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 738646681744756156, guid: 573ac53c334415945bf239de2c2f0511, type: 3}
       propertyPath: m_RootOrder
@@ -16288,7 +16280,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1491292261}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 31.38, y: 3.52, z: -0.14}
+  m_LocalPosition: {x: 31.379997, y: 3.7514641, z: -0.13999987}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1377783}
@@ -16313,17 +16305,17 @@ MonoBehaviour:
     volumeMask: {fileID: 11700000, guid: 836429d92e1b49443b7743362fdeb1fe, type: 3}
     textureScrollingSpeed: {x: 0, y: 0.05, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
-    positiveFade: {x: 0.25, y: 0.25, z: 0.25}
-    negativeFade: {x: 0.25, y: 0.25, z: 0.25}
+    positiveFade: {x: 0.0655694, y: 0.41192412, z: 0.17062128}
+    negativeFade: {x: 0.05501318, y: 0.00000025306227, z: 0.03295803}
     m_EditorUniformFade: 2
-    m_EditorPositiveFade: {x: 0.125, y: 0.625, z: 0.0625}
-    m_EditorNegativeFade: {x: 0, y: 0, z: 0.0625}
-    m_EditorAdvancedFade: 0
-    size: {x: 8, y: 8, z: 8}
+    m_EditorPositiveFade: {x: 0.0655694, y: 0.41192412, z: 0.17062128}
+    m_EditorNegativeFade: {x: 0.05501318, y: 0.00000025306227, z: 0.03295803}
+    m_EditorAdvancedFade: 1
+    size: {x: 8, y: 7.5370727, z: 8}
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -6.303882, z: 0}
+    textureOffset: {x: -0, y: -221.22514, z: 0}
     falloffMode: 0
   m_Version: 2
 --- !u!1001 &1504255721
