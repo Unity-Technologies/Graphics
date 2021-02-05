@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         RTHandle m_AdvancedCloudMap;
+        int m_CloudMapHash;
         int m_EvaluateCloudMapKernel;
 
         void InitializeVolumetricCloudsMap()
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grab the kernels we need
             ComputeShader cloudMapGeneratorCS = m_Asset.renderPipelineResources.shaders.volumetricCloudMapGeneratorCS;
             m_EvaluateCloudMapKernel = cloudMapGeneratorCS.FindKernel("EvaluateCloudMap");
+            m_CloudMapHash = 0;
         }
 
         void ReleaseVolumetricCloudsMap()
@@ -22,18 +24,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This function evaluates for the current advanced configuration it hash, for identification, storage and retrieval.
-        static int EvaluateCurrentAdvancedHash(HDCamera hdCamera)
+        static int EvaluateCurrentAdvancedHash(in VolumetricClouds settings)
         {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
             unchecked
             {
-                int hash = HDUtils.GetTextureHash(settings.cloudMap.value);
-                hash = 23 * hash + settings.cloudMapSpeedMultiplier.value.GetHashCode();
-                hash = 23 * hash + HDUtils.GetTextureHash(settings.altoStratusMap.value);
+                int hash = HDUtils.GetTextureHash(settings.cumulusMap.value != null ? settings.cumulusMap.value : Texture2D.blackTexture);
+                hash = 23 * hash + settings.cumulusMapMultiplier.value.GetHashCode();
+                hash = 23 * hash + HDUtils.GetTextureHash(settings.altoStratusMap.value != null ? settings.altoStratusMap.value : Texture2D.blackTexture);
                 hash = 23 * hash + settings.altoStratusMapMultiplier.value.GetHashCode();
-                hash = 23 * hash + HDUtils.GetTextureHash(settings.cumulonimbusMap.value);
+                hash = 23 * hash + HDUtils.GetTextureHash(settings.cumulonimbusMap.value != null ? settings.cumulonimbusMap.value : Texture2D.blackTexture);
                 hash = 23 * hash + settings.cumulonimbusMapMultiplier.value.GetHashCode();
-                hash = 23 * hash + HDUtils.GetTextureHash(settings.rainMap.value);
+                hash = 23 * hash + HDUtils.GetTextureHash(settings.rainMap.value != null ? settings.rainMap.value : Texture2D.blackTexture);
                 hash = 23 * hash + settings.cloudMapResolution.value.GetHashCode();
                 return hash;
             }
@@ -41,8 +42,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool RequiresCloudMapBaking(HDCamera hdCamera, in VolumetricClouds settings)
         {
-            return (HasVolumetricClouds(hdCamera, in settings)
+            // Evaluate if we need to recompute the texture
+            bool status = (HasVolumetricClouds(hdCamera, in settings)
                     && settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced);
+
+            if (status)
+            {
+                // Evaluate the hash of the current configuration
+                int currentHash = EvaluateCurrentAdvancedHash(in settings);
+                if (m_CloudMapHash == currentHash)
+                    status = false;
+                else
+                    m_CloudMapHash = currentHash;
+            }
+
+            return status;
         }
 
         void AdjustCloudMapTextureSize(in VolumetricClouds settings)

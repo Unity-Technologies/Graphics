@@ -136,14 +136,28 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the weather preset in Simple mode.")]
         public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
-        // TODO ADD TOOLTIPS
+        [Tooltip("Controls the lower cloud layer distribution in the advanced mode.")]
         public TextureParameter cumulusMap = new TextureParameter(null);
+
+        [Tooltip("Overrides the coverage of the lower cloud layer specified in the cumulus map in the advanced mode.")]
         public ClampedFloatParameter cumulusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        [Tooltip("Control the higher cloud layer distribution in the advanced mode.")]
         public TextureParameter altoStratusMap = new TextureParameter(null);
+
+        [Tooltip("Overrides the coverage of the higher cloud layer specified in the alto stratus map in the advanced mode.")]
         public ClampedFloatParameter altoStratusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        [Tooltip("Control the anvil shaped clouds distribution in the advanced mode.")]
         public TextureParameter cumulonimbusMap = new TextureParameter(null);
+
+        [Tooltip("Overrides the coverage of the anvil shaped clouds specified in the cumulonimbus map in the advanced mode.")]
         public ClampedFloatParameter cumulonimbusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        [Tooltip("Control the rain distribution in the advanced mode.")]
         public TextureParameter rainMap = new TextureParameter(null);
+
+        [Tooltip("Controls the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.")]
         public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
 
         [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward.")]
