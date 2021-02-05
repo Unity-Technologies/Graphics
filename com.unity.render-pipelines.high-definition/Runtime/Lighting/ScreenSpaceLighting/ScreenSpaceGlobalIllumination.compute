@@ -332,7 +332,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (!invalid)
     {
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier() * PI;
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
     }
     #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     else if(_EnableProbeVolumes)
@@ -409,6 +409,7 @@ void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
     color *= rcp(1.0 - color);
     #endif
 
+    #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     // Grab the proportion of samples that were valid
     float sampleProportion = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1, dispatchThreadId.xy).x;
     // Remap it to the [32, 64] interval
@@ -419,7 +420,8 @@ void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
 
     // Kill the color when we don't have an amount of samples that were valid
     color *= lerp(0.0, 1.0f, saturate((sampleProportion - lowerValidityRange) / (upperValidityRange - lowerValidityRange)));
-
+    #endif
+    
     // In the future mixing this with light probes should increase significantly the image quality.
     float validityMask = 1.0f;
 
