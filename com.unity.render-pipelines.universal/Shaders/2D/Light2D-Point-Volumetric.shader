@@ -76,7 +76,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
 
-                output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);
+                output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz);
 
                 TRANSFER_SHADOWS(output)
 
