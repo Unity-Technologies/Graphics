@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
             if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Intensity"), intensityProp.floatValue)) != intensityProp.floatValue)
                 intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Position Scale"), positionProp.floatValue)) != positionProp.floatValue)
+            if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Relative Position Scale"), positionProp.floatValue)) != positionProp.floatValue)
                 positionProp.floatValue = tmp;
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             Texture tmpTex;

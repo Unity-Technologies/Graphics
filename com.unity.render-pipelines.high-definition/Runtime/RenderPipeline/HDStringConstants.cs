@@ -758,6 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareScreenPos                 = Shader.PropertyToID("_FlareScreenPos");
         public static readonly int _FlareUseExposure               = Shader.PropertyToID("_FlareUseExposure");
+        public static readonly int _FlareOffscreen                 = Shader.PropertyToID("_FlareOffscreen");
         public static readonly int _FlareSpeed                     = Shader.PropertyToID("_FlareSpeed");
         public static readonly int _FlareDepth                     = Shader.PropertyToID("_FlareDepth");
         public static readonly int _FlareOcclusionRadius           = Shader.PropertyToID("_OcclusionRadius");

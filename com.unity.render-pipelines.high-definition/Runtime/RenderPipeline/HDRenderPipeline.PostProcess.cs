@@ -15,11 +15,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderPostProcess(RenderGraph     renderGraph,
-            PrepassOutput   prepassOutput,
-            TextureHandle   inputColor,
-            TextureHandle   backBuffer,
-            CullingResults  cullResults,
-            HDCamera        hdCamera)
+            PrepassOutput               prepassOutput,
+            TextureHandle               inputColor,
+            TextureHandle               backBuffer,
+            CullingResults              cullResults,
+            HDCamera                    hdCamera,
+            Unity.Collections.NativeArray<UnityEngine.Rendering.VisibleLight> visibleLights)
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 

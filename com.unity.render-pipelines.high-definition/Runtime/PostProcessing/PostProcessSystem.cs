@@ -2195,15 +2195,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
             {
+                if (comp == null)
+                    continue;
+
                 SRPLensFlareData data = comp.lensFlareData;
 
-                if (!comp.enabled || data.globalIntensity <= 0.0f || !comp.gameObject.active)
-                    continue;
-
-                if (data == null)
-                    continue;
-
-                if (data.elements == null || data.elements.Length == 0)
+                if (!comp.enabled ||
+                    data.globalIntensity <= 0.0f ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0)
                     continue;
 
                 Camera cam = hdCam.camera;
@@ -2229,7 +2232,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
 
-                cmd.SetGlobalFloat(HDShaderIDs._FlareUseExposure, data.scaleByExposure ? 1.0f : 0.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareUseExposure, data.scaleByExposure ? 1.0f : -1.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, data.allowOffScreen ? 1.0f : -1.0f);
 
                 //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, new Vector2(screenPos.x * 2 - 1, 1 - screenPos.y * 2));
@@ -2251,7 +2255,64 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element == null || element.lensFlareTexture == null)
                         continue;
 
-                    totalLength += element.position;
+                    totalLength += Mathf.Abs(element.position);
+                }
+
+                Light light = comp.GetComponent<Light>();
+                Vector4 modulation = Vector4.one;
+                if (light != null)
+                {
+                    if (light.useColorTemperature)
+                        modulation = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                    else
+                        modulation = light.color;
+
+                    Vector3 toLight = (light.transform.position - cam.transform.position).normalized;
+
+                    HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
+                    // Must always be true
+                    if (hdLightData != null)
+                    {
+                        switch (hdLightData.type)
+                        {
+                            case HDLightType.Directional:
+                                modulation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
+                                break;
+                            case HDLightType.Point:
+                                // Do nothing point are omnidirectional for the Lens Flare
+                                break;
+                            case HDLightType.Spot:
+                                switch (hdLightData.spotLightShape)
+                                {
+                                    case SpotLightShape.Cone:
+                                        float outerDot = Mathf.Max(Mathf.Cos(0.5f * light.spotAngle * Mathf.Deg2Rad), 0.0f);
+                                        float innerDot = Mathf.Max(Mathf.Cos(0.5f * light.spotAngle * Mathf.Deg2Rad * hdLightData.innerSpotPercent01), 0.0f);
+                                        float dot = Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
+                                        modulation *= Mathf.Clamp01((dot - outerDot) / (innerDot - outerDot));
+                                        break;
+                                    case SpotLightShape.Box:
+                                    case SpotLightShape.Pyramid:
+                                        modulation *= Mathf.Max(Mathf.Sign(Vector3.Dot(hdLightData.transform.forward, -toLight)), 0.0f);
+                                        break;
+                                    default: throw new Exception($"Unknown {typeof(SpotLightShape)}: {hdLightData.type}");
+                                }
+                                break;
+                            case HDLightType.Area:
+                                switch (hdLightData.areaLightShape)
+                                {
+                                    case AreaLightShape.Tube:
+                                        modulation *= 1.0f - Mathf.Abs(Vector3.Dot(hdLightData.transform.right, toLight));
+                                        break;
+                                    case AreaLightShape.Rectangle:
+                                    case AreaLightShape.Disc:
+                                        modulation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
+                                        break;
+                                    default: throw new Exception($"Unknown {typeof(AreaLightShape)}: {hdLightData.type}");
+                                }
+                                break;
+                            default: throw new Exception($"Unknown {typeof(HDLightType)}: {hdLightData.type}");
+                        }
+                    }
                 }
 
                 CoreUtils.SetRenderTarget(cmd, target);
@@ -2259,13 +2320,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 float curLength = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
-                    if (element == null)
+                    if (element == null || element.lensFlareTexture == null)
                         continue;
 
-                    if (element.lensFlareTexture == null)
-                        continue;
-
-                    curLength += element.position;
+                    curLength += Mathf.Abs(element.position);
 
                     float timePos = curLength / totalLength;
                     float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
@@ -2275,20 +2333,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Texture texture = element.lensFlareTexture;
                     float position = 2.0f * element.position * curvePos;
-                    float scaleCoef = curveScale;
-                    Vector2 size = new Vector2(element.size * scaleCoef, element.size * element.aspectRatio * scaleCoef);
+                    Vector2 size = new Vector2(element.size * curveScale, element.size * element.aspectRatio * curveScale);
                     float rotation = element.rotation;
-                    Vector4 modulation = Vector4.one;
-                    Light light = comp.GetComponent<Light>();
-                    if (light != null && element.modulateByLightColor)
-                    {
-                        if (light.useColorTemperature)
-                            modulation = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                        else
-                            modulation = light.color;
-                    }
-                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity * modulation;
-                    float speed = element.speed;
+                    Vector4 tint;
+                    if (element.modulateByLightColor)
+                        tint = element.tint * element.localIntensity * data.globalIntensity * modulation;
+                    else
+                        tint = element.tint * element.localIntensity * data.globalIntensity;
                     SRPLensFlareBlendMode blendMode = element.blendMode;
                     bool autoRotate = element.autoRotate;
 
@@ -2309,7 +2360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
                     cmd.SetGlobalVector(HDShaderIDs._FlareData, dataSrc);
-                    cmd.SetGlobalFloat(HDShaderIDs._FlareSpeed, speed);
+                    cmd.SetGlobalFloat(HDShaderIDs._FlareSpeed, element.speed);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, data.occlusionRadius);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, data.samplesCount);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
