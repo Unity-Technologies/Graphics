@@ -422,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture)
+        TextureHandle RenderScreenSpaceIndirectDiffuse(HDCamera hdCamera, in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle historyValidationTexture)
         {
             TextureHandle result;
             switch (GetIndirectDiffuseMode(hdCamera))
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case IndirectDiffuseMode.Raytrace:
                     result = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
-                        prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
+                        prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
                         m_ShaderVariablesRayTracingCB);
                     break;
                 default:

@@ -51,16 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum CloudShadowsResolution
     {
-        /// <summary>Size 32</summary>
-        CloudShadowsResolution32 = 32,
         /// <summary>Size 64</summary>
-        CloudShadowsResolution64 = 64,
+        VeryLow = 64,
         /// <summary>Size 128</summary>
-        CloudShadowsResolution128 = 128,
+        Low = 128,
         /// <summary>Size 256</summary>
-        CloudShadowsResolution256 = 256,
+        Medium = 256,
         /// <summary>Size 512</summary>
-        CloudShadowsResolution512 = 512,
+        High = 512,
     }
 
 
@@ -112,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
 
 
         /// <summary>

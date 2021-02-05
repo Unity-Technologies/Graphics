@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
+        void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle historyValidationTexture, ref LightingBuffers lightingBuffers, ref PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
             {
                 RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffer,
-                    lightingBuffers.sssBuffer, lightingBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, lightingBuffers.ssgiLightingBuffer);
+                    lightingBuffers.sssBuffer, lightingBuffers.diffuseLightingBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, lightingBuffers.ssgiLightingBuffer);
             }
             else
             {
