@@ -24,8 +24,8 @@
                 <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-left: 0;">
                     <ui:VisualElement name="CategoryColumn">
                         <ui:Label text="Category" name="CategoryHeader" class="category-header" />
-                        <ui:Label text="Opaque&#10;" />
-                        <ui:Label text="Deferred Lighting&#10;" />
+                        <ui:Label text="Opaque" />
+                        <ui:Label text="Deferred Lighting" />
                         <ui:Label text="PostProcess" />
                     </ui:VisualElement>
                     <ui:VisualElement style="flex-direction: row; justify-content: flex-start;">

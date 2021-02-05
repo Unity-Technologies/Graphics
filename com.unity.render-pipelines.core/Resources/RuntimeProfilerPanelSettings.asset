@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19101, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: PanelSettings
+  m_Name: RuntimeProfilerPanelSettings
   m_EditorClassIdentifier: 
-  themeUss: {fileID: -4733365628477956816, guid: e95650c3b8bd790499d46519e4c08b32, type: 3}
+  themeUss: {fileID: -4733365628477956816, guid: 95df7afdb7281a04e8fc284358b0d8b4, type: 3}
   m_TargetTexture: {fileID: 0}
   m_ScaleMode: 1
   m_Scale: 1
@@ -30,7 +30,7 @@ MonoBehaviour:
     m_MinAtlasSize: 64
     m_MaxAtlasSize: 4096
     m_MaxSubTextureSize: 64
-    m_ActiveFilters: 31
+    m_ActiveFilters: -1
   m_AtlasBlitShader: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
   m_RuntimeShader: {fileID: 9100, guid: 0000000000000000f000000000000000, type: 0}
   m_RuntimeWorldShader: {fileID: 9102, guid: 0000000000000000f000000000000000, type: 0}
