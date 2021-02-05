@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
@@ -118,6 +119,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
+            if (VFXSubTarget.IsConfigured())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor);
+
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
 
@@ -192,6 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties between all HD master nodes
             // Dots
             context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
+            context.AddField(Fields.GraphVFX, VFXSubTarget.IsConfigured());
         }
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();

@@ -38,15 +38,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, IVFXCompatibleTarget, ILegacyTarget
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
-
-        static readonly Dictionary<Type, Type> kVFXSubTargetMap = new Dictionary<Type, Type>
-        {
-            { typeof(HDLitSubTarget), typeof(VFXLitSubTarget) },
-        };
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -219,24 +214,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return subTargetHasMetaData.GetMetadataObject();
 
             return null;
-        }
-
-        public bool TryConfigureVFX(VFXContext context, VFXContextCompiledData contextData)
-        {
-            var subTargetType = m_ActiveSubTarget.value.GetType();
-
-            if (!kVFXSubTargetMap.TryGetValue(subTargetType, out var vfxSubTargetType) ||
-                vfxSubTargetType == null)
-                return false;
-
-            if (!TrySetActiveSubTarget(vfxSubTargetType))
-                return false;
-
-            if (!(m_ActiveSubTarget.value is IVFXCompatibleTarget vfxSubTarget) ||
-                !vfxSubTarget.TryConfigureVFX(context, contextData))
-                return false;
-
-            return true;
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)

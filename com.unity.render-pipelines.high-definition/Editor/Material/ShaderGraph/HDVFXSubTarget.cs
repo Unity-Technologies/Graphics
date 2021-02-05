@@ -8,9 +8,16 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    static class VFXTargetUtility
+    [InitializeOnLoad]
+    static class HDVFXSubTarget
     {
-        internal static SubShaderDescriptor PostProcessSubShaderVFX(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData contextData)
+        static HDVFXSubTarget()
+        {
+            VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;
+        }
+
+        // Configures an HDRP Subshader with a VFX context.
+        private static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
         {
             var attributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Current);
             var sourceAttributesStruct = GenerateVFXAttributesStruct(context, VFXAttributeType.Source);
@@ -19,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // We use the AdditionalCommand descriptors for ShaderGraph generation to splice these in.
             // ( i.e. VFX Graph Block Function declaration + calling, Property Mapping, etc. )
             GenerateVFXAdditionalCommands(
-                context, contextData,
+                context, data,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
@@ -39,8 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.structs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
-                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, contextData),
-                    GenerateFragInputs(context, contextData),
+                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
+                    GenerateFragInputs(context, data),
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
