@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
+- Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 
