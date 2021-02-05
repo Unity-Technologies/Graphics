@@ -15,11 +15,8 @@
 
 #if defined(_DEBUG_SHADER)
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-
-float4 _BaseMap_TexelSize;
-float4 _BaseMap_MipInfo;
 
 int _DebugMaterialIndex;
 int _DebugLightingIndex;
@@ -41,6 +38,9 @@ struct DebugData
     half3 brdfDiffuse;
     half3 brdfSpecular;
     float2 uv;
+
+    float4 texelSize;   // 1 / width, 1 / height, width, height
+    uint mipCount;
 };
 
 // TODO: Set of colors that should still provide contrast for the Color-blind
@@ -61,6 +61,12 @@ DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
     debugData.brdfDiffuse = brdfDiffuse;
     debugData.brdfSpecular = brdfSpecular;
     debugData.uv = uv;
+
+    // TODO: Pass the actual mipmap and texel data in here somehow, but we don't have access to textures here...
+    const int textureWdith = 1024;
+    const int textureHeight = 1024;
+    debugData.texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
+    debugData.mipCount = 9;
 
     return debugData;
 }
@@ -202,7 +208,27 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
-//sampler2D _DebugNumberTexture;
+half3 GetDebugColor(uint index)
+{
+    // TODO: Make these colors colorblind friendly...
+    const uint maxColors = 10;
+    float4 lut[maxColors] = {
+        kPurpleColor,
+        kRedColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kBlueColor,
+        kOrangeBrownColor,
+        kGrayColor,
+        float4(1, 1, 1, 0),
+        float4(0.8, 0.3, 0.7, 0),
+        float4(0.8, 0.7, 0.3, 0),
+    };
+    uint clammpedIndex = clamp(index, 0, maxColors - 1);
+
+    return lut[clammpedIndex].rgb;
+}
+
 half4 GetTextNumber(uint numberValue, float3 positionWS)
 {
     float4 clipPos = TransformWorldToHClip(positionWS);
@@ -223,6 +249,17 @@ half4 GetTextNumber(uint numberValue, float3 positionWS)
     return tex2D(_DebugNumberTexture, ndc.xy);
 }
 
+half4 CalculateDebugColorWithNumber(in InputData inputData, in SurfaceData surfaceData, uint index)
+{
+    // TODO: Opacity could be user-defined...
+    const float opacity = 0.8f;
+    half3 debugColor = GetDebugColor(index);
+    half3 fc = lerp(surfaceData.albedo, debugColor, opacity);
+    half4 textColor = GetTextNumber(index, inputData.positionWS);
+
+    return textColor * half4(fc, 1);
+}
+
 float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
 {
     // The OpenGL Graphics System: A Specification 4.2
@@ -235,36 +272,18 @@ float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
     return 0.5 * log2(delta_max_sqr);
 }
 
-half4 GetMipLevelDebugColor(InputData inputData, float2 texelSize, float2 uv)
+half4 GetMipLevelDebugColor(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData)
 {
-    float4 lut[10] = {
-        kPurpleColor,
-        kRedColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kBlueColor,
-        kOrangeBrownColor,
-        kGrayColor,
-        float4(1, 1, 1, 0),
-        float4(0.8, 0.3, 0.7, 0),
-        float4(0.8, 0.7, 0.3, 0),
-    };
+    float mipLevel = GetMipMapLevel(debugData.uv * debugData.texelSize.zw);
 
-    uint mipLevel = clamp(GetMipMapLevel(uv * texelSize), 0, 9);
-    half4 fc = (half4)(lut[mipLevel]) * 0.8;
-    fc *= GetTextNumber(mipLevel, inputData.positionWS);
-
-    return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
+    return CalculateDebugColorWithNumber(inputData, surfaceData, (int)mipLevel);
 }
 
-half4 GetMipCountDebugColor(InputData inputData, float2 uv)
+half4 GetMipCountDebugColor(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData)
 {
-    const uint maxMips = 9;
-    uint mipCount = clamp(GetMipCount(_BaseMap), 0, maxMips);
-    half4 fc = lerp(half4(1, 0, 0, 1), half4(1,1,1,1), mipCount / maxMips) * 0.8;
-    fc *= GetTextNumber(mipCount, inputData.positionWS) * 2.0;
+    uint mipCount = debugData.mipCount;
 
-    return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * 0.2 + fc;
+    return CalculateDebugColorWithNumber(inputData, surfaceData, mipCount);
 }
 
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
@@ -319,10 +338,10 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
     switch (_DebugMipIndex)
     {
         case DEBUGMIPINFO_LEVEL:
-            color = GetMipLevelDebugColor(inputData, _BaseMap_TexelSize.zw, debugData.uv);
+            color = GetMipLevelDebugColor(inputData, surfaceData, debugData);
             return true;
         case DEBUGMIPINFO_COUNT:
-            color = GetMipCountDebugColor(inputData, debugData.uv);
+            color = GetMipCountDebugColor(inputData, surfaceData, debugData);
             return true;
         default:
             return false;
