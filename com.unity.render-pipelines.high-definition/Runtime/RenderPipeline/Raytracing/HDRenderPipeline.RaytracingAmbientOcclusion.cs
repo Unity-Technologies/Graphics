@@ -30,7 +30,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
         }
 
-        TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
+        TextureHandle RenderRTAO(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidationBuffer,
+            TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -39,10 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetRayTracingState())
             {
                 // Trace the signal
-                result = TraceAO(renderGraph, hdCamera, depthPyramid, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
+                result = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
                 // Denoise if required
-                result = DenoiseAO(renderGraph, hdCamera, result, depthPyramid, normalBuffer, motionVectors);
+                result = DenoiseAO(renderGraph, hdCamera, result, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
 
                 // Compose the result to be done
                 result = ComposeAO(renderGraph, hdCamera, result);
@@ -72,13 +74,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
             public RayTracingAccelerationStructure rayTracingAccelerationStructure;
 
-            public TextureHandle depthPyramid;
+            public TextureHandle depthBuffer;
             public TextureHandle normalBuffer;
             public TextureHandle rayCountTexture;
             public TextureHandle outputTexture;
         }
 
-        TextureHandle TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
+        TextureHandle TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             using (var builder = renderGraph.AddRenderPass<TraceRTAOPassData>("Tracing the rays for RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
@@ -102,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
-                passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
@@ -124,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.PushGlobal(ctx.cmd, data.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Set the data for the ray generation
-                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthPyramid);
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._DepthTexture, data.depthBuffer);
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                         // Inject the ray-tracing sampling data
@@ -142,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedAO, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedAO, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
         {
             var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (aoSettings.denoise)
@@ -154,12 +156,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedAO, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer);
+                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedAO, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
                 DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
-                rayTracedAO = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthPyramid, normalBuffer, rayTracedAO);
+                rayTracedAO = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, rayTracedAO);
 
                 return rayTracedAO;
             }

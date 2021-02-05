@@ -94,10 +94,8 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Texture2DShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 defaultType = defaultType,
-                precision = precision,
             };
         }
     }
