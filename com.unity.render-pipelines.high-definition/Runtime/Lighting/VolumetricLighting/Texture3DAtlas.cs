@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     tex.height != m_atlasSize ||
                     tex.depth != m_atlasSize)
                 {
+                    // TODO (Apoorva): Re-enable this check after support has been added for variable-resolution sub-textures:
+                    /*
                     Debug.LogError(String.Format("3D Texture Atlas: Added texture {4} size {0}x{1}x{2} does not match size of atlas {3}x{3}x{3}",
                         tex.width,
                         tex.height,
@@ -60,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         tex.name
                     ));
                     return;
+                    */
                 }
 
                 if (volume.parameters.volumeMask.format != m_format)
@@ -115,6 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateAtlas(CommandBuffer cmd, ComputeShader blit3dShader)
         {
+            const int NUM_THREADS = 8; // Defined as [numthreads(8,8,8)] in the compute shader
+            int dispatchSize = DensityVolumeManager.volumeTextureSize / NUM_THREADS;
+
             if (m_updateAtlas)
             {
                 m_updateAtlas = false;
@@ -149,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(cs, 0, _DstTex, m_atlas);
                         cmd.SetComputeTextureParam(cs, 0, _SrcTex, v.parameters.volumeMask);
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
-                        cmd.DispatchCompute(cs, 0, 4, 4, 4);
+                        cmd.DispatchCompute(cs, 0, dispatchSize, dispatchSize, dispatchSize);
                     }
                     RenderTexture.active = oldRt;
                 }
@@ -178,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
-                        cmd.DispatchCompute(cs, 0, 4, 4, 4);
+                        cmd.DispatchCompute(cs, 0, dispatchSize, dispatchSize, dispatchSize);
                     }
                 }
                 m_atlas.rt.GenerateMips();

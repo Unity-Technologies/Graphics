@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
-        public static int volumeTextureSize = 32;
+        public static int volumeTextureSize = 48;
 
         private DensityVolumeManager()
         {
