@@ -38,8 +38,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class ProbeReferenceVolume
     {
-        public static int s_ProbeIndexPoolAllocationSize = 1024;
-
+        public static int s_ProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
         internal struct Cell
@@ -48,7 +47,7 @@ namespace UnityEngine.Rendering
             public Vector3Int position;
             public List<Brick> bricks;
             public Vector3[] probePositions;
-            public SphericalHarmonicsL1[] sh;
+            public SphericalHarmonicsL2[] sh;
             public float[] validity;
         }
 
@@ -142,21 +141,22 @@ namespace UnityEngine.Rendering
             /// </summary>
             public ComputeBuffer index;
             /// <summary>
-            /// Texture containing Spherical Harmonics L0 band data.
+            /// Texture containing Spherical Harmonics L0 band data and first coefficient of L1_R.
             /// </summary>
-            public Texture3D L0;
+            public Texture3D L0_L1rx;
             /// <summary>
-            /// Texture containing the first channel of Spherical Harmonics L1 band data.
+            /// Texture containing the second channel of Spherical Harmonics L1 band data and second coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_R;
+            public Texture3D L1_G_ry;
             /// <summary>
-            /// Texture containing the second channel of Spherical Harmonics L1 band data.
+            /// Texture containing the second channel of Spherical Harmonics L1 band data and third coefficient of L1_R.
             /// </summary>
-            public Texture3D L1_G;
-            /// <summary>
-            /// Texture containing the third channel of Spherical Harmonics L1 band data.
-            /// </summary>
-            public Texture3D L1_B;
+            public Texture3D L1_B_rz;
+
+            public Texture3D L2_0;
+            public Texture3D L2_1;
+            public Texture3D L2_2;
+            public Texture3D L2_3;
         }
 
         internal struct RegId
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering
             if (m_NeedsIndexDimChange)
             {
                 Cleanup();
-                InitProbeReferenceVolume(1024, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
             }
         }
@@ -302,8 +302,8 @@ namespace UnityEngine.Rendering
             {
                 // Push data to HDRP
                 bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering
             }
 
             // Update the pool and index and ignore any potential frame latency related issues for now
-            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list);
+            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             m_BricksLoaded = true;
 
