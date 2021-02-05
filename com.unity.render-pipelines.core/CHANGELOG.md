@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed parameters order on inspectors for Volume Components without custom editor
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 
 ## [10.3.1] - 2020-01-26
 
