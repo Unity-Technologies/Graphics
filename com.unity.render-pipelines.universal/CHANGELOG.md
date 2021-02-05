@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
+- Enabled deferred renderer in UI.
 
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 - Fixed material upgrader to run in batch mode [case 1305402]
+- Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 
 ## [11.0.0] - 2020-10-21
 ### Added
