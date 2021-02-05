@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         // Rendering mode setup from UI.
         internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
-        internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame()  ? RenderingMode.Forward : this.renderingMode; } }
+        internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
@@ -269,7 +269,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (m_DeferredLights != null)
+            {
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
+                m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
+            }
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
@@ -661,7 +664,6 @@ namespace UnityEngine.Rendering.Universal
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
                 hasDepthPrepass,
                 hasNormalPrepass,
-                renderingData.cameraData.renderType == CameraRenderType.Overlay,
                 m_DepthTexture,
                 m_DepthInfoTexture,
                 m_TileDepthInfoTexture,

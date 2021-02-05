@@ -775,7 +775,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
-            bool isOverlay,
             RenderTargetHandle depthCopyTexture,
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
@@ -785,7 +784,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
-            this.IsOverlay = isOverlay;
 
             this.DepthCopyTexture = depthCopyTexture;
             this.DepthInfoTexture = depthInfoTexture;
