@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
+- Added SpeedTree8 shaders and material upgrader. Added these shaders to renderpipelineresources so that importer works correctly.
 
 ### Fixed
 

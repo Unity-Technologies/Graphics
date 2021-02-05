@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 
+### Changed
+- Use PBRLit shadergraphs as default shader for SpeedTree8. Add defaultSpeedTree8Billboard shader to renderpipeline so that importer works correctly.
+
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
