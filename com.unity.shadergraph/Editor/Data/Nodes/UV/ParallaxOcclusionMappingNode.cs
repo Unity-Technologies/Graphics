@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
                 s.AppendLine("struct PerPixelHeightDisplacementParam");
                 using (s.BlockSemicolonScope())
                 {
-                    s.AppendLine("float uv;");
+                    s.AppendLine("float2 uv;");
                 }
                 s.AppendNewLine();
             });
