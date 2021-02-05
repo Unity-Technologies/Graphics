@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material keywords with fbx importer.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
