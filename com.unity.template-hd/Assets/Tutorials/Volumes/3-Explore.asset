@@ -39,12 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore local volume
       Text:
-        m_Untranslated: "In addition to  <b>Volume Global</b>, there are 6 <b>Local</b>
+        m_Untranslated: "In addition to <b>Volume Global</b>, there are 6 <b>Local</b>
           volumes used to control effects in specific rooms.\r\n\r\n1) Enable Gizmos
           in order to see the boundaries of <b>Local</b> volumes\r\n\r\n2) Select
-          <b>Volume Room 3</b> turn it On and Off. Notice the volume covers the 3rd
-          room fully\r\n\r\n3) Take a look at the overrides in <b>Volume Room 3</b>:
-          Exposure, White Balance and Fog\r\n\r\n4) Disable the Exposure override,
+          <b>Volume Room 3</b> and turn it on and off. Notice the volume covers the
+          3rd room fully.\r\n\r\n3) Take a look at the overrides in <b>Volume Room
+          3</b>: Exposure, White Balance and Fog\r\n\r\n4) Disable the Exposure override,
           notice the scene gets darker\r\n\r\n5) Undo your change\r\n\r\nWhen the
           Exposure override for Room 3 is disabled, this area of the scene inherits
           its Exposure settings directly from the <b>Global</b> volume. However,

@@ -39,12 +39,25 @@ MonoBehaviour:
       Title:
         m_Untranslated: Inspect Light cookie
       Text:
-        m_Untranslated: "Light cookies can be assigned in the Light component. Let\u2019s
-          find one and inspect how it\u2019s currently set up.\r\n\r\n1) Select the
-          light illuminating the wall, it should be called <b>Light_Spot_1600lm</b>\r\n\r\n2)
+        m_Untranslated: 'Light cookies can be assigned in the Light component.
+
+          
+
+          1)
+          Select the light illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
+
+          
+
+          2)
           Scroll down in the inspector window until you see <b>Cookie</b> field,
-          in the <b>Emission</b> foldout\r\n\r\n3) Notice a texture called <b>SpotLight_Cookie</b>
-          is assigned\r"
+          in the <b>Emission</b> foldout
+
+          
+
+          3) Notice a texture
+          called <b>SpotLight_Cookie</b> is assigned
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

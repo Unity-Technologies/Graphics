@@ -55,7 +55,7 @@ MonoBehaviour:
           important to increase the density of probes in areas of high lighting contrast
           to ensure more accurate interpolation between probes.\r\n\r\n* Light Probes
           are baked considerably faster than lightmaps, and Light Probe data is considerably
-          smaller than lightmaps.  Therefore, it is also recommended to set smaller
+          smaller than lightmaps. Therefore, it is also recommended to set smaller
           stationary objects to receive Global Illumination from Light Probes, rather
           than Lightmaps. Apart from the main structures (walls, floors, etc.), most
           objects in this scene are tagged to receive Global Illumination from Light

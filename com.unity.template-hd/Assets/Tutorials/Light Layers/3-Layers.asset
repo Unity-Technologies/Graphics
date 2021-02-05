@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Light Layers
       Text:
         m_Untranslated: "Let\u2019s see how the Lights and the glass are set up.\r\n\r\n1)
-          Select the glass  <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> >
+          Select the glass <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b> >
           <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0\r\n</b>\r\n\r\n2)
           See that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly</b>\r\n\r\n3)
           Select the Spotlight under <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>

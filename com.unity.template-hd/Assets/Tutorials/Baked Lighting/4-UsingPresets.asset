@@ -39,9 +39,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Using provided presets
       Text:
-        m_Untranslated: 'Using presets is very easy, however, note that baking can
-          take a long time to complete depending on your machine and it is safe to
-          skip this step if you understand the subject.
+        m_Untranslated: 'The lighting in this scene was already generated and therefore
+          you do not need to generate it again, except if you want to experiment
+          with the different provided presets to compare quality. The following instructions
+          are therefore optional and should only be attempted with a powerful machine.
 
           
 
@@ -58,6 +59,13 @@ MonoBehaviour:
 
           3)
           In the bottom right corner of the Lighting tab, click <b>Generate Lighting</b>
+
+          
+
+          Notice
+          how the quality of the lightmaps is now much lower with the Draft preset,
+          with apparent blotches of light in certain areas. Experiment with the other
+          Lighting Settings presets to compare the results.
 
 '
       m_Summary: 

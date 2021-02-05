@@ -40,13 +40,11 @@ MonoBehaviour:
         m_Untranslated: Automatic exposure
       Text:
         m_Untranslated: "Let\u2019s reuse the same Global Volume we created in the
-          last step to study Automatic Exposure.\r\n\r\n1) In the <i>Hierarchy</i>
-          window, select the Global volume\r\n\r\n2) Switch Mode to <b>Automatic</b>\r\n\r\n3)
-          Turn off and on Global Volume. The result is very similar to the original
-          but slightly different\r\n\r\n4) Hold the right mouse button and using
-          WASD keys move around the scene\r\n\r\nNotice how Unity imitates eyes adaptation
-          to bright lights. At no point it\u2019s so bright or dark that you can
-          not see anything.\r\n"
+          last step to study Automatic Histogram Exposure.\r\n\r\n1) In the <i>Hierarchy</i>
+          window, select the Global volume\r\n\r\n2) Switch the Mode to <b>Automatic</b>\r\n\r\nNavigate
+          the environment, and notice how HDRP imitates the eye adaptation or the
+          automatic exposure system of a camera Dark areas may become brighter, and
+          bright ones may turn darker.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

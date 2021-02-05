@@ -42,16 +42,16 @@ MonoBehaviour:
         m_Untranslated: '1) In the <i>Hierarchy</i> window expand <b>Structure</b>
           GameObject
 
-
+          
 
           2) Select <b>Decals</b> GameObject
 
-
+          
 
           3)
           Toggle it <b>on</b> and <b>off</b> in the <i>Inspector</i>
 
-
+          
 
           Notice
           the impact they have on the scene

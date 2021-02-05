@@ -39,12 +39,22 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: "You have finished the <b>Baked Lighting</b> tutorial. We
+        m_Untranslated: 'You have finished the <b>Baked Lighting</b> tutorial. We
           hope that this information was useful and light bake presets will be a
-          new addition to your projects.\r\n\r\nIf you prefer video format visit
-          our<a href=\"https://www.youtube.com/watch?v=hMnetI4-dNY\">youtube</a>
-          channel.\r\nAnd for more general information about baking check the<a href=\"https://docs.unity3d.com/2020.2/Documentation/Manual/LightingOverview.html\">documentation.</a>\r\n\r\nNote:
-          You do not need to save in order to follow other tutorials.\r"
+          new addition to your workflow.
+
+          
+
+          Have a look at
+          this <a href="https://www.youtube.com/watch?v=hMnetI4-dNY">Tutorial</a>
+          for more information about light baking in Unity and check the <a href="https://docs.unity3d.com/2020.2/Documentation/Manual/LightingOverview.html">documentation</a>.
+
+          
+
+          Note:
+          You do not need to save in order to follow other tutorials.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

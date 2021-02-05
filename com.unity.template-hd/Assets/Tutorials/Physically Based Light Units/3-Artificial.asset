@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Artificial Lights
       Text:
         m_Untranslated: "Select the light illuminating the wall and inspect its properties.
-          The GameObjectis called Light_Spot_1600lm.\r\n\r\nThe intensity of the
+          The GameObject is called Light_Spot_1600lm.\r\n\r\nThe intensity of the
           light bulb is usually provided by the manufacturer, usually in Lumen or
           Candela.\r\n\r\nThe selected lamps intensity is <b>1600 Lumen</b> and the
           temperature is <b>3500 Kelvin</b>. This corresponds to the intensity of

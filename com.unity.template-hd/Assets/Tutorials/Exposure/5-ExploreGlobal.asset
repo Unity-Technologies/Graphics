@@ -41,13 +41,15 @@ MonoBehaviour:
       Text:
         m_Untranslated: "1) Delete your Global Volume in the <i>Hierarchy</i> window.
           We won\u2019t need it anymore\r\n\r\n2) Select <b>Lighting</b>><b>Volumes</b>><b>Volume
-          Global</b>\r\n\r\n3) Take a look at the <i>Inspector</i> tab to see Exposure
-          settings in use\r\n\r\nThese are globally applied to all volumes in the
-          scene. The most notable  are:\r\n\r\n<b>Mode</b> - Automatic Histogram,
-          very similar to automatic but has additional options.\r\n\r\n<b>Speed Dark
-          to Light</b> - controls how fast will the camera adapt to light conditions
-          change. In real life it is also not instant, so most of the time you'd
-          probably want to have a higher value than 0\r\n"
+          Global</b>\r\n\r\n3) Take a look at the <i>Inspector</i> tab to see how
+          the Exposure is set up\r\n\r\n4) Select the other Volumes for each room,
+          and study how each of them has very specific <b>Limit Min</b> and <b>Limit
+          Max</b> parameters\r\n\r\nIt is very important to limit the automatic exposure,
+          in order to prevent it from over or under exposing certain areas of the
+          scene. \r\n\r\nWe recommend you experiment with different values for <b>Limit
+          Min</b> and <b>Limit Max</b> to understand their impact on the perceived
+          brightness of the image, especially when looking at very dark or very bright
+          areas of the scene.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -42,14 +42,14 @@ MonoBehaviour:
         m_Untranslated: "1) In the <i>Hierarchy</i> window, select <b>Lighting</b>><b>Directional
           Light Sun</b>\r\n\r\n2) Notice in the <i>Inspector</i> window, the <b>Intensity</b>
           is <b>100 000 lux</b>\r\n\r\n3) Take a look at the <b>Temperature</b>,
-          it is <b>5500 Kelvin</b>\r\n\r\n<b>Intensity</b> - Look up <b>lux</b> in
-          Wikipedia. 100 000 lux is a common value for direct sunlight on a clear
-          day.\r\n\r\nWhile measuring sunlight requires proper equipment, most of
-          the time you don\u2019t need to have that exact value and can achieve realistic
-          results by just using the ranges of our slider.\r\n\r\n<b>Temperature</b>
-          - The color of natural lights (sun and sky) and incandescent lamps can
-          be defined by a color temperature in Kelvin. Look up the temperature of
-          the light you want to simulate on the web.\r\n"
+          it is <b>5500 Kelvin</b>\r\n\r\n<b>Intensity</b> - 100 000 lux is a common
+          value for direct sunlight on a clear day.\r\n\r\nWhile measuring sunlight
+          requires proper equipment, most of the time you don\u2019t need to have
+          that exact value and can achieve realistic results by just using the ranges
+          of our slider.\r\n\r\n<b>Temperature</b> - The color of natural lights
+          (sun and sky) and incandescent lamps can be defined by a color temperature
+          in Kelvin. Look up the temperature of the light you want to simulate on
+          the web.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
