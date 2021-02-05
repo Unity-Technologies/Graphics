@@ -130,7 +130,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
                                                 enableRandomWrite: true,
                                                 useMipMap: true,
+                                                autoGenerateMips: false,
                                                 name: "DensityVolumeAtlas");
+
                     var isCopied = new bool[clampedNumTextures];
                     var oldRt = RenderTexture.active;
 
@@ -149,7 +151,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
                         cmd.DispatchCompute(cs, 0, 4, 4, 4);
                     }
-
                     RenderTexture.active = oldRt;
                 }
                 else
@@ -180,6 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(cs, 0, 4, 4, 4);
                     }
                 }
+                m_atlas.rt.GenerateMips();
             }
 
             NotifyAtlasUpdated();

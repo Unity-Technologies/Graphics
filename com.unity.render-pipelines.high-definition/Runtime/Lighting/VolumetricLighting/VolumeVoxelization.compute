@@ -90,8 +90,6 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     // TODO: expose the LoD bias parameter.
     float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth);
     lod = clamp(lod, 0, maxLod);
-    // TODO (Apoorva): Make mips work again (last param)
-    lod = 0;
 
     // TODO: bugfix.
     // Note that this clamping to edge doesn't quite work.
@@ -104,8 +102,7 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     int   textureSize   = (int)textureDepth;
     int   mipSize       = textureSize >> (int)ceil(lod);
     float halfTexelSize = 0.5f * rcp(mipSize);
-    // TODO (Apoorva): Uncomment this after mips work
-    //voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
+    voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
 
     // Reminder: still no filtering across the the wrap in Z.
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).r;
