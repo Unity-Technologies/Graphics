@@ -1206,7 +1206,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (SendColorGraphicsBufferPassData data, RenderGraphContext ctx) =>
                     {
-                        SendColorGraphicsBuffer(ctx.cmd, data.hdCamera);
+                        // Figure out which client systems need which buffers
+                        VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(data.hdCamera.camera);
+
+                        if ((neededVFXBuffers & VFXCameraBufferTypes.Color) != 0)
+                        {
+                            var colorBuffer = data.hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                            VFXManager.SetCameraBuffer(data.hdCamera.camera, VFXCameraBufferTypes.Color, colorBuffer, 0, 0, data.hdCamera.actualWidth, data.hdCamera.actualHeight);
+                        }
                     });
             }
         }

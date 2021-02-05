@@ -3257,18 +3257,6 @@ namespace UnityEngine.Rendering.HighDefinition
             debugParameters.debugOverlay.Next();
         }
 
-        static void SendColorGraphicsBuffer(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            // Figure out which client systems need which buffers
-            VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-
-            if ((neededVFXBuffers & VFXCameraBufferTypes.Color) != 0)
-            {
-                var colorBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-                VFXManager.SetCameraBuffer(hdCamera.camera, VFXCameraBufferTypes.Color, colorBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
-            }
-        }
-
         /// <summary>
         /// Overrides the current camera, changing all the matrices and view parameters for the new one.
         /// It allows you to render objects from another camera, which can be useful in custom passes for example.
