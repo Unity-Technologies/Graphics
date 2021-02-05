@@ -573,6 +573,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTileClusterDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, TextureHandle depthPyramidTexture, HDCamera hdCamera)
         {
+            // Depending on the debug mode enabled we may not be building the light lists so the buffers would not be valid in this case.
+            if (!lightLists.tileList.IsValid())
+                return;
+
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.None)
                 return;
 
