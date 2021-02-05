@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 
+### Changed
+- Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Sprite Lit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Lit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Unlit Shader Graph to Asset/Create/Shader Graph/URP/Unlit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Sprite Unlit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Unlit Shader Graph
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.
