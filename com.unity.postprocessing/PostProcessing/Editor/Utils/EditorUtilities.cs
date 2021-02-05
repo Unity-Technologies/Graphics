@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.PostProcessing
 #endif
                     || t == BuildTarget.XboxOne
 #if UNITY_GAMECORE                    
-                    || t == BuildTarget.GameCoreScarlett
+                    || t == BuildTarget.GameCoreXboxSeries
                     || t == BuiltTarget.GameCoreXboxone
 #endif                    
                     || t == BuildTarget.Switch;

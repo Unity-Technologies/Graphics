@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreScarlett;
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
                     
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
@@ -908,7 +908,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 || 
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne ||
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreScarlett;
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries;
 
             if (!canReadBoundDepthBuffer)
             {
