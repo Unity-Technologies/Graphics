@@ -2243,10 +2243,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 //Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
                 //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
 
-                DrawCircle(positionWS, cam.transform.right, cam.transform.up, data.occlusionRadius, Color.red, 16);
+                //DrawCircle(positionWS, cam.transform.right, cam.transform.up, data.occlusionRadius, Color.red, 16);
+
+                float totalLength = 0.0f;
+                foreach (SRPLensFlareDataElement element in data.elements)
+                {
+                    if (element == null || element.lensFlareTexture == null)
+                        continue;
+
+                    totalLength += element.position;
+                }
 
                 CoreUtils.SetRenderTarget(cmd, target);
                 int elemIdx = 0;
+                float curLength = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null)
@@ -2255,10 +2265,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element.lensFlareTexture == null)
                         continue;
 
-                    float time = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
+                    curLength += element.position;
 
-                    float curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(time) : 1.0f;
-                    float curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(time) : 1.0f;
+                    float timePos = curLength / totalLength;
+                    float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
+
+                    float curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePos) : 1.0f;
+                    float curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timeScale) : 1.0f;
 
                     Texture texture = element.lensFlareTexture;
                     float position = 2.0f * element.position * curvePos;
