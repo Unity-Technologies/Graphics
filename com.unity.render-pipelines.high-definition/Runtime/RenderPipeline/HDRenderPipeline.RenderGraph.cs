@@ -271,11 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
 
-            // If requested, compute histogram of the very final image
-            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-            {
-                GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
-            }
+            GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
             PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
             ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
@@ -313,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // This code is only for planar reflections. Given that the depth texture cannot be shared currently with the other depth copy that we do
-            // we need to do this seperately.
+            // we need to do this separately.
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 if (target.targetDepth != null)
@@ -347,23 +343,57 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FinalBlitPassData
         {
-            public BlitFinalCameraTextureParameters parameters;
-            public TextureHandle                    source;
-            public TextureHandle                    destination;
+            public bool             flip;
+            public int              srcTexArraySlice;
+            public int              dstTexArraySlice;
+            public Rect             viewport;
+            public Material         blitMaterial;
+
+            public TextureHandle    source;
+            public TextureHandle    destination;
         }
 
         void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, int viewIndex)
         {
             using (var builder = renderGraph.AddRenderPass<FinalBlitPassData>("Final Blit (Dev Build Only)", out var passData))
             {
-                passData.parameters = PrepareFinalBlitParameters(hdCamera, viewIndex); // todo viewIndex
+                if (hdCamera.xr.enabled)
+                {
+                    passData.viewport = hdCamera.xr.GetViewport(viewIndex);
+                    passData.srcTexArraySlice = viewIndex;
+                    passData.dstTexArraySlice = hdCamera.xr.GetTextureArraySlice(viewIndex);
+                }
+                else
+                {
+                    passData.viewport = hdCamera.finalViewport;
+                    passData.srcTexArraySlice = -1;
+                    passData.dstTexArraySlice = -1;
+                }
+                passData.flip = hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
+                passData.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D, singleSlice: passData.srcTexArraySlice >= 0);
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.WriteTexture(destination);
 
                 builder.SetRenderFunc(
                     (FinalBlitPassData data, RenderGraphContext context) =>
                     {
-                        BlitFinalCameraTexture(data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), data.source, data.destination, context.cmd);
+                        RTHandle sourceTexture = data.source;
+                        // Here we can't use the viewport scale provided in hdCamera. The reason is that this scale is for internal rendering before post process with dynamic resolution factored in.
+                        // Here the input texture is already at the viewport size but may be smaller than the RT itself (because of the RTHandle system) so we compute the scale specifically here.
+                        var scaleBias = new Vector4((float)data.viewport.width / sourceTexture.rt.width, (float)data.viewport.height / sourceTexture.rt.height, 0.0f, 0.0f);
+
+                        if (data.flip)
+                        {
+                            scaleBias.w = scaleBias.y;
+                            scaleBias.y *= -1;
+                        }
+
+                        var propertyBlock = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                        propertyBlock.SetTexture(HDShaderIDs._BlitTexture, sourceTexture);
+                        propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                        propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                        propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
+                        HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, propertyBlock, 0, data.dstTexArraySlice);
                     });
             }
         }
@@ -449,11 +479,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         (CopyXRDepthPassData data, RenderGraphContext ctx) =>
                         {
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                            RTHandle depthRT = data.depthBuffer;
 
                             mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
                             mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(data.dynamicResolutionScale, data.dynamicResolutionScale, 0.0f, 0.0f));
-
                             mpb.SetInt("_FlipY", 1);
 
                             ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);

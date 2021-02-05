@@ -2073,59 +2073,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentHDCamera = null;
         }
 
-        struct BlitFinalCameraTextureParameters
-        {
-            public bool                     flip;
-            public int                      srcTexArraySlice;
-            public int                      dstTexArraySlice;
-            public Rect                     viewport;
-            public Material                 blitMaterial;
-        }
-
         internal RTHandle GetExposureTexture(HDCamera hdCamera) =>
             m_PostProcessSystem.GetExposureTexture(hdCamera);
-
-        BlitFinalCameraTextureParameters PrepareFinalBlitParameters(HDCamera hdCamera, int viewIndex)
-        {
-            var parameters = new BlitFinalCameraTextureParameters();
-
-            if (hdCamera.xr.enabled)
-            {
-                parameters.viewport = hdCamera.xr.GetViewport(viewIndex);
-                parameters.srcTexArraySlice = viewIndex;
-                parameters.dstTexArraySlice = hdCamera.xr.GetTextureArraySlice(viewIndex);
-            }
-            else
-            {
-                parameters.viewport = hdCamera.finalViewport;
-                parameters.srcTexArraySlice = -1;
-                parameters.dstTexArraySlice = -1;
-            }
-
-            parameters.flip = hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
-            parameters.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D, singleSlice: parameters.srcTexArraySlice >= 0);
-
-            return parameters;
-        }
-
-        static void BlitFinalCameraTexture(BlitFinalCameraTextureParameters parameters, MaterialPropertyBlock propertyBlock, RTHandle source, RenderTargetIdentifier destination, CommandBuffer cmd)
-        {
-            // Here we can't use the viewport scale provided in hdCamera. The reason is that this scale is for internal rendering before post process with dynamic resolution factored in.
-            // Here the input texture is already at the viewport size but may be smaller than the RT itself (because of the RTHandle system) so we compute the scale specifically here.
-            var scaleBias = new Vector4((float)parameters.viewport.width / source.rt.width, (float)parameters.viewport.height / source.rt.height, 0.0f, 0.0f);
-
-            if (parameters.flip)
-            {
-                scaleBias.w = scaleBias.y;
-                scaleBias.y *= -1;
-            }
-
-            propertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-            propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-            propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, parameters.srcTexArraySlice);
-            HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
-        }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
