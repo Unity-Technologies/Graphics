@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public readonly MaterialPropertyBlock    propertyBlock;
 
-        internal CustomPassContext(
+        public CustomPassContext(
             ScriptableRenderContext renderContext, CommandBuffer cmd,
             HDCamera hdCamera, CullingResults cullingResults,
             RTHandle cameraColorBuffer, RTHandle cameraDepthBuffer,
