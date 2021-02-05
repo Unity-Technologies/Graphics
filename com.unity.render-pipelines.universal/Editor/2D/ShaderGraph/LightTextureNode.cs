@@ -58,16 +58,16 @@ namespace _2D.ShaderGraph
             return $"UnityBuildTexture2DStructNoScale({GetVariableName()})";
         }
 
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            properties.AddShaderProperty(new Texture2DShaderProperty()
-            {
-                overrideReferenceName = GetVariableName(),
-                generatePropertyBlock = true,
-                // value = m_Texture,
-                modifiable = false
-            });
-        }
+        // public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        // {
+        //     properties.AddShaderProperty(new Texture2DShaderProperty()
+        //     {
+        //         overrideReferenceName = GetVariableName(),
+        //         generatePropertyBlock = true,
+        //         // value = m_Texture,
+        //         modifiable = false
+        //     });
+        // }
 
         public int outputSlotId => OutputSlotId;
     }
