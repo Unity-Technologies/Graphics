@@ -684,7 +684,7 @@ namespace UnityEditor.Rendering.Universal
         {
             int selectedRenderer = m_AdditionalCameraDataRendererProp.intValue;
             ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
-            ForwardRenderer renderer = scriptableRenderer as ForwardRenderer;
+            StandardRenderer renderer = scriptableRenderer as StandardRenderer;
             bool isDeferred = renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
 
             EditorGUI.BeginChangeCheck();
