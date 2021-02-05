@@ -6,7 +6,7 @@ URP implements post-processing effects as Volume Overrides. For example, the fol
 
 ![Vignette post-processing effect in the URP Template SampleScene](Images/post-proc/post-proc-as-volume-override.png)
 
-In a the Volume Override, checkboxes to the left of each property let you enable or disable specific properties. If you disable a property, URP uses the Volume’s default value for that property instead. To turn all properties on or off, use the __All__ or __None__ shortcuts above the property list. 
+In a the Volume Override, checkboxes to the left of each property let you enable or disable specific properties. If you disable a property, URP uses the Volume’s default value for that property instead. To turn all properties on or off, use the __All__ or __None__ shortcuts above the property list.
 
 ![Volume Override property list](Images/post-proc/volume-override-property-list.png)
 
