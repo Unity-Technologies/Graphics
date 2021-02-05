@@ -623,10 +623,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
-        Material m_DebugViewTilesMaterial;
-        Material m_DebugHDShadowMapMaterial;
-        Material m_DebugDensityVolumeMaterial;
-        Material m_DebugBlitMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
@@ -662,8 +658,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data needed for the PrepareGPULightdata
         List<Matrix4x4> m_WorldToViewMatrices = new List<Matrix4x4>(ShaderConfig.s_XrMaxViews);
-
-        static MaterialPropertyBlock m_LightLoopDebugMaterialProperties = new MaterialPropertyBlock();
 
         bool HasLightToCull()
         {
@@ -746,11 +740,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_lightList = new LightList();
             m_lightList.Allocate();
-
-            m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
-            m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
-            m_DebugDensityVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDensityVolumeAtlasPS);
-            m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
@@ -931,11 +920,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(s_DeferredTileRegularLightingMat);
             CoreUtils.Destroy(s_DeferredTileSplitLightingMat);
             CoreUtils.Destroy(s_DeferredTileMat);
-
-            CoreUtils.Destroy(m_DebugViewTilesMaterial);
-            CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
-            CoreUtils.Destroy(m_DebugDensityVolumeMaterial);
-            CoreUtils.Destroy(m_DebugBlitMaterial);
         }
 
         void LightLoopNewRender()
@@ -3663,245 +3647,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, resources.colorBuffers[0], resources.depthStencilBuffer);
-            }
-        }
-
-        struct LightLoopDebugOverlayParameters
-        {
-            public Material                     debugViewTilesMaterial;
-            public HDShadowManager              shadowManager;
-            public int                          debugSelectedLightShadowIndex;
-            public int                          debugSelectedLightShadowCount;
-            public Material                     debugShadowMapMaterial;
-            public Material                     debugDensityVolumeMaterial;
-            public Material                     debugBlitMaterial;
-            public LightCookieManager           cookieManager;
-            public PlanarReflectionProbeCache   planarProbeCache;
-        }
-
-        LightLoopDebugOverlayParameters PrepareLightLoopDebugOverlayParameters()
-        {
-            var parameters = new LightLoopDebugOverlayParameters();
-
-            parameters.debugViewTilesMaterial = m_DebugViewTilesMaterial;
-            parameters.shadowManager = m_ShadowManager;
-            parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
-            parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
-            parameters.debugShadowMapMaterial = m_DebugHDShadowMapMaterial;
-            parameters.debugDensityVolumeMaterial = m_DebugDensityVolumeMaterial;
-            parameters.debugBlitMaterial = m_DebugBlitMaterial;
-            parameters.cookieManager = m_TextureCaches.lightCookieManager;
-            parameters.planarProbeCache = m_TextureCaches.reflectionPlanarProbeCache;
-
-            return parameters;
-        }
-
-        static void RenderLightLoopDebugOverlay(in DebugParameters  debugParameters,
-            CommandBuffer       cmd,
-            ComputeBuffer       tileBuffer,
-            ComputeBuffer       lightListBuffer,
-            ComputeBuffer       perVoxelLightListBuffer,
-            ComputeBuffer       dispatchIndirectBuffer,
-            RTHandle            depthTexture)
-        {
-            var hdCamera = debugParameters.hdCamera;
-            var parameters = debugParameters.lightingOverlayParameters;
-            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (lightingDebug.tileClusterDebug != TileClusterDebug.None)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
-                {
-                    int w = hdCamera.actualWidth;
-                    int h = hdCamera.actualHeight;
-                    int numTilesX = (w + 15) / 16;
-                    int numTilesY = (h + 15) / 16;
-                    int numTiles = numTilesX * numTilesY;
-
-                    // Debug tiles
-                    if (lightingDebug.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
-                    {
-                        if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
-                        {
-                            // featureVariants
-                            parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
-                            parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                            parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-                            parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
-                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, tileBuffer);
-                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, dispatchIndirectBuffer);
-                            parameters.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
-                            parameters.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
-                            parameters.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                            parameters.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (DeferredUseComputeAsPixel(hdCamera.frameSettings))
-                                parameters.debugViewTilesMaterial.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
-                            else
-                                parameters.debugViewTilesMaterial.DisableKeyword("IS_DRAWPROCEDURALINDIRECT");
-                            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
-                        }
-                    }
-                    else // tile or cluster
-                    {
-                        bool bUseClustered = lightingDebug.tileClusterDebug == TileClusterDebug.Cluster;
-
-                        // lightCategories
-                        parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                        parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ClusterDebugMode, bUseClustered ? (int)lightingDebug.clusterDebugMode : (int)ClusterDebugMode.VisualizeOpaque);
-                        parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
-                        parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-                        parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
-                        parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? perVoxelLightListBuffer : lightListBuffer);
-                        parameters.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
-                        parameters.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                        parameters.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
-                        parameters.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                        if (!bUseClustered && hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
-                            parameters.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
-                        else
-                            parameters.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
-
-                        CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
-                    }
-                }
-            }
-
-            if (lightingDebug.displayCookieAtlas)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayCookieAtlas)))
-                {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.cookieAtlasMipLevel);
-                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.cookieManager.atlasTexture);
-                    debugParameters.debugOverlay.SetViewport(cmd);
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    debugParameters.debugOverlay.Next();
-                }
-            }
-
-            if (lightingDebug.clearPlanarReflectionProbeAtlas)
-            {
-                parameters.planarProbeCache.Clear(cmd);
-            }
-
-            if (lightingDebug.displayPlanarReflectionProbeAtlas)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPlanarReflectionProbeAtlas)))
-                {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.planarReflectionProbeMipLevel);
-                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.planarProbeCache.GetTexCache());
-                    debugParameters.debugOverlay.SetViewport(cmd);
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    debugParameters.debugOverlay.Next();
-                }
-            }
-
-            if (lightingDebug.displayDensityVolumeAtlas)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDensityVolumeAtlas)))
-                {
-                    var atlas = DensityVolumeManager.manager.volumeAtlas;
-                    var atlasTexture = atlas.GetAtlas();
-                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, atlasTexture);
-                    m_LightLoopDebugMaterialProperties.SetFloat("_Slice", (float)lightingDebug.densityVolumeAtlasSlice);
-                    m_LightLoopDebugMaterialProperties.SetVector("_Offset", Vector3.zero);
-                    m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(atlasTexture.width, atlasTexture.height, atlasTexture.volumeDepth));
-
-#if UNITY_EDITOR
-                    if (lightingDebug.densityVolumeUseSelection)
-                    {
-                        var obj = UnityEditor.Selection.activeGameObject;
-
-                        if (obj != null && obj.TryGetComponent<DensityVolume>(out var densityVolume))
-                        {
-                            var texture = densityVolume.parameters.volumeMask;
-
-                            if (texture != null)
-                            {
-                                float textureDepth = texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 0;
-                                m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(texture.width, texture.height, textureDepth));
-                                m_LightLoopDebugMaterialProperties.SetVector("_Offset", atlas.GetTextureOffset(texture));
-                            }
-                        }
-                    }
-#endif
-
-                    debugParameters.debugOverlay.SetViewport(cmd);
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    debugParameters.debugOverlay.Next();
-                    debugParameters.debugOverlay.SetViewport(cmd);
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    debugParameters.debugOverlay.Next();
-                }
-            }
-        }
-
-        static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
-        {
-            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
-                return;
-
-            LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
-            if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayShadows)))
-                {
-                    var hdCamera = debugParameters.hdCamera;
-                    var parameters = debugParameters.lightingOverlayParameters;
-
-                    switch (lightingDebug.shadowDebugMode)
-                    {
-                        case ShadowMapDebugMode.VisualizeShadowMap:
-                            int startShadowIndex = (int)lightingDebug.shadowMapIndex;
-                            int shadowRequestCount = 1;
-
-#if UNITY_EDITOR
-                            if (lightingDebug.shadowDebugUseSelection)
-                            {
-                                if (parameters.debugSelectedLightShadowIndex != -1 && parameters.debugSelectedLightShadowCount != 0)
-                                {
-                                    startShadowIndex = parameters.debugSelectedLightShadowIndex;
-                                    shadowRequestCount = parameters.debugSelectedLightShadowCount;
-                                }
-                                else
-                                {
-                                    // We don't display any shadow map if the selected object is not a light
-                                    shadowRequestCount = 0;
-                                }
-                            }
-#endif
-
-                            for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
-                            {
-                                parameters.shadowManager.DisplayShadowMap(atlasTextures, shadowIndex, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                                debugParameters.debugOverlay.Next();
-                            }
-                            break;
-                        case ShadowMapDebugMode.VisualizePunctualLightAtlas:
-                            parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            debugParameters.debugOverlay.Next();
-                            break;
-                        case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
-                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            debugParameters.debugOverlay.Next();
-                            break;
-                        case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
-                            parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            debugParameters.debugOverlay.Next();
-                            break;
-                        case ShadowMapDebugMode.VisualizeAreaLightAtlas:
-                            parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            debugParameters.debugOverlay.Next();
-                            break;
-                        case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
-                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, debugParameters.debugOverlay.x, debugParameters.debugOverlay.y, debugParameters.debugOverlay.overlaySize, debugParameters.debugOverlay.overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
-                            debugParameters.debugOverlay.Next();
-                            break;
-                        default:
-                            break;
-                    }
-                }
             }
         }
     }
