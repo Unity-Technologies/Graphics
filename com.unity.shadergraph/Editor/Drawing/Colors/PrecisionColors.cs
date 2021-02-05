@@ -19,16 +19,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             var graphPrecision = node.graphPrecision;
             if (graphPrecision == GraphPrecision.Graph)
             {
-                if (node.owner.isSubGraph)
-                {
-                    // display based on subgraph's "switchable" graph precision
-                    ussClass = node.owner.graphPrecision.ToString();
-                }
-                else
-                {
-                    // display on shadergraph's concrete precision
-                    ussClass = node.owner.concretePrecision.ToString();
-                }
+                // fall back to whatever the graph uses as its default precision
+                ussClass = node.owner.graphDefaultPrecision.ToString();
             }
             else
             {

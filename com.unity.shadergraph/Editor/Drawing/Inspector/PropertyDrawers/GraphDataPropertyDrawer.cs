@@ -16,20 +16,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        public delegate void ChangeConcretePrecisionCallback(GraphPrecision graphPrecision, ConcretePrecision concretePrecision);
+        public delegate void ChangeGraphDefaultPrecisionCallback(GraphPrecision newDefaultGraphPrecision);
         public delegate void PostTargetSettingsChangedCallback();
 
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
-        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+        ChangeGraphDefaultPrecisionCallback m_changeGraphDefaultPrecisionCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
-            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+            ChangeGraphDefaultPrecisionCallback changeGraphDefaultPrecisionCallback)
         {
             m_postChangeTargetSettingsCallback = postChangeValueCallback;
-            m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
+            m_changeGraphDefaultPrecisionCallback = changeGraphDefaultPrecisionCallback;
         }
 
         VisualElement GetSettings(GraphData graphData, Action onChange)
@@ -111,7 +111,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
 
         // used to display UI to select GraphPrecision in the GraphData inspector
-        enum UIGraphPrecision
+        enum UI_GraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+        };
+
+        enum UI_SubGraphPrecision
         {
             Single = GraphPrecision.Single,
             Half = GraphPrecision.Half,
@@ -130,12 +136,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (!graphData.isSubGraph)
             {
+                // precision selector for shader graphs
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue => { m_postChangeConcretePrecisionCallback(graphData.graphPrecision, (ConcretePrecision)newValue); },
-                    graphData.concretePrecision,
+                    newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                    (UI_GraphPrecision)graphData.graphDefaultPrecision,
                     "Precision",
-                    ConcretePrecision.Single,
+                    UI_GraphPrecision.Single,
                     out var propertyVisualElement));
             }
 
@@ -144,10 +151,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     var enum2PropertyDrawer = new EnumPropertyDrawer();
                     propertySheet.Add(enum2PropertyDrawer.CreateGUI(
-                        newValue => { m_postChangeConcretePrecisionCallback((GraphPrecision)newValue, graphData.concretePrecision); },
-                        (UIGraphPrecision)graphData.graphPrecision,
+                        newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                        (UI_SubGraphPrecision)graphData.graphDefaultPrecision,
                         "Precision",
-                        UIGraphPrecision.Switchable,
+                        UI_SubGraphPrecision.Switchable,
                         out var propertyVisualElement2));
                 }
 

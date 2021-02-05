@@ -274,25 +274,43 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
-        // the graph-defined concrete precision
-        // this is the precision used by any nodes using GraphPrecision.Graph
-        // note that for sub-graphs, this is only used as a default setting for rendering previews
-        // (sub-graphs define GraphPrecision.Graph as being switchable externally)
-        [SerializeField]
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
-        public ConcretePrecision concretePrecision
-        {
-            get => m_ConcretePrecision;
-            set => m_ConcretePrecision = value;
-        }
-
-        // TODO: old subgraphs need to set this to their concrete precision
         [SerializeField]
         private GraphPrecision m_GraphPrecision = GraphPrecision.Graph;
-        public GraphPrecision graphPrecision
+
+        public GraphPrecision graphDefaultPrecision
         {
-            get => m_GraphPrecision;
-            set => m_GraphPrecision = value;
+            get
+            {
+                // shader graphs are not allowed to have graph precision
+                // we force them to Single if they somehow get set to graph
+                if ((!isSubGraph) && (m_GraphPrecision == GraphPrecision.Graph))
+                    return GraphPrecision.Single;
+
+                return m_GraphPrecision;
+            }
+        }
+
+        public ConcretePrecision graphDefaultConcretePrecision
+        {
+            get
+            {
+                // when in "Graph switchable" mode, we choose Half as the default concrete precision
+                // so you can visualize the worst-case
+                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+            }
+        }
+
+        public void SetGraphDefaultPrecision(GraphPrecision newGraphDefaultPrecision)
+        {
+            if ((!isSubGraph) && (newGraphDefaultPrecision == GraphPrecision.Graph))
+            {
+                // shader graphs can't be set to "Graph", only subgraphs can
+                Debug.LogError("Cannot set ShaderGraph to a default precision of Graph");
+            }
+            else
+            {
+                m_GraphPrecision = newGraphDefaultPrecision;
+            }
         }
 
         // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
@@ -1607,7 +1625,7 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
-            concretePrecision = other.concretePrecision;
+            m_GraphPrecision = other.m_GraphPrecision;
             m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
@@ -2086,6 +2104,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [Serializable]
+        class OldGraphDataReadConcretePrecision
+        {
+            // old value just for upgrade
+            [SerializeField]
+            public ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
+        };
+
         public override void OnAfterMultiDeserialize(string json)
         {
             // Deferred upgrades
@@ -2241,21 +2267,18 @@ namespace UnityEditor.ShaderGraph
 
                 if (sgVersion < 3)
                 {
-                    // copy concrete precision to the newly added graph precision
-                    switch (this.concretePrecision)
+                    var oldGraph = JsonUtility.FromJson<OldGraphDataReadConcretePrecision>(json);
+
+                    // upgrade concrete precision to the new graph precision
+                    switch (oldGraph.m_ConcretePrecision)
                     {
                         case ConcretePrecision.Half:
-                            this.graphPrecision = GraphPrecision.Half;
+                            m_GraphPrecision = GraphPrecision.Half;
                             break;
                         case ConcretePrecision.Single:
-                            this.graphPrecision = GraphPrecision.Single;
+                            m_GraphPrecision = GraphPrecision.Single;
                             break;
                     }
-
-                    // concrete precision no longer affects subgraph output
-                    // (only affects the code generated for preview renders)
-                    // so we force it back to the default
-                    this.concretePrecision = ConcretePrecision.Single;
                 }
 
                 ChangeVersion(latestVersion);

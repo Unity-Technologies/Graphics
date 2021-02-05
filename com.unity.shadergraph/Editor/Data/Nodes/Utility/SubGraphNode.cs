@@ -289,20 +289,26 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
+        public override void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
-            // let default behavior do it's work, then we'll override
-            base.EvaluateConcretePrecision(inputSlots);
-
-            // override precision based on asset
             if (asset != null)
             {
-                // if the subgraph has a specific (non-Graph) precision, force that
-                if (asset.subGraphGraphPrecision != GraphPrecision.Graph)
+                if (asset.subGraphGraphPrecision == GraphPrecision.Graph)
+                {
+                    // subgraph is defined to be switchable, so use the default behavior to determine precision
+                    base.UpdatePrecision(inputSlots);
+                }
+                else
+                {
+                    // subgraph sets a specific precision, force that
                     graphPrecision = asset.subGraphGraphPrecision;
-
-                // and update concrete
-                concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
+                    concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
+                }
+            }
+            else
+            {
+                // no subgraph asset; use default behavior
+                base.UpdatePrecision(inputSlots);
             }
         }
 
@@ -592,7 +598,7 @@ namespace UnityEditor.ShaderGraph
             registry.RequiresIncludes(asset.includes);
 
             var graphData = registry.builder.currentNode.owner;
-            var graphConcretePrecision = graphData.concretePrecision;
+            var graphDefaultConcretePrecision = graphData.graphDefaultConcretePrecision;
 
             foreach (var function in asset.functions)
             {
@@ -608,11 +614,12 @@ namespace UnityEditor.ShaderGraph
                         // when a function coming from a subgraph asset has a graph precision of "Graph",
                         // that means it is up to the subgraph NODE to decide
                         GraphPrecision actualGraphPrecision = (GraphPrecision)requestedGraphPrecision;
-                        if (actualGraphPrecision == GraphPrecision.Graph)
-                            actualGraphPrecision = this.graphPrecision;
 
-                        // concretize precision in the context of the current graph
-                        ConcretePrecision actualConcretePrecision = actualGraphPrecision.ToConcrete(graphConcretePrecision);
+                        // subgraph asset setting falls back to this node setting (when switchable)
+                        actualGraphPrecision = actualGraphPrecision.GraphFallback(this.graphPrecision);
+
+                        // which falls back to the graph default concrete precision
+                        ConcretePrecision actualConcretePrecision = actualGraphPrecision.ToConcrete(graphDefaultConcretePrecision);
 
                         // forward the function into the current graph
                         Debug.Log("Registering Function " + name + "(" + actualGraphPrecision + " => " + actualConcretePrecision + ")\n" + source);

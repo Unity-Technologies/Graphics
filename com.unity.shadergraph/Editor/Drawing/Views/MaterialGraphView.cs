@@ -92,15 +92,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.m_InspectorUpdateDelegate();
         }
 
-        void ChangePrecision(GraphPrecision graphPrecision, ConcretePrecision concretePrecision)
+        void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
         {
-            if ((graph.concretePrecision == concretePrecision) && (graph.graphPrecision == graphPrecision))
+            if (graph.graphDefaultPrecision == newGraphDefaultPrecision)
                 return;
 
-            graph.owner.RegisterCompleteObjectUndo("Change Precision");
+            graph.owner.RegisterCompleteObjectUndo("Change Graph Default Precision");
 
-            graph.concretePrecision = concretePrecision;
-            graph.graphPrecision = graphPrecision;
+            graph.SetGraphDefaultPrecision(newGraphDefaultPrecision);
 
             var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)

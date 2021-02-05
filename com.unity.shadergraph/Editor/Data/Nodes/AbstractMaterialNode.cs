@@ -97,6 +97,8 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        // this is the precision after the inherit/automatic behavior has been calculated
+        // it does NOT include fallback to any graph default precision
         public GraphPrecision graphPrecision { get; set; } = GraphPrecision.Single;
 
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
@@ -495,7 +497,7 @@ namespace UnityEditor.ShaderGraph
         protected const string k_validationErrorMessage = "Error found during node validation";
 
         // evaluate ALL the precisions...
-        public virtual void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
+        public virtual void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
             // first let's reduce from precision ==> graph precision
             if (precision == Precision.Inherit)
@@ -517,7 +519,7 @@ namespace UnityEditor.ShaderGraph
                         var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
                         if (!edges.Any())
                         {
-                            // disconnected inputs use graph precision (I guess?)
+                            // disconnected inputs use graph precision
                             curGraphPrecision = Math.Min(curGraphPrecision, (int)GraphPrecision.Graph);
                         }
                         else
@@ -532,24 +534,12 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                // not inherited, just use the definition
+                // not inherited, just use precision
                 graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
             }
 
-            // to calculate the concrete precision we just replace "Graph" with what the graph chose
-            if (owner.isSubGraph)
-            {
-                if (graphPrecision == GraphPrecision.Graph)
-                    graphPrecision = owner.graphPrecision;
-
-                // default to half if still switchable (for previews)
-                concretePrecision = graphPrecision.ToConcrete(ConcretePrecision.Half);
-            }
-            else
-            {
-                // non subgraphs have a concrete graph precision
-                concretePrecision = graphPrecision.ToConcrete(owner.concretePrecision);
-            }
+            // calculate the concrete precision, with fall-back to the graph concrete precision
+            concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
 
         public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
@@ -682,7 +672,7 @@ namespace UnityEditor.ShaderGraph
                 GetInputSlots(inputSlots);
                 GetOutputSlots(outputSlots);
 
-                EvaluateConcretePrecision(inputSlots);
+                UpdatePrecision(inputSlots);
                 EvaluateDynamicMaterialSlots(inputSlots, outputSlots);
             }
         }

@@ -74,5 +74,12 @@ namespace UnityEditor.ShaderGraph
                     return graphPrecision;
             }
         }
+
+        internal static GraphPrecision GraphFallback(this GraphPrecision precision, GraphPrecision graphFallback)
+        {
+            if (precision == GraphPrecision.Graph)
+                return graphFallback;
+            return precision;
+        }
     }
 }

@@ -194,14 +194,11 @@ namespace UnityEditor.ShaderGraph
             asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
 
-            // output is whatever the output node has as a graph precision
-            asset.outputGraphPrecision = outputNode.graphPrecision;
+            // output precision is whatever the output node has as a graph precision, falling back to the graph default
+            asset.outputGraphPrecision = outputNode.graphPrecision.GraphFallback(graph.graphDefaultPrecision);
 
-            // but remember to apply the subgraph filter to it if necessary
-            if (asset.outputGraphPrecision == GraphPrecision.Graph)
-                asset.outputGraphPrecision = graph.graphPrecision;
-
-            asset.subGraphGraphPrecision = graph.graphPrecision;
+            // this saves the graph precision, which indicates whether this subgraph is switchable or not
+            asset.subGraphGraphPrecision = graph.graphDefaultPrecision;
 
             asset.previewMode = graph.previewMode;
 
@@ -262,12 +259,9 @@ namespace UnityEditor.ShaderGraph
                 var arguments = new List<string>();
                 foreach (var prop in graph.properties)
                 {
-                    // for any properties that are set to precision "inherit" we concretize them using the graph concrete precision
-
-                    // TODO: this does not support Graph precision on inputs... we might want to do that...
-
-                    // convert to graph precision using the graph value as inherit fallback
-                    var propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphPrecision);
+                    // apply fallback to the graph default precision (but don't convert to concrete)
+                    // this means "graph switchable" properties will use the precision token
+                    GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
                     string precisionString = propGraphPrecision.ToGenericString();
                     arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                 }
