@@ -8,15 +8,15 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    public class StandardRendererData : ScriptableRendererData
+    public class UniversalRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-        internal class CreateStandardRendererAsset : EndNameEditAction
+        internal class CreateUniversalRendererAsset : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var instance = CreateInstance<StandardRendererData>();
+                var instance = CreateInstance<UniversalRendererData>();
                 instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
@@ -24,10 +24,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Standard Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
-        static void CreateStandardRendererData()
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Universal Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
+        static void CreateUniversalRendererData()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateStandardRendererAsset>(), "CustomStandardRendererData.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "CustomUniversalRendererData.asset", null, null);
         }
 
 #endif
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 ReloadAllNullProperties();
             }
-            return new StandardRenderer(this);
+            return new UniversalRenderer(this);
         }
 
         /// <summary>

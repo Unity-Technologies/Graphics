@@ -3,11 +3,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-class ForwardToStandardRendererPostprocessor : AssetPostprocessor
+class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
 {
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
-        //Gets the StandardRendererData.cs file
+        //Gets the UniversalRendererData.cs file
         string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e");
         var stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
 
@@ -27,7 +27,7 @@ class ForwardToStandardRendererPostprocessor : AssetPostprocessor
             //check if the script is using ForwardRendererData
             if (scriptProperty.objectReferenceValue.Equals(fwdRendererScriptObj))
             {
-                //change the script to use StandardRendererData
+                //change the script to use UniversalRendererData
                 scriptProperty.objectReferenceValue = stdRendererScriptObj;
                 so.ApplyModifiedProperties();
                 noOfFwdRendererData++;

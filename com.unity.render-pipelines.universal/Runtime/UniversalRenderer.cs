@@ -20,14 +20,14 @@ namespace UnityEngine.Rendering.Universal
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
     /// </summary>
-    public sealed class StandardRenderer : ScriptableRenderer
+    public sealed class UniversalRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
         static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
 
         private static class Profiling
         {
-            private const string k_Name = nameof(StandardRenderer);
+            private const string k_Name = nameof(UniversalRenderer);
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
         internal RenderTargetHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
-        public StandardRenderer(StandardRendererData data) : base(data)
+        public UniversalRenderer(UniversalRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);

@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, UniversalRenderPipeline.maxVisibleAdditionalLights);
 
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
-            // We initialize these array sizes with the number of visible lights allowed by the StandardRenderer.
+            // We initialize these array sizes with the number of visible lights allowed by the UniversalRenderer.
             // The number of visible lights can become much higher when using the Deferred rendering path, we resize the arrays during Setup() if required.
             m_AdditionalLightIndexToVisibleLightIndex = new int[maxAdditionalLightShadowParams];
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];

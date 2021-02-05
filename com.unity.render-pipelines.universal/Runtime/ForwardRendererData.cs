@@ -9,14 +9,14 @@ namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Deprecated, kept for backward compatibility with existing ForwardRendererData asset files.
-    /// Use StandardRendererData instead.
+    /// Use UniversalRendererData instead.
     /// </summary>
-    [System.Obsolete("ForwardRendererData has been deprecated -> StandardRendererData (UnityUpgradable)", true)]
+    [System.Obsolete("ForwardRendererData has been deprecated (UnityUpgradable) -> UniversalRendererData", true)]
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
-        private static readonly string k_ErrorMessage = "ForwardRendererData has been deprecated. Use StandardRendererData instead";
+        private static readonly string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
 
         [Serializable, ReloadGroup]
         public sealed class ShaderResources

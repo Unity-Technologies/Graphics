@@ -5,12 +5,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(StandardRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class StandardRendererDataEditor : ScriptableRendererDataEditor
+    [CustomEditor(typeof(UniversalRendererData), true)]
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {
         private static class Styles
         {
-            public static readonly GUIContent RendererTitle = new GUIContent("Standard Renderer", "Custom Standard Renderer for Universal RP.");
+            public static readonly GUIContent RendererTitle = new GUIContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
             public static readonly GUIContent PostProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
             public static readonly GUIContent PostProcessLabel = new GUIContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (GUILayout.Button("Reload All"))
                 {
-                    var resources = target as StandardRendererData;
+                    var resources = target as UniversalRendererData;
                     resources.shaders = null;
                     ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
                 }

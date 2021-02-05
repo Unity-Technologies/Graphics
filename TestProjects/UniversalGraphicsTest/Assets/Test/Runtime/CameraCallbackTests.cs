@@ -31,9 +31,9 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
 	public override void Create()
     {
-        StandardRendererData data = null;
+        ForwardRendererData data = null;
         if (UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
-		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as StandardRendererData;
+		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
 
 		if (data == null)
 			return;

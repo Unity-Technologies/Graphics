@@ -85,10 +85,10 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
     {
         Custom,
-        StandardRenderer,
+        UniversalRenderer,
         _2DRenderer,
-        [Obsolete("ForwardRenderer has been renamed -> StandardRenderer (UnityUpgradable)", true)]
-        ForwardRenderer = StandardRenderer,
+        [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
+        ForwardRenderer = UniversalRenderer,
     }
 
     public enum ColorGradingMode
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int k_AssetPreviousVersion = 7;
 
         // Deprecated settings for upgrading sakes
-        [SerializeField] RendererType m_RendererType = RendererType.StandardRenderer;
+        [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererData != null)
                 instance.m_RendererDataList[0] = rendererData;
             else
-                instance.m_RendererDataList[0] = CreateInstance<StandardRendererData>();
+                instance.m_RendererDataList[0] = CreateInstance<UniversalRendererData>();
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
@@ -213,11 +213,11 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 //Create asset
-                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.StandardRenderer)), pathName);
+                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.UniversalRenderer)), pathName);
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Standard Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Universal Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
@@ -241,14 +241,14 @@ namespace UnityEngine.Rendering.Universal
         {
             switch (type)
             {
-                case RendererType.StandardRenderer:
-                    return CreateInstance<StandardRendererData>();
+                case RendererType.UniversalRenderer:
+                    return CreateInstance<UniversalRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                     return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
-                // Standard Renderer is the fallback renderer that works on all platforms
+                // Universal Renderer is the fallback renderer that works on all platforms
                 default:
-                    return CreateInstance<StandardRendererData>();
+                    return CreateInstance<UniversalRendererData>();
             }
         }
 
@@ -275,12 +275,12 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.StandardRenderer)
+        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
             return m_RendererDataList[0] =
-                CreateRendererAsset("Assets/StandardRenderer.asset", type, false);
+                CreateRendererAsset("Assets/UniversalRenderer.asset", type, false);
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
@@ -929,9 +929,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (asset.k_AssetPreviousVersion < 5)
             {
-                if (asset.m_RendererType == RendererType.StandardRenderer)
+                if (asset.m_RendererType == RendererType.UniversalRenderer)
                 {
-                    var data = AssetDatabase.LoadAssetAtPath<StandardRendererData>("Assets/StandardRenderer.asset");
+                    var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/UniversalRenderer.asset");
                     if (data)
                     {
                         asset.m_RendererDataList[0] = data;

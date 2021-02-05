@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 
+### Changed
+- The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
+
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
@@ -130,9 +133,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
 - The maximum number of visible lights when using OpenGL ES 3.x on Android now depends on the minimum OpenGL ES 3.x version as configured in PlayerSettings.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
-
-### Changed
-- The Forward Renderer asset is renamed to the Standard Renderer asset. The Standard Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 
 ### Fixed
 - Fixed an issue where the CapturePass would not capture the post processing effects.

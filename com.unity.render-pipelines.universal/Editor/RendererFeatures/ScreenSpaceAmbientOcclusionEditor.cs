@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.Universal
                 foreach (var feature in rendererFeatures)
                 {
                     if (feature is ScreenSpaceAmbientOcclusion && (ScreenSpaceAmbientOcclusion)feature == ssaoFeature)
-                        return rendererData is StandardRendererData && ((StandardRendererData)rendererData).renderingMode == RenderingMode.Deferred;
+                        return rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).renderingMode == RenderingMode.Deferred;
                 }
             }
 
