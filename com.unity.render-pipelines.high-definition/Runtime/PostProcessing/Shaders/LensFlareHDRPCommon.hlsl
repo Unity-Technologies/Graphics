@@ -155,7 +155,7 @@ Varyings vert(Attributes input)
 
     float scale = 1.0f;
     if (_FlareUseExposure > 0.5f)
-        scale = max(log2(GetCurrentExposureMultiplier()), 1.0f);
+        scale = GetCurrentExposureMultiplier();
 
     //if (_FlareDepth > 0.0f)
     output.occlusion = occlusion * scale;
