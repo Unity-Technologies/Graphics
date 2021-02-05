@@ -389,7 +389,7 @@ real LinearToLogC_Precise(real x)
 {
     real o;
     if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+        o = LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
     else
         o = LogC.e * x + LogC.f;
     return o;
@@ -404,7 +404,7 @@ real3 LinearToLogC(real3 x)
         LinearToLogC_Precise(x.z)
     );
 #else
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+    return LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
 #endif
 }
 
