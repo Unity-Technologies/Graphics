@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Universal Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "CustomUniversalRendererData.asset", null, null);
