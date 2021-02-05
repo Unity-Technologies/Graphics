@@ -20,6 +20,7 @@ float _OcclusionRadius;
 float _FlareOcclusionRadius;
 float _FlareOcclusionSamplesCount;
 //float _OcclusionManual;
+float _FlareUseExposure;
 float4 _FlareColor;
 // LensFlare Data :
 //		* X = RayPos
@@ -68,26 +69,32 @@ static float2 samples[DEPTH_SAMPLE_COUNT] = {
 float GetOcclusion(float2 screenPos, float depth, float ratio)
 {
     float contrib = 0.0f;
-    //float sample_Contrib = 1.0 / _FlareOcclusionSamplesCount;
+    float sample_Contrib = 1.0 / _FlareOcclusionSamplesCount;
     //float2 ratioScale = float2(1 / ratio, 1.0);
-    float2 ratioScale = float2(1.0f, 1.0f / ratio);
+    float2 ratioScale = float2(1.0f, 1.0f);
+    //float2 ratioScale = float2(1.0f, 1.0f / ratio);
+    //float2 ratioScale = float2(1 / ratio, 1.0);
     for (uint i = 0; i < (uint)_FlareOcclusionSamplesCount; i++)
     {
-        float2 pos = screenPos + 0*(samples[i % DEPTH_SAMPLE_COUNT] * _FlareOcclusionRadius * ratioScale);
+        float2 pos = screenPos + (samples[i % DEPTH_SAMPLE_COUNT] * _FlareOcclusionRadius * ratioScale) / _ScreenSize.xy;
         pos = pos * 0.5 + 0.5;
         pos.y = 1 - pos.y;
         if (pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1)
         {
             //float sampledDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, pos, 0).r, _ZBufferParams);
-            //float depth = LoadCameraDepth(pos * _ScreenSize.xy);
+            //float depth0 = LoadCameraDepth(pos * _ScreenSize.xy);
             float depth0 = SampleCameraDepth(pos);
             //float linearEyeDepth = LinearEyeDepth(depth0, _ZBufferParams);
+            //contrib += depth0;
             if (depth0 < depth)
-                contrib += 1.0f;
+                //contrib += depth0;// sample_Contrib;
+                contrib += sample_Contrib;
         }
     }
 
-    return contrib / _FlareOcclusionSamplesCount;
+    return 1.0f;
+    //return contrib;
+    //return //contrib / _FlareOcclusionSamplesCount;
 }
 
 Varyings vert(Attributes input)
@@ -143,7 +150,17 @@ Varyings vert(Attributes input)
     //float _FlareOcclusionRadius;
     //float _FlareOcclusionSamplesCount;
 
-    output.occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+    float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+        //1.0f;// GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+
+    float scale = 1.0f;
+    if (_FlareUseExposure > 0.5f)
+        scale = max(log2(GetCurrentExposureMultiplier()), 1.0f);
+
+    //if (_FlareDepth > 0.0f)
+    output.occlusion = occlusion * scale;
+    //else
+        //output.occlusion = lerp(occlusion, 1.0f, abs(_FlareDepth));
 
     return output;
 }

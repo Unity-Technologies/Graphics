@@ -9,10 +9,10 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_Intensity;
         SerializedProperty m_AllowOffScreen;
+        SerializedProperty m_ScaleByExposure;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_ScaleCurve;
-        SerializedProperty m_TextureCurve;
         SerializedProperty m_PositionCurve;
         SerializedProperty m_Elements;
 
@@ -23,9 +23,9 @@ namespace UnityEditor.Rendering
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.samplesCount);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
+            m_ScaleByExposure = entryPoint.Find(x => x.scaleByExposure);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
-            m_TextureCurve = entryPoint.obj.FindProperty("textureCurve");
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Intensity);
             EditorGUILayout.PropertyField(m_AllowOffScreen);
+            EditorGUILayout.PropertyField(m_ScaleByExposure);
             EditorGUILayout.PropertyField(m_OcclusionRadius);
             EditorGUILayout.PropertyField(m_SamplesCount);
             if (EditorGUI.EndChangeCheck())
@@ -47,13 +48,7 @@ namespace UnityEditor.Rendering
             {
                 m_ScaleCurve.serializedObject.ApplyModifiedProperties();
                 m_PositionCurve.serializedObject.ApplyModifiedProperties();
-                UnityEngine.AnimationCurve curve = m_ScaleCurve.animationCurveValue as UnityEngine.AnimationCurve;
-
-                // TODO Multiselect
-                //(target as UnityEngine.SRPLensFlareData).TextureCurve = new UnityEngine.Rendering.TextureCurve(curve.keys, 0.0f, false, new Vector2(0.0f, 1.0f));
-                //m_TextureCurve.serializedObject.Update();
             }
-            //EditorGUILayout.PropertyField(m_TextureCurve);
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
             int countBefore = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;

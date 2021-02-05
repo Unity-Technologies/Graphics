@@ -160,7 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
 
-
             // Lens Flare
             m_LensFlareLerp = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareLerpPS);
             m_LensFlareAdditive = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareAdditivePS);
@@ -2142,17 +2141,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Lens Flare
-        //struct LensFlareElement
-        //{
-        //    public Texture[] lensFlareTextures;
-        //    public float[] positions;
-        //    public Vector2[] sizes;
-        //    public float[] rotations;
-        //    public Vector4[] tints; // Tint*LocalIntensity*GlobalIntensity
-        //    public float[] speeds;
-        //    public SRPLensFlareBlendMode[] blendModes;
-        //    public bool[] autoRotates;
-        //}
 
         struct LensFlareParameters
         {
@@ -2160,10 +2148,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareAdditive;
             public Material lensFlarePremultiply;
             public SRPLensFlareCommon lensFlares;
-            //public Vector3[] worldPosition;
-            //public AnimationCurve[] scaleCurves;
-            //public AnimationCurve[] positionCurves;
-            //public LensFlareElement[] elements;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2179,6 +2163,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        static void DrawCircle(Vector3 center, Vector3 right, Vector3 up, float radius, Color color, int segment)
+        {
+            //segment
+            //Debug.DrawLine();
+            float dAngle = 2.0f * Mathf.PI / ((float)segment);
+
+            float angle = 0.0f;
+            for (int i = 0; i < segment; ++i)
+            {
+                float sin0 = Mathf.Sin(angle);
+                float cos0 = Mathf.Cos(angle);
+                float sin0Next = Mathf.Sin(angle + dAngle);
+                float cos0Next = Mathf.Cos(angle + dAngle);
+
+                Vector3 x0 = new Vector3(center.x, center.y, center.z) + right * cos0 * radius + up * sin0 * radius;
+                Vector3 x1 = new Vector3(center.x, center.y, center.z) + right * cos0Next * radius + up * sin0Next * radius;
+
+                Debug.DrawLine(x0, x1, color);
+
+                angle += dAngle;
+            }
+        }
+
         static void DoLensFlare(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
             cmd.CopyTexture(source, target);
@@ -2188,7 +2195,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
             {
-                SRPLensFlareData data = comp.LensFlareData;
+                SRPLensFlareData data = comp.lensFlareData;
+
+                if (!comp.enabled || data.globalIntensity <= 0.0f || !comp.gameObject.active)
+                    continue;
 
                 if (data == null)
                     continue;
@@ -2199,7 +2209,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Camera cam = hdCam.camera;
 
                 Vector3 positionWS = comp.transform.position;
-
                 Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
 
                 if (viewportPos.z < 0.0f)
@@ -2214,17 +2223,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 screenPos = (Vector2)viewportPos;
 
-                Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(positionWS /*+ cam.transform.up * m_OcclusionRadius*/);
-                float occlusionRadius = (screenPos - occlusionRadiusEdgeScreenPos).magnitude * 2;
+                Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * data.occlusionRadius);
+                float occlusionRadius = (screenPos - occlusionRadiusEdgeScreenPos).magnitude;
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
 
-                Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
+                //Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
 
-                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
-                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, viewportPos.z);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareUseExposure, data.scaleByExposure ? 1.0f : 0.0f);
+
+                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
+                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, new Vector2(screenPos.x * 2 - 1, 1 - screenPos.y * 2));
+                //if (!data.allowOffScreen)
+                //    cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, Mathf.Abs(viewportPos.z));
+                //else
+                //Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS);
+                Vector3 screenPosZ = cam.worldToCameraMatrix * positionWS;
+                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
 
                 //Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
                 //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
+
+                DrawCircle(positionWS, cam.transform.right, cam.transform.up, data.occlusionRadius, Color.red, 16);
 
                 CoreUtils.SetRenderTarget(cmd, target);
                 int elemIdx = 0;
@@ -2236,14 +2255,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element.lensFlareTexture == null)
                         continue;
 
-                    float time = data.elements.Length == 1 ? 0.5f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
+                    float time = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
+
+                    float curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(time) : 1.0f;
+                    float curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(time) : 1.0f;
 
                     Texture texture = element.lensFlareTexture;
-                    float position = element.position * data.positionCurve.Evaluate(time);
-                    float scaleCoef = data.scaleCurve.Evaluate(time);
+                    float position = 2.0f * element.position * curvePos;
+                    float scaleCoef = curveScale;
                     Vector2 size = new Vector2(element.size * scaleCoef, element.size * element.aspectRatio * scaleCoef);
                     float rotation = element.rotation;
-                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity;
+                    Vector4 modulation = Vector4.one;
+                    Light light = comp.GetComponent<Light>();
+                    if (light != null && element.modulateByLightColor)
+                    {
+                        if (light.useColorTemperature)
+                            modulation = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                        else
+                            modulation = light.color;
+                    }
+                    Vector4 tint = element.tint * element.localIntensity * data.globalIntensity * modulation;
                     float speed = element.speed;
                     SRPLensFlareBlendMode blendMode = element.blendMode;
                     bool autoRotate = element.autoRotate;
@@ -2257,8 +2288,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         usedMaterial = parameters.lensFlarePremultiply;
 
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
-
                     cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
+
                     if (!autoRotate)
                         rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
                     rotation *= Mathf.Deg2Rad;
@@ -2269,6 +2300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, data.occlusionRadius);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, data.samplesCount);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+
                     ++elemIdx;
                 }
             }

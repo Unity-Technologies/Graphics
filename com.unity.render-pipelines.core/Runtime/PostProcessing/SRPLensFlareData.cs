@@ -33,22 +33,19 @@ namespace UnityEngine
 
         [Range(0.0f, 1.0f)]
         public float localIntensity;
-        //[Range(-1.0f, 1.0f)]
         public float position;
         public Texture lensFlareTexture;
-        //[Range(0.0f, 1.0f)]
         [Min(0.0f)]
         public float size;
-        //[Range(0.0f, 1.0f)]
         [Min(0.0f)]
         public float aspectRatio;
         [Range(0, 360)]
         public float rotation;
         public Color tint;
-        //[Range(0.0f, 1.0f)]
         public float speed;
         public SRPLensFlareBlendMode blendMode;
         public bool autoRotate;
+        public bool modulateByLightColor;
     }
 
     [System.Serializable]
@@ -58,6 +55,7 @@ namespace UnityEngine
         {
             globalIntensity = 1.0f;
             allowOffScreen = false;
+            scaleByExposure = false;
             occlusionRadius = 0.01f;
             samplesCount = 4;
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
@@ -65,11 +63,14 @@ namespace UnityEngine
             textureCurve = new Rendering.TextureCurve(scaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
         }
 
+        [Min(0)]
         public float globalIntensity;
         public bool allowOffScreen;
+        [Min(0)]
         public float occlusionRadius;
         [Min(1)]
         public uint samplesCount;
+        public bool scaleByExposure;
         public AnimationCurve scaleCurve;
         public AnimationCurve positionCurve;
         public UnityEngine.Rendering.TextureCurve textureCurve;

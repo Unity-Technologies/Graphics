@@ -5,7 +5,7 @@ namespace UnityEngine
     [AddComponentMenu("Rendering/SRP Lens Flare Source Override")]
     public sealed class SRPLensFlareOverride : MonoBehaviour
     {
-        public SRPLensFlareData LensFlareData;
+        public SRPLensFlareData lensFlareData = null;
 
         public SRPLensFlareOverride()
         {
@@ -13,7 +13,7 @@ namespace UnityEngine
 
         public void OnEnable()
         {
-            if (LensFlareData)
+            if (lensFlareData && gameObject.active)
                 SRPLensFlareCommon.Instance.AddData(this);
             else
                 SRPLensFlareCommon.Instance.RemoveData(this);
@@ -21,19 +21,19 @@ namespace UnityEngine
 
         public void OnDisable()
         {
-            if (LensFlareData)
+            if (lensFlareData)
                 SRPLensFlareCommon.Instance.RemoveData(this);
         }
 
         public void OnDestroy()
         {
-            if (LensFlareData)
+            if (lensFlareData)
                 SRPLensFlareCommon.Instance.RemoveData(this);
         }
 
         public void Start()
         {
-            if (LensFlareData != null)
+            if (lensFlareData != null && gameObject.active)
             {
                 SRPLensFlareCommon.Instance.AddData(this);
             }
@@ -45,7 +45,7 @@ namespace UnityEngine
 
         public void OnValidate()
         {
-            if (LensFlareData != null)
+            if (lensFlareData != null)
             {
                 SRPLensFlareCommon.Instance.AddData(this);
             }
@@ -57,7 +57,7 @@ namespace UnityEngine
 
         public void Update()
         {
-            if (LensFlareData == null)
+            if (lensFlareData == null)
             {
                 SRPLensFlareCommon.Instance.RemoveData(this);
             }

@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
             SerializedProperty autoRotateProp = property.FindPropertyRelative("autoRotate");
+            SerializedProperty modulateByLightColor = property.FindPropertyRelative("modulateByLightColor");
 
             float tmp;
             if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Intensity"), intensityProp.floatValue)) != intensityProp.floatValue)
@@ -72,6 +73,9 @@ namespace UnityEditor.Rendering
             if ((tmpBool = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent("Auto Rotate"), autoRotateProp.boolValue)) != autoRotateProp.boolValue)
                 autoRotateProp.boolValue = tmpBool;
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            if ((tmpBool = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent("Modulate By Light Color"), modulateByLightColor.boolValue)) != modulateByLightColor.boolValue)
+                modulateByLightColor.boolValue = tmpBool;
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             rect.height = 1;
             EditorGUI.DrawRect(rect, EditorGUIUtility.isProSkin
                 ? new Color32(26, 26, 26, 255)
@@ -81,7 +85,7 @@ namespace UnityEditor.Rendering
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return 10.5f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+            return 11.5f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         }
     }
 }
