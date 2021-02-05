@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+- Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
 
 ## [11.0.0] - 2020-10-21
 
@@ -36,6 +37,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
 - Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
 - Fixed the InputNodes tests that were never correct. These were incorrect tests, no nodes needed tochange.
+- Fixed the ViewDirection Node in Tangent space's calculation to match how the transform node works [1296788]
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 - Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
 - Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
