@@ -10,7 +10,7 @@ import requests
 import datetime
 import ruamel.yaml
 from collections import OrderedDict
-from update_revisions import load_config, DEFAULT_CONFIG_FILE, EXPECTATIONS_PATH
+from update_revisions import DEFAULT_CONFIG_FILE, DEFAULT_SHARED_FILE
 from util.subprocess_helpers import git_cmd, run_cmd
 
 yaml = ruamel.yaml.YAML()
@@ -35,10 +35,11 @@ def commit_and_push(commit_msg, working_dir, development_mode=False):
         git_cmd('pull', working_dir)
         git_cmd('push', working_dir)
 
-def get_last_nightly_id(api_key):
+def get_last_nightly_id(api_key, yamato_project_id, yamato_branch, yamato_nightly_job_definition):
     try:
         current_date = str(datetime.date.today())
-        url = f"http://yamato-api.cds.internal.unity3d.com/jobs?filter=project eq 902 and branch eq '2021.1/staging' and filename eq '.yamato%252F_abv.yml%2523all_project_ci_nightly_2021.1' and submitted gt '{current_date}'"
+        url = f"http://yamato-api.cds.internal.unity3d.com/jobs?filter=project eq {yamato_project_id} and branch eq '{yamato_branch}' and filename eq '{yamato_nightly_job_definition}' and submitted gt '{current_date}'"
+        print(f'Calling [{url}]')
         headers={"Authorization":f"ApiKey {api_key}"}
         response = requests.get(url=url, headers=headers)
         if response.status_code != 200:
@@ -123,32 +124,29 @@ def parse_args(flags):
     parser = argparse.ArgumentParser()
     parser.add_argument('--local', action='store_true',
                     help='For local development (doesn\'t switch branches, pull or push)')
-    parser.add_argument('--config', required=False, default=DEFAULT_CONFIG_FILE,
-                        help=f'Configuration YAML file to use. Default: {DEFAULT_CONFIG_FILE}')
-    #parser.add_argument("--revision", required=True)
     parser.add_argument("--track", required=True)
     parser.add_argument("--apikey", required=True, 
                         help='Needed for Yamato auth if jobid arg is specified.')
-    parser.add_argument("--working-dir", required=False,
-                        help='Working directory (optional). If omitted the root '
-                        'of the repo will be used.')
     parser.add_argument("--target-branch", required=True,
                         help='The Git branch to merge the changes in the file into.')
     args = parser.parse_args(flags)
-    if not os.path.isfile(args.config):
-        parser.error(f'Cannot find config file {args.config}')
     return args
 
 
 def main(argv):
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     args = parse_args(argv)
-    config = load_config(args.config)
+    config = load_yml(DEFAULT_CONFIG_FILE)
+    shared = load_yml(DEFAULT_SHARED_FILE)
+    
     editor_versions_file = config['editor_versions_file'].replace('TRACK',str(args.track))
     green_revisions_file = config['green_revisions_file'].replace('TRACK',str(args.track))
+    yamato_branch = shared['target_branch']
+    yamato_project_id = config['yamato_project_id']
+    yamato_nightly_job_definition = config['nightly_job_definition']
 
     try:
-        working_dir = args.working_dir or os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
+        working_dir = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
         print(f'Working directory: {working_dir}')
         
         if args.local:
@@ -156,7 +154,7 @@ def main(argv):
         else:
             checkout_and_pull_branch(args.target_branch, working_dir, args.local)
         
-        nightly_job_id = get_last_nightly_id(args.apikey)
+        nightly_job_id = get_last_nightly_id(args.apikey, yamato_project_id, yamato_branch, yamato_nightly_job_definition)
         print(f'Updating green project revisions according to job {nightly_job_id}.')
         if nightly_job_id:
             if update_green_project_revisions(editor_versions_file, green_revisions_file, str(args.track), config['green_revision_jobs'], nightly_job_id, args.apikey, working_dir):
