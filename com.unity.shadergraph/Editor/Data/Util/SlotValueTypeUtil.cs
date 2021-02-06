@@ -123,14 +123,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        /*
-        public static string ToGenericString(this ConcreteSlotValueType type, GraphPrecision precision)
-        {
-            string precisionString = precision.ToGenericString();
-            return type.ToShaderString(precisionString);
-        }
-        */
-
         public static string ToShaderString(this ConcreteSlotValueType type, ConcretePrecision concretePrecision)
         {
             string precisionString = concretePrecision.ToShaderString();

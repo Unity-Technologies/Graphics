@@ -505,7 +505,6 @@ namespace UnityEditor.ShaderGraph
                 // inherit means calculate it automatically based on inputs
 
                 // If no inputs were found use the precision of the Graph
-                // This can be removed when parameters are considered as true inputs
                 if (inputSlots.Count == 0)
                 {
                     graphPrecision = GraphPrecision.Graph;
@@ -534,7 +533,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                // not inherited, just use precision
+                // not inherited, just use the node's selected precision
                 graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
             }
 

@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
     // this is used when calculating precision within a graph
     // it basically represents the precision after applying the automatic inheritance rules
-    // we do not yet resolve "Graph", as subgraphs may have switchable graph precision,
-    // so we need to track that on every nodes
+    // but before applying the fallback to the graph default
+    // tracking this explicitly helps us build subgraph switchable precision behavior (any node using Graph can be switched)
     public enum GraphPrecision
     {
         Single = 0,     // the ordering is different here so we can use the min function to resolve inherit/automatic behavior

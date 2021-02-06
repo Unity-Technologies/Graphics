@@ -129,9 +129,6 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
-
-                // EvaluateConcretePrecision(List < MaterialSlot > inputSlots)
-                // concretePrecision = m_SubGraph.outputPrecision;
             }
         }
 
@@ -214,14 +211,12 @@ namespace UnityEditor.ShaderGraph
             foreach (var outSlot in asset.outputs)
                 sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(outputPrecision), GetVariableNameForSlot(outSlot.id));
 
-            //
             var arguments = new List<string>();
             foreach (AbstractShaderProperty prop in asset.inputs)
             {
                 // setup the property concrete precision (fallback to node concrete precision when it's switchable)
                 prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
-
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
             }
 
@@ -606,13 +601,15 @@ namespace UnityEditor.ShaderGraph
                 var source = function.value;
                 var graphPrecisionFlags = function.graphPrecisionFlags;
 
+                // the subgraph may use multiple precision variants of this function internally
+                // here we iterate through all the requested precisions and forward those requests out to the graph
                 for (int requestedGraphPrecision = 0; requestedGraphPrecision <= (int)GraphPrecision.Half; requestedGraphPrecision++)
                 {
                     // only provide requested precisions
                     if ((graphPrecisionFlags & (1 << requestedGraphPrecision)) != 0)
                     {
                         // when a function coming from a subgraph asset has a graph precision of "Graph",
-                        // that means it is up to the subgraph NODE to decide
+                        // that means it is up to the subgraph NODE to decide (i.e. us!)
                         GraphPrecision actualGraphPrecision = (GraphPrecision)requestedGraphPrecision;
 
                         // subgraph asset setting falls back to this node setting (when switchable)
@@ -622,7 +619,6 @@ namespace UnityEditor.ShaderGraph
                         ConcretePrecision actualConcretePrecision = actualGraphPrecision.ToConcrete(graphDefaultConcretePrecision);
 
                         // forward the function into the current graph
-                        Debug.Log("Registering Function " + name + "(" + actualGraphPrecision + " => " + actualConcretePrecision + ")\n" + source);
                         registry.ProvideFunction(name, actualGraphPrecision, actualConcretePrecision, sb => sb.AppendLines(source));
                     }
                 }

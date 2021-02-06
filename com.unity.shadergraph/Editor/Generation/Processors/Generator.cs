@@ -326,7 +326,7 @@ namespace UnityEditor.ShaderGraph
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var graphIncludes = new IncludeCollection();
-            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes);
+            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes, true);
 
             // Hash table of named $splice(name) commands
             // Key: splice token

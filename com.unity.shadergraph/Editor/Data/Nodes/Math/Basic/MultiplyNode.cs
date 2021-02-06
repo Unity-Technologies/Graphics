@@ -59,13 +59,6 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionName(), input1Value, input2Value, outputValue);
         }
 
-/*
-        string GetFunctionName()
-        {
-            return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
-        }
-*/
-
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             var functionName = GetFunctionName();

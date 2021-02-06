@@ -274,6 +274,8 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        // we default this to Graph for subgraphs
+        // but for shadergraphs, this will get replaced with Single
         [SerializeField]
         private GraphPrecision m_GraphPrecision = GraphPrecision.Graph;
 

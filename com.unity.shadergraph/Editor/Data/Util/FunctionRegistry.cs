@@ -57,8 +57,6 @@ namespace UnityEditor.ShaderGraph
             var length = builder.length - startIndex;
             var code = builder.ToString(startIndex, length);
 
-            Debug.Log("Registering Function " + name + "(" + graphPrecision + " => " + concretePrecision + ")\n" + code);
-
             // validate some assumptions around generics
             bool isGenericName = name.Contains("$");
             bool isGenericFunc = code.Contains("$");
@@ -93,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                 existingSource.concretePrecisionFlags = existingSource.concretePrecisionFlags | concretePrecisionFlag;
 
                 // if validate, we double check that the two function declarations are the same
-                // if (m_Validate)      // TODO: we should just always do this, no?
+                if (m_Validate)
                 {
                     if (code != existingSource.code)
                     {
@@ -127,7 +125,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        // todo: convert Action<ShaderStringBuilder> into Func<string>  (or just plain string.. :P )
         public void ProvideFunction(string name, Action<ShaderStringBuilder> generator)
         {
             ProvideFunction(name, builder.currentNode.graphPrecision, builder.currentNode.concretePrecision, generator);

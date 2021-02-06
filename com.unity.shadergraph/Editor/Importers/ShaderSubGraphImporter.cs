@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(21, Extension, -905)]
+    [ScriptedImporter(22, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -155,9 +155,6 @@ namespace UnityEditor.ShaderGraph
         {
             var graphIncludes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
-
-            if (registry.names.Count > 0)       // TODO remove -- if we don't get bug reports on this spam
-                Debug.LogError("registry.names not zero!");
 
             asset.functions.Clear();
             asset.isValid = true;
