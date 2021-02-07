@@ -1888,8 +1888,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void RequestShadowMapRendering()
         {
-            if(shadowUpdateMode == ShadowUpdateMode.OnDemand)
+            if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+            {
+                m_WillRenderShadowMap = false;
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
+            }
         }
 
         /// <summary>
@@ -1901,7 +1904,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestSubShadowMapRendering(int shadowIndex)
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
+            {
+                m_WillRenderShadowMap = false;
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this, shadowIndex);
+            }
+                
         }
 
         internal bool ShadowIsUpdatedEveryFrame()
@@ -1935,7 +1942,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_WillRenderShadowMap = false;
             }
-
+            
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
             m_WillRenderRayTracedShadow = false;
@@ -2060,11 +2067,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal bool WillRenderShadowMap()
+        public bool WillRenderShadowMap()
         {
             return m_WillRenderShadowMap;
         }
-
+        
         internal bool WillRenderScreenSpaceShadow()
         {
             return m_WillRenderScreenSpaceShadow;
