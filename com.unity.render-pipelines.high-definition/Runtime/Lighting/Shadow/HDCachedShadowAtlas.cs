@@ -440,7 +440,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Convert offset to atlas offset.
                         record.offsetInAtlas = new Vector4(x * m_MinSlotSize, y * m_MinSlotSize, x, y);
 
-                        m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                         m_PlacedShadows.Add(record.shadowIndex, record);
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);
                         m_RecordsPendingPlacement.Remove(record.shadowIndex);
