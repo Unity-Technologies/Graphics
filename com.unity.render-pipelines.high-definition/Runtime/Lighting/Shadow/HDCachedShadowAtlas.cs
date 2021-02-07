@@ -390,7 +390,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     
                     record.offsetInAtlas = new Vector4(placements[j].x * m_MinSlotSize, placements[j].y * m_MinSlotSize, placements[j].x, placements[j].y);
 
-                    m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                     m_PlacedShadows.Add(record.shadowIndex, record);
                 }
 
@@ -602,6 +601,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Put the record up for rendering
             m_ShadowsPendingRendering.Add(shadowIdx, shadowRecord);
+        }
+
+        internal void SchedulePartialShadowUpdate(HDAdditionalLightData lightData, int shadowIdx)
+        {
+            if (!lightData.isActiveAndEnabled) return;
+
+            int lightIdx = lightData.lightIdxForCachedShadows;
+            Debug.Assert(lightIdx >= 0);
+
+            if (!m_PlacedShadows.ContainsKey(lightIdx))
+            {
+                if (m_RegisteredLightDataPendingPlacement.ContainsKey(lightIdx))
+                    return;
+
+                RegisterLight(lightData);
+            }
+            else
+            {
+                ScheduleShadowUpdate(shadowIdx);
+            }
         }
 
         internal void MarkAsRendered(int shadowIdx)
