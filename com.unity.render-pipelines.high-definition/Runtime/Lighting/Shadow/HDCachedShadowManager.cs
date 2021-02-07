@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="lightData">The light that we want to check.</param>
         /// <param name="numberOfCascades">Optional parameter required only when querying data about a directional light. It needs to match the number of cascades used by the directional light.</param>
         /// <returns>True if the shadow map is already placed in the atlas and rendered at least once, false otherwise.</returns>
-        public bool LightHasBeenPlaceAndRenderedAtLeastOnce(HDAdditionalLightData lightData, int numberOfCascades = 0)
+        public bool LightHasBeenPlaceAndRenderdeAtLeastOnce(HDAdditionalLightData lightData, int numberOfCascades = 0)
         {
             var lightType = lightData.type;
             if (lightType == HDLightType.Area)
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (lightType == HDLightType.Directional)
             {
-                Debug.Assert(numberOfCascades < m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
+                Debug.Assert(numberOfCascades <= m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
                 bool hasRendered = true;
                 for (int i = 0; i < numberOfCascades; ++i)
                 {
@@ -449,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightType == HDLightType.Point)
             {
                 Debug.Assert(subShadowIndex < 6);
-                punctualShadowAtlas.ScheduleShadowUpdate(light.lightIdxForCachedShadows + subShadowIndex);
+                punctualShadowAtlas.SchedulePartialShadowUpdate(light, light.lightIdxForCachedShadows + subShadowIndex);
             }
             if (lightType == HDLightType.Directional)
             {
