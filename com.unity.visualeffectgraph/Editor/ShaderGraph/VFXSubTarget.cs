@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
 {
     static class VFXSubTarget
     {
-        // TODO: Find a better way to track this state
+        // TODO: Find a safer way to track this state
         private static bool                   s_Configured;
         private static VFXContext             s_Context;
         private static VFXContextCompiledData s_Data;
@@ -32,11 +32,8 @@ namespace UnityEditor.VFX
 
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor descriptor)
         {
-            // TODO: Move generic VFX sub shader processing in here.
-            if (OnPostProcessSubShader != null)
-                return OnPostProcessSubShader.Invoke(descriptor, s_Context, s_Data);
-
-            return descriptor;
+            // TODO: Move generic VFX sub shader processing in here and break up the callback into SRP-specific portions (like FragInputs struct).
+            return OnPostProcessSubShader?.Invoke(descriptor, s_Context, s_Data) ?? descriptor;
         }
     }
 }
