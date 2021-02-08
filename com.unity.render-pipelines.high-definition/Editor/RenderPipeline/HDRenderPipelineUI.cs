@@ -1,4 +1,4 @@
-using UnityEngine;
+$using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Text;
@@ -46,7 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ProbeVolume = 1 << 30,
             RTAOQuality = 1 << 31,
             RTRQuality = 1 << 32,
-            RTGIQuality = 1 << 33
+            RTGIQuality = 1 << 33,
+            VolumetricClouds = 1 << 34
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -86,6 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
                     CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
+                    CED.FoldoutGroup(Styles.volumetricCloudsSubTitle, Expandable.VolumetricClouds, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_VolumetricClouds),
                     CED.FoldoutGroup(Styles.probeVolumeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
@@ -280,6 +282,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+        }
+
+        static void Drawer_VolumetricClouds(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetricClouds, Styles.supportVolumetricCloudsContent);
         }
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)

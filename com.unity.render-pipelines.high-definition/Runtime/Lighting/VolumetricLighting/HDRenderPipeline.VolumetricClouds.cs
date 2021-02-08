@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool HasVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
             // If the current volume does not enable the feature, quit right away.
-            return settings.enable.value;
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.VolumetricClouds) && settings.enable.value;
         }
 
         static bool HasVolumetricClouds(HDCamera hdCamera)
@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // If the current volume does not enable the feature, quit right away.
-            if (!settings.enable.value || hdCamera.camera.cameraType == CameraType.Reflection)
+            if (!HasVolumetricClouds(hdCamera, in settings) || hdCamera.camera.cameraType == CameraType.Reflection)
                 return;
 
             // Make sure the volumetric clouds are animated properly
