@@ -8,12 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
 
 ### Changed
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
+- Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
+- Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
 - Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 
 ## [11.0.0] - 2020-10-21
 
