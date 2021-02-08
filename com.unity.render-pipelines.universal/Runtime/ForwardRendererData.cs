@@ -18,13 +18,14 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<ForwardRendererData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/URP Forward Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
@@ -59,7 +60,6 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
-        [Obsolete("This is obsolete, PostProcessData was moved into UniversalRenderPipelineAsset.", false)]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -193,12 +193,6 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
-
-#pragma warning disable 618 // Obsolete warning
-            // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
-            if (postProcessData == PostProcessData.GetDefaultPostProcessData())
-                postProcessData = null;
-#pragma warning restore 618 // Obsolete warning
 #endif
         }
     }

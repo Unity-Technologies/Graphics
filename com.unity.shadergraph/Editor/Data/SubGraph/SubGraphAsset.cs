@@ -54,6 +54,8 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
+        public IncludeCollection includes;
+
         public List<string> vtFeedbackVariables = new List<string>();
 
         private SubGraphData m_SubGraphData;
@@ -80,6 +82,8 @@ namespace UnityEditor.ShaderGraph
         public ConcretePrecision graphPrecision;
 
         public ConcretePrecision outputPrecision;
+
+        public PreviewMode previewMode;
 
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {

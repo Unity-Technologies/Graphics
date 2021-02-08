@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
-        CoarseStencilGeneration,
-        ResolveStencilBuffer,
+        BuildCoarseStencilAndResolveIfNeeded,
         AmbientOcclusion,
         HorizonSSAO,
         UpSampleSSAO,
@@ -18,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Distortion,
         AccumulateDistortion,
         ApplyDistortion,
-        DepthPrepass,
+        ForwardDepthPrepass,
+        DeferredDepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         DBufferRender,
@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGITrace,
         SSGIDenoise,
         SSGIUpscale,
+        SSGIConvert,
 
         ForwardEmissive,
         ForwardOpaque,
@@ -73,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DisplayPlanarReflectionProbeAtlas,
         BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
+        DisplayDensityVolumeAtlas,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
@@ -80,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
+        RenderClouds,
         OpaqueAtmosphericScattering,
         InScatteredRadiancePrecomputation,
 
@@ -87,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLighting,
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
+        UpdateDensityVolumeAtlas,
 
         // RT Cluster
         RaytracingBuildCluster,
@@ -95,8 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
-        RaytracingReflectionUpscaleGeneration,
-        RaytracingFilterReflection,
+        RaytracingReflectionAdjustWeight,
+        RaytracingReflectionFilter,
+        RaytracingReflectionUpscale,
         // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,
@@ -121,10 +126,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
-        RayTracingPrepass,
+        RayTracingDepthPrepass,
+        RayTracingFlagMask,
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
+        HistoryValidity,
         TemporalFilter,
         DiffuseFilter,
 

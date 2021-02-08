@@ -27,8 +27,11 @@ namespace UnityEditor.VFX
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
                 if (resource == null)
                     return;
-
-                resource.GetOrCreateGraph().SanitizeForImport();
+                VFXGraph graph = resource.graph as VFXGraph;
+                if (graph != null)
+                    graph.SanitizeForImport();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
         }
 
@@ -37,9 +40,11 @@ namespace UnityEditor.VFX
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
             if (resource != null)
             {
-                VFXGraph graph = resource.GetOrCreateGraph();
+                VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
-                    return graph.GetImportDependencies();
+                    return resource.GetOrCreateGraph().GetImportDependencies();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
             return null;
         }
@@ -48,11 +53,11 @@ namespace UnityEditor.VFX
         {
             if (resource != null)
             {
-                VFXGraph graph = resource.GetOrCreateGraph();
+                VFXGraph graph = resource.graph as VFXGraph;
                 if (graph != null)
-                {
-                    graph.CompileForImport();
-                }
+                    resource.GetOrCreateGraph().CompileForImport();
+                else
+                    Debug.LogError("VisualEffectGraphResource without graph");
             }
         }
 
@@ -490,7 +495,8 @@ namespace UnityEditor.VFX
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
-                cause != VFXModel.InvalidationCause.kUIChangedTransient)
+                cause != VFXModel.InvalidationCause.kUIChangedTransient &&
+                (model.hideFlags & HideFlags.DontSave) == 0)
             {
                 EditorUtility.SetDirty(this);
             }
@@ -514,17 +520,18 @@ namespace UnityEditor.VFX
             return compiledData.FindReducedExpressionIndexFromSlotCPU(slot);
         }
 
-        public void SetCompilationMode(VFXCompilationMode mode)
+        public void SetCompilationMode(VFXCompilationMode mode, bool reimport = true)
         {
             if (m_CompilationMode != mode)
             {
                 m_CompilationMode = mode;
                 SetExpressionGraphDirty();
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                if (reimport)
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
 
-        public void SetForceShaderValidation(bool forceShaderValidation)
+        public void SetForceShaderValidation(bool forceShaderValidation, bool reimport = true)
         {
             if (m_ForceShaderValidation != forceShaderValidation)
             {
@@ -532,7 +539,8 @@ namespace UnityEditor.VFX
                 if (m_ForceShaderValidation)
                 {
                     SetExpressionGraphDirty();
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                    if (reimport)
+                        AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
             }
         }

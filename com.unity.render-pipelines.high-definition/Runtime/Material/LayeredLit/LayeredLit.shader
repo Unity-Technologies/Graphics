@@ -391,66 +391,106 @@ Shader "HDRP/LayeredLit"
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
-    #pragma shader_feature_local _DEPTHOFFSET_ON
+    #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local_vertex _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 
-    #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
     #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE0
-    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE1
-    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE2
-    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE3
+
+    #pragma shader_feature_local_fragment _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
+    #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE3
+    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local_fragment _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+
+    #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
+    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local_raytracing _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE3
+
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
     // We can only have 64 shader_feature_local
-    #pragma shader_feature _NORMALMAP0                                  // Non-local
-    #pragma shader_feature _NORMALMAP1                                  // Non-local
-    #pragma shader_feature _NORMALMAP2                                  // Non-local
-    #pragma shader_feature _NORMALMAP3                                  // Non-local
-    #pragma shader_feature _MASKMAP0                                    // Non-local
-    #pragma shader_feature _MASKMAP1                                    // Non-local
-    #pragma shader_feature _MASKMAP2                                    // Non-local
-    #pragma shader_feature _MASKMAP3                                    // Non-local
-    #pragma shader_feature _BENTNORMALMAP0                              // Non-local
-    #pragma shader_feature _BENTNORMALMAP1                              // Non-local
-    #pragma shader_feature _BENTNORMALMAP2                              // Non-local
-    #pragma shader_feature _BENTNORMALMAP3                              // Non-local
-    #pragma shader_feature _EMISSIVE_COLOR_MAP                          // Non-local
+    #pragma shader_feature _NORMALMAP0                      // Non-local
+    #pragma shader_feature _NORMALMAP1                      // Non-local
+    #pragma shader_feature _NORMALMAP2                      // Non-local
+    #pragma shader_feature _NORMALMAP3                      // Non-local
+    #pragma shader_feature_fragment _MASKMAP0               // Non-local
+    #pragma shader_feature_fragment _MASKMAP1               // Non-local
+    #pragma shader_feature_fragment _MASKMAP2               // Non-local
+    #pragma shader_feature_fragment _MASKMAP3               // Non-local
+    #pragma shader_feature_fragment _BENTNORMALMAP0         // Non-local
+    #pragma shader_feature_fragment _BENTNORMALMAP1         // Non-local
+    #pragma shader_feature_fragment _BENTNORMALMAP2         // Non-local
+    #pragma shader_feature_fragment _BENTNORMALMAP3         // Non-local
+    #pragma shader_feature_fragment _EMISSIVE_COLOR_MAP     // Non-local
+
+    #pragma shader_feature_raytracing _MASKMAP0                // Non-local
+    #pragma shader_feature_raytracing _MASKMAP1                // Non-local
+    #pragma shader_feature_raytracing _MASKMAP2                // Non-local
+    #pragma shader_feature_raytracing _MASKMAP3                // Non-local
+    #pragma shader_feature_raytracing _BENTNORMALMAP0          // Non-local
+    #pragma shader_feature_raytracing _BENTNORMALMAP1          // Non-local
+    #pragma shader_feature_raytracing _BENTNORMALMAP2          // Non-local
+    #pragma shader_feature_raytracing _BENTNORMALMAP3          // Non-local
+    #pragma shader_feature_raytracing _EMISSIVE_COLOR_MAP      // Non-local
+
 
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature _ENABLESPECULAROCCLUSION                     // Non-local
-    #pragma shader_feature _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
+    #pragma shader_feature_fragment _ENABLESPECULAROCCLUSION                     // Non-local
+    #pragma shader_feature_fragment _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
+    #pragma shader_feature_raytracing _ENABLESPECULAROCCLUSION                     // Non-local
+    #pragma shader_feature_raytracing _ SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP // Non-local
+
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
 
-    #pragma shader_feature _DETAIL_MAP0                                 // Non-local
-    #pragma shader_feature _DETAIL_MAP1                                 // Non-local
-    #pragma shader_feature _DETAIL_MAP2                                 // Non-local
-    #pragma shader_feature _DETAIL_MAP3                                 // Non-local
+    #pragma shader_feature_fragment _DETAIL_MAP0                // Non-local
+    #pragma shader_feature_fragment _DETAIL_MAP1                // Non-local
+    #pragma shader_feature_fragment _DETAIL_MAP2                // Non-local
+    #pragma shader_feature_fragment _DETAIL_MAP3                // Non-local
+    #pragma shader_feature_raytracing _DETAIL_MAP0              // Non-local
+    #pragma shader_feature_raytracing _DETAIL_MAP1              // Non-local
+    #pragma shader_feature_raytracing _DETAIL_MAP2              // Non-local
+    #pragma shader_feature_raytracing _DETAIL_MAP3              // Non-local
+
     #pragma shader_feature _HEIGHTMAP0                                  // Non-local
     #pragma shader_feature _HEIGHTMAP1                                  // Non-local
     #pragma shader_feature _HEIGHTMAP2                                  // Non-local
     #pragma shader_feature _HEIGHTMAP3                                  // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0                        // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1                        // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2                        // Non-local
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3                        // Non-local
-    #pragma shader_feature _THICKNESSMAP0                               // Non-local
-    #pragma shader_feature _THICKNESSMAP1                               // Non-local
-    #pragma shader_feature _THICKNESSMAP2                               // Non-local
-    #pragma shader_feature _THICKNESSMAP3                               // Non-local
+    #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP0               // Non-local
+    #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP1               // Non-local
+    #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP2               // Non-local
+    #pragma shader_feature_fragment _SUBSURFACE_MASK_MAP3               // Non-local
+    #pragma shader_feature_fragment _THICKNESSMAP0                      // Non-local
+    #pragma shader_feature_fragment _THICKNESSMAP1                      // Non-local
+    #pragma shader_feature_fragment _THICKNESSMAP2                      // Non-local
+    #pragma shader_feature_fragment _THICKNESSMAP3                      // Non-local
+    #pragma shader_feature_raytracing _SUBSURFACE_MASK_MAP0             // Non-local
+    #pragma shader_feature_raytracing _SUBSURFACE_MASK_MAP1             // Non-local
+    #pragma shader_feature_raytracing _SUBSURFACE_MASK_MAP2             // Non-local
+    #pragma shader_feature_raytracing _SUBSURFACE_MASK_MAP3             // Non-local
+    #pragma shader_feature_raytracing _THICKNESSMAP0                    // Non-local
+    #pragma shader_feature_raytracing _THICKNESSMAP1                    // Non-local
+    #pragma shader_feature_raytracing _THICKNESSMAP2                    // Non-local
+    #pragma shader_feature_raytracing _THICKNESSMAP3                    // Non-local
+
 
     #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE
@@ -459,20 +499,24 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _HEIGHT_BASED_BLEND
     #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local_fragment _DISABLE_SSR
+    #pragma shader_feature_local_raytracing _DISABLE_DECALS
+    #pragma shader_feature_local_raytracing _DISABLE_SSR
+
+    #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_TRANSMISSION
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -631,13 +675,14 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            #pragma multi_compile _ LIGHT_LAYERS
+            #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment _ LIGHT_LAYERS
 
         #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -725,8 +770,9 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
             #pragma multi_compile _ WRITE_DECAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -811,8 +857,8 @@ Shader "HDRP/LayeredLit"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
             #pragma multi_compile _ WRITE_DECAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -862,18 +908,24 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+            #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
 
             // Supported shadow modes per light type
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #ifndef SHADER_STAGE_FRAGMENT
+            #define SHADOW_LOW
+            #define USE_FPTL_LIGHTLIST
+            #endif
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
@@ -983,6 +1035,7 @@ Shader "HDRP/LayeredLit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
@@ -1027,6 +1080,7 @@ Shader "HDRP/LayeredLit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
@@ -1068,6 +1122,7 @@ Shader "HDRP/LayeredLit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
@@ -1130,6 +1185,7 @@ Shader "HDRP/LayeredLit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE

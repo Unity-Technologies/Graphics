@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
 
             public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nUninitialized has undefined values for the camera background. Use this only if you are rendering all pixels in the Camera's view.");
-            public static GUIContent cameraType = EditorGUIUtility.TrTextContent("Render Type", "Controls which type of camera this is.");
+            public static GUIContent cameraType = EditorGUIUtility.TrTextContent("Render Type", "Defines if a camera renders directly to a target or overlays on top of another camera’s output. Overlay option is not available when Deferred Render Data is in use.");
             public static GUIContent renderingShadows = EditorGUIUtility.TrTextContent("Render Shadows", "Makes this camera render shadows.");
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent requireOpaqueTexture = EditorGUIUtility.TrTextContent("Opaque Texture", "On makes this camera create a _CameraOpaqueTexture, which is a copy of the rendered view.\nOff makes the camera not create an opaque texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
-            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -547,8 +547,10 @@ namespace UnityEditor.Rendering.Universal
                         validCameras += validCameraType + "  ";
                     }
                     errorString += "Valid types are " + validCameras;
+
                     EditorGUILayout.HelpBox(errorString, MessageType.Warning);
                 }
+
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
@@ -620,9 +622,29 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        private bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
+        {
+            int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
+
+            if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues)
+                return false;
+
+            var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
+
+            var fowardRendererData = rendererData as ForwardRendererData;
+            if (fowardRendererData != null && fowardRendererData.postProcessData == null)
+                return true;
+
+            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+            if (fenderer2DData != null && fenderer2DData.postProcessData == null)
+                return true;
+
+            return false;
+        }
+
         void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
         {
-            bool isPostProcessingEnabled = rpAsset.postProcessData == null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            bool isPostProcessingEnabled = IsAnyRendererHasPostProcessingEnabled(rpAsset) && m_AdditionalCameraDataRenderPostProcessing.boolValue;
 
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
@@ -660,15 +682,36 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawCameraType()
         {
+            int selectedRenderer = m_AdditionalCameraDataRendererProp.intValue;
+            ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
+            ForwardRenderer renderer = scriptableRenderer as ForwardRenderer;
+            bool isDeferred = renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
+
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
-            if (EditorGUI.EndChangeCheck())
+
+            //EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
+
+            CameraRenderType originalCamType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+            CameraRenderType camType = (originalCamType != CameraRenderType.Base && isDeferred) ? CameraRenderType.Base : originalCamType;
+
+            camType = (CameraRenderType)EditorGUILayout.EnumPopup(
+                Styles.cameraType,
+                camType,
+                e =>
+                {
+                    return isDeferred ? (CameraRenderType)e != CameraRenderType.Overlay : true;
+                },
+                false
+            );
+
+            if (EditorGUI.EndChangeCheck() || camType != originalCamType)
             {
+                m_AdditionalCameraDataCameraTypeProp.intValue = (int)camType;
+
                 UpdateCameras();
 
                 // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
                 // In order for overlay camera not to override base camera target texture we null it here
-                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
                 if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
                     settings.targetTexture.objectReferenceValue = null;
             }
@@ -829,7 +872,7 @@ namespace UnityEditor.Rendering.Universal
         {
             // We want to show post processing warning only once and below the first option
             // This way we will avoid cluttering the camera UI
-            bool showPostProcessWarning = rpAsset.postProcessData == null;
+            bool showPostProcessWarning = IsAnyRendererHasPostProcessingEnabled(rpAsset);
 
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
             showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataRenderPostProcessing.boolValue);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -284,8 +285,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
-            m_TransformDirty |= currentRenderer.transform.hasChanged;
             m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+
+            // Indicates that a transform has changed in our scene (mesh or light)
+            m_TransformDirty |= currentRenderer.transform.hasChanged;
             currentRenderer.transform.hasChanged = false;
 
             // return the status
@@ -329,6 +332,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Check if there is a ray traced shadow in the scene
                     m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
                     m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
+
+                    // Indicates that a transform has changed in our scene (mesh or light)
+                    m_TransformDirty |= hdLight.transform.hasChanged;
+                    hdLight.transform.hasChanged = false;
 
                     switch (hdLight.type)
                     {
@@ -517,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
@@ -642,7 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null)
+            if (m_TemporalFilter == null && m_RayTracingSupported)
             {
                 m_TemporalFilter = new HDTemporalFilter();
                 m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
@@ -718,6 +725,22 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal float GetPixelSpreadAngle(float fov, int width, int height)
         {
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
+
+        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
+        {
+            // Grab the temporal filter
+            HDTemporalFilter temporalFilter = GetTemporalFilter();
+
+            // If the temporal filter is valid use it, otherwise return a white texture
+            if (temporalFilter != null)
+            {
+                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
+                return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
+            }
+            else
+                return renderGraph.defaultResources.whiteTexture;
         }
     }
 }

@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<Renderer2DData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
 
@@ -181,14 +182,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        [MenuItem("Assets/Create/Rendering/URP Asset (with 2D Renderer)", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
+        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>

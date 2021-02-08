@@ -68,7 +68,7 @@ inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out S
 #endif
 
     outSurfaceData.metallic = 0.0; // unused
-    outSurfaceData.occlusion = 1.0;  // unused
+    outSurfaceData.occlusion = 1.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

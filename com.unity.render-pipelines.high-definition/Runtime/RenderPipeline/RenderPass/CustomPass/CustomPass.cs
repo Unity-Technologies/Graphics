@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public CustomPass customPass;
             public CullingResults cullingResult;
+            public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
         }
 
@@ -207,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
@@ -217,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
+                passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
@@ -252,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
                             ctx.renderContext, ctx.cmd, data.hdCamera,
-                            data.cullingResult,
+                            data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,

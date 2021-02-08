@@ -148,8 +148,9 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             Rect pixelRect = cameraData.pixelRect;
-            float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
+            float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
+            float scaledCameraWidth = (float)pixelRect.width * renderScale;
+            float scaledCameraHeight = (float)pixelRect.height * renderScale;
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
 
@@ -289,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns a list of render passes schedules to be executed by this renderer.
+        /// Returns a list of render passes scheduled to be executed by this renderer.
         /// <seealso cref="ScriptableRenderPass"/>
         /// </summary>
         protected List<ScriptableRenderPass> activeRenderPassQueue
@@ -383,6 +384,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             Clear(CameraRenderType.Base);
+            m_ActiveRenderPassQueue.Clear();
         }
 
         public void Dispose()
@@ -701,8 +703,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-
-            m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
@@ -1079,6 +1079,7 @@ namespace UnityEngine.Rendering.Universal
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
                 }
+                m_ActiveRenderPassQueue.Clear();
             }
 
             context.ExecuteCommandBuffer(cmd);
