@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal;
-using UnityEngineInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -203,38 +202,57 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var parameters = probeVolume.parameters;
             var size = parameters.size;
-            var texelSize = new Vector3(size.x / probeVolumeAsset.resolutionX, size.y / probeVolumeAsset.resolutionY, size.z / probeVolumeAsset.resolutionZ);
-            var firstTexelLocalPosition = size * -0.5f + texelSize * 0.5f;
+            var voxelSize = new Vector3(size.x / probeVolumeAsset.resolutionX, size.y / probeVolumeAsset.resolutionY, size.z / probeVolumeAsset.resolutionZ);
+            var firstVoxelLocalPosition = size * -0.5f + voxelSize * 0.5f;
             var probeTransform = probeVolume.transform;
             var localToWorld = Matrix4x4.TRS(probeTransform.position, probeTransform.rotation, Vector3.one);
             var worldToLocal = localToWorld.inverse;
             var localBrushPosition = worldToLocal.MultiplyPoint3x4(position);
 
-            for (int z = 0, i = 0; z < probeVolumeAsset.resolutionZ; z++)
-            for (int y = 0; y < probeVolumeAsset.resolutionY; y++)
-            for (int x = 0; x < probeVolumeAsset.resolutionX; x++, i++)
+            var minAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition - new Vector3(Brush.Radius, Brush.Radius, Brush.Radius);
+            var maxAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition + new Vector3(Brush.Radius, Brush.Radius, Brush.Radius);
+
+            var minX = Mathf.Max(Mathf.RoundToInt(minAffectedLocalPosition.x / voxelSize.x), 0);
+            var minY = Mathf.Max(Mathf.RoundToInt(minAffectedLocalPosition.y / voxelSize.y), 0);
+            var minZ = Mathf.Max(Mathf.RoundToInt(minAffectedLocalPosition.z / voxelSize.z), 0);
+            var maxX = Mathf.Min(Mathf.RoundToInt(maxAffectedLocalPosition.x / voxelSize.x), probeVolumeAsset.resolutionX - 1);
+            var maxY = Mathf.Min(Mathf.RoundToInt(maxAffectedLocalPosition.y / voxelSize.y), probeVolumeAsset.resolutionY - 1);
+            var maxZ = Mathf.Min(Mathf.RoundToInt(maxAffectedLocalPosition.z / voxelSize.z), probeVolumeAsset.resolutionZ - 1);
+
+            for (int z = minZ; z <= maxZ; z++)
             {
-                var point = firstTexelLocalPosition + new Vector3(texelSize.x * x, texelSize.y * y, texelSize.z * z);
-
-                var toBrush = localBrushPosition - point;
-                // TODO: Use toBrush clamped by unit cube instead of normalized to support diagonal better.
-                var halfTexelLength = Vector3.Scale(toBrush.normalized, texelSize).magnitude * 0.5f;
-
-                var outerRadius = Brush.Radius + halfTexelLength;
-                var innerRadius = (Brush.Radius - halfTexelLength) * BrushHardness;
-
-                var distanceToBrush = toBrush.magnitude;
-                var opacity = BrushColor.a * Mathf.Clamp01((outerRadius - distanceToBrush) / (outerRadius - innerRadius));
-                if (opacity > 0f)
+                var yStart = z * probeVolumeAsset.resolutionY;
+                for (int y = minY; y <= maxY; y++)
                 {
-                    var sh = new SphericalHarmonicsL1();
-                    ProbeVolumePayload.GetSphericalHarmonicsL1FromIndex(ref sh, ref probeVolumeAsset.payload, i);
+                    var xStart = (yStart + y) * probeVolumeAsset.resolutionX;
+                    for (int x = minX; x <= maxX; x++)
+                    {
+                        var i = xStart + x;
 
-                    sh.shAr.w = Mathf.Lerp(sh.shAr.w, BrushColor.r, opacity);
-                    sh.shAg.w = Mathf.Lerp(sh.shAg.w, BrushColor.g, opacity);
-                    sh.shAb.w = Mathf.Lerp(sh.shAb.w, BrushColor.b, opacity);
+                        var point = firstVoxelLocalPosition + new Vector3(voxelSize.x * x, voxelSize.y * y, voxelSize.z * z);
 
-                    ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, sh, i);
+                        var toBrush = localBrushPosition - point;
+
+                        var longestComponent = Mathf.Max(Mathf.Max(Mathf.Abs(toBrush.x), Mathf.Abs(toBrush.y)), Mathf.Abs(toBrush.z));
+                        var halfVoxelLength = Vector3.Scale(toBrush / longestComponent, voxelSize).magnitude * 0.5f;
+
+                        var outerRadius = Brush.Radius + halfVoxelLength;
+                        var innerRadius = (Brush.Radius - halfVoxelLength) * BrushHardness;
+
+                        var distanceToBrush = toBrush.magnitude;
+                        var opacity = BrushColor.a * Mathf.Clamp01((outerRadius - distanceToBrush) / (outerRadius - innerRadius));
+                        if (opacity > 0f)
+                        {
+                            var sh = new SphericalHarmonicsL1();
+                            ProbeVolumePayload.GetSphericalHarmonicsL1FromIndex(ref sh, ref probeVolumeAsset.payload, i);
+
+                            sh.shAr.w = Mathf.Lerp(sh.shAr.w, BrushColor.r, opacity);
+                            sh.shAg.w = Mathf.Lerp(sh.shAg.w, BrushColor.g, opacity);
+                            sh.shAb.w = Mathf.Lerp(sh.shAb.w, BrushColor.b, opacity);
+
+                            ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, sh, i);
+                        }
+                    }
                 }
             }
 
