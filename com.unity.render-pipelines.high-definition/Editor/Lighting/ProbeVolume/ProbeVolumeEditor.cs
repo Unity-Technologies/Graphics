@@ -219,6 +219,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var maxY = Mathf.Min(Mathf.RoundToInt(maxAffectedLocalPosition.y / voxelSize.y), probeVolumeAsset.resolutionY - 1);
             var maxZ = Mathf.Min(Mathf.RoundToInt(maxAffectedLocalPosition.z / voxelSize.z), probeVolumeAsset.resolutionZ - 1);
 
+            var dataSHL01 = probeVolumeAsset.payload.dataSHL01;
+            var strideSHL01 = ProbeVolumePayload.GetDataSHL01Stride();
+
             for (int z = minZ; z <= maxZ; z++)
             {
                 var yStart = z * probeVolumeAsset.resolutionY;
@@ -237,20 +240,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         var halfVoxelLength = Vector3.Scale(toBrush / longestComponent, voxelSize).magnitude * 0.5f;
 
                         var outerRadius = Brush.Radius + halfVoxelLength;
-                        var innerRadius = (Brush.Radius - halfVoxelLength) * BrushHardness;
+                        var innerRadius = Brush.Radius - halfVoxelLength;
+                        if (innerRadius > 0f)
+                            innerRadius *= BrushHardness;
 
                         var distanceToBrush = toBrush.magnitude;
                         var opacity = BrushColor.a * Mathf.Clamp01((outerRadius - distanceToBrush) / (outerRadius - innerRadius));
                         if (opacity > 0f)
                         {
-                            var sh = new SphericalHarmonicsL1();
-                            ProbeVolumePayload.GetSphericalHarmonicsL1FromIndex(ref sh, ref probeVolumeAsset.payload, i);
-
-                            sh.shAr.w = Mathf.Lerp(sh.shAr.w, BrushColor.r, opacity);
-                            sh.shAg.w = Mathf.Lerp(sh.shAg.w, BrushColor.g, opacity);
-                            sh.shAb.w = Mathf.Lerp(sh.shAb.w, BrushColor.b, opacity);
-
-                            ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, sh, i);
+                            var indexDataBaseSHL01 = i * strideSHL01;
+                            dataSHL01[indexDataBaseSHL01 + 0] = Mathf.Lerp(dataSHL01[indexDataBaseSHL01 + 0], BrushColor.r, opacity); // shAr.w
+                            dataSHL01[indexDataBaseSHL01 + 1] = Mathf.Lerp(dataSHL01[indexDataBaseSHL01 + 1], BrushColor.g, opacity); // shAg.w
+                            dataSHL01[indexDataBaseSHL01 + 2] = Mathf.Lerp(dataSHL01[indexDataBaseSHL01 + 2], BrushColor.b, opacity); // shAb.w
                         }
                     }
                 }

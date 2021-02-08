@@ -5,13 +5,11 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     public class ProbeVolumeBrush
     {
-        const double k_EditorTargetFramerateHigh = .03;
-        const float k_MaxBrushStep = 0.5f;
-        const float k_MinBrushStep = 0.25f;
+        const float k_MaxTimeSpentPerEvent = 0.05f;
+        const float k_Stepping = 0.5f;
 
         public float Radius = 0.5f;
 
-        double m_LastUpdate = 0.0;
         bool m_Hovering = false;
         Vector3 m_Position;
         bool m_Applying = false;
@@ -36,32 +34,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HandleUtility.AddDefaultControl(controlID);
 
-            switch( e.GetTypeForControl(controlID) )
+            switch (e.GetTypeForControl(controlID))
             {
                 case EventType.MouseMove:
-                    if (true /* EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate() */)
-                    {
-                        m_LastUpdate = EditorApplication.timeSinceStartup;
-                        UpdateBrush(e.mousePosition);
-                    }
+                    StopIfApplying();
+                    UpdateBrush(e.mousePosition);
                     break;
 
                 case EventType.MouseDown:
                 case EventType.MouseDrag:
-                    if (true /* EditorApplication.timeSinceStartup - m_LastUpdate >= GetTargetFramerate() */)
-                    {
-                        m_LastUpdate = EditorApplication.timeSinceStartup;
-                        UpdateBrush(e.mousePosition);
-                        ApplyBrush();
-                    }
+                    UpdateBrush(e.mousePosition);
+                    ApplyBrush();
                     break;
 
                 case EventType.MouseUp:
-                    if (m_Applying)
-                    {
-                        StopIfApplying();
-                        UpdateBrush(e.mousePosition);
-                    }
+                    StopIfApplying();
+                    UpdateBrush(e.mousePosition);
                     break;
             }
 
@@ -84,38 +72,19 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Get framerate according to the brush target
-        /// </summary>
-        /// <returns>framerate</returns>
-        static double GetTargetFramerate()
-        {
-            return k_EditorTargetFramerateHigh;
-        }
-
-        /// <summary>
-        /// Update the current brush object and weights with the current mouse position.
+        /// Update the brush state and position.
         /// </summary>
         /// <param name="mousePosition">current mouse position (from Event)</param>
         void UpdateBrush(Vector2 mousePosition)
         {
             Ray mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
-            OnBrushMove(mouseRay);
-        }
-
-        /// <summary>
-        /// Calculate the weights for this ray.
-        /// </summary>
-        /// <param name="mouseRay">The ray used to calculate weights</param>
-        /// <returns>true if mouseRay hits the target, false otherwise</returns>
-        void OnBrushMove(Ray mouseRay)
-        {
             m_Hovering = Physics.Raycast(mouseRay, out var hit, float.MaxValue, ~0, QueryTriggerInteraction.Ignore);
             if (m_Hovering)
                 m_Position = hit.point;
         }
 
         /// <summary>
-        /// Apply brush to current brush target
+        /// Apply brush.
         /// </summary>
         void ApplyBrush()
         {
@@ -130,18 +99,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     var moveDistance = Vector3.Distance(m_Position, m_LastApplyPosition);
-                    var minStep = Radius * k_MinBrushStep;
 
-                    if (moveDistance >= minStep)
+                    // If mouse moved too far due to low framerate or high movement speed, fill the gap with more stamps
+                    var maxStep = Radius * k_Stepping;
+                    var steps = (int) (moveDistance / maxStep);
+
+                    var maxTime = Time.realtimeSinceStartup + k_MaxTimeSpentPerEvent;
+                    var startPosition = m_LastApplyPosition;
+                    for (int i = 1; i <= steps; i++)
                     {
-                        // If mouse moved too far due to low framerate or high movement speed, fill the gap with more stamps
-                        var maxStep = Radius * k_MaxBrushStep;
-                        var steps = Mathf.CeilToInt(moveDistance / maxStep);
-
-                        for (int i = 1; i <= steps; i++)
-                            OnApply?.Invoke(Vector3.Lerp(m_LastApplyPosition, m_Position, (float) i / steps));
-
-                        m_LastApplyPosition = m_Position;
+                        m_LastApplyPosition = Vector3.Lerp(startPosition, m_Position, (float) i / steps);
+                        OnApply?.Invoke(m_LastApplyPosition);
+                        if (Time.realtimeSinceStartup > maxTime)
+                            break;
                     }
                 }
             }
