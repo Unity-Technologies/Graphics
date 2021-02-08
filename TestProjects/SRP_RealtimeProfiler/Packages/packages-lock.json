@@ -30,13 +30,21 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.profiling.core": {
+      "version": "0.2.1-preview.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.render-pipelines.core": {
       "version": "file:../../../com.unity.render-pipelines.core",
       "depth": 0,
       "source": "local",
       "dependencies": {
         "com.unity.ugui": "1.0.0",
-        "com.unity.modules.physics": "1.0.0"
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.profiling.core": "0.2.0-preview.1"
       }
     },
     "com.unity.render-pipelines.high-definition": {

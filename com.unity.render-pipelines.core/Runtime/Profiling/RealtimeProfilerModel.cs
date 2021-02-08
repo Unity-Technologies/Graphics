@@ -1,3 +1,5 @@
+#define RTPROFILER_DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +9,13 @@ using UnityEngine;
 // TODO: Prototype stuff, should not be a MonoBehaviour?
 public class RealtimeProfilerModel : MonoBehaviour
 {
+    #if RTPROFILER_DEBUG
+    ProfilerCounterValue<float> m_FullFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_LogicCPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Logic CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_CombinedCPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Combined CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_GPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    #endif
+
     public struct FrameTimeSample
     {
         public float FullFrameTime;
@@ -55,5 +64,13 @@ public class RealtimeProfilerModel : MonoBehaviour
         frameTime.GPUFrameTime          = (float)m_Timing.First().gpuFrameTime;
 
         FrameTime = frameTime;
+
+        #if RTPROFILER_DEBUG
+        const float msToNs = (float)1e6;
+        m_FullFrameTimeCounter.Value        = frameTime.FullFrameTime * msToNs;
+        m_LogicCPUFrameTimeCounter.Value    = frameTime.LogicCPUFrameTime * msToNs;
+        m_CombinedCPUFrameTimeCounter.Value = frameTime.CombinedCPUFrameTime * msToNs;
+        m_GPUFrameTimeCounter.Value         = frameTime.GPUFrameTime * msToNs;
+#endif
     }
 }
