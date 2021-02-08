@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_IsEditable = true; // Only Built-In Keywords are uneditable
+        private bool m_IsEditable = true;       // this serializes !isBuiltIn
 
         public bool isBuiltIn
         {
@@ -109,14 +109,13 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = !value;
         }
 
-        internal override bool isExposable => !isBuiltIn
-        && (keywordType == KeywordType.Enum || referenceName.EndsWith("_ON"));
+        internal override bool isExposable => !isBuiltIn && (keywordDefinition != KeywordDefinition.Predefined);
 
         internal override bool isRenamable => !isBuiltIn;
 
         internal override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
 
-        public override string GetDefaultReferenceName()
+        public override string GetOldDefaultReferenceName()
         {
             // _ON suffix is required for exposing Boolean type to Material
             var suffix = string.Empty;
@@ -128,21 +127,25 @@ namespace UnityEditor.ShaderGraph
             return $"{keywordType.ToString()}_{objectId}{suffix}".ToUpper();
         }
 
-        public string GetPropertyBlockString()
+        public void AppendPropertyBlockStrings(ShaderStringBuilder builder)
         {
-            switch (keywordType)
+            if (isExposed)
             {
-                case KeywordType.Enum:
-                    string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
-                    return $"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}";
-                case KeywordType.Boolean:
-                    // Reference name must be appended with _ON but must be removed when generating block
-                    if (referenceName.EndsWith("_ON"))
-                        return $"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}";
-                    else
-                        return string.Empty;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                switch (keywordType)
+                {
+                    case KeywordType.Enum:
+                        string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
+                        builder.AppendLine($"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}");
+                        break;
+                    case KeywordType.Boolean:
+                        if (referenceName.EndsWith("_ON"))
+                            builder.AppendLine($"[Toggle]{referenceName.Remove(referenceName.Length - 3, 3)}(\"{displayName}\", Float) = {value}");
+                        else
+                            builder.AppendLine($"[Toggle({referenceName})]{referenceName}(\"{displayName}\", Float) = {value}");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -190,15 +193,27 @@ namespace UnityEditor.ShaderGraph
             return new ShaderKeyword()
             {
                 displayName = displayName,
-                overrideReferenceName = overrideReferenceName,
-                generatePropertyBlock = generatePropertyBlock,
+                value = value,
                 isBuiltIn = isBuiltIn,
                 keywordType = keywordType,
                 keywordDefinition = keywordDefinition,
                 keywordScope = keywordScope,
                 entries = entries,
-                value = value,
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                // we now allow keywords to control whether they are exposed (for Material control) or not.
+                // old exposable keywords set their exposed state to maintain previous behavior
+                // (where only keywords ending in "_ON" showed up in the material)
+                if (isExposable)
+                    generatePropertyBlock = referenceName.EndsWith("_ON");
+                ChangeVersion(1);
+            }
         }
     }
 }
