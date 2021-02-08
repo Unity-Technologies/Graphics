@@ -178,8 +178,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.")]
         public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
+        [Tooltip("Controls the size of the larger noise passing through the cloud coverage.")]
+        public ClampedFloatParameter shapeScale = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
         [Tooltip("Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.")]
         public ClampedFloatParameter erosionFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
+        public ClampedFloatParameter erosionScale = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         [Tooltip("Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.")]
         public ClampedFloatParameter ambientLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);

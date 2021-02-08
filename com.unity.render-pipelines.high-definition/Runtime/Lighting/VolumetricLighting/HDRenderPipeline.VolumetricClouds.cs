@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Mathf.Sqrt((earthRadius + lowerCloudRadius) * (earthRadius + lowerCloudRadius) - earthRadius * earthRadius);
         }
 
-        void GetPresetCloudMapValues(VolumetricClouds.CloudPresets preset, out float densityMultiplier, out float shapeFactor, out float erosionFactor)
+        void GetPresetCloudMapValues(VolumetricClouds.CloudPresets preset, out float densityMultiplier, out float shapeFactor, out float shapeScale, out float erosionFactor, out float erosionScale)
         {
             switch (preset)
             {
@@ -195,28 +195,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     densityMultiplier = 0.2f;
                     shapeFactor = 0.85f;
+                    shapeScale = 1.0f;
                     erosionFactor = 0.7f;
+                    erosionScale = 1.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
                     densityMultiplier = 0.15f;
                     shapeFactor = 0.8f;
+                    shapeScale = 1.0f;
                     erosionFactor = 0.6f;
+                    erosionScale = 1.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
                     densityMultiplier = 0.1f;
                     shapeFactor = 0.1f;
+                    shapeScale = 1.0f;
                     erosionFactor = 0.0f;
+                    erosionScale = 1.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.StormClouds:
                 {
                     densityMultiplier = 0.7f;
                     shapeFactor = 0.6f;
+                    shapeScale = 1.0f;
                     erosionFactor = 0.15f;
+                    erosionScale = 1.0f;
                     return;
                 }
             }
@@ -224,7 +232,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Default unused values
             densityMultiplier = 0.6f;
             shapeFactor = 0.6f;
+            shapeScale = 1.0f;
             erosionFactor = 0.6f;
+            erosionScale = 1.0f;
         }
 
         // The earthRadius
@@ -296,14 +306,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPreset.value != VolumetricClouds.CloudPresets.Custom)
             {
-                GetPresetCloudMapValues(settings.cloudPreset.value, out cb._DensityMultiplier, out cb._ShapeFactor, out cb._ErosionFactor);
+                GetPresetCloudMapValues(settings.cloudPreset.value, out cb._DensityMultiplier, out cb._ShapeFactor, out cb._ShapeScale, out cb._ErosionFactor, out cb._ErosionScale);
             }
             else
             {
                 // The density multiplier is not used linearly
                 cb._DensityMultiplier = settings.densityMultiplier.value * settings.densityMultiplier.value;
                 cb._ShapeFactor = settings.shapeFactor.value;
+                cb._ShapeScale = Mathf.Lerp(0.5f, 2.0f, settings.shapeScale.value);
                 cb._ErosionFactor = settings.erosionFactor.value;
+                cb._ErosionScale = Mathf.Lerp(0.5f, 2.0f, settings.erosionScale.value);
             }
 
             // If the sun has moved more than 2.0°, reduce significantly the history accumulation

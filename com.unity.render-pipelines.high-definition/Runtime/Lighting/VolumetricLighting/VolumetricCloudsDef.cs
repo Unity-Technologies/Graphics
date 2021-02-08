@@ -68,14 +68,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Controls the forward eccentricity of the clouds
         public float _ErosionFactor;
 
+        // Multiplier to shape tiling
+        public float _ShapeScale;
+        // Multiplier to erosion tiling
+        public float _ErosionScale;
         // Global offset applied to the cloud map
         public float _CloudMapOffset;
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
-        // Frame index for the accumulation
-        public int _AccumulationFrameIndex;
-        // Index for which of the 4 local pixels should be evaluated
-        public int _SubPixelIndex;
 
         // Resolution of the final size of the effect
         public Vector4 _FinalScreenSize;
@@ -90,8 +90,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // MipOffset of the first depth mip
         public Vector2 _DepthMipOffset;
 
-        // Padding
-        public Vector2 _Padding0;
+        // Frame index for the accumulation
+        public int _AccumulationFrameIndex;
+        // Index for which of the 4 local pixels should be evaluated
+        public int _SubPixelIndex;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function

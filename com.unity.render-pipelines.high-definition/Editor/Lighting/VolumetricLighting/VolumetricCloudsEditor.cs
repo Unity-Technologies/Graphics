@@ -38,7 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_ShapeFactor;
+        SerializedDataParameter m_ShapeScale;
         SerializedDataParameter m_ErosionFactor;
+        SerializedDataParameter m_ErosionScale;
 
         // Lighting
         SerializedDataParameter m_ScatteringDirection;
@@ -102,7 +104,9 @@ namespace UnityEditor.Rendering.HighDefinition
         
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
+            m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
+            m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
 
             // Lighting
             m_ScatteringDirection = Unpack(o.Find(x => x.scatteringDirection));
@@ -168,11 +172,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    using (new HDEditorUtils.IndentScope())
-                    {
-                        needsIntendation = true;
-                        PropertyField(m_CloudPreset);
-                    }
+                    needsIntendation = true;
+                    PropertyField(m_CloudPreset);
                 }
 
                 VolumetricClouds.CloudPresets controlPreset = (VolumetricClouds.CloudPresets)m_CloudPreset.value.enumValueIndex;
@@ -182,7 +183,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_DensityMultiplier);
                         PropertyField(m_ShapeFactor);
+                        PropertyField(m_ShapeScale);
                         PropertyField(m_ErosionFactor);
+                        PropertyField(m_ErosionScale);
                     }
                 }
             }
