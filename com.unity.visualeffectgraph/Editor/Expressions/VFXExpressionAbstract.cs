@@ -198,10 +198,6 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
                 case VFXValueType.Matrix4x4:
-#if !UNITY_2020_2_OR_NEWER
-                //On 2020.2, we are excepting usage of VFXExpressionVertexBufferFromMesh or VFXExpressionIndexBufferFromMesh expression
-                case VFXValueType.Mesh:
-#endif
                 case VFXValueType.Boolean:
                     return true;
             }
