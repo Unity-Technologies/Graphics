@@ -240,6 +240,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2010_IES_Cookies.unity
     guid: ad7e365098dfb004aba8f7e35924b5ce
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2011_ForwardEmissiveForDeferred.unity
+    guid: 94ff79e05bdbc3f47897538b381d1a2e
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2101_GI_Metapass.unity
     guid: 8747b43f8bcf2b44cbc3ece373da65a9
   - enabled: 1
