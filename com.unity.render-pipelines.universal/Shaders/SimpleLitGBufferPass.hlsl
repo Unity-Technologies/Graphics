@@ -96,7 +96,6 @@ Varyings LitPassVertexSimple(Attributes input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.posWS.xyz = vertexInput.positionWS;
