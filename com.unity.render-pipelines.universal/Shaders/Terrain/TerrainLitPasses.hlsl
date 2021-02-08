@@ -56,13 +56,13 @@ struct Varyings
 #endif
 
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
+    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 #else
-    half  fogFactor                 : TEXCOORD5;
+    half  fogFactor                 : TEXCOORD6;
 #endif
-    float3 positionWS               : TEXCOORD6;
+    float3 positionWS               : TEXCOORD7;
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
+    float4 shadowCoord              : TEXCOORD8;
 #endif
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
