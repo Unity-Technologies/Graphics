@@ -196,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
         }
 
-        void OnBeginContextRendering(ScriptableRenderContext context, List<Camera> cameras)
+        void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
         {
             var rtSize = cameraRTSize;
             m_Internal.CalculateCameraProperties(rtSize.x, rtSize.y);
@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_CinemachineCompatibilityMode = false;
 
-            RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
+            RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
@@ -246,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void OnDisable()
         {
-            RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
+            RenderPipelineManager.beginFrameRendering -= OnBeginFrameRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
