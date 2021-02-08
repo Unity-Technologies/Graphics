@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
                 return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
             }
 
-            private static VFXExpression PatchVFXExpression(VFXExpression input, VFXExpression sourceExpression, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
+            private static VFXExpression PatchVFXExpression(VFXExpression input, VFXExpression targetExpression, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
             {
                 if (insertGPUTransformation)
                 {
@@ -121,36 +121,46 @@ namespace UnityEditor.VFX
 
                         case VFXValueType.Mesh:
                         case VFXValueType.SkinnedMeshRenderer:
-                            if (sourceExpression != null)
+                            if (targetExpression != null)
                             {
                                 if (input.valueType == VFXValueType.Mesh)
                                 {
-                                    switch (sourceExpression.operation)
+                                    switch (targetExpression.operation)
                                     {
                                         case VFXExpressionOperation.SampleMeshVertexFloat:
                                         case VFXExpressionOperation.SampleMeshVertexFloat2:
                                         case VFXExpressionOperation.SampleMeshVertexFloat3:
                                         case VFXExpressionOperation.SampleMeshVertexFloat4:
                                         case VFXExpressionOperation.SampleMeshVertexColor:
-                                            input = new VFXExpressionVertexBufferFromMesh(input, sourceExpression.parents[2] /* channelFormatAndDimensionAndStream */);
+                                            var channelFormatAndDimensionAndStream = targetExpression.parents[2];
+                                            if (!(channelFormatAndDimensionAndStream is VFXExpressionMeshChannelInfos))
+                                                throw new InvalidOperationException("Unexpected type of expression in mesh sampling : " + channelFormatAndDimensionAndStream);
+                                            input = new VFXExpressionVertexBufferFromMesh(input, channelFormatAndDimensionAndStream);
                                             break;
                                         case VFXExpressionOperation.SampleMeshIndex:
                                             input = new VFXExpressionIndexBufferFromMesh(input);
                                             break;
                                         default:
-                                            throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression.operation);
+                                            throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + targetExpression.operation);
                                     }
                                 }
                                 else //VFXValueType.SkinnedMeshRenderer
                                 {
-                                    if (sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat
-                                        || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat2
-                                        || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat3
-                                        || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat4
-                                        || sourceExpression is VFXExpressionSampleSkinnedMeshRendererColor)
-                                        input = new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, sourceExpression.parents[2] /* channelFormatAndDimensionAndStreamIndex */);
+                                    if (targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat2
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat3
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererFloat4
+                                        || targetExpression is VFXExpressionSampleSkinnedMeshRendererColor)
+                                    {
+                                        var channelFormatAndDimensionAndStream = targetExpression.parents[2];
+                                        if (!(channelFormatAndDimensionAndStream is VFXExpressionMeshChannelInfos))
+                                            throw new InvalidOperationException("Unexpected type of expression in skinned mesh sampling : " + channelFormatAndDimensionAndStream);
+                                        input = new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, channelFormatAndDimensionAndStream);
+                                    }
                                     else
-                                        throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression);
+                                    {
+                                        throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + targetExpression);
+                                    }
                                 }
                             } //else sourceExpression is null, we can't determine usage but it's possible if value is declared but not used.
                             break;
