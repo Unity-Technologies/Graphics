@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
 
+        UniversalRendererData()
+        {}
+
         protected override ScriptableRenderer Create()
         {
             if (!Application.isPlaying)
