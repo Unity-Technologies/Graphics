@@ -323,10 +323,14 @@ Shader ""Hidden/GraphErrorShader2""
         }
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        // TODO: Fix this
+        // TODO: Fix this - VFX Graph can now use ShaderGraph as a code generation path. However, currently, the new
+        // generation path still slightly depends on this container (The implementation of it was tightly coupled in VFXShaderGraphParticleOutput,
+        // and we keep it now as there is no migration path for users yet). This will need to be decoupled so that we can eventually
+        // remove this container.
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
-            var target = graph.activeTargets.FirstOrDefault(x => x is VFXTarget) as VFXTarget;
+            var target = graph.activeTargets.FirstOrDefault(x => x.WorksWithVFX());
+
             if (target == null)
                 return null;
 
@@ -345,8 +349,16 @@ Shader ""Hidden/GraphErrorShader2""
                 var result = asset.compilationResult = new GraphCompilationResult();
                 var mode = GenerationMode.ForReals;
 
-                asset.lit = target.lit;
-                asset.alphaClipping = target.alphaTest;
+                if (target is VFXTarget vfxTarget)
+                {
+                    asset.lit = vfxTarget.lit;
+                    asset.alphaClipping = vfxTarget.alphaTest;
+                }
+                else
+                {
+                    asset.lit = true;
+                    asset.alphaClipping = false;
+                }
 
                 var assetGuid = graph.assetGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);

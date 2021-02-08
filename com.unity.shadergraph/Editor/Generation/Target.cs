@@ -28,5 +28,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
+
+        public abstract bool WorksWithVFX();
     }
 }

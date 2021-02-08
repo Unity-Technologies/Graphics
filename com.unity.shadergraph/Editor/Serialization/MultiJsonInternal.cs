@@ -184,6 +184,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => false;
+
+            public override bool WorksWithVFX() => false;
         }
 
         private class UnknownSubTargetType : SubTarget

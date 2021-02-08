@@ -135,15 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_SupportsVFX = false;
-
-        public bool supportsVFX
-        {
-            get => m_SupportsVFX;
-            set => m_SupportsVFX = value;
-        }
-
-        [SerializeField]
         internal int inspectorFoldoutMask;
     }
 

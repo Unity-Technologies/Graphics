@@ -143,6 +143,8 @@ namespace UnityEditor.ShaderGraph
         {
             return GraphicsSettings.currentRenderPipeline != null && scriptableRenderPipeline?.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
         }
+
+        public override bool WorksWithVFX() => true;
     }
 }
 #endif

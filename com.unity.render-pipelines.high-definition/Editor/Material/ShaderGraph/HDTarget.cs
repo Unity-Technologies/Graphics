@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+        Toggle m_SupportVFXToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -60,6 +61,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
+
+        private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
+        {
+            // Currently there is not support for VFX decals via HDRP master node.
+            typeof(DecalSubTarget)
+        };
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
@@ -172,6 +182,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+
+            // VFX Support
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+            else
+            {
+                m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                {
+                    m_SupportVFX = m_SupportVFXToggle.value;
+                });
+            }
 
             context.globalIndentLevel--;
         }
@@ -327,6 +349,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
+        }
+
+        public override bool WorksWithVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                return false;
+
+            return m_SupportVFX;
         }
     }
 

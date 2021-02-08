@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,6 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     [InitializeOnLoad]
     static class HDVFXSubTarget
     {
+        internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
+
         static HDVFXSubTarget()
         {
             VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;

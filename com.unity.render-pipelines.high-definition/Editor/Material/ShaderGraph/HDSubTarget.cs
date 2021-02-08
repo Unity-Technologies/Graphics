@@ -92,8 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
+            var inspector = VFXSubTarget.IsConfigured() ? HDVFXSubTarget.Inspector : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
-                context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
@@ -197,7 +198,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Common properties between all HD master nodes
             // Dots
-            context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
+            context.AddField(HDFields.DotsInstancing, systemData.dotsInstancing);
+            // VFX Setup
             context.AddField(Fields.GraphVFX, VFXSubTarget.IsConfigured());
         }
 

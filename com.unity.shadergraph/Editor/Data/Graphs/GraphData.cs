@@ -471,8 +471,20 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.WorksWithVFX());
+        public bool hasVFXTarget
+        {
+            get
+            {
+                bool supports = true;
+                supports &= !isSubGraph;
+                supports &= activeTargets.Any();
+                // Maintain support for VFXTarget and VFX compatible targets.
+                supports &= activeTargets.OfType<VFXTarget>().Any() || hasVFXCompatibleTarget;
+                return supports;
+            }
+        }
+        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1 && !hasVFXCompatibleTarget;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;

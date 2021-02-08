@@ -51,9 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
             AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
-
-            if ((enabledFeatures & Features.VFX) != 0)
-                AddProperty(Styles.supportVFX, () => systemData.supportsVFX, (newValue) => systemData.supportsVFX = newValue);
         }
     }
 }
