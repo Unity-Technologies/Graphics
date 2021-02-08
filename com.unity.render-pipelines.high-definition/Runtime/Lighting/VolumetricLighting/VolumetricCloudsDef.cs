@@ -32,50 +32,47 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _WindVector;
 
         // Wind speed controllers
-        public float _GlobalWindSpeed;
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
         public float _SmallWindSpeed;
-
         // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
         public int _ExposureSunColor;
-        // Color * intensity of the directional light
-        public Vector3 _SunLightColor;
 
+        // Color * intensity of the directional light
+        public Vector4 _SunLightColor;
+ 
         // Direction to the sun
-        public Vector3 _SunDirection;
+        public Vector4 _SunDirection;
+
         // Is the current sun a physically based one
         public int _PhysicallyBasedSun;
-
-        // Scattering Tint
-        public Vector4 _ScatteringTint;
-
         // Factor for the multi scattering
         public float _MultiScattering;
         // Defines how we blend the forward and backward HG function
         public float _ScatteringDirection;
         // Controls the strength of the powder effect intensity
         public float _PowderEffectIntensity;
+
         // NormalizationFactor
         public float _NormalizationFactor;
-
         // Maximal cloud distance
         public float _MaxCloudDistance;
         // Global multiplier to the density
         public float _DensityMultiplier;
         // Controls the amount of low frenquency noise
         public float _ShapeFactor;
+
         // Controls the forward eccentricity of the clouds
         public float _ErosionFactor;
-
         // Multiplier to shape tiling
         public float _ShapeScale;
         // Multiplier to erosion tiling
         public float _ErosionScale;
-        // Global offset applied to the cloud map
-        public float _CloudMapOffset;
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
+
+        // Scattering Tint
+        public Vector4 _ScatteringTint;
 
         // Resolution of the final size of the effect
         public Vector4 _FinalScreenSize;
@@ -87,9 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _HistoryViewportSize;
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
+
         // MipOffset of the first depth mip
         public Vector2 _DepthMipOffset;
-
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
@@ -99,24 +96,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
 
         // Right direction of the sun
-        public Vector3 _SunRight;
-        // Intensity of the volumetric clouds shadow
-        public float _ShadowIntensity;
+        public Vector4 _SunRight;
 
         // Up direction of the sun
-        public Vector3 _SunUp;
+        public Vector4 _SunUp;
+
+        // Intensity of the volumetric clouds shadow
+        public float _ShadowIntensity;
         // Fallback intensity used when the shadow is not defined
         public float _ShadowFallbackValue;
-
         // The resolution of the shadow cookie to fill
         public int _ShadowCookieResolution;
+        // Offset applied of the plane receiving the center of the shadow
+        public float _ShadowPlaneOffset;
 
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
 
-        // Offset applied of the plane receiving the center of the shadow
-        public float _ShadowPlaneOffset;
-
+        // Padding
+        public float _Padding0;
         public float _Padding1;
+
     }
 }

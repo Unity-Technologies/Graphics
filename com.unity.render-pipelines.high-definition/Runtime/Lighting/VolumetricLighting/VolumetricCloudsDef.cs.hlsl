@@ -17,15 +17,13 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _CloudMapTiling;
     float2 _WindDirection;
     float2 _WindVector;
-    float _GlobalWindSpeed;
     float _LargeWindSpeed;
     float _MediumWindSpeed;
     float _SmallWindSpeed;
     int _ExposureSunColor;
-    float3 _SunLightColor;
-    float3 _SunDirection;
+    float4 _SunLightColor;
+    float4 _SunDirection;
     int _PhysicallyBasedSun;
-    float4 _ScatteringTint;
     float _MultiScattering;
     float _ScatteringDirection;
     float _PowderEffectIntensity;
@@ -36,8 +34,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ErosionFactor;
     float _ShapeScale;
     float _ErosionScale;
-    float _CloudMapOffset;
     float _TemporalAccumulationFactor;
+    float4 _ScatteringTint;
     float4 _FinalScreenSize;
     float4 _IntermediateScreenSize;
     float4 _TraceScreenSize;
@@ -47,13 +45,14 @@ CBUFFER_START(ShaderVariablesClouds)
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
     float4 _AmbientProbeCoeffs[7];
-    float3 _SunRight;
+    float4 _SunRight;
+    float4 _SunUp;
     float _ShadowIntensity;
-    float3 _SunUp;
     float _ShadowFallbackValue;
     int _ShadowCookieResolution;
-    float2 _ShadowRegionSize;
     float _ShadowPlaneOffset;
+    float2 _ShadowRegionSize;
+    float _Padding0;
     float _Padding1;
 CBUFFER_END
 

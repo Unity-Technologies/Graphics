@@ -297,7 +297,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WindDirection = new Vector2(-Mathf.Cos(theta),- Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
 
-            cb._GlobalWindSpeed = settings.globalWindSpeed.value;
             cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
             cb._SmallWindSpeed = settings.erosionSpeedMultiplier.value;
@@ -333,9 +332,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float absoluteCloudHighest = cb._HighestCloudAltitude + cb._EarthRadius;
             cb._MaxCloudDistance = Mathf.Sqrt(absoluteCloudHighest * absoluteCloudHighest - cb._EarthRadius * cb._EarthRadius);
-
-            // We should control this with controlling the quality presets
-            cb._CloudMapOffset = 0;
 
             // Evaluate the ambient probe data
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, settings);
