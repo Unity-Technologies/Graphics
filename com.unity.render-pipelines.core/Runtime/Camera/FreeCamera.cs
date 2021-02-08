@@ -1,6 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
+using UnityEngine.InputSystem;
 #endif
 
 using System.Collections.Generic;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering
             inputRotateAxisX += (Input.GetAxis(kRightStickX) * m_LookSpeedController * Time.deltaTime);
             inputRotateAxisY += (Input.GetAxis(kRightStickY) * m_LookSpeedController * Time.deltaTime);
 
-            leftShift = Input.GetKeyDown(KeyCode.LeftShift);
+            leftShift = Input.GetKey(KeyCode.LeftShift);
             fire1 = Input.GetAxis("Fire1") > 0.0f;
 
             inputChangeSpeed = Input.GetAxis(kSpeedAxis);
@@ -192,10 +192,8 @@ namespace UnityEngine.Rendering
                 transform.localRotation = Quaternion.Euler(newRotationX, newRotationY, transform.localEulerAngles.z);
 
                 float moveSpeed = Time.deltaTime * m_MoveSpeed;
-                if (leftShiftBoost)
-                    moveSpeed *= leftShift ? m_Turbo : 1.0f;
-                else
-                    moveSpeed *= fire1 ? m_Turbo : 1.0f;
+                if (fire1 || leftShiftBoost && leftShift)
+                    moveSpeed *= m_Turbo;
                 transform.position += transform.forward * moveSpeed * inputVertical;
                 transform.position += transform.right * moveSpeed * inputHorizontal;
                 transform.position += Vector3.up * moveSpeed * inputYAxis;

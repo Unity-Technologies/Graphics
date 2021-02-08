@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal static MigrationDescription<ShaderGraphVersion, HDSubTarget> migrationSteps => MigrationDescription.New(
             Enum.GetValues(typeof(ShaderGraphVersion)).Cast<ShaderGraphVersion>().Select(
                 version => MigrationStep.New(version, (HDSubTarget t) => t.MigrateTo(version))
-            ).ToArray()
+                ).ToArray()
         );
 
         /// <summary>
@@ -91,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            context.SetDefaultShaderGUI(customInspector);
+            if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 MigrateTo(ShaderGraphVersion.FirstTimeMigration);
                 systemData.firstTimeMigrationExecuted = true;
                 OnBeforeSerialize();
+                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             }
 
             foreach (var subShader in EnumerateSubShaders())
@@ -119,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-            
+
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection finalPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
@@ -138,22 +140,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.requiredFields.Add(subShaderField);
 
                 IncludeCollection finalIncludes = new IncludeCollection();
-                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
 
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
                 {
-                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
-                        include.descriptor.value = subShaderInclude;
-                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
-                        include.descriptor.value = postDecalsInclude;
-                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
-                        include.descriptor.value = raytracingInclude;
-                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
-                        include.descriptor.value = pathtracingInclude;
+                    var path = include.path;
 
-                    if (!String.IsNullOrEmpty(include.descriptor.value))
-                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                    if (path == CoreIncludes.kPassPlaceholder)
+                        path = subShaderInclude;
+                    if (path == CoreIncludes.kPostDecalsPlaceholder)
+                        path = postDecalsInclude;
+                    if (path == CoreIncludes.kRaytracingPlaceholder)
+                        path = raytracingInclude;
+                    if (path == CoreIncludes.kPathtracingPlaceholder)
+                        path = pathtracingInclude;
+
+                    if (!String.IsNullOrEmpty(path))
+                        finalIncludes.Add(path, include.location, include.fieldConditions);
                 }
                 passDescriptor.includes = finalIncludes;
 
@@ -166,8 +169,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
                 // Add keywords from subshaders:
-                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
                 CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
@@ -213,8 +216,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (needsUpdate)
                     systemData.materialNeedsUpdateHash = hash;
 
-                return new HDSaveContext{ updateMaterials = needsUpdate };
+                return new HDSaveContext { updateMaterials = needsUpdate };
             }
-        } 
+        }
     }
 }

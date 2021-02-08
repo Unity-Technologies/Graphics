@@ -15,6 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
     sealed class DiffusionProfileSettingsParameter : VolumeParameter<DiffusionProfileSettings[]>
     {
         public DiffusionProfileSettingsParameter(DiffusionProfileSettings[] value, bool overrideState = true)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 }

@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int RenderingLightLayersMaskShift  = 0;
         public const int RenderingDecalLayersMask       = 0x0000FF00;
         public const int RenderingDecalLayersMaskShift  = 8;
-        public const int DefaultRenderingLayerMask      = 0x0101;       
+        public const int DefaultRenderingLayerMask      = 0x0101;
 
         // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
         // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
         public float    _GlobalTessellationFactorMultiplier;
 
-        public float    _Pad8;
+        public float    _SpecularOcclusionBlend;
         public float    _Pad9;
     }
 }

@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
         {
             LimbalRingFactor = new Vector1();
             return
-                @"
+@"
                 {
                     $precision NdotV = dot(float3(0.0, 0.0, 1.0), ViewDirectionOS);
 

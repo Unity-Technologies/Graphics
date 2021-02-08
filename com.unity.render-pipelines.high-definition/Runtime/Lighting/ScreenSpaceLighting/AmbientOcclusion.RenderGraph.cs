@@ -10,7 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
         }
 
-        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
+            in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -31,7 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, frameCount, shaderVariablesRaytracing);
+                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer,
+                            rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
                         var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
@@ -39,13 +41,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
 
                         Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
-                                      historyRT.referenceSize.y * historyRT.scaleFactor.y);
+                            historyRT.referenceSize.y * historyRT.scaleFactor.y);
                         var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                        var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
+                        var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, depthMipInfo);
 
-                        var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
-                        result = DenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, packedData, currentHistory, outputHistory);
+                        var packedData = RenderAO(renderGraph, aoParameters, depthBuffer, normalBuffer);
+                        result = DenoiseAO(renderGraph, aoParameters, depthBuffer, motionVectors, packedData, currentHistory, outputHistory);
+                        result = UpsampleAO(renderGraph, aoParameters, result, depthBuffer);
                     }
                 }
             }
@@ -74,15 +77,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
 
                 builder.SetRenderFunc(
-                (RenderAOPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderAO(data.parameters, data.packedData, data.depthPyramid, data.normalBuffer, ctx.cmd);
-                });
+                    (RenderAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderAO(data.parameters, data.packedData, data.depthPyramid, data.normalBuffer, ctx.cmd);
+                    });
 
                 return passData.packedData;
             }
@@ -99,14 +102,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        motionVectors;
         }
 
-        TextureHandle DenoiseAO(    RenderGraph             renderGraph,
-                                    in RenderAOParameters   parameters,
-                                    TextureHandle           depthTexture,
-                                    TextureHandle           motionVectors,
-                                    TextureHandle           aoPackedData,
-                                    TextureHandle           currentHistory,
-                                    TextureHandle           outputHistory)
+        TextureHandle DenoiseAO(RenderGraph             renderGraph,
+            in RenderAOParameters   parameters,
+            TextureHandle           depthTexture,
+            TextureHandle           motionVectors,
+            TextureHandle           aoPackedData,
+            TextureHandle           currentHistory,
+            TextureHandle           outputHistory)
         {
+            if (!parameters.temporalAccumulation && !parameters.fullResolution)
+                return aoPackedData;
+
             TextureHandle denoiseOutput;
 
             using (var builder = renderGraph.AddRenderPass<DenoiseAOPassData>("Denoise GTAO", out var passData))
@@ -135,23 +141,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 denoiseOutput = passData.denoiseOutput;
 
                 builder.SetRenderFunc(
-                (DenoiseAOPassData data, RenderGraphContext ctx) =>
-                {
-                    DenoiseAO(  data.parameters,
-                                data.packedData,
-                                data.packedDataBlurred,
-                                data.currentHistory,
-                                data.outputHistory,
-                                data.motionVectors,
-                                data.denoiseOutput,
-                                ctx.cmd);
-                });
+                    (DenoiseAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        DenoiseAO(data.parameters,
+                            data.packedData,
+                            data.packedDataBlurred,
+                            data.currentHistory,
+                            data.outputHistory,
+                            data.motionVectors,
+                            data.denoiseOutput,
+                            ctx.cmd);
+                    });
 
-                if (parameters.fullResolution)
-                    return passData.denoiseOutput;
+                return passData.denoiseOutput;
             }
-
-            return UpsampleAO(renderGraph, parameters, denoiseOutput, depthTexture);
         }
 
         class UpsampleAOPassData
@@ -164,6 +167,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
         {
+            if (parameters.fullResolution)
+                return input;
+
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
                 builder.EnableAsyncCompute(parameters.runAsync);
@@ -174,10 +180,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph));
 
                 builder.SetRenderFunc(
-                (UpsampleAOPassData data, RenderGraphContext ctx) =>
-                {
-                    UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
-                });
+                    (UpsampleAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
+                    });
 
                 return passData.output;
             }

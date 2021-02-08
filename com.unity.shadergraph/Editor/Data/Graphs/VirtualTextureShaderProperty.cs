@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph
                 result.Add(value.layers[layer].layerRefName);
             }
         }
+
         internal override void GetPropertyDisplayNames(List<string> result)
         {
             result.Add(displayName);
@@ -164,9 +165,7 @@ namespace UnityEditor.ShaderGraph
             var vt =  new VirtualTextureShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = new SerializableVirtualTexture(),
-                precision = precision
             };
 
             // duplicate layer data, but reset reference names (they should be unique)

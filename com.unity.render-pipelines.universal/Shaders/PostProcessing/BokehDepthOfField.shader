@@ -2,6 +2,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -120,7 +121,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             avg *= smoothstep(0, _SourceSize.w * 2.0, abs(coc));
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            avg = SRGBToLinear(avg);
+            avg = GetSRGBToLinear(avg);
         #endif
 
             return half4(avg, coc);
@@ -214,16 +215,15 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half4 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = SRGBToLinear(color);
+            color = GetSRGBToLinear(color);
         #endif
 
             half alpha = Max3(dof.r, dof.g, dof.b);
             color = lerp(color, half4(dof.rgb, alpha), ffa + dof.a - ffa * dof.a);
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = LinearToSRGB(color);
+            color = GetLinearToSRGB(color);
         #endif
-
             return color;
         }
 

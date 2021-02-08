@@ -234,7 +234,7 @@ namespace UnityEditor.VFX
 
                     m_Attributes[index].value = (Color)EditorGUI.ColorField(valueRect, (Color)m_Attributes[index].value);
                     // The is a hotControl id hash collision with the selection rectangle that cause of a lost of selection on mouseup.
-                    if(Event.current.type == EventType.MouseUp && valueRect.Contains(Event.current.mousePosition) )
+                    if (Event.current.type == EventType.MouseUp && valueRect.Contains(Event.current.mousePosition))
                         GUIUtility.hotControl = 0;
 
                     break;

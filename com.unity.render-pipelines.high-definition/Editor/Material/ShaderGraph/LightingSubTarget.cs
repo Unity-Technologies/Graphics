@@ -30,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+
         protected override string renderQueue
         {
             get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
@@ -104,8 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
-            pass.keywords.Add(CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting);
-
             if (pass.IsDepthOrMV())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
@@ -115,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
                 pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
+                pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
 
                 if (!pass.IsDXR())
                 {

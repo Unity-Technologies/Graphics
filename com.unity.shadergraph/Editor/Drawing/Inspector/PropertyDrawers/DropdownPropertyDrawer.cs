@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var propertyRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(labelName, indentLevel));
             textArrayField = new PopupField<string>(fieldToDraw.ToList(), 0);
             propertyRow.Add(textArrayField);
-            var popupField = (PopupField<string>) textArrayField;
+            var popupField = (PopupField<string>)textArrayField;
             popupField.RegisterValueChangedCallback(evt =>
             {
                 valueChangedCallback(popupField.index);
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newSelectedIndex => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newSelectedIndex}),
-                (IEnumerable<string>) propertyInfo.GetValue(actualObject),
+                (IEnumerable<string>)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var textArrayField);
         }

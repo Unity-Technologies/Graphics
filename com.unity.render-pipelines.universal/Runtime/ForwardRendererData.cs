@@ -18,17 +18,19 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<ForwardRendererData>();
+                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/URP Forward Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
+
 #endif
 
         [Serializable, ReloadGroup]
@@ -40,17 +42,11 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
-
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
-            public Shader tileDepthInfoPS;
-
-            [Reload("Shaders/Utils/TileDeferred.shader")]
-            public Shader tileDeferredPS;
 
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
@@ -62,7 +58,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -82,16 +77,10 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#if ENABLE_VR && ENABLE_XR_MODULE
-                ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
-#endif
+                ReloadAllNullProperties();
             }
-#endif
             return new ForwardRenderer(this);
         }
 
@@ -194,9 +183,13 @@ namespace UnityEngine.Rendering.Universal
             if (shaders == null)
                 return;
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif

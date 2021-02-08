@@ -98,7 +98,9 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    // This specular occlusion formulation make sense only with SSAO. When we use Raytracing AO we support different range (local, medium, sky). When using medium or
+    // sky occlusion, the result on specular occlusion can be a disaster (all is black). Thus we use _SpecularOcclusionBlend when using RTAO to disable this trick.
+    float indirectSpecularOcclusion = lerp(1.0, GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness), _SpecularOcclusionBlend);
     float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
     aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
@@ -185,17 +187,6 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
     {
         lightLoopOutput.diffuseLighting = mipmapColor;
         lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_NONE)
-    {
-        switch (_DebugProbeVolumeMode)
-        {
-        case PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS:
-        case PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY:
-            lightLoopOutput.diffuseLighting = builtinData.bakeDiffuseLighting;
-            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
-            break;
-        }
     }
 }
 #endif

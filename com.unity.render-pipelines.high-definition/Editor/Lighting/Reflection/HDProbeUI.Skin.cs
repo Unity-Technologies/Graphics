@@ -40,6 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
             "ReflectionProbe Gizmo"
 #endif
-            ;
+        ;
     }
 }

@@ -15,7 +15,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"        
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
         struct Attributes
         {
@@ -82,7 +82,9 @@ Shader "Hidden/HDRP/CameraMotionVectors"
                 ReadMask [_StencilMask]
                 Ref [_StencilRef]
                 Comp NotEqual
-                Fail Zero   // We won't need the bit anymore.
+                // This line is intentionally commented, we keep the objectmotionvector information
+                // as it is used to do history rejection for numerous temporal accumulation based effects.
+                // Fail Zero   // We won't need the bit anymore.
             }
 
             Cull Off ZWrite Off

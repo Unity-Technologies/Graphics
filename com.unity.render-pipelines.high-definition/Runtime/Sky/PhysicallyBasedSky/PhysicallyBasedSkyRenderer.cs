@@ -63,9 +63,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle AllocateGroundIrradianceTable(int index)
             {
                 var table = RTHandles.Alloc((int)PbrSkyConfig.GroundIrradianceTableSize, 1,
-                                            colorFormat: s_ColorFormat,
-                                            enableRandomWrite: true,
-                                            name: string.Format("GroundIrradianceTable{0}", index));
+                    colorFormat: s_ColorFormat,
+                    enableRandomWrite: true,
+                    name: string.Format("GroundIrradianceTable{0}", index));
 
                 Debug.Assert(table != null);
 
@@ -76,13 +76,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Emulate a 4D texture with a "deep" 3D texture.
                 var table = RTHandles.Alloc((int)PbrSkyConfig.InScatteredRadianceTableSizeX,
-                                            (int)PbrSkyConfig.InScatteredRadianceTableSizeY,
-                                            (int)PbrSkyConfig.InScatteredRadianceTableSizeZ *
-                                            (int)PbrSkyConfig.InScatteredRadianceTableSizeW,
-                                            dimension: TextureDimension.Tex3D,
-                                            colorFormat: s_ColorFormat,
-                                            enableRandomWrite: true,
-                                            name: string.Format("InScatteredRadianceTable{0}", index));
+                    (int)PbrSkyConfig.InScatteredRadianceTableSizeY,
+                    (int)PbrSkyConfig.InScatteredRadianceTableSizeZ *
+                    (int)PbrSkyConfig.InScatteredRadianceTableSizeW,
+                    dimension: TextureDimension.Tex3D,
+                    colorFormat: s_ColorFormat,
+                    enableRandomWrite: true,
+                    name: string.Format("InScatteredRadianceTable{0}", index));
 
                 Debug.Assert(table != null);
 
@@ -166,9 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Re-illuminate the sky with each bounce.
                             // Emulate a 4D dispatch with a "deep" 3D dispatch.
                             cmd.DispatchCompute(s_InScatteredRadiancePrecomputationCS, pass, (int)PbrSkyConfig.InScatteredRadianceTableSizeX / 4,
-                                                                                             (int)PbrSkyConfig.InScatteredRadianceTableSizeY / 4,
-                                                                                             (int)PbrSkyConfig.InScatteredRadianceTableSizeZ / 4 *
-                                                                                             (int)PbrSkyConfig.InScatteredRadianceTableSizeW);
+                                (int)PbrSkyConfig.InScatteredRadianceTableSizeY / 4,
+                                (int)PbrSkyConfig.InScatteredRadianceTableSizeZ / 4 *
+                                (int)PbrSkyConfig.InScatteredRadianceTableSizeW);
                         }
 
                         {
@@ -232,7 +232,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
                     s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._MultipleScatteringTexture, CoreUtils.blackVolumeTexture);
                 }
-
             }
 
             public bool Update(BuiltinSkyParameters builtinParams, PhysicallyBasedSky pbrSky)
@@ -458,12 +457,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Precomputation is done, shading is next.
             Quaternion planetRotation = Quaternion.Euler(pbrSky.planetRotation.value.x,
-                                                         pbrSky.planetRotation.value.y,
-                                                         pbrSky.planetRotation.value.z);
+                pbrSky.planetRotation.value.y,
+                pbrSky.planetRotation.value.z);
 
             Quaternion spaceRotation  = Quaternion.Euler(pbrSky.spaceRotation.value.x,
-                                                         pbrSky.spaceRotation.value.y,
-                                                         pbrSky.spaceRotation.value.z);
+                pbrSky.spaceRotation.value.y,
+                pbrSky.spaceRotation.value.z);
 
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  cameraPos);
@@ -488,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 hasGroundEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture,    pbrSky.groundEmissionTexture.value);
-                s_PbrSkyMaterialProperties.SetFloat(  HDShaderIDs._GroundEmissionMultiplier, pbrSky.groundEmissionMultiplier.value);
+                s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._GroundEmissionMultiplier, pbrSky.groundEmissionMultiplier.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundEmissionTexture, hasGroundEmissionTexture);
 
@@ -498,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 hasSpaceEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture,    pbrSky.spaceEmissionTexture.value);
-                s_PbrSkyMaterialProperties.SetFloat(  HDShaderIDs._SpaceEmissionMultiplier, pbrSky.spaceEmissionMultiplier.value);
+                s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._SpaceEmissionMultiplier, pbrSky.spaceEmissionMultiplier.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 

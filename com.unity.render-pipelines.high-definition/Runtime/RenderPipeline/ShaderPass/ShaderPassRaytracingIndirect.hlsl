@@ -8,7 +8,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-	// The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -56,18 +56,18 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     if (rayIntersection.remainingDepth < _RaytracingMaxRecursion)
     {
         // Generate the new sample (follwing values of the sequence)
-        float2 sample = float2(0.0, 0.0);
-        sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
-        sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
+        float2 theSample = float2(0.0, 0.0);
+        theSample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
+        theSample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
 
         float3 sampleDir;
         if (_RayTracingDiffuseLightingOnly)
         {
-            sampleDir = SampleHemisphereCosine(sample.x, sample.y, bsdfData.normalWS);
+            sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, bsdfData.normalWS);
         }
         else
         {
-            sampleDir = SampleSpecularBRDF(bsdfData, sample, viewWS);
+            sampleDir = SampleSpecularBRDF(bsdfData, theSample, viewWS);
         }
 
         // Create the ray descriptor for this pixel
@@ -86,7 +86,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
         reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
-        
+
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
@@ -113,7 +113,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         }
     }
     #endif
-    
+
     // Run the lightloop
     LightLoopOutput lightLoopOutput;
     LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, 0.0, reflected,  float3(0.0, 0.0, 0.0), lightLoopOutput);
@@ -168,7 +168,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
-    
+
     // If this fella should be culled, then we cull it
     if(!isVisible)
     {

@@ -1,19 +1,14 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
-using System.Linq;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.UIElements;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityObject = UnityEngine.Object;
-using System.IO;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.VersionControl;
+using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
@@ -43,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
+        [MenuItem("Window/VFX/VFX Graph", false, 3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -190,7 +185,7 @@ namespace  UnityEditor.VFX.UI
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
             titleContent.image = icon;
         }
 
@@ -232,7 +227,7 @@ namespace  UnityEditor.VFX.UI
         void OnFocus()
         {
             if (graphView != null) // OnFocus can be somehow called before OnEnable
-            graphView.OnFocus();
+                graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }
@@ -265,7 +260,6 @@ namespace  UnityEditor.VFX.UI
                         }
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
-
                             VFXGraph.explicitCompile = true;
                             graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
                             using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
@@ -275,7 +269,6 @@ namespace  UnityEditor.VFX.UI
                                 VFXGraph.compileReporter = null;
                             }
                             VFXGraph.explicitCompile = false;
-                        
                         }
                         else
                             graph.RecompileIfNeeded(true, true);

@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void UpdateApplyToSortingLayersArray(object layerSelectionDataObject)
         {
-            LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject; 
+            LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject;
 
             m_ApplyToSortingLayers.ClearArray();
             for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (layerSelectionData.onSelectionChanged != null)
                 layerSelectionData.onSelectionChanged(layerSelectionData.serializedObject);
-            
+
             layerSelectionData.serializedObject.ApplyModifiedProperties();
 
             if (layerSelectionData.targets is Light2D[])
@@ -85,7 +85,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnSortingLayerSelected(object layerSelectionDataObject)
         {
-
             LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject;
 
             int layerID = (int)layerSelectionData.layerID;
@@ -105,16 +104,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Rect position = EditorGUI.PrefixLabel(totalPosition, actualLabel);
 
             m_ApplyToSortingLayersList.Clear();
-
-            if (!m_ApplyToSortingLayers.hasMultipleDifferentValues)
+            int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
+            for (int i = 0; i < applyToSortingLayersSize; ++i)
             {
-                int applyToSortingLayersSize = m_ApplyToSortingLayers.arraySize;
-                for (int i = 0; i < applyToSortingLayersSize; ++i)
-                {
-                    int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
-                    if (SortingLayer.IsValid(layerID))
-                        m_ApplyToSortingLayersList.Add(layerID);
-                }
+                int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
+                if (SortingLayer.IsValid(layerID))
+                    m_ApplyToSortingLayersList.Add(layerID);
             }
 
             GUIContent selectedLayers;

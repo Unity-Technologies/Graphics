@@ -48,12 +48,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.globalIndentLevel++;
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, enabledFeatures == Features.Unlit); // Show after post process for unlit shaders
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderQueueType) : HDRenderQueue.GetTransparentEquivalent(systemData.renderQueueType);
+            // It is possible when switching from Unlit with an after postprocess pass to any kind of lit shader to get an out of array value. In this case we switch back to default.
+            if (!HDSubShaderUtilities.IsValidRenderingPassValue(renderingPassValue, enabledFeatures == Features.Unlit))
+            {
+                renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            }
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
 
             context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
                 registerUndo(renderingPassText);
-                if(systemData.TryChangeRenderingPass(evt.newValue))
+                if (systemData.TryChangeRenderingPass(evt.newValue))
                     onChange();
             });
 
@@ -107,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     AddProperty(receivesSSRTransparentText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
                 else
                     AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
-                
+
                 AddProperty(enableGeometricSpecularAAText, () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
             }
             AddProperty(depthOffsetEnableText, () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);

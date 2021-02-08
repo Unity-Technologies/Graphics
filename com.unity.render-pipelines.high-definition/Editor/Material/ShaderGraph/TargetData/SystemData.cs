@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_ZTest;
             set => m_ZTest = value;
-        }    
+        }
 
         [SerializeField]
         bool m_ZWrite = false;
@@ -150,7 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case HDRenderQueue.RenderQueueType.Unknown:
                 case HDRenderQueue.RenderQueueType.Background:
                     throw new ArgumentException("Unexpected kind of RenderQueue, was " + value);
-            };
+            }
+            ;
 
             // Update for SurfaceType
             switch (systemData.surfaceType)

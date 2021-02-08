@@ -9,11 +9,10 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", experimental = true, variantProvider = typeof(PositionBaseProvider))]
     class PositionMesh : PositionBase
     {
-
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return string.Format(base.name, "Mesh"); ; } }
+        public override string name { get { return string.Format(base.name, "Mesh");; } }
 
         public class CustomPropertiesMesh
         {

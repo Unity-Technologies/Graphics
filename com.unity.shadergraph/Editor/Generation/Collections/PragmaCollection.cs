@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class PragmaCollection : IEnumerable<PragmaCollection.Item>
     {
-        public class Item : IConditional, IShaderString
+        public class Item : IConditional
         {
             public PragmaDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public PragmaCollection Add(PragmaCollection pragmas)
         {
-            foreach(PragmaCollection.Item item in pragmas)
+            foreach (PragmaCollection.Item item in pragmas)
             {
                 m_Items.Add(item);
             }
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
         public PragmaCollection Add(PragmaDescriptor descriptor, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(descriptor, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

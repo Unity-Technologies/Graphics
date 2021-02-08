@@ -36,7 +36,15 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";
+            return "UnityTexture2DArray " + referenceName;
+        }
+
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            if (isSubgraphProperty)
+                return referenceName;
+            else
+                return $"UnityBuildTexture2DArrayStruct({referenceName})";
         }
 
         [SerializeField]
@@ -67,9 +75,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Texture2DArrayShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
     }

@@ -132,25 +132,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
-                {
-                    var fieldValue = (float)evt.newValue;
-                    if (index == 1)
-                        m_DielectricMaterial.indexOfRefraction = fieldValue;
-                    else
-                        m_DielectricMaterial.range = fieldValue;
-                    
-                    m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
-                    this.MarkDirtyRepaint();
-                });
-            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-                {
-                    if (index == 1)
-                        RedrawIORControls(m_DielectricMaterial.indexOfRefraction);
-                    else
-                        RedrawRangeControls(m_DielectricMaterial.range);
+            {
+                var fieldValue = (float)evt.newValue;
+                if (index == 1)
+                    m_DielectricMaterial.indexOfRefraction = fieldValue;
+                else
+                    m_DielectricMaterial.range = fieldValue;
 
-                    this.MarkDirtyRepaint();
-                });
+                m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
+                this.MarkDirtyRepaint();
+            });
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                if (index == 1)
+                    RedrawIORControls(m_DielectricMaterial.indexOfRefraction);
+                else
+                    RedrawRangeControls(m_DielectricMaterial.range);
+
+                this.MarkDirtyRepaint();
+            });
             panel.Add(field);
             return field;
         }

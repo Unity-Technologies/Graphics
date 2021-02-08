@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureCache.Release();
             CoreUtils.Destroy(m_TempRenderTexture);
 
-            if(m_ConvolutionTargetTextureArray != null)
+            if (m_ConvolutionTargetTextureArray != null)
             {
                 for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
                 {
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.GenerateMips(convolutionSourceTexture);
             }
 
-            for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
             {
                 m_IBLFilterBSDF[bsdfIdx].FilterCubemap(cmd, convolutionSourceTexture, m_ConvolutionTargetTextureArray[bsdfIdx]);
             }

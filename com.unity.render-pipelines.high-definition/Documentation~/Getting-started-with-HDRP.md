@@ -1,12 +1,12 @@
 # Getting started with the High Definition Render Pipeline
 
-The [High Definition Render Pipeline (HDRP)](index.md) uses [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and lighting units that are different to those in Unity's built-in render pipeline. This means that you must either create a new Project that uses HDRP, or [upgrade an existing Project to use HDRP](#UpgradingToHDRP). 
+The [High Definition Render Pipeline (HDRP)](index.md) uses [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and lighting units that are different to those in Unity's built-in render pipeline. This means that you must either create a new Project that uses HDRP, or [upgrade an existing Project to use HDRP](#UpgradingToHDRP).
 
 This documentation describes how to create a Scene that uses HDRP, and introduces you to key features that help you produce high fidelity visuals.
 
 <a name="UpgradingToHDRP"></a>
 
-To upgrade an existing Project that doesn’t use HDRP, you need to convert the Materials to make them compatible with HDRP. For information about the upgrade process, see [Upgrading to HDRP](Upgrading-To-HDRP.md). 
+To upgrade an existing Project that doesn’t use HDRP, you need to convert the Materials to make them compatible with HDRP. For information about the upgrade process, see [Upgrading to HDRP](Upgrading-To-HDRP.md).
 
 ## Creating an HDRP Project from the Template
 
@@ -14,15 +14,15 @@ To set up and manage your Unity Projects, install the [Unity Hub](https://docs.u
 
 Unity provides an HDRP Template Project which you can use to quickly get set up with HDRP. To create an HDRP Template Project:
 
-1. Open the Unity Hub and click the **New** button.
-2. Enter a **Project Name** and, in the **Template** section, click on **High-Definition RP**.
+1. Open the Unity Hub, go to the **Projects** tab, and click **New**.
+2. Enter a **Project Name** and, in the **Template** section, click on **High Definition RP**.
 3. Click **Create**.
 
 Unity creates a Project and automatically installs the HDRP package, and all of its dependencies. After Unity opens the Template Project, you can see the main Scene. Which looks like this:
 
 ![](Images/GettingStarted1.png)
 
-In the Template Scene, you can view GameObjects in the Inspector to see things like HDRP Material or [Volume](Volumes.md) examples. You can then use these examples as a reference when creating your own Scene in HDRP.
+This template is a great starting point for projects aiming at high-end graphics. It includes multiple physically-based lighting setups to help you realistically illuminate environments with HDRP. It also includes use-case examples for many of HDRP's features such as [Decals](Decal.md), [Volumes](Volumes.md), and physically-accurate Materials.
 
 ## Pipeline setup
 
@@ -51,7 +51,7 @@ The [Visual Environment](Override-Visual-Environment.md) override allows you to 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#SkyOverview.md), and [Fog overview](HDRP-Features.md#FogOverview.md).
+For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#sky), and [Fog overview](HDRP-Features.md#fog).
 
 ## Materials and Shaders
 
@@ -75,13 +75,9 @@ Use the Light Explorer to change the settings of any type of Light within your P
 
 The [Shadows](Override-Shadows.md) Volume override allows you to determine the overall quality of the Shadows in a Volume. For example, the **Max Distance** field calculates the quality of the Shadows based on the distance of the Camera from the Shadow.
 
-The below gif is from a pre-release version of HDRP and, at that point, the **Shadows** Volume override was named **HD Shadow Settings**.
-
-![](Images/GettingStarted5.gif)
-
 For more information, see [Shadows](Override-Shadows.md).
 
 ## Related information
 
 - For the full list of HDRP features, see [HDRP Features](HDRP-Features.md).
-- Explore an HDRP Scene in [Getting Started Guide for Artists](https://blogs.unity3d.com/2018/09/24/the-high-definition-render-pipeline-getting-started-guide-for-artists/). Be aware that the blog post uses a pre-release version of HDRP, so some property and component names are different in this release.
+- For an online session on how to achieve real-time high-fidelity graphics in HDRP, see [Achieving High Fidelity Graphics for Games with HDRP](https://resources.unity.com/unitenow/onlinesessions/achieving-high-fidelity-graphics-for-games-with-hdrp).

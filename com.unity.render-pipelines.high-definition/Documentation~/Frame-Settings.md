@@ -8,11 +8,11 @@ Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and c
 
 You can override the default Frame Settings on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes.This exposes the Frame Settings Override which gives you access to the same settings as in default Frame Settings within the HDRP Asset. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.
 
-Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings. 
+Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings.
 
 Note: Some options are grayed-out depending on whether you have enabled/disabled them in the Render Pipeline Supported Features section of your HDRP Asset.
 
-Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene. 
+Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene.
 
 ## Properties
 
@@ -81,7 +81,7 @@ These settings control lighting features for your rendering components. Here you
 | **Screen Space Global Illumination** | Enable the checkbox to make HDRP process Screen Space Global Illumination (SSGI). |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Transmission**                   | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
-| **Fog**                            | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.md#FogOverview.md) from your Scene’s Volumes. |
+| **Fog**                            | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.md#fog) from your Scene’s Volumes. |
 | - **Volumetrics**                    | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
 | - - **Reprojection**   | Enable the checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
 | **Light Layers**                   | Enable the checkbox to make HDRP process Light Layers.       |
@@ -125,4 +125,4 @@ Note: These settings are for debugging purposes only. Each property here describ
 
 ## Debugging Frame Settings
 
-You can use the [Render Pipeline Debug Window](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.
+You can use the [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.

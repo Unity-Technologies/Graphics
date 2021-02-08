@@ -3,36 +3,47 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - compilation-errors-as-warnings
- # - type: playmode
+    utr_flags:
+      - [all]: compilation-errors-as-warnings
   - type: editmode
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags:
+    - [all]: compilation-errors-as-warnings
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+    utr_flags_build:
+    - [all]: compilation-errors-as-warnings
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis: 
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
-all:
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
   dependencies:
     - platform: Win
       api: ''
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone
+        - Standalone_cache
         - editmode
-  #      - playmode
+nightly:
+  dependencies:
+    - project: Universal_Stereo
+      pr: true

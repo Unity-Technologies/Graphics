@@ -24,39 +24,39 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var enumPropertyDrawer = new EnumPropertyDrawer();
             propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
-                {
-                    if (node.addressMode == (SampleVirtualTextureNode.AddressMode) newValue)
-                        return;
+            {
+                if (node.addressMode == (SampleVirtualTextureNode.AddressMode)newValue)
+                    return;
 
-                    node.owner.owner.RegisterCompleteObjectUndo("Address Mode Change");
-                    node.addressMode = (SampleVirtualTextureNode.AddressMode) newValue;
-                },
+                node.owner.owner.RegisterCompleteObjectUndo("Address Mode Change");
+                node.addressMode = (SampleVirtualTextureNode.AddressMode)newValue;
+            },
                 node.addressMode,
                 "Address Mode",
                 SampleVirtualTextureNode.AddressMode.VtAddressMode_Wrap,
                 out var addressModeVisualElement));
 
             propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
-                {
-                    if (node.lodCalculation == (SampleVirtualTextureNode.LodCalculation) newValue)
-                        return;
+            {
+                if (node.lodCalculation == (SampleVirtualTextureNode.LodCalculation)newValue)
+                    return;
 
-                    node.owner.owner.RegisterCompleteObjectUndo("Lod Mode Change");
-                    node.lodCalculation = (SampleVirtualTextureNode.LodCalculation) newValue;
-                },
+                node.owner.owner.RegisterCompleteObjectUndo("Lod Mode Change");
+                node.lodCalculation = (SampleVirtualTextureNode.LodCalculation)newValue;
+            },
                 node.lodCalculation,
                 "Lod Mode",
                 SampleVirtualTextureNode.LodCalculation.VtLevel_Automatic,
                 out var lodCalculationVisualElement));
 
             propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
-                {
-                    if (node.sampleQuality == (SampleVirtualTextureNode.QualityMode) newValue)
-                        return;
+            {
+                if (node.sampleQuality == (SampleVirtualTextureNode.QualityMode)newValue)
+                    return;
 
-                    node.owner.owner.RegisterCompleteObjectUndo("Quality Change");
-                    node.sampleQuality = (SampleVirtualTextureNode.QualityMode) newValue;
-                },
+                node.owner.owner.RegisterCompleteObjectUndo("Quality Change");
+                node.sampleQuality = (SampleVirtualTextureNode.QualityMode)newValue;
+            },
                 node.sampleQuality,
                 "Quality",
                 SampleVirtualTextureNode.QualityMode.VtSampleQuality_High,
@@ -64,13 +64,13 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var boolPropertyDrawer = new BoolPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUI((newValue) =>
-                {
-                    if (node.noFeedback == !newValue)
-                        return;
+            {
+                if (node.noFeedback == !newValue)
+                    return;
 
-                    node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
-                    node.noFeedback = !newValue;
-                },
+                node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
+                node.noFeedback = !newValue;
+            },
                 !node.noFeedback,
                 "Automatic Streaming",
                 out var propertyToggle));
@@ -117,7 +117,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (SampleVirtualTextureNode) actualObject,
+                (SampleVirtualTextureNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

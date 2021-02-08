@@ -12,15 +12,15 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
-	float2 texCoords = input.texCoord0.xy * scale + offset;
+    float2 texCoords = input.texCoord0.xy * scale + offset;
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
 
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
     #endif
 
-	float fadeFactor = _DecalBlend.x;
-	float2 texCoords = input.texCoord0.xy;
+    float fadeFactor = _DecalBlend.x;
+    float2 texCoords = input.texCoord0.xy;
 #endif
 
     float albedoMapBlend = fadeFactor;
@@ -44,11 +44,11 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
  #endif
-	surfaceData.baseColor.w *= fadeFactor;
+    surfaceData.baseColor.w *= fadeFactor;
     albedoMapBlend = surfaceData.baseColor.w;
     // outside _COLORMAP because we still have base color for albedoMapBlend
 #ifndef _MATERIAL_AFFECTS_ALBEDO
-	surfaceData.baseColor.w = 0.0;	// dont blend any albedo - Note: as we already do RT color masking this is not needed, albedo will not be affected anyway
+    surfaceData.baseColor.w = 0.0;  // dont blend any albedo - Note: as we already do RT color masking this is not needed, albedo will not be affected anyway
 #endif
 
     // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
@@ -58,7 +58,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     #ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
     surfaceData.mask.z *= _DecalMaskMapBlueScale;
-	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
+    maskMapBlend *= surfaceData.mask.z; // store before overwriting with smoothness
     #ifdef DECALS_4RT
     surfaceData.mask.x = lerp(_MetallicRemapMin, _MetallicRemapMax, surfaceData.mask.x);
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
@@ -66,7 +66,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
     #else
     surfaceData.mask.z = _DecalMaskMapBlueScale;
-    maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
+    maskMapBlend *= surfaceData.mask.z; // store before overwriting with smoothness
     #ifdef DECALS_4RT
     surfaceData.mask.x = _Metallic;
     surfaceData.mask.y = _AO;
@@ -74,32 +74,32 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     surfaceData.mask.z = _Smoothness;
     #endif
 
-	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
+    surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif
 
-	// needs to be after mask, because blend source could be in the mask map blue
+    // needs to be after mask, because blend source could be in the mask map blue
     // Note: We always use a texture here as the decal atlas for transparent decal cluster only handle texture case
     // If no texture is assign it is the bump texture (0.0, 0.0, 1.0)
 #ifdef _MATERIAL_AFFECTS_NORMAL
 
     #ifdef _NORMALMAP
-	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
     #else
     float3 normalTS = float3(0.0, 0.0, 1.0);
     #endif
     float3 normalWS = float3(0.0, 0.0, 0.0);
 
     #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-	normalWS = mul((float3x3)normalToWorld, normalTS);
-    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
+    normalWS = mul((float3x3)normalToWorld, normalTS);
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
     #endif
 
-	surfaceData.normalWS.xyz = normalWS;
-	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
+    surfaceData.normalWS.xyz = normalWS;
+    surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
 
 #endif
 
-	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
+    surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 }

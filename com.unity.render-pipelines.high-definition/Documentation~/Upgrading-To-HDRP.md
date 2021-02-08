@@ -27,9 +27,9 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
-To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md).
+To set up HDRP, use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
-1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
+1. Open the Render Pipeline Wizard window (menu **Window > Rendering > HD Render Pipeline Wizard**).
 
 2. In the **Configuration Checking** section, go to the **HDRP** tab and click **Fix All**. This fixes every HDRP configuration issue with your Project.
 
@@ -61,7 +61,9 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). Also, since HDRP supports more height map displacement techniques and decompression options, this processes cannot upgrade heightmap related properties correctly. This means your height mapped materials may look incorrect. If you upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Renderer version.
+
+This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
 1. Open the Package Manager window (menu: **Window > Package Manager**).
 2. Find and click the **High Definition RP** entry.
@@ -96,7 +98,7 @@ To set up lighting in your HDRP Project:
 
     1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
 
-    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile) that the Sky and Fog Volume uses.
+    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile.md) that the Sky and Fog Volume uses.
 
     3. For the **Static Lighting Sky** property, select **PhysicallyBasedSky**.
 
@@ -166,4 +168,3 @@ HDRP no longer supports the **Post Processing** package and instead includes its
 Now the Scene in the Game view should look like this:
 
 ![](Images/UpgradingToHDRP3.png)
-

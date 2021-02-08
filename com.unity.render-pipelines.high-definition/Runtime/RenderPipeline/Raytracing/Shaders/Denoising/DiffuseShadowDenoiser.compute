@@ -63,7 +63,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const BilateralData center = TapBilateralData(centerCoord);
 
 #if DIRECTIONAL_LIGHT
-    // For the directonal light, the solid angle can be used directly 
+    // For the directonal light, the solid angle can be used directly
     float lightSolidAngle = _DirectionalLightAngle;
 #else
     // Compute the light vector

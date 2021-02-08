@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 matrix2Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector2PropertyDrawer.CreateGUI(
                 newValue =>
@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 matrix3Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector3PropertyDrawer.CreateGUI(
                 newValue =>
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 matrix4Property.GetRow(0),
                 labelName,
                 out var row0Field
-                ));
+            ));
 
             propertySheet.Add(vector4PropertyDrawer.CreateGUI(
                 newValue =>
@@ -364,7 +364,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Matrix4x4) propertyInfo.GetValue(actualObject),
+                (Matrix4x4)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
             }
-            
+
             m_ComputeFunc = computeFunc;
             var value = property.vector4Value;
 
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var valuesRect = GUILayoutUtility.GetRect(1f, 17f);
                 valuesRect.width /= (displayInputFields ? 4f : 3.0f);
-                if(displayInputFields)
+                if (displayInputFields)
                 {
                     GUI.Label(valuesRect, "RGB Value:", EditorStyles.centeredGreyMiniLabel);
                     valuesRect.x += valuesRect.width;

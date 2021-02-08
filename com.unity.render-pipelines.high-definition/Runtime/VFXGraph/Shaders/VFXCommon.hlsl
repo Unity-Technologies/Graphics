@@ -39,13 +39,13 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 float4 VFXTransformFinalColor(float4 color)
 {
 #ifdef DEBUG_DISPLAY
-	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
         color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
     }
 
 #endif
-	return color;
+    return color;
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -141,7 +141,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-    
+
 #if VFX_BLENDMODE_ALPHA
     color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD

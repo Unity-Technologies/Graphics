@@ -48,6 +48,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -92,42 +93,20 @@ TEXTURE2D_X(_DepthTexture);
 // Helpers
 //--------------------------------------------------------------------------------------------------
 
-// Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
-// http://jcgt.org/published/0007/04/01/paper.pdf
-void SampleGGXVisibleNormal(float2 u,
-                            float3 V,
-                            float3x3 localToWorld,
-                            float roughness,
-                        out float3 localV,
-                        out float3 localH,
-                        out float  VdotH)
+// Weight for SSR where Fresnel == 1 (returns value/pdf)
+float GetSSRSampleWeight(float3 V, float3 L, float roughness)
 {
-    localV = mul(V, transpose(localToWorld));
+    // Simplification:
+    // value = D_GGX / (lambdaVPlusOne + lambdaL);
+    // pdf = D_GGX / lambdaVPlusOne;
 
-    // Construct an orthonormal basis around the stretched view direction
-    float3x3 viewToLocal;
-    viewToLocal[2] = normalize(float3(roughness * localV.x, roughness * localV.y, localV.z));
-    viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(float3(0, 0, 1), viewToLocal[2])) : float3(1, 0, 0);
-    viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
+    const float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
+    const float lambdaL = Lambda_GGX(roughness, L);
 
-    // Compute a sample point with polar coordinates (r, phi)
-    float r   = sqrt(u.x);
-    float phi = 2.0 * PI * u.y;
-    float t1  = r * cos(phi);
-    float t2  = r * sin(phi);
-    float s  = 0.5 * (1.0 + viewToLocal[2].z);
-    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
-
-    // Reproject onto hemisphere
-    localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
-
-    // Transform the normal back to the ellipsoid configuration
-    localH = normalize(float3(roughness * localH.xy, max(0.0, localH.z)));
-
-    VdotH = saturate(dot(localV, localH));
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
 }
 
-// Specialization without Fresnel
+// Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
 bool SampleGGX_VNDF(float roughness_,
                     float3x3 localToWorld,
                     float3 V,
@@ -135,6 +114,8 @@ bool SampleGGX_VNDF(float roughness_,
                 out float3 outgoingDir,
                 out float weight)
 {
+    weight = 0.0f;
+
     float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
     float VdotH;
@@ -147,21 +128,10 @@ bool SampleGGX_VNDF(float roughness_,
 
     if (localL.z < 0.001)
     {
-        weight = 0.0f;
         return false;
     }
 
-    float pdfNoGV = D_GGX(localH.z, roughness);
-    float lambdaVPlusOne = Lambda_GGX(roughness, localV) + 1.0;
-
-    float lambdaL = Lambda_GGX(roughness, localL);
-
-    // Simplification:
-    // value = F_Schlick(fresnel0, VdotH) * pdfNoGV / (lambdaVPlusOne + lambdaL);
-    // pdf = pdfNoGV / lambdaVPlusOne;
-    // weight = value / pdf;
-    //     fresnel == 1.0f
-    weight = 1.0f + lambdaL / lambdaVPlusOne;
+    weight = GetSSRSampleWeight(localV, localL, roughness);
 
     if (weight < 0.001)
         return false;
@@ -296,19 +266,7 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float weight, out f
 
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
-    float NdotV = dot(normalData.normalWS, V);
-    float NdotL = dot(normalData.normalWS, L);
-    float VdotH = dot(V, H);
-    float NdotH = dot(normalData.normalWS, H);
-    float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-
-    float jac = 4.0 * NdotV;
-
-    float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
-
-    float lambdaL = Lambda_GGX(roughness, L);
-
-    weight = 1.0f + lambdaL / lambdaVPlusOne;
+    weight = GetSSRSampleWeight(V, L, roughness);
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
@@ -730,15 +688,15 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float3 hitN = hitNormalData.normalWS;
 
     float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
-    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS)];
+    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
     float2 motionVectorNDC;
-    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorNDC);
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float speedDst = length(motionVectorNDC);
 
     float2 motionVectorCenterNDC;
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
-    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw)* _RTHandleScale.xy, 0), motionVectorCenterNDC);
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
     float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
 

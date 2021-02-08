@@ -33,7 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit specific properties:
 
             AddProperty("Base Color Parametrization", () => stackLitData.baseParametrization, (newValue) => stackLitData.baseParametrization = newValue);
-            AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor)
+            {
+                AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            }
 
             // Material type enables:
             context.AddLabel("Material Core Features", 0);
@@ -61,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // SpecularOcclusion from input AO (baked or data-based SO)
             EnumField specularOcclusionFromInputAOField;
-            if(stackLitData.devMode)
+            if (stackLitData.devMode)
             {
                 specularOcclusionFromInputAOField = new EnumField(StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
                 specularOcclusionFromInputAOField.value = stackLitData.dataBasedSpecularOcclusionBaseMode;
@@ -93,22 +96,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty("Specular Occlusion Bent Cone Fixup", () => stackLitData.specularOcclusionConeFixupMethod != StackLitData.SpecularOcclusionConeFixupMethod.Off, (newValue) =>
                 {
                     stackLitData.specularOcclusionConeFixupMethod = newValue ? StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt
-                                                        : StackLitData.SpecularOcclusionConeFixupMethod.Off;
+                        : StackLitData.SpecularOcclusionConeFixupMethod.Off;
                 }, 0);
             }
-            
-            // Misc Cont.
-            // Advanced Options
-            context.AddLabel("Advanced Options", 0);
-            AddProperty("Anisotropy For Area Lights", () => stackLitData.anisotropyForAreaLights, (newValue) => stackLitData.anisotropyForAreaLights = newValue, 1);
-
-            // Per Punctual/Directional Lights
-            context.AddLabel("Per Punctual/Directional Lights:", 1);
-            if (stackLitData.coat)
-                AddProperty("Base Layer Uses Refracted Angles", () => stackLitData.shadeBaseUsingRefractedAngles, (newValue) => stackLitData.shadeBaseUsingRefractedAngles = newValue, 2);
-            if (stackLitData.coat || stackLitData.iridescence)
-                AddProperty("Recompute Stack & Iridescence", () => stackLitData.recomputeStackPerLight, (newValue) => stackLitData.recomputeStackPerLight = newValue, 2);
-            AddProperty("Honor Per Light Max Smoothness", () => stackLitData.honorPerLightMinRoughness, (newValue) => stackLitData.honorPerLightMinRoughness = newValue, 2);
 
             // Debug
             // Uncomment to show the dev mode UI:

@@ -387,7 +387,8 @@ namespace UnityEditor.VFX
         {
             return attrib.Equals(VFXAttribute.Seed)
                 || attrib.Equals(VFXAttribute.ParticleId)
-                || attrib.Equals(VFXAttribute.SpawnIndex);
+                || attrib.Equals(VFXAttribute.SpawnIndex)
+                || attrib.Equals(VFXAttribute.SpawnIndexInStrip);
         }
 
         private void ProcessAttributes()

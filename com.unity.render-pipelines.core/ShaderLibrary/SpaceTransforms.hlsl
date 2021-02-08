@@ -1,6 +1,8 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
+// Caution: For HDRP, adding a function in this file requires adding the appropriate #define in PickingSpaceTransforms.hlsl
+
 // Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {

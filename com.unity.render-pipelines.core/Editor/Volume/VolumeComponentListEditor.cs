@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
                     && !t.IsAbstract
-                    );
+                );
 
             // Map them to their corresponding component type
             foreach (var editorType in editorTypes)
@@ -127,9 +127,9 @@ namespace UnityEditor.Rendering
             // Dumb hack to make sure the serialized object is up to date on undo (else there'll be
             // a state mismatch when this class is used in a GameObject inspector).
             if (m_SerializedObject != null
-                 && !m_SerializedObject.Equals(null)
-                 && m_SerializedObject.targetObject != null
-                 && !m_SerializedObject.targetObject.Equals(null))
+                && !m_SerializedObject.Equals(null)
+                && m_SerializedObject.targetObject != null
+                && !m_SerializedObject.targetObject.Equals(null))
             {
                 m_SerializedObject.Update();
                 m_SerializedObject.ApplyModifiedProperties();
@@ -235,14 +235,14 @@ namespace UnityEditor.Rendering
 
                     CoreEditorUtils.DrawSplitter();
                     bool displayContent = CoreEditorUtils.DrawHeaderToggle(
-                            title,
-                            editor.baseProperty,
-                            editor.activeProperty,
-                            pos => OnContextClick(pos, editor.target, id),
-                            editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                            () => editor.isInAdvancedMode ^= true,
-                            documentationURL
-                            );
+                        title,
+                        editor.baseProperty,
+                        editor.activeProperty,
+                        pos => OnContextClick(pos, editor, id),
+                        editor.hasAdditionalProperties ? () => editor.showAdditionalProperties : (Func<bool>)null,
+                        () => editor.showAdditionalProperties ^= true,
+                        documentationURL
+                    );
 
                     if (displayContent)
                     {
@@ -270,8 +270,9 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
+        void OnContextClick(Vector2 position, VolumeComponentEditor targetEditor, int id)
         {
+            var targetComponent = targetEditor.target;
             var menu = new GenericMenu();
 
             if (id == 0)
@@ -292,7 +293,7 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count -1) - id));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count - 1) - id));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
             }
 
@@ -302,6 +303,18 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddSeparator(string.Empty);
+            if (targetEditor.hasAdditionalProperties)
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+            }
+            else
+            {
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."));
+            }
+
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
@@ -481,7 +494,6 @@ namespace UnityEditor.Rendering
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
-
 
         static bool CanPaste(VolumeComponent targetComponent)
         {

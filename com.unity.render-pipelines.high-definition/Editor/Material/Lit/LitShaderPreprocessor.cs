@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             //       hitting disk on every invoke.
             if (shader.IsShaderGraph())
             {
-                if(shader.TryGetMetadataOfType<HDMetadata>(out var obj))
+                if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
                     isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
                 }

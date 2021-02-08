@@ -4,10 +4,35 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2021-01-11
+
+### Changed
+- Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
+- Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
+- Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
+- Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
+
+
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added new setting to output nodes to exclude from TAA
+- New Sample Point cache & Sample Attribute map operators
+
+### Changed
+- Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+- Changed Window/Visual Effects/Visual Effect Graph to Window/VFX/VFX Graph
+- Changed Window/Visual Effects/Utilities/Point Cache Bake Tool to Window/VFX/Utilities/Point Cache Bake Tool
+
+### Fixed
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Serialization issue with VFXSpawnerCallbacks
+- Unexpected exception while trying to display capacity warning [Case 1294180](https://issuetracker.unity3d.com/product/unity/issues/guid/1294180/)
+- Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
+- Fix [Case 1212002](https://fogbugz.unity3d.com/f/cases/1212002/)
+- Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
+- Fix [Case 1290493](https://fogbugz.unity3d.com/f/cases/1290493/#BugEvent.1072735759)
+- Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
@@ -17,8 +42,11 @@ The version number for this package has increased due to a version update of a r
 - New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- Added Get Strip Index subgraph utility operator in Additional Samples
+- Added Encompass (Point) subgraph utility operator in Additional Samples
 
-## Fixed
+### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
 - Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
@@ -46,6 +74,16 @@ The version number for this package has increased due to a version update of a r
 - Addressing for mirror and clamp modes in sequential operators and blocks
 - Incorrect volume spawning for Sphere & Circle with thickness absolute
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph
+- SpawnOverDistance spawner block now behaves correctly
+- Quad strip outputs take into account orientation block
+- Fixed Random Vector subgraph utility operator in Additional Samples
+- Fixed Set Strip Progress Attribute utility block in Additional Samples
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
+- Disable implicit space transformations in sublock graphs as they led to unexpected behaviors
 
 ## [10.1.0] - 2020-10-12
 ### Added

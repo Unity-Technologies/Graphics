@@ -138,37 +138,51 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="matrix"></param>
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
-            => -matrix.m11 / matrix.m00;
+            => - matrix.m11 / matrix.m00;
 
-        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1)
+        internal static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector2 lensShift, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap, float aspectRatio = -1, bool isOrthographic = false)
         {
-            aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+            Matrix4x4 viewSpaceRasterTransform;
 
-            // Compose the view space version first.
-            // V = -(X, Y, Z), s.t. Z = 1,
-            // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
-            // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
-
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-
-            // Compose the matrix.
-            float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
-            float m11 = -2.0f * screenSize.w * tanHalfVertFoV;
-
-            float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
-            float m00 = -2.0f * screenSize.z * tanHalfVertFoV * aspectRatio;
-
-            if (renderToCubemap)
+            if (isOrthographic)
             {
-                // Flip Y.
-                m11 = -m11;
-                m21 = -m21;
+                // For ortho cameras, project the skybox with no perspective
+                // the same way as builtin does (case 1264647)
+                viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(-2.0f * screenSize.z, 0.0f, 0.0f, 0.0f),
+                    new Vector4(0.0f, -2.0f * screenSize.w, 0.0f, 0.0f),
+                    new Vector4(1.0f, 1.0f, -1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             }
+            else
+            {
+                // Compose the view space version first.
+                // V = -(X, Y, Z), s.t. Z = 1,
+                // X = (2x / resX - 1) * tan(vFoV / 2) * ar = x * [(2 / resX) * tan(vFoV / 2) * ar] + [-tan(vFoV / 2) * ar] = x * [-m00] + [-m20]
+                // Y = (2y / resY - 1) * tan(vFoV / 2)      = y * [(2 / resY) * tan(vFoV / 2)]      + [-tan(vFoV / 2)]      = y * [-m11] + [-m21]
 
-            var viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
+                aspectRatio = aspectRatio < 0 ? screenSize.x * screenSize.w : aspectRatio;
+                float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
+
+                // Compose the matrix.
+                float m21 = (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV;
+                float m11 = -2.0f * screenSize.w * tanHalfVertFoV;
+
+                float m20 = (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio;
+                float m00 = -2.0f * screenSize.z * tanHalfVertFoV * aspectRatio;
+
+                if (renderToCubemap)
+                {
+                    // Flip Y.
+                    m11 = -m11;
+                    m21 = -m21;
+                }
+
+                viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
                     new Vector4(0.0f, m11, 0.0f, 0.0f),
                     new Vector4(m20, m21, -1.0f, 0.0f),
                     new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+            }
 
             // Remove the translation component.
             var homogeneousZero = new Vector4(0, 0, 0, 1);
@@ -392,7 +406,6 @@ namespace UnityEngine.Rendering.HighDefinition
             BlitTexture(cmd, source, viewportScale, material, pass);
         }
 
-
         /// <summary>
         /// Blit a RTHandle to another RTHandle.
         /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
@@ -546,7 +559,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
                 return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
-
             }
             return false;
         }
@@ -583,7 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
         internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
         {
-            if(wasUnsetFromQuality)
+            if (wasUnsetFromQuality)
             {
                 QualitySettings.renderPipeline = renderPipelineAsset;
             }
@@ -591,7 +603,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
             }
-
         }
 
         internal struct PackedMipChainInfo
@@ -656,8 +667,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     textureSize.x = Math.Max(textureSize.x, mipBegin.x + mipSize.x);
                     textureSize.y = Math.Max(textureSize.y, mipBegin.y + mipSize.y);
-
-                } while ((mipSize.x > 1) || (mipSize.y > 1));
+                }
+                while ((mipSize.x > 1) || (mipSize.y > 1));
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;
@@ -665,7 +676,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)
             {
-
                 if (m_OffsetBufferWillNeedUpdate)
                 {
                     mipLevelOffsetsBuffer.SetData(mipLevelOffsets);
@@ -680,20 +690,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
-
-        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
-        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
-        {
-            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
-                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
-                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
-                    graphicDevice == GraphicsDeviceType.XboxOne ||
-                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
-                    graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan
-                    // Switch isn't supported currently (19.3)
-                    /* || graphicDevice == GraphicsDeviceType.Switch */);
-        }
 
         internal static void CheckRTCreated(RenderTexture rt)
         {
@@ -722,32 +718,46 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static Vector4 ComputeViewportScaleAndLimit(Vector2Int viewportSize, Vector2Int bufferSize)
         {
             return new Vector4(ComputeViewportScale(viewportSize.x, bufferSize.x),  // Scale(x)
-                               ComputeViewportScale(viewportSize.y, bufferSize.y),  // Scale(y)
-                               ComputeViewportLimit(viewportSize.x, bufferSize.x),  // Limit(x)
-                               ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
+                ComputeViewportScale(viewportSize.y, bufferSize.y),                 // Scale(y)
+                ComputeViewportLimit(viewportSize.x, bufferSize.x),                 // Limit(x)
+                ComputeViewportLimit(viewportSize.y, bufferSize.y));                // Limit(y)
         }
 
+        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
+        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
+        {
+            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
+                graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                graphicDevice == GraphicsDeviceType.PlayStation5 ||
+                graphicDevice == GraphicsDeviceType.XboxOne ||
+                graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                graphicDevice == GraphicsDeviceType.Metal ||
+                graphicDevice == GraphicsDeviceType.Vulkan
+                // Switch isn't supported currently (19.3)
+                /* || graphicDevice == GraphicsDeviceType.Switch */);
+        }
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
         internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-                    buildTarget == UnityEditor.BuildTarget.Stadia ||
-                    buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
-                    buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
-                    buildTarget == UnityEditor.BuildTarget.XboxOne ||
-                    buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
+                buildTarget == UnityEditor.BuildTarget.Stadia ||
+                buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
+                buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
+                buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                buildTarget == UnityEditor.BuildTarget.PS4 ||
+                buildTarget == UnityEditor.BuildTarget.PS5 ||
+                // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
-        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            unsupportedGraphicDevice = GraphicsDeviceType.Null;
-
             foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
             {
                 if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
@@ -774,6 +784,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return OperatingSystemFamily.Other;
             }
+        }
+
+        internal static bool IsSupportedBuildTargetAndDevice(UnityEditor.BuildTarget activeBuildTarget, out GraphicsDeviceType unsupportedGraphicDevice)
+        {
+            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
+
+            // If the build target matches the operating system of the editor
+            // and if the graphic api is chosen automatically, then only the system's graphic device type matters
+            // otherwise, we need to iterate over every graphic api available in the list to track every non-supported APIs
+            // if the build target does not match the editor OS, then we have to check using the graphic api list
+            bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
+
+            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+                return true;
+
+            return false;
         }
 
 #endif
@@ -865,7 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool executed = false;
             CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
-            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            foreach (var customPassVolume in m_TempCustomPassVolumeList)
             {
                 if (customPassVolume == null)
                     return false;
@@ -898,8 +926,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed (byte * b = bytes)
-                    vector = *(Vector4 *)b;
+                fixed(byte * b = bytes)
+                vector = *(Vector4 *)b;
             }
 
             return vector;
@@ -1044,7 +1072,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             return 0;
 #endif
-
         }
 
         internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
@@ -1091,7 +1118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return size;
         }
 
-        internal static void DisplayUnsupportedMessage(string msg)
+        internal static void DisplayMessageNotification(string msg)
         {
             Debug.LogError(msg);
 
@@ -1101,20 +1128,48 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        internal static string GetUnsupportedAPIMessage(string graphicAPI)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+            var osFamily = BuildTargetToOperatingSystemFamily(buildTarget);
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+            var osFamily = SystemInfo.operatingSystemFamily;
 #endif
 
-            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
-            DisplayUnsupportedMessage(msg);
+            string os = null;
+            switch (osFamily)
+            {
+                case OperatingSystemFamily.MacOSX:
+                    os = "Mac";
+                    break;
+                case OperatingSystemFamily.Windows:
+                    os = "Windows";
+                    break;
+                case OperatingSystemFamily.Linux:
+                    os = "Linux";
+                    break;
+            }
+
+            string msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+
+            // Display more information to the users when it should have use Metal instead of OpenGL
+            if (graphicAPI.StartsWith("OpenGL"))
+            {
+                if (SystemInfo.operatingSystem.StartsWith("Mac"))
+                    msg += ", use the Metal graphics API instead";
+                else if (SystemInfo.operatingSystem.StartsWith("Windows"))
+                    msg += ", use the Vulkan graphics API instead";
+            }
+
+            msg += ".\nChange the platform/device to a compatible one or remove incompatible graphics APIs.\n";
+            if (os != null)
+                msg += "To do this, go to Project Settings > Player > Other Settings and modify the Graphics APIs for " + os + " list.";
+
+            return msg;
         }
 
         internal static void ReleaseComponentSingletons()

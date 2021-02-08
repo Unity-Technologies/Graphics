@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Power";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = pow(A, B);
 }

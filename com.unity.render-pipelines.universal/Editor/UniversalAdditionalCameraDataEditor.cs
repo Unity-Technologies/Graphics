@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
         }
+
         [MenuItem("CONTEXT/UniversalAdditionalCameraData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {

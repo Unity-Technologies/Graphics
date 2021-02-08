@@ -63,15 +63,31 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     m_OutputCamera.enabled = value;
 
-                    // also change the layers
-                    foreach(var layer in m_InputLayers)
+                    // Aside from the output compositor camera, we also have to change the cameras of the layers
+                    foreach (var layer in m_InputLayers)
                     {
                         if (layer.camera && layer.isUsingACameraClone)
                         {
                             layer.camera.enabled = value;
                         }
+                        else
+                        {
+                            // The target texture was managed by the compositor, reset it so the user can see the camera output
+                            if (layer.camera && value == false)
+                                layer.camera.targetTexture = null;
+                        }
                     }
 
+                    // Toggle the compositor-related custom passes
+                    var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                    if (value)
+                    {
+                        RegisterCustomPasses(hdPipeline);
+                    }
+                    else
+                    {
+                        UnRegisterCustomPasses(hdPipeline);
+                    }
                 }
             }
         }
@@ -108,9 +124,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_InputLayers.Count > 0)
+                if (m_OutputCamera)
                 {
-                    return m_InputLayers[0].aspectRatio;
+                    return (float)m_OutputCamera.pixelWidth / m_OutputCamera.pixelHeight;
                 }
                 return 1.0f;
             }
@@ -134,8 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static private CompositionManager s_CompositorInstance;
 
-        // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
-        static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
+        // Built-in Color.black has an alpha of 1, so defien here a fully transparent black
+        static Color s_TransparentBlack = new Color(0, 0, 0, 0);
 
         #region Validation
         public bool ValidateLayerListOrder(int oldIndex, int newIndex)
@@ -165,7 +181,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return true;
         }
 
-
         // Validates the rendering pipeline and fixes potential issues
         bool ValidatePipeline()
         {
@@ -182,19 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_AlphaSupport = AlphaChannelSupport.Rendering;
                 }
 
-                int indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(ChromaKeying).AssemblyQualifiedName);
-                if (indx < 0)
-                {
-                    //Debug.Log("Registering chroma keying pass for the HDRP pipeline");
-                    hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
-                }
-
-                indx = hdPipeline.asset.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(AlphaInjection).AssemblyQualifiedName);
-                if (indx < 0)
-                {
-                    //Debug.Log("Registering alpha injection pass for the HDRP pipeline");
-                    hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
-                }
+                RegisterCustomPasses(hdPipeline);
                 return true;
             }
             return false;
@@ -259,7 +262,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_OutputCamera == null)
             {
-                Debug.Log("No camera was found");
                 return false;
             }
 
@@ -288,6 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             return true;
         }
+
         #endregion
 
         // This is called when we change camera, to remove the custom draw callback from the old camera before we set the new one
@@ -358,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_InputLayers[i].DestroyCameras();
             }
-            
+
             for (int i = m_InputLayers.Count - 1; i >= 0; --i)
             {
                 m_InputLayers[i].DestroyRT();
@@ -397,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void SetNewCompositionShader()
         {
-            // When we load a new shader, we need to clear the serialized material. 
+            // When we load a new shader, we need to clear the serialized material.
             m_Material = null;
             SetupCompositionMaterial();
         }
@@ -435,10 +438,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void OnAfterAssemblyReload()
         {
             // Bug? : After assembly reload, the customRender callback is dropped, so set it again
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData && !cameraData.hasCustomRender)
+            if (m_OutputCamera)
             {
-                cameraData.customRender += CustomRender;
+                var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraData && !cameraData.hasCustomRender)
+                {
+                    cameraData.customRender += CustomRender;
+                }
             }
         }
 
@@ -453,7 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var compositorVolumes = Resources.FindObjectsOfTypeAll(typeof(CustomPassVolume));
             foreach (CustomPassVolume volume in compositorVolumes)
             {
-                if(volume.isGlobal && volume.injectionPoint == CustomPassInjectionPoint.BeforeRendering)
+                if (volume.isGlobal && volume.injectionPoint == CustomPassInjectionPoint.BeforeRendering)
                 {
                     Debug.LogWarning($"A custom volume pass with name ${volume.name} was already registered on the BeforeRendering injection point.");
                 }
@@ -545,6 +551,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     CoreUtils.Destroy(volume);
                 }
             }
+
+            // We don't need the custom passes anymore
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            UnRegisterCustomPasses(hdPipeline);
+
+            // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
+            CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -608,7 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void AddNewLayer(int index, CompositorLayer.LayerType type = CompositorLayer.LayerType.Camera)
         {
             var newLayer = CompositorLayer.CreateStackLayer(type, GetNewSubLayerName(index, type));
-            
+
             if (index >= 0 && index < m_InputLayers.Count)
             {
                 m_InputLayers.Insert(index, newLayer);
@@ -745,7 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 cmdbuff.ClearRenderTarget(false, true, Color.black);
                 return;
             }
-                
+
 
             timeSinceLastRepaint = 0;
 
@@ -755,7 +768,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             int layerIndex = 0;
             foreach (var layer in m_InputLayers)
             {
-                if (layer.outputTarget != CompositorLayer.OutputTarget.CameraStack)  // stacked cameras are not exposed as compositor layers 
+                if (layer.outputTarget != CompositorLayer.OutputTarget.CameraStack)  // stacked cameras are not exposed as compositor layers
                 {
                     m_Material.SetTexture(layer.name, layer.GetRenderTarget(), RenderTextureSubElement.Color);
                 }
@@ -795,7 +808,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
             }
-            
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -815,7 +828,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             int count = 0;
             foreach (var layer in m_InputLayers)
             {
-                
                 if (layer.outputTarget == CompositorLayer.OutputTarget.CameraStack &&
                     camera.Equals(layer.sourceCamera))
                 {
@@ -839,8 +851,20 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     return camera;
                 }
             }
-            Debug.LogWarning("Camera not found");
+
             return null;
+        }
+
+        static public Camera CreateCamera(string cameraName)
+        {
+            var newCameraGameObject = new GameObject(cameraName)
+            {
+                hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
+            };
+            var newCamera = newCameraGameObject.AddComponent<Camera>();
+            newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+
+            return newCamera;
         }
 
         static public CompositionManager GetInstance() =>
@@ -857,7 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 float alphaMax = compositorData.alphaMax;
 
                 if (alphaMax == alphaMin)
-                    alphaMax += 0.0001f; // Mathf.Epsilon is too small and in this case it creates precission issues 
+                    alphaMax += 0.0001f; // Mathf.Epsilon is too small and in this case it creates precission issues
 
                 float alphaScale = 1.0f / (alphaMax - alphaMin);
                 float alphaBias = -alphaMin * alphaScale;
@@ -903,5 +927,43 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return null;
         }
 
+        // Register the custom pp passes used by the compositor
+        static internal void RegisterCustomPasses(HDRenderPipeline hdPipeline)
+        {
+            if (hdPipeline == null)
+            {
+                return;
+            }
+
+            // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
+            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            {
+                hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
+            }
+
+            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            {
+                hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
+            }
+        }
+
+        // Unregister the custom pp passes used by the compositor
+        static internal void UnRegisterCustomPasses(HDRenderPipeline hdPipeline)
+        {
+            if (hdPipeline == null)
+            {
+                return;
+            }
+
+            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            {
+                hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
+            }
+
+            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            {
+                hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
+            }
+        }
     }
 }

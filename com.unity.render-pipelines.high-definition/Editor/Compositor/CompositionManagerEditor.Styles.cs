@@ -16,12 +16,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         internal static readonly int k_IconVerticalOffset = 5;  // used to center the icons vertically
         internal static readonly int k_LabelVerticalOffset = 6; // used to center the labels vertically
-        
+
 
         internal static readonly int k_IconSize = 28;
+        internal static readonly int k_HeaderFontSize = 14;
         internal static readonly int k_ListItemPading = 4;
         internal static readonly int k_ListItemStackPading = 20;
         internal static readonly float k_SingleLineHeight = EditorGUIUtility.singleLineHeight;
-        internal static readonly float k_Spacing = k_SingleLineHeight * 1.1f;
+        internal static readonly float k_Spacing = k_SingleLineHeight + EditorGUIUtility.standardVerticalSpacing;
     }
 }

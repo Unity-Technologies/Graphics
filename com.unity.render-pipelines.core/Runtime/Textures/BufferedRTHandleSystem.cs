@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
             int bufferId,
             Func<RTHandleSystem, int, RTHandle> allocator,
             int bufferCount
-            )
+        )
         {
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
@@ -143,7 +143,6 @@ namespace UnityEngine.Rendering
         {
             m_RTHandleSystem.ResetReferenceSize(width, height);
         }
-
 
         void Swap()
         {

@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is SpriteLitMasterNode1 spriteLitMasterNode))
+            if (!(masterNode is SpriteLitMasterNode1 spriteLitMasterNode))
                 return false;
 
             // Set blockmap
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
-#region SubShader
+        #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
@@ -91,9 +91,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 },
             };
         }
-#endregion
+        #endregion
 
-#region Passes
+        #region Passes
         static class SpriteLitPasses
         {
             public static PassDescriptor Lit = new PassDescriptor
@@ -178,9 +178,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = SpriteLitIncludes.Forward,
             };
         }
-#endregion
+        #endregion
 
-#region PortMasks
+        #region PortMasks
         static class SpriteLitBlockMasks
         {
             public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
@@ -199,9 +199,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.NormalTS,
             };
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class SpriteLitRequiredFields
         {
             public static FieldCollection Lit = new FieldCollection()
@@ -223,9 +223,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord0,
             };
         }
-#endregion
+        #endregion
 
-#region Keywords
+        #region Keywords
         static class SpriteLitKeywords
         {
             public static KeywordCollection Lit = new KeywordCollection
@@ -236,9 +236,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShapeLightType3 },
             };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class SpriteLitIncludes
         {
             const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
@@ -282,6 +282,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kSpriteForwardPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }

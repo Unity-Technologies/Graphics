@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphPass
     {
         public RenderFunc<PassData> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
+            where PassData : class, new() => ((RenderGraphPass<PassData>) this).renderFunc;
 
         public abstract void Execute(RenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
