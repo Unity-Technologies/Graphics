@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
@@ -163,26 +164,34 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var first = true;
             position = Vector3.zero;
+            var activeObject = Selection.activeObject as GameObject;
+
+            if (Selection.count > 1 || !activeObject)
+                return true;
+            var lightObject = activeObject.GetComponent<Light2D>();
+            var shadowCaster = activeObject.GetComponent<ShadowCaster2D>();
 
             foreach (var path in paths)
             {
                 var selection = path.selection;
                 var matrix = path.localToWorldMatrix;
-
-                path.localToWorldMatrix = Matrix4x4.identity;
-
-                foreach (var index in selection.elements)
+                if (lightObject == path.owner || shadowCaster == path.owner)
                 {
-                    var controlPoint = path.GetPoint(index);
+                    path.localToWorldMatrix = Matrix4x4.identity;
 
-                    if (first)
+                    foreach (var index in selection.elements)
                     {
-                        position  = controlPoint.position;
-                        first = false;
-                    }
-                    else if (position != controlPoint.position)
-                    {
-                        return true;
+                        var controlPoint = path.GetPoint(index);
+
+                        if (first)
+                        {
+                            position = controlPoint.position;
+                            first = false;
+                        }
+                        else if (position != controlPoint.position)
+                        {
+                            return true;
+                        }
                     }
                 }
 
