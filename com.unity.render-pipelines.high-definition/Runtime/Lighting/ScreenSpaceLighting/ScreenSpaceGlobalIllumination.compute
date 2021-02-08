@@ -40,7 +40,6 @@
 TEXTURE2D_X(_DepthTexture);
 // Stencil buffer of the current frame
 TEXTURE2D_X_UINT2(_StencilTexture);
-int _ObjectMotionStencilBit;
 // Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 
@@ -54,6 +53,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
     int _SsrStencilBit;
     int _IndirectDiffuseFrameIndex;
+    int _ObjectMotionStencilBit;
 CBUFFER_END
 
 // Output texture that holds the hit point NDC coordinates
@@ -308,7 +308,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC, 0), motionVectorNDC);
 
     // Was the object of this pixel moving?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, hitPositionNDC * _ScreenSize.zw));
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, hitPositionNDC * _ScreenSize.xy));
     bool movingHitPoint = (stencilValue & _ObjectMotionStencilBit) != 0;
 
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;

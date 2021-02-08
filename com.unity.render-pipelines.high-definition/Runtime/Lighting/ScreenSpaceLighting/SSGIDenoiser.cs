@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float historyValidity;
             public bool historyNeedsClear;
             public float pixelSpreadTangent;
+            public bool exclusiveMode;
 
             // Shader
             public ComputeShader ssgiDenoiserCS;
@@ -119,6 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.halfResolution = halfResolution;
             parameters.historyValidity = historyValidity;
             parameters.historyNeedsClear = historyNeedsClear;
+            parameters.exclusiveMode = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume);
 
             // Compute shader
             parameters.ssgiDenoiserCS = m_SSGIDenoiserCS;
@@ -185,10 +187,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (resources.historyDepthBuffer == null)
                 return;
 
-            // Horizontal Filter
-            SpatialFilter(cmd, parameters, resources, parameters.filterRadius / 2, new Vector2(1.0f, 0.0f), resources.inputBuffer0, resources.inputBuffer1, resources.outputBuffer0, resources.outputBuffer1);
-            // Vertical Filter
-            SpatialFilter(cmd, parameters, resources, parameters.filterRadius / 2, new Vector2(0.0f, 1.0f), resources.outputBuffer0, resources.outputBuffer1, resources.inputBuffer0, resources.inputBuffer1);
+            int effectiveRadius = parameters.exclusiveMode ? parameters.filterRadius / 2 : parameters.filterRadius;
+            if (parameters.exclusiveMode)
+            {
+                // Horizontal Filter
+                SpatialFilter(cmd, parameters, resources, effectiveRadius, new Vector2(1.0f, 0.0f), resources.inputBuffer0, resources.inputBuffer1, resources.outputBuffer0, resources.outputBuffer1);
+                // Vertical Filter
+                SpatialFilter(cmd, parameters, resources, effectiveRadius, new Vector2(0.0f, 1.0f), resources.outputBuffer0, resources.outputBuffer1, resources.inputBuffer0, resources.inputBuffer1);
+            }
 
             // Grab the history buffer
             if (parameters.historyNeedsClear)
@@ -232,9 +238,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.ssgiDenoiserCS, parameters.copyHistory, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
 
             // Horizontal Filter
-            SpatialFilter(cmd, parameters, resources, parameters.filterRadius / 2, new Vector2(1.0f, 0.0f), resources.outputBuffer0, resources.outputBuffer1, resources.inputBuffer0, resources.inputBuffer1);
+            SpatialFilter(cmd, parameters, resources, effectiveRadius, new Vector2(1.0f, 0.0f), resources.outputBuffer0, resources.outputBuffer1, resources.inputBuffer0, resources.inputBuffer1);
             // Vertical Filter
-            SpatialFilter(cmd, parameters, resources, parameters.filterRadius / 2, new Vector2(0.0f, 1.0f), resources.inputBuffer0, resources.inputBuffer1, resources.outputBuffer0, resources.outputBuffer1);
+            SpatialFilter(cmd, parameters, resources, effectiveRadius, new Vector2(0.0f, 1.0f), resources.inputBuffer0, resources.inputBuffer1, resources.outputBuffer0, resources.outputBuffer1);
         }
 
         RTHandle RequestIndirectDiffuseHistory0(HDCamera hdCamera, out bool historyRequireClear)
