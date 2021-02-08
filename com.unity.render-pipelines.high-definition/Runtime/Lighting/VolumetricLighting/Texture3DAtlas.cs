@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var isCopied = new bool[clampedNumTextures];
                     var oldRt = RenderTexture.active;
 
+                    // Copy all the volumes backed by 3D textures into the atlas
                     foreach (DensityVolume v in m_volumes)
                     {
                         if (v.parameters.volumeShader != null ||

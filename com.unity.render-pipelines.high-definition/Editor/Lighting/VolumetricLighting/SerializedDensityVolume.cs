@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty textureScroll;
         public SerializedProperty textureTile;
         public SerializedProperty volumeShader;
+        public SerializedProperty volumeShaderResolution;
 
         public SerializedProperty size;
 
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
             textureTile = densityParams.FindPropertyRelative("textureTiling");
             volumeShader = densityParams.FindPropertyRelative("volumeShader");
+            volumeShaderResolution = densityParams.FindPropertyRelative("volumeShaderResolution");
 
             size = densityParams.FindPropertyRelative("size");
 

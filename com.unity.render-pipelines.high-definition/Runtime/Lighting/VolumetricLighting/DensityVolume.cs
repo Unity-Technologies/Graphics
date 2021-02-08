@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3   textureTiling;
 
         public ComputeShader volumeShader;
+        public Vector3Int volumeShaderResolution;
 
         /// <summary>Edge fade factor along the positive X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_PositiveFade")]
@@ -71,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
             textureTiling         = Vector3.one;
             textureOffset         = textureScrollingSpeed;
             volumeShader          = null;
+            volumeShaderResolution = new Vector3Int(32, 32, 32);
 
             size                  = Vector3.one;
 
@@ -162,6 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Texture3D previousVolumeMask = null;
         private ComputeShader previousVolumeShader = null;
+        private Vector3Int previousVolumeShaderResolution;
 #if UNITY_EDITOR
         private int volumeMaskHash = 0;
 #endif
@@ -174,7 +177,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager
-            bool updated = (previousVolumeMask != parameters.volumeMask) || (previousVolumeShader != parameters.volumeShader);
+            bool updated =
+                (previousVolumeMask != parameters.volumeMask) ||
+                (previousVolumeShader != parameters.volumeShader) ||
+                (previousVolumeShaderResolution != parameters.volumeShaderResolution);
 #if UNITY_EDITOR
             int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
             updated |= newMaskHash != volumeMaskHash;
@@ -185,6 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
                 previousVolumeShader = parameters.volumeShader;
+                previousVolumeShaderResolution = parameters.volumeShaderResolution;
 #if UNITY_EDITOR
                 volumeMaskHash = newMaskHash;
 #endif

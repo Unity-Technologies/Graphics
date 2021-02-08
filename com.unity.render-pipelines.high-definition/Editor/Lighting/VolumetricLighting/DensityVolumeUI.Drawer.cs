@@ -190,6 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_DensityMaskShaderContent(SerializedDensityVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.volumeShader, Styles.s_VolumeShaderLabel);
+            EditorGUILayout.PropertyField(serialized.volumeShaderResolution, Styles.s_VolumeShaderLabel);
         }
     }
 }
