@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -14,25 +16,129 @@ namespace UnityEditor.ShaderGraph
             public bool modifiable;
         }
 
-        public readonly List<AbstractShaderProperty> properties = new List<AbstractShaderProperty>();
+        private Target m_Target = null;
+        private UInt64 m_DeclarerFlag = (UInt64)DeclarerFlags._NodeOrGraph;
 
-        public void AddShaderProperty(AbstractShaderProperty chunk)
+        private bool m_ReadOnly;
+
+        enum DeclarerFlags
         {
-            if (properties.Any(x => x.referenceName == chunk.referenceName))
-                return;
-            properties.Add(chunk);
+            _NodeOrGraph = (1 << 0),    // property declared by a graph (graph property) or a node (or slot on the node)
+            _Target = (1 << 1),         // all bits starting with this one represent properties added by targets in the Target list
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        private struct Property
         {
-            foreach (var prop in properties)
+            public AbstractShaderProperty property;
+            public UInt64 declarerFlags;
+        }
+
+        private List<Target> m_Targets = new List<Target>();
+
+        // reference name ==> property index in list
+        Dictionary<string, int> m_ReferenceNames = new Dictionary<string, int>();
+
+        // list of properties (kept in a list to maintain deterministic declaration order)
+        private List<Property> m_Properties = new List<Property>();
+
+        public int propertyCount => m_Properties.Count;
+        public IEnumerable<AbstractShaderProperty> properties => m_Properties.Select(p => p.property);
+        public AbstractShaderProperty GetProperty(int index) { return m_Properties[index].property; }
+
+        public void SetReadOnly()
+        {
+            m_ReadOnly = true;
+        }
+
+        public void BeginTargetCollection(Target target)
+        {
+            Debug.Log("Begin Collection for Target " + target.displayName);
+            if (m_Target != null)
+                Debug.LogError("BEGIN TARGET TWICE");
+
+            int targetIndex = m_Targets.FindIndex(t => t == target);
+            if (targetIndex < 0)
             {
-                prop.ValidateConcretePrecision(inheritedPrecision);
+                targetIndex = m_Targets.Count;
+                m_Targets.Add(target);
+            }
+            m_Target = target;
+            m_DeclarerFlag = ((UInt64)DeclarerFlags._Target) << targetIndex;
+        }
+
+        public void EndTargetCollection(Target target)
+        {
+            Debug.Log("End Collection for Target " + target.displayName);
+            if (m_Target != target)
+                Debug.LogError("MISMATCHED END != BEGIN");
+            m_Target = null;
+            m_DeclarerFlag = (UInt64)DeclarerFlags._NodeOrGraph;
+        }
+
+        public void AddShaderProperty(AbstractShaderProperty prop)
+        {
+            if (m_ReadOnly)
+            {
+                Debug.LogError("ERROR attempting to add property to readonly collection");
+                return;
             }
 
-            // build a list of all HLSL properties
+            int propIndex = -1;
+
+            if (m_ReferenceNames.TryGetValue(prop.referenceName, out propIndex))
+            {
+                // existing referenceName
+                var existingProp = m_Properties[propIndex];
+                if (existingProp.property != prop)
+                {
+                    // duplicate reference name, but different property instances
+                    if (existingProp.property.GetType() != prop.GetType())
+                    {
+                        Debug.LogError("Two properties with the same reference name using different types");
+                    }
+                    else
+                    {
+                        // TODO: verify the property declarations are more or less equivalent.. somehow.. ?
+                    }
+                }
+                // set target flag to record who has declared this property
+                existingProp.declarerFlags = existingProp.declarerFlags | m_DeclarerFlag;
+                m_Properties[propIndex] = existingProp;
+            }
+            else
+            {
+                // new referenceName, new property
+                propIndex = m_Properties.Count;
+                m_Properties.Add(new Property() { property = prop, declarerFlags = m_DeclarerFlag });
+                m_ReferenceNames.Add(prop.referenceName, propIndex);
+            }
+        }
+
+        public void ForEachPropertyUsedByTarget(Target target, Action<AbstractShaderProperty> action)
+        {
+            // filter to properties declared by a node, graph, or the current Target
+            UInt64 declarerFlagFilter = (UInt64)DeclarerFlags._NodeOrGraph;
+            int targetIndex = m_Targets.FindIndex(t => t == target);
+            if (targetIndex >= 0)
+                declarerFlagFilter = declarerFlagFilter | (((UInt64)DeclarerFlags._Target) << targetIndex);
+
+            foreach (var p in m_Properties)
+            {
+                if (p.declarerFlags == 0)
+                    Debug.LogError("No Declarer! " + p.property.referenceName);
+                else if ((p.declarerFlags & declarerFlagFilter) != 0)
+                {
+                    action(p.property);
+                }
+            }
+        }
+
+        public void GetPropertiesDeclarationForTarget(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision, Target target)
+        {
+            ForEachPropertyUsedByTarget(target, p => p.ValidateConcretePrecision(inheritedPrecision));
+
             var hlslProps = new List<HLSLProperty>();
-            properties.ForEach(p => p.ForeachHLSLProperty(h => hlslProps.Add(h)));
+            ForEachPropertyUsedByTarget(target, p => p.ForeachHLSLProperty(h => hlslProps.Add(h)));
 
             if (mode == GenerationMode.Preview)
             {
@@ -150,7 +256,7 @@ namespace UnityEditor.ShaderGraph
                     h.AppendTo(builder);
         }
 
-        public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
+        public string GetDotsInstancingPropertiesDeclarationForTarget(Target target, GenerationMode mode)
         {
             // Hybrid V1 needs to declare a special macro to that is injected into
             // builtin instancing variables.
@@ -161,7 +267,7 @@ namespace UnityEditor.ShaderGraph
 
             // build a list of all HLSL properties
             var hybridHLSLProps = new List<HLSLProperty>();
-            properties.ForEach(p => p.ForeachHLSLProperty(h =>
+            ForEachPropertyUsedByTarget(target, p => p.ForeachHLSLProperty(h =>
             {
                 if (h.declaration == HLSLDeclaration.HybridPerInstance)
                     hybridHLSLProps.Add(h);
