@@ -2224,10 +2224,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                 }
 
-                Vector2 screenPos = (Vector2)viewportPos;
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+
+                float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
+
+                Vector2 radPos = new Vector2(screenPos.x * screenRatio, screenPos.y);
 
                 Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * data.occlusionRadius);
-                float occlusionRadius = (screenPos - occlusionRadiusEdgeScreenPos).magnitude;
+                float occlusionRadius = ((Vector2)viewportPos - occlusionRadiusEdgeScreenPos).magnitude;
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
 
                 //Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
@@ -2236,7 +2240,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, data.allowOffScreen ? 1.0f : -1.0f);
 
                 //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
-                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, new Vector2(screenPos.x * 2 - 1, 1 - screenPos.y * 2));
+                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, new Vector2(screenPos.x * 2 - 1, 1 - screenPos.y * 2));
+                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, screenPos);
                 //if (!data.allowOffScreen)
                 //    cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, Mathf.Abs(viewportPos.z));
                 //else
@@ -2249,6 +2254,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //DrawCircle(positionWS, cam.transform.right, cam.transform.up, data.occlusionRadius, Color.red, 16);
 
+                float radius = radPos.magnitude;
+                float radialsScaleRadius = data.radialAttenuationCurve.length > 0 ? data.radialAttenuationCurve.Evaluate(radius) : 1.0f;
+
                 float totalLength = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
@@ -2259,27 +2267,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 Light light = comp.GetComponent<Light>();
-                Vector4 modulation = Vector4.one;
+                Vector4 modulationByColor = Vector4.one;
+                Vector4 modulationAttenuation = Vector4.one;
+                float distanceAttenuation = 1.0f;
                 if (light != null)
                 {
                     if (light.useColorTemperature)
-                        modulation = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                        modulationByColor = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
                     else
-                        modulation = light.color;
+                        modulationByColor = light.color;
 
-                    Vector3 toLight = (light.transform.position - cam.transform.position).normalized;
+                    Vector3 diff = light.transform.position - cam.transform.position;
+                    float distToLight = diff.magnitude;
+                    Vector3 toLight = diff / distToLight;
 
                     HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
                     // Must always be true
-                    if (hdLightData != null)
+                    if (hdLightData != null && comp.attenuationByLight)
                     {
                         switch (hdLightData.type)
                         {
                             case HDLightType.Directional:
-                                modulation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
+                                modulationAttenuation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
                                 break;
                             case HDLightType.Point:
                                 // Do nothing point are omnidirectional for the Lens Flare
+                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             case HDLightType.Spot:
                                 switch (hdLightData.spotLightShape)
@@ -2288,31 +2301,35 @@ namespace UnityEngine.Rendering.HighDefinition
                                         float outerDot = Mathf.Max(Mathf.Cos(0.5f * light.spotAngle * Mathf.Deg2Rad), 0.0f);
                                         float innerDot = Mathf.Max(Mathf.Cos(0.5f * light.spotAngle * Mathf.Deg2Rad * hdLightData.innerSpotPercent01), 0.0f);
                                         float dot = Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
-                                        modulation *= Mathf.Clamp01((dot - outerDot) / (innerDot - outerDot));
+                                        modulationAttenuation *= Mathf.Clamp01((dot - outerDot) / (innerDot - outerDot));
                                         break;
                                     case SpotLightShape.Box:
                                     case SpotLightShape.Pyramid:
-                                        modulation *= Mathf.Max(Mathf.Sign(Vector3.Dot(hdLightData.transform.forward, -toLight)), 0.0f);
+                                        modulationAttenuation *= Mathf.Max(Mathf.Sign(Vector3.Dot(hdLightData.transform.forward, -toLight)), 0.0f);
                                         break;
                                     default: throw new Exception($"Unknown {typeof(SpotLightShape)}: {hdLightData.type}");
                                 }
+                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             case HDLightType.Area:
                                 switch (hdLightData.areaLightShape)
                                 {
                                     case AreaLightShape.Tube:
-                                        modulation *= 1.0f - Mathf.Abs(Vector3.Dot(hdLightData.transform.right, toLight));
+                                        modulationAttenuation *= 1.0f - Mathf.Abs(Vector3.Dot(hdLightData.transform.right, toLight));
                                         break;
                                     case AreaLightShape.Rectangle:
                                     case AreaLightShape.Disc:
-                                        modulation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
+                                        modulationAttenuation *= Mathf.Max(Vector3.Dot(hdLightData.transform.forward, -toLight), 0.0f);
                                         break;
                                     default: throw new Exception($"Unknown {typeof(AreaLightShape)}: {hdLightData.type}");
                                 }
+                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             default: throw new Exception($"Unknown {typeof(HDLightType)}: {hdLightData.type}");
                         }
                     }
+
+                    distanceAttenuation = data.distanceAttenuationCurve.length > 0 ? data.distanceAttenuationCurve.Evaluate(distToLight) : 1.0f;
                 }
 
                 CoreUtils.SetRenderTarget(cmd, target);
@@ -2336,10 +2353,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector2 size = new Vector2(element.size * curveScale, element.size * element.aspectRatio * curveScale);
                     float rotation = element.rotation;
                     Vector4 tint;
+
+                    float currentIntensity = element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+
+                    if (currentIntensity <= 0.0f)
+                        continue;
+
                     if (element.modulateByLightColor)
-                        tint = element.tint * element.localIntensity * data.globalIntensity * modulation;
+                        tint = currentIntensity * element.tint * modulationByColor;
                     else
-                        tint = element.tint * element.localIntensity * data.globalIntensity;
+                        tint = currentIntensity * element.tint;
+
+                    if (comp.attenuationByLight)
+                        tint.Scale(modulationAttenuation);
+
                     SRPLensFlareBlendMode blendMode = element.blendMode;
                     bool autoRotate = element.autoRotate;
 

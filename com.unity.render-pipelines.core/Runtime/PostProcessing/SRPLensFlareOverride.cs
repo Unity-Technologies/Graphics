@@ -6,6 +6,7 @@ namespace UnityEngine
     public sealed class SRPLensFlareOverride : MonoBehaviour
     {
         public SRPLensFlareData lensFlareData = null;
+        public bool attenuationByLight = true;
 
         public SRPLensFlareOverride()
         {

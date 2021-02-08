@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering
         SerializedProperty m_SamplesCount;
         SerializedProperty m_ScaleCurve;
         SerializedProperty m_PositionCurve;
+        SerializedProperty m_RadialAttenuationCurve;
+        SerializedProperty m_DistanceAttenuationCurve;
         SerializedProperty m_Elements;
 
         public void OnEnable()
@@ -26,6 +28,8 @@ namespace UnityEditor.Rendering
             m_ScaleByExposure = entryPoint.Find(x => x.scaleByExposure);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
+            m_RadialAttenuationCurve = entryPoint.Find(x => x.radialAttenuationCurve);
+            m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -44,6 +48,8 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ScaleCurve);
             EditorGUILayout.PropertyField(m_PositionCurve);
+            EditorGUILayout.PropertyField(m_RadialAttenuationCurve);
+            EditorGUILayout.PropertyField(m_DistanceAttenuationCurve);
             if (EditorGUI.EndChangeCheck())
             {
                 m_ScaleCurve.serializedObject.ApplyModifiedProperties();

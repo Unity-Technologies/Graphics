@@ -60,6 +60,8 @@ namespace UnityEngine
             samplesCount = 4;
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
             positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
+            radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
             textureCurve = new Rendering.TextureCurve(scaleCurve, 0.0f, false, new Vector2(0.0f, 1.0f));
         }
 
@@ -73,6 +75,8 @@ namespace UnityEngine
         public bool scaleByExposure;
         public AnimationCurve scaleCurve;
         public AnimationCurve positionCurve;
+        public AnimationCurve radialAttenuationCurve;
+        public AnimationCurve distanceAttenuationCurve;
         public UnityEngine.Rendering.TextureCurve textureCurve;
         [SerializeField]
         public SRPLensFlareDataElement[] elements;
