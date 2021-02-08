@@ -43,7 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
             base.DrawAdvancedOptionsGUI();
 
             if (forceForwardEmissive != null)
-                materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);
+            {
+                if (materials[0].FindPass("ForwardEmissiveForDeferred") != -1)
+                    materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);
+            }
+                
         }
     }
 }

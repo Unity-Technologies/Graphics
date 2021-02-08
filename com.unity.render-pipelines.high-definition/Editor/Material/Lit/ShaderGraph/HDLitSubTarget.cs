@@ -211,6 +211,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideReferenceName = kRefractionModel,
             });
 
+            // Note: Due to the shader graph framework it is not possible to rely on litData.emissionOverriden
+            // to decide to add the ForceForwardEmissive property or not. The emissionOverriden setup is done after
+            // the call to AddShaderProperty
             collector.AddShaderProperty(new BooleanShaderProperty
             {
                 value = litData.forceForwardEmissive,
