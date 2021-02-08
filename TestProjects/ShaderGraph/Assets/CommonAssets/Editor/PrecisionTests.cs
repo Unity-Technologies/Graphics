@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var parent = NodeUtils.GetParentNodes(testNode).First();
 
             // set graph to single, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Single, parent.concretePrecision);
 
             // set graph to half, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Half;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Half);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -214,7 +214,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var parent = NodeUtils.GetParentNodes(testNode).First();
 
             // set graph to single, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Single, parent.concretePrecision);
 
             // set graph to half, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Half;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Half);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -249,7 +249,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var parent = NodeUtils.GetParentNodes(testNode).First();
 
             // set graph to single, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -260,7 +260,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Single, parent.concretePrecision);
 
             // set graph to half, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Half;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Half);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var parent = NodeUtils.GetParentNodes(testNode).First();
 
             // set graph to single, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Single, parent.concretePrecision);
 
             // set graph to half, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Half;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Half);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -308,9 +308,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         public struct TestCase
         {
-            public TestCase(ConcretePrecision graphConcretePrecision, Precision parentPrecision0, Precision parentPrecision1, GraphPrecision resultGraph, ConcretePrecision resultConcrete)
+            public TestCase(GraphPrecision graphPrecision, Precision parentPrecision0, Precision parentPrecision1, GraphPrecision resultGraph, ConcretePrecision resultConcrete)
             {
-                this.graphConcretePrecision = graphConcretePrecision;
+                this.graphPrecision = graphPrecision;
                 this.parentPrecision0 = parentPrecision0;
                 this.parentPrecision1 = parentPrecision1;
                 this.resultGraph = resultGraph;
@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             // inputs
-            public readonly ConcretePrecision graphConcretePrecision;
+            public readonly GraphPrecision graphPrecision;
             public readonly Precision parentPrecision0;
             public readonly Precision parentPrecision1;
 
@@ -334,29 +334,29 @@ namespace UnityEditor.ShaderGraph.UnitTests
             TestCase[] cases =
             {
                 // inputs                                                           outputs
-                new TestCase(ConcretePrecision.Single, Precision.Single,  Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Half,    Precision.Half,       GraphPrecision.Half,    ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Single, Precision.Graph,   Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Inherit, Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Half,    Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Single,  Precision.Half,       GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Inherit, Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Half,    Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Graph,   Precision.Half,       GraphPrecision.Graph,   ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Inherit, Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Single, Precision.Single,  Precision.Graph,      GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Single,  Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Half,    Precision.Half,       GraphPrecision.Half,    ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Single, Precision.Graph,   Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Inherit, Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Half,    Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Single,  Precision.Half,       GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Inherit, Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Half,    Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Graph,   Precision.Half,       GraphPrecision.Graph,   ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Inherit, Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Single, Precision.Single,  Precision.Graph,      GraphPrecision.Single,  ConcretePrecision.Single ),
 
-                new TestCase(ConcretePrecision.Half,   Precision.Single,  Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Half,   Precision.Half,    Precision.Half,       GraphPrecision.Half,    ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Graph,   Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Inherit, Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Half,    Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Half,   Precision.Single,  Precision.Half,       GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Half,   Precision.Inherit, Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
-                new TestCase(ConcretePrecision.Half,   Precision.Half,    Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Graph,   Precision.Half,       GraphPrecision.Graph,   ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Inherit, Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Half   ),
-                new TestCase(ConcretePrecision.Half,   Precision.Single,  Precision.Graph,      GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Half,   Precision.Single,  Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Half,   Precision.Half,    Precision.Half,       GraphPrecision.Half,    ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Graph,   Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Inherit, Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Half,    Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Half,   Precision.Single,  Precision.Half,       GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Half,   Precision.Inherit, Precision.Single,     GraphPrecision.Single,  ConcretePrecision.Single ),
+                new TestCase(GraphPrecision.Half,   Precision.Half,    Precision.Inherit,    GraphPrecision.Graph,   ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Graph,   Precision.Half,       GraphPrecision.Graph,   ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Inherit, Precision.Graph,      GraphPrecision.Graph,   ConcretePrecision.Half   ),
+                new TestCase(GraphPrecision.Half,   Precision.Single,  Precision.Graph,      GraphPrecision.Single,  ConcretePrecision.Single ),
             };
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
@@ -373,7 +373,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             foreach (var test in cases)
             {
                 // set graph to half, test that node matches
-                m_Graph.concretePrecision = test.graphConcretePrecision;
+                m_Graph.SetGraphDefaultPrecision(test.graphPrecision);
                 parent0.precision = test.parentPrecision0;
                 parent1.precision = test.parentPrecision1;
                 m_Graph.ValidateGraph();
@@ -435,7 +435,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var parent = NodeUtils.GetParentNodes(testNode).First();
 
             // set graph to single, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -446,7 +446,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Single, parent.concretePrecision);
 
             // set graph to half, test that node matches
-            m_Graph.concretePrecision = ConcretePrecision.Half;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Half);
             m_Graph.ValidateGraph();
 
             Assert.AreEqual(Precision.Inherit, testNode.precision);
@@ -457,7 +457,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Half, parent.concretePrecision);
 
             // set subgraph NODE to override half, and graph to Single
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             parent.precision = Precision.Half;
             m_Graph.ValidateGraph();
 
@@ -469,7 +469,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(ConcretePrecision.Half, parent.concretePrecision);
 
             // set subgraph NODE to graph, and graph to Single
-            m_Graph.concretePrecision = ConcretePrecision.Single;
+            m_Graph.SetGraphDefaultPrecision(GraphPrecision.Single);
             parent.precision = Precision.Graph;
             m_Graph.ValidateGraph();
 
