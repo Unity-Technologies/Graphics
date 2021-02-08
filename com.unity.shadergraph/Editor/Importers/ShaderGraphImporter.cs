@@ -267,17 +267,17 @@ Shader ""Hidden/GraphErrorShader2""
             bool anyNodeHasError = graph.messageManager.nodeMessagesChanged && graph.messageManager.AnyError();
             // Find the first compiler message that's an error
             int firstShaderUtilErrorIndex = -1;
-            if(messages != null)
+            if (messages != null)
                 firstShaderUtilErrorIndex = Array.FindIndex(messages, m => (m.severity == Rendering.ShaderCompilerMessageSeverity.Error));
 
             // Display only one message. Bias towards shader compiler messages over node messages and within that bias errors over warnings.
             if (firstShaderUtilErrorIndex != -1)
                 MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
-            else if(anyNodeHasError)
+            else if (anyNodeHasError)
                 Debug.LogError($"Test Shader Graph at {path} has at least one error.");
-            else if(messages.Length != 0)
+            else if (messages.Length != 0)
                 MessageManager.Log(path, messages[0], shader);
-            else if(graph.messageManager.nodeMessagesChanged)
+            else if (graph.messageManager.nodeMessagesChanged)
                 Debug.LogWarning($"Test Shader Graph at {path} has at least one warning.");
         }
 
