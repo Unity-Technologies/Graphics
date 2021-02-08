@@ -18,8 +18,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         string m_ProfilerTag;
         ProfilingSampler m_ProfilingSampler;
         bool m_IsOpaque;
+        
+        List<string> m_AdditionalShaderKeywords = new List<string>();
+        Dictionary<string, int> m_AdditionalValues = new Dictionary<string, int>();
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
+
+        public void SetAdditionalKeywords(IEnumerable<string> words)
+        {
+            m_AdditionalShaderKeywords.Clear();
+            foreach (var word in words)
+            {
+                m_AdditionalShaderKeywords.Add(word);
+            }
+        }
+
+        public void SetAdditionalValues(List<Tuple<string, int>>  values)
+        {
+            m_AdditionalValues.Clear();
+            foreach (var word in values)
+            {
+                m_AdditionalValues.Add(word.Item1, word.Item2);
+            }
+        }
 
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
@@ -68,6 +89,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
 
+                foreach (var word in m_AdditionalShaderKeywords)
+                    cmd.EnableShaderKeyword(word);
+                foreach (var value in m_AdditionalValues)
+                    cmd.SetGlobalInt(value.Key, value.Value);
+
                 // scaleBias.x = flipSign
                 // scaleBias.y = scale
                 // scaleBias.z = bias
@@ -96,6 +122,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
+                foreach (var word in m_AdditionalShaderKeywords)
+                    cmd.DisableShaderKeyword(word);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }

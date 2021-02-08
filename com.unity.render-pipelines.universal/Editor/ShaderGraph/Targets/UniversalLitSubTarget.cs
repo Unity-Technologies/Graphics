@@ -290,6 +290,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
+                    { PassVariant(LitPasses.DataExtraction, CorePragmas.DOTSDataExtraction) },
                     { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
@@ -345,6 +346,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.ForwardOnly },
+                    { LitPasses.DataExtraction },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.DepthNormalOnly },
@@ -383,6 +385,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
+                includes = LitIncludes.Forward,
+            };
+            
+            public static PassDescriptor DataExtraction = new PassDescriptor
+            {
+                // Definition
+                displayName = "Data Extraction",
+                referenceName = "DATA_EXTRACTION",
+                lightMode = "DataExtraction",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas.DataExtraction,
+                keywords = LitKeywords.DataExtraction,
                 includes = LitIncludes.Forward,
             };
 
@@ -674,6 +704,56 @@ static class LitDefines
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
             };
+            
+            public static KeywordCollection DataExtraction = new KeywordCollection
+            {
+                new KeywordDescriptor()
+                {
+                    displayName = "Extraction Modes",
+                    referenceName = "",
+                    type = KeywordType.MultiCompile,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                    value = 0,
+                    entries = new[]
+                    {
+                        new KeywordEntry("None", "_"),
+                        new KeywordEntry("Object Id", "RENDER_OBJECT_ID"),
+                        new KeywordEntry("Depth", "RENDER_DEPTH"),
+                        new KeywordEntry("World Normals (face)", "RENDER_WORLD_NORMALS_FACE"),
+                        new KeywordEntry("World Normals (pixel)", "RENDER_WORLD_NORMALS_PIXEL"),
+                        new KeywordEntry("World Position", "RENDER_WORLD_POSITION"),
+                        new KeywordEntry("Base Color + Alpha", "RENDER_BASE_COLOR_ALPHA"),
+                        new KeywordEntry("Specular(RGB) Metallic(A)", "RENDER_SPECULAR_METALLIC"),
+                        new KeywordEntry("Emission(RGB)", "RENDER_EMISSION"),
+                        new KeywordEntry("Smoothness(r) + Occlusion (g)", "RENDER_SMOOTHNESS_OCCLUSION"),
+                        new KeywordEntry("EntityId", "RENDER_ENTITY_ID"),
+                    },
+                },
+                new KeywordDescriptor()
+                {
+                    displayName = "Extraction Output Space",
+                    referenceName = "",
+                    type = KeywordType.MultiCompile,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                    value = 0,
+                    entries = new[]
+                    {
+                        new KeywordEntry("Mesh", "_"),
+                        new KeywordEntry("UV0", "RENDER_SPACE_UV0"),
+                        new KeywordEntry("UV1", "RENDER_SPACE_UV1"),
+                        new KeywordEntry("UV2", "RENDER_SPACE_UV2"),
+                        new KeywordEntry("UV3", "RENDER_SPACE_UV3"),
+                        new KeywordEntry("UV4", "RENDER_SPACE_UV4"),
+                        new KeywordEntry("UV5", "RENDER_SPACE_UV5"),
+                        new KeywordEntry("UV6", "RENDER_SPACE_UV6"),
+                        new KeywordEntry("UV7", "RENDER_SPACE_UV7"),
+                        new KeywordEntry("UV8", "RENDER_SPACE_UV8"),
+                    },
+                }
+            };
+            
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {

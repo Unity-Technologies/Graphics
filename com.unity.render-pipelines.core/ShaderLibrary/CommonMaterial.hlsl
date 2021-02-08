@@ -58,9 +58,9 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 // but chopping the far tails of GGX and keeping 94% of the mass yields a distribution with a defined variance where
 // we can then relate the roughness of GGX to a variance (see Ray Tracing Gems p153 - the reference is wrong though,
 // the Conty paper doesn't mention this at all, but it can be found in stats using quantiles):
-// 
+//
 // roughnessGGX^2 = variance / 2
-// 
+//
 // From the two previous, if we want roughly comparable variances of slopes between a Beckmann and a GGX NDF, we can
 // equate the variances and get a conversion of their roughnesses:
 //
@@ -329,4 +329,22 @@ real3 LerpWhiteTo(real3 b, real t)
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
+
+// ----------------------------------------------------------------------------
+// Helper methods to convert specular <-> metallic workflow
+// NOTE: Specular -> metallic is lossy, metallic can not fully represent all possible specular materials.
+// ----------------------------------------------------------------------------
+
+void ConvertSpecularToMetallic(float3 diffuseColor, float3 specularColor, out float3 baseColor, out float metallic)
+{
+    metallic = saturate( (Max3(specularColor.r, specularColor.g, specularColor.b) - 0.1F) / 0.45F);
+    baseColor = lerp(diffuseColor, specularColor, metallic);
+}
+
+void ConvertMetallicToSpecular(float3 baseColor, float metallic, out float3 diffuseColor, out float3 specularColor)
+{
+    diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+    specularColor = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+}
+
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

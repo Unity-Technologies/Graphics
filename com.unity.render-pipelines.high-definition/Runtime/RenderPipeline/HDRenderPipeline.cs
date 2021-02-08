@@ -3,6 +3,7 @@ using UnityEngine.VFX;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
@@ -304,6 +305,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle                        m_DebugFullScreenTempBuffer;
         // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
         RTHandle                        m_IntermediateAfterPostProcessBuffer;
+        RTHandle                        m_IntermediateAfterPostProcessBufferFloat;
+        RTHandle                        m_HighPrecisionDebugBufferFloat;
+
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
@@ -834,9 +838,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
             RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
+            RTHandles.Release(m_IntermediateAfterPostProcessBufferFloat);
             m_DebugColorPickerBuffer = null;
             m_DebugFullScreenTempBuffer = null;
             m_IntermediateAfterPostProcessBuffer = null;
+            m_IntermediateAfterPostProcessBufferFloat = null;
 
             if (m_RayTracingSupported)
             {
@@ -2976,7 +2982,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
 
             if (aovRequest.isValid)
-                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, GetDebugViewTargetBuffer(), aovBuffers);
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
@@ -3154,6 +3160,115 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
             propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, parameters.srcTexArraySlice);
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
+        }
+
+        protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
+        {
+            var previousRT = RenderTexture.active;
+            RenderTexture.active = null;
+
+            if (m_IntermediateAfterPostProcessBufferFloat == null)
+                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
+
+            var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
+            m_IntermediateAfterPostProcessBuffer = m_IntermediateAfterPostProcessBufferFloat;
+
+            try
+            {
+                if (renderRequests.Count == 1 &&
+                    renderRequests[0].isValid &&
+                    renderRequests[0].mode == Camera.RenderRequestMode.OutlineMask)
+                {
+                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionalCameraData == null)
+                    {
+                        camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    }
+
+                    additionalCameraData.customRender += RenderOutlineMask;
+                    m_OutlineMaskTarget = renderRequests[0].result;
+
+                    try
+                    {
+                        Render(renderContext, new[] {camera});
+                    }
+                    finally
+                    {
+                        additionalCameraData.customRender -= RenderOutlineMask;
+                    }
+
+                    return;
+                }
+
+                var requests = new AOVRequestBuilder();
+                foreach (var request in renderRequests)
+                {
+                    var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
+                    var aovBuffers = AOVBuffers.Color;
+                    if (request.mode == Camera.RenderRequestMode.Depth ||
+                        request.mode == Camera.RenderRequestMode.WorldPosition)
+                        aovBuffers = AOVBuffers.Output;
+
+                    requests.Add(
+                        aovRequest,
+                        // NOTE: RTHandles.Alloc is never allocated because the texture is passed in explicitly.
+                        (AOVBuffers aovBufferId) => RTHandles.Alloc(request.result),
+                        null,
+                        new[] {aovBuffers},
+                        (cmd, textures, properties) =>
+                        {
+                            //if (request.result != null)
+                            //    cmd.Blit(textures[0], request.result);
+                        });
+                }
+
+                var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                if (additionaCameraData == null)
+                {
+                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                    additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                }
+                additionaCameraData.SetAOVRequests(requests.Build());
+
+                Render(renderContext, new[] {camera});
+
+                additionaCameraData.SetAOVRequests(null);
+            }
+            finally
+            {
+                m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
+                RenderTexture.active = previousRT;
+            }
+        }
+
+        RenderTexture m_OutlineMaskTarget;
+        void RenderOutlineMask(ScriptableRenderContext context, HDCamera hdCamera)
+        {
+            Debug.Log("RenderOutlineMask");
+            var cmd = CommandBufferPool.Get("");
+
+            // TODO: Need depth target.
+            cmd.SetRenderTarget(m_OutlineMaskTarget);
+            cmd.ClearRenderTarget(true, true, Color.black);
+
+            var camera = hdCamera.camera;
+            camera.TryGetCullingParameters(out var cullingParameters);
+            var cullingResults = context.Cull(ref cullingParameters);
+
+            var sceneSelectionTag = new ShaderTagId("SceneSelectionPass");
+
+            var drawingSettings = new DrawingSettings(
+                sceneSelectionTag,
+                new SortingSettings(camera) { criteria = SortingCriteria.None});
+
+            var filteringSettings = FilteringSettings.defaultValue;
+
+            context.ExecuteCommandBuffer(cmd);
+            context.DrawRenderers(
+                cullingResults,
+                ref drawingSettings,
+                ref filteringSettings);
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -4094,7 +4209,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
-                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+                    var debugViewTargetBuffer = GetDebugViewTargetBuffer();
+                    CoreUtils.SetRenderTarget(cmd, debugViewTargetBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
 
                     // [case 1273223] When the camera is stacked on top of another one, we need to clear the debug view RT using the data from the previous camera in the stack
                     var clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
@@ -4113,6 +4229,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
                 }
             }
+        }
+
+        private RTHandle GetDebugViewTargetBuffer()
+        {
+            if (m_CurrentDebugDisplaySettings.data.requireHighPrecision)
+                return m_DebugFullScreenTempBuffer;
+            else
+                return m_CameraColorBuffer;
         }
 
         struct TransparencyOverdrawParameters
@@ -5125,6 +5249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
                 cb._DebugProbeVolumeMode = (int)m_CurrentDebugDisplaySettings.GetProbeVolumeDebugMode();
+                cb._DebugAllowsRGBConversion = m_CurrentDebugDisplaySettings.GetAllowSRGBConversion() ? 1 : 0;
 
 #if UNITY_EDITOR
                 cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;

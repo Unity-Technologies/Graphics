@@ -139,7 +139,7 @@ void Frag(PackedVaryingsToPS packedInput,
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
             // So in the meantime we apply the inverse transform to linear data to compensate.
-            if (!needLinearToSRGB)
+            if (!needLinearToSRGB && _DebugAllowsRGBConversion != 0)
                 result = SRGBToLinear(max(0, result));
 
             outResult = float4(result, 1.0);

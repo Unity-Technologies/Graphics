@@ -106,6 +106,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Specular,
             /// <summary>Display alpha.</summary>
             Alpha,
+            /// <summary>Display entity ID.</summary>
+            EntityId,
+            /// <summary>Display object ID.</summary>
+            ObjectId,
         }
 
         class MaterialSharedPropertyMappingAttribute : Attribute
@@ -354,6 +358,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     { MaterialSharedProperty.Metal, new List<int>() },
                     { MaterialSharedProperty.Specular, new List<int>() },
                     { MaterialSharedProperty.Alpha, new List<int>() },
+                    { MaterialSharedProperty.EntityId, new List<int>() },
+                    { MaterialSharedProperty.ObjectId, new List<int>() },
                 };
 
                 // builtins parameters

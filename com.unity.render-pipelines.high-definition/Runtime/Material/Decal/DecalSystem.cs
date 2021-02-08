@@ -527,6 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ulong[] newCachedSceneLayerMask = new ulong[m_DecalsCount + kDecalBlockSize];
                     var cachedDecalLayerMask = new DecalLayerEnum[m_DecalsCount + kDecalBlockSize];
                     float[] newCachedFadeFactor = new float[m_DecalsCount + kDecalBlockSize];
+
                     m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
 
                     m_Handles.CopyTo(newHandles, 0);

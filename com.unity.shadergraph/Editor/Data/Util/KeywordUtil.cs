@@ -79,6 +79,10 @@ namespace UnityEditor.ShaderGraph
                     var enumEntryDefinitions = keyword.entries.Select(x => $"{keyword.referenceName}_{x.referenceName}");
                     string enumEntriesString = string.Join(" ", enumEntryDefinitions);
                     return $"#pragma {definitionString} {enumEntriesString}";
+                case KeywordType.MultiCompile:
+                    var multiCompileEntryDefinitions = keyword.entries.Select(x => $"{x.referenceName}");
+                    string multiCompileEntriesString = string.Join(" ", multiCompileEntryDefinitions);
+                    return $"#pragma {definitionString} {multiCompileEntriesString}";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
