@@ -1147,6 +1147,8 @@ namespace UnityEditor.VFX
             private SerializedObject m_SerializedRenderers;
 
             private SerializedProperty m_RendererPriority;
+            private SerializedProperty m_SortingLayerID;
+            private SerializedProperty m_SortingOrder;
             private SerializedProperty m_RenderingLayerMask;
             private SerializedProperty m_LightProbeUsage;
             private SerializedProperty m_LightProbeVolumeOverride;
@@ -1165,6 +1167,8 @@ namespace UnityEditor.VFX
                 m_SerializedRenderers = new SerializedObject(m_Renderers);
 
                 m_RendererPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
+                m_SortingOrder = m_SerializedRenderers.FindProperty("m_SortingOrder");
+                m_SortingLayerID = m_SerializedRenderers.FindProperty("m_SortingLayerID");
                 m_RenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
                 m_LightProbeUsage = m_SerializedRenderers.FindProperty("m_LightProbeUsage");
                 m_LightProbeVolumeOverride = m_SerializedRenderers.FindProperty("m_LightProbeVolumeOverride");
@@ -1294,11 +1298,11 @@ namespace UnityEditor.VFX
                         EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
                     }
 
-                    //As classic MeshRenderer, VisualEffect doesn't support the single mesh batching of UI.
-                    //if (m_SortingOrder != null && m_SortingLayerID != null)
-                    //{
-                    //    SortingLayerEditorUtility.RenderSortingLayerFields(m_SortingOrder, m_SortingLayerID);
-                    //}
+                    if (m_SortingOrder != null && m_SortingLayerID != null)
+                    {
+                        //TODOPAUL : avoid reference an internal function
+                        SortingLayerEditorUtility.RenderSortingLayerFields(m_SortingOrder, m_SortingLayerID);
+                    }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
