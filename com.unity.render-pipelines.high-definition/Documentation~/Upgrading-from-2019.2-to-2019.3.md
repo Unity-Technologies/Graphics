@@ -10,7 +10,7 @@ If you use default prefab (the one created by the wizard) and rely on default **
 
 The easiest way is to ask the Wizard to recreate a new one:
 
-1. Open the Wizard (**Window > Render Pipeline > HD Render Pipeline Wizard**)
+1. Open the Wizard (**Window > Rendering > HDRP Wizard**)
 2. Remove the prefab set in **Default Scene Prefab**.
 3. [*Optional*] Keep a copy of your previous prefab if it have been customized to not lost your version. To do so, just rename the prefab. It will prevent to be overridden.
 4. Look at the **Configuration Checking** below for the line **Default Scene Prefab** and click on the **Fix** button.
@@ -45,10 +45,10 @@ HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumet
 
 ## Shadow Maps
 
-Before 7.x, each Light in HDRP exposed several options for the shadow map bias. From 7.x, HDRP has replaced every option, except for **Normal Bias**, with **Slope-Scale Depth Bias**. Introducing this property makes the shadow map bias setup fairly different to what it was. This means that, if the default values lead to unexpected results, you may need a new setup for the bias on each Light. 
+Before 7.x, each Light in HDRP exposed several options for the shadow map bias. From 7.x, HDRP has replaced every option, except for **Normal Bias**, with **Slope-Scale Depth Bias**. Introducing this property makes the shadow map bias setup fairly different to what it was. This means that, if the default values lead to unexpected results, you may need a new setup for the bias on each Light.
 
-Also, before 7.x, PCSS had a different parametrization. Since 7.x, the shadow softness is controlled by angular diameter on directional lights and by shape radius for point and spot lights. To convert the previous shadow softness to a shape radius, an approximate function is: `0.333 * oldSoftness * (shadowResolution / 512)`. 
-Moreover, the *Minimum filter size* option is now called *Minimum Blur Intensity*; this is functionally equivalent but simply remaps the previous range [0 ... 0.0001] to [0 ... 1]. 
+Also, before 7.x, PCSS had a different parametrization. Since 7.x, the shadow softness is controlled by angular diameter on directional lights and by shape radius for point and spot lights. To convert the previous shadow softness to a shape radius, an approximate function is: `0.333 * oldSoftness * (shadowResolution / 512)`.
+Moreover, the *Minimum filter size* option is now called *Minimum Blur Intensity*; this is functionally equivalent but simply remaps the previous range [0 ... 0.0001] to [0 ... 1].
 
 ## Lights
 
@@ -60,13 +60,13 @@ Before 7.x, HDRP synchronized the width and height of an area [Light](Light-Comp
 
 ## Cookie textures (Spot, Area and Directional lights) and Planar Reflection Probes
 
-Before 7.x, we stored cookies of Spot, Area and directional lights and planars into texture arrays. Due to the usage of these arrays, we were limited to use the same size for every element in one array. For cookie textures, a convertion code ensured that if a texture size wasn't exatcly the same as the size of the texture array (defined in the HDRP asset), then it was scaled to fit the size of the array.  
+Before 7.x, we stored cookies of Spot, Area and directional lights and planars into texture arrays. Due to the usage of these arrays, we were limited to use the same size for every element in one array. For cookie textures, a convertion code ensured that if a texture size wasn't exatcly the same as the size of the texture array (defined in the HDRP asset), then it was scaled to fit the size of the array.
 Now that we're using an atlas we don't have this limitation anymore. It means that the cookie size you were using might differ now that we use the real size of the texture and could result in more sharp / pixelated cokies if your texture were too big or too small. If you encounter this kind of issue, we recommend fixing the images directly.
 For Planar Reflection Probes it also means that you can use different resolution per probe.
 
 You may also encounter this error in the console: `No more space in the 2D Cookie Texture Atlas. To solve this issue, increase the resolution of the cookie atlas in the HDRP settings.` This means that there is no space left in the Cookie atlas because there are too many of them in the view or the cookie textures are too big. To solve this issue you can either lower the resolution of the cookie textures or increase the atlas resolution in the HDRP settings.
 
-## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
+## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle
 
 Before 7.x, Max Smoothness, Emission Radius, and Bake Shadows Radius were separate controls for Point and Spot Lights. From 7.x, the UI displays a single property, called **Radius** that controls all of the properties mentioned above.
 Also, Max Smoothness, Angular Diameter, and Bake Shadows Angle were separate controls for Directional Lights. The UI now displays a single property, called **Angular Diameter**, that controls all the mentioned above.
@@ -79,14 +79,14 @@ From 7.x, HDRP no longer supports realtime GI for new Projects. However, HDRP st
 
 ## Custom Shaders
 
-7.x introduces a change to Reflection Probes which allows you to compress the range that Unity uses when rendering the probe's content. This comes with a small change to the Shader framework, the function `SampleEnv()` now requires an additional parameter, being the factor to apply to the probe data to compensate the range compression done at probe rendering time. This value is in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`. 
+7.x introduces a change to Reflection Probes which allows you to compress the range that Unity uses when rendering the probe's content. This comes with a small change to the Shader framework, the function `SampleEnv()` now requires an additional parameter, being the factor to apply to the probe data to compensate the range compression done at probe rendering time. This value is in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`.
 
 ## HDRP Asset and Default Settings
 
-From 7.x, a lot of HDRP’s settings have moved. Specifically, most of the information that was previously in the HDRP Asset is now mirrored in Project Settings.  
-There are two separate categories: 
+From 7.x, a lot of HDRP’s settings have moved. Specifically, most of the information that was previously in the HDRP Asset is now mirrored in Project Settings.
+There are two separate categories:
 * Default Settings (**Project Settings > HDRP Default Settings**), where you can serve up default Frame Andy Volume Settings.
-* Quality Settings (**Project Settings > Quality > HDRP**), where you can manage settings for multiple Render Pipeline Assets. 
+* Quality Settings (**Project Settings > Quality > HDRP**), where you can manage settings for multiple Render Pipeline Assets.
 
 From 7.x, Baking sky / Static lighting Sky Components are deprecated. Settings are now in (**Lighting Window > Environment lighting**) and use a Volume Profile Asset and a drop-down to select the sky to use for baking. You can remove the Static Lighting Sky component from your Scenes.
 

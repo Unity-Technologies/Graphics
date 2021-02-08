@@ -290,9 +290,9 @@ namespace UnityEngine.Rendering
                     {
                         int probeIdx = debugData.probeMaps[batchIndex][indexInBatch];
 
-                        shBuffer[0][indexInBatch] = cell.sh[probeIdx].shAr;
-                        shBuffer[1][indexInBatch] = cell.sh[probeIdx].shAg;
-                        shBuffer[2][indexInBatch] = cell.sh[probeIdx].shAb;
+                        shBuffer[0][indexInBatch] = new Vector4(cell.sh[probeIdx][0, 3], cell.sh[probeIdx][0, 1], cell.sh[probeIdx][0, 2], cell.sh[probeIdx][0, 0]);
+                        shBuffer[1][indexInBatch] = new Vector4(cell.sh[probeIdx][1, 3], cell.sh[probeIdx][1, 1], cell.sh[probeIdx][1, 2], cell.sh[probeIdx][1, 0]);
+                        shBuffer[2][indexInBatch] = new Vector4(cell.sh[probeIdx][2, 3], cell.sh[probeIdx][2, 1], cell.sh[probeIdx][2, 2], cell.sh[probeIdx][2, 0]);
 
                         validityColors[indexInBatch] = Color.Lerp(Color.green, Color.red, cell.validity[probeIdx]);
                     }
