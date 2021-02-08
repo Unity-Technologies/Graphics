@@ -2,6 +2,9 @@ namespace UnityEngine.Rendering.Universal
 {
     public partial class UniversalRenderPipeline
     {
+        private bool referenceVolumeInitialized = false;
+        private ProbeVolumeSHBands probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
+
         struct ShaderIDs
         {
             // Adaptive Probe Volume
@@ -14,28 +17,42 @@ namespace UnityEngine.Rendering.Universal
 
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
-        private void InitProbeVolumes(ProbeVolumeTextureMemoryBudget memoryBudget)
+        private void InitProbeVolumes(UniversalRenderPipelineAsset asset)
         {
-            ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, memoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
+            if (!asset.probeVolume)
+            { 
+                referenceVolumeInitialized = false;
+                return;
+            }
+
+            ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, asset.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
+            referenceVolumeInitialized = true;
+            probeVolumeSHBands = asset.probeVolumeSHBands;
         }
 
-        private void BindAPVRuntimeResources(CommandBuffer cmdBuffer)
+        private void BindProbeVolumeRuntimeResources(CommandBuffer cmdBuffer)
         {
             bool needToBindNeutral = true;
 
-            var refVolume = ProbeReferenceVolume.instance;
-            ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
+            CoreUtils.SetKeyword(cmdBuffer, ShaderKeywordStrings.PROBE_VOLUMES_L1, probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
+            CoreUtils.SetKeyword(cmdBuffer, ShaderKeywordStrings.PROBE_VOLUMES_L2, probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
+            CoreUtils.SetKeyword(cmdBuffer, ShaderKeywordStrings.PROBE_VOLUMES_OFF, !referenceVolumeInitialized);
 
-            bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
-
-            if (validResources)
+            if (referenceVolumeInitialized)
             {
-                cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, rr.index);
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, rr.L0);
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, rr.L1_R);
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, rr.L1_G);
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, rr.L1_B);
-                needToBindNeutral = false;
+                ProbeReferenceVolume.RuntimeResources rr = ProbeReferenceVolume.instance.GetRuntimeResources();
+
+                bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
+
+                if (validResources)
+                {
+                    cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, rr.index);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, rr.L0);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, rr.L1_R);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, rr.L1_G);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, rr.L1_B);
+                    needToBindNeutral = false;
+                }
             }
 
             if (needToBindNeutral)
@@ -53,6 +70,12 @@ namespace UnityEngine.Rendering.Universal
                 cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, TextureXR.GetBlackTexture3D());
             }
+        }
+
+        private void PerformPendingProbeVolumeOperations()
+        {
+            if (referenceVolumeInitialized)
+                ProbeReferenceVolume.instance.PerformPendingOperations();
         }
     }
 }

@@ -169,8 +169,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
-            if (asset.probeVolume)
-                InitProbeVolumes(asset.probeVolumeMemoryBudget);
+            InitProbeVolumes(asset);
         }
 
         protected override void Dispose(bool disposing)
@@ -226,6 +225,9 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
+
+            PerformPendingProbeVolumeOperations();
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Update XR MSAA level per frame.
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
@@ -356,16 +358,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                if (asset.probeVolume)
-                {
-                    var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-                    srp.BindAPVRuntimeResources(cmd);
-                }
-
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_L1, asset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_L2, asset.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.PROBE_VOLUMES_OFF, !asset.probeVolume);
-
+                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+                srp.BindProbeVolumeRuntimeResources(cmd);
 
                 using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
@@ -915,9 +909,6 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
-
-            if (settings.probeVolume)
-                ProbeReferenceVolume.instance.PerformPendingOperations();
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
