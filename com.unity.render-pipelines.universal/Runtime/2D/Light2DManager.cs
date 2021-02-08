@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 #if UNITY_EDITOR
-using UnityEditor.Experimental.SceneManagement;
+using UnityEditor.SceneManagement;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.Universal

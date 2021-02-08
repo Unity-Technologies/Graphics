@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 #if UNITY_EDITOR
-using UnityEditor.Experimental.SceneManagement;
+using UnityEditor.SceneManagement;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.Universal
