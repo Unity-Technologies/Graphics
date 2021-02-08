@@ -557,7 +557,8 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Draw Gizmos...
-                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                if (!cameraData.isRenderRequest)
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
@@ -568,8 +569,11 @@ namespace UnityEngine.Rendering.Universal
 
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
-                DrawWireOverlay(context, camera);
-                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                if (!cameraData.isRenderRequest)
+                {
+                    DrawWireOverlay(context, camera);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
             }

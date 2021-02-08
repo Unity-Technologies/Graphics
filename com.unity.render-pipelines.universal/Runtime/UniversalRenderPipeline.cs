@@ -240,6 +240,7 @@ namespace UnityEngine.Rendering.Universal
                 var data = ScriptableObject.CreateInstance<RenderRequestRendererData>();
                 data.request = renderRequest;
                 InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
+                cameraData.isRenderRequest = true;
                 cameraData.renderer = data.InternalCreateRenderer();
                 RenderSingleCamera(renderContext, cameraData, false);
                 Object.DestroyImmediate(data);
