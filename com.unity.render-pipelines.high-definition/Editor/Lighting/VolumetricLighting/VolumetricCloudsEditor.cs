@@ -138,6 +138,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            // This whole editor has nothing to display if the SSR feature is not supported
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetricClouds ?? false)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetric Clouds.", MessageType.Error, wide: true);
+                return;
+            }
+
             EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far plane accordingly.", MessageType.Info);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);

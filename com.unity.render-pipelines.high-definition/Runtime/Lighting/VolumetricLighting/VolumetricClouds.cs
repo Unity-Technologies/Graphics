@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Tiling (x,y) of the cloud map")]
         public Vector2Parameter cloudTiling = new Vector2Parameter(new Vector2(1.0f, 1.0f));
 
-        [Tooltip("Offset (z,w) of the cloud map")]
+        [Tooltip("Offset (x,y) of the cloud map")]
         public Vector2Parameter cloudOffset = new Vector2Parameter(new Vector2(0.0f, 0.0f));
 
         [Tooltip("Altitude of the lowest cloud in meters.")]
