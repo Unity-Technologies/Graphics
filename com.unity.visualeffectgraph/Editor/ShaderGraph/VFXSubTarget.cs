@@ -47,6 +47,9 @@ namespace UnityEditor.VFX
         {
             fieldsContext.AddField(Fields.GraphVFX, IsConfigured());
 
+            if (!IsConfigured())
+                return;
+
             // Support the various context primitive types.
             switch (s_Context.taskType)
             {
