@@ -11,5 +11,14 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 spotDirection;
             public Vector4 occlusionProbeChannels;
         }
+
+        [GenerateHLSL(PackingRules.Exact, false)]
+        public struct ReflectionProbeData
+        {
+            public Vector4 position;
+            public Vector4 boxMin;
+            public Vector4 boxMax;
+            public Vector4 hdr;
+        }
     }
 }

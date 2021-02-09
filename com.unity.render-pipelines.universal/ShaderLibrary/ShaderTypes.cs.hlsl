@@ -15,5 +15,12 @@ struct LightData
     float4 occlusionProbeChannels;
 };
 
+struct ReflectionProbeData
+{
+    float4 position;
+    float4 boxMin;
+    float4 boxMax;
+    float4 hdr;
+};
 
 #endif

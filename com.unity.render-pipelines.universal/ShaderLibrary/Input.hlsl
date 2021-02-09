@@ -6,6 +6,7 @@
 
 // Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+#define USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA 1 // #note switch based on support
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
@@ -16,6 +17,14 @@
     #define MAX_VISIBLE_LIGHTS 32
 #else
     #define MAX_VISIBLE_LIGHTS 256
+#endif
+
+#if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
+    #define MAX_VISIBLE_REFLECTION_PROBES 16
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
+    #define MAX_VISIBLE_REFLECTION_PROBES 32
+#else
+    #define MAX_VISIBLE_REFLECTION_PROBES 256
 #endif
 
 struct InputData
@@ -67,6 +76,17 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
+#endif
+
+half4 _ReflectionProbesParams; // x: count of reflection probes.
+TEXTURECUBE_ARRAY_ABSTRACT(_ReflectionProbeTextures);
+SAMPLER(s_trilinear_clamp_sampler); // #note copied from HDRP, not sure if we want to handle Samplers the same way
+
+#if USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA
+StructuredBuffer<ReflectionProbeData> _ReflectionProbesBuffer;
+StructuredBuffer<int> _ReflectionProbeIndices;
+#else
+// #note todo UBO implementation for reflection probes
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

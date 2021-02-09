@@ -268,6 +268,70 @@ int GetAdditionalLightsCount()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//           Reflection Probe Abstraction                                    //
+///////////////////////////////////////////////////////////////////////////////
+
+// Fills a reflection probe data struct given a perObjectReflectionProbeIndex
+ReflectionProbeData GetReflectionProbePerObject(uint i)
+{
+    // Abstraction over ReflectionProbe input constants
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    float4 probePositionWS = _ReflectionProbesBuffer[i].position;
+    float4 probeBoxMin = _ReflectionProbesBuffer[i].boxMin;
+    float4 probeBoxMax = _ReflectionProbesBuffer[i].boxMax;
+    float4 probeHDR = _ReflectionProbesBuffer[i].hdr;
+#else
+    // #note todo UBO implementation
+    float4 probePositionWS = float4(0);
+    float4 probeBoxMin = float4(0);
+    float4 probeBoxMax = float4(0);
+    float4 probeHDR = float(0);
+#endif
+
+    ReflectionProbeData probe;
+    probe.position = probePositionWS;
+    probe.boxMin = probeBoxMin;
+    probe.boxMax = probeBoxMax;
+    probe.hdr = probeHDR;
+    return probe;
+}
+
+// uint GetPerObjectReflectionProbeIndexOffset()
+// {
+// #if USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA
+//     return unity_ReflectionProbeData.x;
+// #else
+//     return 0;
+// #endif
+// }
+
+// Returns a per-object index given a loop index.
+// This abstract the underlying data implementation for storing reflectionprobes/reflectionprobe indices
+int GetPerObjectReflectionProbeIndex(uint index)
+{
+#if defined(USE_STRUCTURED_BUFFER_FOR_REFLECTION_PROBE_DATA)
+    uint offset = unity_ReflectionProbeData.x;
+    return _ReflectionProbeIndices[offset + index];
+#else
+    // #note todo UBO implementation
+    return 0;
+#endif
+}
+
+// Fills a reflection probe struct given a loop i index. This will convert the i
+// index to a perObjectReflectionProbeIndex
+ReflectionProbeData GetReflectionProbe(uint i)
+{
+    int perObjectReflectionProbeIndex = GetPerObjectReflectionProbeIndex(i);
+    return GetReflectionProbePerObject(perObjectReflectionProbeIndex);
+}
+
+int GetReflectionProbesCount()
+{
+    return min(_ReflectionProbesParams.x, unity_ReflectionProbeData.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 //                         BRDF Functions                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -627,8 +691,70 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
+half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
 {
+    float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
+    float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
+
+    float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
+
+    half3 pos = positionWS - cubemapCenter.xyz;
+    return pos + reflectVector * fa;
+}
+
+float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
+{
+    float blendDist = boxMin.w;
+    float3 weightDir = min(positionWS + blendDist - boxMin.xyz, boxMax.xyz + blendDist - positionWS) / blendDist;
+    return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
+}
+
+half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
+{
+    //This is not like for the builtin but the reverse order:
+    //Get a sorted list form largest reflection probe to the smallest and the smallest being rendered on top if they all have the same importance.
+    //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
+
+    //Such the the highest priority and smallest reflection probes is first.
+    float blendFactor = 1.0;
+    half3 irradiance = half3(0, 0, 0);
+    half3 originalReflectVector = reflectVector;
+
+    uint probeCount = GetReflectionProbesCount();
+    for (uint probeIndex = 0u; probeIndex < probeCount; ++probeIndex)
+    {
+        ReflectionProbeData probe = GetReflectionProbe(probeIndex);
+        float weight = min(getWeight(positionWS, probe.boxMin, probe.boxMax), blendFactor);
+        blendFactor = saturate(blendFactor - weight);
+
+        reflectVector = (1 - probe.position.w) * originalReflectVector
+            + probe.position.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, probe.position, probe.boxMin, probe.boxMax);
+        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+        int perObjectIndex = GetPerObjectReflectionProbeIndex(probeIndex);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, perObjectIndex, mip);
+
+#if !defined(UNITY_USE_NATIVE_HDR)
+        irradiance += weight * encodedIrradiance.rgb;//* DecodeHDREnvironment(encodedIrradiance, probe.hdr);
+#else
+        irradiance += weight * encodedIrradiance.rbg;
+#endif
+    }
+
+    return irradiance;
+}
+
+half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
+{
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
+    half3 irradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness);
+    return irradiance * occlusion;
+#endif // GLOSSY_REFLECTIONS
+
+    return _GlossyEnvironmentColor.rgb * occlusion;
+}
+
+/*
+half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion){
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
@@ -645,6 +771,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 
     return _GlossyEnvironmentColor.rgb * occlusion;
 }
+*/
 
 half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)
 {
@@ -676,19 +803,19 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 
 half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
     half3 bakedGI, half occlusion,
-    half3 normalWS, half3 viewDirectionWS)
+    half3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     half NoV = saturate(dot(normalWS, viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
 
     half3 indirectDiffuse = bakedGI;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, 1.0h);
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, occlusion);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, 1.0h);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, occlusion);
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
@@ -703,10 +830,10 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 }
 
 // Backwards compatiblity
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
-    return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
+    return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, positionWS, normalWS, viewDirectionWS);
 }
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
@@ -877,7 +1004,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
-                                     inputData.normalWS, inputData.viewDirectionWS);
+                                     inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                      mainLight,
                                      inputData.normalWS, inputData.viewDirectionWS,
