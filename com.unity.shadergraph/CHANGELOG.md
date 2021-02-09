@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
+- Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
 
 ## [11.0.0] - 2020-10-21
 
