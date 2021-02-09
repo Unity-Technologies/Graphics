@@ -25,6 +25,10 @@ test_platforms:
       - [all]: git checkout %GIT_BRANCH%
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Memory
+          - [all]: --timeout=7200
+          - [all]: --loglevel=verbose
 
   - type: editmode
     name: performance_run_build
