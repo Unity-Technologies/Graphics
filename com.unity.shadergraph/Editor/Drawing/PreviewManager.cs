@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
 
-        Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node 
+        Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node
         PreviewRenderData m_MasterRenderData;                                                               // ref to preview renderer data for the master node
 
         int m_MaxPreviewsCompiling = 2;                                                                     // max preview shaders we want to async compile at once
@@ -1172,7 +1172,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyPreview(AbstractMaterialNode node)
         {
-
             if (node is BlockNode)
             {
                 // block nodes don't have preview render data
