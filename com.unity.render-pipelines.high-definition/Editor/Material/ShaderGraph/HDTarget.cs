@@ -183,16 +183,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
 
-            // VFX Support
-            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-            else
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
-                m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                // VFX Support
+                if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else
                 {
-                    m_SupportVFX = m_SupportVFXToggle.value;
-                });
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                    });
+                }
             }
 
             context.globalIndentLevel--;
