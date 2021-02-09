@@ -2,6 +2,7 @@
 
 int UNITY_DataExtraction_Mode;
 int UNITY_DataExtraction_Space;
+int UNITY_DataExtraction_Value;
 
 #define RENDER_OBJECT_ID               1
 #define RENDER_DEPTH                   2
@@ -85,7 +86,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, inputs.alpha);
     if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
-        return float4(0, 1, 1, 1);
+        return float4(0, (float)UNITY_DataExtraction_Value / 255.0, 1, 1);
 
     return 0;
 }

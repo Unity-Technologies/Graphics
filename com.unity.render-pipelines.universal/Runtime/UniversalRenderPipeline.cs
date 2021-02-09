@@ -260,34 +260,103 @@ namespace UnityEngine.Rendering.Universal
         {
             DrawObjectsPass m_RenderOpaqueForwardPass;
             DrawObjectsPass m_RenderTransparentForwardPass;
+            DrawObjectsPass m_RenderOpaqueForwardPassZFail;
+            DrawObjectsPass m_RenderTransparentForwardPassZFail;
 
             LayerMask m_OpaqueLayerMask = -1;
             LayerMask m_TransparentLayerMask = -1;
             StencilState m_DefaultStencilState = StencilState.defaultValue;
-            
+            Camera.RenderRequestMode m_Mode;
+
             public RenderRequestRenderer(RenderRequestRendererData data) : base(data)
             {
+                m_Mode = data.request.mode;
+
                 var shaderTags = new[] {new ShaderTagId("DataExtraction")};
+
+                // TODO: Outline mask requires a Z-bias?
+
                 m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
                 m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
-            
+                // Selection mask requires separate passes for occluded objects
+                if (IsSelectionMaskRequest)
+                {
+                    m_RenderOpaqueForwardPassZFail = new DrawObjectsPass("Render Opaques (Z-fail)", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
+                    m_RenderTransparentForwardPassZFail = new DrawObjectsPass("Render Transparents (Z-fail)", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
+
+                    var state = m_RenderOpaqueForwardPassZFail.RenderStateBlock;
+                    var depthState = state.depthState;
+                    depthState.compareFunction = FlipCompareFunction(depthState.compareFunction);
+                    depthState.writeEnabled = false;
+                    state.depthState = depthState;
+                    state.mask = RenderStateMask.Depth;
+                    m_RenderOpaqueForwardPassZFail.RenderStateBlock = state;
+                    m_RenderTransparentForwardPassZFail.RenderStateBlock = state;
+                }
+
                 List<Tuple<string, int>> values = new List<Tuple<string, int>>
                 {
                     new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                     new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
+                    new Tuple<string, int>("UNITY_DataExtraction_Value", 255),
                 };
-                
+
                 m_RenderOpaqueForwardPass.SetAdditionalValues(values);
                 m_RenderTransparentForwardPass.SetAdditionalValues(values);
+
+                if (IsSelectionMaskRequest)
+                {
+                    // Occluded selection mask rendered with 50% value
+                    List<Tuple<string, int>> valuesZFail = new List<Tuple<string, int>>
+                    {
+                        new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
+                        new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
+                        new Tuple<string, int>("UNITY_DataExtraction_Value", 128),
+                    };
+
+                    m_RenderOpaqueForwardPassZFail.SetAdditionalValues(valuesZFail);
+                    m_RenderTransparentForwardPassZFail.SetAdditionalValues(valuesZFail);
+                }
             }
-            
-            
+
+            private CompareFunction FlipCompareFunction(CompareFunction depthStateCompareFunction)
+            {
+                switch (depthStateCompareFunction)
+                {
+                    case CompareFunction.Disabled:
+                    default:
+                        return CompareFunction.Disabled;
+                    case CompareFunction.Never:
+                        return CompareFunction.Always;
+                    case CompareFunction.Less:
+                        return CompareFunction.GreaterEqual;
+                    case CompareFunction.Equal:
+                        return CompareFunction.NotEqual;
+                    case CompareFunction.LessEqual:
+                        return CompareFunction.Greater;
+                    case CompareFunction.Greater:
+                        return CompareFunction.LessEqual;
+                    case CompareFunction.NotEqual:
+                        return CompareFunction.Equal;
+                    case CompareFunction.GreaterEqual:
+                        return CompareFunction.Less;
+                    case CompareFunction.Always:
+                        return CompareFunction.Never;
+                }
+            }
+
             /// <inheritdoc />
             public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 EnqueuePass(m_RenderOpaqueForwardPass);
                 EnqueuePass(m_RenderTransparentForwardPass);
+
+                if (IsSelectionMaskRequest)
+                {
+                    EnqueuePass(m_RenderOpaqueForwardPassZFail);
+                    EnqueuePass(m_RenderTransparentForwardPassZFail);
+                }
             }
 
             public override void FinishRendering(CommandBuffer cmd)
@@ -295,8 +364,11 @@ namespace UnityEngine.Rendering.Universal
                 base.FinishRendering(cmd);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Mode", 0);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Space", 0);
-                
+                cmd.SetGlobalInt("UNITY_DataExtraction_Value", 0);
+
             }
+
+            public bool IsSelectionMaskRequest => m_Mode == Camera.RenderRequestMode.SelectionMask;
         }
         
 #if UNITY_2021_1_OR_NEWER

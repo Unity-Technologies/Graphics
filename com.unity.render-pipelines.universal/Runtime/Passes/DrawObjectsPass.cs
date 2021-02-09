@@ -24,6 +24,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
+        public RenderStateBlock RenderStateBlock
+        {
+            get => m_RenderStateBlock;
+            set => m_RenderStateBlock = value;
+        }
         public void SetAdditionalKeywords(IEnumerable<string> words)
         {
             m_AdditionalShaderKeywords.Clear();
