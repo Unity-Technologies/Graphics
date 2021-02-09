@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             if (!IsConfigured())
                 return;
 
-            // Support the various context primitive types.
+            // Select the primitive implementation.
             switch (s_Context.taskType)
             {
                 case VFXTaskType.ParticleMeshOutput:

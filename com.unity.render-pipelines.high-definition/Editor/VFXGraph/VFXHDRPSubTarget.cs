@@ -36,7 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var buildVFXFragInputs,
                 out var defineSpaceDescriptor,
                 out var parameterBufferDescriptor,
-                out var additionalDefinesDescriptor
+                out var additionalDefinesDescriptor,
+                out var loadPositionAttributeDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -78,7 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     buildVFXFragInputs,
                     defineSpaceDescriptor,
                     parameterBufferDescriptor,
-                    additionalDefinesDescriptor
+                    additionalDefinesDescriptor,
+                    loadPositionAttributeDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -223,7 +225,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
             out AdditionalCommandDescriptor parameterBufferDescriptor,
-            out AdditionalCommandDescriptor additionalDefinesDescriptor)
+            out AdditionalCommandDescriptor additionalDefinesDescriptor,
+            out AdditionalCommandDescriptor loadPositionAttributeDescriptor)
         {
             // TODO: Collapse as much of this as possible into a single generate header descriptor.
 
@@ -259,11 +262,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             VFXCodeGenerator.BuildParameterBuffer(contextData, out var parameterBuffer);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
 
-            // Defines - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook...
+            // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
             ShaderStringBuilder additionalDefines = new ShaderStringBuilder();
+            foreach (var header in context.additionalDataHeaders)
+                additionalDefines.AppendLine(header);
             foreach (var define in context.additionalDefines)
                 additionalDefines.AppendLine($"#define {define} 1");
             additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());
+
+            // Load Position Attribute
+            loadPositionAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadPositionAttribute", VFXCodeGenerator.GenerateLoadAttribute("position", context).ToString().ToString());
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)

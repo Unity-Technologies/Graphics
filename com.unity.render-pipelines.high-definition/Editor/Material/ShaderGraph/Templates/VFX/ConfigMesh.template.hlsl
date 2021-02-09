@@ -1,4 +1,4 @@
-VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
+void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
 {
     Attributes attributes = (Attributes)0;
 
@@ -42,6 +42,4 @@ VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshTy
 
     // Interpolants Generation
     $splice(VFXInterpolantsGeneration)
-
-    return output;
 }

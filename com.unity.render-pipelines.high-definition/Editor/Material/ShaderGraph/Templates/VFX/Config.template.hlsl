@@ -2,6 +2,9 @@ $splice(VFXDefineSpace)
 
 $splice(VFXDefines)
 
+// Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
+#define HAS_ATTRIBUTES 1
+
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
 #define VFX_OPTIONAL_INTERPOLATION
@@ -32,6 +35,15 @@ CBUFFER_START(outputParams)
     float systemSeed;
 CBUFFER_END
 
+// Helper macros to always use a valid instanceID
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    #define VFX_DECLARE_INSTANCE_ID     UNITY_VERTEX_INPUT_INSTANCE_ID
+    #define VFX_GET_INSTANCE_ID(i)      unity_InstanceID
+#else
+    #define VFX_DECLARE_INSTANCE_ID     uint instanceID : SV_InstanceID;
+    #define VFX_GET_INSTANCE_ID(i)      input.instanceID
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
 
@@ -43,10 +55,9 @@ $splice(VFXGeneratedBlockFunction)
 #define VaryingsMeshType VaryingsMeshToPS
 
 // Support the various VFX Primitive types.
-// TODO: Add the VFX template directory?
+// TODO: Add as new template directory?
 $PrimitiveType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $PrimitiveType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
-
 
 // #ifndef VFX_PRIMITIVE_DEFINED
 // #error Error: No Primitive Defined.
