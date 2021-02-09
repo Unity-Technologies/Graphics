@@ -147,7 +147,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, input.vertex, normalWS);
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, input.vertex.xyz, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
@@ -428,7 +428,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, input.vertex, normalWS);
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, input.vertex.xyz, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
