@@ -145,15 +145,11 @@ namespace UnityEditor.Rendering
         AlbedoDebugValidationPreset _albedoDebugValidationPreset;
         public AlbedoDebugValidationPreset albedoDebugValidationPreset
         {
-            get
-            {
-                return _albedoDebugValidationPreset;
-            }
-
+            get => _albedoDebugValidationPreset;
             set
             {
                 _albedoDebugValidationPreset = value;
-                var presetData = _albedoDebugValidationPresetData[(int)value];
+                AlbedoDebugValidationPresetData presetData = _albedoDebugValidationPresetData[(int)value];
                 AlbedoMinLuminance = presetData.minLuminance;
                 AlbedoMaxLuminance = presetData.maxLuminance;
                 AlbedoCompareColor = presetData.color;
@@ -166,15 +162,15 @@ namespace UnityEditor.Rendering
         float _albedoHueTolerance = 0.104f;
         public float AlbedoHueTolerance
         {
-            get { return _albedoDebugValidationPreset==AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance; }
-            set { _albedoHueTolerance = value; }
+            get => _albedoDebugValidationPreset==AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance;
+            set => _albedoHueTolerance = value;
         }
 
         float _albedoSaturationTolerance = 0.214f;
         public float AlbedoSaturationTolerance
         {
-            get { return _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoSaturationTolerance; }
-            set { _albedoSaturationTolerance = value; }
+            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoSaturationTolerance;
+            set => _albedoSaturationTolerance = value;
         }
 
         public Color AlbedoCompareColor = new Color(127f/255f, 127f/255f, 127f/255f, 255f/255f);
@@ -199,6 +195,9 @@ namespace UnityEditor.Rendering
         }
 
         #region IDebugDisplaySettingsData
+        public bool AreAnySettingsActive => (validationMode != DebugValidationMode.None);
+        public bool IsPostProcessingAllowed => (validationMode == DebugValidationMode.None);
+
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

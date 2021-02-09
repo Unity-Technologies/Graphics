@@ -27,6 +27,12 @@ namespace UnityEditor.Rendering
         }
 
         #region IDebugDisplaySettingsData
+        public bool AreAnySettingsActive => (DebugMaterialIndexData != DebugMaterialIndex.None) ||
+                                             (VertexAttributeDebugIndexData != VertexAttributeDebugMode.None);
+
+        public bool IsPostProcessingAllowed => (DebugMaterialIndexData == DebugMaterialIndex.None) &&
+                                               (VertexAttributeDebugIndexData == VertexAttributeDebugMode.None);
+
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

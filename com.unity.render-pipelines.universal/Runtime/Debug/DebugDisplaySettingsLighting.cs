@@ -29,6 +29,11 @@ namespace UnityEditor.Rendering
         }
 
         #region IDebugDisplaySettingsData
+        public bool AreAnySettingsActive => (m_LightingDebugMode != LightingDebugMode.None) ||
+                                             (m_DebugLightingFeatureMask != DebugLightingFeature.None);
+
+        public bool IsPostProcessingAllowed => true;
+
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

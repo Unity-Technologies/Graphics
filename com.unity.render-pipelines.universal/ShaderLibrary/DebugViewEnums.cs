@@ -34,6 +34,14 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [GenerateHLSL]
+    public enum PostProcessingState
+    {
+        Disabled,
+        Auto,
+        Enabled
+    };
+
+    [GenerateHLSL]
     public enum SceneOverrides
     {
         None,

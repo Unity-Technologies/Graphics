@@ -1108,8 +1108,10 @@ namespace UnityEngine.Rendering.Universal
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
-            DebugDisplaySettingsRendering renderingSettings = DebugDisplaySettings.Instance.renderingSettings;
-            if (renderingSettings.IsEnabled())
+            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
+
+            if (renderingSettings.AreAnySettingsActive)
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
 
@@ -1120,7 +1122,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!renderingSettings.enableHDR)
                     cameraData.isHdrEnabled = false;
 
-                if (!renderingSettings.enablePostProcessing)
+                if (!debugDisplaySettings.IsPostProcessingEnabled)
                     cameraData.postProcessEnabled = false;
 
                 cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
