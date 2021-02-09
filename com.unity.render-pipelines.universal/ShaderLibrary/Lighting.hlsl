@@ -1020,9 +1020,10 @@ half4 CalculateDebugLightingComplexityColor(InputData inputData)
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
 {
     if(_DebugMaterialIndex == DEBUGMATERIALINDEX_LIGHTING_COMPLEXITY)
+    {
         debugColor = CalculateDebugLightingComplexityColor(inputData);
         return true;
-    LIGHT_LOOP_END
+    }
     else
     {
         DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
