@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
                     densityMultiplier = 0.836660027f;
-                    shapeFactor = 0.95f;
+                    shapeFactor = 1.0f;
                     shapeScale = 0.8f;
                     erosionFactor = 0.5f;
                     erosionScale = 1.175f;

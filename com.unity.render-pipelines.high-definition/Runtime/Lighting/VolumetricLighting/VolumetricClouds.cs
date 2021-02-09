@@ -113,10 +113,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2Parameter cloudOffset = new Vector2Parameter(new Vector2(0.0f, 0.0f));
 
         [Tooltip("Altitude of the lowest cloud in meters.")]
-        public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(1500f, 0.01f);
+        public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(500, 0.01f);
 
         [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
-        public MinFloatParameter cloudThickness = new MinFloatParameter(6500.0f, 100.0f);
+        public MinFloatParameter cloudThickness = new MinFloatParameter(3000.0f, 100.0f);
 
         [Tooltip("Controls the number of steps when evaluating the clouds' transmittance.")]
         public ClampedIntParameter numPrimarySteps = new ClampedIntParameter(48, 16, 512);
