@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Unity.Profiling;
+using static UnityEditor.Graphing.NodeUtils;
 
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -209,90 +210,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
                 // should instead flag m_NodesConstantChanged
                 m_NodesPropertyChanged.Add(node);
-            }
-        }
-
-        // temp structures that are kept around statically to avoid GC churn (not thread safe)
-        static Stack<AbstractMaterialNode> m_TempNodeWave = new Stack<AbstractMaterialNode>();
-        static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
-
-        // cache the Action to avoid GC
-        Action<AbstractMaterialNode> AddNextLevelNodesToWave =
-            nextLevelNode =>
-        {
-            if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
-            {
-                m_TempNodeWave.Push(nextLevelNode);
-                m_TempAddedToNodeWave.Add(nextLevelNode);
-            }
-        };
-
-        enum PropagationDirection
-        {
-            Upstream,
-            Downstream
-        }
-
-        // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
-        // sources and result can be the same HashSet
-        private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
-        void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
-        {
-            using (PropagateNodesMarker.Auto())
-                if (sources.Count > 0)
-                {
-                    // NodeWave represents the list of nodes we still have to process and add to result
-                    m_TempNodeWave.Clear();
-                    m_TempAddedToNodeWave.Clear();
-                    foreach (var node in sources)
-                    {
-                        m_TempNodeWave.Push(node);
-                        m_TempAddedToNodeWave.Add(node);
-                    }
-
-                    while (m_TempNodeWave.Count > 0)
-                    {
-                        var node = m_TempNodeWave.Pop();
-                        if (node == null)
-                            continue;
-
-                        result.Add(node);
-
-                        // grab connected nodes in propagation direction, add them to the node wave
-                        ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
-                    }
-
-                    // clean up any temp data
-                    m_TempNodeWave.Clear();
-                    m_TempAddedToNodeWave.Clear();
-                }
-        }
-
-        static void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
-        {
-            using (var tempEdges = PooledList<IEdge>.Get())
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                // Loop through all nodes that the node feeds into.
-                if (dir == PropagationDirection.Downstream)
-                    node.GetOutputSlots(tempSlots);
-                else
-                    node.GetInputSlots(tempSlots);
-
-                foreach (var slot in tempSlots)
-                {
-                    // get the edges out of each slot
-                    tempEdges.Clear();                            // and here we serialize another list, ouch!
-                    node.owner.GetEdges(slot.slotReference, tempEdges);
-                    foreach (var edge in tempEdges)
-                    {
-                        // We look at each node we feed into.
-                        var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
-                        var connectedNode = connectedSlot.node;
-
-                        action(connectedNode);
-                    }
-                }
             }
         }
 

@@ -45,6 +45,11 @@ namespace UnityEditor.ShaderGraph
         public IEnumerable<AbstractShaderProperty> properties => m_Properties.Select(p => p.property);
         public AbstractShaderProperty GetProperty(int index) { return m_Properties[index].property; }
 
+        public void Sort()
+        {
+            m_Properties.Sort((a, b) => String.CompareOrdinal(a.property.referenceName, b.property.referenceName));
+        }
+
         public void SetReadOnly()
         {
             m_ReadOnly = true;
@@ -52,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
         public void BeginTargetCollection(Target target)
         {
-            Debug.Log("Begin Collection for Target " + target.displayName);
+            // Debug.Log("Begin Collection for Target " + target.displayName);
             if (m_Target != null)
                 Debug.LogError("BEGIN TARGET TWICE");
 
@@ -68,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public void EndTargetCollection(Target target)
         {
-            Debug.Log("End Collection for Target " + target.displayName);
+            // Debug.Log("End Collection for Target " + target.displayName);
             if (m_Target != target)
                 Debug.LogError("MISMATCHED END != BEGIN");
             m_Target = null;

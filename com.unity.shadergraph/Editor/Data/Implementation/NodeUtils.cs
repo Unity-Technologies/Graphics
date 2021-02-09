@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Unity.Profiling;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -993,6 +994,92 @@ namespace UnityEditor.Graphing
 
             // For single point precision, reserve 54 spaces (e-45 min + ~9 digit precision). See floating-point-numeric-types (Microsoft docs).
             return value.ToString("0.######################################################", CultureInfo.InvariantCulture);
+        }
+
+        // temp structures that are kept around statically to avoid GC churn (not thread safe)
+        static Stack<AbstractMaterialNode> m_TempNodeWave = new Stack<AbstractMaterialNode>();
+        static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
+
+        // cache the Action to avoid GC
+        static Action<AbstractMaterialNode> AddNextLevelNodesToWave =
+            nextLevelNode =>
+        {
+            if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
+            {
+                m_TempNodeWave.Push(nextLevelNode);
+                m_TempAddedToNodeWave.Add(nextLevelNode);
+            }
+        };
+
+        public enum PropagationDirection
+        {
+            Upstream,
+            Downstream
+        }
+
+        // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
+        // sources and result can be the same HashSet
+        private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
+        public static void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
+        {
+            using (PropagateNodesMarker.Auto())
+            {
+                if (sources.Count > 0)
+                {
+                    // NodeWave represents the list of nodes we still have to process and add to result
+                    m_TempNodeWave.Clear();
+                    m_TempAddedToNodeWave.Clear();
+                    foreach (var node in sources)
+                    {
+                        m_TempNodeWave.Push(node);
+                        m_TempAddedToNodeWave.Add(node);
+                    }
+
+                    while (m_TempNodeWave.Count > 0)
+                    {
+                        var node = m_TempNodeWave.Pop();
+                        if (node == null)
+                            continue;
+
+                        result.Add(node);
+
+                        // grab connected nodes in propagation direction, add them to the node wave
+                        ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
+                    }
+
+                    // clean up any temp data
+                    m_TempNodeWave.Clear();
+                    m_TempAddedToNodeWave.Clear();
+                }
+            }
+        }
+
+        public static void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
+        {
+            using (var tempEdges = PooledList<IEdge>.Get())
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                // Loop through all nodes that the node feeds into.
+                if (dir == PropagationDirection.Downstream)
+                    node.GetOutputSlots(tempSlots);
+                else
+                    node.GetInputSlots(tempSlots);
+
+                foreach (var slot in tempSlots)
+                {
+                    // get the edges out of each slot
+                    tempEdges.Clear();                            // and here we serialize another list, ouch!
+                    node.owner.GetEdges(slot.slotReference, tempEdges);
+                    foreach (var edge in tempEdges)
+                    {
+                        // We look at each node we feed into.
+                        var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
+                        var connectedNode = connectedSlot.node;
+
+                        action(connectedNode);
+                    }
+                }
+            }
         }
     }
 }

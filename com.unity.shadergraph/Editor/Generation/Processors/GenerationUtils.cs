@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph
             interpolatorBuilder.Concat(unpackBuilder);
         }
 
-        internal static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, PassDescriptor pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
+        internal static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
         {
             // Traverse Graph Data
             vertexNodes = Pool.ListPool<AbstractMaterialNode>.Get();
@@ -778,7 +778,6 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
-            PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GenerationMode mode,
             string functionName = "PopulateSurfaceData",
@@ -791,8 +790,6 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            graph.CollectShaderProperties(shaderProperties, mode);
-
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
@@ -800,8 +797,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
-                        shaderProperties, shaderKeywords,
-                        graph, mode);
+                        shaderKeywords, graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
@@ -828,7 +824,6 @@ namespace UnityEditor.ShaderGraph
             List<int> keywordPermutations,
             FunctionRegistry functionRegistry,
             ShaderStringBuilder descriptionFunction,
-            PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GraphData graph,
             GenerationMode mode)
@@ -852,8 +847,6 @@ namespace UnityEditor.ShaderGraph
                 if (keywordPermutations != null)
                     descriptionFunction.AppendLine("#endif");
             }
-
-            activeNode.CollectShaderProperties(shaderProperties, mode);
 
             if (activeNode is SubGraphNode subGraphNode)
             {
@@ -944,7 +937,6 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
-            PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GenerationMode mode,
             AbstractMaterialNode rootNode,
@@ -958,8 +950,6 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            graph.CollectShaderProperties(shaderProperties, mode);
-
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
             {
@@ -967,8 +957,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
-                        shaderProperties, shaderKeywords,
-                        graph, mode);
+                        shaderKeywords, graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
