@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.md). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
 
-* **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > C# Post Process Volume**.
+* **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > HDRP C# Post Process Volume**.
 
 * **FullScreen Shader**: Right click in the Assets folder and select **Create > Shader > HDRP > Post Process**.
 
@@ -12,7 +12,7 @@ Note that by default, your custom effect does not run if you just add it to a Vo
 
 This example shows you how to create a **grayscale** effect. To get started:
 
-1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create > Rendering > C# Post Process Volume**) and call it **GrayScale**. Note that, because of how serialization works in Unity, the file name and the class name must be identical or Unity does not serialize it properly.
+1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create > Rendering > HDRP C# Post Process Volume**) and call it **GrayScale**. Note that, because of how serialization works in Unity, the file name and the class name must be identical or Unity does not serialize it properly.
 
 2. Copy the example code from the [GrayScale C# script section](#CSharp) into your **C# Post Process Volume**.
 

@@ -15,10 +15,12 @@ namespace UnityEditor.ShaderGraph
         Dictionary<string, FunctionSource> m_Sources = new Dictionary<string, FunctionSource>();
         bool m_Validate = false;
         ShaderStringBuilder m_Builder;
+        IncludeCollection m_Includes;
 
-        public FunctionRegistry(ShaderStringBuilder builder, bool validate = false)
+        public FunctionRegistry(ShaderStringBuilder builder, IncludeCollection includes, bool validate = false)
         {
             m_Builder = builder;
+            m_Includes = includes;
             m_Validate = validate;
         }
 
@@ -27,6 +29,16 @@ namespace UnityEditor.ShaderGraph
         public Dictionary<string, FunctionSource> sources => m_Sources;
 
         public List<string> names { get; } = new List<string>();
+
+        public void RequiresIncludes(IncludeCollection includes)
+        {
+            m_Includes.Add(includes);
+        }
+
+        public void RequiresIncludePath(string includePath)
+        {
+            m_Includes.Add(includePath, IncludeLocation.Pregraph);
+        }
 
         public void ProvideFunction(string name, Action<ShaderStringBuilder> generator)
         {
