@@ -26,7 +26,7 @@ Pass
 
     // For custom interpolators to inject a substruct definition before FragInputs definition,
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
-    $splice(sgci_PreInclude)
+    $splice(CustomInterpolatorPreInclude)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"

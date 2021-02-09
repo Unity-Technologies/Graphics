@@ -38,11 +38,11 @@ namespace UnityEditor.ShaderGraph
         [GenerationAPI]
         internal static class Splice
         {
-            internal static string k_splicePreInclude => "sgci_PreInclude";
-            internal static string k_splicePrePacking => "sgci_PrePacking";
-            internal static string k_splicePreSurface => "sgci_PreSurface";
-            internal static string k_splicePreVertex => "sgci_PreVertex";
-            internal static string k_spliceCopyToSDI => "sgci_CopyToSDI";
+            internal static string k_splicePreInclude => "CustomInterpolatorPreInclude";
+            internal static string k_splicePrePacking => "CustomInterpolatorPrePacking";
+            internal static string k_splicePreSurface => "CustomInterpolatorPreSurface";
+            internal static string k_splicePreVertex => "CustomInterpolatorPreVertex";
+            internal static string k_spliceCopyToSDI => "CustomInterpolatorCopyToSDI";
         }
 
         // Describes where/what/how custom interpolator behavior can be achieved through splicing and defines.

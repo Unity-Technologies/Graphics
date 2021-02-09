@@ -1,5 +1,4 @@
 
-
 VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh input)
 {
     VertexDescriptionInputs output;
@@ -41,7 +40,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 }
 
 // This is used for injecting the define below.
-$splice(sgci_PreVertex)
+$splice(CustomInterpolatorPreVertex)
 
 #if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl
 // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
@@ -64,7 +63,7 @@ $splice(sgci_PreVertex)
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
     // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
-    $splice(sgci_VertexDefinitionToVaryings)
+    $splice(CustomInterpolatorVertexDefinitionToVaryings)
 
     return input;
 }

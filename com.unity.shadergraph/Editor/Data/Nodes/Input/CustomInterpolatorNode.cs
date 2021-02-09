@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool ExposeToSearcher { get => false; } // This is exposed in a special way.
 
+        public override bool allowedInSubGraph { get => false; }
+
         internal BlockNode e_targetBlockNode // weak indirection via customBlockNodeName
         {
             get => (owner?.vertexContext.blocks.Find(cib => cib.value.descriptor.name == customBlockNodeName))?.value ?? null;

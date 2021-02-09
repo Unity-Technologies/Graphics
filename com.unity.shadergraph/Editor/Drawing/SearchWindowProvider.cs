@@ -369,7 +369,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
-                else if (blockNode.isCustomBlock == false && contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                else if (contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
                 {
                     return true;
                 }

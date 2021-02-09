@@ -65,7 +65,7 @@ $splice(DotsInstancingVars)
 
 
 // custom interpolator pre-include
-$splice(sgci_PreInclude)
+$splice(sgci_CustomInterpolatorPreInclude)
 
 // Includes
 $splice(PreGraphIncludes)
@@ -74,7 +74,7 @@ $splice(PreGraphIncludes)
 // Structs and Packing
 
 // custom interpolators pre packing
-$splice(sgci_PrePacking)
+$splice(CustomInterpolatorPrePacking)
 
 $splice(PassStructs)
 
@@ -90,13 +90,13 @@ $splice(GraphProperties)
 $splice(GraphFunctions)
 
 // Custom interpolators pre vertex
-$splice(sgci_PreVertex)
+$splice(CustomInterpolatorPreVertex)
 
 // Graph Vertex
 $splice(GraphVertex)
 
 // Custom interpolators, pre surface
-$splice(sgci_PreSurface)
+$splice(CustomInterpolatorPreSurface)
 
 // Graph Pixel
 $splice(GraphPixel)
