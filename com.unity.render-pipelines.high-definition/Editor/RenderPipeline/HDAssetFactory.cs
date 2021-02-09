@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/HDRP Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateHDRenderPipeline()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateRenderPipelineResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Ray Tracing Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Ray Tracing Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateRenderPipelineRayTracingResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Editor Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void CreateRenderPipelineEditorResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
