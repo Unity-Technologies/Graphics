@@ -200,6 +200,11 @@ namespace UnityEditor.VFX
         {
             resource.GetOrCreateGraph().UpdateSubAssets();
         }
+
+        public static bool IsAssetEditable(this VisualEffectResource resource)
+        {
+            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+        }
     }
 
     static class VisualEffectObjectExtensions
