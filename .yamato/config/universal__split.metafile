@@ -1,18 +1,46 @@
 project:
   name: Universal_Split
-all:
+expression_trigger:
+  expression: ""
+pr:
   dependencies:
     - project: URP_2D
-      all: true  
+      pr: true
     - project: URP_Foundation
-      all: true 
+      pr: true
     - project: URP_Lighting
-      all: true 
+      pr: true
     - project: URP_PostPro
-      all: true 
+      pr: true
     - project: URP_Terrain
-      all: true 
+      pr: true
     - project: Universal_Stereo
-      all: true
+      pr: true
     - project: Universal_Hybrid
-      all: true  
+      pr: true
+    - project: VFX_URP
+      pr: true
+    - project: ShaderGraph
+      pr: true
+nightly:
+  dependencies:
+    - project: URP_2D
+      nightly: true
+    - project: URP_Foundation
+      nightly: true
+    - project: URP_Lighting
+      nightly: true
+    - project: URP_PostPro
+      nightly: true
+    - project: URP_Terrain
+      nightly: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: Universal_Hybrid
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
