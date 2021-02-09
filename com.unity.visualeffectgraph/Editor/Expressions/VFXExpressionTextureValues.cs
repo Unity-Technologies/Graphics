@@ -84,4 +84,17 @@ namespace UnityEditor.VFX
             return copy;
         }
     }
+
+    class VFXSkinnedMeshRendererValue : VFXObjectValue
+    {
+        public VFXSkinnedMeshRendererValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.SkinnedMeshRenderer)
+        {
+        }
+
+        sealed public override VFXValue CopyExpression(Mode mode)
+        {
+            var copy = new VFXSkinnedMeshRendererValue(Get(), mode);
+            return copy;
+        }
+    }
 }

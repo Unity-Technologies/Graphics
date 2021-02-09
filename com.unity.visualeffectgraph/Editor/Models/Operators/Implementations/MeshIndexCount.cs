@@ -7,16 +7,16 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider), experimental = true)]
-    class MeshVertexCount : VFXOperator
+    class MeshIndexCount : VFXOperator
     {
         override public string name
         {
             get
             {
                 if (source == SampleMesh.SourceType.Mesh)
-                    return "Mesh Vertex Count";
+                    return "Mesh Index Count";
                 else
-                    return "Skinned Mesh Vertex Count";
+                    return "Skinned Mesh Index Count";
             }
         }
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the number of vertices in the Mesh.")]
+            [Tooltip("The number of indices in this mesh")]
             public uint count;
         }
 
@@ -59,8 +59,8 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var mesh = inputExpression[0].valueType == VFXValueType.Mesh ? inputExpression[0] : new VFXExpressionMeshFromSkinnedMeshRenderer(inputExpression[0]);
-            var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
-            return new VFXExpression[] { meshVertexCount };
+            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+            return new VFXExpression[] { meshIndexCount };
         }
     }
 }
