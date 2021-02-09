@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            var inspector = VFXSubTarget.IsConfigured() ? HDVFXSubTarget.Inspector : customInspector;
+            var inspector = VFXSubTarget.IsConfigured() ? VFXHDRPSubTarget.Inspector : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
                 context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 

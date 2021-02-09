@@ -9,11 +9,11 @@ using UnityEditor.VFX;
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     [InitializeOnLoad]
-    static class HDVFXSubTarget
+    static class VFXHDRPSubTarget
     {
         internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
 
-        static HDVFXSubTarget()
+        static VFXHDRPSubTarget()
         {
             VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;
         }
