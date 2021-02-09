@@ -1,19 +1,14 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
-using System.Linq;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.UIElements;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityObject = UnityEngine.Object;
-using System.IO;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.VersionControl;
+using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
@@ -43,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
+        [MenuItem("Window/VFX/VFX Graph", false, 3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();

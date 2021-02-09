@@ -52,7 +52,6 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.GlobalIllumination;
             deferredParameters.diffuseLightingOnly = true;
-
             deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
 
@@ -81,10 +80,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
             // Override the ones we need to
-            deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.raytracingCB._RaytracingPreExposition = 1;
-            deferredParameters.raytracingCB._RaytracingIncludeSky = 1;
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
+            deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
+            deferredParameters.raytracingCB._RaytracingIncludeSky = 1;
+            deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
 
             return deferredParameters;
