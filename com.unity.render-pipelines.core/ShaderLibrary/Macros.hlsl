@@ -8,6 +8,12 @@
 
 // These define are use to abstract the way we sample into a cubemap array.
 // Some platform don't support cubemap array so we fallback on 2D latlong
+// #note wondering if we could control it ourselves in URP either per-platform or based on having the Subshader that supports the compute path.
+//   See BuildTargetPlatformSpecific.cpp::DoesTargetPlatformSupportCubemapArray in trunk. Changing it here would affect both HDRP and built-in too though...
+//#if SHADER_TARGET < 50
+#define UNITY_NO_CUBEMAP_ARRAY
+//#endif
+
 #ifdef  UNITY_NO_CUBEMAP_ARRAY
 #define TEXTURECUBE_ARRAY_ABSTRACT TEXTURE2D_ARRAY
 #define TEXTURECUBE_ARRAY_PARAM_ABSTRACT TEXTURE2D_ARRAY_PARAM
