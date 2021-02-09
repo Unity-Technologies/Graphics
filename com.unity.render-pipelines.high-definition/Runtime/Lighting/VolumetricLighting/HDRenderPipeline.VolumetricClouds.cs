@@ -221,10 +221,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.StormClouds:
                 {
-                    densityMultiplier = 0.632455532f;
+                    densityMultiplier = 0.3f;
                     shapeFactor = 0.7f;
                     shapeScale = 0.875f;
-                    erosionFactor = 0.6f;
+                    erosionFactor = 0.4f;
                     erosionScale = 1.0f;
                     return;
                 }
