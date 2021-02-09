@@ -580,6 +580,14 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(postProcessPass);
             }
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+            {
+                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+                srp.BindProbeVolumeRuntimeResources(cmd);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+
 #if UNITY_EDITOR
             if (isSceneViewCamera)
             {

@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
             probeVolumeSHBands = asset.probeVolumeSHBands;
         }
 
-        private void BindProbeVolumeRuntimeResources(CommandBuffer cmdBuffer)
+        public void BindProbeVolumeRuntimeResources(CommandBuffer cmdBuffer)
         {
             bool needToBindNeutral = true;
 

@@ -357,10 +357,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
-
-                var srp = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-                srp.BindProbeVolumeRuntimeResources(cmd);
-
+                
                 using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
