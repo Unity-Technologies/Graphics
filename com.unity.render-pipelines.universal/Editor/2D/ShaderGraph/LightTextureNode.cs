@@ -15,6 +15,13 @@ namespace _2D.ShaderGraph
         LightTexture3,
     }
 
+    // IsNodeAllowedByTarget
+    // we can make a big node with a lot of output but no code culling
+    // use geneerate code to output the refactored line
+    //
+    // need CollectShaderProperty? don't need, because it is not expose to user
+    // customize preview: see colornode for example
+
     [Title("Input", "2D", "Light Texture")]
     class LightTextureNode :  AbstractMaterialNode
     {
@@ -58,16 +65,16 @@ namespace _2D.ShaderGraph
             return $"UnityBuildTexture2DStructNoScale({GetVariableName()})";
         }
 
-        // public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        // {
-        //     properties.AddShaderProperty(new Texture2DShaderProperty()
-        //     {
-        //         overrideReferenceName = GetVariableName(),
-        //         generatePropertyBlock = true,
-        //         // value = m_Texture,
-        //         modifiable = false
-        //     });
-        // }
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            properties.AddShaderProperty(new Texture2DShaderProperty()
+            {
+                overrideReferenceName = GetVariableName(),
+                generatePropertyBlock = false,
+                // value = m_Texture,
+                modifiable = false
+            });
+        }
 
         public int outputSlotId => OutputSlotId;
     }

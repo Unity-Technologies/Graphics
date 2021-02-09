@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
-                keywords = SpriteLitKeywords.Lit,
+                // keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
             };
 
@@ -221,23 +221,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
         #endregion
 
-        #region Keywords
-        static class SpriteLitKeywords
-        {
-            public static KeywordCollection Lit = new KeywordCollection
-            {
-                { CoreKeywordDescriptors.ShapeLightType0 },
-                { CoreKeywordDescriptors.ShapeLightType1 },
-                { CoreKeywordDescriptors.ShapeLightType2 },
-                { CoreKeywordDescriptors.ShapeLightType3 },
-            };
-        }
-        #endregion
+        // #region Keywords
+        // static class SpriteLitKeywords
+        // {
+        //     public static KeywordCollection Lit = new KeywordCollection
+        //     {
+        //         { CoreKeywordDescriptors.ShapeLightType0 },
+        //         { CoreKeywordDescriptors.ShapeLightType1 },
+        //         { CoreKeywordDescriptors.ShapeLightType2 },
+        //         { CoreKeywordDescriptors.ShapeLightType3 },
+        //     };
+        // }
+        // #endregion
 
         #region Includes
         static class SpriteLitIncludes
         {
-            const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
+            const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
+            // const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
             const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
             const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl";
@@ -248,11 +249,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { k2DLightingUtil, IncludeLocation.Pregraph },
+                // { k2DLightingUtil, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
-                { kSpriteLitPass, IncludeLocation.Postgraph },
+                // { kSpriteLitPass, IncludeLocation.Postgraph },
+                { kUnlitPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Normal = new IncludeCollection
