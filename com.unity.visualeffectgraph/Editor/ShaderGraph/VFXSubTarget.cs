@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.VFX
@@ -34,6 +34,13 @@ namespace UnityEditor.VFX
         {
             // TODO: Move generic VFX sub shader processing in here and break up the callback into SRP-specific portions (like FragInputs struct).
             return OnPostProcessSubShader?.Invoke(descriptor, s_Context, s_Data) ?? descriptor;
+        }
+
+        internal static void GetFields(ref TargetFieldContext fieldsContext)
+        {
+            fieldsContext.AddField(Fields.GraphVFX, IsConfigured());
+
+            // Configure the primitive
         }
     }
 }

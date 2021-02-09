@@ -181,7 +181,7 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
-	$features.graphVFX:     $include("VFXModification.template.hlsl")
+	$features.graphVFX:     $include("VFX/Config.template.hlsl")
     $features.graphVertex:  $include("VertexAnimation.template.hlsl")
     $features.graphPixel:   $include("SharedCode.template.hlsl")
 
