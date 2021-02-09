@@ -1,0 +1,52 @@
+trackSelection = true
+fetchPreview = true
+wantsMore = false
+keepOpen = false
+itemIconSize = 1
+queryFolder = "Assets"
+onBoardingDoNotAskAgain = true
+showPackageIndexes = false
+showStatusBar = false
+debounceMs = 250
+scopes = {
+}
+providers = {
+	asset = {
+		active = true
+		priority = 25
+		defaultAction = null
+	}
+	store = {
+		active = true
+		priority = 100
+		defaultAction = null
+	}
+	find = {
+		active = true
+		priority = 25
+		defaultAction = null
+	}
+	log = {
+		active = false
+		priority = 210
+		defaultAction = null
+	}
+	packages = {
+		active = true
+		priority = 90
+		defaultAction = null
+	}
+	scene = {
+		active = true
+		priority = 50
+		defaultAction = null
+	}
+	query = {
+		active = true
+		priority = 100
+		defaultAction = null
+	}
+}
+recentSearches = [
+]
+savedSearchesSortOrder = 0
