@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     skyIntensity *= multiplier.value;
                     break;
                 case SkyIntensityMode.Lux:
-                    skyIntensity *= desiredLuxValue.value / upperHemisphereLuxValue.value;
+                    skyIntensity *= desiredLuxValue.value / Mathf.Max(upperHemisphereLuxValue.value, 1e-5f);
                     break;
             }
             return skyIntensity;
