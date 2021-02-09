@@ -210,7 +210,7 @@ EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint c
     ZERO_INITIALIZE(EntityLookupParameters, params);
 
     params.dwordIndex = 0;
-    params.dwordCount = s_BoundedEntityDwordCountPerCategory[category];
+    params.dwordCount = _BoundedEntityDwordCountPerCategory[category].x;
     params.depthSorted = IsDepthSorted(category);
 
     if (params.dwordCount > 0)

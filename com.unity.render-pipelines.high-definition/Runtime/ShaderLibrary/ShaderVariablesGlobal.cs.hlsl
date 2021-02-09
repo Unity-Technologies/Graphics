@@ -109,12 +109,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;
-    uint4 _BoundedEntityCountPerCategory[2];
-    uint4 _BoundedEntityOffsetPerCategory[2];
-    uint4 _BoundedEntityDwordCountPerCategory[2];
-    uint4 _BoundedEntityDwordOffsetPerCategory[2];
-    uint4 _BoundedEntityZBinDwordCountPerCategory[2];
-    uint4 _BoundedEntityZBinDwordOffsetPerCategory[2];
+    uint4 _BoundedEntityCountPerCategory[5];
+    uint4 _BoundedEntityOffsetPerCategory[5];
+    uint4 _BoundedEntityDwordCountPerCategory[5];
+    uint4 _BoundedEntityDwordOffsetPerCategory[5];
+    uint4 _BoundedEntityZBinDwordCountPerCategory[5];
+    uint4 _BoundedEntityZBinDwordOffsetPerCategory[5];
     int2 _CoarseTileBufferDimensions;
     int2 _FineTileBufferDimensions;
     uint _NumTileFtplX;

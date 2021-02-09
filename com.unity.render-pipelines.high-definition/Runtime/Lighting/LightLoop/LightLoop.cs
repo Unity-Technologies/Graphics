@@ -3948,10 +3948,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Binned lighting
             for (int i = 0; i < (int)BoundedEntityCategory.Count; i++)
             {
-                cb._BoundedEntityCountPerCategory[i] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
-                cb._BoundedEntityDwordCountPerCategory[i] = (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
+                cb._BoundedEntityCountPerCategory[i * 4] = (uint)m_BoundedEntityCollection.GetEntityCount((BoundedEntityCategory)i);
+                cb._BoundedEntityDwordCountPerCategory[i * 4] = (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i * 4], 32);
                 // depth sorted categories only use 1 DWORD with start and end indices compressed into 32 bits.
-                cb._BoundedEntityZBinDwordCountPerCategory[i] = IsDepthSorted((BoundedEntityCategory)i) ? 1 : (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i], 32);
+                cb._BoundedEntityZBinDwordCountPerCategory[i * 4] = IsDepthSorted((BoundedEntityCategory)i) ? 1 : (uint)HDUtils.DivRoundUp((int)cb._BoundedEntityCountPerCategory[i * 4], 32);
             }
 
             cb._BoundedEntityOffsetPerCategory[0] = 0;
@@ -3959,14 +3959,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 1; i < (int)BoundedEntityCategory.Count; i++)
             {
-                cb._BoundedEntityOffsetPerCategory[i] = cb._BoundedEntityOffsetPerCategory[i - 1] + cb._BoundedEntityCountPerCategory[i - 1];
-                cb._BoundedEntityDwordOffsetPerCategory[i] = cb._BoundedEntityDwordOffsetPerCategory[i - 1] + cb._BoundedEntityDwordCountPerCategory[i - 1];
-                cb._BoundedEntityZBinDwordOffsetPerCategory[i] = cb._BoundedEntityZBinDwordOffsetPerCategory[i - 1] + cb._BoundedEntityZBinDwordCountPerCategory[i - 1];
+                cb._BoundedEntityOffsetPerCategory[i * 4] = cb._BoundedEntityOffsetPerCategory[(i - 1) * 4] + cb._BoundedEntityCountPerCategory[(i - 1) * 4];
+                cb._BoundedEntityDwordOffsetPerCategory[i * 4] = cb._BoundedEntityDwordOffsetPerCategory[(i - 1) * 4] + cb._BoundedEntityDwordCountPerCategory[(i - 1) * 4];
+                cb._BoundedEntityZBinDwordOffsetPerCategory[i * 4] = cb._BoundedEntityZBinDwordOffsetPerCategory[(i - 1) * 4] + cb._BoundedEntityZBinDwordCountPerCategory[(i - 1) * 4];
             }
 
             int elementsPerTile = HDUtils.DivRoundUp(m_TileEntryLimit, 32); // Each element is a DWORD
-            int dwordsRequired  = (int)cb._BoundedEntityDwordOffsetPerCategory[(int)BoundedEntityCategory.Count - 1]
-                + (int)cb._BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count - 1];
+            int dwordsRequired  = (int)cb._BoundedEntityDwordOffsetPerCategory[((int)BoundedEntityCategory.Count - 1) * 4]
+                + (int)cb._BoundedEntityDwordCountPerCategory[((int)BoundedEntityCategory.Count - 1) * 4];
 
             Debug.Assert(dwordsRequired <= elementsPerTile, "Insufficient allocation of tile memory. Tiled/binned lighting may experience graphical corruption. Increase 'Tile entry limit' in the Lighting section of your HDRP asset.");
 

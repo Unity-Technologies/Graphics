@@ -123,9 +123,9 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint cat = groupID.y;
     const uint eye = groupID.z;
 
-    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
-    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
-    const uint dwordCount  = s_BoundedEntityDwordCountPerCategory[cat];
+    const uint entityIndex = _BoundedEntityOffsetPerCategory[cat].x;
+    const uint entityCount = _BoundedEntityCountPerCategory[cat].x;
+    const uint dwordCount  = _BoundedEntityDwordCountPerCategory[cat].x;
 
     if (dwordCount == 0) return;
 
@@ -640,7 +640,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
 
-    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[cat];
+    const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
 
     if (dwordCount == 0) return;
 
@@ -704,7 +704,7 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
 
-    const uint dwordCount = s_BoundedEntityDwordCountPerCategory[cat];
+    const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
 
     if (dwordCount == 0) return;
 

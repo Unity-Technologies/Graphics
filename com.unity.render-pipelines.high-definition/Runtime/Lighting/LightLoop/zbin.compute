@@ -22,7 +22,7 @@ StructuredBuffer<float2> _wBoundsBuffer; // {w_min, w_max}
 // For example (1080p): 8192 * 256 / 32 * 1 * 4 = 256KiB
 // For categories that can be depth sorted there is a single DWORD per zbin
 // where last and first entity indices packed as follows {last << 16 | first}
-RWStructuredBuffer<uint> _zBinBuffer; 
+RWStructuredBuffer<uint> _zBinBuffer;
 
 /* ------------------------------ Utilities --------------------------------- */
 
@@ -54,14 +54,14 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint bin = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
 
     // Entities are sorted by category.
-    const uint entityIndex = s_BoundedEntityOffsetPerCategory[cat];
-    const uint entityCount = s_BoundedEntityCountPerCategory[cat];
+    const uint entityIndex = _BoundedEntityOffsetPerCategory[cat].x;
+    const uint entityCount = _BoundedEntityCountPerCategory[cat].x;
 
     if (entityCount > 0) // Avoid wasted work
     {
         const float2 binBounds  = ComputeZBinLinearDepthBounds(bin, rcp(_ZBufferParams.w));
         const uint   inputStart = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-		
+
 		if (!IsDepthSorted(cat)) // not sorted by depth
 		{
 			const uint ZBinBufferOffset = ComputeZBinBufferIndex(bin, cat, eye);
