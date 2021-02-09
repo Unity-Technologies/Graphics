@@ -27,9 +27,9 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
-To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md).
+To set up HDRP, use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
-1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
+1. Open the Render Pipeline Wizard window (menu **Window > Rendering > HD Render Pipeline Wizard**).
 
 2. In the **Configuration Checking** section, go to the **HDRP** tab and click **Fix All**. This fixes every HDRP configuration issue with your Project.
 
@@ -168,4 +168,3 @@ HDRP no longer supports the **Post Processing** package and instead includes its
 Now the Scene in the Game view should look like this:
 
 ![](Images/UpgradingToHDRP3.png)
-
