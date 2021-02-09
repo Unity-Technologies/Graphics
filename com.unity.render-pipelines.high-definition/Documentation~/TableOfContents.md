@@ -1,8 +1,8 @@
 * [High Definition Render Pipeline](index.md)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10](whats-new-10.md)
-  * [11](whats-new-11.md)
+  * [10 / Unity 2020.2](whats-new-10.md)
+  * [11 / Unity 2021.1](whats-new-11.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
