@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
 - Added new setting in "Preferences -> Visual Effects" to control the fallback behavior of camera buffers from MainCamera node when the main camera is not rendered.
+- Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
+- Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 
 ### Fixed
 - Prevent creation of subgraph containing only partial systems [Case 1284053](https://issuetracker.unity3d.com/product/unity/issues/guid/1284053/)
@@ -22,14 +24,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - pCache: Unexpected ditable field in Mesh Statistics, Save & Cancel pCache, error trying to access not readable texture [Case 1122417](https://issuetracker.unity3d.com/product/unity/issues/guid/1122417/)
 - Handle correctly locked VisualEffectAsset with version control system [Case 1261051](https://issuetracker.unity3d.com/product/unity/issues/guid/1261051/)
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
+- Sample Mesh Color when value is stored as float.
 
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
+
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+- Serialization issue with VFXSpawnerCallbacks
+- Unexpected exception while trying to display capacity warning [Case 1294180](https://issuetracker.unity3d.com/product/unity/issues/guid/1294180/)
+- Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
