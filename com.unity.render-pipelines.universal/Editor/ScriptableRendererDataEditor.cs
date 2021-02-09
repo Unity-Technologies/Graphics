@@ -180,7 +180,6 @@ namespace UnityEditor.Rendering.Universal
         [SerializeField] private bool falseBool = false;
         List<Editor> m_Editors = new List<Editor>();
 
-        //static int mField = 0;
         string[] options = {};
         private void OnEnable()
         {

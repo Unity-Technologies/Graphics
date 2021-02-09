@@ -299,20 +299,72 @@ namespace UnityEditor.Rendering.Universal
             base.OnHeaderGUI();
 
             // New button in header to assign asset
-            Rect fullRect = EditorGUILayout.GetControlRect();
-            float titleHeight = EditorGUIUtility.singleLineHeight + 5;
-            Rect titleRect = new Rect(fullRect.x, fullRect.y, fullRect.width, titleHeight);
-            if (GUI.Button(titleRect, "Assign to Project Settings - Graphics"))
+            EditorGUILayout.BeginVertical();
+
+            if (GUILayout.Button("Assign to Project Settings - Graphics"))
             {
+                var asset = (RenderPipelineAsset)target;
+                var pipelineAsset = GraphicsSettings.defaultRenderPipeline;
+                string message = "";
+                string buttonText = "";
+                if (pipelineAsset == null)
+                {
+                    message = $"This will assign {asset.name} to the current Graphics Settings.\nRight now nothing is assigned. Do you want to assign this asset?";
+                    buttonText = "Assign";
+                }
+                else
+                {
+                    message = $"This will assign {asset.name} to the current Graphics Settings.\nRight now {pipelineAsset.name} is assigned. Do you want to replace it?";
+                    buttonText = "Replace";
+                }
+
                 if (GraphicsSettings.defaultRenderPipeline != (RenderPipelineAsset)target)
                 {
-                    // Reflection to be able to get the GraphicSettings Object.
-                    // We need the object to do record an Undo action here when switching RenderPipelineAsset
-                    Object obj = GraphicsSettings.GetGraphicsSettings();
-                    Undo.RecordObject(obj, $"Assigned {target.name}");
-                    GraphicsSettings.defaultRenderPipeline = target as RenderPipelineAsset;
+                    if (EditorUtility.DisplayDialog("Assign to Graphics Setting", message, buttonText, "Cancel"))
+                    {
+                        // Reflection to be able to get the GraphicSettings Object.
+                        // We need the object to do record an Undo action here when switching RenderPipelineAsset
+                        Object obj = GraphicsSettings.GetGraphicsSettings();
+                        Undo.RecordObject(obj, $"Assigned {target.name}");
+                        GraphicsSettings.defaultRenderPipeline = target as RenderPipelineAsset;
+                    }
                 }
             }
+
+            if (GUILayout.Button("Assign to Quality Settings"))
+            {
+                var asset = (RenderPipelineAsset)target;
+                var qualityAsset = QualitySettings.renderPipeline;
+                string message = "";
+                string buttonText = "";
+                if (qualityAsset == null)
+                {
+                    message = $"This will assign {asset.name} to the current Quality Settings.\nRight now nothing is assigned. Do you want to assign this asset?";
+                    buttonText = "Assign";
+                }
+                else
+                {
+                    message = $"This will assign {asset.name} to the current Quality Settings.\nRight now {qualityAsset.name} is assigned. Do you want to replace it?";
+                    buttonText = "Replace";
+                }
+
+                if (QualitySettings.renderPipeline != asset)
+                {
+                    if (EditorUtility.DisplayDialog("Assign to Quality Setting", message, buttonText, "Cancel"))
+                    {
+                        // Reflection to be able to get the QualitySettings Object.
+                        // We need the object to do record an Undo action here when switching RenderPipelineAsset
+                        Object obj = QualitySettings.GetQualitySettings();
+                        Undo.RecordObject(obj, $"Assigned {asset.name}");
+                        QualitySettings.renderPipeline = asset;
+                    }
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+
+            // Need to add some padding here because the addressables tickbox has taken up ome space so it squishes this button otherwise
+            GUILayout.Space(15f);
         }
 
         void DrawLightingSettings()

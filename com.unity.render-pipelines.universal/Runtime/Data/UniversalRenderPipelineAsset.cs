@@ -521,7 +521,12 @@ namespace UnityEngine.Rendering.Universal
             // Check if it exists
             if (CanRemoveFromRendererDataList(rendererData))
             {
-                UpdateDefaultRendererValue(RendererDataIndex(rendererData));
+                int index = RendererDataIndex(rendererData);
+                if (index != -1)
+                {
+                    UpdateDefaultRendererValue(index);
+                }
+
                 // Lets remove the renderer data
                 var rendererDataList = new List<ScriptableRendererData>(m_RendererDataList);
                 rendererDataList.Remove(rendererData);
