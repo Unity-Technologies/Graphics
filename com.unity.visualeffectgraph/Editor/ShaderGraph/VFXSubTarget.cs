@@ -10,6 +10,13 @@ namespace UnityEditor.VFX
         private static VFXContext             s_Context;
         private static VFXContextCompiledData s_Data;
 
+        static class VFXFields
+        {
+            public const string kTag = "PrimitiveType";
+            public static FieldDescriptor ParticleMesh            = new FieldDescriptor(kTag, "Mesh",            "VFX_PARTICLE_MESH 1");
+            public static FieldDescriptor ParticlePlanarPrimitive = new FieldDescriptor(kTag, "PlanarPrimitive", "VFX_PARTICLE_PLANAR_PRIMITIVE 1");
+        }
+
         public static event Func<SubShaderDescriptor, VFXContext, VFXContextCompiledData, SubShaderDescriptor> OnPostProcessSubShader;
 
         internal class CompilationScope : IDisposable
@@ -40,7 +47,18 @@ namespace UnityEditor.VFX
         {
             fieldsContext.AddField(Fields.GraphVFX, IsConfigured());
 
-            // Configure the primitive
+            // Support the various context primitive types.
+            switch (s_Context.taskType)
+            {
+                case VFXTaskType.ParticleMeshOutput:
+                    fieldsContext.AddField(VFXFields.ParticleMesh);
+                    break;
+                case VFXTaskType.ParticleTriangleOutput:
+                case VFXTaskType.ParticleOctagonOutput:
+                case VFXTaskType.ParticleQuadOutput:
+                    fieldsContext.AddField(VFXFields.ParticlePlanarPrimitive);
+                    break;
+            }
         }
     }
 }

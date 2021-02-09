@@ -44,4 +44,10 @@ $splice(VFXGeneratedBlockFunction)
 
 // Support the various VFX Primitive types.
 // TODO: Add the VFX template directory?
-$include("VFX/ConfigMesh.template.hlsl")
+$PrimitiveType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
+$PrimitiveType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
+
+
+// #ifndef VFX_PRIMITIVE_DEFINED
+// #error Error: No Primitive Defined.
+// #endif
