@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Create a toggleable header for material UI, must be used within a scope.
@@ -30,15 +30,16 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Creates a material header scope to display the foldout in the material UI.
         /// </summary>
-        /// <param name="title">Title of the header.</param>
+        /// <param name="title">GUI Content of the header.</param>
         /// <param name="bitExpanded">Bit index which specifies the state of the header (whether it is open or collapsed) inside Editor Prefs.</param>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
         /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
         /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
-        public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
+        /// <param name="defaultExpandedState">The default state if the header is not present</param>
+        internal MaterialHeaderScope(GUIContent title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default, bool subHeader = false, uint defaultExpandedState = uint.MaxValue)
         {
-            bool beforeExpended = materialEditor.GetExpandedAreas(bitExpanded);
+            bool beforeExpanded = materialEditor.IsAreaExpanded(bitExpanded, defaultExpandedState);
 
 #if !UNITY_2020_1_OR_NEWER
             oldIndentLevel = EditorGUI.indentLevel;
@@ -51,12 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.BeginVertical();
 
             bool saveChangeState = GUI.changed;
-            if (colorDot != default(Color))
-                title = "   " + title;
+            if (colorDot != default)
+                title.text = "   " + title.text;
             expanded = subHeader
-                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended, isBoxed: false)
-                : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
-            if (colorDot != default(Color))
+                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpanded, isBoxed: false)
+                : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpanded);
+            if (colorDot != default)
             {
                 Rect dotRect = GUILayoutUtility.GetLastRect();
                 dotRect.width = 5;
@@ -65,15 +66,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 dotRect.x += 17;
                 EditorGUI.DrawRect(dotRect, colorDot);
             }
-            if (expanded ^ beforeExpended)
+            if (expanded ^ beforeExpanded)
             {
-                materialEditor.SetExpandedAreas((uint)bitExpanded, expanded);
+                materialEditor.SetIsAreaExpanded((uint)bitExpanded, expanded);
                 saveChangeState = true;
             }
             GUI.changed = saveChangeState;
 
             if (expanded)
                 ++EditorGUI.indentLevel;
+        }
+
+        /// <summary>
+        /// Creates a material header scope to display the foldout in the material UI.
+        /// </summary>
+        /// <param name="title">Title of the header.</param>
+        /// <param name="bitExpanded">Bit index which specifies the state of the header (whether it is open or collapsed) inside Editor Prefs.</param>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
+        /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
+        /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
+        /// <param name="keyPrefix">The key prefix for the preferences</param>
+        public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default, bool subHeader = false)
+            : this(EditorGUIUtility.TrTextContent(title, string.Empty), bitExpanded, materialEditor, spaceAtEnd, colorDot, subHeader)
+        {
         }
 
         /// <summary>Disposes of the material scope header and cleans up any resources it used.</summary>
