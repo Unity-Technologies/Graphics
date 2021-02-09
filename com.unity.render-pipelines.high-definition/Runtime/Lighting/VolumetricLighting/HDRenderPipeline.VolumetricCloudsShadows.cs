@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, true);
+                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, true, false);
                 int shadowResolution = (int)settings.shadowResolution.value;
                 passData.shadowTexture = builder.WriteTexture(renderGraph.ImportTexture(currentHandle));
 

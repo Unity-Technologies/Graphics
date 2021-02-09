@@ -155,6 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalWidth;
             public int finalHeight;
             public int viewCount;
+            public bool historyValidity;
             public Vector2Int previousViewportSize;
 
             // Static textures
@@ -310,7 +311,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // The density multiplier is not used linearly
-                cb._DensityMultiplier = settings.densityMultiplier.value * settings.densityMultiplier.value;
+                float densityMultiplier = settings.densityMultiplier.value * 2.0f;
+                cb._DensityMultiplier = densityMultiplier * densityMultiplier;
                 cb._ShapeFactor = settings.shapeFactor.value;
                 cb._ShapeScale = Mathf.Lerp(0.5f, 2.0f, settings.shapeScale.value);
                 cb._ErosionFactor = settings.erosionFactor.value;
@@ -378,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return Texture2D.blackTexture;
         }
 
-        VolumetricCloudsParameters PrepareVolumetricCloudsParameters(HDCamera hdCamera, VolumetricClouds settings, HDUtils.PackedMipChainInfo info, bool shadowPass)
+        VolumetricCloudsParameters PrepareVolumetricCloudsParameters(HDCamera hdCamera, VolumetricClouds settings, HDUtils.PackedMipChainInfo info, bool shadowPass, bool historyValidity)
         {
             VolumetricCloudsParameters parameters = new VolumetricCloudsParameters();
             // We need to make sure that the allocated size of the history buffers and the dispatch size are perfectly equal.
@@ -395,7 +397,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.traceHeight = Mathf.RoundToInt(0.25f * hdCamera.actualHeight);
             parameters.viewCount = hdCamera.viewCount;
             parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
-
+            parameters.historyValidity = historyValidity;
+            
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
             parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;
@@ -487,6 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsReproject)))
             {
+                if (!parameters.historyValidity)
+                    CoreUtils.SetRenderTarget(cmd, previousHistory1Buffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
+
                 // Re-project the result from the previous frame
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.reprojectKernel, HDShaderIDs._CloudsLightingTexture, intermediateLightingBuffer0);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.reprojectKernel, HDShaderIDs._CloudsDepthTexture, intermediateDepthBuffer1);
@@ -542,6 +548,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateBufferDepth1;
         }
 
+        private bool EvaluateVolumetricCloudsHistoryValidity(HDCamera hdCamera)
+        {
+            // Evaluate the history validity
+            return hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, false, false);
+        }
+
+        private void PropagateVolumetricCloudsHistoryValidity(HDCamera hdCamera)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, false, false);
+        }
+
         TextureHandle TraceVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting, HDUtils.PackedMipChainInfo info)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
@@ -549,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
-                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, false);
+                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, false, EvaluateVolumetricCloudsHistoryValidity(hdCamera));
                 passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
@@ -587,7 +604,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
-            if (hdCamera.volumetricCloudsAnimationData.lastTime == -1.0f)
+            // The system needs to be reset if this is the first frame or the history is not from the previous frame
+            if (hdCamera.volumetricCloudsAnimationData.lastTime == -1.0f || !EvaluateVolumetricCloudsHistoryValidity(hdCamera))
             {
                 // This is the first frame for the system
                 hdCamera.volumetricCloudsAnimationData.lastTime = hdCamera.time;
@@ -629,6 +647,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Render the clouds
             TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting, info);
+
+            // Make sure to mark the history frame index validity.
+            PropagateVolumetricCloudsHistoryValidity(hdCamera);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo info)
