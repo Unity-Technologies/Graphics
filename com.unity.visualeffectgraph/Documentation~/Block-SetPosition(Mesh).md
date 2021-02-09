@@ -6,7 +6,7 @@ Menu Path : **Position > Set Position (Mesh)**
 
 Menu Path : **Position > Set Position (Skinned Mesh)**
 
-The **Set Position (Mesh)** block calculates a position based on mesh vertex data and stores the result in the [position attribute](Reference-Attributes.md), based on composition. 
+The **Set Position (Mesh)** block calculates a position based on mesh vertex data and stores the result in the [position attribute](Reference-Attributes.md), based on composition.
 
 
 This Block also calculates a direction vector based on the mesh normal, and stores it to the [direction attribute](Reference-Attributes.md), based on composition.
