@@ -39,11 +39,11 @@ TagManager:
   - 
   m_SortingLayers:
   - name: BG
-    uniqueID: 1467562019
+    uniqueID: 3756855275
     locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
   - name: FG
-    uniqueID: 254240101
+    uniqueID: 116359401
     locked: 0

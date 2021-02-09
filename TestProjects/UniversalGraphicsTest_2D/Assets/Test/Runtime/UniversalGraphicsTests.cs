@@ -1,13 +1,11 @@
+using NUnit.Framework;
 using System.Collections;
 using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
-using UnityEngine.XR;
-using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
 
 public class UniversalGraphicsTests
 {
@@ -15,13 +13,12 @@ public class UniversalGraphicsTests
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
+
     public const string universalPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("UniversalRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(universalPackagePath)]
-
-
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
@@ -33,38 +30,17 @@ public class UniversalGraphicsTests
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
+        int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
+
         Scene scene = SceneManager.GetActiveScene();
 
-        if (scene.name.Substring(3, 4).Equals("_xr_"))
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo Universal tests do not run on MacOSX.");
+        yield return null;
 
-            XRSettings.LoadDeviceByName("MockHMD");
-            yield return null;
+        if (settings.ImageComparisonSettings.UseBackBuffer && waitFrames < 1)
+            waitFrames = 1;
 
-            XRSettings.enabled = true;
-            yield return null;
-
-            XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
-            yield return null;
-
-            foreach (var camera in cameras)
-                camera.stereoTargetEye = StereoTargetEyeMask.Both;
-#else
-            yield return null;
-#endif
-        }
-        else
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            XRSettings.enabled = false;
-#endif
-            yield return null;
-        }
-
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
 #if UNITY_ANDROID
         // On Android first scene often needs a bit more frames to load all the assets
@@ -73,7 +49,7 @@ public class UniversalGraphicsTests
         {
             for(int i = 0; i < firstSceneAdditionalFrames; i++)
             {
-                yield return null;
+                yield return new WaitForEndOfFrame();
             }
             wasFirstSceneRan = true;
         }
@@ -85,25 +61,17 @@ public class UniversalGraphicsTests
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
-        // 2D Renderer is currently allocating memory, skip it as it will always fail GC alloc tests.
-        var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
-        bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
-        
-        // Post-processing is allocating memory. Case https://fogbugz.unity3d.com/f/cases/1227490/
-        bool isPostProcessingEnabled = additionalCameraData.renderPostProcessing;
-        if (!is2DRenderer && !isPostProcessingEnabled)
+        try
         {
-            try
-            {
-                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-            }
-            catch (AssertionException)
-            {
-                allocatesMemory = true;
-            }
-            if (allocatesMemory)
-                Assert.Fail("Allocated memory when rendering what is on main camera");
+            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
         }
+        catch (AssertionException)
+        {
+            allocatesMemory = true;
+        }
+
+        if (allocatesMemory)
+            Assert.Fail("Allocated memory when rendering what is on main camera");
     }
 
 #if UNITY_EDITOR
@@ -112,5 +80,13 @@ public class UniversalGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
+#if ENABLE_VR
+    [TearDown]
+    public void TearDownXR()
+    {
+        XRGraphicsAutomatedTests.running = false;
+    }
+#endif
 #endif
 }

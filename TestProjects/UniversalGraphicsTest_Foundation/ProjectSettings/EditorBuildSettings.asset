@@ -51,14 +51,14 @@ EditorBuildSettings:
     path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: 332a75631f7a3420ab1e02475d98a1fc
   - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene.unity
+    guid: bcb8635ea84c143f0ae0823f1e9b6f25
+  - enabled: 1
     path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
     guid: 2b6b74b7929ae4191b3b936c12236e0a
   - enabled: 1
     path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
     guid: a770620fcd2f84f248d06edf3744b2c0
-  - enabled: 1
-    path: Assets/Scenes/026_Shader_PBRscene.unity
-    guid: bcb8635ea84c143f0ae0823f1e9b6f25
   - enabled: 1
     path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
@@ -68,9 +68,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
-  - enabled: 1
-    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
-    guid: 4e49334e530744e0eaeaa5e3a7e874ca
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
@@ -84,6 +81,9 @@ EditorBuildSettings:
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
   - enabled: 1
+    path: Assets/Scenes/119_CameraToRTWithViewportRect.unity
+    guid: c7b61419ee9382545afe530714fda0c2
+  - enabled: 1
     path: Assets/Scenes/120_RenderUICustomRendererNoPP.unity
     guid: 40c4ce99a7711204d978b31395d890b4
   - enabled: 1
@@ -93,14 +93,23 @@ EditorBuildSettings:
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/126_RendererFeatureActive.unity
-    guid: 92276052d376244eb94e9548db46b27f
+    path: Assets/Scenes/123_CameraStackingClear.unity
+    guid: 9aa9851df0da149c9a83a0f26072e234
+  - enabled: 1
+    path: Assets/Scenes/124_CameraStackingClearRT.unity
+    guid: 2fac616c9e61b45ccb7fcfa4fb18ae60
+  - enabled: 1
+    path: Assets/Scenes/125_CameraStackingVolumes.unity
+    guid: 9173c5ffc1365594aa9b927c4cd84c54
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
   - enabled: 1
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677
+  - enabled: 1
+    path: Assets/Scenes/130_ClearCoat.unity
+    guid: 2242f9ac270754ebea6016ff9370de29
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
