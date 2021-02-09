@@ -6,16 +6,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-### Moved
+### Fixed
+- VFXEventBinderBase throwing a null reference exception in runtime
+- Unexpected compilation warning in VFXMouseBinder [Case 1313003](https://issuetracker.unity3d.com/product/unity/issues/guid/1313003/)
+
+### Changed
 - Moved Edit/Visual Effects/Rebuild And Save All VFX Graphs to Edit/VFX/Rebuild And Save All Visual Effect Graphs
+- Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
+- Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
+- Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
+- Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
 
 ## [11.0.0] - 2020-10-21
+
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+- Changed Window/Visual Effects/Visual Effect Graph to Window/VFX/VFX Graph
+- Changed Window/Visual Effects/Utilities/Point Cache Bake Tool to Window/VFX/Utilities/Point Cache Bake Tool
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
@@ -26,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
 - Fix [Case 1290493](https://fogbugz.unity3d.com/f/cases/1290493/#BugEvent.1072735759)
 - Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
+
 
 ## [10.2.0] - 2020-10-19
 ### Added

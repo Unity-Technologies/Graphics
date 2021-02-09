@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
             TextureHandle historyBuffer = renderGraph.ImportTexture(RequestRayTracedSSSHistoryTexture(hdCamera));
-            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
         }
 
         class ComposeRTSSSPassData
