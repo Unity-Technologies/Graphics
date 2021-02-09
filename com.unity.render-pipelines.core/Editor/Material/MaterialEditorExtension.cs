@@ -18,17 +18,16 @@ namespace UnityEditor.Rendering
         /// <returns>true if the area is expanded</returns>
         public static bool IsAreaExpanded(this MaterialEditor editor, uint mask, uint defaultExpandedState = uint.MaxValue)
         {
-            string key = GetKey(editor);
+            string key = editor.GetEditorPrefsKey();
 
-            if (!EditorPrefs.HasKey(key))
+            if (EditorPrefs.HasKey(key))
             {
-                EditorPrefs.SetInt(key, (int)defaultExpandedState);
-                return (defaultExpandedState & mask) > 0;
+                uint state = (uint)EditorPrefs.GetInt(key);
+                return (state & mask) > 0;
             }
 
-            uint state = GetState(editor);
-            bool result = (state & mask) > 0;
-            return result;
+            EditorPrefs.SetInt(key, (int)defaultExpandedState);
+            return (defaultExpandedState & mask) > 0;
         }
 
         /// <summary>
@@ -38,7 +37,9 @@ namespace UnityEditor.Rendering
         /// <param name="mask">The mask identifying the area to check the state</param>
         public static void SetIsAreaExpanded(this MaterialEditor editor, uint mask, bool value)
         {
-            uint state = GetState(editor);
+            string key = editor.GetEditorPrefsKey();
+
+            uint state = (uint) EditorPrefs.GetInt(key);
 
             if (value)
             {
@@ -50,20 +51,10 @@ namespace UnityEditor.Rendering
                 state &= mask;
             }
 
-            SetState(editor, state);
+            EditorPrefs.SetInt(key, (int)state);
         }
 
-        static uint GetState(this MaterialEditor editor)
-        {
-            return (uint)EditorPrefs.GetInt(GetKey(editor));
-        }
-
-        static void SetState(this MaterialEditor editor, uint value)
-        {
-            EditorPrefs.SetInt(GetKey(editor), (int)value);
-        }
-
-        static string GetKey(this MaterialEditor editor)
+        static string GetEditorPrefsKey(this MaterialEditor editor)
         {
             return k_KeyPrefix + (editor.target as Material).shader.name;
         }
