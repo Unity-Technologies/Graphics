@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when debug full screen 'Transparent Screen Space Reflection' do not take in consideration debug exposure
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
+- Fix screen being over-exposed when changing very different skies.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
