@@ -1,9 +1,6 @@
-﻿$splice(VFXDefineSpace)
+$splice(VFXDefineSpace)
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
-#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
-
-$splice(VFXParameterBuffer)
+$splice(VFXDefines)
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
@@ -13,8 +10,6 @@ $splice(VFXParameterBuffer)
 #endif
 
 ByteAddressBuffer attributeBuffer;
-
-#define VFX_HAS_INDIRECT_DRAW 1
 
 #if VFX_HAS_INDIRECT_DRAW
 StructuredBuffer<uint> indirectBuffer;
@@ -34,8 +29,13 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 
 CBUFFER_START(outputParams)
     float nbMax;
-float systemSeed;
+    float systemSeed;
 CBUFFER_END
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+
+$splice(VFXParameterBuffer)
 
 // VFX Graph Block Functions
 $splice(VFXGeneratedBlockFunction)
@@ -46,6 +46,7 @@ VaryingsMeshType ApplyVFXModification(AttributesMesh input, inout VaryingsMeshTy
 {
     Attributes attributes = (Attributes)0;
 
+    // Index Setup
     uint index = input.instanceID;
 
     #if VFX_HAS_INDIRECT_DRAW

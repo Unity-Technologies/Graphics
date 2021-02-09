@@ -35,7 +35,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var interpolantsGenerationDescriptor,
                 out var buildVFXFragInputs,
                 out var defineSpaceDescriptor,
-                out var parameterBufferDescriptor
+                out var parameterBufferDescriptor,
+                out var additionalDefinesDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -76,7 +77,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     interpolantsGenerationDescriptor,
                     buildVFXFragInputs,
                     defineSpaceDescriptor,
-                    parameterBufferDescriptor
+                    parameterBufferDescriptor,
+                    additionalDefinesDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -102,12 +104,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.uv3,
                 HDStructFields.AttributesMesh.color,
 
-                // AttributesMesh without the Preprocessor.
+                // InstanceID without the Preprocessor.
                 new FieldDescriptor(HDStructFields.AttributesMesh.name, "instanceID", "", ShaderValueType.Uint, "INSTANCEID_SEMANTIC"),
 
                 HDStructFields.AttributesMesh.weights,
                 HDStructFields.AttributesMesh.indices,
-                HDStructFields.AttributesMesh.vertexID,
+
+                // VertexID without the Preprocessor.
+                new FieldDescriptor(HDStructFields.AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "SV_VertexID")
             }
         };
 
@@ -218,8 +222,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
-            out AdditionalCommandDescriptor parameterBufferDescriptor)
+            out AdditionalCommandDescriptor parameterBufferDescriptor,
+            out AdditionalCommandDescriptor additionalDefinesDescriptor)
         {
+            // TODO: Collapse as much of this as possible into a single generate header descriptor.
+
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
 
@@ -249,9 +256,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
 
             // Parameter Cbuffer
-            // TODO: Maybe possible to collapse all of this into one global declaration command.
             VFXCodeGenerator.BuildParameterBuffer(contextData, out var parameterBuffer);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
+
+            // Defines - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook...
+            ShaderStringBuilder additionalDefines = new ShaderStringBuilder();
+            foreach (var define in context.additionalDefines)
+                additionalDefines.AppendLine($"#define {define} 1");
+            additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
