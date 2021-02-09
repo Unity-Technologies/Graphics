@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -20,7 +21,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         GraphEditorView m_GraphEditorView;
         MaterialGraphEditWindow m_Window;
-
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
 
         [OneTimeSetUp]
@@ -114,6 +114,5 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     Assert.Fail("Failed to reset reference name to original value.");
             }
         }
-
     }
 }
