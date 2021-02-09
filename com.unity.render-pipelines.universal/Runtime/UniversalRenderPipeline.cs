@@ -260,8 +260,8 @@ namespace UnityEngine.Rendering.Universal
         {
             DrawObjectsPass m_RenderOpaqueForwardPass;
             DrawObjectsPass m_RenderTransparentForwardPass;
-            DrawObjectsPass m_RenderOpaqueForwardPassZFail;
-            DrawObjectsPass m_RenderTransparentForwardPassZFail;
+            DrawObjectsPass m_RenderOpaqueForwardPassZDisabled;
+            DrawObjectsPass m_RenderTransparentForwardPassZDisabled;
 
             LayerMask m_OpaqueLayerMask = -1;
             LayerMask m_TransparentLayerMask = -1;
@@ -274,25 +274,29 @@ namespace UnityEngine.Rendering.Universal
 
                 var shaderTags = new[] {new ShaderTagId("DataExtraction")};
 
-                // TODO: Outline mask requires a Z-bias?
-
                 m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
                 m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
                 // Selection mask requires separate passes for occluded objects
                 if (IsSelectionMaskRequest)
                 {
-                    m_RenderOpaqueForwardPassZFail = new DrawObjectsPass("Render Opaques (Z-fail)", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
-                    m_RenderTransparentForwardPassZFail = new DrawObjectsPass("Render Transparents (Z-fail)", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
+                    m_RenderOpaqueForwardPassZDisabled = new DrawObjectsPass("Render Opaques (Occluded)", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
+                    m_RenderTransparentForwardPassZDisabled = new DrawObjectsPass("Render Transparents (Occluded)", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
-                    var state = m_RenderOpaqueForwardPassZFail.RenderStateBlock;
-                    var depthState = state.depthState;
-                    depthState.compareFunction = FlipCompareFunction(depthState.compareFunction);
-                    depthState.writeEnabled = false;
-                    state.depthState = depthState;
-                    state.mask = RenderStateMask.Depth;
-                    m_RenderOpaqueForwardPassZFail.RenderStateBlock = state;
-                    m_RenderTransparentForwardPassZFail.RenderStateBlock = state;
+                    var state = m_RenderOpaqueForwardPassZDisabled.RenderStateBlock;
+                    state.rasterState = new RasterState(CullMode.Off, 0, -0.02f);
+                    state.blendState = new BlendState
+                    {
+                        blendState0 = new RenderTargetBlendState(
+                            ColorWriteMask.Blue | ColorWriteMask.Green,
+                            sourceColorBlendMode: BlendMode.One,
+                            destinationColorBlendMode: BlendMode.One,
+                            colorBlendOperation: BlendOp.Max),
+                    };
+                    state.depthState = new DepthState {compareFunction = CompareFunction.Always, writeEnabled = false};
+                    state.mask = RenderStateMask.Everything;
+                    m_RenderOpaqueForwardPassZDisabled.RenderStateBlock = state;
+                    m_RenderTransparentForwardPassZDisabled.RenderStateBlock = state;
                 }
 
                 List<Tuple<string, int>> values = new List<Tuple<string, int>>
@@ -307,42 +311,15 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsSelectionMaskRequest)
                 {
-                    // Occluded selection mask rendered with 50% value
-                    List<Tuple<string, int>> valuesZFail = new List<Tuple<string, int>>
+                    List<Tuple<string, int>> valuesZDisabled = new List<Tuple<string, int>>
                     {
                         new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                         new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
-                        new Tuple<string, int>("UNITY_DataExtraction_Value", 128),
+                        new Tuple<string, int>("UNITY_DataExtraction_Value", 0),
                     };
 
-                    m_RenderOpaqueForwardPassZFail.SetAdditionalValues(valuesZFail);
-                    m_RenderTransparentForwardPassZFail.SetAdditionalValues(valuesZFail);
-                }
-            }
-
-            private CompareFunction FlipCompareFunction(CompareFunction depthStateCompareFunction)
-            {
-                switch (depthStateCompareFunction)
-                {
-                    case CompareFunction.Disabled:
-                    default:
-                        return CompareFunction.Disabled;
-                    case CompareFunction.Never:
-                        return CompareFunction.Always;
-                    case CompareFunction.Less:
-                        return CompareFunction.GreaterEqual;
-                    case CompareFunction.Equal:
-                        return CompareFunction.NotEqual;
-                    case CompareFunction.LessEqual:
-                        return CompareFunction.Greater;
-                    case CompareFunction.Greater:
-                        return CompareFunction.LessEqual;
-                    case CompareFunction.NotEqual:
-                        return CompareFunction.Equal;
-                    case CompareFunction.GreaterEqual:
-                        return CompareFunction.Less;
-                    case CompareFunction.Always:
-                        return CompareFunction.Never;
+                    m_RenderOpaqueForwardPassZDisabled.SetAdditionalValues(valuesZDisabled);
+                    m_RenderTransparentForwardPassZDisabled.SetAdditionalValues(valuesZDisabled);
                 }
             }
 
@@ -354,8 +331,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsSelectionMaskRequest)
                 {
-                    EnqueuePass(m_RenderOpaqueForwardPassZFail);
-                    EnqueuePass(m_RenderTransparentForwardPassZFail);
+                    EnqueuePass(m_RenderOpaqueForwardPassZDisabled);
+                    EnqueuePass(m_RenderTransparentForwardPassZDisabled);
                 }
             }
 
