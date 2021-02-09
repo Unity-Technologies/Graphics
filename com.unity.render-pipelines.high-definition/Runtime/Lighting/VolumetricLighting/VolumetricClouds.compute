@@ -1135,7 +1135,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     float3 rayDirection = -_SunDirection;
 
     // Compute the attenuation
-    float3 transmittance = 1.0f;
+    float transmittance = 1.0f;
 
     // Intersect the outer sphere
     float2 intersectionO, intersectionI;
@@ -1165,7 +1165,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             {
                 // Apply the extinction
                 const float3 currentStepExtinction = exp(- _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
-                transmittance *= currentStepExtinction;
+                transmittance *= Luminance(currentStepExtinction);
             }
         }
     }
