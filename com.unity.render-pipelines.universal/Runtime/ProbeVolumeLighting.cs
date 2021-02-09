@@ -9,10 +9,15 @@ namespace UnityEngine.Rendering.Universal
         {
             // Adaptive Probe Volume
             public static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
-            public static readonly int _APVResL0    = Shader.PropertyToID("_APVResL0");
-            public static readonly int _APVResL1_R  = Shader.PropertyToID("_APVResL1_R");
-            public static readonly int _APVResL1_G  = Shader.PropertyToID("_APVResL1_G");
-            public static readonly int _APVResL1_B  = Shader.PropertyToID("_APVResL1_B");
+            public static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
+            public static readonly int _APVResL1G_L1Ry = Shader.PropertyToID("_APVResL1G_L1Ry");
+            public static readonly int _APVResL1B_L1Rz = Shader.PropertyToID("_APVResL1B_L1Rz");
+
+            public static readonly int _APVResL2_0 = Shader.PropertyToID("_APVResL2_0");
+            public static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
+            public static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
+            public static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
+
         }
 
         private ComputeBuffer m_EmptyIndexBuffer = null;
@@ -42,15 +47,24 @@ namespace UnityEngine.Rendering.Universal
             {
                 ProbeReferenceVolume.RuntimeResources rr = ProbeReferenceVolume.instance.GetRuntimeResources();
 
-                bool validResources = rr.index != null && rr.L0 != null && rr.L1_R != null && rr.L1_G != null && rr.L1_B != null;
+                bool validResources = rr.index != null && rr.L0_L1rx != null && rr.L1_G_ry != null && rr.L1_B_rz != null;
 
                 if (validResources)
                 {
                     cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, rr.index);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, rr.L0);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, rr.L1_R);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, rr.L1_G);
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, rr.L1_B);
+
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
+
+                    if (probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    {
+                        cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, rr.L2_0);
+                        cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_1, rr.L2_1);
+                        cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_2, rr.L2_2);
+                        cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, rr.L2_3);
+                    }
+
                     needToBindNeutral = false;
                 }
             }
@@ -64,11 +78,20 @@ namespace UnityEngine.Rendering.Universal
                     m_EmptyIndexBuffer = new ComputeBuffer(1, sizeof(uint), ComputeBufferType.Structured);
                 }
 
-                cmdBuffer.SetGlobalBuffer (ShaderIDs._APVResIndex, m_EmptyIndexBuffer);
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_R, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_G, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1_B, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, m_EmptyIndexBuffer);
+
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0_L1Rx, TextureXR.GetBlackTexture3D());
+
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1G_L1Ry, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, TextureXR.GetBlackTexture3D());
+
+                if (probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                {
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, TextureXR.GetBlackTexture3D());
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_1, TextureXR.GetBlackTexture3D());
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_2, TextureXR.GetBlackTexture3D());
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, TextureXR.GetBlackTexture3D());
+                }
             }
         }
 

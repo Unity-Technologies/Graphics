@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-#if defined(PROBE_VOLUMES_L1) || defined (PROBE_VOLUMES_L2)
+#if !defined(PROBE_VOLUMES_OFF)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif
 
@@ -567,7 +567,7 @@ half3 SampleSHVertex(half3 normalWS)
 // mixed or fully in pixel. See SampleSHVertex
 half3 SampleSHPixel(half3 L2Term, half3 positionWS, half3 normalWS)
 {
-#if defined(PROBE_VOLUMES_L1) || defined (PROBE_VOLUMES_L2)
+#if !defined(PROBE_VOLUMES_OFF)
     float3 frontBakedDiffuseGI;
     float3 backBakedDiffuseGI;
     EvaluateAdaptiveProbeVolume(positionWS, normalWS, -normalWS, frontBakedDiffuseGI, backBakedDiffuseGI);
