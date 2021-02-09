@@ -1,8 +1,9 @@
 * [High Definition Render Pipeline](index.md)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10](whats-new-10.md)
-  * [11](whats-new-11.md)
+  * [10 / Unity 2020.2](whats-new-10.md)
+  * [11 / Unity 2021.1](whats-new-11.md)
+  * [12 / Unity 2021.2](whats-new-12.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
@@ -89,7 +90,7 @@
     * 3DSMaxPhysicalMaterial
       * [PhysicalMaterial3DsMax](3ds-physical-shader)
     * ArnoldStandardSurface
-      * [ArnoldStandardSurface](arnold-standard-surface-shader) 
+      * [ArnoldStandardSurface](arnold-standard-surface-shader)
     * Autodesk Interactive
       * [Autodesk Interactive Shader](Autodesk-Interactive-Shader.md)
       * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked.md)
@@ -179,7 +180,7 @@
     * [User Options](Compositor-User-Options.md)
 * Debugging
   * [MatCap](MatCap.md)
-  * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window.md)
+  * [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles
