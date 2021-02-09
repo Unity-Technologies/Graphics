@@ -36,14 +36,11 @@ public class HDRP_GraphicTestRunner
             Assert.Fail("Missing camera for graphic tests.");
         }
 
-        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
-        for (int i = 0; i < 5; ++i)
-            yield return null;
-
         // Grab the HDCamera
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
-        GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+        if (settings.ImageComparisonSettings.UseBackBuffer)
+            GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -93,7 +90,8 @@ public class HDRP_GraphicTestRunner
         }
 
         // Force clear all the history buffers
-        hdCamera.RequestClearHistoryBuffers();
+        if (settings.ImageComparisonSettings.UseBackBuffer)
+            hdCamera.RequestClearHistoryBuffers();
 
         for (int i=0; i<waitFrames; ++i)
             yield return new WaitForEndOfFrame();
