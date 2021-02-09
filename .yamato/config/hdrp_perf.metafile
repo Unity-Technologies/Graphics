@@ -68,7 +68,7 @@ test_platforms:
         flags:
           - [all]: --testfilter=Memory
           - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
-          - [all]: --timeout=2400
+          - [all]: --timeout=14400
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
           - [all]: <reuse_blocks.cache_server>
@@ -85,7 +85,7 @@ test_platforms:
         flags:
           - [all]: --testfilter=Build
           - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
-          - [all]: --timeout=2400
+          - [all]: --timeout=14400
           - [all]: --platform=editmode
           - [all]: --loglevel=verbose
           - [all]: <reuse_blocks.cache_server>
