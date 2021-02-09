@@ -12,6 +12,9 @@ namespace UnityEngine.Rendering.Universal
         ComputeBuffer m_AdditionalLightShadowParamsStructuredBuffer = null;
         ComputeBuffer m_AdditionalLightShadowSliceMatricesStructuredBuffer = null;
 
+        ComputeBuffer m_ReflectionProbeDataBuffer = null;
+        ComputeBuffer m_ReflectionProbeIndicesBuffer = null;
+
         ShaderData()
         {
         }
@@ -33,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
             DisposeBuffer(ref m_LightIndicesBuffer);
             DisposeBuffer(ref m_AdditionalLightShadowParamsStructuredBuffer);
             DisposeBuffer(ref m_AdditionalLightShadowSliceMatricesStructuredBuffer);
+            DisposeBuffer(ref m_ReflectionProbeDataBuffer);
+            DisposeBuffer(ref m_ReflectionProbeIndicesBuffer);
         }
 
         internal ComputeBuffer GetLightDataBuffer(int size)
@@ -53,6 +58,16 @@ namespace UnityEngine.Rendering.Universal
         internal ComputeBuffer GetAdditionalLightShadowSliceMatricesStructuredBuffer(int size)
         {
             return GetOrUpdateBuffer<Matrix4x4>(ref m_AdditionalLightShadowSliceMatricesStructuredBuffer, size);
+        }
+
+        internal ComputeBuffer GetReflectionProbeDataBuffer(int size)
+        {
+            return GetOrUpdateBuffer<ShaderInput.ReflectionProbeData>(ref m_ReflectionProbeDataBuffer, size);
+        }
+
+        internal ComputeBuffer GetReflectionProbeIndicesBuffer(int size)
+        {
+            return GetOrUpdateBuffer<int>(ref m_ReflectionProbeIndicesBuffer, size);
         }
 
         ComputeBuffer GetOrUpdateBuffer<T>(ref ComputeBuffer buffer, int size) where T : struct

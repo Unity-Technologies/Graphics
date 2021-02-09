@@ -67,8 +67,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // TODO: For now disabling SSBO until figure out Vulkan binding issues.
                 // When enabling this also enable USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA in shader side in Input.hlsl
-                return false;
+                //return false;
 
+                // #note for now force StructuredBuffers path as we have not implemented UBO for reflection probes
+                return true;
                 // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
                 //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
                 //return !Application.isMobilePlatform &&

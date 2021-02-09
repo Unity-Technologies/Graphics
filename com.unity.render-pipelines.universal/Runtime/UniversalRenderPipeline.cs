@@ -140,6 +140,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // These limits have to match same limits in Input.hlsl
+        const int k_MaxVisibleReflectionProbesMobileShaderLevelLessThan45 = 16;
+        const int k_MaxVisibleReflectionProbesMobile = 32;
+        const int k_MaxVisibleReflectionProbesNonMobile = 256;
+        public static int maxVisibleReflectionProbes
+        {
+            get
+            {
+                bool isMobile = Application.isMobilePlatform;
+                if (isMobile && SystemInfo.graphicsShaderLevel < 45)
+                    return k_MaxVisibleReflectionProbesMobileShaderLevelLessThan45;
+
+                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
+                return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                    ? k_MaxVisibleReflectionProbesMobile : k_MaxVisibleReflectionProbesNonMobile;
+            }
+        }
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -1019,12 +1037,13 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
 
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
+            var configuration = PerObjectData.ReflectionProbeData | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
             if (additionalLightsCount > 0)
             {
-                configuration |= PerObjectData.LightData;
+                configuration |= PerObjectData.LightData; // #note unnecessary??
 
+                // #note probably need to add more code here to support UBO reflection probes
                 // In this case we also need per-object indices (unity_LightIndices)
                 if (!RenderingUtils.useStructuredBuffer)
                     configuration |= PerObjectData.LightIndices;
