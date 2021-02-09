@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
-        private static readonly string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
+        private const string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
 
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
