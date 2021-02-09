@@ -90,6 +90,7 @@ float3 DecodeSH(float l0, float3 l1)
     return (l1 - 0.5f) * 2.0f * l1scale * l0;
 }
 
+#ifndef __BUILTINGIUTILITIES_HLSL__
 float3 EvaluateAmbientProbe(float3 normalWS)
 {
     real4 SHCoefficients[7];
@@ -103,6 +104,7 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 
     return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
 }
+#endif
 
 void DecodeSH_L2(float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float4 l2_C)
 {
