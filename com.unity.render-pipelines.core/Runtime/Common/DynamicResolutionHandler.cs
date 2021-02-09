@@ -109,6 +109,24 @@ namespace UnityEngine.Rendering
             }
         }
 
+        public Vector2 GetResolvedScale()
+        {
+            if (!m_Enabled || !m_CurrentCameraRequest)
+            {
+                return new Vector2(1.0f, 1.0f);
+            }
+
+            float scaleFractionX = m_CurrentFraction;
+            float scaleFractionY = m_CurrentFraction;
+            if (!m_ForceSoftwareFallback && type == DynamicResolutionType.Hardware)
+            {
+                scaleFractionX = ScalableBufferManager.widthScaleFactor;
+                scaleFractionY = ScalableBufferManager.heightScaleFactor;
+            }
+
+            return new Vector2(scaleFractionX, scaleFractionY);
+        }
+
         /// <summary>
         /// Set the scaler method used to drive dynamic resolution.
         /// </summary>
@@ -234,6 +252,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// Note: this function has the side effect of caching the last scale size.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -246,21 +265,26 @@ namespace UnityEngine.Rendering
                 return size;
             }
 
-            float scaleFractionX = m_CurrentFraction;
-            float scaleFractionY = m_CurrentFraction;
-            if (!m_ForceSoftwareFallback && type == DynamicResolutionType.Hardware)
-            {
-                scaleFractionX = ScalableBufferManager.widthScaleFactor;
-                scaleFractionY = ScalableBufferManager.heightScaleFactor;
-            }
+            Vector2Int scaledSize = ApplyScalesOnSize(size);
+            m_LastScaledSize = scaledSize;
+            return scaledSize;
+        }
 
-            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * scaleFractionX), Mathf.CeilToInt(size.y * scaleFractionY));
+        /// <summary>
+        /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// Note: this function is pure (has no side effects), this function does not cache the pre-scale size
+        /// </summary>
+        /// <param name="size">The size to apply the scaling</param>
+        /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
+        public Vector2Int ApplyScalesOnSize(Vector2Int size)
+        {
+            Vector2 resolvedScales = GetResolvedScale();
+            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * resolvedScales.x), Mathf.CeilToInt(size.y * resolvedScales.y));
             if (m_ForceSoftwareFallback || type != DynamicResolutionType.Hardware)
             {
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
-            m_LastScaledSize = scaledSize;
 
             return scaledSize;
         }
