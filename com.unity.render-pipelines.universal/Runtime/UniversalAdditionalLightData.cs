@@ -39,5 +39,13 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_AdditionalLightsShadowResolutionTier; }
         }
+
+        [Tooltip("Controls the size of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieSize = Vector2.one;
+        public Vector2 lightCookieSize
+        {
+            get => m_LightCookieSize;
+            set => m_LightCookieSize = value;
+        }
     }
 }

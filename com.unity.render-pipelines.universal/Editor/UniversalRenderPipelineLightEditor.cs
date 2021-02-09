@@ -58,6 +58,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Custom"),
                 new GUIContent("Use Pipeline Settings")
             };
+
+            public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
         }
 
         static Styles s_Styles;
@@ -90,22 +92,40 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_UseAdditionalDataProp;                     // Does light use shadow bias settings defined in UniversalRP asset file?
         SerializedProperty m_AdditionalLightsShadowResolutionTierProp;  // Index of the AdditionalLights ShadowResolution Tier
+        SerializedProperty m_LightCookieSizeProp;                       // Multi dimensional light cookie size replacing `cookieSize` in legacy light.
 
         protected override void OnEnable()
         {
             m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
             settings.OnEnable();
-            init(m_AdditionalLightData);
+            InitSerializedAdditionalLightData(m_AdditionalLightData);
             UpdateShowOptions(true);
         }
 
-        void init(UniversalAdditionalLightData additionalLightData)
+        void CreateAdditionalLightData()
+        {
+            if (m_AdditionalLightData == null)
+            {
+                lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
+                m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+            }
+
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            settings.shadowsBias.floatValue = asset.shadowDepthBias;
+            settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
+            settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
+
+            InitSerializedAdditionalLightData(m_AdditionalLightData);
+        }
+
+        void InitSerializedAdditionalLightData(UniversalAdditionalLightData additionalLightData)
         {
             if (additionalLightData == null)
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
+            m_LightCookieSizeProp = m_AdditionalLightDataSO.FindProperty("m_LightCookieSize");
 
             settings.ApplyModifiedProperties();
         }
@@ -171,6 +191,7 @@ namespace UnityEditor.Rendering.Universal
                     settings.DrawBounceIntensity();
 
             ShadowsGUI();
+            LightCookieGUI();
 
             settings.DrawRenderMode();
             settings.DrawCullingMask();
@@ -276,15 +297,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-
-                    var asset = UniversalRenderPipeline.asset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
+                    CreateAdditionalLightData();
                 }
 
                 m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
@@ -361,15 +374,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
+                    CreateAdditionalLightData();
                 }
 
                 m_AdditionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;
@@ -426,6 +431,36 @@ namespace UnityEditor.Rendering.Universal
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
+
+            EditorGUILayout.Space();
+        }
+
+        void LightCookieGUI()
+        {
+            settings.DrawCookie();
+
+            // Draw 2D cookie size for directional lights
+            bool isDirectionalLight = settings.light.type == LightType.Directional;
+            if (isDirectionalLight)
+            {
+                if (settings.cookie != null)
+                {
+                    if (m_AdditionalLightData == null)
+                    {
+                        CreateAdditionalLightData();
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        EditorGUILayout.PropertyField(m_LightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                    }
+                    bool isChanged = EditorGUI.EndChangeCheck();
+                    if (isChanged)
+                    {
+                        m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    }
+                }
+            }
 
             EditorGUILayout.Space();
         }
