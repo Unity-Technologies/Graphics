@@ -49,6 +49,12 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
+            if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.shaderGraph == null))
+            {
+                base.OnInspectorGUI();
+                return;
+            }
+
             serializedObject.Update();
 
             if (m_RequireUpdateMaterialEditor || m_MaterialEditor == null)
