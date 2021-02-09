@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: CustomPostProcessing_Renderer
   m_EditorClassIdentifier: 
-  m_RendererFeatures: []
-  m_RendererFeatureMap: 
+  m_RendererFeatures:
+  - {fileID: 8594511538104433459}
+  m_RendererFeatureMap: 33fbb54eb5d64577
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -40,3 +41,20 @@ MonoBehaviour:
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
   m_AccurateGbufferNormals: 0
+--- !u!114 &8594511538104433459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a728f027de58940879f994703ed7f8be, type: 3}
+  m_Name: GradientFog
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    volumeComponentName: GradientFogVolume
+    volumeComponentIndex: 0
+    effectMaterial: {fileID: 2100000, guid: 4c7241c50eafb42659430f3e9c40a6c6, type: 2}
