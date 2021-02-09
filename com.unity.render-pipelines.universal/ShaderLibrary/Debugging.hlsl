@@ -71,25 +71,47 @@ DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
     return debugData;
 }
 
-half4 GetLODDebugColor()
+half3 GetDebugColor(uint index)
+{
+    // TODO: Make these colors colorblind friendly...
+    const uint maxColors = 10;
+    float4 lut[maxColors] = {
+        kPurpleColor,
+        kRedColor,
+        kGreenColor,
+        kYellowGreenColor,
+        kBlueColor,
+        kOrangeBrownColor,
+        kGrayColor,
+        float4(1, 1, 1, 0),
+        float4(0.8, 0.3, 0.7, 0),
+        float4(0.8, 0.7, 0.3, 0),
+    };
+    uint clammpedIndex = clamp(index, 0, maxColors - 1);
+
+    return lut[clammpedIndex].rgb;
+}
+
+half3 GetLODDebugColor()
 {
     if (IsBitSet(unity_LODFade.z, 0))
-        return half4(0.4831376f, 0.6211768f, 0.0219608f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 1))
-        return half4(0.2792160f, 0.4078432f, 0.5835296f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 2))
-        return half4(0.2070592f, 0.5333336f, 0.6556864f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 3))
-        return half4(0.5333336f, 0.1600000f, 0.0282352f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 4))
-        return half4(0.3827448f, 0.2886272f, 0.5239216f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 5))
-        return half4(0.8000000f, 0.4423528f, 0.0000000f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 6))
-        return half4(0.4486272f, 0.4078432f, 0.0501960f, 1.0f);
-    if (IsBitSet(unity_LODFade.z, 7))
-        return half4(0.7749016f, 0.6368624f, 0.0250984f, 1.0f);
-    return half4(0.2,0.2,0.2,1);
+        return GetDebugColor(0);
+    else if (IsBitSet(unity_LODFade.z, 1))
+        return GetDebugColor(1);
+    else if (IsBitSet(unity_LODFade.z, 2))
+        return GetDebugColor(2);
+    else if (IsBitSet(unity_LODFade.z, 3))
+        return GetDebugColor(3);
+    else if (IsBitSet(unity_LODFade.z, 4))
+        return GetDebugColor(4);
+    else if (IsBitSet(unity_LODFade.z, 5))
+        return GetDebugColor(5);
+    else if (IsBitSet(unity_LODFade.z, 6))
+        return GetDebugColor(6);
+    else if (IsBitSet(unity_LODFade.z, 7))
+        return GetDebugColor(7);
+    else
+        return GetDebugColor(8);
 }
 
 // Convert rgb to luminance
@@ -208,27 +230,6 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
-half3 GetDebugColor(uint index)
-{
-    // TODO: Make these colors colorblind friendly...
-    const uint maxColors = 10;
-    float4 lut[maxColors] = {
-        kPurpleColor,
-        kRedColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kBlueColor,
-        kOrangeBrownColor,
-        kGrayColor,
-        float4(1, 1, 1, 0),
-        float4(0.8, 0.3, 0.7, 0),
-        float4(0.8, 0.7, 0.3, 0),
-    };
-    uint clammpedIndex = clamp(index, 0, maxColors - 1);
-
-    return lut[clammpedIndex].rgb;
-}
-
 half4 GetTextNumber(uint numberValue, float3 positionWS)
 {
     float4 clipPos = TransformWorldToHClip(positionWS);
@@ -260,7 +261,7 @@ half4 CalculateDebugColorWithNumber(in InputData inputData, in SurfaceData surfa
     return textColor * half4(fc, 1);
 }
 
-float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
+uint GetMipMapLevel(float2 nonNormalizedUVCoordinate)
 {
     // The OpenGL Graphics System: A Specification 4.2
     //  - chapter 3.9.11, equation 3.21
@@ -269,14 +270,14 @@ float GetMipMapLevel(float2 nonNormalizedUVCoordinate)
     float2  dy_vtc = ddy(nonNormalizedUVCoordinate);
     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 
-    return 0.5 * log2(delta_max_sqr);
+    return (uint)(0.5 * log2(delta_max_sqr));
 }
 
 half4 GetMipLevelDebugColor(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData)
 {
-    float mipLevel = GetMipMapLevel(debugData.uv * debugData.texelSize.zw);
+    uint mipLevel = GetMipMapLevel(debugData.uv * debugData.texelSize.zw);
 
-    return CalculateDebugColorWithNumber(inputData, surfaceData, (int)mipLevel);
+    return CalculateDebugColorWithNumber(inputData, surfaceData, mipLevel);
 }
 
 half4 GetMipCountDebugColor(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData)
@@ -391,7 +392,7 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
         case DEBUGMATERIALINDEX_LOD:
-            color.rgb = GetLODDebugColor().rgb;
+            color.rgb = GetLODDebugColor();
             return true;
         case DEBUGMATERIALINDEX_METALLIC:
             color.rgb = surfaceData.metallic.rrr;
