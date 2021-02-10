@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/Diffusion Profile to Assets/Create/Rendering/HDRP Diffusion Profile
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
+- Cleanup Shader UI.
 
 ## [11.0.0] - 2020-10-21
 
