@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering
         {
             string key = editor.GetEditorPrefsKey();
 
-            uint state = (uint) EditorPrefs.GetInt(key);
+            uint state = (uint)EditorPrefs.GetInt(key);
 
             if (value)
             {
