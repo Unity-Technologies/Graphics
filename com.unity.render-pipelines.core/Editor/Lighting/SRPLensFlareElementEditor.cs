@@ -79,10 +79,6 @@ namespace UnityEditor.Rendering
                 if ((tmpBool = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent("Modulate By Light Color"), modulateByLightColor.boolValue)) != modulateByLightColor.boolValue)
                     modulateByLightColor.boolValue = tmpBool;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                //rect.height = 1;
-                //EditorGUI.DrawRect(rect, EditorGUIUtility.isProSkin
-                //    ? new Color32(26, 26, 26, 255)
-                //    : new Color32(127, 127, 127, 255));
                 EditorGUI.EndProperty();
 
                 isFoldOpened.boolValue = true;
@@ -105,6 +101,11 @@ namespace UnityEditor.Rendering
                     aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                Color tmpCol;
+                if ((tmpCol = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent("Tint"), tintProp.colorValue)) != tintProp.colorValue)
+                    tintProp.colorValue = tmpCol;
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                 isFoldOpened.boolValue = false;
             }
             EditorGUI.EndFoldoutHeaderGroup();
@@ -114,10 +115,9 @@ namespace UnityEditor.Rendering
         {
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
 
-            if (isFoldOpened.boolValue)
-                return 12.0f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-            else
-                return 4.0f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+            float coef = isFoldOpened.boolValue ? 12.0f : 5.0f;
+
+            return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         }
     }
 }
