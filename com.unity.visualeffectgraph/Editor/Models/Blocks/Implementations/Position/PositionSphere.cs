@@ -30,8 +30,8 @@ namespace UnityEditor.VFX.Block
             {
                 var allSlots = GetExpressionsFromSlots(this);
                 foreach (var p in allSlots.Where(e =>      e.name == "ArcSphere_arc"
-                                                        || e.name == "ArcSequencer"
-                                                        || e.name == "ArcSphere_sphere_radius"))
+                    || e.name == "ArcSequencer"
+                    || e.name == "ArcSphere_sphere_radius"))
                     yield return p;
 
                 var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;

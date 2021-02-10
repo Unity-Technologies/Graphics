@@ -66,11 +66,11 @@ namespace UnityEditor.VFX.Block
                 var allSlots = GetExpressionsFromSlots(this);
 
                 foreach (var p in allSlots.Where(e => e.name == "ArcCone_arc"
-                                                   || e.name == "ArcCone_radius0"
-                                                   || e.name == "ArcCone_radius1"
-                                                   || e.name == "ArcCone_height"
-                                                   || e.name == "ArcSequencer"
-                                                   || e.name == "HeightSequencer"))
+                    || e.name == "ArcCone_radius0"
+                    || e.name == "ArcCone_radius1"
+                    || e.name == "ArcCone_height"
+                    || e.name == "ArcSequencer"
+                    || e.name == "HeightSequencer"))
                     yield return p;
 
                 VFXExpression radius0 = allSlots.First(e => e.name == "ArcCone_radius0").exp;

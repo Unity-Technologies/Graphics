@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Block
                     yield return allSlot.FirstOrDefault(o => o.name == "blendPosition");
                 if (compositionDirection == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
-                    
+
                 var eulerAngle = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_angles").exp;
                 var center = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_center").exp;
 

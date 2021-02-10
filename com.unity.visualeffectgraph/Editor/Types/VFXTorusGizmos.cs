@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         private static readonly Vector3[] s_RadiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
         public static readonly float[] s_Angles = new float[] { 0.0f, 90.0f, 180.0f, 270.0f };
-        
+
         private static readonly int[] s_RadiusDirectionsNames = new int[]
         {
             "VFX_Torus_Left".GetHashCode(),

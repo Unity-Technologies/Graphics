@@ -53,8 +53,8 @@ namespace UnityEditor.VFX
 
             var exposedValidParameter = graph.children.OfType<VFXParameter>()
                 .Where(p =>     p.exposed
-                            &&  !p.isOutput
-                            &&  p.outputSlots.Count != 0 /* skip invalid VFXParameter, it could occurs due to sanitize Remove/Add Slot behavior */)
+                    &&  !p.isOutput
+                    &&  p.outputSlots.Count != 0 /* skip invalid VFXParameter, it could occurs due to sanitize Remove/Add Slot behavior */)
                 .OrderBy(p => p.order);
 
             var parametersWithoutCategory = exposedValidParameter.Where(t => string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category)).ToArray();

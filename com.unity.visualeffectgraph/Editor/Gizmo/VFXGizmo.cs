@@ -102,6 +102,7 @@ namespace UnityEditor.VFX
             }
             return false;
         }
+
         public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
             Quaternion quaternion = Quaternion.Euler(rotation);
