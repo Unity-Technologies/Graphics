@@ -627,7 +627,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly IncludeCollection CorePostgraph = new IncludeCollection
         {
-            { kShaderPass, IncludeLocation.Postgraph },
+            { kShaderPass, IncludeLocation.Pregraph },
             { kVaryings, IncludeLocation.Postgraph },
         };
 
