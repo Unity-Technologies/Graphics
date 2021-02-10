@@ -54,8 +54,14 @@ float4 OutputExtraction(ExtractionInputs inputs)
         ConvertMetallicToSpecular(inputs.baseColor, inputs.metallic, diffuse, specular);
     #endif
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+    // Entities always have zero ObjectId
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-         return float4(PackIndexToRGB16f(asuint(unity_LODFade.z)), 1.0);
+         return 0;
+#else
+    if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
+         return PackId32ToRGBA8888(asuint(unity_LODFade.z));
+#endif
     //@TODO
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
@@ -65,8 +71,9 @@ float4 OutputExtraction(ExtractionInputs inputs)
         return float4(inputs.positionWS, 1.0);
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return float4(PackIndexToRGB16f(unity_EntityId.x), 1.0F);
+        return PackId32ToRGBA8888(unity_EntityId.x);
 #else
+    // GameObjects always have zero EntityId
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
 #endif
