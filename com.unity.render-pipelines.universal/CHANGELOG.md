@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
 - Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
+- Fixed an issue where 2D Shadows were casting to the wrong layers [case 1300753][https://issuetracker.unity3d.com/product/unity/issues/guid/1300753/]
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature.
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
@@ -84,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue where additional lights would not render with WebGL 1
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
+- Fixed an issue that that caused a null error when creating a Sprite Light. [case 1307125](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-thrown-on-creating-sprite-light-2d-object-in-the-hierarchy)
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
 - Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
 - Fixed an issue where no preview would show for the lit sprite master node in shadergraph
