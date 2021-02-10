@@ -3,9 +3,9 @@
 
 #define COARSE_BINNING
 
-#define FILL_COARSE_TILES  0
-#define PRUNE_COARSE_TILES 1
-#define FILL_FINE_TILES    2
+#define FILL_COARSE_TILES  (0)
+#define PRUNE_COARSE_TILES (1)
+#define FILL_FINE_TILES    (2)
 
 // Generates large screen tiles in a fast, conservative manner.
 #pragma kernel FillCoarseTiles     PASS = FILL_COARSE_TILES
@@ -14,12 +14,12 @@
 // Generates small screen tiles in an accurate manner.
 #pragma kernel FillFineTiles       PASS = FILL_FINE_TILES
 
-#define USE_DEPTH_BUFFER 0
+#define USE_DEPTH_BUFFER (0)
 
 #if USE_DEPTH_BUFFER
-    #define NUM_CLIP_PLANES (4) // Do not clip against the near and far planes; let z-binning handle these (approximately)
+    #define NUM_CLIP_PLANES (6) // Do not clip against the near and far planes; let z-binning handle these (approximately)
 #else
-    #define NUM_CLIP_PLANES (6) // Full frustum clipping
+    #define NUM_CLIP_PLANES (4) // Full frustum clipping
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
