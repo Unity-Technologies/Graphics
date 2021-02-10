@@ -477,8 +477,8 @@ void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 norma
 
 #endif
 
-        bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
-        backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
+        // bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
+        // backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
 }
 
 #endif // __PROBEVOLUME_HLSL__
