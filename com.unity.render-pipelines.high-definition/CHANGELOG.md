@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
+- Fix screen being over-exposed when changing very different skies.
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
 - Fixed nullref in layered lit shader editor.
 
 ### Changed
