@@ -1644,7 +1644,7 @@ MonoBehaviour:
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
-  sort: 0
+  sort: 1
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
