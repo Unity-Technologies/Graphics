@@ -238,6 +238,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
     guid: 6500f9adfe104274fb2b90091786a2d4
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/31_CameraBuffer.unity
+    guid: 022b924fd58e94e41bcc5a24218370fe
   - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/32_ExcludeFromTAA.unity
     guid: 8f9c50f62a67d6d429a71cb9ad4a3f57

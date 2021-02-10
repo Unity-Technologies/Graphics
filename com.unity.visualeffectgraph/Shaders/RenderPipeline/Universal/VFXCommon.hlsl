@@ -150,3 +150,8 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 #endif
    return color;
 }
+
+float3 VFXGetCameraWorldDirection()
+{
+    return unity_CameraToWorld._m02_m12_m22;
+}
