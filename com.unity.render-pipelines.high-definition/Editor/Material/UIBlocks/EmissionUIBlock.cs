@@ -130,6 +130,16 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
+        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
+        {
+            materialEditor.serializedObject.ApplyModifiedProperties();
+            foreach (Material target in materials)
+            {
+                target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
+            }
+            materialEditor.serializedObject.Update();
+        }
+
         public static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
         {
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
@@ -172,7 +182,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawEmissionGUI()
         {
+            EditorGUI.BeginChangeCheck();
             materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
+            bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
             if (useEmissiveIntensity.floatValue == 0)
             {
@@ -181,6 +193,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                if (updateEmissiveColor)
+                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(materialEditor, materials);
+
                 EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColorLDR);
                 DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);

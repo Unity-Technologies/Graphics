@@ -253,13 +253,15 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.ShaderProperty(maskMapBlueScale, allMaskMap ? Styles.maskMapBlueScaleText : Styles.opacityBlueScaleText);
             materialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
 
+            EditorGUI.BeginChangeCheck();
             materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
+            bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
             if (useEmissiveIntensity.floatValue == 0.0f)
             {
                 EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
-                if (EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     emissiveColor.colorValue = emissiveColorHDR.colorValue;
             }
             else
@@ -267,7 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
                 EmissionUIBlock.DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
-                if (EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     EmissionUIBlock.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materialEditor, materials);
             }
 
