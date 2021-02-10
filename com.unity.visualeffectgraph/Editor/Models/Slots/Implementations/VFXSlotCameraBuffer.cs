@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(CameraBuffer))]
-    class VFXSlotCameraBuffer :  VFXSlot
+    class VFXSlotCameraBuffer : VFXSlot
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
