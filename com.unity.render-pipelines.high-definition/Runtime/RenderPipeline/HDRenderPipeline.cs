@@ -3177,7 +3177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (renderRequests.Count == 1 &&
                     renderRequests[0].isValid &&
-                    renderRequests[0].mode == Camera.RenderRequestMode.OutlineMask)
+                    renderRequests[0].mode == Camera.RenderRequestMode.SelectionMask)
                 {
                     var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                     if (additionalCameraData == null)
@@ -3245,12 +3245,11 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTexture m_OutlineMaskTarget;
         void RenderOutlineMask(ScriptableRenderContext context, HDCamera hdCamera)
         {
-            Debug.Log("RenderOutlineMask");
             var cmd = CommandBufferPool.Get("");
 
             // TODO: Need depth target.
             cmd.SetRenderTarget(m_OutlineMaskTarget);
-            cmd.ClearRenderTarget(true, true, Color.black);
+            //cmd.ClearRenderTarget(true, true, Color.black);
 
             var camera = hdCamera.camera;
             camera.TryGetCullingParameters(out var cullingParameters);
