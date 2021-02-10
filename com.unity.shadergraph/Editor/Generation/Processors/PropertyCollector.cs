@@ -82,6 +82,42 @@ namespace UnityEditor.ShaderGraph
             m_DeclarerFlag = (UInt64)DeclarerFlags._NodeOrGraph;
         }
 
+        private static bool EquivalentHLSLProperties(AbstractShaderProperty a, AbstractShaderProperty b)
+        {
+            bool equivalent = true;
+            var bHLSLProps = new List<HLSLProperty>();
+            b.ForeachHLSLProperty(bh => bHLSLProps.Add(bh));
+            a.ForeachHLSLProperty(ah =>
+            {
+                var i = bHLSLProps.FindIndex(bh => bh.name == ah.name);
+                if (i < 0)
+                    equivalent = false;
+                else
+                {
+                    var bh = bHLSLProps[i];
+                    if ((ah.name != bh.name) ||
+                        (ah.type != bh.type) ||
+                        (ah.precision != bh.precision) ||
+                        (ah.declaration != bh.declaration) ||
+                        ((ah.customDeclaration == null) != (bh.customDeclaration == null)))
+                    {
+                        equivalent = false;
+                    }
+                    else if (ah.customDeclaration != null)
+                    {
+                        var ssba = new ShaderStringBuilder();
+                        var ssbb = new ShaderStringBuilder();
+                        ah.customDeclaration(ssba);
+                        bh.customDeclaration(ssbb);
+                        if (ssba.ToCodeBlock() != ssbb.ToCodeBlock())
+                            equivalent = false;
+                    }
+                    bHLSLProps.RemoveAt(i);
+                }
+            });
+            return equivalent && (bHLSLProps.Count == 0);
+        }
+
         public void AddShaderProperty(AbstractShaderProperty prop)
         {
             if (m_ReadOnly)
@@ -105,7 +141,8 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        // TODO: verify the property declarations are more or less equivalent.. somehow.. ?
+                        if (!EquivalentHLSLProperties(existingProp.property, prop))
+                            Debug.LogError("Two properties with the same reference name produce different HLSL properties");
                     }
                 }
                 // set target flag to record who has declared this property
@@ -341,7 +378,7 @@ namespace UnityEditor.ShaderGraph
         {
             var result = new List<TextureInfo>();
 
-            // TODO: this should be interface based instead of looking for hard codeded tyhpes
+            // TODO: this should be interface based instead of looking for hard coded types
 
             foreach (var prop in properties.OfType<Texture2DShaderProperty>())
             {
