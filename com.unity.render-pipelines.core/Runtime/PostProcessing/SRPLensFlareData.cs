@@ -29,6 +29,7 @@ namespace UnityEngine
             speed = 1.0f;
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
+            isFoldOpened = true;
         }
 
         [Range(0.0f, 1.0f)]
@@ -46,6 +47,7 @@ namespace UnityEngine
         public SRPLensFlareBlendMode blendMode;
         public bool autoRotate;
         public bool modulateByLightColor;
+        public bool isFoldOpened;
     }
 
     [System.Serializable]
