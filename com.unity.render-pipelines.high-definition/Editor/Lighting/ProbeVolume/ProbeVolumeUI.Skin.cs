@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_FeatureOctahedralDepthDisableYesData = "Error: ProbeVolumesBilateralFilteringMode inside of ShaderConfig.cs is not set to OctahedralDepth, but was baked with OctahedralDepth enabled.\nPlease rebake to discard octahedral depth data from asset.";
             internal const string k_VolumeHeader = "Volume";
             internal const string k_ProbesHeader = "Probes";
+            internal const string k_CreateAssetText = "Create Asset";
+            internal const string k_RecreateAssetText = "Recreate Asset";
             internal const string k_BakingHeader = "Baking";
             internal const string k_BakeSelectedText = "Bake Selected";
 

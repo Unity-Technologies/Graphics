@@ -47,14 +47,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         Expandable.Probes,
                         k_ExpandedStateProbes,
                         Drawer_PrimarySettings
-                        ),
+                        ) /*,
                     CED.space,
                     CED.FoldoutGroup(
                         Styles.k_BakingHeader,
                         Expandable.Baking,
                         k_ExpandedStateBaking,
                         Drawer_BakeToolBar
-                        )
+                        ) */
                     )
                 )
             );
@@ -180,6 +180,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 default: break;
             }
+
+            EditorGUILayout.Space();
+
+            var probeVolume = (ProbeVolume)owner.target;
+            var probeVolumeAsset = (ProbeVolumeAsset)serialized.probeVolumeAsset.objectReferenceValue;
+            var noAsset = probeVolumeAsset == null;
+
+            if (noAsset)
+            {
+                EditorGUILayout.HelpBox("Please create the asset after setting the Probe Volume dimensions.", MessageType.Error);
+            }
+            else if (!probeVolume.IsAssetCompatibleResolution())
+            {
+                var parameters = probeVolume.parameters;
+                EditorGUILayout.HelpBox($"The asset assigned to this Probe Volume does not have matching data dimensions " +
+                                        $"({probeVolumeAsset.resolutionX}x{probeVolumeAsset.resolutionY}x{probeVolumeAsset.resolutionZ} vs. " +
+                                        $"{parameters.resolutionX}x{parameters.resolutionY}x{parameters.resolutionZ}), please recreate the asset.",
+                                        MessageType.Error);
+            }
+
+            if (GUILayout.Button(noAsset ? Styles.k_CreateAssetText : Styles.k_RecreateAssetText))
+                probeVolume.CreateAsset();
+
+            EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
