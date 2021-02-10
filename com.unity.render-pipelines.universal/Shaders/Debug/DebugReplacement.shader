@@ -154,21 +154,21 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
 
             half4 frag(Varyings input) : SV_TARGET
             {
-                switch (_DebugAttributesIndex)
+                switch (_DebugVertexAttributeMode)
                 {
-                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD0:
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD0:
                         return input.texcoord0;//half4(,0,1);
-                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD1:
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD1:
                         return input.texcoord1;//half4(input.texcoord1,0,1);
-                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD2:
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD2:
                         return input.texcoord2;
-                    case VERTEXATTRIBUTEDEBUGMODE_TEXCOORD3:
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD3:
                         return input.texcoord3;
-                    case VERTEXATTRIBUTEDEBUGMODE_COLOR:
+                    case DEBUGVERTEXATTRIBUTEMODE_COLOR:
                         return input.color;
-                    case VERTEXATTRIBUTEDEBUGMODE_TANGENT:
+                    case DEBUGVERTEXATTRIBUTEMODE_TANGENT:
                         return input.tangent;
-                    case VERTEXATTRIBUTEDEBUGMODE_NORMAL:
+                    case DEBUGVERTEXATTRIBUTEMODE_NORMAL:
                         return input.normal;
                     default:
                         return half4(0, 0, 0, 1);

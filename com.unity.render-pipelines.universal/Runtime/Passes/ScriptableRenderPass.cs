@@ -424,20 +424,20 @@ namespace UnityEngine.Rendering.Universal
 
                 debugSettings.overrideMaterial = replacementMaterial;
 
-                if(DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride))
+                if(DebugHandler.TryGetSceneOverride(out DebugSceneOverrideMode sceneOverride))
                 {
                     switch (sceneOverride)
                     {
-                        case SceneOverrides.Overdraw:
+                        case DebugSceneOverrideMode.Overdraw:
                             debugSettings.overrideMaterialPassIndex = 0;
                             break;
 
-                        case SceneOverrides.Wireframe:
+                        case DebugSceneOverrideMode.Wireframe:
                             debugSettings.overrideMaterialPassIndex = 1;
                             wireframe = true;
                             break;
 
-                        case SceneOverrides.SolidWireframe:
+                        case DebugSceneOverrideMode.SolidWireframe:
                             debugSettings.overrideMaterialPassIndex = 1;
                             wireframe = true;
 

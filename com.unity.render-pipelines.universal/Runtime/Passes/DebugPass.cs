@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_ClearBlitTarget;
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
-        FullScreenDebugMode m_FullScreenDebugMode;
+        DebugFullScreenMode m_DebugFullScreenMode;
 
         public DebugPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -32,14 +32,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier,
-                          FullScreenDebugMode fullScreenDebugMode, bool clearBlitTarget, Rect pixelRect)
+                          DebugFullScreenMode debugFullScreenMode, bool clearBlitTarget, Rect pixelRect)
         {
             m_Source = colorIdentifier;
             m_TargetDimension = baseDescriptor.dimension;
             m_ClearBlitTarget = clearBlitTarget;
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
             m_PixelRect = pixelRect;
-            m_FullScreenDebugMode = fullScreenDebugMode;
+            m_DebugFullScreenMode = debugFullScreenMode;
         }
 
         /// <inheritdoc/>
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             //else
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
-                cmd.SetGlobalInt("_DebugMode", (int)m_FullScreenDebugMode);
+                cmd.SetGlobalInt("_DebugMode", (int)m_DebugFullScreenMode);
 
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.

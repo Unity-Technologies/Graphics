@@ -18,18 +18,26 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
-int _DebugMaterialIndex;
-int _DebugLightingIndex;
-int _DebugAttributesIndex;
-int _DebugLightingFeatureMask;
-int _DebugMipIndex;
-int _DebugValidationIndex;
+// Material settings...
+int _DebugMaterialMode;
+int _DebugVertexAttributeMode;
 
-half _AlbedoMinLuminance = 0.01;
-half _AlbedoMaxLuminance = 0.90;
-half _AlbedoSaturationTolerance = 0.214;
-half _AlbedoHueTolerance = 0.104;
-half3 _AlbedoCompareColor = half3(0.5, 0.5, 0.5);
+// Rendering settings...
+int _DebugFullScreenMode;
+int _DebugSceneOverrideMode;
+int _DebugMipInfoMode;
+
+// Lighting settings...
+int _DebugLightingMode;
+int _DebugLightingFeatureFlags;
+
+// Validation settings...
+int _DebugValidationMode;
+half _DebugValidateAlbedoMinLuminance = 0.01;
+half _DebugValidateAlbedoMaxLuminance = 0.90;
+half _DebugValidateAlbedoSaturationTolerance = 0.214;
+half _DebugValidateAlbedoHueTolerance = 0.104;
+half3 _DebugValidateAlbedoCompareColor = half3(0.5, 0.5, 0.5);
 
 sampler2D _DebugNumberTexture;
 
@@ -179,7 +187,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 {
     bool changed = false;
 
-    if (_DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_ONLY || _DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_DETAIL)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL)
     {
         surfaceData.albedo = half3(1, 1, 1);
         surfaceData.emission = half3(0, 0, 0);
@@ -191,20 +199,20 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         surfaceData.smoothness = 0;
         changed = true;
     }
-    else if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS || _DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS_WITH_SMOOTHNESS)
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
     {
         surfaceData.albedo = half3(0, 0, 0);
         surfaceData.emission = half3(0, 0, 0);
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
-        if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS)
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
         {
             surfaceData.specular = half3(1, 1, 1);
             surfaceData.metallic = 0;
             surfaceData.smoothness = 1;
         }
-        else if (_DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS_WITH_SMOOTHNESS)
+        else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
         {
             surfaceData.specular = half3(0, 0, 0);
             surfaceData.metallic = 1;
@@ -213,7 +221,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         changed = true;
     }
 
-    if (_DebugLightingIndex == LIGHTINGDEBUGMODE_LIGHT_ONLY || _DebugLightingIndex == LIGHTINGDEBUGMODE_REFLECTIONS)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
     {
         half3 normalTS = half3(0, 0, 1);
 
@@ -289,14 +297,14 @@ half4 GetMipCountDebugColor(in InputData inputData, in SurfaceData surfaceData, 
 
 bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
 {
-    if (_DebugValidationIndex == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
+    if (_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
     {
         half value = LinearRgbToLuminance(surfaceData.albedo);
-        if (_AlbedoMinLuminance > value)
+        if (_DebugValidateAlbedoMinLuminance > value)
         {
              color = half4(1.0f, 0.0f, 0.0f, 1.0f);
         }
-        else if (_AlbedoMaxLuminance < value)
+        else if (_DebugValidateAlbedoMaxLuminance < value)
         {
              color = half4(0.0f, 1.0f, 0.0f, 1.0f);
         }
@@ -306,15 +314,15 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
             half hue = hsv.r;
             half sat = hsv.g;
 
-            half3 compHSV = UnityMeta_RGBToHSV(_AlbedoCompareColor.rgb);
+            half3 compHSV = UnityMeta_RGBToHSV(_DebugValidateAlbedoCompareColor.rgb);
             half compHue = compHSV.r;
             half compSat = compHSV.g;
 
-            if ((compSat - _AlbedoSaturationTolerance > sat) || ((compHue - _AlbedoHueTolerance > hue) && (compHue - _AlbedoHueTolerance + 1.0 > hue)))
+            if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
             {
                 color = half4(1.0f, 0.0f, 0.0f, 1.0f);
             }
-            else if ((sat > compSat + _AlbedoSaturationTolerance) || ((hue > compHue + _AlbedoHueTolerance) && (hue > compHue + _AlbedoHueTolerance - 1.0)))
+            else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
             {
                 color = half4(0.0f, 1.0f, 0.0f, 1.0f);
             }
@@ -336,12 +344,12 @@ bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surface
 {
     color = half4(surfaceData.albedo, 1);
 
-    switch (_DebugMipIndex)
+    switch (_DebugMipInfoMode)
     {
-        case DEBUGMIPINFO_LEVEL:
+        case DEBUGMIPINFOMODE_LEVEL:
             color = GetMipLevelDebugColor(inputData, surfaceData, debugData);
             return true;
-        case DEBUGMIPINFO_COUNT:
+        case DEBUGMIPINFOMODE_COUNT:
             color = GetMipCountDebugColor(inputData, surfaceData, debugData);
             return true;
         default:
@@ -354,47 +362,47 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
     color = half4(0, 0, 0, 1);
 
     // Debug materials...
-    switch(_DebugMaterialIndex)
+    switch(_DebugMaterialMode)
     {
-        case DEBUGMATERIALINDEX_UNLIT:
+        case DEBUGMATERIALMODE_UNLIT:
             color.rgb = surfaceData.albedo;
             return true;
 
-        case DEBUGMATERIALINDEX_DIFFUSE:
+        case DEBUGMATERIALMODE_DIFFUSE:
             color.rgb = debugData.brdfDiffuse;
             return true;
 
-        case DEBUGMATERIALINDEX_SPECULAR:
+        case DEBUGMATERIALMODE_SPECULAR:
             color.rgb = debugData.brdfSpecular;
             return true;
 
-        case DEBUGMATERIALINDEX_ALPHA:
+        case DEBUGMATERIALMODE_ALPHA:
             color.rgb = surfaceData.alpha.rrr;
             return true;
 
-        case DEBUGMATERIALINDEX_SMOOTHNESS:
+        case DEBUGMATERIALMODE_SMOOTHNESS:
             color.rgb = surfaceData.smoothness.rrr;
             return true;
 
-        case DEBUGMATERIALINDEX_AMBIENT_OCCLUSION:
+        case DEBUGMATERIALMODE_AMBIENT_OCCLUSION:
             color.rgb = surfaceData.occlusion.rrr;
             return true;
 
-        case DEBUGMATERIALINDEX_EMISSION:
+        case DEBUGMATERIALMODE_EMISSION:
             color.rgb = surfaceData.emission;
             return true;
 
-        case DEBUGMATERIALINDEX_NORMAL_WORLD_SPACE:
+        case DEBUGMATERIALMODE_NORMAL_WORLD_SPACE:
             color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
             return true;
 
-        case DEBUGMATERIALINDEX_NORMAL_TANGENT_SPACE:
+        case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
             color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
             return true;
-        case DEBUGMATERIALINDEX_LOD:
+        case DEBUGMATERIALMODE_LOD:
             color.rgb = GetLODDebugColor();
             return true;
-        case DEBUGMATERIALINDEX_METALLIC:
+        case DEBUGMATERIALMODE_METALLIC:
             color.rgb = surfaceData.metallic.rrr;
             return true;
 
@@ -429,7 +437,7 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
 bool IsLightingFeatureEnabled(uint bitMask)
 {
     #if defined(_DEBUG_SHADER)
-    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
+    return (_DebugLightingFeatureFlags == 0) || ((_DebugLightingFeatureFlags & bitMask) != 0);
     #else
     return true;
     #endif

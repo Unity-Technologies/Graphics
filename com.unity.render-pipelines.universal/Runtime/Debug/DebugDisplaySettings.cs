@@ -21,16 +21,16 @@ namespace UnityEditor.Rendering
         {
             get
             {
-                PostProcessingState postProcessingState = renderingSettings.postProcessingState;
+                DebugPostProcessingMode debugPostProcessingMode = renderingSettings.debugPostProcessingMode;
 
-                switch(postProcessingState)
+                switch(debugPostProcessingMode)
                 {
-                    case PostProcessingState.Disabled:
+                    case DebugPostProcessingMode.Disabled:
                     {
                         return false;
                     }
 
-                    case PostProcessingState.Auto:
+                    case DebugPostProcessingMode.Auto:
                     {
                         // Only enable post-processing if we aren't using certain debug-views...
                         return materialSettings.IsPostProcessingAllowed &&
@@ -39,14 +39,14 @@ namespace UnityEditor.Rendering
                                Validation.IsPostProcessingAllowed;
                     }
 
-                    case PostProcessingState.Enabled:
+                    case DebugPostProcessingMode.Enabled:
                     {
                         return true;
                     }
 
                     default:
                     {
-                        throw new ArgumentOutOfRangeException(nameof(postProcessingState), $"Invalid post-processing state {postProcessingState}");
+                        throw new ArgumentOutOfRangeException(nameof(debugPostProcessingMode), $"Invalid post-processing state {debugPostProcessingMode}");
                     }
                 } // End of switch.
             }

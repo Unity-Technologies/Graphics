@@ -5,8 +5,8 @@ namespace UnityEditor.Rendering
 {
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
-        public LightingDebugMode m_LightingDebugMode;
-        internal DebugLightingFeature m_DebugLightingFeatureMask;
+        public DebugLightingMode DebugLightingMode;
+        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask;
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -14,23 +14,23 @@ namespace UnityEditor.Rendering
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
-                AddWidget(new DebugUI.EnumField { displayName = "Lighting Mode", autoEnum = typeof(LightingDebugMode),
-                    getter = () => (int)data.m_LightingDebugMode,
+                AddWidget(new DebugUI.EnumField { displayName = "Lighting Mode", autoEnum = typeof(DebugLightingMode),
+                    getter = () => (int)data.DebugLightingMode,
                     setter = (value) => {},
-                    getIndex = () => (int)data.m_LightingDebugMode,
-                    setIndex = (value) => data.m_LightingDebugMode = (LightingDebugMode)value});
+                    getIndex = () => (int)data.DebugLightingMode,
+                    setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value});
 
                 AddWidget(new DebugUI.BitField { displayName = "Lighting Features",
-                    getter = () => data.m_DebugLightingFeatureMask,
-                    setter = (value) => data.m_DebugLightingFeatureMask = (DebugLightingFeature)value,
-                    enumType = typeof(DebugLightingFeature),
+                    getter = () => data.DebugLightingFeatureFlagsMask,
+                    setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
+                    enumType = typeof(DebugLightingFeatureFlags),
                 });
             }
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (m_LightingDebugMode != LightingDebugMode.None) ||
-                                             (m_DebugLightingFeatureMask != DebugLightingFeature.None);
+        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) ||
+                                             (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
         public bool IsPostProcessingAllowed => true;
 

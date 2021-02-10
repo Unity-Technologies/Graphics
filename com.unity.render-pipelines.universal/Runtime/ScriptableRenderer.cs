@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
-            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.None;
+            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
 
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -912,16 +912,16 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
-                if(DebugHandler != null && DebugHandler.TryGetSceneOverride(out SceneOverrides sceneOverride))
+                if(DebugHandler != null && DebugHandler.TryGetSceneOverride(out DebugSceneOverrideMode sceneOverride))
                 {
                     switch(sceneOverride)
                     {
-                        case SceneOverrides.Overdraw:
+                        case DebugSceneOverrideMode.Overdraw:
                             finalClearColor = Color.black;
                             break;
 
-                        case SceneOverrides.Wireframe:
-                        case SceneOverrides.SolidWireframe:
+                        case DebugSceneOverrideMode.Wireframe:
+                        case DebugSceneOverrideMode.SolidWireframe:
                             finalClearColor = new Color(1.0f / 16, 1.0f / 16, 1.0f / 16, 1.0f);
                             break;
 

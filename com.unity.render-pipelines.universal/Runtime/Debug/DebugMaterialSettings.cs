@@ -6,8 +6,8 @@ namespace UnityEditor.Rendering
 {
     public class DebugMaterialSettings : IDebugDisplaySettingsData
     {
-        public DebugMaterialIndex DebugMaterialIndexData;
-        public VertexAttributeDebugMode VertexAttributeDebugIndexData;
+        public DebugMaterialMode DebugMaterialModeData;
+        public DebugVertexAttributeMode DebugVertexAttributeIndexData;
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -15,23 +15,23 @@ namespace UnityEditor.Rendering
 
             public SettingsPanel(DebugMaterialSettings data)
             {
-                AddWidget(new DebugUI.EnumField { displayName = "Material Override", autoEnum = typeof(DebugMaterialIndex), getter = () => (int)data.DebugMaterialIndexData, setter = (value) => {}, getIndex = () => (int)data.DebugMaterialIndexData, setIndex = (value) => data.DebugMaterialIndexData = (DebugMaterialIndex)value});
+                AddWidget(new DebugUI.EnumField { displayName = "Material Override", autoEnum = typeof(DebugMaterialMode), getter = () => (int)data.DebugMaterialModeData, setter = (value) => {}, getIndex = () => (int)data.DebugMaterialModeData, setIndex = (value) => data.DebugMaterialModeData = (DebugMaterialMode)value});
                 AddWidget(new DebugUI.EnumField
                 {
-                    displayName = "Vertex Attribute", autoEnum = typeof(VertexAttributeDebugMode),
-                    getter = () => (int)data.VertexAttributeDebugIndexData, setter = (value) => { },
-                    getIndex = () => (int) data.VertexAttributeDebugIndexData,
-                    setIndex = (value) => data.VertexAttributeDebugIndexData = (VertexAttributeDebugMode) value
+                    displayName = "Vertex Attribute", autoEnum = typeof(DebugVertexAttributeMode),
+                    getter = () => (int)data.DebugVertexAttributeIndexData, setter = (value) => { },
+                    getIndex = () => (int) data.DebugVertexAttributeIndexData,
+                    setIndex = (value) => data.DebugVertexAttributeIndexData = (DebugVertexAttributeMode) value
                 });
             }
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (DebugMaterialIndexData != DebugMaterialIndex.None) ||
-                                             (VertexAttributeDebugIndexData != VertexAttributeDebugMode.None);
+        public bool AreAnySettingsActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
+                                             (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
-        public bool IsPostProcessingAllowed => (DebugMaterialIndexData == DebugMaterialIndex.None) &&
-                                               (VertexAttributeDebugIndexData == VertexAttributeDebugMode.None);
+        public bool IsPostProcessingAllowed => (DebugMaterialModeData == DebugMaterialMode.None) &&
+                                               (DebugVertexAttributeIndexData == DebugVertexAttributeMode.None);
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
