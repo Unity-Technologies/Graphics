@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- Added a Force Forward Emissive optoin for Lit Material to force to render the Emissive contribution in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -246,7 +247,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
-- Added an emissive as forward pass when the lit is in deferred mode.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)

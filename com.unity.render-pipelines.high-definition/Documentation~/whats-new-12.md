@@ -6,9 +6,11 @@ This page contains an overview of new features, improvements, and issues resolve
 
 The following is a list of features Unity added to version 12 of the High Definition Render Pipeline, embedded in Unity 2021.2. Each entry includes a summary of the feature and a link to any relevant documentation.
 
-### Render emissive contibution of a Lit Deferred Material in a separate forward pass.
+### Render Emissive contibution of a Lit Deferred Material in a separate forward pass.
 
-
+From HDRP 12.0, it is now possible to render the Emissive contribution of a Lit Material when using the the Lit Shader Mode as Both or Deferred in HDRP settings in a separate pass instead of the GBuffer pass.
+This can be used to fix artefacts when using [Screen Space Global Illumination](Override-Screen-Space-GI.md) - With or without Raytracing enabled - and Emissive Material with Lit Shader Mode setup as Both or Deferred. Previously it Emissive contributoin was drop, now it is keep. Same usage for the new Adaptive probe volumes.
+Limitation: Doing a separate pass for Emissive contribution can have an additional CPU cost as it require additional DrawCall.
 
 
 ## Improvements
