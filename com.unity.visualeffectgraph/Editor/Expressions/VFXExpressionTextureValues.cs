@@ -72,6 +72,48 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXCameraBufferValue : VFXValue<int>
+    {
+        public VFXCameraBufferValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
+        {
+        }
+
+        public override VFXValue CopyExpression(Mode mode)
+        {
+            var copy = new VFXCameraBufferValue(Get(), mode);
+            return copy;
+        }
+
+        public override VFXValueType valueType { get { return VFXValueType.CameraBuffer; } }
+
+        sealed protected override int[] additionnalOperands { get { return new int[] { (int)valueType }; } }
+
+        public override T Get<T>()
+        {
+            CameraBuffer cameraBuffer = base.Get();
+
+            object value = cameraBuffer;
+
+            if (typeof(T) == typeof(int))
+                value = (int)cameraBuffer;
+
+            if (typeof(T).IsAssignableFrom(typeof(Texture)))
+                value = (Texture)cameraBuffer;
+
+            return (T)value;
+        }
+
+        public override object GetContent()
+        {
+            return Get();
+        }
+
+        public override void SetContent(object value)
+        {
+            m_Content = (int)(CameraBuffer)value;
+        }
+    }
+
     class VFXMeshValue : VFXObjectValue
     {
         public VFXMeshValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Mesh)
