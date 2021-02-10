@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 - Fixed an issue where bokeh dof is applied incorrectly when there is an overlay camera in the camera stack. [case 1303572](https://issuetracker.unity3d.com/issues/urp-bokeh-depth-of-field-is-applied-incorrectly-when-the-main-camera-has-an-overlay-camera-in-the-camera-stack)
+
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Sprite Lit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Lit Shader Graph
