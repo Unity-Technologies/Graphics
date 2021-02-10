@@ -280,21 +280,13 @@ namespace UnityEngine.Rendering.Universal
                 // Selection mask requires separate passes for occluded objects
                 if (IsSelectionMaskRequest)
                 {
-                    m_RenderOpaqueForwardPassZDisabled = new DrawObjectsPass("Render Opaques (Occluded)", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
-                    m_RenderTransparentForwardPassZDisabled = new DrawObjectsPass("Render Transparents (Occluded)", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
+                    m_RenderOpaqueForwardPassZDisabled = new DrawObjectsPass("Render Opaques (Z disabled)", shaderTags, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, m_OpaqueLayerMask, m_DefaultStencilState, 0 );
+                    m_RenderTransparentForwardPassZDisabled = new DrawObjectsPass("Render Transparents (Z disabled)", shaderTags, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, m_TransparentLayerMask, m_DefaultStencilState, 0);
 
                     var state = m_RenderOpaqueForwardPassZDisabled.RenderStateBlock;
-                    state.rasterState = new RasterState(CullMode.Off, 0, -0.02f);
-                    state.blendState = new BlendState
-                    {
-                        blendState0 = new RenderTargetBlendState(
-                            ColorWriteMask.Blue | ColorWriteMask.Green,
-                            sourceColorBlendMode: BlendMode.One,
-                            destinationColorBlendMode: BlendMode.One,
-                            colorBlendOperation: BlendOp.Max),
-                    };
+                    state.rasterState = new RasterState(CullMode.Back, 0, -0.02f);
                     state.depthState = new DepthState {compareFunction = CompareFunction.Always, writeEnabled = false};
-                    state.mask = RenderStateMask.Everything;
+                    state.mask = RenderStateMask.Raster | RenderStateMask.Depth;
                     m_RenderOpaqueForwardPassZDisabled.RenderStateBlock = state;
                     m_RenderTransparentForwardPassZDisabled.RenderStateBlock = state;
                 }
@@ -303,7 +295,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                     new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
-                    new Tuple<string, int>("UNITY_DataExtraction_Value", 255),
+                    new Tuple<string, int>("UNITY_DataExtraction_Value", 0),
                 };
 
                 m_RenderOpaqueForwardPass.SetAdditionalValues(values);
@@ -315,6 +307,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                         new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
+                        // TODO: Unique object identifier here?
                         new Tuple<string, int>("UNITY_DataExtraction_Value", 0),
                     };
 
@@ -326,13 +319,15 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc />
             public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                EnqueuePass(m_RenderOpaqueForwardPass);
-                EnqueuePass(m_RenderTransparentForwardPass);
-
                 if (IsSelectionMaskRequest)
                 {
                     EnqueuePass(m_RenderOpaqueForwardPassZDisabled);
                     EnqueuePass(m_RenderTransparentForwardPassZDisabled);
+                }
+                else
+                {
+                    EnqueuePass(m_RenderOpaqueForwardPass);
+                    EnqueuePass(m_RenderTransparentForwardPass);
                 }
             }
 
