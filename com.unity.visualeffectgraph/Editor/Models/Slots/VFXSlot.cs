@@ -566,8 +566,6 @@ namespace UnityEditor.VFX
 
         public VFXSlot Recreate()
         {
-            Debug.Assert(IsMasterSlot());
-
             // Try to retrieve the value
             object previousValue = null;
             try
