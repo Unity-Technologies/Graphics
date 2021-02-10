@@ -3,6 +3,7 @@
 int UNITY_DataExtraction_Mode;
 int UNITY_DataExtraction_Space;
 int UNITY_DataExtraction_Value;
+TEXTURE2D(unity_EditorViz_DepthBuffer); SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 
 #define RENDER_OBJECT_ID               1
 #define RENDER_DEPTH                   2
@@ -86,7 +87,24 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, inputs.alpha);
     if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
-        return float4(0, (float)UNITY_DataExtraction_Value / 255.0, 1, 1);
+    {
+        float3 ndcZ = ComputeNormalizedDeviceCoordinatesWithZ(inputs.positionWS, UNITY_MATRIX_VP);
+        float sceneZ = SAMPLE_TEXTURE2D(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer, ndcZ.xy).r;
+        // Use a small multiplicative Z bias to make it less likely for objects to self occlude in the outline buffer
+        static const float zBias = 0.02;
+#if UNITY_REVERSED_Z
+        float pixelZ = ndcZ.z * (1 + zBias);
+        bool occluded = pixelZ < sceneZ;
+#else
+        float pixelZ = ndcZ.z * (1 - zBias);
+        bool occluded = pixelZ > sceneZ;
+#endif
+        // Red channel = unique identifier, can be used to separate groups of objects from each other
+        //               to get outlines between them.
+        // Green channel = occluded behind depth buffer (0) or not occluded (1)
+        // Blue channel  = always 1 = not cleared to zero = there's an outlined object at this pixel
+        return float4((float)UNITY_DataExtraction_Value / 255.0, occluded ? 0 : 1, 1, 1);
+    }
 
     return 0;
 }
