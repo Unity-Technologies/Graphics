@@ -1,3 +1,5 @@
+// Output Type: Planar Primitive (Triangle, Quad, Octagon)
+
 #if defined(HAS_STRIPS) && !defined(VFX_PRIMITIVE_QUAD)
 #error VFX_PRIMITIVE_QUAD must be defined when HAS_STRIPS is.
 #endif
@@ -82,65 +84,68 @@ void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
 
 #if !HAS_STRIPS
     if (!attributes.alive)
-        return o;
+        return;
 #endif
 
     // Generate Vertex Offset
-//    #if VFX_PRIMITIVE_QUAD
-//        #if HAS_STRIPS
-//        #if VFX_STRIPS_UV_STRECHED
-//            o.VFX_VARYING_UV.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
-//        #elif VFX_STRIPS_UV_PER_SEGMENT
-//            o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
-//        #else
-//            ${VFXLoadParameter:{texCoord}}
-//            o.VFX_VARYING_UV.x = texCoord;
-//        #endif
-//
-//            o.VFX_VARYING_UV.y = float((id & 2) >> 1);
-//            const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
-//
-//        #if VFX_STRIPS_SWAP_UV
-//            o.VFX_VARYING_UV.xy = float2(1.0f - o.VFX_VARYING_UV.y, o.VFX_VARYING_UV.x);
-//        #endif
-//
-//        #else
-//            o.VFX_VARYING_UV.x = float(id & 1);
-//            o.VFX_VARYING_UV.y = float((id & 2) >> 1);
-//            const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
-//        #endif
-//    #elif VFX_PRIMITIVE_TRIANGLE
-//        const float2 kOffsets[] = {
-//            float2(-0.5f,     -0.288675129413604736328125f),
-//            float2(0.0f,  0.57735025882720947265625f),
-//            float2(0.5f,  -0.288675129413604736328125f),
-//        };
-//
-//        const float kUVScale = 0.866025388240814208984375f;
-//
-//        const float2 vOffsets = kOffsets[id % 3];
-//        // o.VFX_VARYING_UV.xy = (vOffsets * kUVScale) + 0.5f;
-//    #elif VFX_PRIMITIVE_OCTAGON
-//        const float2 kUvs[8] =
-//        {
-//            float2(-0.5f, 0.0f),
-//            float2(-0.5f, 0.5f),
-//            float2(0.0f,  0.5f),
-//            float2(0.5f,  0.5f),
-//            float2(0.5f,  0.0f),
-//            float2(0.5f,  -0.5f),
-//            float2(0.0f,  -0.5f),
-//            float2(-0.5f, -0.5f),
-//        };
-//
-//        ${VFXLoadParameter:{cropFactor}} // TODO
-//        cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
-//        const float2 vOffsets = kUvs[id & 7] * cropFactor;
-//        // o.VFX_VARYING_UV.xy = vOffsets + 0.5f;
-//    #endif
+    float4 uv = 0;
 
-    // TEMP: Implement the above
-    const float2 vOffsets = float2(0.0f, float((id & 2) >> 1) - 0.5f);
+    #if VFX_PRIMITIVE_QUAD
+        #if HAS_STRIPS
+        #if VFX_STRIPS_UV_STRECHED
+            uv.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
+        #elif VFX_STRIPS_UV_PER_SEGMENT
+            uv.x = PARTICLE_IN_EDGE;
+        #else
+            ${VFXLoadParameter:{texCoord}}
+            uv.x = texCoord;
+        #endif
+
+            uv.y = float((id & 2) >> 1);
+            const float2 vOffsets = float2(0.0f, uv.y - 0.5f);
+
+        #if VFX_STRIPS_SWAP_UV
+            uv.xy = float2(1.0f - uv.y, uv.x);
+        #endif
+
+        #else
+            uv.x = float(id & 1);
+            uv.y = float((id & 2) >> 1);
+            const float2 vOffsets = uv.xy - 0.5f;
+        #endif
+    #elif VFX_PRIMITIVE_TRIANGLE
+        const float2 kOffsets[] = {
+            float2(-0.5f,     -0.288675129413604736328125f),
+            float2(0.0f,  0.57735025882720947265625f),
+            float2(0.5f,  -0.288675129413604736328125f),
+        };
+
+        const float kUVScale = 0.866025388240814208984375f;
+
+        const float2 vOffsets = kOffsets[id % 3];
+        uv.xy = (vOffsets * kUVScale) + 0.5f;
+    #elif VFX_PRIMITIVE_OCTAGON
+        const float2 kUvs[8] =
+        {
+            float2(-0.5f, 0.0f),
+            float2(-0.5f, 0.5f),
+            float2(0.0f,  0.5f),
+            float2(0.5f,  0.5f),
+            float2(0.5f,  0.0f),
+            float2(0.5f,  -0.5f),
+            float2(0.0f,  -0.5f),
+            float2(-0.5f, -0.5f),
+        };
+
+        ${VFXLoadParameter:{cropFactor}}
+        cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
+        const float2 vOffsets = kUvs[id & 7] * cropFactor;
+        uv.xy = vOffsets + 0.5f;
+    #endif
+
+#if defined(VARYINGS_NEED_TEXCOORD0)
+    output.texCoord0 = uv;
+#endif
 
     // Instance to Particle
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
@@ -176,6 +181,24 @@ void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
     // Need to overwrite the position with the result from VFX.
     // Warning: Need to be explicit about relative space.
     output.positionRWS = TransformPositionVFXToWorld(vPos);
+    #endif
+
+#if VFX_NON_UNIFORM_SCALE
+    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+        attributes.axisX,
+        attributes.axisY,
+        attributes.axisZ,
+        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+        size3);
+#else
+    float3x3 elementToVFX_N = (float3x3)elementToVFX;
+#endif
+
+    float3 normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));
+
+    #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
+    output.normalWS = normalFlip * normalWS;
     #endif
 
     // Interpolants Generation

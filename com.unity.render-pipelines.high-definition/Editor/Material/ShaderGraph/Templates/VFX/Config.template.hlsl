@@ -54,11 +54,5 @@ $splice(VFXGeneratedBlockFunction)
 
 #define VaryingsMeshType VaryingsMeshToPS
 
-// Support the various VFX Primitive types.
-// TODO: Add as new template directory?
 $PrimitiveType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $PrimitiveType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
-
-// #ifndef VFX_PRIMITIVE_DEFINED
-// #error Error: No Primitive Defined.
-// #endif

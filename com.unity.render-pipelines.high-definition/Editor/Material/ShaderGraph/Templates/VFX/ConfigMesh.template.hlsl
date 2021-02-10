@@ -1,3 +1,5 @@
+// Output Type: Mesh
+
 void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
 {
     Attributes attributes = (Attributes)0;
