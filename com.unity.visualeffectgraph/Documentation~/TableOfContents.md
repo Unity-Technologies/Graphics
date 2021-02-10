@@ -45,7 +45,7 @@
       * [Global Settings](Context-OutputSharedSettings.md)
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
-    * [Update Particle](Context-Update.md) 
+    * [Update Particle](Context-Update.md)
     * Block
       * Attribute
         * [Curve](Block-SetAttributeFromCurve.md)
@@ -317,10 +317,12 @@
       * [Random Number](Operator-RandomNumber.md)
     * Sampling
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
+      * [Load CameraBuffer](Operator-LoadCameraBuffer.md)
       * [Load Texture2D](Operator-LoadTexture2D.md)
       * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
       * [Position (Depth)](Operator-Position(Depth).md)
+      * [Sample CameraBuffer](Operator-SampleCameraBuffer.md)
       * [Sample Curve](Operator-SampleCurve.md)
       * [Sample Gradient](Operator-SampleGradient.md)
       * [Sample Signed Distance Field](Operator-SampleSDF.md)
@@ -340,6 +342,7 @@
     * [ArcSphere](Type-ArcSphere.md)
     * [ArcTorus](Type-ArcTorus.md)
     * [Camera](Type-Camera.md)
+    * [CameraBuffer](Type-CameraBuffer.md)
     * [Circle](Type-Circle.md)
     * [Cone](Type-Cone.md)
     * [Cylinder](Type-Cylinder.md)

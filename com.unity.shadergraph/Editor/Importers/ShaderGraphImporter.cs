@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
     // This ifdef can be removed once V2 is the only option.
     [ScriptedImporter(109, Extension, -902)]
 #else
-    [ScriptedImporter(41, Extension, -902)]
+    [ScriptedImporter(42, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -165,10 +165,13 @@ Shader ""Hidden/GraphErrorShader2""
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {
-                    foreach (var pair in graph.messageManager.GetNodeMessages())
+                    if (graph.messageManager.AnyError())
                     {
-                        var node = graph.GetNodeFromId(pair.Key);
-                        MessageManager.Log(node, path, pair.Value.First(), shader);
+                        Debug.LogError($"Shader Graph at {path} has at least one error.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
                     }
                 }
 
@@ -378,7 +381,8 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 
                 var bodySb = new ShaderStringBuilder(1);
-                var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
+                var graphIncludes = new IncludeCollection();
+                var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
 
                 foreach (var properties in graph.properties)
                 {
@@ -453,6 +457,12 @@ Shader ""Hidden/GraphErrorShader2""
                 sharedCodeIndices.Add(codeSnippets.Count);
                 codeSnippets.Add($"#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl\"{nl}");
 
+                foreach (var include in graphIncludes)
+                {
+                    sharedCodeIndices.Add(codeSnippets.Count);
+                    codeSnippets.Add(include.value + nl);
+                }
+
                 for (var registryIndex = 0; registryIndex < registry.names.Count; registryIndex++)
                 {
                     var name = registry.names[registryIndex];
@@ -501,7 +511,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var property in graph.properties)
                 {
-                    if (property.isExposable && property.generatePropertyBlock)
+                    if (property.isExposed)
                     {
                         continue;
                     }
@@ -650,7 +660,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var property in graph.properties)
                 {
-                    if (!property.isExposable || !property.generatePropertyBlock)
+                    if (!property.isExposed)
                     {
                         continue;
                     }

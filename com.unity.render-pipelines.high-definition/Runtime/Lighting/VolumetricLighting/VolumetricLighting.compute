@@ -479,7 +479,8 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     // For now the safest way is to ignore the NaN data when sampled.
     if (AnyIsNaN(apvDiffuseGI))
     {
-        return 0;
+        // We don't early out here as otherwise the compiler issues warnings on some platforms.
+        weight = 0;
     }
 
     return apvDiffuseGI * weight;

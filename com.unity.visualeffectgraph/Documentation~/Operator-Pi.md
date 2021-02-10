@@ -1,6 +1,6 @@
 # Pi (π)
 
-Menu Path : **Operator > Math > Constants > Pi (π)**  
+Menu Path : **Operator > Math > Constants > Pi (π)**
 
 The **Pi (π)** Operator returns the number Pi (π). This is the ratio of the circumference of a circle to its diameter.
 
