@@ -165,10 +165,13 @@ Shader ""Hidden/GraphErrorShader2""
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {
-                    foreach (var pair in graph.messageManager.GetNodeMessages())
+                    if (graph.messageManager.AnyError())
                     {
-                        var node = graph.GetNodeFromId(pair.Key);
-                        MessageManager.Log(node, path, pair.Value.First(), shader);
+                        Debug.LogError($"Shader Graph at {path} has at least one error.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
                     }
                 }
 

@@ -269,6 +269,7 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_raytracing _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
+
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
     #pragma shader_feature_local _NORMALMAP
@@ -286,6 +287,7 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_fragment _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #pragma shader_feature_local_raytracing _ENABLESPECULAROCCLUSION
     #pragma shader_feature_local_raytracing _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
@@ -334,6 +336,8 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_CLEAR_COAT
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
+
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -748,6 +752,10 @@ Shader "HDRP/LitTessellation"
 
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+
+            #ifndef SHADER_STAGE_FRAGMENT
+            #define SHADOW_LOW
+            #endif
 
             #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
 

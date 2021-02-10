@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
         private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
         {
             // Properties
-            internal bool isRendererDeferred { get { return m_Renderer != null && m_Renderer is ForwardRenderer && ((ForwardRenderer)m_Renderer).renderingMode == RenderingMode.Deferred; } }
+            internal bool isRendererDeferred { get { return m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred; } }
 
             // Public Variables
             internal string profilerTag;
