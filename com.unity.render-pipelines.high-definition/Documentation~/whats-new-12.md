@@ -6,6 +6,9 @@ This page contains an overview of new features, improvements, and issues resolve
 
 The following is a list of features Unity added to version 12 of the High Definition Render Pipeline, embedded in Unity 2021.2. Each entry includes a summary of the feature and a link to any relevant documentation.
 
+### Render emissive contibution of a Lit Deferred Material in a separate forward pass.
+
+
 
 
 ## Improvements
