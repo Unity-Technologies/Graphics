@@ -69,8 +69,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShadowOpacity;
         SerializedDataParameter m_ShadowOpacityFallback;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<VolumetricClouds>(serializedObject);
@@ -206,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
             PropertyField(m_GlobalWindSpeed);
-            if (isInAdvancedMode)
+            if (BeginAdditionalPropertiesScope())
             {
                 using (new HDEditorUtils.IndentScope())
                 {
@@ -242,7 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new HDEditorUtils.IndentScope())
                 {
                     PropertyField(m_ShadowResolution);
-                    if (isInAdvancedMode)
+                    if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_ShadowOpacity);
                         PropertyField(m_ShadowDistance);

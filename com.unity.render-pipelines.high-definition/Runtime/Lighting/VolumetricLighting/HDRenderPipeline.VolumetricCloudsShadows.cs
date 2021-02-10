@@ -63,25 +63,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsParameters parameters, RTHandle shadowTexture)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
-            {
-                // Bind the constant buffer
-                ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+            // Bind the constant buffer
+            ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 
-                // Compute the final resolution parameters
-                int shadowTX = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                int shadowTY = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
-                cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, parameters.viewCount);
-
-                // Apply the texture to the sun
-                shadowTexture.rt.IncrementUpdateCount();
-                parameters.sunLight.cookie = shadowTexture;
-            }
+            // Compute the final resolution parameters
+            int shadowTX = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
+            int shadowTY = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
+            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
+            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
+            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
+            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
+            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+            cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, parameters.viewCount);
+            // Apply the texture to the sun
+            shadowTexture.rt.IncrementUpdateCount();
+            parameters.sunLight.cookie = shadowTexture;
         }
 
         class VolumetricCloudsShadowData
@@ -140,7 +136,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 return;
             }
-
             // Make sure the shadow texture is the right size
             // TODO: Right now we can endup with a bunch of textures allocated which should be solved by an other PR.
             RTHandle currentHandle = RequestShadowTexture(settings);
