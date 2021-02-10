@@ -559,44 +559,50 @@ namespace UnityEditor.VFX
             if (!hierarchySane)
             {
                 Debug.LogWarningFormat("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type);
-
-                // Try to retrieve the value
-                object previousValue = null;
-                try
-                {
-                    previousValue = this.value;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarningFormat("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace);
-                }
-
-                // Recreate the slot
-                var newSlot = Create(property, direction, previousValue);
-                if (IsMasterSlot())
-                {
-                    var owner = this.owner;
-                    if (owner != null)
-                    {
-                        int index = owner.GetSlotIndex(this);
-                        owner.RemoveSlot(this);
-                        owner.AddSlot(newSlot, index);
-                    }
-                }
-                else
-                {
-                    var parent = GetParent();
-                    var index = parent.GetIndex(this);
-                    parent.RemoveChild(this, false);
-                    parent.AddChild(newSlot, index);
-                }
-
-                CopyLinks(newSlot, this, true);
-                CopySpace(newSlot, this, true);
-                UnlinkAll(true);
-                return newSlot;
+                return Recreate();
             }
             return this;
+        }
+
+        public VFXSlot Recreate()
+        {
+            Debug.Assert(IsMasterSlot());
+
+            // Try to retrieve the value
+            object previousValue = null;
+            try
+            {
+                previousValue = this.value;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace);
+            }
+
+            // Recreate the slot
+            var newSlot = Create(property, direction, previousValue);
+            if (IsMasterSlot())
+            {
+                var owner = this.owner;
+                if (owner != null)
+                {
+                    int index = owner.GetSlotIndex(this);
+                    owner.RemoveSlot(this);
+                    owner.AddSlot(newSlot, index);
+                }
+            }
+            else
+            {
+                var parent = GetParent();
+                var index = parent.GetIndex(this);
+                parent.RemoveChild(this, false);
+                parent.AddChild(newSlot, index);
+            }
+
+            CopyLinks(newSlot, this, true);
+            CopySpace(newSlot, this, true);
+            UnlinkAll(true);
+            return newSlot;
         }
 
         private void SetDefaultExpressionValue()
