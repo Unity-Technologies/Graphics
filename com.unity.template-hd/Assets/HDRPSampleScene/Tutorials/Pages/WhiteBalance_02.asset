@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Explore the scene
       Text:
         m_Untranslated: "Let\u2019s explore how the feature was utilized in this
-          template.\r\n\r\n1) In the <i>Hierarchy</i> tab, select <b>Lighting</b>
+          template.\r\n\r\n1) In the <i>Hierarchy</i> window, select <b>Lighting</b>
           > <b>Volumes</b> > <b>Volume Room 3 Sitting</b>\r\n\r\n2) Disable the White
           balance volume override and notice how it impacts the colors overall, the
           strip light on the curved wall and the white floor tiles.\r\n\r\n3) Undo

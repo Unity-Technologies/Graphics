@@ -44,23 +44,23 @@ MonoBehaviour:
           with the different provided presets to compare quality. The following instructions
           are therefore optional and should only be attempted with a powerful machine.
 
-          
+
 
           1)
           Open Lighting tab <b>Window</b> > <b>Rendering</b> > <b>Lighting</b>
 
-          
+
 
           2)
           In the scene tab, assign one of the presets into <b>Lighting Settings</b>
-          field. For example <b>Lighting Settings Draft</b>
+          field. For example <b>LightingSettings1Draft</b>
 
-          
 
-          3)
-          In the bottom right corner of the Lighting tab, click <b>Generate Lighting</b>
 
-          
+          3) In the
+          bottom right corner of the Lighting tab, click <b>Generate Lighting</b>
+
+
 
           Notice
           how the quality of the lightmaps is now much lower with the Draft preset,

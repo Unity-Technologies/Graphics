@@ -48,9 +48,9 @@ MonoBehaviour:
           Disable HDRI Sky. The scene\u2019s sky should become black.\r\n\r\n3) Undo
           your changes\r\n\r\nFor convenience, we also added an instance of these
           settings in the scene. Use the search of the <i>Hierarchy</i> window to
-          find <b>Volume Global</b> GameObject. Adding them does not change the way
-          our scene is rendered, but allows us to edit these settings without opening
-          the <i>Project Settings</i> window.\r\n"
+          find <b>Lighting</b> > <b>Volumes</b> > <b>Volume Global</b> GameObject.
+          Adding them does not change the way our scene is rendered, but allows us
+          to edit these settings without opening the <i>Project Settings</i> window.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

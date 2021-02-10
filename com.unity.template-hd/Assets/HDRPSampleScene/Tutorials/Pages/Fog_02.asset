@@ -39,8 +39,8 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog settings
       Text:
-        m_Untranslated: "Select <b>Volumes Global</b> which is under Lighting > Volumes
-          in the <i>Hierarchy</i> window and let's take a look at the Fog overrides.\r\n\r\n<b>Fog
+        m_Untranslated: "Select <b>Volumes Global</b> which is in the <i>Hierarchy</i>
+          window under Lighting > Volumes and let's take a look at the Fog overrides.\r\n\r\n<b>Fog
           Attenuation Distance</b> - Determines how far you can see through the fog
           in meters. Lower values will produce denser levels of fog. \r\n\r\n<b>Ambient
           Probe Light Dimmer</b> - Reduces the influence of the sky ambient probe

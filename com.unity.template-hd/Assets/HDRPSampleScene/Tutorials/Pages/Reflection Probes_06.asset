@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Congratulations!
       Text:
         m_Untranslated: 'You have finished the <b>Reflection Probes</b> tutorial.
-          For more information, check out the Reflection Probes <a href="https://docs.unity3d.com/Manual/class-ReflectionProbe.htmll">documentation</a>.
+          For more information, check out the Reflection Probes <a href="https://docs.unity3d.com/Manual/class-ReflectionProbe.html">documentation</a>.
 
 
 
