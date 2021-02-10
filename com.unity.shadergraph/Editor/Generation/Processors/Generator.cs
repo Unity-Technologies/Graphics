@@ -155,10 +155,10 @@ namespace UnityEditor.ShaderGraph
                     // Instead of setup target, we can also just do get context
                     target.Setup(ref context);
 
-                    var allSubShaderProperties = GetSubShaderPropertiesForTarget(target, m_GraphData, m_Mode, m_OutputNode);
+                    var subShaderProperties = GetSubShaderPropertiesForTarget(target, m_GraphData, m_Mode, m_OutputNode);
 
-                    // test prop assumptions (all props contains local list)
-                    foreach (var prop in allSubShaderProperties.properties)
+                    // test property assumptions (SubShader properties should be a subset of all properties)
+                    foreach (var prop in subShaderProperties.properties)
                     {
                         var existingProp = allShaderProperties.properties.FirstOrDefault(p => p.referenceName == prop.referenceName);
                         if (existingProp == null)
@@ -169,7 +169,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var subShader in context.subShaders)
                     {
-                        GenerateSubShader(target, subShader, allSubShaderProperties);
+                        GenerateSubShader(target, subShader, subShaderProperties);
                     }
 
                     var customEditor = context.defaultShaderGUI;
@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = allShaderProperties.GetConfiguredTexutres();
         }
 
-        void GenerateSubShader(Target target, SubShaderDescriptor descriptor, PropertyCollector allShaderProperties)
+        void GenerateSubShader(Target target, SubShaderDescriptor descriptor, PropertyCollector subShaderProperties)
         {
             if (descriptor.passes == null)
                 return;
@@ -208,8 +208,12 @@ namespace UnityEditor.ShaderGraph
                 List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> currentBlockDescriptors = m_Blocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().IsUsingDefaultValue())).ToList();
                 var connectedBlockDescriptors = m_Blocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
 
-                // TODO:  build shared shader property HLSL declarations here (reduce overall work) -- maybe even splice it once in a shared code section?
-                //
+                // TODO: we could splice in shared property declarations in an HLSLINCLUDE block at the subshader level
+                // however we would need to rework the template includes to pull the required include files out to this level as well...
+                // it's easier for now to keep everything defined in the pass
+                // m_Builder.AppendLine("HLSLINCLUDE");
+                // allShaderProperties.GetPropertiesDeclarationForTarget(m_Builder, m_Mode, m_GraphData.concretePrecision, target);
+                // m_Builder.AppendLine("ENDHLSL");
 
                 foreach (PassCollection.Item pass in descriptor.passes)
                 {
@@ -221,7 +225,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Check masternode fields for valid passes
                     if (pass.TestActive(activeFields))
-                        GenerateShaderPass(target, pass.descriptor, activeFields, currentBlockDescriptors.Select(x => x.descriptor).ToList(), allShaderProperties);
+                        GenerateShaderPass(target, pass.descriptor, activeFields, currentBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);
                 }
             }
         }
@@ -281,10 +285,12 @@ namespace UnityEditor.ShaderGraph
                 subshaderProperties.EndTargetCollection(target);
             }
 
+            subshaderProperties.SetReadOnly();
+
             return subshaderProperties;
         }
 
-        void GenerateShaderPass(Target target, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors, PropertyCollector allShaderProperties)
+        void GenerateShaderPass(Target target, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors, PropertyCollector subShaderProperties)
         {
             // Early exit if pass is not used in preview
             if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
@@ -303,7 +309,6 @@ namespace UnityEditor.ShaderGraph
             // Setup
 
             // Initiailize Collectors
-            // var localPassProperties = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
             m_GraphData.CollectShaderKeywords(keywordCollector, m_Mode);
 
@@ -349,13 +354,6 @@ namespace UnityEditor.ShaderGraph
                             // This is used by the PreviewManager to generate a PreviewProperty
                             m_Blocks.Add(block);
                         }
-                        // Don't collect properties from temp nodes      (TODO: why not???  I think they get collected anyways from the node list...  blocks go in that list)
-                        else
-                        {
-                            // this gathers any default slot properties (but doesn't iterate children...  ??)
-                            // TODO: I think this is redundant with the per-node collection later on
-                            // block.CollectShaderProperties(localPassProperties, m_Mode);
-                        }
 
                         // Add nodes and slots from supported vertex blocks
                         NodeUtils.DepthFirstCollectNodesFromNode(nodeList, block, NodeUtils.IncludeSelf.Include);
@@ -371,16 +369,6 @@ namespace UnityEditor.ShaderGraph
                 // Process stack for vertex and fragment
                 ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
                 ProcessStackForPass(m_GraphData.fragmentContext, pass.validPixelBlocks, pixelNodes, pixelSlots);
-
-                /*
-                // Collect shader properties declared by the Target
-                {
-                    var target = target;
-                    localPassProperties.BeginTargetCollection(target);
-                    target.CollectShaderProperties(localPassProperties, m_Mode);
-                    localPassProperties.EndTargetCollection(target);
-                }
-                */
             }
             else if (m_OutputNode is SubGraphOutputNode)
             {
@@ -619,18 +607,6 @@ namespace UnityEditor.ShaderGraph
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
             spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
 
-            /*
-            // grab graph properties from the graph
-            m_GraphData?.CollectShaderProperties(localPassProperties, m_Mode);
-
-            // grab properties from nodes
-            foreach (var node in vertexNodes)
-                node.CollectShaderProperties(localPassProperties, m_Mode);
-
-            foreach (var node in pixelNodes)
-                node.CollectShaderProperties(localPassProperties, m_Mode);
-            */
-
             // --------------------------------------------------
             // Graph Vertex
 
@@ -741,32 +717,9 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Graph Properties
 
-            /*
-            // test prop assumptions (all props contains local list)
-            foreach (var prop in localPassProperties.properties)
-            {
-                var existingProp = allShaderProperties.properties.FirstOrDefault(p => p.referenceName == prop.referenceName);
-                if (existingProp == null)
-                {
-                    Debug.LogError("Property " + prop.displayName + " " + prop.referenceName + " is not in the all shader properties list.");
-                }
-            }
-
-            {
-                allShaderProperties.ForEachPropertyUsedByTarget(target, prop =>
-                {
-                    var existingProp = localPassProperties.properties.FirstOrDefault(p => p.referenceName == prop.referenceName);
-                    if (existingProp == null)
-                    {
-                        Debug.LogWarning("Property " + prop.displayName + " " + prop.referenceName + " is not in the local shader properties list.");
-                    }
-                });
-            }
-            */
-
             using (var propertyBuilder = new ShaderStringBuilder())
             {
-                allShaderProperties.GetPropertiesDeclarationForTarget(propertyBuilder, m_Mode, m_GraphData.concretePrecision, target);
+                subShaderProperties.GetPropertiesDeclarationForTarget(propertyBuilder, m_Mode, m_GraphData.concretePrecision, target);
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
@@ -775,20 +728,12 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            // TODO: this should probably use the allShaderProperties, instead of only iterating the graph properties...
-            // it's going to ignore any hybrid properties created by nodes  (probably none at the moment, but future?)
-            // in fact, we might just want to do this once in PropertyCollector.SetReadOnly()...
-            bool hasDotsProperties = false;
-            m_GraphData.ForeachHLSLProperty(h =>
-            {
-                if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                    hasDotsProperties = true;
-            });
+            bool hasDotsProperties = subShaderProperties.HasDotsPropertiesForTarget(target);
 
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
                 if (hasDotsProperties)
-                    dotsInstancedPropertyBuilder.AppendLines(allShaderProperties.GetDotsInstancingPropertiesDeclarationForTarget(target, m_Mode));
+                    dotsInstancedPropertyBuilder.AppendLines(subShaderProperties.GetDotsInstancingPropertiesDeclarationForTarget(target, m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
                 spliceCommands.Add("HybridV1InjectedBuiltinProperties", dotsInstancedPropertyBuilder.ToCodeBlock());

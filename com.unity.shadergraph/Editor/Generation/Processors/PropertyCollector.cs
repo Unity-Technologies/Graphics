@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderGraph
         private UInt64 m_DeclarerFlag = (UInt64)DeclarerFlags._NodeOrGraph;
 
         private bool m_ReadOnly;
+        private Target m_HLSLPropertyTarget = null;
+        private List<HLSLProperty> m_HLSLProperties = null;
 
         enum DeclarerFlags
         {
@@ -138,12 +140,25 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private List<HLSLProperty> BuildHLSLPropertyListForTarget(Target target)
+        {
+            SetReadOnly();
+            if (m_HLSLPropertyTarget != target)
+            {
+                if (m_HLSLProperties == null)
+                    m_HLSLProperties = new List<HLSLProperty>();
+                m_HLSLProperties.Clear();
+                ForEachPropertyUsedByTarget(target, p => p.ForeachHLSLProperty(h => m_HLSLProperties.Add(h)));
+                m_HLSLPropertyTarget = target;
+            }
+            return m_HLSLProperties;
+        }
+
         public void GetPropertiesDeclarationForTarget(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision, Target target)
         {
             ForEachPropertyUsedByTarget(target, p => p.ValidateConcretePrecision(inheritedPrecision));
 
-            var hlslProps = new List<HLSLProperty>();
-            ForEachPropertyUsedByTarget(target, p => p.ForeachHLSLProperty(h => hlslProps.Add(h)));
+            var hlslProps = BuildHLSLPropertyListForTarget(target);
 
             if (mode == GenerationMode.Preview)
             {
@@ -261,6 +276,18 @@ namespace UnityEditor.ShaderGraph
                     h.AppendTo(builder);
         }
 
+        public bool HasDotsPropertiesForTarget(Target target)
+        {
+            var hlslProps = BuildHLSLPropertyListForTarget(target);
+            bool hasDotsProperties = false;
+            foreach (var h in hlslProps)
+            {
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                    hasDotsProperties = true;
+            }
+            return hasDotsProperties;
+        }
+
         public string GetDotsInstancingPropertiesDeclarationForTarget(Target target, GenerationMode mode)
         {
             // Hybrid V1 needs to declare a special macro to that is injected into
@@ -270,13 +297,8 @@ namespace UnityEditor.ShaderGraph
             var builder = new ShaderStringBuilder();
             var batchAll = (mode == GenerationMode.Preview);
 
-            // build a list of all HLSL properties
-            var hybridHLSLProps = new List<HLSLProperty>();
-            ForEachPropertyUsedByTarget(target, p => p.ForeachHLSLProperty(h =>
-            {
-                if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                    hybridHLSLProps.Add(h);
-            }));
+            // build a list of all HLSL properties that are hybrid per instance
+            var hybridHLSLProps = BuildHLSLPropertyListForTarget(target).Where(h => h.declaration == HLSLDeclaration.HybridPerInstance);
 
             if (hybridHLSLProps.Any())
             {
