@@ -546,6 +546,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float  g_mProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
+        public Vector2Int   _DepthPyramidMipLevelOffsetCoarse;
+        public Vector2Int   _DepthPyramidMipLevelOffsetFine;
+
         public Vector4      g_screenSize;
 
         public Vector2Int   g_viDimensions;
@@ -3438,7 +3441,8 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BuildGPULightListResources
         {
             public RTHandle depthBuffer;
-            public RTHandle stencilTexture;
+            public RTHandle depthPyramidBuffer;
+            public RTHandle stencilBuffer;
             public RTHandle[] gBuffer;
 
             // Buffers filled with the CPU outside of render graph.
@@ -3589,6 +3593,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = 1; // PruneCoarseTiles
 
+                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
                 // This is not an accident. We alias the fine tile buffer memory.
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
@@ -3600,9 +3605,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = 2; // FillFineTiles
 
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
+                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,    resources.coarseTileBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,      resources.fineTileBuffer);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup); // 4x threads/fine_tile, 64x threads/coarse_tile
 
@@ -3654,14 +3660,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._GBufferTexture[2], resources.gBuffer[2]);
                 cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
 
-                if (resources.stencilTexture.rt == null ||
-                    resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                if (resources.stencilBuffer.rt == null ||
+                    resources.stencilBuffer.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
                 {
-                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilTexture);
+                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilBuffer);
                 }
                 else
                 {
-                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilBuffer, 0, RenderTextureSubElement.Stencil);
                 }
 
                 // Assume that we use fine (and not coarse) tiles in the shader.
@@ -3770,6 +3776,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_viDimensions = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
+
+            var mipInfo = GetDepthBufferMipChainInfo();
+
+            // This will NOT work if tile sizes are not powers of 2!
+            cb._DepthPyramidMipLevelOffsetCoarse = mipInfo.mipLevelOffsets[CeilLog2i(TiledLightingConstants.s_CoarseTileSize)];
+            cb._DepthPyramidMipLevelOffsetFine   = mipInfo.mipLevelOffsets[CeilLog2i(TiledLightingConstants.s_FineTileSize)];
 
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;

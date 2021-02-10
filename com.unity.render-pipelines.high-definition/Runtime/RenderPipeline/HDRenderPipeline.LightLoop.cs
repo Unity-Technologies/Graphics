@@ -48,7 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public BuildGPULightListParameters  buildGPULightListParameters;
             public TextureHandle                depthBuffer;
-            public TextureHandle                stencilTexture;
+            public TextureHandle                depthPyramidBuffer;
+            public TextureHandle                stencilBuffer;
             public TextureHandle[]              gBuffer = new TextureHandle[RenderGraph.kMaxMRTCount];
             public int                          gBufferCount;
 
@@ -94,13 +95,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (depthBuffer == null)
             {
-                buildLightListResources.depthBuffer = context.defaultResources.blackTextureXR;
-                buildLightListResources.stencilTexture = context.defaultResources.blackTextureXR;
+                buildLightListResources.depthBuffer        = context.defaultResources.blackTextureXR;
+                buildLightListResources.depthPyramidBuffer = context.defaultResources.blackTextureXR;
+                buildLightListResources.stencilBuffer      = context.defaultResources.blackTextureXR;
             }
             else
             {
-                buildLightListResources.depthBuffer = data.depthBuffer;
-                buildLightListResources.stencilTexture = data.stencilTexture;
+                buildLightListResources.depthBuffer        = data.depthBuffer;
+                buildLightListResources.depthPyramidBuffer = data.depthPyramidBuffer;
+                buildLightListResources.stencilBuffer      = data.stencilBuffer;
             }
 
             if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
@@ -137,6 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TileAndClusterData              tileAndClusterData,
             ref ShaderVariablesLightList    constantBuffer,
             TextureHandle                   depthStencilBuffer,
+            TextureHandle                   depthPyramidBuffer,
             TextureHandle                   stencilBufferCopy,
             GBufferOutput                   gBuffer)
         {
@@ -146,7 +150,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, tileAndClusterData, ref constantBuffer);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
-                passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
+                passData.depthPyramidBuffer = builder.ReadTexture(depthPyramidBuffer);
+                passData.stencilBuffer = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
                 {
                     for (int i = 0; i < gBuffer.gBufferCount; ++i)

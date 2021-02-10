@@ -125,6 +125,8 @@ CBUFFER_START(ShaderVariablesLightList)
     float4x4 g_mScrProjectionArr[2];
     float4x4 g_mInvProjectionArr[2];
     float4x4 g_mProjectionArr[2];
+    int2 _DepthPyramidMipLevelOffsetCoarse;
+    int2 _DepthPyramidMipLevelOffsetFine;
     float4 g_screenSize;
     int2 g_viDimensions;
     uint _BoundedEntityCount;

@@ -14,13 +14,21 @@
 // Generates small screen tiles in an accurate manner.
 #pragma kernel FillFineTiles       PASS = FILL_FINE_TILES
 
+#define USE_DEPTH_BUFFER 0
+
+#if USE_DEPTH_BUFFER
+    #define NUM_CLIP_PLANES (4) // Do not clip against the near and far planes; let z-binning handle these (approximately)
+#else
+    #define NUM_CLIP_PLANES (6) // Full frustum clipping
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
-#define NUM_CLIP_PLANES (4) // Do not clip against the near and far planes; let z-binning handle these (approximately)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
 
 /* ------------------------------ Inputs ------------------------------------ */
@@ -35,6 +43,9 @@
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<uint>             _SrcCoarseTileBuffer;
+#if USE_DEPTH_BUFFER
+    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
+#endif // USE_DEPTH_BUFFER
 #endif
 
 #if (PASS == FILL_FINE_TILES)
@@ -42,6 +53,9 @@
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<uint>             _CoarseTileBuffer;
+#if USE_DEPTH_BUFFER
+    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
+#endif // USE_DEPTH_BUFFER
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -123,6 +137,8 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint cat = groupID.y;
     const uint eye = groupID.z;
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
     const uint entityIndex = _BoundedEntityOffsetPerCategory[cat].x;
     const uint entityCount = _BoundedEntityCountPerCategory[cat].x;
     const uint dwordCount  = _BoundedEntityDwordCountPerCategory[cat].x;
@@ -194,7 +210,7 @@ groupshared uint gs_TrivialAcceptFlags[TILES_PER_GROUP];  // Just a boolean
 
 // We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
 void TryCullBoundingSphere(float3 C, float r,
-                           float2 aaBbMinPtCS, float2 aaBbMaxPtCS, float4x4 projMat, float4x4 invProjMat,
+                           float3 aaBbMinPtCS, float3 aaBbMaxPtCS, float4x4 projMat, float4x4 invProjMat,
                            out bool trivialAccept, out bool trivialReject)
 {
     trivialAccept = trivialReject = false;
@@ -206,24 +222,24 @@ void TryCullBoundingSphere(float3 C, float r,
             float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);
 
             // Project the center of the bounding sphere (ellipse).
-            float3 projC  = mul(orthoProj, float4(C.xyz,   1)).xyz;
+            float3 projC  = mul(orthoProj, float4(C.xyz, 1)).xyz;
             // Test whether the light's center is inside the view volume.
-            trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
+            trivialAccept = all(aaBbMinPtCS <= projC && projC <= aaBbMaxPtCS);
 
             if (!trivialAccept)
             {
                 float2 projExtents = mul(orthoProj, float4(r.xx, 0, 0)).xy; // Axis-aligned ellipse
 
                 // Make them relative to the ellipse.
-                aaBbMinPtCS -= projC.xy;
-                aaBbMaxPtCS -= projC.xy;
+                aaBbMinPtCS.xy -= projC.xy;
+                aaBbMaxPtCS.xy -= projC.xy;
 
                 // Transform the ellipse into a unit circle.
-                aaBbMinPtCS *= rcp(projExtents);
-                aaBbMaxPtCS *= rcp(projExtents);
+                aaBbMinPtCS.xy *= rcp(projExtents);
+                aaBbMaxPtCS.xy *= rcp(projExtents);
 
                 // Compute the distance from the center of the sphere (at the origin) to the AABB.
-                float sqDist = SqDistToClosestPointAaBb(0, aaBbMinPtCS, aaBbMaxPtCS);
+                float sqDist = SqDistToClosestPointAaBb(0, aaBbMinPtCS.xy, aaBbMaxPtCS.xy);
 
                 trivialReject = sqDist > 1;
             }
@@ -235,12 +251,12 @@ void TryCullBoundingSphere(float3 C, float r,
             // Project the center of the bounding sphere (ellipse).
             float3 projC  = mul(perspProj, float4(C.xyz, 1)).xyz * rcp(C.z); // Assume M[3] = (0,0,1,0)
             // Test whether the light's center is inside the view volume.
-            trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
+            trivialAccept = all(aaBbMinPtCS <= projC && projC <= aaBbMaxPtCS);
 
             if (!trivialAccept && (dot(C, C) - r * r) > 0)
             {
                 // Find the closest point inside the AABB.
-                float2 projQ = ClosestPointAaBb(projC.xy, aaBbMinPtCS, aaBbMaxPtCS);
+                float2 projQ = ClosestPointAaBb(projC.xy, aaBbMinPtCS.xy, aaBbMaxPtCS.xy);
 
                 // Unproject the closest point (Q') into the view space (Q).
                 // Inverse of an arbitrary perspective projection matrix looks like this:
@@ -581,7 +597,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     }
 }
 
-bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtCS, float2 tileAaBbMaxPtCS, uint tile, uint t /* thread */, uint threadIdx)
+bool TryCullEntity(uint entityIndex, uint category, uint eye, float3 tileAaBbMinPtCS, float3 tileAaBbMaxPtCS, uint tile, uint t /* thread */, uint threadIdx)
 {
     const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
     const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
@@ -608,10 +624,8 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMin
 
     if (!(trivialAccept || trivialReject))
     {
-        const float3 cubeMinCS = float3(tileAaBbMinPtCS, 0);
-        const float3 cubeMaxCS = float3(tileAaBbMaxPtCS, 1);
         TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t, threadIdx,
-                               cubeMinCS, cubeMaxCS, projMat, invProjMat,
+                               tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
                                trivialAccept, trivialReject);
     }
 
@@ -640,6 +654,8 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
     const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
 
     if (dwordCount == 0) return;
@@ -656,12 +672,18 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
     const uint tileBufferIndex = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
 
+#if USE_DEPTH_BUFFER
+    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetCoarse + clampedTileCoord).r;
+#else
+    const float farthestDepth = 0;
+#endif
+
     const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
     const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;               // (tileCoord + 1) * TILE_SIZE
     const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-    const float2 tileAaBbMinPtCS  = tileAaBbMinPtNDC * 2 - 1;
-    const float2 tileAaBbMaxPtCS  = tileAaBbMaxPtNDC * 2 - 1;
+    const float3 tileAaBbMinPtCS  = float3(tileAaBbMinPtNDC * 2 - 1, farthestDepth);
+    const float3 tileAaBbMaxPtCS  = float3(tileAaBbMaxPtNDC * 2 - 1, 1);
 
     for (uint d = 0; d < dwordCount; d++)
     {
@@ -704,6 +726,8 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
     const uint cat  = groupID.y;
     const uint eye  = groupID.z;
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
     const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
 
     if (dwordCount == 0) return;
@@ -728,12 +752,18 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
+#if USE_DEPTH_BUFFER
+    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetFine + clampedFineTileCoord).r;
+#else
+    const float farthestDepth = 0;
+#endif
+
     const uint2  fineTileAaBbMinPtSS  = clampedFineTileCoord * FINE_TILE_SIZE;
     const uint2  fineTileAaBbMaxPtSS  = fineTileAaBbMinPtSS  + FINE_TILE_SIZE;          // (tileCoord + 1) * TILE_SIZE
     const float2 fineTileAaBbMinPtNDC =          fineTileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 fineTileAaBbMaxPtNDC = saturate(fineTileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-    const float2 fineTileAaBbMinPtCS  = fineTileAaBbMinPtNDC * 2 - 1;
-    const float2 fineTileAaBbMaxPtCS  = fineTileAaBbMaxPtNDC * 2 - 1;
+    const float3 fineTileAaBbMinPtCS  = float3(fineTileAaBbMinPtNDC * 2 - 1, farthestDepth);
+    const float3 fineTileAaBbMaxPtCS  = float3(fineTileAaBbMaxPtNDC * 2 - 1, 1);
 
     // We must specify the size explicitly.
     const uint coarseTileBufferIndex = ComputeTileBufferIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS);
