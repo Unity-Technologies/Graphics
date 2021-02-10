@@ -1,4 +1,4 @@
-# Render Pipeline Debug
+# Render Pipeline Debugger
 
 The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
 
@@ -13,13 +13,13 @@ The **Render Pipeline Debug** window is a specific window for the Scriptable Ren
 
 ![](Images/RenderPipelineDebug1.png)
 
-The Render Pipeline Debug window.
+The Render Pipeline Debugger window.
 
-## Using the Render Pipeline Debug window
+## Using the Render Pipeline Debugger window
 
-To open the Render Pipeline Debug window in the Editor, go to  **Window > Render Pipeline > Render Pipeline Debug**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Render Pipeline Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
 
-You can display read-only items such as the FPS counter independently of the **Render Pipeline Debug** window. This means that when you disable the **Render Pipeline Debug** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
+You can display read-only items such as the FPS counter independently of the **Render Pipeline Debugger** window. This means that when you disable the **Render Pipeline Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
 ### Navigation at runtime
 
@@ -232,7 +232,7 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 
 ## Camera panels
 
-In the **Render Pipeline Debug** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
+In the **Render Pipeline Debugger** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
 
 **Note**: The Camera debug window is only available for Cameras, not Reflection Probes.
 
