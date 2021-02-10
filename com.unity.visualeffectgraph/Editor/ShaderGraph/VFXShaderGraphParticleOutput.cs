@@ -549,12 +549,12 @@ namespace UnityEditor.VFX
             RefreshShaderGraphObject();
             if (shaderGraph != null)
             {
-                if (!isLitShader && shaderGraph.lit)
+                if (!isLitShader && shaderGraph.lit && !shaderGraph.generatesWithShaderGraph)
                 {
                     Debug.LogError("You must use an unlit vfx master node with an unlit output");
                     return false;
                 }
-                if (isLitShader && !shaderGraph.lit)
+                if (isLitShader && !shaderGraph.lit && !shaderGraph.generatesWithShaderGraph)
                 {
                     Debug.LogError("You must use a lit vfx master node with a lit output");
                     return false;

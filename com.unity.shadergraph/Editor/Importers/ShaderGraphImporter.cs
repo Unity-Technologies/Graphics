@@ -353,11 +353,13 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     asset.lit = vfxTarget.lit;
                     asset.alphaClipping = vfxTarget.alphaTest;
+                    asset.generatesWithShaderGraph = false;
                 }
                 else
                 {
                     asset.lit = true;
                     asset.alphaClipping = false;
+                    asset.generatesWithShaderGraph = true;
                 }
 
                 var assetGuid = graph.assetGuid;

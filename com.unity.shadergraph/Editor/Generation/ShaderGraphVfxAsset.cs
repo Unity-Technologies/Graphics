@@ -31,6 +31,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public const int AlphaThresholdSlotId = 7;
 
         [SerializeField]
+        public bool generatesWithShaderGraph;
+
+        [SerializeField]
         public bool lit;
 
         [SerializeField]
