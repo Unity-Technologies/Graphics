@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_Intensity;
         SerializedProperty m_AllowOffScreen;
-        SerializedProperty m_ScaleByExposure;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_ScaleCurve;
@@ -25,7 +24,6 @@ namespace UnityEditor.Rendering
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.samplesCount);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
-            m_ScaleByExposure = entryPoint.Find(x => x.scaleByExposure);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
             m_RadialAttenuationCurve = entryPoint.Find(x => x.radialAttenuationCurve);
@@ -38,7 +36,6 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Intensity);
             EditorGUILayout.PropertyField(m_AllowOffScreen);
-            EditorGUILayout.PropertyField(m_ScaleByExposure);
             EditorGUILayout.PropertyField(m_OcclusionRadius);
             EditorGUILayout.PropertyField(m_SamplesCount);
             if (EditorGUI.EndChangeCheck())
@@ -58,6 +55,41 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
             int countBefore = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;
+            //EditorGUILayout.BeginHorizontal();
+            //if (GUI.Button(EditorGUILayout.GetControlRect(), EditorGUIUtility.TrTextContent("Expand All")))
+            //{
+            //    //m_Elements.serializedObject.Update();
+            //    for (int i = 0; i < m_Elements.arraySize; ++i)
+            //    {
+            //        m_Elements.GetArrayElementAtIndex(i).serializedObject.Update();
+            //        SerializedProperty isFoldOpened = m_Elements.GetArrayElementAtIndex(i).FindPropertyRelative("isFoldOpened");
+            //        isFoldOpened.boolValue = true;
+            //        m_Elements.GetArrayElementAtIndex(i).serializedObject.ApplyModifiedProperties();
+            //    }
+            //    GUI.changed = true;
+            //    //typeof(GUILayoutUtility).GetMethod("Layout", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
+            //    Repaint();
+            //    //m_Elements.serializedObject.ApplyModifiedProperties();
+            //    //GUILayoutUtility.Layout();
+            //    //GUILayout.la
+            //}
+            //if (GUI.Button(EditorGUILayout.GetControlRect(), EditorGUIUtility.TrTextContent("Collapse All")))
+            //{
+            //    //m_Elements.serializedObject.Update();
+            //    for (int i = 0; i < m_Elements.arraySize; ++i)
+            //    {
+            //        m_Elements.GetArrayElementAtIndex(i).serializedObject.Update();
+            //        SerializedProperty isFoldOpened = m_Elements.GetArrayElementAtIndex(i).FindPropertyRelative("isFoldOpened");
+            //        isFoldOpened.boolValue = false;
+            //        m_Elements.GetArrayElementAtIndex(i).serializedObject.ApplyModifiedProperties();
+            //    }
+            //    GUI.changed = true;
+            //    //typeof(GUILayoutUtility).GetMethod("Layout", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
+            //    Repaint();
+            //    //m_Elements.serializedObject.ApplyModifiedProperties();
+            //    //GUILayoutUtility.Layout();
+            //}
+            //EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_Elements);
             if (EditorGUI.EndChangeCheck())
             {
