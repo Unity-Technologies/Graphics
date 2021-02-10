@@ -179,6 +179,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Whether the settings are deemed very different.</returns>
         public override bool SignificantlyDivergesFrom(SkySettings otherSettings)
         {
+            if (otherSettings.GetSkyRendererType() != GetSkyRendererType())
+                return true;
+
             HDRISky otherHdriSkySettings = otherSettings as HDRISky;
 
             return base.SignificantlyDivergesFrom(otherSettings) || hdriSky.value != otherHdriSkySettings.hdriSky.value;

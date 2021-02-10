@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     skyIntensity *= multiplier.value;
                     break;
                 case SkyIntensityMode.Lux:
-                    skyIntensity *= desiredLuxValue.value / upperHemisphereLuxValue.value;
+                    skyIntensity *= desiredLuxValue.value / Mathf.Max(upperHemisphereLuxValue.value, 1e-5f);
                     break;
             }
             return skyIntensity;
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>Whether the settings are deemed very different.</returns>
         public virtual bool SignificantlyDivergesFrom(SkySettings otherSettings)
         {
-            if (otherSettings.GetSkyRendererType() != GetSkyRendererType())
+            if (otherSettings == null || otherSettings.GetSkyRendererType() != GetSkyRendererType())
                 return true;
 
             float thisIntensity = GetIntensityFromSettings();

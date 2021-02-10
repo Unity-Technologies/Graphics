@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
+- Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 
 ### Fixed
@@ -23,11 +24,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material keywords with fbx importer.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
+- Fixed model import by adding additional data if needed.
+- Fix screen being over-exposed when changing very different skies.
 
 ### Changed
+- Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
+- Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
+- The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
+- Change Asset/Create/Shader/HD Render Pipeline/Decal Shader Graph to Asset/Create/Shader Graph/HDRP/Decal Shader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Eye Shader Graph to Asset/Create/Shader Graph/HDRP/Eye Shader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Fabric Shader Graph to Asset/Create/Shader Graph/HDRP/Decal Fabric Shader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Eye Shader Graph to Asset/Create/Shader Graph/HDRP/Hair Shader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/HDRP/Lit
+- Change Asset/Create/Shader/HD Render Pipeline/StackLit Shader Graph to Asset/Create/Shader Graph/HDRP/StackLit Shader GraphShader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Unlit Shader Graph to Asset/Create/Shader Graph/HDRP/Unlit Shader Graph
+- Change Asset/Create/Shader/HD Render Pipeline/Custom FullScreen Pass to Asset/Create/Shader/HDRP Custom FullScreen Pass
+- Change Asset/Create/Shader/HD Render Pipeline/Custom Renderers Pass to Asset/Create/Shader/HDRP Custom Renderers Pass
+- Change Asset/Create/Shader/HD Render Pipeline/Post Process Pass to Asset/Create/Shader/HDRP Post Process
+- Change Assets/Create/Rendering/High Definition Render Pipeline Asset to Assets/Create/Rendering/HDRP Asset
+- Change Assets/Create/Rendering/Diffusion Profile to Assets/Create/Rendering/HDRP Diffusion Profile
+- Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
+- Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 
 ## [11.0.0] - 2020-10-21
 

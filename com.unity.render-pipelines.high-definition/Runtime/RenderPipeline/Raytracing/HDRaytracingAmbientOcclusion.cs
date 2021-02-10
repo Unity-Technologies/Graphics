@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Output Buffer
             public RTHandle outputTexture;
+            public RTHandle velocityBuffer;
         }
 
         AmbientOcclusionTraceParameters PrepareAmbientOcclusionTraceParameters(HDCamera hdCamera, ShaderVariablesRaytracing raytracingCB)
@@ -153,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the output textures
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._RayCountTexture, aoTraceResources.rayCountTexture);
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, aoTraceResources.outputTexture);
+            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._VelocityBuffer, aoTraceResources.velocityBuffer);
 
             // Run the computation
             cmd.DispatchRays(aoTraceParameters.aoShaderRT, m_RayGenShaderName, (uint)aoTraceParameters.actualWidth, (uint)aoTraceParameters.actualHeight, (uint)aoTraceParameters.viewCount);
