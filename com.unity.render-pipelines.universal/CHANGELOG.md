@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
+- Fixed an issue where SSAO would sometimes not render with a recently imported renderer.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
