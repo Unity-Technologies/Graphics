@@ -63,6 +63,9 @@ EditorBuildSettings:
     path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
   - enabled: 1
+    path: Assets/Scenes/039_Particles_Instanced.unity
+    guid: 5fca56b2f8a46664e858cbb290338fc8
+  - enabled: 1
     path: Assets/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
   - enabled: 1
@@ -80,6 +83,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/109_URPShadersAlphaOutput.unity
     guid: 0a89803a0d2352245a452c202f9a67d1
+  - enabled: 1
+    path: Assets/Scenes/110_URPShadersAlphaOutputRendererFeature.unity
+    guid: 73a6a02c48ea444fba7dec75de3c4156
+  - enabled: 1
+    path: Assets/Scenes/111_CameraStackMSAA.unity
+    guid: 83adeebeb3ba74a13816f2b8636588aa
   - enabled: 1
     path: Assets/Scenes/119_CameraToRTWithViewportRect.unity
     guid: c7b61419ee9382545afe530714fda0c2
@@ -113,4 +122,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
+  - enabled: 1
+    path: Assets/Scenes/131_ParallaxMapping.unity
+    guid: ac4701d765fa26b4f83d2fb9ed6b3c08
+  - enabled: 1
+    path: Assets/Scenes/132_DetailMapping.unity
+    guid: 0ad4d46f32f2cc942b4592c2f4368b83
   m_configObjects: {}
