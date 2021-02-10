@@ -2342,6 +2342,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool contributesToLighting = ((additionalData.lightDimmer > 0) && (additionalData.affectDiffuse || additionalData.affectSpecular)) || (additionalData.volumetricDimmer > 0);
                 contributesToLighting = contributesToLighting && (processedData.lightDistanceFade > 0);
 
+                // custom-begin:
+#if UNITY_EDITOR
+                // Skip light sources that are hidden by the scene visibility toggle.
+                // This is necessary to support hiding light sources in baked reflection probes.
+                contributesToLighting &= !UnityEditor.SceneVisibilityManager.instance.IsHidden(light.light.gameObject);
+#endif
+                // custom-end
+
                 if (!contributesToLighting)
                     continue;
 
