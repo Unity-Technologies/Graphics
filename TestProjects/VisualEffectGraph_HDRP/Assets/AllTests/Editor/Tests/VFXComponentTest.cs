@@ -1168,7 +1168,6 @@ namespace UnityEditor.VFX.Test
             VFXValueType.Texture3D,
             VFXValueType.TextureCube,
             VFXValueType.TextureCubeArray,
-            VFXValueType.CameraBuffer,
             VFXValueType.Boolean,
             VFXValueType.Matrix4x4
         };
