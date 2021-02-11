@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 
+### Changed
+- Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
+
 ## [11.0.0] - 2020-10-21
 
 ### Added

@@ -202,6 +202,12 @@ namespace UnityEngine.Rendering.Universal
         public int mainLightShadowmapHeight;
         public int mainLightShadowCascadesCount;
         public Vector3 mainLightShadowCascadesSplit;
+        /// <summary>
+        /// Main light last cascade shadow fade border.
+        /// Value represents the width of shadow fade that ranges from 0 to 1.
+        /// Where value 0 is used for no shadow fade.
+        /// </summary>
+        public float mainLightShadowCascadeBorder;
         public bool supportsAdditionalLightShadows;
         public int additionalLightsShadowmapWidth;
         public int additionalLightsShadowmapHeight;
