@@ -13,6 +13,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed a case where overlay camera with output texture caused base camera not to render to screen. [case 1283225](https://issuetracker.unity3d.com/issues/game-view-renders-a-black-view-when-having-an-overlay-camera-which-had-output-texture-assigned-in-the-camera-stack)
+- Fixed material upgrader to run in batch mode [case 1305402]
 
 ## [7.5.2] - 2020-11-16
 
