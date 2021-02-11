@@ -1,6 +1,8 @@
 #ifndef UNITY_CLIPPINGUTILITIES_INCLUDED
 #define UNITY_CLIPPINGUTILITIES_INCLUDED
 
+// #define DEBUG_CLIPPING
+
 float2 ClosestPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
 {
     return clamp(pt, aaBbMinPt, aaBbMaxPt);
@@ -58,14 +60,23 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 
 #define NUM_VERTS          (8) // The bounding volume is a frustum (+ a sphere)
 #define NUM_FACES          (6) // It has 6 quads
-#define MAX_CLIP_VERTS     (4 + NUM_CLIP_PLANES)
+#define VERTS_PER_FACE     (4)
+#define MAX_CLIP_VERTS     (VERTS_PER_FACE + NUM_CLIP_PLANES)
 #define THREADS_PER_GROUP  (64)
-#define THREADS_PER_ENTITY (4) // Set to 1 for debugging
+#define THREADS_PER_ENTITY (4)
 #define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)
 #define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
+
+#ifdef DEBUG_CLIPPING
+// Process the same number of entities per group, but process the entire entity on a single thread.
+#undef  THREADS_PER_ENTITY
+#define THREADS_PER_ENTITY (1)
+#undef  ENTITIES_PER_GROUP
+#define ENTITIES_PER_GROUP (THREADS_PER_GROUP / 4)
+#endif
+
 #define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
-#define VERTS_PER_FACE     (4)
 
 #define IS_POW2(X)     (( (X) & ( -1 + (X) )) == 0)
 #define IS_NOT_POW2(X) (( (X) & ( -1 + (X) )) != 0)
