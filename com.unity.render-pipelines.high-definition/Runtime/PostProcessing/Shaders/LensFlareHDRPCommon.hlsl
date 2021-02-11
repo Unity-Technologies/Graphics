@@ -20,7 +20,6 @@ float _OcclusionRadius;
 float _FlareOcclusionRadius;
 float _FlareOcclusionSamplesCount;
 //float _OcclusionManual;
-float _FlareUseExposure;
 float _FlareOffscreen;
 float4 _FlareColor;
 // LensFlare Data :
@@ -155,18 +154,15 @@ Varyings vert(Attributes input)
     //float _FlareOcclusionRadius;
     //float _FlareOcclusionSamplesCount;
 
-    float occlusion = 1.0f;
-    if (_FlareOffscreen < 0.0f)
-        occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
     //float occlusion = GetOcclusion(local.xy, _FlareDepth, screenRatio);
         //1.0f;// GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
 
-    float scale = 1.0f;
-    if (_FlareUseExposure > 0.0f)
-        scale = GetCurrentExposureMultiplier();
-
     //if (_FlareDepth > 0.0f)
-    output.occlusion = occlusion * scale;
+
+    float occlusion = 1.0f;
+    //if (_FlareOffscreen < 0.0f && all(pos >= 0) && all(pos <= 1))
+    //    occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+    //output.occlusion = occlusion;
     //output.occlusion = float4(_FlareScreenPos.xy + 0.5f + 0.5f, 0.0f, 1.0f);
     //else
         //output.occlusion = lerp(occlusion, 1.0f, abs(_FlareDepth));
