@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
+- Fix multiple any hit occuring on transparent objects (case 1294927).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
