@@ -26,7 +26,7 @@ test_platforms:
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package pack
+    - upm-ci package pack --package-path com.unity.postprocessing
   artifacts:
     packages:
       paths:
@@ -42,7 +42,7 @@ test_platforms:
     flavor: {{ platform.flavor}}
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package test --unity-version {{ editor }}
+    - upm-ci package test --unity-version {{ editor }} --package-path com.unity.postprocessing --extra-utr-arg="--compilation-errors-as-warnings"
   artifacts:
     logs:
       paths:
@@ -87,7 +87,7 @@ test_platforms:
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package publish
+    - upm-ci package publish --package-path com.unity.postprocessing
   triggers:
     tags:
       only:
@@ -113,7 +113,7 @@ test_platforms:
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package publish --dry-run
+    - upm-ci package publish --dry-run --package-path com.unity.postprocessing
   triggers:
     tags:
       only:
