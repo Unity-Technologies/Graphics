@@ -258,40 +258,6 @@ publish_config_project_dry:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-publish_postprocessing_project:
-    name: Publish Postprocessing [project context]
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.postprocessing
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-publish_postprocessing_project_dry:
-    name: Publish Postprocessing [project context] [dry run]
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.postprocessing --dry-run
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
 test_all_project_Win_trunk:
     name: Test all packages [project context] Win trunk
     agent:
@@ -442,7 +408,6 @@ publish_all_project:
       -  .yamato/_projectcontext.yml#publish_universal_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
       -  .yamato/_projectcontext.yml#publish_config_project
-      -  .yamato/_projectcontext.yml#publish_postprocessing_project
 publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:
@@ -457,7 +422,6 @@ publish_all_project_tag:
       -  .yamato/_projectcontext.yml#publish_universal_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
       -  .yamato/_projectcontext.yml#publish_config_project
-      -  .yamato/_projectcontext.yml#publish_postprocessing_project
     commands:
       -  git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
       -  git push origin --tags

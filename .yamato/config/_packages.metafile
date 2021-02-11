@@ -54,11 +54,11 @@ packages:
       - core
       - config
     hascodependencies: 1
-  - name: Postprocessing
-    id: postprocessing
-    packagename: com.unity.postprocessing
-    dependencies:
-      - postprocessing
+#  - name: Postprocessing
+#    id: postprocessing
+#    packagename: com.unity.postprocessing
+#    dependencies:
+#      - postprocessing
 platforms:
   - name: Win
   - name: OSX
