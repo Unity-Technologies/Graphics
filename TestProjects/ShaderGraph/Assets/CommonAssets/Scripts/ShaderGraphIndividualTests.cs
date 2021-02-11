@@ -12,55 +12,34 @@ public class ShaderGraphIndividualTests
     [OneTimeSetUp]
     public void SetupTestScene()
     {
-        GameObject.CreatePrimitive(PrimitiveType.Sphere).transform.position = Vector3.zero; //this is an example - just make a sphere in the scene. Could load a specific template scene as well
-        
+        var cameraGameObject = new GameObject();
+        mesh = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        mesh.transform.position = new Vector3(0, 0, 3f);
+        mesh.transform.rotation = Quaternion.Euler(0, 0, 0);
+        mesh.transform.localScale = new Vector3(2f, 2f, 2f);
+        sphereRenderer = mesh.GetComponent<Renderer>();
+        camera = cameraGameObject.AddComponent<Camera>();
+        camera.transform.position = Vector3.zero;
     }
 
     private Camera camera;
     private Renderer sphereRenderer;
+    private GameObject mesh;
 
 
     [UnityTest, Category("ShaderGraph")]
     [PrebuildSetup("SetupTestAssetTestCases")]
-    //[UseGraphicsTestCases]
     [UseTestAssetTestCase]
     public IEnumerator RunIndividualTests(Material mat, bool isPerspective, Texture2D refImage, ImageComparisonSettings settings, Mesh customMesh = null) //reference image, test hash, reference hash
     {
         // Always wait one frame for scene load
         yield return null;
+        if (customMesh != null)
+            mesh.GetComponent<MeshFilter>().mesh = customMesh;
+        if (mat != null)
+            sphereRenderer.material = mat;
+        ImageAssert.AreEqual(refImage, camera, settings);
         Debug.Log(mat.name + " " + isPerspective + " " + settings.ToString());
-
-        //Adding New Tests Materials
-        //1.find shadergraphTestAsset and get test materials
-        //2.Swap Materials
-        //3.capture camera and save images
-        //4.image comparison
-        //var shaderGraphTestAssets = FindAssets<ShaderGraphTestAsset>("ShaderGraphTestAsset");
-        //List<Material> testMaterials = new List<Material>();
-       // foreach (var asset in shaderGraphTestAssets)
-        //{
-        //    if(asset.testMaterial!= null)
-        //    {
-        //        testMaterials.AddRange(asset.testMaterial);
-        //    }
-       // }
-       // var sphereRenderer = Object.FindObjectOfType<Renderer>();
-
-       // var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        //var settings = Object.FindObjectOfType<ShaderGraphIndividualTestSetting>();
-       // Assert.IsNotNull(settings, "Invalid test scene, couldn't find ShaderGraphIndividualTestSetting");
-
-       // for (int i = 0; i < settings.WaitFrames; i++)
-       //     yield return null;
-
-       // if (testMaterials != null)
-       //     foreach (var mat in testMaterials)
-       // {
-       //     sphereRenderer.material = mat;
-       //         //TODO: Save images with material/shader names
-       //         Debug.Log("Captured image for " + mat.name);
-       //         ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
-       // }
 
     }
     public static List<T> FindAssets<T>(string type) where T : UnityEngine.Object
