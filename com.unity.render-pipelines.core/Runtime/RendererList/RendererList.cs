@@ -3,6 +3,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    // Moved to the C++ side
+    /*
     // This is a temporary structure that will help transition to render graph
     // Plan is to define this correctly on the C++ side and expose it to C# later.
     /// <summary>
@@ -186,4 +188,5 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
     }
+    */
 }

@@ -508,20 +508,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
-            if (desc.passName != ShaderTagId.none && desc.passNames != null
-                || desc.passName == ShaderTagId.none && desc.passNames == null)
+            if (!desc.IsValid())
             {
-                throw new ArgumentException("Renderer List creation descriptor must contain either a single passName or an array of passNames.");
+                throw new ArgumentException("Renderer List creation descriptor is not valid.");
             }
 
             if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
             {
                 throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
-            }
-
-            if (desc.camera == null)
-            {
-                throw new ArgumentException("Renderer List creation descriptor must have a valid Camera.");
             }
 #endif
         }
@@ -540,16 +534,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
         {
+            int index = 0;
+            RendererList[] allRendererLists = new RendererList[rendererLists.Count];
+            Dictionary<int, int> lookup = new Dictionary<int, int>();
+
             // For now we just create a simple structure
             // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
             foreach (var rendererList in rendererLists)
             {
                 ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
-                RendererList newRendererList = RendererList.Create(desc);
-                rendererListResource.rendererList = newRendererList;
+                allRendererLists[index] = RendererList.Create(desc);
+                lookup[rendererList.handle] = index++;
+            }
+
+            context.PrepareRendererListsAsync(ref allRendererLists);
+
+            // TODO: this is not nice...
+            foreach (var rendererList in rendererLists)
+            {
+                ref var rendererListResource = ref m_RendererListResources[rendererList];
+                rendererListResource.rendererList = allRendererLists[lookup[rendererList.handle]];
             }
         }
 

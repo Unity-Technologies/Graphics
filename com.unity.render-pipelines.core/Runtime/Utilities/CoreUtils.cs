@@ -1248,13 +1248,7 @@ namespace UnityEngine.Rendering
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
-            else
-            {
-                var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
-            }
+            renderContext.DrawRendererList(rendererList);
         }
     }
 }
