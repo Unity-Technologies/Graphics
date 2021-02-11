@@ -2322,7 +2322,51 @@ namespace UnityEngine.Rendering.HighDefinition
                                 switch (hdLightData.areaLightShape)
                                 {
                                     case AreaLightShape.Tube:
-                                        modulationAttenuation *= 1.0f - Mathf.Abs(Vector3.Dot(hdLightData.transform.right, toLight));
+                                        {
+                                            // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
+                                            // Listing 1.6. Analytic line-diffuse integration.
+                                            float Fpo(float d, float l)
+                                            {
+                                                return l / (d * (d * d + l * l)) + Mathf.Atan(l / d) / (d * d);
+                                            }
+                                            float Fwt(float d, float l)
+                                            {
+                                                return l * l / (d * (d * d + l * l));
+                                            }
+
+                                            Vector3 p1Global = hdLightData.transform.position + hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
+                                            Vector3 p2Global = hdLightData.transform.position - hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
+
+                                            Vector3 p1 = cam.transform.InverseTransformPoint(p1Global);
+                                            Vector3 p2 = cam.transform.InverseTransformPoint(p2Global);
+
+                                            float diffIntegral;
+                                            // tangent
+                                            Vector3 wt = (p2 - p1).normalized;
+                                            // clamping
+                                            if (p1.z <= 0.0 && p2.z <= 0.0)
+                                            {
+                                                diffIntegral = 0.0f;
+                                            }
+                                            else
+                                            {
+                                                if (p1.z < 0.0)
+                                                    p1 = ( p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
+                                                if (p2.z < 0.0)
+                                                    p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
+                                                // parameterization
+                                                float l1 = Vector3.Dot(p1, wt);
+                                                float l2 = Vector3.Dot(p2, wt);
+                                                // shading point orthonormal projection on the line
+                                                Vector3 po = p1 - l1 * wt;
+                                                // distance to line
+                                                float d = po.magnitude;
+                                                // integral
+                                                float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
+                                                diffIntegral = integral / Mathf.PI;
+                                            }
+                                            modulationAttenuation *= diffIntegral;
+                                        }
                                         break;
                                     case AreaLightShape.Rectangle:
                                     case AreaLightShape.Disc:
@@ -2330,7 +2374,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                         break;
                                     default: throw new Exception($"Unknown {typeof(AreaLightShape)}: {hdLightData.type}");
                                 }
-                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             default: throw new Exception($"Unknown {typeof(HDLightType)}: {hdLightData.type}");
                         }
