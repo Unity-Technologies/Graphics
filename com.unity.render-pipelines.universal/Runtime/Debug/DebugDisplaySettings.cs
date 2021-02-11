@@ -13,40 +13,40 @@ namespace UnityEditor.Rendering
         private static readonly Lazy<DebugDisplaySettings> s_Instance = new Lazy<DebugDisplaySettings>(() => new DebugDisplaySettings());
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
-        public DebugMaterialSettings materialSettings { get; private set; }
-        public DebugDisplaySettingsRendering renderingSettings { get; private set; }
-        public DebugDisplaySettingsLighting Lighting { get; private set; }
-        public DebugDisplaySettingsValidation Validation { get; private set; }
+        public DebugMaterialSettings MaterialSettings { get; private set; }
+        public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+        public DebugDisplaySettingsLighting LightingSettings { get; private set; }
+        public DebugDisplaySettingsValidation ValidationSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
-        public bool AreAnySettingsActive => materialSettings.AreAnySettingsActive ||
-                                            Lighting.AreAnySettingsActive ||
-                                            renderingSettings.AreAnySettingsActive ||
-                                            Validation.AreAnySettingsActive;
+        public bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
+                                            LightingSettings.AreAnySettingsActive ||
+                                            RenderingSettings.AreAnySettingsActive ||
+                                            ValidationSettings.AreAnySettingsActive;
 
-        public bool IsDebugMaterialActive => materialSettings.IsDebugMaterialActive ||
-                                             Lighting.IsDebugMaterialActive ||
-                                             renderingSettings.IsDebugMaterialActive ||
-                                             Validation.IsDebugMaterialActive;
+        public bool IsDebugMaterialActive => MaterialSettings.IsDebugMaterialActive ||
+                                             LightingSettings.IsDebugMaterialActive ||
+                                             RenderingSettings.IsDebugMaterialActive ||
+                                             ValidationSettings.IsDebugMaterialActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
-            return materialSettings.TryGetScreenClearColor(ref color) ||
-                   renderingSettings.TryGetScreenClearColor(ref color) ||
-                   Lighting.TryGetScreenClearColor(ref color) ||
-                   Validation.TryGetScreenClearColor(ref color);
+            return MaterialSettings.TryGetScreenClearColor(ref color) ||
+                   RenderingSettings.TryGetScreenClearColor(ref color) ||
+                   LightingSettings.TryGetScreenClearColor(ref color) ||
+                   ValidationSettings.TryGetScreenClearColor(ref color);
         }
 
-        public bool IsLightingActive => materialSettings.IsLightingActive &&
-                                        renderingSettings.IsLightingActive &&
-                                        Lighting.IsLightingActive &&
-                                        Validation.IsLightingActive;
+        public bool IsLightingActive => MaterialSettings.IsLightingActive &&
+                                        RenderingSettings.IsLightingActive &&
+                                        LightingSettings.IsLightingActive &&
+                                        ValidationSettings.IsLightingActive;
 
         public bool IsPostProcessingAllowed
         {
             get
             {
-                DebugPostProcessingMode debugPostProcessingMode = renderingSettings.debugPostProcessingMode;
+                DebugPostProcessingMode debugPostProcessingMode = RenderingSettings.debugPostProcessingMode;
 
                 switch(debugPostProcessingMode)
                 {
@@ -58,10 +58,10 @@ namespace UnityEditor.Rendering
                     case DebugPostProcessingMode.Auto:
                     {
                         // Only enable post-processing if we aren't using certain debug-views...
-                        return materialSettings.IsPostProcessingAllowed &&
-                               renderingSettings.IsPostProcessingAllowed &&
-                               Lighting.IsPostProcessingAllowed &&
-                               Validation.IsPostProcessingAllowed;
+                        return MaterialSettings.IsPostProcessingAllowed &&
+                               RenderingSettings.IsPostProcessingAllowed &&
+                               LightingSettings.IsPostProcessingAllowed &&
+                               ValidationSettings.IsPostProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:
@@ -93,10 +93,10 @@ namespace UnityEditor.Rendering
         {
             m_Settings.Clear();
 
-            materialSettings = Add(new DebugMaterialSettings());
-            renderingSettings = Add(new DebugDisplaySettingsRendering());
-            Lighting = Add(new DebugDisplaySettingsLighting());
-            Validation = Add(new DebugDisplaySettingsValidation());
+            MaterialSettings = Add(new DebugMaterialSettings());
+            RenderingSettings = Add(new DebugDisplaySettingsRendering());
+            LightingSettings = Add(new DebugDisplaySettingsLighting());
+            ValidationSettings = Add(new DebugDisplaySettingsValidation());
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)

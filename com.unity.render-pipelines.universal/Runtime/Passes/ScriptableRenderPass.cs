@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
 
                 debugSettings.overrideMaterial = replacementMaterial;
 
-                DebugSceneOverrideMode sceneOverride = DebugHandler.DebugDisplaySettings.renderingSettings.debugSceneOverrideMode;
+                DebugSceneOverrideMode sceneOverride = DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
 
                 if(sceneOverride != DebugSceneOverrideMode.None)
                 {
@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
                             break;
                     }
                 }
-                else if(DebugHandler.DebugDisplaySettings.materialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None)
+                else if(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None)
                 {
                     debugSettings.overrideMaterialPassIndex = 2;
                 }

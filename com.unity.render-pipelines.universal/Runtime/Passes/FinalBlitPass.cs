@@ -56,18 +56,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-	            if (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.HighlightNanInfNegative)
+                DebugDisplaySettingsValidation validationSettings = DebugDisplaySettings.Instance.ValidationSettings;
+
+	            if (validationSettings.validationMode==DebugValidationMode.HighlightNanInfNegative)
     	            cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
         	    else
             	    cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
 
-	            if (DebugDisplaySettings.Instance.Validation.validationMode == DebugValidationMode.HighlightOutsideOfRange)
+	            if (validationSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
     	        {
         	        cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
-            	    cmd.SetGlobalFloat(m_RangeMinId, DebugDisplaySettings.Instance.Validation.RangeMin);
-                	cmd.SetGlobalFloat(m_InverseRangeSizeId, DebugDisplaySettings.Instance.Validation.RangeMax);
+            	    cmd.SetGlobalFloat(m_RangeMinId, validationSettings.RangeMin);
+                	cmd.SetGlobalFloat(m_InverseRangeSizeId, validationSettings.RangeMax);
 
-	                if(DebugDisplaySettings.Instance.Validation.AlsoHighlightAlphaOutsideRange)
+	                if(validationSettings.AlsoHighlightAlphaOutsideRange)
     	                cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
         	        else
             	        cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
@@ -110,7 +112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
 #endif
-                if ((isSceneViewCamera || cameraData.isDefaultViewport) && (DebugDisplaySettings.Instance.Validation.validationMode==DebugValidationMode.None))
+                if ((isSceneViewCamera || cameraData.isDefaultViewport) && (validationSettings.validationMode==DebugValidationMode.None))
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,

@@ -34,10 +34,10 @@ namespace UnityEngine.Rendering.Universal
 
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
-        private DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.Lighting;
-        private DebugMaterialSettings MaterialSettings => m_DebugDisplaySettings.materialSettings;
-        private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.renderingSettings;
-        private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.Validation;
+        private DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
+        private DebugMaterialSettings MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
+        private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
+        private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.ValidationSettings;
 
         #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;

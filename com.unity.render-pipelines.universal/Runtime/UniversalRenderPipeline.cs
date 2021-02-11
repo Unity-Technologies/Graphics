@@ -1109,7 +1109,7 @@ namespace UnityEngine.Rendering.Universal
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
             DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
-            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
+            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
 
             if (renderingSettings.AreAnySettingsActive)
             {

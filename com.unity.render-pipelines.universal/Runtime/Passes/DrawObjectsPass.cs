@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if ((DebugHandler != null) &&
                     (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
                 {
-                    if(DebugHandler.DebugDisplaySettings.Lighting.DebugLightingMode == DebugLightingMode.ShadowCascades)
+                    if(DebugHandler.DebugDisplaySettings.LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
                     {
                         // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                         cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
