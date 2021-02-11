@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
+- VFX: Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Debug material view incorrect depth test. (case 1293291)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
