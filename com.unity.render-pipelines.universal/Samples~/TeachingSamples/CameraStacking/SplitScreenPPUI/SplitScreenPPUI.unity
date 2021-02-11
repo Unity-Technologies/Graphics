@@ -778,6 +778,7 @@ GameObject:
   - component: {fileID: 482165988}
   - component: {fileID: 482165991}
   - component: {fileID: 482165989}
+  - component: {fileID: 482165990}
   m_Layer: 0
   m_Name: Base_Left
   m_TagString: Untagged
@@ -832,6 +833,19 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!114 &482165990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 482165987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21aa50131bc134f04a14efdbeb7686be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pipelineAsset: {fileID: 11400000, guid: 9b9c0b62deeea4218843a7ad59325649, type: 2}
 --- !u!20 &482165991
 Camera:
   m_ObjectHideFlags: 0
@@ -1763,15 +1777,15 @@ MonoBehaviour:
     m_BestFit: 0
     m_MinSize: 2
     m_MaxSize: 40
-    m_Alignment: 1
+    m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: This example shows how to create split screen using Camera Stacking. It
-    also shows how to apply Post Processing on World Space and Screen Space - Camera
-    UI
+  m_Text: "This example shows how to create a split screen camera setup each with
+    their own camera stack. \nIt also shows how to apply Post Processing on World
+    Space and Screen Space Camera UI"
 --- !u!222 &1227385617
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1090784526}
-  m_IndirectSpecularColor: {r: 0.44657838, g: 0.49641305, b: 0.57481533, a: 1}
+  m_IndirectSpecularColor: {r: 0.16788325, g: 0.21073617, b: 0.28993857, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -671,7 +671,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eb5112208c77e43e4bc13cf11577d718, type: 2}
+  - {fileID: 2100000, guid: e79ed9157b4994e41a8ded6cddc85b4d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1965,7 +1965,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'This sample uses the "Render Objects" renderer feature and the "Scene
     Color'''' Shader Graph node to draw specific objects with a glitchy effect. See
-    the renderer in use for how the effect is set up. '
+    the "Glitch_Renderer" for how the effect is set up. '
 --- !u!222 &2094455581
 CanvasRenderer:
   m_ObjectHideFlags: 0
