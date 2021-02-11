@@ -160,12 +160,10 @@ Varyings vert(Attributes input)
     //if (_FlareDepth > 0.0f)
 
     float occlusion = 1.0f;
-    //if (_FlareOffscreen < 0.0f && all(pos >= 0) && all(pos <= 1))
+    //if (_FlareOffscreen < 0.0f || // No lens flare off screen
+    //    (all(_FlareScreenPos.xy >= 0) && all(_FlareScreenPos.xy <= 1)))
     //    occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
-    //output.occlusion = occlusion;
-    //output.occlusion = float4(_FlareScreenPos.xy + 0.5f + 0.5f, 0.0f, 1.0f);
-    //else
-        //output.occlusion = lerp(occlusion, 1.0f, abs(_FlareDepth));
+    output.occlusion = 1.0f;
 
     return output;
 }
