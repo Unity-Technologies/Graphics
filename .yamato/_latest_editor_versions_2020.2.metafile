@@ -9,24 +9,24 @@ editor_version_names:
 editor_versions:
   2020_2_latest_internal:
     Android:
-      revision: ca794392a1ed
-      updated_at: '2021-02-09 15:24:53.008922'
+      revision: becced5a802b
+      updated_at: '2021-02-11 00:23:20.172050'
       version: 2020.2.4f1
     Linux:
-      revision: ca794392a1ed
-      updated_at: '2021-02-09 15:24:53.008922'
+      revision: becced5a802b
+      updated_at: '2021-02-11 00:23:20.172050'
       version: 2020.2.4f1
     OSX:
-      revision: ca794392a1ed
-      updated_at: '2021-02-09 15:24:53.008922'
+      revision: becced5a802b
+      updated_at: '2021-02-11 00:23:20.172050'
       version: 2020.2.4f1
     Win:
-      revision: ca794392a1ed
-      updated_at: '2021-02-09 15:24:53.008922'
+      revision: becced5a802b
+      updated_at: '2021-02-11 00:23:20.172050'
       version: 2020.2.4f1
     iPhone:
-      revision: ca794392a1ed
-      updated_at: '2021-02-09 15:24:53.008922'
+      revision: becced5a802b
+      updated_at: '2021-02-11 00:23:20.172050'
       version: 2020.2.4f1
   2020_2_latest_public:
     Android:
