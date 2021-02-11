@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
 - Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+- Optimized InputRegistering computational time.
 
 ### Added
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
