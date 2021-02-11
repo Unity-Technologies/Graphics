@@ -291,12 +291,15 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
-// Following three variables are feeded by the C++ Editor for Scene selection
+CBUFFER_END
+
+// Following variables and textures are fed by the C++ Editor for Scene selection
+// These are global on purpose so they don't go in the main constant buffer.
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
-
-CBUFFER_END
+TEXTURE2D(unity_EditorViz_DepthBuffer);
+SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
 #if defined(LAYERED_LIT_SHADER)

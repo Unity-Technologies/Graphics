@@ -1,7 +1,7 @@
 #ifndef UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 
-#ifdef SCENEPICKINGPASS
+#if 0 //def SCENEPICKINGPASS
 
 // The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices

@@ -289,6 +289,25 @@ float3 PackIndexToRGB16f(uint entityId)
     return float3(f0, f1, f2);
 }
 
+float4 ComputeSelectionMask(float objectGroupId, float3 ndcWithZ, TEXTURE2D_PARAM(depthBuffer, sampler_depthBuffer))
+{
+    float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;
+    // Use a small multiplicative Z bias to make it less likely for objects to self occlude in the outline buffer
+    static const float zBias = 0.02;
+#if UNITY_REVERSED_Z
+    float pixelZ = ndcWithZ.z * (1 + zBias);
+    bool occluded = pixelZ < sceneZ;
+#else
+    float pixelZ = ndcWithZ.z * (1 - zBias);
+    bool occluded = pixelZ > sceneZ;
+#endif
+    // Red channel = unique identifier, can be used to separate groups of objects from each other
+    //               to get outlines between them.
+    // Green channel = occluded behind depth buffer (0) or not occluded (1)
+    // Blue channel  = always 1 = not cleared to zero = there's an outlined object at this pixel
+    return float4(objectGroupId, occluded ? 0 : 1, 1, 1);
+}
+
 float4 PackId32ToRGBA8888(uint id32)
 {
     uint b0 = (id32 >>  0) & 0xff;

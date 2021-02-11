@@ -100,9 +100,24 @@ void Frag(  PackedVaryingsToPS packedInput
 
 #ifdef SCENESELECTIONPASS
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
-    outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+    // outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+    outColor = ComputeSelectionMask(
+        _ObjectId,
+        float3(posInput.positionNDC, posInput.deviceDepth),
+        TEXTURE2D_ARGS(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer));
 #elif defined(SCENEPICKINGPASS)
-    outColor = _SelectionID;
+    #ifdef UNITY_DOTS_INSTANCING_ENABLED
+    if (_SelectionID.x == 5.0) // EntityId = 5,
+        outColor = PackId32ToRGBA8888(unity_EntityId.x);
+    else
+        outColor = float4(0, 0, 0, 0); // GameObjects output EntityId = 0
+    #else
+    if (_SelectionID.x == 1.0) // ObjectId = 1,
+        outColor = PackId32ToRGBA8888(asuint(unity_LODFade.z));
+    else
+        outColor = float4(0, 0, 0, 0); // Entities output ObjectId = 0
+    #endif
+    //outColor = _SelectionID;
 #else
 
     // Depth and Alpha to coverage

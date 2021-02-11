@@ -37,11 +37,15 @@ float3 _EmissionColor;
 // By default, the emissive is contributing
 float _IncludeIndirectLighting;
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+CBUFFER_END
+
+// Following variables and textures are fed by the C++ Editor for Scene selection
+// These are global on purpose so they don't go in the main constant buffer.
 int _ObjectId;
 int _PassValue;
-
-CBUFFER_END
+float4 _SelectionID;
+TEXTURE2D(unity_EditorViz_DepthBuffer);
+SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 

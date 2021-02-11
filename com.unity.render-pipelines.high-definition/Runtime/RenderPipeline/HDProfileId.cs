@@ -239,6 +239,8 @@ namespace UnityEngine.Rendering.HighDefinition
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
 
+        RenderSceneSelection,
+
         AOVExecute,
         // Enum AOVBuffers
         AOVOutput,

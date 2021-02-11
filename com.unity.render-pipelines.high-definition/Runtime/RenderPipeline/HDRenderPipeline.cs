@@ -952,7 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
-            }            
+            }
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
@@ -3162,6 +3162,19 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
         }
 
+        private bool IsSceneSelectionRequest(Camera.RenderRequest renderRequest)
+        {
+            switch (renderRequest.mode)
+            {
+                case Camera.RenderRequestMode.EntityId:
+                case Camera.RenderRequestMode.ObjectId:
+                case Camera.RenderRequestMode.SelectionMask:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
             var previousRT = RenderTexture.active;
@@ -3173,12 +3186,16 @@ namespace UnityEngine.Rendering.HighDefinition
             var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
             m_IntermediateAfterPostProcessBuffer = m_IntermediateAfterPostProcessBufferFloat;
 
+            // Process RenderRequests in two batches. First, process every SceneSelection request, which
+            // is handled using a special codepath. Then, process every other request, which will go through
+            // the AOV system.
             try
             {
-                if (renderRequests.Count == 1 &&
-                    renderRequests[0].isValid &&
-                    renderRequests[0].mode == Camera.RenderRequestMode.SelectionMask)
+                foreach (var request in renderRequests)
                 {
+                    if (!IsSceneSelectionRequest(request))
+                        continue;
+
                     var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                     if (additionalCameraData == null)
                     {
@@ -3186,24 +3203,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                     }
 
-                    additionalCameraData.customRender += RenderOutlineMask;
-                    m_OutlineMaskTarget = renderRequests[0].result;
-
                     try
                     {
+                        additionalCameraData.customRender += RenderSceneSelectionRequest;
+                        m_SceneSelectionMode = request.mode;
+                        m_SceneSelectionTarget = request.result;
                         Render(renderContext, new[] {camera});
                     }
                     finally
                     {
-                        additionalCameraData.customRender -= RenderOutlineMask;
+                        additionalCameraData.customRender -= RenderSceneSelectionRequest;
                     }
-
-                    return;
                 }
 
+                bool haveAOVRequests = false;
                 var requests = new AOVRequestBuilder();
                 foreach (var request in renderRequests)
                 {
+                    if (IsSceneSelectionRequest(request))
+                        continue;
+
                     var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
                     var aovBuffers = AOVBuffers.Color;
                     if (request.mode == Camera.RenderRequestMode.Depth ||
@@ -3221,19 +3240,24 @@ namespace UnityEngine.Rendering.HighDefinition
                             //if (request.result != null)
                             //    cmd.Blit(textures[0], request.result);
                         });
+                    haveAOVRequests = true;
                 }
 
-                var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                if (additionaCameraData == null)
+                if (haveAOVRequests)
                 {
-                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
-                    additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionaCameraData == null)
+                    {
+                        camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    }
+
+                    additionaCameraData.SetAOVRequests(requests.Build());
+
+                    Render(renderContext, new[] {camera});
+
+                    additionaCameraData.SetAOVRequests(null);
                 }
-                additionaCameraData.SetAOVRequests(requests.Build());
-
-                Render(renderContext, new[] {camera});
-
-                additionaCameraData.SetAOVRequests(null);
             }
             finally
             {
@@ -3242,32 +3266,53 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        RenderTexture m_OutlineMaskTarget;
-        void RenderOutlineMask(ScriptableRenderContext context, HDCamera hdCamera)
+        Camera.RenderRequestMode m_SceneSelectionMode;
+        RenderTexture m_SceneSelectionTarget;
+        void RenderSceneSelectionRequest(ScriptableRenderContext context, HDCamera hdCamera)
         {
-            var cmd = CommandBufferPool.Get("");
+            var cmd = CommandBufferPool.Get("RenderSceneSelectionRequest");
 
-            // TODO: Need depth target.
-            cmd.SetRenderTarget(m_OutlineMaskTarget);
-            //cmd.ClearRenderTarget(true, true, Color.black);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderSceneSelection)))
+            {
+                cmd.SetRenderTarget(m_SceneSelectionTarget);
+                cmd.ClearRenderTarget(true, true, Color.clear);
+                cmd.SetGlobalInt("_ObjectId", 0);
+                cmd.SetGlobalInt("_PassValue", 1);
+                cmd.SetGlobalVector("_SelectionID", new Vector4((float)(int)m_SceneSelectionMode, 0, 0, 0));
 
-            var camera = hdCamera.camera;
-            camera.TryGetCullingParameters(out var cullingParameters);
-            var cullingResults = context.Cull(ref cullingParameters);
+                hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, 0);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
 
-            var sceneSelectionTag = new ShaderTagId("SceneSelectionPass");
+                var camera = hdCamera.camera;
+                camera.TryGetCullingParameters(out var cullingParameters);
+                var cullingResults = context.Cull(ref cullingParameters);
 
-            var drawingSettings = new DrawingSettings(
-                sceneSelectionTag,
-                new SortingSettings(camera) { criteria = SortingCriteria.None});
+                ShaderTagId shaderTagId;
+                switch (m_SceneSelectionMode)
+                {
+                    case Camera.RenderRequestMode.ObjectId:
+                    case Camera.RenderRequestMode.EntityId:
+                        shaderTagId = new ShaderTagId("Picking");
+                        break;
+                    case Camera.RenderRequestMode.SelectionMask:
+                        shaderTagId = new ShaderTagId("SceneSelectionPass");
+                        break;
+                    default:
+                        return;
+                }
 
-            var filteringSettings = FilteringSettings.defaultValue;
+                var drawingSettings = new DrawingSettings(
+                    shaderTagId,
+                    new SortingSettings(camera) { criteria = SortingCriteria.None});
 
-            context.ExecuteCommandBuffer(cmd);
-            context.DrawRenderers(
-                cullingResults,
-                ref drawingSettings,
-                ref filteringSettings);
+                var filteringSettings = FilteringSettings.defaultValue;
+
+                context.ExecuteCommandBuffer(cmd);
+                context.DrawRenderers(
+                    cullingResults,
+                    ref drawingSettings,
+                    ref filteringSettings);
+            }
         }
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
