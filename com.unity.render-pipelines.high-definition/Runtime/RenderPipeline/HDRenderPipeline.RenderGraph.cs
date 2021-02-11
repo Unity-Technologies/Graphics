@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int index = 0;
                 builder.UseColorBuffer(colorBuffer, index++);
 #if ENABLE_VIRTUALTEXTURES
-                passData.renderTarget[index++] = builder.WriteTexture(vtFeedbackBuffer);
+                builder.UseColorBuffer(vtFeedbackBuffer, index++);
 #endif
                 // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
