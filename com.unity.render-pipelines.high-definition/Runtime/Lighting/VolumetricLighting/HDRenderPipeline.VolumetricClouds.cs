@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeVolumetricClouds()
         {
+            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+                return;
+
             // Allocate the buffers for ambient probe evaluation
             m_PackedCoeffsClouds = new Vector4[7];
             m_PhaseZHClouds = new ZonalHarmonicsL2();
@@ -46,6 +49,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReleaseVolumetricClouds()
         {
+            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+                return;
+
             // Release the additional sub components
             ReleaseVolumetricCloudsMap();
             ReleaseVolumetricCloudsShadows();
@@ -654,7 +660,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo info)
         {
-            if (hdCamera.camera.cameraType == CameraType.Reflection)
+            if (hdCamera.camera.cameraType == CameraType.Reflection || !m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
                 return;
 
             // Grab the volume settings
