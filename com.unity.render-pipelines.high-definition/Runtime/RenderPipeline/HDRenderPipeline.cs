@@ -2575,74 +2575,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_SkyManager.ExportSkyToTexture(camera);
         }
 
-        RendererListDesc PrepareForwardOpaqueRendererList(CullingResults cullResults, HDCamera hdCamera)
-        {
-            var passNames = hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward
-                ? m_ForwardAndForwardOnlyPassNames
-                : m_ForwardOnlyPassNames;
-            return CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting);
-        }
-
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
             return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
-        }
-
-        RendererListDesc PrepareForwardTransparentRendererList(CullingResults cullResults, HDCamera hdCamera, bool preRefraction)
-        {
-            RenderQueueRange transparentRange;
-            if (preRefraction)
-            {
-                transparentRange = HDRenderQueue.k_RenderQueue_PreRefraction;
-            }
-            else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
-            {
-                transparentRange = HDRenderQueue.k_RenderQueue_Transparent;
-            }
-            else // Low res transparent disabled
-            {
-                transparentRange = HDRenderQueue.k_RenderQueue_TransparentWithLowRes;
-            }
-
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction))
-            {
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
-                    transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
-                else
-                    transparentRange = HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
-            }
-
-            if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
-            {
-                m_CurrentRendererConfigurationBakedLighting |= PerObjectData.MotionVectors; // This will enable the flag for low res transparent as well
-            }
-
-            var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
-            return CreateTransparentRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, transparentRange);
-        }
-
-        static void RenderForwardRendererList(FrameSettings               frameSettings,
-            RendererList                rendererList,
-            RenderTargetIdentifier[]    renderTarget,
-            RTHandle                    depthBuffer,
-            ComputeBuffer               lightListBuffer,
-            bool                        opaque,
-            ScriptableRenderContext     renderContext,
-            CommandBuffer               cmd)
-        {
-            // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
-            bool useFptl = opaque && frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-
-            // say that we want to use tile/cluster light loop
-            CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", useFptl);
-            CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, lightListBuffer);
-
-            CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
-            if (opaque)
-                DrawOpaqueRendererList(renderContext, cmd, frameSettings, rendererList);
-            else
-                DrawTransparentRendererList(renderContext, cmd, frameSettings, rendererList);
         }
 
         struct PostProcessParameters
