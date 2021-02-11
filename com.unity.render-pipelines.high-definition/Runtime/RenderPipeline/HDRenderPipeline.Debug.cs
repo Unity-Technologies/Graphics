@@ -991,7 +991,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output = RenderExposureDebug(renderGraph, hdCamera, colorBuffer);
 
             if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))
-                output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat););
+                output = ResolveColorPickerDebug(renderGraph, colorPickerDebugTexture, hdCamera, colorFormat);
 
             RenderLightVolumes(renderGraph, output, depthBuffer, cullResults, hdCamera);
 
