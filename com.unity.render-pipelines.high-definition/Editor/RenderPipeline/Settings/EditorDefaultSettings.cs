@@ -1,11 +1,10 @@
 using System;
-using System.IO;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [Obsolete("Please use HDDefaultSettings.instance.* instead.", false)]
     static class EditorDefaultSettings
     {
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>

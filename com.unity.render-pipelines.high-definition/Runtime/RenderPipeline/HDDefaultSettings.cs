@@ -1,12 +1,8 @@
-using UnityEngine.Rendering;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
-using System.Diagnostics;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.HighDefinition;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -188,6 +184,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
+            // we need to make sure the old diffusion profile had time to upgrade before moving it away
+            if (oldAsset.diffusionProfileSettings != null)
+                oldAsset.diffusionProfileSettings.TryToUpgrade();
             assetCreated.diffusionProfileSettingsList = oldAsset.m_ObsoleteDiffusionProfileSettingsList;
 
             //3. Clear obsolete fields
@@ -356,6 +355,8 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_VolumeProfileDefault = value;
         }
 
+        /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
+        /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal VolumeProfile GetOrCreateDefaultVolumeProfile()
         {
         #if UNITY_EDITOR

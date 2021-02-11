@@ -54,22 +54,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
         ref FrameSettings GetData(Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
-            if (obj is HDProbe)
-                return ref (obj as HDProbe).frameSettings;
-            if (obj is HDDefaultSettings)
-                switch (DefaultSettingsPanelIMGUI.selectedFrameSettings)
-                {
-                    case DefaultSettingsPanelIMGUI.SelectedFrameSettings.Camera:
-                        return ref (obj as HDDefaultSettings).GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-                    case DefaultSettingsPanelIMGUI.SelectedFrameSettings.BakedOrCustomReflection:
-                        return ref (obj as HDDefaultSettings).GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
-                    case DefaultSettingsPanelIMGUI.SelectedFrameSettings.RealtimeReflection:
-                        return ref (obj as HDDefaultSettings).GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
-                    default:
-                        throw new System.ArgumentException("Unknown kind of DefaultSettingsPanelIMGUI.SelectedFrameSettings");
-                }
+            switch (obj)
+            {
+                case HDAdditionalCameraData data:
+                    return ref data.renderingPathCustomFrameSettings;
+                case HDProbe probe:
+                    return ref probe.frameSettings;
+                default:
+                    {
+                        if (obj is HDDefaultSettings defaultSettings)
+                        {
+                            switch (DefaultSettingsPanelIMGUI.selectedFrameSettings)
+                            {
+                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.Camera:
+                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.BakedOrCustomReflection:
+                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.RealtimeReflection:
+                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                            }
+                        }
+
+                        break;
+                    }
+            }
             throw new System.ArgumentException("Unknown kind of object");
         }
 

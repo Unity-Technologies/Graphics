@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Ensure we reflect presets in the pipeline asset, not the hardcoded defaults.
             // Warning: base.OnEnable must be called after VolumeComponentWithQuality has unpacked SerializedData.
-            var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            var pipeline = HDRenderPipeline.currentPipeline;
             if (pipeline != null)
             {
                 serializedObject.Update();

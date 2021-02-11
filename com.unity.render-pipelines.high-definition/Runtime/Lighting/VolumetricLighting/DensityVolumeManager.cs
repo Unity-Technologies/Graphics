@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (m_VolumeAtlas == null)
+                if (m_VolumeAtlas == null && HDRenderPipeline.currentAsset != null)
                 {
                     var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
